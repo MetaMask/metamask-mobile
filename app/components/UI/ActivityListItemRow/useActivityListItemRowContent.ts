@@ -1304,7 +1304,11 @@ export function useActivityListItemRowContent(
       : undefined
     : undefined;
   const predictIconUrl = isPredictTradeKind(item.type)
-    ? getPredictActivity(item)?.icon
+    ? 'icon' in item.data
+      ? typeof item.data.icon === 'string'
+        ? item.data.icon
+        : undefined
+      : undefined
     : undefined;
 
   let avatarTokens: TokenAmount[];

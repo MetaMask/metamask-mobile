@@ -7,16 +7,13 @@ import {
   getBridgeHistoryItem,
 } from './bridgeDetailsUtils';
 
-function bridgeItem(
-  raw: ActivityListItem['raw'],
-): Extract<ActivityListItem, { type: 'bridge' }> {
+function bridgeItem(): Extract<ActivityListItem, { type: 'bridge' }> {
   return {
     type: 'bridge',
     chainId: 'eip155:1',
     status: 'success',
     timestamp: 1,
     hash: '0xsourcehash',
-    raw,
     data: {},
   };
 }
@@ -31,7 +28,7 @@ describe('bridgeDetailsUtils', () => {
         },
       },
     } as BridgeHistoryItem;
-    const item = bridgeItem(undefined);
+    const item = bridgeItem();
     const transactionMeta = { id: 'bridge-tx-meta-id' } as TransactionMeta;
 
     expect(

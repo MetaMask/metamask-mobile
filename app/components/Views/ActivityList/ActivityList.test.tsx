@@ -1080,7 +1080,7 @@ describe('ActivityList', () => {
   it('routes Ramp sell rows to legacy OrderDetails', () => {
     const sellOrder = {
       id: 'ramp-sell-order-id',
-      hash: '0xramp-sell',
+      sellTxHash: '0xramp-sell',
       provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
       orderType: 'SELL',
     };
@@ -1129,7 +1129,7 @@ describe('ActivityList', () => {
   it('routes deposit CREATED rows to goToBuy', () => {
     const depositCreatedOrder = {
       id: 'deposit-created-id',
-      hash: '0xdeposit-created',
+      txHash: '0xdeposit-created',
       provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
       state: FIAT_ORDER_STATES.CREATED,
     };

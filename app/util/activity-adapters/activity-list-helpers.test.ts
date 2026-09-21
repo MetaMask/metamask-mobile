@@ -197,13 +197,6 @@ describe('activity list helpers', () => {
           to: '0xeoa',
           token: { direction: 'in', symbol: 'mUSD' },
         },
-        raw: {
-          type: 'localTransaction',
-          data: {
-            initialTransaction: transaction,
-            primaryTransaction: transaction,
-          },
-        } as never,
       });
       const api = makeItem({
         type: 'receive',

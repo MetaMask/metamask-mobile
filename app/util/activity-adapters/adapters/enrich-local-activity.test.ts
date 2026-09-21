@@ -67,7 +67,6 @@ describe('local activity call-site mapping', () => {
       status: 'success',
       data: { from, to },
     });
-    expect(item.raw).toBeUndefined();
   });
 
   it('keeps incomplete swaps as swap when the destination token is missing', () => {

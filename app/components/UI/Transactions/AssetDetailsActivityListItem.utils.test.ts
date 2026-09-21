@@ -44,7 +44,6 @@ describe('AssetDetailsActivityListItem utils', () => {
       tokenChainId: '0x89',
     });
 
-    expect(item.raw).toBeUndefined();
     expect(item.chainId).toBe('eip155:137');
     // nativeAssetSymbol flows through to the mapped token symbol
     expect('token' in item.data ? item.data.token?.symbol : undefined).toBe(

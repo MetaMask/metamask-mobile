@@ -72,6 +72,7 @@ describe('usePredictActivityItems', () => {
       timestamp: 200_000, // entry.timestamp (200s) → ms
       hash: 'predict-buy',
       data: {
+        eventTitle: 'Will it rain?',
         token: {
           amount: '100',
           symbol: 'USDC',

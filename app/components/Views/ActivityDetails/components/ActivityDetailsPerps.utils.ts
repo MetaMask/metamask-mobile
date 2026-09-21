@@ -1,6 +1,9 @@
 import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
-import type { PerpsOrderKind } from '../../../../util/activity-adapters';
+import type {
+  ActivityListItem,
+  PerpsOrderKind,
+} from '../../../../util/activity-adapters';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted. */
 import {
   formatTransactionDate as formatPerpsTransactionDate,

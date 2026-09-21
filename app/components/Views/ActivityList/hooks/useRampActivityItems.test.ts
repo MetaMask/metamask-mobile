@@ -136,7 +136,6 @@ describe('useRampActivityItems', () => {
       hash: '0xbuyhash',
       data: { token: { amount: '5.01', symbol: 'mUSD', direction: 'in' } },
     });
-    expect(result.current[0].raw).toBeUndefined();
   });
 
   it('includes v2 orders with non-EVM CAIP-2 network metadata', () => {

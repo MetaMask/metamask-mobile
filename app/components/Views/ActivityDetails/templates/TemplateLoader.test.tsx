@@ -423,27 +423,6 @@ describe('TemplateLoader', () => {
       status: 'success',
       timestamp: 1,
       hash: '0xperps',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'deposit-1',
-          type: 'deposit',
-          category: 'deposit',
-          title: 'Account funded',
-          subtitle: '+$100',
-          timestamp: 1,
-          asset: 'USDC',
-          depositWithdrawal: {
-            amount: '+$100',
-            amountNumber: 100,
-            isPositive: true,
-            asset: 'USDC',
-            txHash: '0xperps',
-            status: 'completed',
-            type: 'deposit',
-          },
-        },
-      },
       data: {
         token: {
           amount: '100',

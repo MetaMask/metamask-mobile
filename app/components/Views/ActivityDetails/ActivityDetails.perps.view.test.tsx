@@ -102,10 +102,7 @@ const perpsTransactionRegistry = new Map<string, PerpsTransaction>(
   ((): [string, PerpsTransaction][] => {
     const pairs: [string, PerpsTransaction][] = [];
     const register = (tx: PerpsTransaction) => {
-      const hash =
-        tx.depositWithdrawal?.txHash ??
-        tx.depositWithdrawal?.depositId ??
-        tx.id;
+      const hash = tx.depositWithdrawal?.txHash ?? tx.id;
       if (hash) pairs.push([hash, tx]);
     };
     register(buildActivityCvPerpsCompletedDepositTransaction());
