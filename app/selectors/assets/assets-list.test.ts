@@ -9,6 +9,7 @@ import {
   TrxScope,
 } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
+import type { FungibleAssetMetadata } from '@metamask/assets-controller';
 import type { RootState } from '../../reducers';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { createDeepEqualSelector } from '../util';
@@ -1847,9 +1848,6 @@ describe('selectAsset', () => {
   });
 
   it('returns asset with aggregators', () => {
-    // `AssetsController` (the sole source of truth post-migration) doesn't
-    // track token-list aggregator sources the way the legacy
-    // `TokensController` did, so `aggregators` is always empty now.
     const state = mockState();
     const result = selectAsset(state, {
       address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
@@ -1872,9 +1870,53 @@ describe('selectAsset', () => {
       logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
-      aggregators: [],
+      aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
       accountType: EthAccountType.Eoa,
     });
+  });
+
+  it('falls back to a lowercase assetsInfo key when the checksummed key is absent', () => {
+    const state = mockState();
+    const assetsController = state.engine.backgroundState.AssetsController;
+    const checksummedKey =
+      'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F';
+    const lowercaseKey =
+      'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
+    const accountId = 'd7f11451-9d79-4df4-a012-afd253443639';
+
+    assetsController.assetsBalance[accountId][lowercaseKey] =
+      assetsController.assetsBalance[accountId][checksummedKey];
+    delete assetsController.assetsBalance[accountId][checksummedKey];
+    assetsController.assetsInfo[lowercaseKey] = {
+      ...assetsController.assetsInfo[checksummedKey],
+      aggregators: ['Aave'],
+    };
+    delete assetsController.assetsInfo[checksummedKey];
+
+    const result = selectAsset(state, {
+      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      chainId: '0x1',
+      isStaked: false,
+    });
+
+    expect(result?.aggregators).toStrictEqual(['Aave']);
+  });
+
+  it('indexes assetsInfo directly for non-evm assets', () => {
+    const state = mockState();
+    const jupAssetId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
+    const jupMetadata = state.engine.backgroundState.AssetsController
+      .assetsInfo[jupAssetId] as FungibleAssetMetadata;
+    jupMetadata.aggregators = ['Jupiter'];
+
+    const result = selectAsset(state, {
+      address: jupAssetId,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      isStaked: false,
+    });
+
+    expect(result?.aggregators).toStrictEqual(['Jupiter']);
   });
 
   it('returns isStaked as false when asset.isStaked is undefined', () => {

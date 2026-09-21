@@ -7,7 +7,11 @@ import {
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
 } from '@metamask/assets-controllers';
-import { toHex } from '@metamask/controller-utils';
+import type {
+  AssetsControllerState,
+  FungibleAssetMetadata,
+} from '@metamask/assets-controller';
+import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
@@ -35,7 +39,6 @@ import {
   weiToFiatNumber,
 } from '../../util/number/bigint';
 import { safeParseBigNumber } from '../../util/number/bignumber';
-import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectAccountsByChainId } from '../accountTrackerController';
 import {
   selectCurrencyRates,
@@ -45,6 +48,7 @@ import { selectSelectedInternalAccountByScope } from '../multichainAccounts/acco
 import { selectSelectedAccountGroup } from '../multichainAccounts/accountTreeController';
 import {
   getAssetsBalance,
+  getAssetsInfo,
   getAssetsPrice,
   getSelectedCurrency,
 } from './assets-controller';
@@ -52,7 +56,6 @@ import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
-import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
 import {
   getAccountTrackerControllerAccountsByChainId,
@@ -594,13 +597,29 @@ export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       chainIds,
     );
 
+const getAssetAggregators = (
+  assetsInfo: AssetsControllerState['assetsInfo'],
+  chainIdInCaip: string,
+  address: string,
+): string[] | undefined => {
+  const metadata = chainIdInCaip.startsWith('eip155:')
+    ? (assetsInfo[
+        `${chainIdInCaip}/erc20:${toChecksumHexAddress(address)}` as CaipAssetType
+      ] ??
+      assetsInfo[
+        `${chainIdInCaip}/erc20:${address.toLowerCase()}` as CaipAssetType
+      ])
+    : assetsInfo[address as CaipAssetType];
+
+  return (metadata as FungibleAssetMetadata | undefined)?.aggregators;
+};
+
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
-    selectAllTokens,
-    selectSelectedInternalAccountAddress,
+    getAssetsInfo,
     selectSelectedInternalAccountByScope,
     (
       _state: RootState,
@@ -618,8 +637,7 @@ export const selectAsset = createSelector(
   (
     assets,
     stakedAssets,
-    allTokens,
-    selectedAddress,
+    assetsInfo,
     getAccountByScope,
     address,
     chainId,
@@ -649,17 +667,9 @@ export const selectAsset = createSelector(
           );
         });
 
-    // Look up aggregators and rwaData from the original token in allTokens
-    const originalToken = selectedAddress
-      ? allTokens?.[chainId as Hex]?.[selectedAddress]?.find(
-          (token) => token.address.toLowerCase() === address.toLowerCase(),
-        )
-      : undefined;
+    const aggregators = getAssetAggregators(assetsInfo, chainIdInCaip, address);
 
-    const aggregators = originalToken?.aggregators;
-    const rwaData = (originalToken as TokenI | undefined)?.rwaData;
-
-    return asset ? assetToToken(asset, aggregators, rwaData) : undefined;
+    return asset ? assetToToken(asset, aggregators, asset.rwaData) : undefined;
   },
 );
 
