@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import { type LayoutChangeEvent } from 'react-native';
 import {
   type RouteProp,
   useFocusEffect,
@@ -9,13 +9,15 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  HeaderStandard,
+  HeaderStandardAnimated,
   Text,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
+import Reanimated from 'react-native-reanimated';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useFeed } from '../../hooks/useFeed';
-import { useEventsWithLiveGames } from '../../hooks/useEventsWithLiveGames';
+import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
 import {
   FEED_SCREENS,
@@ -33,6 +35,7 @@ import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { PortfolioActions } from './internal/PortfolioActions';
 import { PredictHomeTestIds } from './PredictHome.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const PREVIEW_LIMIT = 2;
 const NO_EVENTS: readonly PredictEvent[] = [];
@@ -68,7 +71,9 @@ export const PredictHome = () => {
     () => [...feedNflEvents, ...feedNcaaEvents],
     [feedNflEvents, feedNcaaEvents],
   );
-  const liveEvents = useEventsWithLiveGames(KALSHI_VENUE_ID, feedEvents);
+  const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents, {
+    marketScope: 'card',
+  });
   const nflEvents = useMemo(
     () => liveEvents.slice(0, feedNflEvents.length),
     [liveEvents, feedNflEvents.length],
@@ -101,6 +106,17 @@ export const PredictHome = () => {
     }, [entryPoint, navigation]),
   );
 
+  const homeTitle = strings('predict_next.home_title');
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+
+  const handleTitleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
+  );
+
   const openPortfolio = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.PORTFOLIO, {
@@ -128,8 +144,12 @@ export const PredictHome = () => {
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandard
+      <HeaderStandardAnimated
         includesTopInset
+        title={homeTitle}
+        titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
+        scrollY={scrollY}
+        titleSectionHeight={titleSectionHeightSv}
         {...(navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
@@ -137,9 +157,19 @@ export const PredictHome = () => {
             }
           : {})}
       />
-      <ScrollView testID={PredictHomeTestIds.SCROLL}>
+      <Reanimated.ScrollView
+        testID={PredictHomeTestIds.SCROLL}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
         <Box twClassName="gap-6 px-4 pb-8">
-          <Text variant={TextVariant.HeadingLg}>Predictions</Text>
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={PredictHomeTestIds.TITLE_SECTION}
+            onLayout={handleTitleLayout}
+          >
+            {homeTitle}
+          </Text>
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}
@@ -173,7 +203,7 @@ export const PredictHome = () => {
             onRetry={() => ncaaQuery.refetch()}
           />
         </Box>
-      </ScrollView>
+      </Reanimated.ScrollView>
     </Box>
   );
 };

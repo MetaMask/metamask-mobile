@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { PerpsMode } from '@metamask/perps-controller';
+import { PerpsMode, type Position } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -53,6 +53,7 @@ jest.mock(
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockCanGoBack = jest.fn();
   const mockGoBack = jest.fn();
   const mockDispatch = jest.fn();
@@ -71,7 +72,6 @@ describe('usePerpsNavigation', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
@@ -105,6 +105,7 @@ describe('usePerpsNavigation', () => {
     mockGetState.mockReturnValue({ routeNames: [] });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
       dispatch: mockDispatch,
@@ -255,6 +256,23 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('resets the Perps stack to home instead of pushing it', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.resetToHome('market_list');
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.PERPS_HOME,
+            params: { source: 'market_list' },
+          },
+        ],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('navigates to the default Pro market instead of home when Pro mode is active', () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectPerpsProModeEnabledFlag) return true;
@@ -359,6 +377,28 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('opens order confirmation as a headerless bottom sheet for treatment', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'SOL',
+        useBottomSheet: true,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            useBottomSheet: true,
+            showPerpsHeader: false,
+          },
+        );
+      });
+    });
+
     it('wraps order creation with transaction active A/B tests when provided', async () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const transactionActiveAbTests = [
@@ -444,6 +484,36 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToTutorial(params);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, params);
+    });
+
+    it('opens the adjust margin screen for control', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'add');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'add',
+        enableHaptics: undefined,
+      });
+    });
+
+    it('opens the adjust margin bottom sheet for treatment', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'remove', {
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'remove',
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
     });
   });
 

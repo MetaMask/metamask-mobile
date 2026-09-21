@@ -10,9 +10,12 @@ import {
 } from './index';
 import {
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectIsInBasicFunctionalityConsolidationRollout,
   selectIsSocialLoginBasicFunctionalityLocked,
+  selectShouldRepairSocialLoginBasicFunctionality,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { MetaMetricsEvents } from '../../core/Analytics';
 
 const mockSyncConsolidatedBasicFunctionalityPreferences = jest.mocked(
   syncConsolidatedBasicFunctionalityPreferences,
@@ -20,14 +23,40 @@ const mockSyncConsolidatedBasicFunctionalityPreferences = jest.mocked(
 const mockSelectMobileUxBftcConsolidationFlagEnabled = jest.mocked(
   selectMobileUxBftcConsolidationFlagEnabled,
 );
+const mockSelectIsInBasicFunctionalityConsolidationRollout = jest.mocked(
+  selectIsInBasicFunctionalityConsolidationRollout,
+);
 const mockSelectIsSocialLoginBasicFunctionalityLocked = jest.mocked(
   selectIsSocialLoginBasicFunctionalityLocked,
+);
+const mockSelectShouldRepairSocialLoginBasicFunctionality = jest.mocked(
+  selectShouldRepairSocialLoginBasicFunctionality,
 );
 const mockGetBasicFunctionalityConsolidationPlan = jest.fn(() => ({
   landingState: true,
   notification: 'toast',
 }));
 const mockIsBasicFunctionalitySocialLoginUser = jest.fn(() => false);
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'mock-event' });
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args) => mockTrackEvent(...args),
+  },
+}));
+
+jest.mock('../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: (...args) => mockCreateEventBuilder(...args),
+  },
+}));
 
 // Mock Engine
 const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
@@ -52,7 +81,9 @@ jest.mock(
   '../../selectors/featureFlagController/basicFunctionalityConsolidation',
   () => ({
     selectMobileUxBftcConsolidationFlagEnabled: jest.fn(() => false),
+    selectIsInBasicFunctionalityConsolidationRollout: jest.fn(() => false),
     selectIsSocialLoginBasicFunctionalityLocked: jest.fn(() => false),
+    selectShouldRepairSocialLoginBasicFunctionality: jest.fn(() => false),
     BFT_CHILD_PREFERENCES: [
       'useTransactionSimulations',
       'securityAlertsEnabled',
@@ -88,7 +119,9 @@ describe('toggleBasicFunctionality action', () => {
     mockSetBasicFunctionality.mockResolvedValue(undefined);
     mockSetIsBackupAndSyncFeatureEnabled.mockResolvedValue(undefined);
     mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockReturnValue(false);
     mockSelectIsSocialLoginBasicFunctionalityLocked.mockReturnValue(false);
+    mockSelectShouldRepairSocialLoginBasicFunctionality.mockReturnValue(false);
   });
 
   it('dispatches Redux state update and calls MultichainAccountService', async () => {
@@ -203,14 +236,14 @@ describe('toggleBasicFunctionality action', () => {
   });
 
   it('syncs consolidated preferences when the rollout is enabled', async () => {
-    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(true);
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockReturnValue(true);
     const action = toggleBasicFunctionality(false);
     await action(mockDispatch, mockGetState);
 
     expect(mockGetState).toHaveBeenCalled();
-    expect(mockSelectMobileUxBftcConsolidationFlagEnabled).toHaveBeenCalledWith(
-      {},
-    );
+    expect(
+      mockSelectIsInBasicFunctionalityConsolidationRollout,
+    ).toHaveBeenCalledWith({});
     expect(mockDispatch).toHaveBeenCalledWith(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
@@ -221,10 +254,12 @@ describe('toggleBasicFunctionality action', () => {
 
   it('evaluates the rollout before flipping BF so mixed users still sync', async () => {
     const callOrder = [];
-    mockSelectMobileUxBftcConsolidationFlagEnabled.mockImplementation(() => {
-      callOrder.push('select');
-      return true;
-    });
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockImplementation(
+      () => {
+        callOrder.push('select');
+        return true;
+      },
+    );
     mockDispatch.mockImplementation((action) => {
       callOrder.push(action.type);
       return action;
@@ -255,6 +290,18 @@ describe('toggleBasicFunctionality action', () => {
       setBasicFunctionalityConsolidatedEnabled(true),
     );
   });
+
+  it('keeps syncing children for an enrolled wallet once the enrollment flag reads false', async () => {
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectIsInBasicFunctionalityConsolidationRollout.mockReturnValue(true);
+
+    const action = toggleBasicFunctionality(false);
+    await action(mockDispatch, mockGetState);
+
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).toHaveBeenCalledWith(false);
+  });
 });
 
 describe('consolidateBasicFunctionality action', () => {
@@ -280,12 +327,19 @@ describe('consolidateBasicFunctionality action', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnThis();
+    mockBuild.mockReturnValue({ name: 'mock-event' });
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }));
     mockSetBasicFunctionality.mockResolvedValue(undefined);
     mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(true);
     mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
       landingState: true,
       notification: 'toast',
     });
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(false);
   });
 
   it('aligns preferences and schedules the one-time notification', async () => {
@@ -304,10 +358,10 @@ describe('consolidateBasicFunctionality action', () => {
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
     ).toHaveBeenCalledWith(true);
-    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
-    expect(dispatch).toHaveBeenCalledWith(
+    expect(dispatch.mock.calls[0][0]).toEqual(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
+    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
     expect(dispatch).toHaveBeenCalledWith(
       setBasicFunctionalityMigrationNotification('toast'),
     );
@@ -356,6 +410,162 @@ describe('consolidateBasicFunctionality action', () => {
     expect(dispatch).toHaveBeenCalledWith(
       setBasicFunctionalityMigrationNotification(null),
     );
+  });
+
+  it('tracks Basic Functionality Migrated for unaligned wallets', async () => {
+    const dispatch = jest.fn();
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.BASIC_FUNCTIONALITY_MIGRATED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      routed_bf_state: 'on',
+      is_social_login: false,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-event' });
+  });
+
+  it('skips Basic Functionality Migrated for aligned wallets', async () => {
+    const dispatch = jest.fn();
+    mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
+      landingState: true,
+      notification: null,
+    });
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        basicFunctionalityEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            useTransactionSimulations: true,
+            securityAlertsEnabled: true,
+          },
+          SeedlessOnboardingController: {},
+        },
+      },
+    }));
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('tracks social login on the migrated event for unaligned social wallets', async () => {
+    const dispatch = jest.fn();
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      routed_bf_state: 'on',
+      is_social_login: true,
+    });
+  });
+
+  it('does not migrate a consolidated wallet that is already on', async () => {
+    const dispatch = jest.fn();
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        basicFunctionalityEnabled: true,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+    }));
+
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('turns Basic Functionality back on for a consolidated social-login wallet', async () => {
+    const dispatch = jest.fn();
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectShouldRepairSocialLoginBasicFunctionality.mockReturnValue(true);
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+    mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
+      landingState: true,
+      notification: 'bottom-sheet',
+    });
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+    }));
+
+    expect(mockSetBasicFunctionality).toHaveBeenCalledWith(true);
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).toHaveBeenCalledWith(true);
+    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
+  });
+
+  it('writes no state when the repair service call rejects', async () => {
+    // The wallet stays off, which is why the Settings switch must not be
+    // locked while Basic Functionality is off.
+    const dispatch = jest.fn();
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectShouldRepairSocialLoginBasicFunctionality.mockReturnValue(true);
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+    mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
+      landingState: true,
+      notification: 'bottom-sheet',
+    });
+    mockSetBasicFunctionality.mockRejectedValue(new Error('service failed'));
+
+    await expect(
+      consolidateBasicFunctionality()(dispatch, () => ({
+        ...state,
+        settings: {
+          ...state.settings,
+          isBasicFunctionalityConsolidatedEnabled: true,
+        },
+      })),
+    ).rejects.toThrow('service failed');
+
+    expect(dispatch).not.toHaveBeenCalledWith(setBasicFunctionality(true));
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not re-track the migrated event on a social repair', async () => {
+    const dispatch = jest.fn();
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+    }));
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('leaves a consolidated SRP wallet off', async () => {
+    const dispatch = jest.fn();
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+    }));
+
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(mockSetBasicFunctionality).not.toHaveBeenCalled();
   });
 
   it('creates the persisted dismissal action', () => {

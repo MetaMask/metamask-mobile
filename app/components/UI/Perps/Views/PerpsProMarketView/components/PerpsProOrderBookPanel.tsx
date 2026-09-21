@@ -124,7 +124,8 @@ interface OrderBookRowProps {
   side: 'bid' | 'ask';
   currency: OrderBookListCurrency;
   metric: OrderBookListMetric;
-  maxTotal: number;
+  /** Denominator the depth bar is scaled against, matching `metric`. */
+  depthMax: number;
   depthBarColor: string;
   szDecimals?: number;
   priceFormat: OrderBookPriceFormat | null;
@@ -139,7 +140,7 @@ const OrderBookRow = ({
   side,
   currency,
   metric,
-  maxTotal,
+  depthMax,
   depthBarColor,
   szDecimals,
   priceFormat,
@@ -148,7 +149,7 @@ const OrderBookRow = ({
   testID,
 }: OrderBookRowProps) => {
   const isMirrored = layout === 'left';
-  const depthWidth = getDepthWidth(level, maxTotal);
+  const depthWidth = getDepthWidth(level, depthMax, metric);
   const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
@@ -625,6 +626,11 @@ const PerpsProOrderBookPanel = ({
     [grouped],
   );
 
+  // Listing by Size measures each level against the largest single level;
+  // listing by Total measures it against the deepest cumulative total.
+  const depthMax =
+    metric === 'size' ? (grouped?.maxSize ?? 0) : (grouped?.maxTotal ?? 0);
+
   const spreadDisplay = useMemo(() => {
     if (!rawOrderBook || rawOrderBookSymbol !== symbol) {
       return null;
@@ -877,7 +883,7 @@ const PerpsProOrderBookPanel = ({
                   side="ask"
                   currency={currency}
                   metric={metric}
-                  maxTotal={grouped.maxTotal}
+                  depthMax={depthMax}
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
@@ -925,7 +931,7 @@ const PerpsProOrderBookPanel = ({
                   side="bid"
                   currency={currency}
                   metric={metric}
-                  maxTotal={grouped.maxTotal}
+                  depthMax={depthMax}
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}

@@ -171,6 +171,7 @@ export const BaseWalletDetails = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
+        testID={WalletDetailsIds.HEADER}
         style={styles.header}
         startButtonIconProps={{
           testID: WalletDetailsIds.BACK_BUTTON,

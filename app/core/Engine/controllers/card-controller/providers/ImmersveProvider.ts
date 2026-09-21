@@ -84,6 +84,9 @@ const IMMERSVE_FUNDING_NETWORK_RPC: Record<
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
+/** Immersve always settles transactions in USDC. */
+const IMMERSVE_SETTLEMENT_CURRENCY = 'USDC';
+
 function isUsdStablecoin(symbol: string): boolean {
   return USD_STABLECOIN_SYMBOLS.has(symbol.toUpperCase());
 }
@@ -236,6 +239,11 @@ interface ImmersveFundingSourcesResponse {
   items?: ImmersveFundingSourceListItem[];
 }
 
+interface ImmersveContactDetailsResponse {
+  email?: { emailAddress?: string };
+  phone?: { phoneNumber?: string };
+}
+
 type ImmersveCardApiStatus = 'active' | 'cancelled' | 'created' | 'shipped';
 
 interface ImmersveCardListItem {
@@ -379,6 +387,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
     supportsTransactionHistory: true,
+    supportsContactDetails: true,
     supportsMoneyAccountLinking: false,
   };
 
@@ -676,6 +685,29 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  async getContactDetails(tokens: CardAuthTokens): Promise<CardContactDetails> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'getContactDetails: missing cardholder account id',
+      );
+    }
+
+    try {
+      const response = await this.service.get<ImmersveContactDetailsResponse>(
+        `/api/accounts/${accountId}/contact-details`,
+        tokens,
+      );
+      return {
+        email: response.email?.emailAddress,
+        phone: response.phone?.phoneNumber,
+      };
+    } catch (error) {
+      reportAndMap(error, 'getContactDetails');
+    }
+  }
+
   async patchContactDetails(
     details: CardContactDetails,
     tokens: CardAuthTokens,
@@ -738,6 +770,11 @@ export class ImmersveProvider implements ICardProvider {
     fundingSourceId: string,
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult> {
+    const existing = await this.resolveCurrentCard(tokens);
+    if (existing) {
+      return { cardId: existing.id };
+    }
+
     try {
       return await this.service.post<CardCreateResult>(
         '/api/cards',
@@ -815,6 +852,20 @@ export class ImmersveProvider implements ICardProvider {
     };
   }
 
+  /**
+   * True only when spendingCap is a known numeric zero. Empty string means the
+   * on-chain read was skipped/failed — do not treat that as revoked.
+   */
+  private isRevokedAllowance(
+    asset: CardFundingAsset | null,
+  ): asset is CardFundingAsset {
+    if (!asset?.spendingCap) {
+      return false;
+    }
+    const cap = Number(asset.spendingCap);
+    return Number.isFinite(cap) && cap === 0;
+  }
+
   async getCardHomeData(
     _address: string,
     tokens: CardAuthTokens,
@@ -844,6 +895,18 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
       const primaryFundingAsset = fundingAssets[0] ?? null;
+
+      if (this.isRevokedAllowance(primaryFundingAsset)) {
+        return {
+          ...emptyCardHomeData(),
+          card: cardDetails,
+          primaryFundingAsset,
+          fundingAssets,
+          availableFundingAssets: fundingAssets,
+          alerts: [{ type: 'allowance_revoked', dismissable: false }],
+        };
+      }
+
       const actions: CardAction[] =
         cardDetails.status === CardStatus.ACTIVE && primaryFundingAsset
           ? [{ type: 'add_funds', enabled: true }]
@@ -1064,7 +1127,7 @@ export class ImmersveProvider implements ICardProvider {
             }
           : undefined,
       feeAmount: feeValue
-        ? { value: feeValue, currency: billingCurrency }
+        ? { value: feeValue, currency: IMMERSVE_SETTLEMENT_CURRENCY }
         : undefined,
       merchant: {
         name: raw.cardAcceptor.name,
