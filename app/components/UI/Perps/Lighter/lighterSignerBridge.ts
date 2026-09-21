@@ -31,6 +31,8 @@ const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
 export const LIGHTER_SIGNER_LOCKED_ERROR = 'Lighter signer wallet is locked';
 
 const resetListeners = new Set<() => void>();
+// Keep these across bridge resets: native keychain writes can outlive callers.
+const keychainOperations = new Map<string, Promise<void>>();
 let generation = 0;
 let executor: LighterExecutor | null = null;
 let unavailableError: Error | null = null;
@@ -127,26 +129,41 @@ async function getOrCreatePrivateKey(
   owner: number,
 ): Promise<string> {
   const scope = signerKeyScope(params);
-  const stored = await SecureKeychain.getSecureItem(scope);
-  assertGeneration(owner);
-  if (stored) {
-    if (!PRIVATE_KEY_PATTERN.test(stored.value)) {
-      throw new Error('Stored Lighter signer key is invalid');
+  const previous = keychainOperations.get(scope.service);
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  keychainOperations.set(scope.service, pending);
+  try {
+    if (previous) await previous;
+    assertGeneration(owner);
+    const stored = await SecureKeychain.getSecureItem(scope);
+    assertGeneration(owner);
+    if (stored) {
+      if (!PRIVATE_KEY_PATTERN.test(stored.value)) {
+        throw new Error('Stored Lighter signer key is invalid');
+      }
+      return stored.value;
     }
-    return stored.value;
-  }
 
-  const privateKey = QuickCrypto.randomBytes(32).toString('hex');
-  const storedKey = await SecureKeychain.setSecureItem(
-    LIGHTER_SIGNER_KEY_NAME,
-    privateKey,
-    scope,
-  );
-  assertGeneration(owner);
-  if (storedKey === false) {
-    throw new Error('Unable to persist Lighter signer key');
+    const privateKey = QuickCrypto.randomBytes(32).toString('hex');
+    const storedKey = await SecureKeychain.setSecureItem(
+      LIGHTER_SIGNER_KEY_NAME,
+      privateKey,
+      scope,
+    );
+    assertGeneration(owner);
+    if (storedKey === false) {
+      throw new Error('Unable to persist Lighter signer key');
+    }
+    return privateKey;
+  } finally {
+    release();
+    if (keychainOperations.get(scope.service) === pending) {
+      keychainOperations.delete(scope.service);
+    }
   }
-  return privateKey;
 }
 
 async function executeWithDeadline(

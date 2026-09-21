@@ -340,6 +340,72 @@ describe('lighterSignerBridge', () => {
     );
   });
 
+  it.each([false, true])(
+    'keeps one persisted key when setup overlaps a pending write (reset: %s)',
+    async (reset) => {
+      let stored: Awaited<ReturnType<typeof SecureKeychain.getSecureItem>> =
+        null;
+      let finishWrite!: () => void;
+      const writing = new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      });
+      let notifyWrite!: () => void;
+      const writeStarted = new Promise<void>((resolve) => {
+        notifyWrite = resolve;
+      });
+      mockSecureKeychain.getSecureItem.mockImplementation(async () => stored);
+      mockSecureKeychain.setSecureItem.mockImplementation(
+        async (_key, value) => {
+          notifyWrite();
+          await writing;
+          stored = { key: 'LIGHTER_SIGNER_PRIVATE_KEY', value };
+          return {
+            service: 'test',
+            storage: 'KeystoreAESGCM_NoAuth',
+          } as KeychainResult;
+        },
+      );
+      const executor = jest.fn().mockResolvedValue(clientResult);
+      connectLighterExecutor(executor);
+      const params = {
+        chainId: 300,
+        accountIndex: 28,
+        nonce: 9,
+        apiKeyIndex: 7,
+      };
+
+      const first = lighterSignerBridge
+        .createClient(params)
+        .catch((error: unknown) => error);
+      await writeStarted;
+      if (reset) {
+        resetLighterBridge();
+        connectLighterExecutor(executor);
+      }
+      const second = lighterSignerBridge.createClient(params);
+      finishWrite();
+      const firstResult = await first;
+      if (reset) {
+        expect(firstResult).toEqual(
+          new Error('Lighter signer WebView reloaded; retry the operation'),
+        );
+      } else {
+        expect(firstResult).toStrictEqual(clientResult);
+      }
+      await expect(second).resolves.toStrictEqual(clientResult);
+
+      expect(QuickCrypto.randomBytes).toHaveBeenCalledTimes(1);
+      expect(mockSecureKeychain.setSecureItem).toHaveBeenCalledTimes(1);
+      expect(executor).toHaveBeenCalledTimes(reset ? 1 : 2);
+      const persisted = await mockSecureKeychain.getSecureItem({
+        service: 'com.metamask.PERPS_LIGHTER_SIGNER.300.28.7',
+      });
+      for (const [call] of executor.mock.calls) {
+        expect(call.params[0]).toBe(persisted?.value);
+      }
+    },
+  );
+
   it('rejects an unrelated registration body before returning it to the controller', async () => {
     connectLighterExecutor(
       jest.fn().mockResolvedValue({
@@ -394,6 +460,28 @@ describe('lighterSignerBridge', () => {
         apiKeyIndex: 7,
       }),
     ).rejects.toThrow('Unable to persist Lighter signer key');
+  });
+
+  it('allows another setup after a keychain write rejects', async () => {
+    mockSecureKeychain.setSecureItem.mockRejectedValueOnce(
+      new Error('Keychain write failed'),
+    );
+    connectLighterExecutor(jest.fn().mockResolvedValue(clientResult));
+    const params = {
+      chainId: 300,
+      accountIndex: 28,
+      nonce: 9,
+      apiKeyIndex: 7,
+    };
+
+    await expect(lighterSignerBridge.createClient(params)).rejects.toThrow(
+      'Keychain write failed',
+    );
+    await expect(
+      lighterSignerBridge.createClient(params),
+    ).resolves.toStrictEqual(clientResult);
+
+    expect(mockSecureKeychain.setSecureItem).toHaveBeenCalledTimes(2);
   });
 
   it('notifies reset listeners and stops after unsubscribe', () => {
