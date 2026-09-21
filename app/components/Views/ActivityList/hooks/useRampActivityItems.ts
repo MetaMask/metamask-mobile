@@ -70,12 +70,13 @@ function useRampActivityItemPairs(): { id: string; item: ActivityListItem }[] {
   }, [legacyOrders, v2Orders]);
 }
 
+// TODO: Replace these with @metamak/client-utils mapRampsOrder
+
 export function useRampActivityItems(): ActivityListItem[] {
   const pairs = useRampActivityItemPairs();
   return useMemo(() => pairs.map(({ item }) => item), [pairs]);
 }
 
-/** Order id (lowercased) → item, for resolving a row by its domain order id. */
 export function useRampActivityItemsById(): Map<string, ActivityListItem> {
   const pairs = useRampActivityItemPairs();
   return useMemo(

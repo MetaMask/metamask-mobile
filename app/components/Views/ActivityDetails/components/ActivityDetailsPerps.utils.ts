@@ -12,9 +12,8 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
-/* eslint-enable import-x/no-restricted-paths */
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PerpsTransaction as PerpsTransactionSource } from '../../../UI/Perps/types/transactionHistory';
+/* eslint-enable import-x/no-restricted-paths */
 
 export type PerpsTransaction = PerpsTransactionSource;
 

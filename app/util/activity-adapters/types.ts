@@ -1,7 +1,6 @@
 /**
  * `@metamask/client-utils` is the source of truth for activity types (same as
- * extension). Mobile-only extras in `MobileFields` and `MobileDataExtras` fill
- * gaps that have no extension equivalent yet (perps order type, predict title).
+ * extension). Remaining mobile-only fields are leftovers to delete as call sites move over.
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
@@ -23,7 +22,6 @@ export type TokenAmount = ClientUtilsTokenAmount & {
   /**
    * Keyring (non-EVM) amounts are already human-readable. Display/fiat must
    * not run `formatUnits` on them even when token metadata supplies decimals.
-   * Set at display time only (not by any adapter).
    */
   amountIsHumanReadable?: boolean;
 };

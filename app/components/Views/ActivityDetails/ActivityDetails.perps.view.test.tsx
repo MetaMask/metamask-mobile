@@ -96,8 +96,6 @@ const {
   DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
 
-// Registry of all perps transactions keyed by the hash mapPerpsTransaction assigns.
-// Used by seedPerpsHistory since items no longer carry raw.data.
 const perpsTransactionRegistry = new Map<string, PerpsTransaction>(
   ((): [string, PerpsTransaction][] => {
     const pairs: [string, PerpsTransaction][] = [];

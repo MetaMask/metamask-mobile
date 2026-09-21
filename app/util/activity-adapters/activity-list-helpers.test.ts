@@ -230,11 +230,9 @@ describe('activity list helpers', () => {
     it('prefers a local unlimited approval over an API copy with no cap amount', () => {
       const local = makeItem({
         type: 'increaseSpendingCap',
-        // uint256 max — isUnlimitedApprovalAmount threshold (>= 1e15)
         data: {
           token: {
-            amount:
-              '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+            amount: String(1e15),
             direction: 'out',
           },
         },

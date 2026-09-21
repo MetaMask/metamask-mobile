@@ -394,7 +394,7 @@ function enrichSpendingCapToken(
   }
   const symbol = token.symbol ?? listToken?.symbol;
   const decimals = token.decimals ?? listToken?.decimals;
-  const isUnlimitedApproval = isUnlimitedApprovalAmount(token.amount, decimals);
+
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
