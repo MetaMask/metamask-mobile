@@ -28,6 +28,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { resolveMoneyShareUrl } from '../../utils/moneyShareUrl';
 
@@ -41,6 +43,12 @@ export const SHARE_CODE_SHEET_TEST_IDS = {
   MESSAGES: 'share-code-sheet-messages',
   TELEGRAM: 'share-code-sheet-telegram',
 } as const;
+
+export type RewardsReferralShareMethod =
+  | 'share_via'
+  | 'copy_link'
+  | 'messages'
+  | 'telegram';
 
 const styles = StyleSheet.create({
   root: {
@@ -131,6 +139,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
   localizedText,
   onClose,
 }) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const copy = useShareCopy(localizedText);
   const resolvedShareUrl = resolveMoneyShareUrl(code, shareUrl);
@@ -146,6 +155,23 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
       hasReportedCloseRef.current = false;
     }
   }, [open]);
+
+  const trackShare = useCallback(
+    (shareMethod: RewardsReferralShareMethod) => {
+      if (!code) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED)
+          .addProperties({
+            referral_code: code,
+            share_method: shareMethod,
+          })
+          .build(),
+      );
+    },
+    [code, createEventBuilder, trackEvent],
+  );
 
   const handleSheetClosed = useCallback(() => {
     if (hasReportedCloseRef.current) {
@@ -164,6 +190,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
       return;
     }
 
+    trackShare('share_via');
     const subject = strings('rewards.referral.actions.share_referral_subject');
     const shareContent =
       Platform.OS === 'ios'
@@ -173,22 +200,24 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     Share.share(shareContent).catch((error) => {
       Logger.log('Error while trying to share Money referral link', error);
     });
-  }, [resolvedShareUrl]);
+  }, [resolvedShareUrl, trackShare]);
 
   const handleCopyLink = useCallback(() => {
     if (!resolvedShareUrl) {
       return;
     }
 
+    trackShare('copy_link');
     Clipboard.setString(resolvedShareUrl);
     setIsLinkCopied(true);
-  }, [resolvedShareUrl]);
+  }, [resolvedShareUrl, trackShare]);
 
   const handleMessages = useCallback(() => {
     if (!resolvedShareUrl) {
       return;
     }
 
+    trackShare('messages');
     // The two platforms disagree on how a body is attached to an `sms:` URL:
     // iOS wants it as a second field (`&`), Android as the first query
     // parameter (`?`). The wrong separator opens an empty composer.
@@ -202,13 +231,14 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     Linking.openURL(smsUrl).catch((error) => {
       Logger.log('Error while opening messages for Money referral link', error);
     });
-  }, [copy.inviteBody, resolvedShareUrl]);
+  }, [copy.inviteBody, resolvedShareUrl, trackShare]);
 
   const handleTelegram = useCallback(() => {
     if (!resolvedShareUrl) {
       return;
     }
 
+    trackShare('telegram');
     const inviteText = buildShareInviteText(copy.inviteBody);
     const telegramUrl = inviteText
       ? `https://t.me/share/url?url=${encodeURIComponent(resolvedShareUrl)}&text=${encodeURIComponent(inviteText)}`
@@ -217,7 +247,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
     Linking.openURL(telegramUrl).catch((error) => {
       Logger.log('Error while opening Telegram for Money referral link', error);
     });
-  }, [copy.inviteBody, resolvedShareUrl]);
+  }, [copy.inviteBody, resolvedShareUrl, trackShare]);
 
   // Without a link there is nothing for these to act on, so they are left out
   // rather than shown inert.

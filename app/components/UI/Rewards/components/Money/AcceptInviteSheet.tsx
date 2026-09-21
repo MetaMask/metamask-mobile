@@ -36,6 +36,8 @@ import type { RootState } from '../../../../../reducers';
 import { selectReferralMeEntry } from '../../../../../reducers/rewardsMoney/selectors';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
 import RewardsThemeImageComponent from '../ThemeImageComponent/RewardsThemeImageComponent';
 import { useSessionProfileId } from '../../hooks/useReferralMe';
@@ -253,8 +255,11 @@ export interface AcceptInviteSheetProps {
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
+  const hasTrackedOfferViewedRef = useRef(false);
+  const hasRespondedRef = useRef(false);
 
   const { profileId, isResolved: isProfileResolved } = useSessionProfileId();
   const referralMeEntry = useSelector((state: RootState) =>
@@ -325,6 +330,40 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const canAccept =
     hasCodeToValidate && !isValidating && !isRejectedCode && !isAccepting;
 
+  useEffect(() => {
+    if (hasTrackedOfferViewedRef.current) {
+      return;
+    }
+    hasTrackedOfferViewedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_VIEWED)
+        .addProperties(
+          initialReferralCode ? { referral_code: initialReferralCode } : {},
+        )
+        .build(),
+    );
+  }, [createEventBuilder, initialReferralCode, trackEvent]);
+
+  const trackResponded = useCallback(
+    (action: 'accepted' | 'declined') => {
+      if (hasRespondedRef.current) {
+        return;
+      }
+      hasRespondedRef.current = true;
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        )
+          .addProperties({
+            referral_code: referralCode,
+            action,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, referralCode, trackEvent],
+  );
+
   const handleChangeReferralCode = useCallback(
     (code: string) => {
       clearError();
@@ -351,8 +390,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     if (isAccepting) {
       return;
     }
+    trackResponded('declined');
     sheetRef.current?.onCloseBottomSheet();
-  }, [isAccepting]);
+  }, [isAccepting, trackResponded]);
 
   const handleAccept = useCallback(() => {
     if (!canAccept) {
@@ -361,10 +401,17 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // Accept is about to refresh me to a non-NONE variant. Record that this
     // sheet was the invite, so that write cannot be read as a stale deeplink.
     hasSeenEligibleInviteRef.current = true;
+    trackResponded('accepted');
     // The hook owns the outcome: it reports a refusal and dismisses the sheet
     // only once the registration has landed.
     acceptReferralCode(referralCode).catch(() => undefined);
-  }, [acceptReferralCode, canAccept, referralCode]);
+  }, [acceptReferralCode, canAccept, referralCode, trackResponded]);
+
+  const handleGoBack = useCallback(() => {
+    // Swipe / overlay dismiss is also a decline unless Accept already counted.
+    trackResponded('declined');
+    navigation.goBack();
+  }, [navigation, trackResponded]);
 
   useEffect(() => {
     if (shouldDismissForReferralVariant) {
@@ -382,7 +429,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   return (
     <BottomSheet
       ref={sheetRef}
-      goBack={navigation.goBack}
+      goBack={handleGoBack}
       testID={ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER}
     >
       <BottomSheetHeader
