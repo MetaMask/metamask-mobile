@@ -20,6 +20,12 @@ class RequestTypes {
       ConfirmationRequestTypeIDs.TYPED_SIGN_REQUEST,
     );
   }
+
+  get TransactionConfirmation(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ConfirmationRequestTypeIDs.TRANSACTION_REQUEST,
+    );
+  }
 }
 
 export default new RequestTypes();

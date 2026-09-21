@@ -1,5 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { execSync } from 'child_process';
+import { execSync, spawn, type ChildProcess } from 'child_process';
 import { resolve, join } from 'path';
 import { adbDeviceArgs } from '../e2eWorkerPorts';
 import { withFixtures } from './FixtureHelper';
@@ -26,6 +26,64 @@ import {
 } from '@metamask/hw-emulator';
 
 const logger = createLogger({ name: 'SpeculosFixtureHelper' });
+
+/**
+ * Best-effort capture of the app's ReactNativeJS logcat stream.
+ *
+ * Runs can match on these lines to discriminate app-side sheet-visibility
+ * branches (e.g. whether the hardware-wallet bottom sheet rendered during
+ * AwaitingConfirmation). Each line is prefixed with '[applog] ' and written
+ * to the same logger.debug stream the helper already uses. Starting or
+ * stopping the capture must never fail a suite — every failure is swallowed
+ * and logged.
+ */
+let reactNativeJsLogProcess: ChildProcess | undefined;
+
+function startReactNativeJsLogCapture(): void {
+  try {
+    if (reactNativeJsLogProcess) {
+      return;
+    }
+    const child = spawn(
+      'adb',
+      [...adbDeviceArgs(), 'logcat', '-s', 'ReactNativeJS'],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    child.stdout?.on('data', (chunk: Buffer | string) => {
+      for (const line of String(chunk).split('\n')) {
+        if (line.trim()) {
+          logger.debug(`[applog] ${line}`);
+        }
+      }
+    });
+    child.stderr?.on('data', (chunk: Buffer | string) => {
+      const text = String(chunk).trim();
+      if (text) {
+        logger.debug(`[applog] (stderr) ${text}`);
+      }
+    });
+    child.on('error', (error: Error) => {
+      logger.debug(`[applog] logcat capture process error: ${error.message}`);
+    });
+    reactNativeJsLogProcess = child;
+    logger.debug('[applog] ReactNativeJS logcat capture started');
+  } catch (error) {
+    logger.debug(`[applog] failed to start logcat capture: ${String(error)}`);
+  }
+}
+
+function stopReactNativeJsLogCapture(): void {
+  try {
+    const child = reactNativeJsLogProcess;
+    reactNativeJsLogProcess = undefined;
+    if (child) {
+      child.kill();
+      logger.debug('[applog] ReactNativeJS logcat capture stopped');
+    }
+  } catch (error) {
+    logger.debug(`[applog] failed to stop logcat capture: ${String(error)}`);
+  }
+}
 
 /**
  * Source-of-truth directory for the `@metamask/hw-emulator` package, used by
@@ -76,6 +134,13 @@ export interface WithSpeculosFixturesOptions {
   speculos?: Partial<SpeculosConfig>;
   startSpeculos?: boolean;
   fixture?: WithFixturesOptions['fixture'];
+  /**
+   * Per-test app relaunch mode passed through to withFixtures. Defaults to
+   * 'newInstance' (fresh app instance, retained data). `true` additionally
+   * wipes app data on relaunch — the QR spec's proven cure for cross-test
+   * contamination that survives a newInstance relaunch.
+   */
+  restartDevice?: boolean | 'newInstance';
   contractRegistry?: ContractAddressRegistry;
   testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
   dapps?: import('../types').DappOptions[];
@@ -263,16 +328,119 @@ export class SpeculosHelper {
 
   /**
    * Navigate right until the current screen matches one of `keywords`, then
-   * press both to confirm. Falls back to a both-press after `maxRights`.
+   * press both to confirm — and keep pressing both through the remaining
+   * review pages (Ledger review flows span multiple pages; a single
+   * both-press after the first keyword sighting does not complete them —
+   * run20). Falls back to a both-press after `maxRights`.
    */
   async approveByScreen(keywords: string[], maxRights = 18): Promise<void> {
     for (let i = 0; i < maxRights; i++) {
       const text = await this.getScreenText();
-      if (keywords.some((k) => text.includes(k))) {
+      const matchedKeyword = keywords.find((k) => text.includes(k));
+      if (matchedKeyword) {
+        logger.debug(
+          `approveByScreen: screen[${i}] keyword "${matchedKeyword}" matched; screen="${text
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 120)}"; pressing both`,
+        );
         await this.pressButton('both');
         await new Promise((r) => setTimeout(r, 600));
+
+        // Press-through with adaptive paging: Ledger review flows have
+        // multiple pages and a 'both' press is a no-op on mid-review pages
+        // (run21: screen byte-identical across 5 both-presses on the message
+        // page — 'sign' had matched as a substring of the MESSAGE CONTENT).
+        // Rule set, run per round (run25 t2: the old "no keyword → done"
+        // exit fired on a MID-REVIEW content page — "review typed message
+        // name ether mail version 1" — aborting four pages into a multi-page
+        // typed-data review; content pages contain no keywords):
+        //  - 'signed' / 'ethereum app is ready' → approval completed, return.
+        //  - 'reject' visible (Sign/Reject choice pair) → press BOTH
+        //    (confirms the highlighted Sign — a right-press here could move
+        //    the highlight onto Reject).
+        //  - screen UNCHANGED after the previous press → press BOTH (right
+        //    didn't advance it: likely an instruction screen such as "press
+        //    both buttons to accept risk").
+        //  - otherwise (content page) → press RIGHT to page through the
+        //    review toward the choice screen.
+        // Safety: a screen showing 'reject' (the choice pair) NEVER gets a
+        // right-press — that could move the highlight onto Reject; it only
+        // ever gets 'both', confirming whatever is highlighted (Sign).
+        // 30 rounds: typed-data reviews page through ~10+ content pages at
+        // ~2 rounds/page (run24 t2: exhausted 8 rounds mid-review, signature
+        // never returned). Self-terminates via the signed/ready early-exit.
+        const pressThroughMaxRounds = 30;
+        let prevText = text;
+        // Set once the highlight has been moved off Reject on a choice
+        // screen (see the press rule below).
+        let movedToSign = false;
+        for (let round = 1; round <= pressThroughMaxRounds; round++) {
+          // eslint-disable-next-line no-await-in-loop
+          const nextText = await this.getScreenText();
+          const nextKeyword = keywords.find((k) => nextText.includes(k));
+          const showsReject = nextText.includes('reject');
+          const frozen = nextText === prevText;
+          const flat = (t: string) =>
+            t.replace(/\s+/g, ' ').trim().slice(0, 120);
+          // Approval completed: the review flow ends with a "…signed"
+          // confirmation page and returns to the app-ready screen (run22
+          // wire: 67-byte signature delivered at this transition). Stop
+          // here — continuing wanders into app settings and can toggle
+          // device settings (run22: blind signing turned OFF).
+          if (
+            nextText.includes('signed') ||
+            nextText.includes('ethereum app is ready')
+          ) {
+            logger.debug(
+              `approveByScreen: press-through detected completed approval (signed/ready screen) after ${round} extra press(es); screen[${i}+${round}]="${flat(
+                nextText,
+              )}"`,
+            );
+            return;
+          }
+          // Choice-screen handling: typed-data Sign/Reject screens can
+          // render with Reject highlighted (run26 t2: a both-press at the
+          // first reject-sighting returned "User rejected action on
+          // device"). Move the highlight right (Reject → Sign) once, then
+          // confirm with both on the next round. personal_sign choice
+          // screens never show 'reject' text (run22), so this only
+          // affects typed data.
+          let press: 'right' | 'both';
+          if (showsReject && !movedToSign) {
+            press = 'right';
+            movedToSign = true;
+          } else {
+            // run29 regression root cause: the right-heavy paging rule
+            // skipped personal_sign's choice screen (which shows no
+            // 'reject' text) — t1 green in runs 23-25 used BOTH on any
+            // changed screen (confirming the highlighted choice) with
+            // right only when frozen. Restore that proven rule.
+            press = frozen && !showsReject ? 'right' : 'both';
+          }
+          logger.debug(
+            `approveByScreen: screen[${i}+${round}] still on review flow (keyword="${
+              nextKeyword ?? ''
+            }" reject=${String(showsReject)} frozen=${String(
+              frozen,
+            )}); screen="${flat(nextText)}"; pressing ${press} (${round}/${pressThroughMaxRounds})`,
+          );
+          // eslint-disable-next-line no-await-in-loop
+          await this.pressButton(press);
+          await new Promise((r) => setTimeout(r, 600));
+          prevText = nextText;
+        }
+        logger.debug(
+          `approveByScreen: press-through exhausted ${pressThroughMaxRounds} extra rounds on screen[${i}]; proceeding`,
+        );
         return;
       }
+      logger.debug(
+        `approveByScreen: screen[${i}]="${text
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 120)}"`,
+      );
       await this.pressButton('right');
       await new Promise((r) => setTimeout(r, 450));
     }
@@ -296,8 +464,16 @@ export class SpeculosHelper {
   }
 
   async approveSigning(): Promise<void> {
-    // personal_sign / typed-data confirm screen.
-    await this.approveByScreen(['hold to sign', 'accept', 'sign']);
+    // run19: the sign APDU landed but no keyword matched within the window
+    // (screen text was unknown — now logged by approveByScreen), so extend
+    // the keyword list with 'approve'/'confirm' to cover the approval screen.
+    await this.approveByScreen([
+      'hold to sign',
+      'accept',
+      'sign',
+      'approve',
+      'confirm',
+    ]);
   }
 
   async rejectTransaction(): Promise<void> {
@@ -306,29 +482,74 @@ export class SpeculosHelper {
     await this.pressButton('both');
   }
 
+  /**
+   * Check whether a `getScreenText()` result is the Ethereum app's ready
+   * main screen. getScreenText() lowercases, so matching is
+   * case-insensitive by its convention (same style as approveByScreen).
+   * BOTH keywords are required: the calibrated ready screen shows
+   * "Ethereum / Application is ready", while 'ethereum' alone also matches
+   * the dashboard's app list and must not count as ready.
+   */
+  private isEthAppReadyScreen(screenText: string): boolean {
+    return screenText.includes('ethereum') && screenText.includes('ready');
+  }
+
   async enableBlindSigning(): Promise<void> {
     // Calibrated against ethereum-nanox.elf via Speculos /events screen mapping.
     // Assumes the app is on the main "Ethereum / app is ready" screen (fresh
     // Docker start with loadNvram resets settings each run).
     // Open menu -> App settings -> (lands on Blind signing) -> toggle -> Back -> ready.
-    await this.pressButton('both');
-    await new Promise((r) => setTimeout(r, 800));
-    await this.pressButton('right'); // -> App settings
-    await new Promise((r) => setTimeout(r, 500));
-    await this.pressButton('both'); // enter App settings (cursor on Blind signing)
-    await new Promise((r) => setTimeout(r, 800));
-    await this.pressButton('both'); // toggle Blind signing: Disabled -> Enabled
-    await new Promise((r) => setTimeout(r, 800));
-    for (let i = 0; i < 6; i++) {
-      await this.pressButton('right'); // -> Back
-      await new Promise((r) => setTimeout(r, 250));
+    const pressBlindSigningSequence = async (): Promise<void> => {
+      await this.pressButton('both');
+      await new Promise((r) => setTimeout(r, 800));
+      await this.pressButton('right'); // -> App settings
+      await new Promise((r) => setTimeout(r, 500));
+      await this.pressButton('both'); // enter App settings (cursor on Blind signing)
+      await new Promise((r) => setTimeout(r, 800));
+      await this.pressButton('both'); // toggle Blind signing: Disabled -> Enabled
+      await new Promise((r) => setTimeout(r, 800));
+      for (let i = 0; i < 6; i++) {
+        await this.pressButton('right'); // -> Back
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      await this.pressButton('both'); // Back -> main menu
+      await new Promise((r) => setTimeout(r, 700));
+      await this.pressButton('left'); // -> ready screen
+      await new Promise((r) => setTimeout(r, 300));
+      await this.pressButton('left');
+      await new Promise((r) => setTimeout(r, 500));
+    };
+
+    await pressBlindSigningSequence();
+    let screenText = await this.getScreenText();
+
+    if (!this.isEthAppReadyScreen(screenText)) {
+      // The calibration above is a blind sequence: under host load the
+      // presses can drift and exit the ETH app entirely (e.g. to the
+      // dashboard/welcome screen), leaving signing broken later on. There
+      // is no verified screen-specific recovery for the exit state in this
+      // class, so use the same default as approveByScreen's fallback: press
+      // both once, wait, then re-run the full calibrated sequence.
+      const maxRecoveryAttempts = 2;
+      for (let attempt = 1; attempt <= maxRecoveryAttempts; attempt++) {
+        logger.warn(
+          `enableBlindSigning: device not on ETH ready screen (recovery attempt ${attempt}/${maxRecoveryAttempts}), screen was: '${screenText}'`,
+        );
+        await this.pressButton('both');
+        await new Promise((r) => setTimeout(r, 1000));
+        logger.debug(
+          `enableBlindSigning: post-recovery-press screen: '${await this.getScreenText()}'`,
+        );
+        await pressBlindSigningSequence();
+        screenText = await this.getScreenText();
+        if (this.isEthAppReadyScreen(screenText)) {
+          return;
+        }
+      }
+      throw new Error(
+        `enableBlindSigning: device not on ETH ready screen, screen was: '${screenText}'`,
+      );
     }
-    await this.pressButton('both'); // Back -> main menu
-    await new Promise((r) => setTimeout(r, 700));
-    await this.pressButton('left'); // -> ready screen
-    await new Promise((r) => setTimeout(r, 300));
-    await this.pressButton('left');
-    await new Promise((r) => setTimeout(r, 500));
   }
 
   async autoApproveSigning(
@@ -490,13 +711,17 @@ export async function withSpeculosFixtures(
       'speculos-ble Control API ready — virtual BLE device advertising',
     );
 
+    // Start capturing the app's ReactNativeJS logs before the app launches so
+    // runs can discriminate sheet-visibility branches. Best-effort.
+    startReactNativeJsLogCapture();
+
     // The app samples the BT adapter state at launch; make sure the adapter is
     // up BEFORE the app starts (fresh emulators bring BT up lazily).
     await ensureBluetoothEnabled();
 
     const withFixturesOptions: WithFixturesOptions = {
       fixture: options.fixture as WithFixturesOptions['fixture'],
-      restartDevice: 'newInstance',
+      restartDevice: options.restartDevice ?? 'newInstance',
       disableSynchronization: true,
       disableLocalNodes: !options.enableLocalNode,
       testSpecificMock: options.testSpecificMock,
@@ -532,6 +757,7 @@ export async function withSpeculosFixtures(
       throw error;
     }
   } finally {
+    stopReactNativeJsLogCapture();
     if (bleRunner) {
       logger.debug('Stopping speculos-ble runner...');
       await bleRunner.stop();
@@ -599,10 +825,9 @@ async function ensureBluetoothEnabled(): Promise<void> {
     execSync(`adb ${adbArgs} shell svc bluetooth disable`, { stdio: 'pipe' });
     const offDeadline = Date.now() + 15000;
     while (Date.now() < offDeadline) {
-      const dump = execSync(
-        `adb ${adbArgs} shell dumpsys bluetooth_manager`,
-        { stdio: ['pipe', 'pipe', 'pipe'] },
-      ).toString();
+      const dump = execSync(`adb ${adbArgs} shell dumpsys bluetooth_manager`, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }).toString();
       if (dump.includes('state: OFF') || dump.includes('enabled: false')) {
         break;
       }
@@ -920,30 +1145,28 @@ export async function importLedgerAccount(): Promise<void> {
   const walletHomeContainer =
     (await WalletView.container) as Detox.IndexableNativeElement;
 
-  let sheetOpen = false;
+  let accountsSheetVisible = false;
   try {
     await waitFor(accountsSheetTitle).toExist().withTimeout(90000);
-    sheetOpen = true;
+    accountsSheetVisible = true;
   } catch {
     logger.debug(
       '[importLedger] Step 15: accounts sheet did not appear — assuming wallet home',
     );
   }
 
-  for (let i = 0; sheetOpen && i < 3; i++) {
+  for (let i = 0; accountsSheetVisible && i < 3; i++) {
     logger.debug(
       `[importLedger] Step 15: account sheet open, pressing back to dismiss (${i + 1}/3)`,
     );
     await device.pressBack();
     await TestHelpers.delay(4000); // let the dismissed title leave the tree
-    let stillOpen = false;
     try {
       await waitFor(accountsSheetTitle).toExist().withTimeout(3000);
-      stillOpen = true;
+      accountsSheetVisible = true;
     } catch {
-      stillOpen = false;
+      accountsSheetVisible = false;
     }
-    if (!stillOpen) break;
   }
 
   await Assertions.expectElementToBeVisible(walletHomeContainer, {

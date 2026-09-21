@@ -528,6 +528,7 @@ export async function withFixtures(
     ],
     testSpecificMock,
     launchArgs,
+    extraLaunchOptions,
     languageAndLocale: _languageAndLocale,
     permissions: _permissions = {},
     endTestfn,
@@ -658,6 +659,9 @@ export async function withFixtures(
         await TestHelpers.launchApp({
           delete: !useNewInstance,
           ...(useNewInstance ? { newInstance: true } : {}),
+          // Caller-supplied extras come before launchArgs so the fixture
+          // ports below can never be clobbered.
+          ...extraLaunchOptions,
           launchArgs: {
             fixtureServerPort: isAndroid
               ? `${FALLBACK_FIXTURE_SERVER_PORT}`

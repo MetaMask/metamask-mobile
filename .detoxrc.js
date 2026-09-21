@@ -73,6 +73,15 @@ module.exports = {
       device: 'android.emulator',
       app: 'android.release.speculos',
     },
+    // Attach-only variant: never spawns an emulator (AttachedAndroidAllocDriver
+    // only matches a running adb device). Use when a persistent, provisioned
+    // emulator is already up — avoids detox's telnet-race fallback launch,
+    // which is fatal when the AVD alias's locks are held by the running
+    // instance ("Another emulator instance is running").
+    'android.emu.main.speculos.attached': {
+      device: 'android.attached.emulator',
+      app: 'android.release.speculos',
+    },
     'android.emu.main.speculos.debug': {
       device: 'android.emulator',
       app: 'android.debug.speculos',
@@ -103,6 +112,11 @@ module.exports = {
         avdName: 'Pixel_5_Pro_API_34',
       },
       bootArgs: '-grpc 8554 -no-audio -no-boot-anim -no-snapshot',
+    },
+    // Attach-only driver for a persistent, provisioned emulator-5554.
+    'android.attached.emulator': {
+      type: 'android.attached',
+      device: { adbName: 'emulator-5554' },
     },
     'android.github_ci.emulator': {
       type: 'android.emulator',

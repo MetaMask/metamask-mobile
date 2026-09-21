@@ -25,8 +25,8 @@ updated to resolve this version).
 - Transport-agnostic — produces/decodes QR images but does not dictate how
   they reach a camera or how camera frames return. Documented in
   `/Users/montelai/consensys/accounts/docs/specs/qr-emulator.md` §6.1:
-  *"No transport option — transport is the test driver's concern, not the
-  emulator's."*
+  _"No transport option — transport is the test driver's concern, not the
+  emulator's."_
 - Exports confirmed resolvable from the mobile repo:
   `createEmulator`, `EmulatorType`, `QrEmulator`, `renderToPng`,
   `renderQrPng`, `decodeQrImage`, `handleSignRequest`, `encodeToFragments`,
@@ -51,32 +51,36 @@ pure-JS `pubToAddress`. This shim is script-only — no product code changed.
 
 ### 2.1 QR render scripts (verified working)
 
-| Script | Output | Verified |
-|---|---|---|
-| `scripts/qr-emulator/render-account-ur.js` | `tmp/qr-account.png` (1585 bytes, valid PNG) | ✅ Runs, prints correct address |
-| `scripts/qr-emulator/render-sign-ur-to-mp4.js` | `tmp/qr-sign-response.mp4` (~101 KB, 14 frames, 5 fps) | ✅ Runs, ffmpeg pipeline works |
+| Script                                         | Output                                                 | Verified                        |
+| ---------------------------------------------- | ------------------------------------------------------ | ------------------------------- |
+| `scripts/qr-emulator/render-account-ur.js`     | `tmp/qr-account.png` (1585 bytes, valid PNG)           | ✅ Runs, prints correct address |
+| `scripts/qr-emulator/render-sign-ur-to-mp4.js` | `tmp/qr-sign-response.mp4` (~101 KB, 14 frames, 5 fps) | ✅ Runs, ffmpeg pipeline works  |
 
 Both scripts are CommonJS `.js` (converted from `.mjs` per project
 convention — `package.json` has `"type": "commonjs"`).
 
 ### 2.2 Test code (verified tsc-clean, no new errors)
 
-| File | Purpose |
-|---|---|
-| `tests/smoke/qr/qr-import-account.spec.ts` | Import spec — navigates to scanner, asserts account selector |
-| `tests/smoke/qr/qr-send-sign-spike.spec.ts` | Sign spike spec (assertion-free, gated on `QR_E2E=1`) |
+| File                                                     | Purpose                                                                       |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `tests/smoke/qr/qr-import-account.spec.ts`               | Import spec — navigates to scanner, asserts account selector                  |
+| `tests/smoke/qr/qr-send-sign-spike.spec.ts`              | Sign spike spec (assertion-free, gated on `QR_E2E=1`)                         |
 | `tests/page-objects/QRHardware/QRHardwareConnectView.ts` | Page object (tapKeystone, tapContinue, waitForScanner, assertAccountImported) |
-| `tests/selectors/QRHardware/QRHardware.selectors.ts` | Selector constants |
-| `tests/tags.js` | `SmokeQr` / `smokeQr` tag (gated on `QR_E2E === '1'`) |
+| `tests/selectors/QRHardware/QRHardware.selectors.ts`     | Selector constants                                                            |
+| `tests/tags.js`                                          | `SmokeQr` / `smokeQr` tag (gated on `QR_E2E === '1'`)                         |
 
 ### 2.3 Product testIDs (the only product-code changes)
 
-| File | testID | Line |
-|---|---|---|
-| `app/components/UI/QRHardware/AnimatedQRScanner.tsx` | `animated-qr-scanner-modal` | ~523 |
-| `app/components/UI/QRHardware/AnimatedQRScanner.tsx` | `animated-qr-scanner-container` | ~531 |
-| `app/components/UI/QRHardware/AnimatedQRScanner.tsx` | `animated-qr-scanner-camera` | ~543 |
-| `app/components/UI/QRHardware/QRSigningDetails.tsx` | `qr-signing-details-wrapper` | ~236 |
+Correction: these testIDs were NOT previously present in the product code —
+they are being added NOW to the Modal and container only. The camera testID
+is unnecessary: under the thin seam the camera is the mock's
+`qr-thin-seam-camera`.
+
+| File                                                 | testID                          | Line |
+| ---------------------------------------------------- | ------------------------------- | ---- |
+| `app/components/UI/QRHardware/AnimatedQRScanner.tsx` | `animated-qr-scanner-modal`     | ~525 |
+| `app/components/UI/QRHardware/AnimatedQRScanner.tsx` | `animated-qr-scanner-container` | ~537 |
+| `app/components/UI/QRHardware/QRSigningDetails.tsx`  | `qr-signing-details-wrapper`    | ~236 |
 
 No other product code changes. No env-gated branches, no test-only
 conditionals in product components.
@@ -116,10 +120,10 @@ The QR import spec ran for **268 seconds** and completed the entire flow:
 
 ### 2.7 Documentation
 
-| File | Content |
-|---|---|
-| `e2e/speculos/docs/qr-e2e-testing.md` | Architecture, CI strategy, file map, run recipes |
-| `e2e/speculos/docs/qr-camera-injection-spike.md` | Camera-injection mechanism runbook |
+| File                                             | Content                                          |
+| ------------------------------------------------ | ------------------------------------------------ |
+| `e2e/speculos/docs/qr-e2e-testing.md`            | Architecture, CI strategy, file map, run recipes |
+| `e2e/speculos/docs/qr-camera-injection-spike.md` | Camera-injection mechanism runbook               |
 
 ## 3. What has NOT worked (verified failures)
 
@@ -133,15 +137,15 @@ the debug build. `MainActivity.onCreate()` redirects to
 
 **Impact:** The DevLauncher strips Detox's WebSocket launch args from the
 intent, so the Detox native framework never receives the server address.
-Detox reports: *"Detox can't seem to connect to the test app(s)!"*
+Detox reports: _"Detox can't seem to connect to the test app(s)!"_
 
 **Patches applied to node_modules (not yet formalized via patch-package):**
 
-| File | Change |
-|---|---|
-| `node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/DevLauncherController.kt` | Replaced with release NOP version + `isLoadingToBundler` property |
-| `node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/launcher/DevLauncherActivity.kt` | `onCreate` redirects to `MainActivity` + forwards intent extras |
-| `tests/helpers.js` | `DETOX_SKIP_DEVLAUNCHER=1` env var skips the deep-link path |
+| File                                                                                                             | Change                                                            |
+| ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/DevLauncherController.kt`        | Replaced with release NOP version + `isLoadingToBundler` property |
+| `node_modules/expo-dev-launcher/android/src/debug/java/expo/modules/devlauncher/launcher/DevLauncherActivity.kt` | `onCreate` redirects to `MainActivity` + forwards intent extras   |
+| `tests/helpers.js`                                                                                               | `DETOX_SKIP_DEVLAUNCHER=1` env var skips the deep-link path       |
 
 **Result with patches:** `TestHelpers.launchApp({ delete: true })` works
 (PASS in ~27 s). The app loads JS from Metro. ReactNativeJS logs appear.
@@ -198,11 +202,11 @@ in the 268-second test run.
 `-camera-back virtualscene` produces green/corrupted camera frames on
 emulator 35.5.10. Verified across three GPU modes:
 
-| GPU mode | Green-dominant pixels | Verdict |
-|---|---|---|
-| `swiftshader_indirect` | ~16% | ❌ Green blocks |
-| `host` | ~16% | ❌ Green blocks |
-| `swangle` | ~16% | ❌ Green blocks |
+| GPU mode               | Green-dominant pixels | Verdict         |
+| ---------------------- | --------------------- | --------------- |
+| `swiftshader_indirect` | ~16%                  | ❌ Green blocks |
+| `host`                 | ~16%                  | ❌ Green blocks |
+| `swangle`              | ~16%                  | ❌ Green blocks |
 
 The basic emulated camera (`-camera-back emulated`) does NOT have this
 issue (0.3% green-dominant). The green blocks are specific to the
@@ -214,30 +218,30 @@ scene YUV pipeline.
 The `-virtualscene-poster <name>=<filename>` flag places the poster at a
 fixed position (bottom of the camera view). Verified:
 
-| Attempt | Result |
-|---|---|
-| Modified `Toren1BD.posters` with custom positions | ❌ Ignored (emulator caches/compiles the scene) |
-| Different poster names (`wall`, `qr`) | ❌ Same fixed position |
-| Overwrote all poster entries with QR images | ❌ Scene failed to render (all black with `-no-window`) |
+| Attempt                                           | Result                                                  |
+| ------------------------------------------------- | ------------------------------------------------------- |
+| Modified `Toren1BD.posters` with custom positions | ❌ Ignored (emulator caches/compiles the scene)         |
+| Different poster names (`wall`, `qr`)             | ❌ Same fixed position                                  |
+| Overwrote all poster entries with QR images       | ❌ Scene failed to render (all black with `-no-window`) |
 
 ### 3.7 Virtual scene camera cannot be navigated programmatically
 
 The virtual scene camera's pitch (looking up/down) is **mouse-drag-only
 within the emulator GUI**. Verified that none of these affect it:
 
-| Method | Result |
-|---|---|
-| Console `sensor set acceleration` | ❌ No effect (virtual scene camera is independent of device sensors) |
-| Console `event send EV_REL:REL_Y` | ❌ No effect |
-| Console `event mouse <x> <y> <btn> <extra>` | ❌ Goes to Android input, not emulator camera controller |
-| `adb shell input keyevent` | ❌ Goes to Android input |
+| Method                                      | Result                                                               |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| Console `sensor set acceleration`           | ❌ No effect (virtual scene camera is independent of device sensors) |
+| Console `event send EV_REL:REL_Y`           | ❌ No effect                                                         |
+| Console `event mouse <x> <y> <btn> <extra>` | ❌ Goes to Android input, not emulator camera controller             |
+| `adb shell input keyevent`                  | ❌ Goes to Android input                                             |
 
 ### 3.8 `-camera-back imagefile:` not supported
 
 Emulator version is **35.5.10.0**. The `imagefile:` camera mode requires emulator
 **>= 36.6.4**. Verified: the emulator rejects
 `-camera-back imagefile:/path/to/qr.png` with:
-*"invalid value for -camera-back"*.
+_"invalid value for -camera-back"_.
 
 > **UPDATE (2026-06-28):** The "≥ 36.6.4" claim above is **WRONG** — it
 > conflates `image360:` (equirectangular panoramic, which genuinely requires
@@ -254,15 +258,15 @@ Emulator version is **35.5.10.0**. The `imagefile:` camera mode requires emulato
 Booting the `test` AVD with each `-camera-back` mode and capturing the
 parse result:
 
-| Mode | Parse result | Verified source |
-|---|---|---|
-| `emulated` | ✅ Accepted | Fixed procedural scene; no image injection (AOSP `EmulatedCamera.cpp`) |
-| `none` | ✅ Accepted | Disables camera |
-| `virtualscene` | ✅ Accepted | Green/corrupted frames (§3.5); poster fixed at bottom (§3.6) |
-| `webcam0` | ✅ Accepted | Host webcam (MacBook camera `webcam0` listed by `-webcam-list`); deterministic QR injection needs OBS virtual camera |
-| **`videoplayback`** | ❌ **REJECTED** | Listed in `emulator -help-camera-back` as *"If the feature is enabled"* — the feature is compiled out of 35.5.10 |
-| **`imagefile:/path`** | ❌ **REJECTED** | Zero references in the 35.5.10 binary; mode does not exist |
-| **`videofile:/path`** | ❌ **REJECTED** | Zero references in the 35.5.10 binary; mode does not exist |
+| Mode                  | Parse result    | Verified source                                                                                                      |
+| --------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `emulated`            | ✅ Accepted     | Fixed procedural scene; no image injection (AOSP `EmulatedCamera.cpp`)                                               |
+| `none`                | ✅ Accepted     | Disables camera                                                                                                      |
+| `virtualscene`        | ✅ Accepted     | Green/corrupted frames (§3.5); poster fixed at bottom (§3.6)                                                         |
+| `webcam0`             | ✅ Accepted     | Host webcam (MacBook camera `webcam0` listed by `-webcam-list`); deterministic QR injection needs OBS virtual camera |
+| **`videoplayback`**   | ❌ **REJECTED** | Listed in `emulator -help-camera-back` as _"If the feature is enabled"_ — the feature is compiled out of 35.5.10     |
+| **`imagefile:/path`** | ❌ **REJECTED** | Zero references in the 35.5.10 binary; mode does not exist                                                           |
+| **`videofile:/path`** | ❌ **REJECTED** | Zero references in the 35.5.10 binary; mode does not exist                                                           |
 
 All three rejections produce:
 `ERROR | Invalid value for -camera-back <mode> parameter: <mode>`
@@ -285,13 +289,14 @@ this version are:
 Three pre-existing issues prevent the release APK from building on this
 dev machine (none caused by QR changes):
 
-| Issue | Cause |
-|---|---|
-| Sentry CLI upload fails | No `SENTRY_AUTH_TOKEN` on dev machine (CI-only) |
-| R8 minification fails | `minifyProdReleaseWithR8` — "Compilation failed to complete" |
+| Issue                             | Cause                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| Sentry CLI upload fails           | No `SENTRY_AUTH_TOKEN` on dev machine (CI-only)                         |
+| R8 minification fails             | `minifyProdReleaseWithR8` — "Compilation failed to complete"            |
 | Release keystore missing password | `SigningConfig "mainProd" is missing required property "storePassword"` |
 
 **Temporary build.gradle changes applied** (for local debugging only):
+
 - `minifyEnabled` respects `-PdisableMinify` flag
 - `mainProd` signing config falls back to debug keystore when
   `-PdisableMinify` is set
@@ -305,19 +310,19 @@ object. The team uses hardcoded fallback ports (e.g.,
 
 ## 4. Environment details
 
-| Item | Value |
-|---|---|
-| Android emulator | 35.5.10.0 (build_id 13402964) |
-| AVD | `Pixel_5_Pro_API_34` (google_apis, API 34) |
-| GPU modes tested | `swiftshader_indirect`, `host`, `swangle` |
-| Metro bundle (debug) | ~126–130 MB |
-| Debug APK (no bundle) | ~311 MB |
-| Debug APK (embedded bundle) | ~328 MB |
-| `@metamask/hw-emulator` version | 0.2.0 (resolved from accounts repo) |
-| Build tools | 36.0.0 |
-| Platform tools | latest |
-| Node.js | v20.18.0 |
-| Yarn | ^4.14.1 |
+| Item                            | Value                                      |
+| ------------------------------- | ------------------------------------------ |
+| Android emulator                | 35.5.10.0 (build_id 13402964)              |
+| AVD                             | `Pixel_5_Pro_API_34` (google_apis, API 34) |
+| GPU modes tested                | `swiftshader_indirect`, `host`, `swangle`  |
+| Metro bundle (debug)            | ~126–130 MB                                |
+| Debug APK (no bundle)           | ~311 MB                                    |
+| Debug APK (embedded bundle)     | ~328 MB                                    |
+| `@metamask/hw-emulator` version | 0.2.0 (resolved from accounts repo)        |
+| Build tools                     | 36.0.0                                     |
+| Platform tools                  | latest                                     |
+| Node.js                         | v20.18.0                                   |
+| Yarn                            | ^4.14.1                                    |
 
 ## 5. Files created / modified
 
@@ -374,12 +379,12 @@ android/app/build.gradle                 ← minifyEnabled + signing fallbacks
 
 ## 6. Accounts repo cross-references
 
-| Path in accounts repo | Relevance |
-|---|---|
-| `packages/hw-emulator/src/qr/emulator.ts` | QR emulator implementation (376 lines) |
-| `packages/hw-emulator/src/qr/core/signer.ts` | requestId extraction (lines 217–218) |
-| `packages/hw-emulator/src/index.ts` | Public exports (lines 60–93) |
-| `docs/specs/qr-emulator.md` | Authoritative spec (transport-agnostic, §6.1) |
+| Path in accounts repo                         | Relevance                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------- |
+| `packages/hw-emulator/src/qr/emulator.ts`     | QR emulator implementation (376 lines)                              |
+| `packages/hw-emulator/src/qr/core/signer.ts`  | requestId extraction (lines 217–218)                                |
+| `packages/hw-emulator/src/index.ts`           | Public exports (lines 60–93)                                        |
+| `docs/specs/qr-emulator.md`                   | Authoritative spec (transport-agnostic, §6.1)                       |
 | `extension-2/test/e2e/.../qr-account.spec.ts` | Extension QR test (`describe.skip`, uses FakeQrBridge not emulator) |
 
 The mobile repo's `yarn.lock` resolves `@metamask/hw-emulator` via `file:`
@@ -396,14 +401,14 @@ to the accounts repo's local build at
    - Mode accepted (no parse error).
    - **0.0% green-dominant pixels** (vs. ~16% on 35.5.10's `virtualscene`).
    - CameraX binds Preview + ImageAnalysis to back camera (ID 10,
-    `Facing: Back`) successfully.
+     `Facing: Back`) successfully.
    - **ImageAnalysis receives frames** at 15+ fps: 640×480 YUV_420_888
-    (format=35), non-null, rowStride=640 (no padding). Confirmed via
-    diagnostic logging in `CodeScannerPipeline.analyze()`.
+     (format=35), non-null, rowStride=640 (no padding). Confirmed via
+     diagnostic logging in `CodeScannerPipeline.analyze()`.
    - **Frame pixel stats** look QR-like: mean=163, min=16, max=233,
-    black=27%, white=63% — consistent with a high-contrast QR image.
+     black=27%, white=63% — consistent with a high-contrast QR image.
    - **Source QR is valid** — jsqr decodes it from the PNG:
-    `UR:CRYPTO-ACCOUNT/1-4/LPADA...` (valid BC-UR account UR).
+     `UR:CRYPTO-ACCOUNT/1-4/LPADA...` (valid BC-UR account UR).
    - **Neither ML Kit nor ZXing can decode the QR from emulator camera
      frames.** Root cause definitively identified via ASCII-art pixel
      dump: the emulator's `imagefile:`/`videofile:` camera HAL renders
@@ -412,30 +417,30 @@ to the accounts repo's local build at
      are blurred into 7-11px uniform blocks. This occurs at ALL output
      resolutions (640×480 and 1280×960 both tested). The HAL is designed
      for photographic content, not high-contrast barcode patterns.
-    - **This is a fundamental limitation of the emulator camera HAL.**
-      No library (ML Kit, ZXing, jsqr) or resolution setting can decode
-      QR codes from `imagefile:`/`videofile:` frames on the standard
-      Android emulator.
-    - **Additionally (structural, not HAL-related):** Account UR is BC-UR
-      fountain-encoded as 4 fragments (verified via `encodeToFragments`).
-      `renderToPng` renders only fragment 1 of 4 — so the static-image
-      camera paths (`imagefile:` / `virtualscene`) could never complete an
-      import regardless of HAL quality, because
-      `URRegistryDecoder.receivePart` needs all 4 fragments to reach
-      `isSuccess()`. This overturns the spike doc's earlier "Static QR
-      (import): VIABLE" claim.
-    - **CI-viable paths remaining:**
+   - **This is a fundamental limitation of the emulator camera HAL.**
+     No library (ML Kit, ZXing, jsqr) or resolution setting can decode
+     QR codes from `imagefile:`/`videofile:` frames on the standard
+     Android emulator.
+   - **Additionally (structural, not HAL-related):** Account UR is BC-UR
+     fountain-encoded as 4 fragments (verified via `encodeToFragments`).
+     `renderToPng` renders only fragment 1 of 4 — so the static-image
+     camera paths (`imagefile:` / `virtualscene`) could never complete an
+     import regardless of HAL quality, because
+     `URRegistryDecoder.receivePart` needs all 4 fragments to reach
+     `isSuccess()`. This overturns the spike doc's earlier "Static QR
+     (import): VIABLE" claim.
+   - **CI-viable paths remaining:**
      (a) **Genymotion** — different camera HAL, media injection designed
-      for QR scanning (Jun 2026 widget), API 34 supported. Commercial.
+     for QR scanning (Jun 2026 widget), API 34 supported. Commercial.
      (b) **Thin-seam injection** — the camera opens for real (CameraX +
-      ImageAnalysis pipeline runs), but the QR string is injected at
-      the JS layer (`onCodeScanned`) using the emulator's
-      `renderToPng` → `jsqr` decode output. Tests the real UR decoder
-      with real emulator data. Camera is "used" but the barcode decode
-      step is bypassed.
+     ImageAnalysis pipeline runs), but the QR string is injected at
+     the JS layer (`onCodeScanned`) using the emulator's
+     `renderToPng` → `jsqr` decode output. Tests the real UR decoder
+     with real emulator data. Camera is "used" but the barcode decode
+     step is bypassed.
      (c) **`takePhoto()` pipeline** (untested) — CameraX photo capture
-      uses a different HAL path than ImageAnalysis; might preserve more
-      detail. Needs investigation.
+     uses a different HAL path than ImageAnalysis; might preserve more
+     detail. Needs investigation.
 
 2. **Thin-seam Metro mock — RESOLVED (IMPLEMENTED).** Env
    `QR_E2E_THIN_SEAM=true` makes Metro resolve
@@ -503,9 +508,9 @@ to the accounts repo's local build at
    - **Paths to unblock the E2E-green (separate infra task):**
      (a) Upgrade Detox to a release with proper RN 0.81.5 Fabric support.
      (b) Comprehensively patch all affected Detox idling resources to
-      degrade gracefully (fragile; sync becomes "always idle" → flaky).
+     degrade gracefully (fragile; sync becomes "always idle" → flaky).
      (c) Unblock the release build (§3.9 Sentry/R8/keystore) so CI's
-      release Detox path (`android.emu.main.speculos`) can run instead.
+     release Detox path (`android.emu.main.speculos`) can run instead.
 
 4. **DevLauncher patches:** Applied to `node_modules` but not formalized
    via `patch-package`. Would not survive `yarn install`.

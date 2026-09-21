@@ -12,6 +12,8 @@ import QRHardwareConnectView from '../../page-objects/QRHardware/QRHardwareConne
 import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 
+// adb shelling (dev-menu dismissal) requires Node builtins in this e2e driver.
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'child_process';
 
 const describeIf = process.env.QR_E2E === '1' ? describe : describe.skip;
@@ -29,8 +31,7 @@ const logger = {
  * (`scripts/qr-emulator/render-account-ur.js`) drives. Matches Hardhat/Anvil
  * account #0 for the canonical test seed.
  */
-const QR_EMULATOR_ADDRESS =
-  '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+const QR_EMULATOR_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
 describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
   it('discovers and imports a QR account using the emulator-rendered QR', async () => {
@@ -38,6 +39,15 @@ describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
         restartDevice: true,
+        // Intent: skip detox's launch sync-idle await, which crashes on
+        // RN 0.81.5 (JavaTimersReflected NoSuchField: javaTimerManager) when
+        // the app has active timers during the launch await; the spec
+        // disables synchronization immediately in the test body anyway.
+        // NOTE: `waitForSync` is NOT a recognized option in detox 20.51
+        // (verified: no such key in DeviceLaunchAppConfig/driver sources), so
+        // detox may ignore it — if the launch crash persists, the real fix is
+        // a detox upgrade or the behavior-config `launchApp: 'manual'` knob.
+        extraLaunchOptions: { waitForSync: false },
       },
       async () => {
         // Disable synchronization — the app has continuous background
@@ -53,7 +63,9 @@ describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
         try {
           // Wait for the Metro bundle to download (~90s for 126MB debug bundle)
           // and the Expo dev menu to render. Poll for the dev menu via uiautomator.
-          logger.debug('Waiting for dev menu to appear (Metro bundle download)...');
+          logger.debug(
+            'Waiting for dev menu to appear (Metro bundle download)...',
+          );
           let devMenuFound = false;
           for (let attempt = 0; attempt < 60; attempt++) {
             await TestHelpers.delay(3000);
@@ -74,11 +86,15 @@ describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
 
           if (devMenuFound) {
             // Tap "Continue" on the Expo dev menu
-            execSync(`adb ${deviceId} shell input tap 540 2185`, { stdio: 'pipe' });
+            execSync(`adb ${deviceId} shell input tap 540 2185`, {
+              stdio: 'pipe',
+            });
             logger.debug('Tapped Expo dev menu Continue');
             await TestHelpers.delay(2000);
             // Dismiss the RN dev menu that appears after
-            execSync(`adb ${deviceId} shell input keyevent 4`, { stdio: 'pipe' });
+            execSync(`adb ${deviceId} shell input keyevent 4`, {
+              stdio: 'pipe',
+            });
             logger.debug('Dismissed RN dev menu');
             await TestHelpers.delay(3000);
           } else {
@@ -120,8 +136,18 @@ describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
         await QRHardwareConnectView.tapContinue();
         await device.takeScreenshot('07_scanner_opened');
 
-        logger.debug('Step 8: assert scanner visible');
-        await QRHardwareConnectView.assertScannerVisible();
+        logger.debug('Step 8: soft-probe scanner visibility');
+        // The scanner modal is transient under the thin-seam mock: it
+        // auto-decodes in ~1.3s and `onConnectHardware`'s finally closes it,
+        // so the modal may already be gone — assert the OUTCOME instead.
+        try {
+          await QRHardwareConnectView.waitForScanner(5000);
+          logger.debug('scanner visible');
+        } catch {
+          logger.debug(
+            'scanner closed before detection (thin-seam auto-decode) — proceeding to outcome',
+          );
+        }
         await device.takeScreenshot('08_scanner_confirmed');
 
         // The decode is driven by the thin-seam vision-camera mock, NOT a
@@ -136,6 +162,9 @@ describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
           'Step 9: waiting for account selector (camera decode signal)',
         );
 
+        // Hard outcome gate: the scanner testIDs were previously missing and
+        // the modal self-closes after the mock decode, so the account
+        // selector is the reliable import signal.
         await QRHardwareConnectView.assertAccountImported();
         await device.takeScreenshot('09_account_imported');
 

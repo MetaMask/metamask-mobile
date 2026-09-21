@@ -525,6 +525,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     <Modal
       isVisible={visible}
       style={styles.modal}
+      testID="animated-qr-scanner-modal"
       coverScreen={coverScreen}
       statusBarTranslucent
       onModalHide={() => {
@@ -534,7 +535,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       }}
       onModalWillShow={() => pauseQRCode?.(true)}
     >
-      <View style={styles.container}>
+      <View style={styles.container} testID="animated-qr-scanner-container">
         {cameraDevice && hasPermission ? (
           <>
             {!scanError ? (

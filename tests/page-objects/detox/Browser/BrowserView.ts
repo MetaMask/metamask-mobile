@@ -24,6 +24,14 @@ interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
+/**
+ * JSON-RPC `params` payload for the test dapp's `/request` route. The dapp
+ * forwards this verbatim to `window.ethereum.request`, so the shape must
+ * match the target method — e.g. `eth_sendTransaction` requires an ARRAY of
+ * tx objects, while `personal_sign`-style methods take plain objects.
+ */
+type TransactionParamsInput = TransactionParams | TransactionParams[];
+
 class Browser {
   get reloadButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
@@ -379,7 +387,7 @@ class Browser {
   async navigateToTestDAppTransaction({
     transactionParams,
   }: {
-    transactionParams: TransactionParams;
+    transactionParams: TransactionParamsInput;
   }): Promise<void> {
     // Intentionally open the test dapp first to avoid flakiness
     await this.navigateToTestDApp();

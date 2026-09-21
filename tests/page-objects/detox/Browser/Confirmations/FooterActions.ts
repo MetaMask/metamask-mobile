@@ -68,7 +68,25 @@ class FooterActions {
     }
   }
 
-  async tapConfirmButton(timeout?: number): Promise<void> {
+  /**
+   * Taps the Confirm button on the confirmation footer.
+   *
+   * By default it also waits for the confirm button to leave the hierarchy,
+   * which is the expected post-Confirm transition for software accounts.
+   * Hardware (Ledger) confirmations legitimately KEEP the confirmation sheet
+   * mounted while the HardwareWalletBottomSheet takes over the signing, so
+   * HW specs must pass `{ waitForDismiss: false }` and instead assert the
+   * hardware bottom sheet as the transition signal.
+   *
+   * @param timeout - Max time to wait for the confirm button readiness (ms).
+   * @param options - Behaviour toggles.
+   * @param options.waitForDismiss - Whether to wait for the footer to
+   * unmount after the tap (default true).
+   */
+  async tapConfirmButton(
+    timeout?: number,
+    options: { waitForDismiss?: boolean } = {},
+  ): Promise<void> {
     await this.waitForToastToDismiss();
 
     const readyTimeout = timeout ?? 30_000;
@@ -78,7 +96,9 @@ class FooterActions {
       checkEnabled: true,
     });
 
-    await this.waitForConfirmButtonGone(readyTimeout);
+    if (options.waitForDismiss ?? true) {
+      await this.waitForConfirmButtonGone(readyTimeout);
+    }
   }
 
   /**

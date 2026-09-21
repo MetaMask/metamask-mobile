@@ -7,27 +7,40 @@ import TestDApp from '../../page-objects/detox/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import TabBarComponent from '../../page-objects/detox/wallet/TabBarComponent';
 import TrendingView from '../../page-objects/detox/Trending/TrendingView';
+import { createLogger } from '../../framework/logger';
+
+const logger = createLogger({ name: 'BrowserFlow' });
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((r) => setTimeout(r, ms));
 
 /**
  * Waits for the test dapp to load.
  * @async
  * @function waitForTestDappToLoad
+ * @param timeout - Optional per-assertion timeout in ms. When omitted, the
+ * framework default timeout is used for each assertion.
  * @returns {Promise<void>} A promise that resolves when the test dapp is loaded.
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
-export const waitForTestDappToLoad = async (): Promise<void> => {
+export const waitForTestDappToLoad = async (
+  timeout?: number,
+): Promise<void> => {
   const MAX_RETRIES = 3;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
         description: 'Test Dapp Fox Logo should be visible',
+        timeout,
       });
       await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
         description: 'Test Dapp Page Title should be visible',
+        timeout,
       });
       await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton, {
         description: 'Test Dapp Connect Button should be visible',
+        timeout,
       });
       return; // Success - page is fully loaded and interactive
     } catch (error) {
@@ -42,6 +55,72 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
   }
 
   throw new Error('Test dapp failed to become fully interactive');
+};
+
+/**
+ * Bounded per-assertion window for each {@link openTestDappWithRetry}
+ * attempt, so a broken attempt fails fast enough to leave room for retries.
+ */
+const TEST_DAPP_LOAD_ASSERTION_TIMEOUT = 10000;
+
+/**
+ * Opens the test dapp, retrying the whole URL-entry flow on failure.
+ *
+ * A single attempt covers URL entry (`BrowserView.navigateToTestDApp`:
+ * tap URL box, type the URL + "\n") and the wait for the dapp content to
+ * become interactive ({@link waitForTestDappToLoad}). Retrying the whole
+ * flow covers the swallowed-submit failure mode where the URL editor
+ * dismisses without firing navigation, leaving the browser on its home
+ * screen with no WebView loaded.
+ *
+ * A swallowed submit can also leave the browser view in an unknown state
+ * (search overlay / homepage) where the URL box is not tappable, so callers
+ * whose navigation helper can rebuild the browser view from scratch should
+ * pass it as {@link relaunchBrowserView}; it runs between attempts, after
+ * the warn + settle sleep and before the next URL entry.
+ *
+ * @async
+ * @function openTestDappWithRetry
+ * @param maxAttempts - Total number of URL-entry attempts (default 3).
+ * @param relaunchBrowserView - Optional function that re-navigates to a
+ * fresh browser view (e.g. `navigateToBrowserView` /
+ * `navigateToBrowserViewSyncDisabled`). Called between attempts when
+ * provided.
+ * @returns {Promise<void>} Resolves once the test dapp is loaded and interactive.
+ * @throws {Error} Rethrows the last error after all attempts are exhausted.
+ */
+export const openTestDappWithRetry = async (
+  maxAttempts = 3,
+  relaunchBrowserView?: () => Promise<void>,
+): Promise<void> => {
+  let lastError: Error = new Error('openTestDappWithRetry did not run');
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await BrowserView.navigateToTestDApp();
+      await waitForTestDappToLoad(TEST_DAPP_LOAD_ASSERTION_TIMEOUT);
+      return;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt === maxAttempts) {
+        break;
+      }
+      logger.warn(
+        `⚠️ Test dapp failed to open (attempt ${attempt}/${maxAttempts}): ${lastError.message}. Retrying URL entry...`,
+      );
+      await sleep(2000);
+      if (relaunchBrowserView) {
+        // Rebuild the browser view: a swallowed submit can leave it in an
+        // unknown state where the URL box is not tappable.
+        await relaunchBrowserView();
+      }
+      // Defensively dismiss any open URL editor so the next attempt starts
+      // from a clean, non-editing URL bar state.
+      await BrowserView.dismissUrlEditorIfOpen();
+    }
+  }
+
+  throw lastError;
 };
 
 /**
@@ -138,8 +217,6 @@ export const navigateToBrowserView = async (): Promise<void> => {
  * `importLedgerAccount` returns to the wallet home via the identicon toggle).
  */
 export const navigateToBrowserViewSyncDisabled = async (): Promise<void> => {
-  const sleep = (ms: number): Promise<void> =>
-    new Promise((r) => setTimeout(r, ms));
   const exists = async (
     getter: () => Promise<unknown> | unknown,
   ): Promise<boolean> => {

@@ -481,6 +481,15 @@ export interface WithFixturesOptions {
   localNodeOptions?: LocalNodeOptionsInput;
   testSpecificMock?: TestSpecificMock;
   launchArgs?: Partial<LaunchArgs>;
+  /**
+   * Extra detox launch options merged into the restartDevice `launchApp`
+   * call (Detox framework only; the Appium path ignores it). Forwarded
+   * verbatim to `device.launchApp`. Typed as a loose record deliberately:
+   * some driver-level launch flags are not part of detox 20.x's
+   * `DeviceLaunchAppConfig` type, and unknown keys must still be
+   * forwardable.
+   */
+  extraLaunchOptions?: Record<string, unknown>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
