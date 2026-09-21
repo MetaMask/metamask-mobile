@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated, View } from 'react-native';
+import { Animated, Pressable, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -59,7 +59,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
-    return <CustomAmountSkeleton />;
+    return <CustomAmountSkeleton onPress={disabled ? undefined : onPress} />;
   }
 
   return (
@@ -84,7 +84,9 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   );
 });
 
-export function CustomAmountSkeleton() {
+export function CustomAmountSkeleton({
+  onPress,
+}: { onPress?: () => void } = {}) {
   const { styles } = useStyles(styleSheet, {
     amountLength: 1,
     hasAlert: false,
@@ -92,8 +94,13 @@ export function CustomAmountSkeleton() {
   });
 
   return (
-    <View style={styles.container} testID="custom-amount-skeleton">
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      style={styles.container}
+      testID="custom-amount-skeleton"
+    >
       <Skeleton height={70} width={80} />
-    </View>
+    </Pressable>
   );
 }

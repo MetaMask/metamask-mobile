@@ -48,9 +48,10 @@ export function usePerpsDetailsItem(
   const accountId = useSelector((state: RootState) =>
     selectSelectedAccountCaipId(state, chainId),
   );
+  const isQueryEnabled = shouldResolve && Boolean(accountId);
   const { isFetching, transactions } = usePerpsActivityQuery(
     shouldResolve ? accountId : undefined,
-    false,
+    isQueryEnabled,
     aggregateFills,
   );
   const transaction = useMemo(

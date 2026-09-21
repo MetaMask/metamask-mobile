@@ -33,6 +33,7 @@ import {
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 import PerpsAggregatedFillsCheckbox from '../PerpsAggregatedFillsCheckbox';
+import { PerpsRecentActivityListSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -114,12 +115,13 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   );
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction }) => {
-      const { item } = props;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
       const fill = item.fill;
 
       return (
         <ListItem
+          testID={PerpsRecentActivityListSelectorsIDs.ROW(index)}
           isInteractive
           avatar={
             <PerpsTokenLogo
@@ -168,6 +170,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     <Box>
       {renderSectionHeader(true)}
       <FlatList
+        testID={PerpsRecentActivityListSelectorsIDs.LIST}
         data={transactions}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.id || index}`}

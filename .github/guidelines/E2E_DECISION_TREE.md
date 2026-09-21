@@ -15,7 +15,7 @@ flowchart TD
     L2 -->|ignorable-only changes| NoBlock[🟢 Merge allowed]
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
-    GR -->|Scheduled| Scheduled[🧪 Run all E2E for iOS only]
+    GR -->|Scheduled to main| Scheduled[🧪 Run all E2E for iOS only]
     GR -->|Push to release/*| FullRelease[🧪 Path filter to run all E2E for Android and/or iOS]
     GR -->|Push to main| AndroidMain[🧪 Path filter; run all E2E for Android if selected]
 

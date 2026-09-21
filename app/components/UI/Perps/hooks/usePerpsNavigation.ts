@@ -66,7 +66,7 @@ export interface PerpsNavigationHandlers {
   navigateToAdjustMargin: (
     position: Position,
     mode: 'add' | 'remove',
-    options?: { enableHaptics?: boolean },
+    options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
   ) => void;
   navigateToClosePosition: (
     position: Position,
@@ -238,6 +238,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
+      const useBottomSheet = Boolean(params.useBottomSheet);
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         depositWithOrder,
@@ -247,8 +248,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              showPerpsHeader: useBottomSheet
+                ? false
+                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           );
         })
@@ -292,12 +295,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       mode: 'add' | 'remove',
-      options?: { enableHaptics?: boolean },
+      options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
     ) => {
       navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
         position,
         mode,
         enableHaptics: options?.enableHaptics,
+        ...(options?.useBottomSheet ? { useBottomSheet: true } : {}),
       });
     },
     [navigation],
