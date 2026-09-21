@@ -1,7 +1,7 @@
-import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
-import { MultichainTestDappViewSelectorsIDs } from '../../selectors/Browser/MultichainTestDapp.selectors.js';
-import MultichainUtilities from '../../helpers/multichain/MultichainUtilities.js';
-import { createLogger } from '../../framework/logger.js';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
+import { MultichainTestDappViewSelectorsIDs } from '../../selectors/Browser/MultichainTestDapp.selectors';
+import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
+import { createLogger } from '../../framework/logger';
 import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
@@ -24,6 +24,7 @@ export function getMultichainTestDappBaseUrl(
 }
 
 const CHECKBOX_SETTLE_TIMEOUT_MS = 10_000;
+const RESULT_CLEAR_TIMEOUT_MS = 5_000;
 const SELECTION_ATTEMPTS = 3;
 const POLL_INTERVAL_MS = 250;
 
@@ -57,10 +58,33 @@ export const ALL_CHAIN_IDS = [
 
 export async function clearSessionResult(resultIndex = 0): Promise<void> {
   const elementId = `${SELECTORS.SESSION_METHOD_RESULT}${resultIndex}`;
-  await ChromeCdpHelpers.evaluateInWebView(
+  const cleared = await ChromeCdpHelpers.evaluateInWebView<boolean>(
     getMultichainTestDappBaseUrl(),
-    `(() => { const el = document.getElementById(${JSON.stringify(elementId)}); if (el) el.textContent = ''; })()`,
-  ).catch(() => undefined);
+    `(() => {
+      const el = document.getElementById(${JSON.stringify(elementId)});
+      if (el) el.textContent = '';
+      return true;
+    })()`,
+  );
+  if (!cleared) {
+    throw new Error(`Could not clear #${elementId} before the next request`);
+  }
+
+  const deadline = Date.now() + RESULT_CLEAR_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const text = await ChromeCdpHelpers.readTextByIdInWebView(
+      getMultichainTestDappBaseUrl(),
+      elementId,
+    );
+    if (!text) {
+      return;
+    }
+    await wait(POLL_INTERVAL_MS);
+  }
+
+  throw new Error(
+    `#${elementId} still contained a stale result after ${RESULT_CLEAR_TIMEOUT_MS}ms`,
+  );
 }
 
 /**
@@ -84,10 +108,27 @@ export async function applyNetworkSelection(chainIds: string[]): Promise<void> {
     );
 
     if (wrong.length === 0) {
-      logger.debug(
-        `network selection [${requested}] applied on attempt ${attempt}`,
+      // wallet_getSession can rebuild the checkbox list immediately after the
+      // first matching read. Require a second matching snapshot before acting.
+      await wait(POLL_INTERVAL_MS);
+      const settledStates = await readAllCheckboxStates();
+      const unsettled = ALL_CHAIN_IDS.filter(
+        (chainId) =>
+          settledStates[chainId] !==
+          (chainIds.includes(chainId) ? 'checked' : 'unchecked'),
       );
-      return;
+      if (unsettled.length === 0) {
+        logger.debug(
+          `network selection [${requested}] applied on attempt ${attempt}`,
+        );
+        return;
+      }
+      logger.warn(
+        `attempt ${attempt}/${SELECTION_ATTEMPTS}: selection changed after its first matching read; observed: ${JSON.stringify(
+          settledStates,
+        )}`,
+      );
+      continue;
     }
 
     logger.warn(

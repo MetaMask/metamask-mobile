@@ -25,6 +25,7 @@ import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { openConnectedAccounts } from '../../../flows/connected-accounts.flow.js';
 
 /**
  * Open the browser connected-accounts sheet and assert the active account
@@ -34,7 +35,7 @@ async function assertConnectedAccountFromNativeUi(
   accountName: string,
   networkName?: string,
 ): Promise<void> {
-  await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+  await openConnectedAccounts();
   await Assertions.expectTextDisplayed(accountName, {
     description: `Connected accounts modal should show ${accountName}`,
   });

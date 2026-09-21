@@ -18,10 +18,9 @@ import { navigateToBrowserView } from '../../../flows/browser.flow.js';
 import BrowserView from '../../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
-import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
-import { openConnectedAccountsAfterConnect } from './helpers/open-connected-accounts.helpers.js';
+import { openConnectedAccounts } from '../../../flows/connected-accounts.flow.js';
 
 async function setupAndNavigateToTestDapp(): Promise<void> {
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
@@ -29,15 +28,6 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await navigateToBrowserView();
   await dismissPushNotificationExistingUserSheet();
   await BrowserView.navigateToTestDApp();
-}
-
-/**
- * The "Permissions updated" toast shown after connecting overlays the browser
- * URL bar, so taps on the account button are swallowed until it dismisses.
- */
-async function openConnectedAccountsSheet(): Promise<void> {
-  await ToastModal.waitForToastToDismiss();
-  await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
 }
 
 appiumTest.describe(
@@ -89,7 +79,9 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // Only the already-permitted EVM account should remain connected
-            await openConnectedAccountsAfterConnect();
+            await openConnectedAccounts({
+              waitForConnectionModalToClose: true,
+            });
             await Assertions.expectTextDisplayed('Account 2');
           },
         );
@@ -116,7 +108,9 @@ appiumTest.describe(
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
-            await openConnectedAccountsAfterConnect();
+            await openConnectedAccounts({
+              waitForConnectionModalToClose: true,
+            });
             await Assertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
@@ -164,7 +158,9 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // EVM account should be connected
-            await openConnectedAccountsAfterConnect();
+            await openConnectedAccounts({
+              waitForConnectionModalToClose: true,
+            });
             await Assertions.expectTextDisplayed('Account 1');
           },
         );

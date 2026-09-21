@@ -43,14 +43,20 @@ export default class DappServer implements Resource {
       this._serverStatus === ServerStatus.STARTED &&
       this._server?.listening
     ) {
+      const server = this._server;
       await new Promise<void>((resolve, reject) => {
-        this._server?.close((error) => {
+        server.close((error) => {
           if (error) {
             return reject(error);
           }
           return resolve();
         });
+        // The in-app WebView can retain a keep-alive connection after the
+        // suite finishes. There are no remaining consumers during teardown,
+        // so close those sockets instead of waiting until the test timeout.
+        server.closeAllConnections();
       });
+      this._server = undefined;
     }
     this._serverStatus = ServerStatus.STOPPED;
     // Release the port after server is stopped

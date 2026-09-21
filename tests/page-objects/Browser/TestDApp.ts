@@ -595,9 +595,28 @@ class TestDApp {
         },
       ],
     });
-    await ChromeCdpHelpers.evaluateInWebView(
+    const requested = await ChromeCdpHelpers.evaluateInWebView<boolean>(
       testDappPageUrl(),
-      `window.ethereum.request(${request})`,
+      `(() => {
+        if (!window.ethereum?.request) return false;
+        void window.ethereum.request(${request}).catch(() => undefined);
+        return true;
+      })()`,
+    );
+    if (!requested) {
+      throw new Error(
+        'wallet_requestPermissions could not be submitted to the Test Dapp',
+      );
+    }
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(
+        ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+      ),
+      {
+        timeout: 15_000,
+        description: 'Connect sheet after wallet_requestPermissions request',
+      },
     );
   }
 
