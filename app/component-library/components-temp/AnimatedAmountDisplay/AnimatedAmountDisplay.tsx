@@ -47,6 +47,11 @@ export interface AnimatedAmountDisplayProps {
   containerStyle?: StyleProp<ViewStyle>;
   cursor?: false | AnimatedAmountCursorProps;
   disabled?: boolean;
+  /**
+   * Use native text autosizing for legacy high-precision displays.
+   * This intentionally renders a static text body because slot-based numeric
+   * animation cannot participate in native font fitting.
+   */
   fitToWidth?: boolean;
   fontWeight?: FontWeight;
   loading?: boolean;
