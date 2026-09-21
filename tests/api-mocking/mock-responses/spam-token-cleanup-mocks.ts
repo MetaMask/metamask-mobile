@@ -17,6 +17,7 @@
  */
 
 import type { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 
 /**
@@ -153,25 +154,23 @@ export async function mockOccurrenceApis(
   mockServer: Mockttp,
   { failOccurrenceFloors = false }: { failOccurrenceFloors?: boolean } = {},
 ): Promise<void> {
-  // Priority 1005 ensures these rules beat the MockServerE2E big-proxy
-  // interceptor (priority 0, LIFO) which would otherwise serve the
-  // DEFAULT_MOCKS suggestedOccurrenceFloors response (always 200) even when
-  // failOccurrenceFloors is true. Same priority level as applyTokenHoldingsMocks.
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) =>
-      getDecodedProxiedURL(request.url).includes(
-        'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
-      ),
-    )
-    .asPriority(1005)
-    .always()
-    .thenCallback(() =>
-      failOccurrenceFloors
-        ? { statusCode: 500, json: { message: 'Internal server error' } }
-        : { statusCode: 200, json: SUGGESTED_OCCURRENCE_FLOORS },
-    );
+  // setupMockRequest defaults to priority 999, which beats the MockServerE2E
+  // big-proxy interceptor (priority 0) that would otherwise serve the
+  // DEFAULT_MOCKS suggestedOccurrenceFloors 200 response regardless of
+  // failOccurrenceFloors. This is the standard pattern for test-specific proxy
+  // overrides — see mockHelpers.ts setupMockRequest for the canonical usage.
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'token.api.cx.metamask.io/v1/suggestedOccurrenceFloors',
+    responseCode: failOccurrenceFloors ? 500 : 200,
+    response: failOccurrenceFloors
+      ? { message: 'Internal server error' }
+      : SUGGESTED_OCCURRENCE_FLOORS,
+  });
 
+  // thenCallback is required here to inspect the request URL and filter
+  // TRACKED_ASSETS by the requested assetIds — use raw priority to match the
+  // level setupMockRequest applies (999 > big-proxy interceptor priority 0).
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -181,7 +180,7 @@ export async function mockOccurrenceApis(
         url.searchParams.get('includeOccurrences') === 'true'
       );
     })
-    .asPriority(1005)
+    .asPriority(999)
     .always()
     .thenCallback((request) => {
       const url = new URL(getDecodedProxiedURL(request.url));
