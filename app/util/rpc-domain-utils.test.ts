@@ -136,7 +136,7 @@ describe('rpc-domain-utils', () => {
             chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
-            rpc: ['invalid-url', 'https://mainnet.infura.io'],
+            rpc: ['not a url at all', 'https://mainnet.infura.io'],
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
@@ -149,6 +149,27 @@ describe('rpc-domain-utils', () => {
         expect(knownDomains).toBeInstanceOf(Set);
         expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
         expect(knownDomains?.size).toBe(1);
+      });
+      it('adds scheme-less host strings from the chains list', async () => {
+        // Setup
+        setupTestEnvironment();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: 1,
+            name: 'Ethereum',
+            nativeCurrency: { symbol: 'ETH' },
+            rpc: ['rpc.example.com', 'https://mainnet.infura.io'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+          JSON.stringify(mockChains),
+        );
+        // Exercise
+        await initializeRpcProviderDomains();
+        // Verify
+        const knownDomains = getKnownDomains();
+        expect(knownDomains?.has('rpc.example.com')).toBe(true);
+        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
       });
     });
     describe('when chains list is empty', () => {
@@ -243,11 +264,11 @@ describe('rpc-domain-utils', () => {
     });
   });
   describe('extractHostname', () => {
-    const spec = (url: string): string | undefined => {
+    const spec = (url: string): string | null => {
       try {
         return new URL(url).hostname.toLowerCase();
       } catch {
-        return undefined;
+        return null;
       }
     };
 
@@ -265,6 +286,7 @@ describe('rpc-domain-utils', () => {
         'wss://rpc.example.com/ws',
         'ws://127.0.0.1:8546',
         'HTTPS://RPC.EXAMPLE.COM/Path',
+        ' HTTPS://X.COM ',
         'https://sub.domain.rpc.example.co.uk',
         'https://rpc-mainnet.matic.network',
         'https://api.avax.network/ext/bc/C/rpc',
@@ -276,31 +298,46 @@ describe('rpc-domain-utils', () => {
       });
     });
 
-    describe('rejects inputs without a usable scheme or host', () => {
-      const invalid: [string, string][] = [
-        ['no scheme', 'invalid-url'],
+    describe('returns null for inputs that resolve to no host', () => {
+      const hostless: [string, string][] = [
         ['empty string', ''],
         ['prose', 'not a url at all'],
         ['scheme only', 'https://'],
-        ['empty host with port', 'https://:8545'],
-        ['triple colon', 'https://:::invalid'],
-        ['empty scheme', '://no-scheme.com'],
-        ['numeric scheme', '1bad://example.com'],
-        ['scheme with space', 'ht tp://example.com'],
+        ['scheme containing a space', 'ht tp://example.com'],
+        ['empty host with colons', 'https://:::invalid'],
         ['unterminated ipv6', 'https://[2001:db8::1'],
       ];
 
-      it.each(invalid)('returns undefined for %s', (_label, url) => {
-        expect(extractHostname(url)).toBeUndefined();
-        expect(spec(url)).toBeUndefined();
+      it.each(hostless)('returns null for %s', (_label, url) => {
+        expect(extractHostname(url)).toBeNull();
+        expect(spec(url)).toBeNull();
       });
+    });
+
+    describe('resolves scheme-less and lenient inputs as host strings', () => {
+      const hostStrings: [string, string, string][] = [
+        ['scheme-less host', 'rpc.infura.io', 'rpc.infura.io'],
+        ['scheme-less single token', 'invalid-url', 'invalid-url'],
+        ['scheme-less localhost', 'localhost', 'localhost'],
+        ['scheme-less trailing dot', 'mainnet.infura.io.', 'mainnet.infura.io'],
+        ['empty scheme', '://no-scheme.com', 'no-scheme.com'],
+        ['numeric-leading scheme', '1bad://example.com', 'example.com'],
+      ];
+
+      it.each(hostStrings)(
+        'extracts %s where new URL() throws',
+        (_label, url, expected) => {
+          expect(extractHostname(url)).toBe(expected);
+          expect(spec(url)).toBeNull();
+        },
+      );
     });
 
     describe('diverges from new URL() only in documented directions', () => {
       it('rejects percent-encoded hosts that new URL() would decode into allowlist matches', () => {
-        expect(extractHostname('https://%2e.infura.io')).toBeUndefined();
+        expect(extractHostname('https://%2e.infura.io')).toBeNull();
         expect(spec('https://%2e.infura.io')).toBe('..infura.io');
-        expect(extractHostname('https://ex%41mple.com')).toBeUndefined();
+        expect(extractHostname('https://ex%41mple.com')).toBeNull();
         expect(spec('https://ex%41mple.com')).toBe('example.com');
       });
 
@@ -308,13 +345,26 @@ describe('rpc-domain-utils', () => {
         expect(extractHostname('https://example.com:99999')).toBe(
           'example.com',
         );
-        expect(spec('https://example.com:99999')).toBeUndefined();
+        expect(spec('https://example.com:99999')).toBeNull();
         expect(extractHostname('https://example.com:abc')).toBe('example.com');
-        expect(spec('https://example.com:abc')).toBeUndefined();
+        expect(spec('https://example.com:abc')).toBeNull();
         expect(extractHostname('https://[2001:db8::1]:99999')).toBe(
           '2001:db8::1',
         );
-        expect(spec('https://[2001:db8::1]:99999')).toBeUndefined();
+        expect(spec('https://[2001:db8::1]:99999')).toBeNull();
+      });
+
+      it('returns a port pseudo-host for empty-host authorities', () => {
+        expect(extractHostname('https://:8545')).toBe(':8545');
+        expect(extractHostname('https://user@:8545')).toBe(':8545');
+        expect(spec('https://:8545')).toBeNull();
+      });
+
+      it('extracts a host from non-hierarchical schemes where new URL() has none', () => {
+        expect(extractHostname('mailto:foo@bar.com')).toBe('bar.com');
+        expect(spec('mailto:foo@bar.com')).toBe('');
+        expect(extractHostname('rpc.infura.io:8545')).toBe('rpc.infura.io');
+        expect(spec('rpc.infura.io:8545')).toBe('');
       });
 
       it('strips ipv6 brackets and trailing dots consistently', () => {
@@ -337,7 +387,7 @@ describe('rpc-domain-utils', () => {
 
     describe('security properties', () => {
       const ALLOWED = ['infura.io', 'alchemyapi.io'];
-      const isAllowed = (host?: string) =>
+      const isAllowed = (host: string | null | undefined) =>
         Boolean(host) &&
         ALLOWED.some(
           (domain) => host === domain || host?.endsWith(`.${domain}`),
@@ -346,6 +396,7 @@ describe('rpc-domain-utils', () => {
       interface FuzzInput {
         url: string;
         portDefect: boolean;
+        malformedUrl: boolean;
       }
       const fuzzInputs: FuzzInput[] = [];
       for (const scheme of ['https', 'http', 'wss', 'HTTPS', '', '1bad']) {
@@ -365,6 +416,8 @@ describe('rpc-domain-utils', () => {
                 fuzzInputs.push({
                   url: `${scheme}://${userinfo}${host}${port}${tail}`,
                   portDefect: port === ':99999' || port === ':abc',
+                  malformedUrl:
+                    scheme === '' || scheme === '1bad' || host === '',
                 });
               }
             }
@@ -372,22 +425,23 @@ describe('rpc-domain-utils', () => {
         }
       }
 
-      it('never accepts a URL that new URL() rejects, except for malformed ports', () => {
+      it('never accepts a URL that new URL() rejects, except for malformed ports and malformed URLs', () => {
         const permissive = fuzzInputs.filter(
-          ({ url, portDefect }) =>
-            extractHostname(url) !== undefined &&
-            spec(url) === undefined &&
-            !portDefect,
+          ({ url, portDefect, malformedUrl }) =>
+            extractHostname(url) !== null &&
+            spec(url) === null &&
+            !portDefect &&
+            !malformedUrl,
         );
         expect(permissive).toStrictEqual([]);
       });
 
       it('never matches the provider allowlist when new URL() extracts a different host', () => {
         const unsafe = fuzzInputs.filter(
-          ({ url, portDefect }) =>
-            !portDefect &&
+          ({ url }) =>
+            spec(url) !== null &&
             isAllowed(extractHostname(url)) &&
-            !isAllowed(spec(url)?.replace(/\.+$/u, '')),
+            !isAllowed(spec(url)),
         );
         expect(unsafe).toStrictEqual([]);
       });
@@ -400,11 +454,6 @@ describe('rpc-domain-utils', () => {
           'mainnet.infura.io',
         );
       });
-    });
-
-    it('rejects a scheme-less URL exactly as new URL() throws on it', () => {
-      expect(() => new URL('invalid-url')).toThrow();
-      expect(extractHostname('invalid-url')).toBeUndefined();
     });
   });
 

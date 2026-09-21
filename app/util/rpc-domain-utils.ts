@@ -46,16 +46,7 @@ export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
   }
 }
 
-export function extractHostname(url: string): string | undefined {
-  if (!/^[a-z][a-z0-9+.-]*:\/\//iu.test(url)) {
-    return undefined;
-  }
-  const hostname = getHostname(url);
-  if (!hostname || /^:[^:]*$/u.test(hostname)) {
-    return undefined;
-  }
-  return hostname;
-}
+export const extractHostname = getHostname;
 
 /**
  * Initialize the set of known domains from the chains list
@@ -129,7 +120,7 @@ export function isPublicRpcDomain(endpointUrl: string): boolean {
   return !Object.values(RpcDomainStatus).includes(rpcDomain as RpcDomainStatus);
 }
 
-function parseDomain(url: string): string | undefined {
+function parseDomain(url: string): string | null {
   const normalizedUrl = url.includes('://') ? url : `https://${url}`;
   return extractHostname(normalizedUrl);
 }
