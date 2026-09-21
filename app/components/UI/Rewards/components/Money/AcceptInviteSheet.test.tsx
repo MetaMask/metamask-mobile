@@ -752,16 +752,16 @@ describe('AcceptInviteSheet', () => {
       expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
     });
 
-    it.each([
-      ['the decline button', TEST_IDS.DECLINE],
-      ['the header close button', TEST_IDS.CLOSE],
-    ])('tracks declined from %s', async (_name, testId) => {
+    it('tracks declined only from the decline button', async () => {
       const { getByTestId } = await renderSheet('KOL1');
       mockTrackEvent.mockClear();
       mockCreateEventBuilder.mockClear();
 
-      fireEvent.press(getByTestId(testId));
+      fireEvent.press(getByTestId(TEST_IDS.DECLINE));
 
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+      );
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
@@ -769,22 +769,58 @@ describe('AcceptInviteSheet', () => {
       });
     });
 
-    it('tracks declined from goBack without a second responded after accept', async () => {
+    it('tracks dismissed, not declined, when the header close button is pressed', async () => {
       const { getByTestId } = await renderSheet('KOL1');
       mockTrackEvent.mockClear();
       mockCreateEventBuilder.mockClear();
 
-      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-      getByTestId(TEST_IDS.CONTAINER).props.goBack();
+      fireEvent.press(getByTestId(TEST_IDS.CLOSE));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-      const builder = mockCreateEventBuilder.mock.results[0]?.value;
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action: 'accepted',
+        action: 'dismissed',
+      });
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks dismissed, not declined, on a swipe or overlay dismissal', async () => {
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        action: 'dismissed',
       });
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
+
+    it.each([
+      ['accepted', TEST_IDS.ACCEPT],
+      ['declined', TEST_IDS.DECLINE],
+    ])(
+      'keeps %s as the answer when the sheet then closes through goBack',
+      async (action, testId) => {
+        const { getByTestId } = await renderSheet('KOL1');
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+
+        fireEvent.press(getByTestId(testId));
+        getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        const builder = mockCreateEventBuilder.mock.results[0]?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: 'KOL1',
+          action,
+        });
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      },
+    );
 
     it('does not track accepted while the Accept button is disabled', async () => {
       const { getByTestId } = await renderSheet();
