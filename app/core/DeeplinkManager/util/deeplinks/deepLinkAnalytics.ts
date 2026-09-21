@@ -587,6 +587,7 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
+    case ACTIONS.PERPS_OUTREACH:
       return DeepLinkRoute.PERPS;
     case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;

@@ -6,13 +6,18 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { screen } from '@testing-library/react-native';
+import { cleanup, screen } from '@testing-library/react-native';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
+import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  clearPerpsOutreachApiMocks,
+  setupPerpsOutreachApiMock,
+} from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 import PerpsMarketDetailsRouter from './PerpsMarketDetailsRouter';
 
 const defaultMarket = {
@@ -30,6 +35,12 @@ const defaultMarket = {
 describe('PerpsMarketDetailsRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    cleanup();
+    clearPerpsOutreachApiMocks();
   });
 
   it('renders the lite market details layout in the default (non-pro) mode', async () => {
@@ -45,6 +56,9 @@ describe('PerpsMarketDetailsRouter', () => {
     // PerpsMarketDetailsView has a distinct container testId vs PerpsProMarketView
     expect(
       await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
   });
 
@@ -82,6 +96,9 @@ describe('PerpsMarketDetailsRouter', () => {
     // PerpsProMarketView has a distinct container testId vs PerpsMarketDetailsView
     expect(
       await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
   });
 });

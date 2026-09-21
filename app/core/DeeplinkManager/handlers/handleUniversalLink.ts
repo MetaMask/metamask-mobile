@@ -36,6 +36,10 @@ import {
   createPerpsDeeplinkIntent,
 } from './intent/handlePerpsUrl';
 import {
+  handlePerpsOutreachUrl,
+  createPerpsOutreachDeeplinkIntent,
+} from './intent/handlePerpsOutreachUrl';
+import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
 } from './intent/handleRewardsUrl';
@@ -109,6 +113,7 @@ const SUPPORTED_ACTIONS = {
   PERPS: ACTIONS.PERPS,
   PERPS_MARKETS: ACTIONS.PERPS_MARKETS,
   PERPS_ASSET: ACTIONS.PERPS_ASSET,
+  PERPS_OUTREACH: ACTIONS.PERPS_OUTREACH,
   REWARDS: ACTIONS.REWARDS,
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
@@ -150,6 +155,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.PERPS_OUTREACH,
   SUPPORTED_ACTIONS.REWARDS,
   SUPPORTED_ACTIONS.PREDICT,
   SUPPORTED_ACTIONS.BUY,
@@ -279,6 +285,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       createPerpsDeeplinkIntent({
         perpsPath: getPerpsAssetPath(actionBasedRampPath),
       }),
+  },
+  [SUPPORTED_ACTIONS.PERPS_OUTREACH]: {
+    execute: () => handlePerpsOutreachUrl(),
+    resolve: () => createPerpsOutreachDeeplinkIntent(),
   },
   [SUPPORTED_ACTIONS.SWAP]: {
     execute: ({ actionBasedRampPath }) =>

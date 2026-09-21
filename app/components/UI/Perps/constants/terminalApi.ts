@@ -71,3 +71,18 @@ export function getTerminalGlobalSnapshotUrl(
     marketDataUrl,
   });
 }
+
+/** Resolves the outreach route on the same Terminal host as market data. */
+export function resolveTerminalOutreachUrl(marketDataUrl: string): string {
+  return marketDataUrl.replace('/v1/perpetuals', '/v1/outreach');
+}
+
+/** Resolves the runtime outreach URL for the current Mobile build. */
+export function getTerminalOutreachUrl(
+  marketDataUrl = resolveTerminalApiUrl(
+    process.env.METAMASK_ENVIRONMENT,
+    process.env.METAMASK_BUILD_TYPE,
+  ),
+): string {
+  return resolveTerminalOutreachUrl(marketDataUrl);
+}

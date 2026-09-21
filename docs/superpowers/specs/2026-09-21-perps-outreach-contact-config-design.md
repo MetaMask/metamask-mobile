@@ -19,9 +19,10 @@ interface OutreachContact {
 }
 ```
 
-The campaign schema requires each value to be a non-empty string. The outreach
-service copies the object into `banner.contact` without localization because
-these values are campaign configuration rather than user-facing copy.
+The campaign schema treats `contact` as optional. When present, each nested
+value must be a non-empty string. The outreach service copies the object into
+`banner.contact`, or `null` when the campaign omits it. These values are not
+localized because they are campaign configuration rather than user-facing copy.
 
 The active campaign uses:
 
