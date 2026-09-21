@@ -87,8 +87,8 @@ export interface ProvisionCardParams {
   lastFourDigits: string;
   cardDescription?: string;
   /**
-   * Opaque issuer id forwarded to PassKit.
-   * It is not used to look up an existing pass.
+   * Opaque issuer id stored on the Apple pass.
+   * When set, iOS eligibility matches this id instead of the PAN suffix.
    */
   primaryAccountIdentifier?: string;
   encryptedPayload: EncryptedPayload;

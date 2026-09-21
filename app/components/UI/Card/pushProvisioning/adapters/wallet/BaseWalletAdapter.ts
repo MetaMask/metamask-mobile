@@ -139,7 +139,10 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  async getEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
+  async getEligibility(
+    lastFourDigits?: string,
+    primaryAccountIdentifier?: string,
+  ): Promise<WalletEligibility> {
     const isAvailable = await this.checkAvailability();
 
     if (!isAvailable) {
@@ -154,11 +157,10 @@ export abstract class BaseWalletAdapter {
       };
     }
 
-    let existingCardStatus: CardTokenStatus | undefined;
-
-    if (lastFourDigits) {
-      existingCardStatus = await this.getCardStatus(lastFourDigits);
-    }
+    const existingCardStatus = await this.resolveExistingCardStatus(
+      lastFourDigits,
+      primaryAccountIdentifier,
+    );
 
     const additionalInfo = await this.getAdditionalEligibilityInfo(
       lastFourDigits,
@@ -176,6 +178,21 @@ export abstract class BaseWalletAdapter {
       recommendedAction,
       ...additionalInfo,
     };
+  }
+
+  /**
+   * Look up an existing pass. Subclasses that recognize a stable issuer id
+   * override this. The default matches the PAN suffix.
+   */
+  protected async resolveExistingCardStatus(
+    lastFourDigits?: string,
+    _primaryAccountIdentifier?: string,
+  ): Promise<CardTokenStatus | undefined> {
+    if (!lastFourDigits) {
+      return undefined;
+    }
+
+    return this.getCardStatus(lastFourDigits);
   }
 
   /** Override in subclasses to provide extra eligibility data (e.g., tokenReferenceId) */

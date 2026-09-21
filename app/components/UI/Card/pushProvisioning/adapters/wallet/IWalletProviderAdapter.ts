@@ -24,9 +24,12 @@ export interface IWalletProviderAdapter {
 
   /**
    * Get detailed wallet eligibility including existing card status.
-   * An existing pass is matched by the PAN suffix.
+   * On iOS, `primaryAccountIdentifier` selects the pass when the PAN suffix can change.
    */
-  getEligibility(lastFourDigits?: string): Promise<WalletEligibility>;
+  getEligibility(
+    lastFourDigits?: string,
+    primaryAccountIdentifier?: string,
+  ): Promise<WalletEligibility>;
 
   /** Check the status of a specific card in the wallet */
   getCardStatus(lastFourDigits: string): Promise<CardTokenStatus>;
