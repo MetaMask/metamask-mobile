@@ -1,3 +1,4 @@
+import { getHostname } from 'tldts';
 import { SafeChain } from '../components/hooks/useSafeChains';
 import StorageWrapper from '../store/storage-wrapper';
 import Engine from '../core/Engine';
@@ -61,11 +62,9 @@ export async function initializeRpcProviderDomains(): Promise<void> {
       for (const chain of chainsList) {
         if (chain.rpc && Array.isArray(chain.rpc)) {
           for (const rpcUrl of chain.rpc) {
-            try {
-              const url = new URL(rpcUrl);
-              newKnownDomainsSet.add(url.hostname.toLowerCase());
-            } catch (e) {
-              continue; // Skip invalid URLs
+            const hostname = getHostname(rpcUrl);
+            if (hostname) {
+              newKnownDomainsSet.add(hostname);
             }
           }
         }
@@ -119,13 +118,9 @@ export function isPublicRpcDomain(endpointUrl: string): boolean {
   return !Object.values(RpcDomainStatus).includes(rpcDomain as RpcDomainStatus);
 }
 
-function parseDomain(url: string): string | undefined {
-  try {
-    const normalizedUrl = url.includes('://') ? url : `https://${url}`;
-    return new URL(normalizedUrl).hostname.toLowerCase();
-  } catch {
-    return undefined;
-  }
+function parseDomain(url: string): string | null {
+  const normalizedUrl = url.includes('://') ? url : `https://${url}`;
+  return getHostname(normalizedUrl);
 }
 
 // Allowed provider domains for RPC endpoint validation

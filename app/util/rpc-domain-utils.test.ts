@@ -135,7 +135,7 @@ describe('rpc-domain-utils', () => {
             chainId: 1,
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
-            rpc: ['invalid-url', 'https://mainnet.infura.io'],
+            rpc: ['not a url at all', 'https://mainnet.infura.io'],
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
@@ -148,6 +148,29 @@ describe('rpc-domain-utils', () => {
         expect(knownDomains).toBeInstanceOf(Set);
         expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
         expect(knownDomains?.size).toBe(1);
+      });
+      it('adds scheme-less host strings from the chains list', async () => {
+        setupTestEnvironment();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: 1,
+            name: 'Ethereum',
+            nativeCurrency: { symbol: 'ETH' },
+            rpc: [
+              'rpc.example.com',
+              'invalid-url',
+              'https://mainnet.infura.io',
+            ],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+          JSON.stringify(mockChains),
+        );
+        await initializeRpcProviderDomains();
+        const knownDomains = getKnownDomains();
+        expect(knownDomains?.has('rpc.example.com')).toBe(true);
+        expect(knownDomains?.has('invalid-url')).toBe(true);
+        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
       });
     });
     describe('when chains list is empty', () => {
