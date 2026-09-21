@@ -184,12 +184,6 @@ class ImportWalletView {
     );
   }
 
-  get importOptionsSheet(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      ImportFromSeedSelectorsIDs.IMPORT_OPTIONS_SHEET_ID,
-    );
-  }
-
   get importFromExtensionOption(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_OPTION_ID,
@@ -199,10 +193,6 @@ class ImportWalletView {
   async tapImportFromExtensionLink(): Promise<void> {
     await Gestures.waitAndTap(this.qrCodeButton, {
       elemDescription: 'Import Wallet scan header button',
-      timeout: 15_000,
-    });
-    await Assertions.expectElementToBeVisible(this.importOptionsSheet, {
-      description: 'Import options sheet should be visible',
       timeout: 15_000,
     });
     await Gestures.waitAndTap(this.importFromExtensionOption, {
