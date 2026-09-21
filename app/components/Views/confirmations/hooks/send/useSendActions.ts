@@ -18,6 +18,7 @@ import {
 import { useSendContext } from '../../context/send-context';
 import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { useSendType } from './useSendType';
+import { usePercentageAmount } from './usePercentageAmount';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
 import {
   classifyNonEvmSendError,
@@ -34,12 +35,14 @@ interface SnapConfirmSendResult {
   transactionId?: string;
 }
 
-export const useSendActions = () => {
+const useSendActionsWithMax = (
+  getMaxAmount: ReturnType<typeof usePercentageAmount>['getMaxAmount'],
+) => {
   const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
     useSendContext();
   const { chainIdCaip } = useSendMetricsContext();
   const navigation = useNavigation<AppNavigationProp>();
-  const { isEvmSendType } = useSendType();
+  const { isEvmNativeSendType, isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
   const { captureSendFailed } = useNonEvmSendMetrics();
   const handleSubmitPress = useCallback(
@@ -52,12 +55,21 @@ export const useSendActions = () => {
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
       if (isEvmSendType) {
-        submitEvmTransaction({
+        const maxAmount =
+          maxValueMode && isEvmNativeSendType
+            ? await getMaxAmount(toAddress as string)
+            : undefined;
+        if (maxValueMode && isEvmNativeSendType && maxAmount === undefined) {
+          Alert.alert(strings('send.transaction_error'));
+          return;
+        }
+
+        await submitEvmTransaction({
           asset: asset as AssetType,
           chainId: chainId as Hex,
           from: from as Hex,
           to: toAddress as Hex,
-          value: normalizeAmount(value),
+          value: maxAmount ?? normalizeAmount(value),
         });
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -136,6 +148,8 @@ export const useSendActions = () => {
       navigation,
       fromAccount,
       from,
+      getMaxAmount,
+      isEvmNativeSendType,
       isEvmSendType,
       maxValueMode,
       to,
@@ -161,4 +175,17 @@ export const useSendActions = () => {
   }, [navigation]);
 
   return { handleSubmitPress, handleCancelPress, handleBackPress };
+};
+
+export const useSendActions = () => {
+  const { getMaxAmount } = usePercentageAmount();
+  return useSendActionsWithMax(getMaxAmount);
+};
+
+export const useSendAmountActions = () => {
+  const { getMaxAmount, getPercentageAmount, isMaxAmountSupported } =
+    usePercentageAmount();
+  const actions = useSendActionsWithMax(getMaxAmount);
+
+  return { ...actions, getPercentageAmount, isMaxAmountSupported };
 };
