@@ -21,6 +21,8 @@ describe('selectIsStakeableToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    selectIsStakeableToken.clearCache();
+    selectIsStakeableToken.memoizedResultFunc.clearCache();
   });
 
   it('returns false when asset is null', () => {
@@ -89,5 +91,21 @@ describe('selectIsStakeableToken', () => {
     const result = selectIsStakeableToken(mockState, nonTronTrx);
 
     expect(result).toBe(false);
+  });
+
+  it('reuses its memoized result when the asset reference changes but its staking-relevant fields do not', () => {
+    (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
+    (jest.mocked(isMainnetByChainId) as jest.Mock).mockReturnValue(true);
+    const ethAsset = { isETH: true, chainId: '0x1', ticker: 'ETH' } as TokenI;
+    const sameEthAssetNewReference = { ...ethAsset };
+
+    selectIsStakeableToken(mockState, ethAsset);
+    const recomputationsAfterFirstRead =
+      selectIsStakeableToken.recomputations();
+    selectIsStakeableToken(mockState, sameEthAssetNewReference);
+
+    expect(selectIsStakeableToken.recomputations()).toBe(
+      recomputationsAfterFirstRead,
+    );
   });
 });
