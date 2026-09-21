@@ -10,6 +10,7 @@ import {
   isPublicRpcDomain,
   getNetworkRpcUrl,
   getModuleState,
+  extractHostname,
 } from './rpc-domain-utils';
 
 // Mock dependencies
@@ -241,6 +242,172 @@ describe('rpc-domain-utils', () => {
       });
     });
   });
+  describe('extractHostname', () => {
+    const spec = (url: string): string | undefined => {
+      try {
+        return new URL(url).hostname.toLowerCase();
+      } catch {
+        return undefined;
+      }
+    };
+
+    describe('agrees with new URL() on realistic RPC endpoints', () => {
+      const realistic = [
+        'https://mainnet.infura.io/v3/abc123',
+        'https://eth-mainnet.alchemyapi.io/v2/key',
+        'https://cloudflare-eth.com',
+        'https://rpc.ankr.com/eth',
+        'https://bsc-dataseed1.binance.org:443',
+        'http://localhost:8545',
+        'http://127.0.0.1:8545',
+        'https://rpc.example.com:8545/path?query=1#frag',
+        'https://user:pass@rpc.example.com:8545/path',
+        'wss://rpc.example.com/ws',
+        'ws://127.0.0.1:8546',
+        'HTTPS://RPC.EXAMPLE.COM/Path',
+        'https://sub.domain.rpc.example.co.uk',
+        'https://rpc-mainnet.matic.network',
+        'https://api.avax.network/ext/bc/C/rpc',
+        'https://192.168.1.1:8545',
+      ];
+
+      it.each(realistic)('matches for %s', (url) => {
+        expect(extractHostname(url)).toBe(spec(url));
+      });
+    });
+
+    describe('rejects inputs without a usable scheme or host', () => {
+      const invalid: [string, string][] = [
+        ['no scheme', 'invalid-url'],
+        ['empty string', ''],
+        ['prose', 'not a url at all'],
+        ['scheme only', 'https://'],
+        ['empty host with port', 'https://:8545'],
+        ['triple colon', 'https://:::invalid'],
+        ['empty scheme', '://no-scheme.com'],
+        ['numeric scheme', '1bad://example.com'],
+        ['scheme with space', 'ht tp://example.com'],
+        ['unterminated ipv6', 'https://[2001:db8::1'],
+      ];
+
+      it.each(invalid)('returns undefined for %s', (_label, url) => {
+        expect(extractHostname(url)).toBeUndefined();
+        expect(spec(url)).toBeUndefined();
+      });
+    });
+
+    describe('diverges from new URL() only in documented directions', () => {
+      it('rejects percent-encoded hosts that new URL() would decode into allowlist matches', () => {
+        expect(extractHostname('https://%2e.infura.io')).toBeUndefined();
+        expect(spec('https://%2e.infura.io')).toBe('..infura.io');
+        expect(extractHostname('https://ex%41mple.com')).toBeUndefined();
+        expect(spec('https://ex%41mple.com')).toBe('example.com');
+      });
+
+      it('accepts malformed ports and classifies by the genuine host', () => {
+        expect(extractHostname('https://example.com:99999')).toBe(
+          'example.com',
+        );
+        expect(spec('https://example.com:99999')).toBeUndefined();
+        expect(extractHostname('https://example.com:abc')).toBe('example.com');
+        expect(spec('https://example.com:abc')).toBeUndefined();
+        expect(extractHostname('https://[2001:db8::1]:99999')).toBe(
+          '2001:db8::1',
+        );
+        expect(spec('https://[2001:db8::1]:99999')).toBeUndefined();
+      });
+
+      it('strips ipv6 brackets and trailing dots consistently', () => {
+        expect(extractHostname('https://[2001:db8::1]:8545/rpc')).toBe(
+          '2001:db8::1',
+        );
+        expect(spec('https://[2001:db8::1]:8545/rpc')).toBe('[2001:db8::1]');
+        expect(extractHostname('https://[::1]')).toBe('::1');
+        expect(extractHostname('https://rpc.example.com.')).toBe(
+          'rpc.example.com',
+        );
+        expect(spec('https://rpc.example.com.')).toBe('rpc.example.com.');
+      });
+
+      it('returns exotic ipv4 verbatim so it matches nothing', () => {
+        expect(extractHostname('https://0x7f.1')).toBe('0x7f.1');
+        expect(spec('https://0x7f.1')).toBe('127.0.0.1');
+      });
+    });
+
+    describe('security properties', () => {
+      const ALLOWED = ['infura.io', 'alchemyapi.io'];
+      const isAllowed = (host?: string) =>
+        Boolean(host) &&
+        ALLOWED.some(
+          (domain) => host === domain || host?.endsWith(`.${domain}`),
+        );
+
+      interface FuzzInput {
+        url: string;
+        portDefect: boolean;
+      }
+      const fuzzInputs: FuzzInput[] = [];
+      for (const scheme of ['https', 'http', 'wss', 'HTTPS', '', '1bad']) {
+        for (const host of [
+          'example.com',
+          'mainnet.infura.io',
+          'mainnet.infura.io\\.evil.com',
+          '%2e.infura.io',
+          'exa\tmple.com',
+          '0x7f.1',
+          '[2001:db8::1]',
+          '',
+        ]) {
+          for (const userinfo of ['', 'user:pass@', 'evil.com@']) {
+            for (const port of ['', ':8545', ':99999', ':abc']) {
+              for (const tail of ['', '/v3/k', '?a=b', '\\path']) {
+                fuzzInputs.push({
+                  url: `${scheme}://${userinfo}${host}${port}${tail}`,
+                  portDefect: port === ':99999' || port === ':abc',
+                });
+              }
+            }
+          }
+        }
+      }
+
+      it('never accepts a URL that new URL() rejects, except for malformed ports', () => {
+        const permissive = fuzzInputs.filter(
+          ({ url, portDefect }) =>
+            extractHostname(url) !== undefined &&
+            spec(url) === undefined &&
+            !portDefect,
+        );
+        expect(permissive).toStrictEqual([]);
+      });
+
+      it('never matches the provider allowlist when new URL() extracts a different host', () => {
+        const unsafe = fuzzInputs.filter(
+          ({ url, portDefect }) =>
+            !portDefect &&
+            isAllowed(extractHostname(url)) &&
+            !isAllowed(spec(url)?.replace(/\.+$/u, '')),
+        );
+        expect(unsafe).toStrictEqual([]);
+      });
+
+      it('strips userinfo so credentials never reach analytics', () => {
+        expect(extractHostname('https://user:secret@rpc.example.com/v1')).toBe(
+          'rpc.example.com',
+        );
+        expect(extractHostname('https://key@mainnet.infura.io')).toBe(
+          'mainnet.infura.io',
+        );
+      });
+    });
+
+    it('rejects a scheme-less URL exactly as new URL() throws on it', () => {
+      expect(() => new URL('invalid-url')).toThrow();
+      expect(extractHostname('invalid-url')).toBeUndefined();
+    });
+  });
+
   describe('extractRpcDomain', () => {
     describe('when processing URLs', () => {
       beforeEach(async () => {
