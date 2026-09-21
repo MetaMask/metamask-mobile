@@ -1,14 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Animated, Pressable } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -31,6 +25,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { strings } from '../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import Engine from '../../../../../core/Engine';
@@ -82,7 +77,6 @@ const MAX_INPUT_LENGTH = 20;
 
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<AppNavigationProp>();
 
   // State
@@ -168,24 +162,6 @@ const PerpsWithdrawView: React.FC = () => {
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.WITHDRAW_BUTTON,
     },
   });
-
-  useEffect(() => {
-    // Start blinking animation
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-  }, [fadeAnim]);
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -386,23 +362,17 @@ const PerpsWithdrawView: React.FC = () => {
               alignItems={BoxAlignItems.Center}
               marginBottom={2}
             >
-              <Text
-                variant={TextVariant.DisplayMd}
+              <AnimatedAmountDisplay
+                cursor={{
+                  testID: 'cursor',
+                  style: tw.style('w-0.5 h-14 bg-text-default ml-1'),
+                }}
+                rollDigits={false}
                 style={tw.style(
                   'text-[54px] leading-[70px] font-medium mb-2 text-default',
                   withdrawAmount === '0' && 'text-alternative',
                 )}
-              >
-                {formatDisplayAmount}
-              </Text>
-              <Animated.View
-                testID="cursor"
-                style={[
-                  tw.style('w-0.5 h-14 bg-text-default ml-1'),
-                  {
-                    opacity: fadeAnim,
-                  },
-                ]}
+                value={formatDisplayAmount}
               />
             </Box>
             <Text
