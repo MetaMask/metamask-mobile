@@ -18,6 +18,10 @@ describe('PerpsAggregatedFillsCheckbox', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('aggregated-checkbox')).toBeOnTheScreen();
     expect(screen.getByTestId('aggregated-checkbox')).toHaveProp(
+      'role',
+      'checkbox',
+    );
+    expect(screen.getByTestId('aggregated-checkbox')).toHaveProp(
       'accessibilityState',
       { checked: true },
     );

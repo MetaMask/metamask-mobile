@@ -48,7 +48,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
     }
     contentWrapperProps={{ style: { gap: 6 } }}
     twClassName="pl-4"
-    accessibilityRole="checkbox"
+    role="checkbox"
     accessibilityState={{ checked: isSelected }}
     onPress={() => onChange(!isSelected)}
     testID={testID}
