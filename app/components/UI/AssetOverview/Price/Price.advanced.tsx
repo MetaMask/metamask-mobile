@@ -16,6 +16,8 @@ import {
   CHART_DATA_THRESHOLD,
   CHART_INTERVAL_CONFIGS,
   isTokenOverviewChartInterval,
+  LINE_CHART_TIME_RANGES,
+  TIME_PERIOD_MS,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenI } from '../../Tokens/types';
@@ -58,6 +60,8 @@ import type {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceLegacy from './Price.legacy';
+import PriceChart from '../PriceChart/PriceChart';
+import { distributeDataPoints } from '../PriceChart/utils';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import {
   endTrace,
@@ -188,6 +192,14 @@ const PriceAdvanced = ({
   // Define activeIndicators early so it's available in all callbacks
   const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
     () => new Set(persistedIndicators),
+  );
+
+  /** Tracks which data point the user is hovering on the line chart. -1 = not active. */
+  const [lineChartActiveIndex, setLineChartActiveIndex] = useState(-1);
+
+  const handleLineChartInteraction = useCallback(
+    (index: number) => setLineChartActiveIndex(index),
+    [],
   );
 
   const handleCrosshairMove = useCallback(
@@ -326,6 +338,31 @@ const PriceAdvanced = ({
       setTimeRange(range);
     },
     [createEventBuilder, timeRange, trackEvent, chartType],
+  );
+
+  /**
+   * Time-range handler for line mode. Syncs the parent's `timePeriod`
+   * (Historical Prices API) in addition to the local `timeRange`.
+   */
+  const handleLineTimeRangeSelect = useCallback(
+    (range: string) => {
+      const typedRange = range as TimeRange;
+      if (typedRange === timeRange) return;
+      setCrosshairData(null);
+      setLineChartActiveIndex(-1);
+      setTimeRange(typedRange);
+      setTimePeriod?.(typedRange.toLowerCase() as TimePeriod);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'timeframe_changed',
+            chart_timeframe: typedRange,
+            chart_type: 'line',
+          })
+          .build(),
+      );
+    },
+    [timeRange, setTimePeriod, trackEvent, createEventBuilder],
   );
 
   const assetId = useMemo(() => {
@@ -489,6 +526,14 @@ const PriceAdvanced = ({
     setHasChartBeenRevealed(false);
   }, [chartWebViewSessionKey]);
 
+  // When the user toggles to line mode, sync timeRange to the parent's timePeriod
+  // so that the Historical Prices API fetches data for the correct range.
+  useEffect(() => {
+    if (chartType === ChartType.Line) {
+      setTimePeriod?.(timeRange.toLowerCase() as TimePeriod);
+    }
+  }, [chartType, timeRange, setTimePeriod]);
+
   const {
     ohlcvData,
     isLoading: chartLoading,
@@ -608,12 +653,19 @@ const PriceAdvanced = ({
     [trackEvent, createEventBuilder, chartType],
   );
 
-  const wsEnabled =
+  const candleWsEnabled =
     isOhlcvWsEnabled &&
     !chartLoading &&
     ohlcvData.length >= CHART_DATA_THRESHOLD &&
     !hasEmptyData &&
     !chartError;
+  const lineWsEnabled =
+    isOhlcvWsEnabled &&
+    chartType === ChartType.Line &&
+    !isLoading &&
+    prices.length > 0;
+  const wsEnabled =
+    chartType === ChartType.Line ? lineWsEnabled : candleWsEnabled;
 
   /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
@@ -640,11 +692,19 @@ const PriceAdvanced = ({
 
   const { latestBar } = useOHLCVRealtime({
     assetId,
-    interval: isTechnicalIndicatorsEnabled ? chartInterval : wsInterval,
+    interval:
+      chartType === ChartType.Line
+        ? wsInterval
+        : isTechnicalIndicatorsEnabled
+          ? chartInterval
+          : wsInterval,
     currency: currentCurrency,
-    timePeriod: isTechnicalIndicatorsEnabled
-      ? effectiveTimePeriod
-      : timeRange.toLowerCase(),
+    timePeriod:
+      chartType === ChartType.Line
+        ? timeRange.toLowerCase()
+        : isTechnicalIndicatorsEnabled
+          ? effectiveTimePeriod
+          : timeRange.toLowerCase(),
     enabled: wsEnabled,
   });
 
@@ -688,6 +748,21 @@ const PriceAdvanced = ({
       volume: latestBar.volume,
     };
   }, [wsEnabled, latestBar]);
+
+  /**
+   * Historical prices with the last data point updated to the latest WS close
+   * so the line chart end-dot moves in real time.
+   */
+  const realtimePrices = useMemo(() => {
+    if (chartType !== ChartType.Line || !latestBar || prices.length === 0)
+      return prices;
+    const updated = [...prices];
+    updated[updated.length - 1] = [
+      String(latestBar.timestamp * 1000),
+      latestBar.close,
+    ] as TokenPrice;
+    return updated;
+  }, [chartType, latestBar, prices]);
 
   const ohlcvPagination = useMemo(
     () => ({
@@ -806,12 +881,20 @@ const PriceAdvanced = ({
   // chart color updates when WS ticks flip the price direction — the chart
   // itself hot-swaps colors via SET_THEME_COLORS postMessage (no WebView rebuild).
   const initialPriceDiff = useMemo(() => {
+    if (chartType === ChartType.Line) return priceDiff;
     const lbClose = ohlcvData[ohlcvData.length - 1]?.close;
     const currentDisplayPrice = realtimeClose ?? lbClose ?? currentPrice;
 
     if (dynamicComparePrice === null) return null;
     return currentDisplayPrice - dynamicComparePrice;
-  }, [ohlcvData, currentPrice, dynamicComparePrice, realtimeClose]);
+  }, [
+    chartType,
+    priceDiff,
+    ohlcvData,
+    currentPrice,
+    dynamicComparePrice,
+    realtimeClose,
+  ]);
 
   const initialAmbientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
@@ -840,6 +923,49 @@ const PriceAdvanced = ({
       hasEmptyData ||
       chartError ||
       chartInitFailed === true);
+
+  /** Line mode: chartType is Line AND we are NOT in the OHLCV-fallback path. */
+  const isLineMode = chartType === ChartType.Line && !shouldFallbackToLegacy;
+
+  /** Distributed price data for the line chart (memoised per `realtimePrices`). */
+  const distributedRealtimePrices = useMemo(() => {
+    if (chartType !== ChartType.Line || realtimePrices.length === 0) return [];
+    return distributeDataPoints(realtimePrices);
+  }, [chartType, realtimePrices]);
+
+  // ── Line-mode title display values ──────────────────────────────────
+  const lineTitlePrice =
+    lineChartActiveIndex >= 0 &&
+    distributedRealtimePrices[lineChartActiveIndex]?.[1] !== undefined
+      ? distributedRealtimePrices[lineChartActiveIndex][1]
+      : currentPrice;
+
+  const lineTitleDiff =
+    lineChartActiveIndex >= 0 &&
+    distributedRealtimePrices[lineChartActiveIndex]?.[1] !== undefined
+      ? distributedRealtimePrices[lineChartActiveIndex][1] - comparePrice
+      : priceDiff;
+
+  const lineTitleDate =
+    lineChartActiveIndex >= 0 &&
+    distributedRealtimePrices[lineChartActiveIndex]?.[0] !== undefined
+      ? toDateFormat(Number(distributedRealtimePrices[lineChartActiveIndex][0]))
+      : strings(TIME_RANGE_LABELS[timeRange]);
+
+  const lineAmbientColor = useMemo(() => {
+    if (!useAmbientColor || !isLineMode) return undefined;
+    return lineTitleDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, isLineMode, lineTitleDiff, ambientSuccessGreen]);
+
+  const getLinePriceDiffStyle = useCallback(() => {
+    if (lineAmbientColor) {
+      return { color: lineAmbientColor };
+    }
+    if (isLightMode && lineTitleDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  }, [lineAmbientColor, isLightMode, lineTitleDiff]);
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
@@ -961,8 +1087,20 @@ const PriceAdvanced = ({
 
   return (
     <>
+      {/* ── Title ──────────────────────────────────────────────────────── */}
       {!Number.isNaN(currentPrice) &&
-        (isCrosshairActive && crosshairData ? (
+        (isLineMode ? (
+          <TokenPriceTitleHub
+            price={lineTitlePrice}
+            displayDiff={lineTitleDiff}
+            comparePrice={comparePrice}
+            periodLabel={lineTitleDate}
+            currentCurrency={currentCurrency}
+            isLoading={isLoading}
+            ambientColor={lineAmbientColor}
+            getPriceDiffStyle={getLinePriceDiffStyle}
+          />
+        ) : isCrosshairActive && crosshairData ? (
           <OHLCVBar
             data={crosshairData}
             currency={currentCurrency}
@@ -985,8 +1123,9 @@ const PriceAdvanced = ({
             changeFormat="signedCurrency"
           />
         ))}
-      {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
-      {isTechnicalIndicatorsEnabled && isInitialChartPending && (
+
+      {/* ── Skeleton bar (flag ON, candle mode only) ───────────────────── */}
+      {isTechnicalIndicatorsEnabled && !isLineMode && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <Box twClassName="w-full px-4">
@@ -995,89 +1134,139 @@ const PriceAdvanced = ({
           </View>
         </View>
       )}
-      {/* IntervalBar appears once OHLCV and WebView init have completed */}
-      {isTechnicalIndicatorsEnabled && shouldShowTechnicalIndicators && (
-        <View style={styles.intervalBarContainer}>
-          <View style={styles.timeRangeSelectorWrap}>
-            <Box twClassName="w-full">
-              <IntervalBar
-                selectedInterval={displayInterval}
-                onIntervalSelect={handleInlineIntervalSelect}
-                chartType={chartType}
-                onChartTypeSelect={handleChartTypeSelect}
-              />
-            </Box>
+
+      {/* ── IntervalBar (flag ON) ──────────────────────────────────────── */}
+      {isTechnicalIndicatorsEnabled &&
+        (isLineMode || shouldShowTechnicalIndicators) && (
+          <View style={styles.intervalBarContainer}>
+            <View style={styles.timeRangeSelectorWrap}>
+              <Box twClassName="w-full">
+                <IntervalBar
+                  intervals={isLineMode ? LINE_CHART_TIME_RANGES : undefined}
+                  selectedInterval={isLineMode ? timeRange : displayInterval}
+                  onIntervalSelect={
+                    isLineMode
+                      ? handleLineTimeRangeSelect
+                      : handleInlineIntervalSelect
+                  }
+                  chartType={chartType}
+                  onChartTypeSelect={handleChartTypeSelect}
+                />
+              </Box>
+            </View>
           </View>
-        </View>
-      )}
-      <Box
-        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
-      >
-        <View
-          testID="advanced-chart-touch-container"
-          style={[styles.chartContainer, { height: chartHeight }]}
+        )}
+
+      {/* ── Chart area ─────────────────────────────────────────────────── */}
+      {isLineMode ? (
+        <Box
+          twClassName={
+            isTechnicalIndicatorsEnabled
+              ? 'w-full overflow-hidden mb-4'
+              : 'mt-3 w-full overflow-hidden'
+          }
         >
-          {Platform.OS === 'ios' && (
-            <View style={styles.edgeOverlay} pointerEvents="box-only" />
-          )}
-          {/* Mount immediately so the WebView boots in parallel with the OHLCV fetch; AdvancedChart's own skeleton covers it until ready. */}
-          <AdvancedChart
-            ohlcvData={ohlcvData}
-            ohlcvSeriesKey={ohlcvSeriesKey}
-            webViewInstanceKey={
-              isTechnicalIndicatorsEnabled ? chartWebViewSessionKey : undefined
+          <PriceChart
+            prices={distributedRealtimePrices}
+            priceDiff={priceDiff}
+            isLoading={isLoading}
+            onChartIndexChange={handleLineChartInteraction}
+            chartColorOverride={initialAmbientColor ?? undefined}
+            hasInsufficientCoverage={hasInsufficientCoverage}
+            timePeriodMs={
+              TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ?? undefined
             }
-            realtimeBar={realtimeBar}
-            height={chartHeight}
-            showVolume={
-              isTechnicalIndicatorsEnabled
-                ? chartType === ChartType.Candles &&
-                  activeIndicators.has('Volume')
-                : chartType === ChartType.Candles
-            }
-            volumeOverlay
-            chartType={chartType}
-            indicators={showChartIndicators ? indicatorsArray : []}
-            selectedMAs={showChartIndicators ? selectedMAs : []}
-            subPaneHeightRatio={
-              advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
-            }
-            useSubscriptPriceFormat={
-              advancedChartLineChromePresets.tokenOverview
-                .useSubscriptPriceFormat
-            }
-            isLoading={
-              isTechnicalIndicatorsEnabled
-                ? !hasChartBeenRevealed && chartLoading
-                : chartLoading
-            }
-            ohlcvPagination={ohlcvPagination}
-            visibleFromMs={visibleFromMs}
-            visibleToMs={visibleToMs}
-            onCrosshairMove={handleCrosshairMove}
-            onChartInteracted={handleChartInteracted}
-            onChartTradingViewClicked={handleChartTradingViewClicked}
-            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
-            onChartLayoutSettled={
-              isTechnicalIndicatorsEnabled
-                ? handleAdvancedChartLayoutSettled
-                : undefined
-            }
-            onError={handleAdvancedChartError}
-            onInitFailed={handleAdvancedChartInitFailed}
-            lineColorOverride={initialAmbientColor}
-            successColorOverride={
-              initialAmbientColor ? ambientSuccessGreen : undefined
-            }
-            errorColorOverride={
-              initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
-            }
-            legendOverlay={tokenDetailsLegendOverlay}
           />
-        </View>
-      </Box>
-      {/* IndicatorBar appears when not loading */}
-      {shouldShowTechnicalIndicators && chartType === ChartType.Candles ? (
+        </Box>
+      ) : (
+        <Box
+          twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+        >
+          <View
+            testID="advanced-chart-touch-container"
+            style={[styles.chartContainer, { height: chartHeight }]}
+          >
+            {Platform.OS === 'ios' && (
+              <View style={styles.edgeOverlay} pointerEvents="box-only" />
+            )}
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              webViewInstanceKey={
+                isTechnicalIndicatorsEnabled
+                  ? chartWebViewSessionKey
+                  : undefined
+              }
+              realtimeBar={realtimeBar}
+              height={chartHeight}
+              showVolume={
+                isTechnicalIndicatorsEnabled
+                  ? chartType === ChartType.Candles &&
+                    activeIndicators.has('Volume')
+                  : chartType === ChartType.Candles
+              }
+              volumeOverlay
+              chartType={chartType}
+              indicators={showChartIndicators ? indicatorsArray : []}
+              selectedMAs={showChartIndicators ? selectedMAs : []}
+              subPaneHeightRatio={
+                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
+              }
+              useSubscriptPriceFormat={
+                advancedChartLineChromePresets.tokenOverview
+                  .useSubscriptPriceFormat
+              }
+              isLoading={
+                isTechnicalIndicatorsEnabled
+                  ? !hasChartBeenRevealed && chartLoading
+                  : chartLoading
+              }
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
+              onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onChartLayoutSettled={
+                isTechnicalIndicatorsEnabled
+                  ? handleAdvancedChartLayoutSettled
+                  : undefined
+              }
+              onError={handleAdvancedChartError}
+              onInitFailed={handleAdvancedChartInitFailed}
+              lineColorOverride={initialAmbientColor}
+              successColorOverride={
+                initialAmbientColor ? ambientSuccessGreen : undefined
+              }
+              errorColorOverride={
+                initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+              }
+              legendOverlay={tokenDetailsLegendOverlay}
+            />
+          </View>
+        </Box>
+      )}
+
+      {/* ── Bottom chrome ──────────────────────────────────────────────── */}
+      {isLineMode ? (
+        isTechnicalIndicatorsEnabled ? (
+          <Box twClassName="pb-4" />
+        ) : (
+          <View style={styles.timeRangeContainer}>
+            <View style={styles.timeRangeSelectorWrap}>
+              <TimeRangeSelector
+                isChartLoading={isLoading}
+                selected={timeRange}
+                onSelect={handleLineTimeRangeSelect}
+                chartType={chartType}
+                onChartTypeToggle={toggleChartType}
+                selectedColor={initialAmbientColor}
+              />
+            </View>
+          </View>
+        )
+      ) : shouldShowTechnicalIndicators && chartType === ChartType.Candles ? (
         <Box twClassName="w-full mt-4 mb-6">
           <IndicatorBar
             maLabel={maLabel}
