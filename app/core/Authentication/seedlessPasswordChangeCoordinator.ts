@@ -3,21 +3,19 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import ReduxService from '../redux';
 
 /**
- * Client-side copy of Core `PasswordSyncStatus` from
+ * Client-side copy of Core `PasswordSyncInstruction` from
  * `@metamask/seedless-onboarding-controller` PR #10148.
  * Local until Mobile bumps past 10.1.1.
  */
-export const PASSWORD_SYNC_STATUS = {
+export const PASSWORD_SYNC_INSTRUCTION = {
   InSync: 'in-sync',
   PasswordOutdated: 'password-outdated',
-  EnterNewPassword: 'enter-new-password',
   ReconcileKeyring: 'reconcile-keyring',
   SyncKey: 'sync-key',
-  Unknown: 'unknown',
 } as const;
 
-export type PasswordSyncStatus =
-  (typeof PASSWORD_SYNC_STATUS)[keyof typeof PASSWORD_SYNC_STATUS];
+export type PasswordSyncInstruction =
+  (typeof PASSWORD_SYNC_INSTRUCTION)[keyof typeof PASSWORD_SYNC_INSTRUCTION];
 
 /**
  * Duck-typed Seedless controller surface spanning 10.1.1 and the #10148
@@ -32,12 +30,12 @@ export interface SeedlessPasswordChangeController {
   }) => Promise<boolean>;
   resolvePasswordSyncState?: (options?: {
     skipCache?: boolean;
-  }) => Promise<PasswordSyncStatus>;
+  }) => Promise<PasswordSyncInstruction>;
   reconcilePassword?: (params: {
     globalPassword: string;
-  }) => Promise<PasswordSyncStatus>;
+  }) => Promise<PasswordSyncInstruction>;
   markPasswordChangeKeySyncPending?: () => Promise<void>;
-  clearPasswordChangePhase?: () => Promise<void>;
+  completePasswordChange?: () => Promise<void>;
 }
 
 export const asSeedlessPasswordChangeController = (
@@ -49,9 +47,18 @@ export const hasPasswordChangeLifecycleApi = (
   controller: SeedlessPasswordChangeController,
 ): boolean => typeof controller.resolvePasswordSyncState === 'function';
 
+const hasPasswordChangeKeySyncApi = (
+  controller: SeedlessPasswordChangeController,
+): boolean =>
+  typeof controller.markPasswordChangeKeySyncPending === 'function' &&
+  typeof controller.completePasswordChange === 'function';
+
 /**
- * Export, store, and (when the lifecycle API is present) mark + clear the
- * Keyring encryption-key sync boundary after a password change or recovery.
+ * Export the Keyring wrapping key, persist it on Seedless, and close the
+ * password-change lifecycle when Core #10148 is present.
+ *
+ * Core records `KEY_SYNC_PENDING` before the wrap, then the client stores
+ * the key and calls `completePasswordChange` only after load verifies it.
  */
 export const completeSeedlessPasswordChangeKeySync =
   async (): Promise<void> => {
@@ -60,16 +67,21 @@ export const completeSeedlessPasswordChangeKeySync =
       SeedlessOnboardingController,
     );
     const keyringEncryptionKey = await KeyringController.exportEncryptionKey();
-    await controller.storeKeyringEncryptionKey(keyringEncryptionKey);
 
-    if (typeof controller.markPasswordChangeKeySyncPending === 'function') {
-      await controller.markPasswordChangeKeySyncPending();
+    if (!hasPasswordChangeKeySyncApi(controller)) {
       await controller.storeKeyringEncryptionKey(keyringEncryptionKey);
+      return;
     }
 
-    if (typeof controller.clearPasswordChangePhase === 'function') {
-      await controller.clearPasswordChangePhase();
+    await controller.markPasswordChangeKeySyncPending?.();
+    await controller.storeKeyringEncryptionKey(keyringEncryptionKey);
+    const storedKey = await controller.loadKeyringEncryptionKey();
+    if (storedKey !== keyringEncryptionKey) {
+      throw new Error(
+        'SeedlessOnboardingController - stored keyring encryption key does not match export',
+      );
     }
+    await controller.completePasswordChange?.();
   };
 
 const reconcileLocalKeyring = async (
@@ -90,53 +102,49 @@ const reconcileLocalKeyring = async (
   await completeSeedlessPasswordChangeKeySync();
 };
 
-const applyPasswordSyncStatus = async (
-  status: PasswordSyncStatus,
+const applyPasswordSyncInstruction = async (
+  instruction: PasswordSyncInstruction,
   password: string,
   controller: SeedlessPasswordChangeController,
 ): Promise<void> => {
-  switch (status) {
-    case PASSWORD_SYNC_STATUS.InSync:
+  switch (instruction) {
+    case PASSWORD_SYNC_INSTRUCTION.InSync:
       return;
-    case PASSWORD_SYNC_STATUS.PasswordOutdated:
-    case PASSWORD_SYNC_STATUS.EnterNewPassword: {
+    case PASSWORD_SYNC_INSTRUCTION.PasswordOutdated: {
       if (typeof controller.reconcilePassword !== 'function') {
         throw new Error(
           'SeedlessOnboardingController - reconcilePassword is required for password recovery',
         );
       }
-      const nextStatus = await controller.reconcilePassword({
+      const nextInstruction = await controller.reconcilePassword({
         globalPassword: password,
       });
-      await applyPasswordSyncStatus(nextStatus, password, controller);
+      await applyPasswordSyncInstruction(nextInstruction, password, controller);
       return;
     }
-    case PASSWORD_SYNC_STATUS.ReconcileKeyring:
+    case PASSWORD_SYNC_INSTRUCTION.ReconcileKeyring:
       await reconcileLocalKeyring(password, controller);
       return;
-    case PASSWORD_SYNC_STATUS.SyncKey:
+    case PASSWORD_SYNC_INSTRUCTION.SyncKey:
       await completeSeedlessPasswordChangeKeySync();
       return;
-    case PASSWORD_SYNC_STATUS.Unknown:
-      throw new Error(
-        'SeedlessOnboardingController - password sync state unknown',
-      );
     default: {
-      const exhaustive: never = status;
+      const exhaustive: never = instruction;
       throw new Error(
-        `SeedlessOnboardingController - unrecognized password sync status: ${exhaustive}`,
+        `SeedlessOnboardingController - unrecognized password sync instruction: ${exhaustive}`,
       );
     }
   }
 };
 
 /**
- * Maps lifecycle status onto the boolean outdated check used by existing
- * call sites. `unknown` is treated as outdated so the wallet stays locked.
+ * Maps a lifecycle instruction onto the boolean outdated check used by
+ * existing call sites. Any instruction other than `in-sync` keeps recovery
+ * in front of a normal unlock.
  */
-export const isPasswordSyncStatusOutdated = (
-  status: PasswordSyncStatus,
-): boolean => status !== PASSWORD_SYNC_STATUS.InSync;
+export const isPasswordSyncInstructionOutdated = (
+  instruction: PasswordSyncInstruction,
+): boolean => instruction !== PASSWORD_SYNC_INSTRUCTION.InSync;
 
 /**
  * When Core #10148 is present, resolve + recover before a normal unlock.
@@ -159,14 +167,17 @@ export const applySeedlessUnlockRecovery = async (
     return false;
   }
 
-  const status = await controller.resolvePasswordSyncState?.({
-    skipCache: false,
+  const instruction = await controller.resolvePasswordSyncState?.({
+    skipCache: true,
   });
 
-  if (status === undefined || status === PASSWORD_SYNC_STATUS.InSync) {
+  if (
+    instruction === undefined ||
+    instruction === PASSWORD_SYNC_INSTRUCTION.InSync
+  ) {
     return false;
   }
 
-  await applyPasswordSyncStatus(status, password, controller);
+  await applyPasswordSyncInstruction(instruction, password, controller);
   return true;
 };

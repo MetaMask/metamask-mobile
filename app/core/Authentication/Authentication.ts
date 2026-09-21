@@ -68,7 +68,7 @@ import {
   applySeedlessUnlockRecovery,
   asSeedlessPasswordChangeController,
   hasPasswordChangeLifecycleApi,
-  isPasswordSyncStatusOutdated,
+  isPasswordSyncInstructionOutdated,
 } from './seedlessPasswordChangeCoordinator';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
@@ -845,7 +845,7 @@ class AuthenticationService {
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
-              skipCache: false,
+              skipCache: true,
               captureSentryError: true,
             })
           ) {
@@ -1570,7 +1570,7 @@ class AuthenticationService {
         if (status === undefined) {
           return false;
         }
-        return isPasswordSyncStatusOutdated(status);
+        return isPasswordSyncInstructionOutdated(status);
       }
 
       const isSeedlessPasswordOutdated =

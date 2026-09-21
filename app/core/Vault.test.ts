@@ -322,7 +322,10 @@ describe('Vault', () => {
       lifecycleController.markPasswordChangeKeySyncPending = jest
         .fn()
         .mockResolvedValue(undefined);
-      lifecycleController.clearPasswordChangePhase = jest
+      lifecycleController.loadKeyringEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('enc-key');
+      lifecycleController.completePasswordChange = jest
         .fn()
         .mockResolvedValue(undefined);
 
@@ -335,9 +338,9 @@ describe('Vault', () => {
       expect(
         lifecycleController.markPasswordChangeKeySyncPending,
       ).toHaveBeenCalledTimes(1);
-      expect(
-        lifecycleController.clearPasswordChangePhase,
-      ).toHaveBeenCalledTimes(1);
+      expect(lifecycleController.completePasswordChange).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('should restore when seedless change password failed if seedless onboarding flow is active', async () => {
