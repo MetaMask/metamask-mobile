@@ -341,21 +341,40 @@ describe('consolidateBasicFunctionality action', () => {
     );
   });
 
-  it('leaves the wallet unmigrated when the service rejects', async () => {
+  it('migrates the wallet when the service rejects', async () => {
     const dispatch = jest.fn();
     const serviceError = new Error('Service error');
     mockSetBasicFunctionality.mockRejectedValue(serviceError);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await expect(
-      consolidateBasicFunctionality()(dispatch, () => state),
-    ).rejects.toThrow(serviceError);
+    await consolidateBasicFunctionality()(dispatch, () => state);
 
-    // Nothing is persisted, so the migration retries instead of stranding the
-    // service out of sync with the wallet's preferences.
+    // Wallet alignment is best effort: losing it must not cost the user the
+    // migration or its notice, which the hook only attempts once per session.
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
-    ).not.toHaveBeenCalled();
-    expect(dispatch).not.toHaveBeenCalled();
+    ).toHaveBeenCalledWith(true);
+    expect(dispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityMigrationNotification('toast'),
+    );
+  });
+
+  it('schedules the notification without waiting for wallet alignment', async () => {
+    const dispatch = jest.fn();
+    let finishAlignment;
+    mockSetBasicFunctionality.mockReturnValue(
+      new Promise((resolve) => {
+        finishAlignment = resolve;
+      }),
+    );
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityMigrationNotification('toast'),
+    );
+
+    finishAlignment();
   });
 
   it('does not migrate when the remote flag is off', async () => {

@@ -129,11 +129,6 @@ export function consolidateBasicFunctionality() {
         (preference) => preferenceState[preference] === landingState,
       );
 
-    const Engine = require('../../core/Engine').default;
-    await Engine.context.MultichainAccountService.setBasicFunctionality(
-      landingState,
-    );
-
     syncConsolidatedBasicFunctionalityPreferences(landingState);
     // Persist cohort membership before flipping BF so mixed/social wallets that
     // land ON keep the build-flag rollout instead of briefly reading LD as off.
@@ -146,6 +141,20 @@ export function consolidateBasicFunctionality() {
           : notification,
       ),
     );
+
+    // Landing ON aligns every wallet through the snap providers, which is slow
+    // and network-dependent. Awaiting it would hold the notice back for the
+    // rest of the session, and a rejection would drop the whole migration with
+    // no retry, so run it as best effort like the user-initiated toggle does.
+    const Engine = require('../../core/Engine').default;
+    Engine.context.MultichainAccountService.setBasicFunctionality(
+      landingState,
+    ).catch((error) => {
+      console.error(
+        'Failed to set basic functionality on MultichainAccountService while consolidating:',
+        error,
+      );
+    });
 
     if (!isAligned) {
       const { analytics } = require('../../util/analytics/analytics');
