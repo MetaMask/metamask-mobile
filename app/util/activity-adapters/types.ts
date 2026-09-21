@@ -1,7 +1,7 @@
 /**
  * `@metamask/client-utils` is the source of truth for activity types (same as
- * extension). `raw` remains only for Perps, Predict, and Ramps until those
- * sources are replaced with direct lookups.
+ * extension). Mobile-only extras in `MobileFields` and `MobileDataExtras` fill
+ * gaps that have no extension equivalent yet (perps order type, predict title).
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
