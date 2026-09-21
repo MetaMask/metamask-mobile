@@ -26,11 +26,6 @@ export interface TabItem {
   content: React.ReactNode;
   isDisabled?: boolean;
   testID?: string;
-  /**
-   * Renders a dot after the label, for a tab holding something the user has
-   * not seen or acted on yet
-   */
-  showsIndicatorDot?: boolean;
 }
 
 /**
