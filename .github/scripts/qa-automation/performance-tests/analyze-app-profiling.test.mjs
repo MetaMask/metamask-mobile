@@ -12,6 +12,7 @@ import {
   sampleRunsEvenly,
   planWeeklyRuns,
   reportsForRuns,
+  isReusableCollectedReport,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,
@@ -149,6 +150,47 @@ test('planWeeklyRuns keeps every collected run and samples the rest', () => {
   assert.ok(selectedIds.includes(7));
   assert.equal(plan.selected.length, 5);
   assert.equal(plan.skipped, 5);
+});
+
+test('collected reports from an older schema are not reused', () => {
+  const scenario = {
+    scenario: 'Perps add funds',
+    attempts: [0],
+    profiles: [],
+    jsWorkMs: 10,
+    jsDutyPct: 20,
+  };
+
+  assert.equal(
+    isReusableCollectedReport({ meta: { runId: '1' }, scenarios: [scenario] }),
+    true,
+  );
+  // Reports written before per-scenario attempts existed crashed the window.
+  assert.equal(
+    isReusableCollectedReport({
+      meta: { runId: '1' },
+      scenarios: [{ ...scenario, attempts: undefined }],
+    }),
+    false,
+  );
+  assert.equal(
+    isReusableCollectedReport({
+      meta: { runId: '1', mode: 'lookback-window' },
+      scenarios: [scenario],
+    }),
+    false,
+  );
+  assert.equal(
+    isReusableCollectedReport({ meta: { runId: '1' }, scenarios: [] }),
+    false,
+  );
+  assert.equal(isReusableCollectedReport({ scenarios: [scenario] }), false);
+});
+
+test('sampleRunsEvenly still returns one run when the limit is one', () => {
+  const runs = [{ databaseId: 1 }, { databaseId: 2 }, { databaseId: 3 }];
+
+  assert.deepEqual(sampleRunsEvenly(runs, 1), [{ databaseId: 1 }]);
 });
 
 test('reportsForRuns keeps the week when one run lost its artifacts', async () => {

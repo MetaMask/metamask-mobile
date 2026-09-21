@@ -249,18 +249,20 @@ function contributorSlackLine(contributor, scenario) {
 export function buildWeeklyScenarioCard(card) {
   const { current, previous, statusLabel, conclusion } = card;
   const mention = slackTeamMention(displayName(card.scenario));
-  const lastMedian = previous
-    ? formatDuration(previous.medianJsWorkMs)
-    : 'n/a';
-  const ratio =
-    previous && previous.medianJsWorkMs > 0
-      ? (current.medianJsWorkMs / previous.medianJsWorkMs).toFixed(2)
-      : 'n/a';
   const lines = [
     `*${statusLabel}* · *${displayName(card.scenario)}* ${mention}`,
     `_This week:_ ${current.runsObserved}/${current.runsTotal} runs · median JS ${formatDuration(current.medianJsWorkMs)} (${formatDuration(current.minJsWorkMs)} – ${formatDuration(current.maxJsWorkMs)}) · duty ${current.medianJsDutyPct.toFixed(1)}%`,
-    `_vs last week:_ median ${lastMedian} → ${formatDuration(current.medianJsWorkMs)} (${ratio}×)`,
   ];
+  if (previous && previous.medianJsWorkMs > 0) {
+    const ratio = (current.medianJsWorkMs / previous.medianJsWorkMs).toFixed(2);
+    lines.push(
+      `_vs last week:_ median ${formatDuration(previous.medianJsWorkMs)} → ${formatDuration(current.medianJsWorkMs)} (${ratio}×)`,
+    );
+  } else {
+    lines.push(
+      '_vs last week:_ this scenario has no comparable run in the previous week.',
+    );
+  }
   if (current.contributors?.length) {
     lines.push('_Hot frames (repeated across this week):_');
     for (const contributor of current.contributors.slice(0, 3)) {

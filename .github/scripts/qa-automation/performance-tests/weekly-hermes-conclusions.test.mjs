@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   STATUS,
+  buildWeeklyScenarioCard,
   buildWeeklyParentSlack,
   buildWeeklyReport,
   classifyScenario,
@@ -182,6 +183,26 @@ test('weekly Slack parent is an exception report', () => {
 
   assert.match(withCards, /1 worse than last week/);
   assert.match(withCards, /Stable scenarios omitted/);
+});
+
+test('a card without a previous week says so instead of printing n/a', () => {
+  const [card] = classifyWeeklyScenarios(
+    {
+      scenarios: [
+        scenarioFixture('Perps add funds', {
+          medianJsWorkMs: 2000,
+          maxJsWorkMs: 4000,
+          spikeRatio: 2,
+        }),
+      ],
+    },
+    { scenarios: [] },
+  );
+
+  const rendered = buildWeeklyScenarioCard(card);
+
+  assert.match(rendered, /no comparable run in the previous week/);
+  assert.doesNotMatch(rendered, /n\/a/);
 });
 
 test('weekly Slack states when medians come from sampled runs', () => {

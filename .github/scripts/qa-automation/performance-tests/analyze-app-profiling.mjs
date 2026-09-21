@@ -373,6 +373,33 @@ function findNamedFile(directory, fileName) {
   return null;
 }
 
+/**
+ * A collected report is only reusable when it carries everything the window
+ * aggregation reads. Reports written by earlier versions of this analyzer are
+ * missing fields such as per-scenario `attempts`, and reusing one of those
+ * used to abort the whole weekly report.
+ */
+function isReusableCollectedReport(report) {
+  const mode = report?.meta?.mode;
+  if (mode === 'lookback-window' || mode === 'weekly-conclusions') {
+    return false;
+  }
+  if (!report?.meta?.runId || !Array.isArray(report.scenarios)) {
+    return false;
+  }
+  if (report.scenarios.length === 0) {
+    return false;
+  }
+  return report.scenarios.every(
+    (scenario) =>
+      typeof scenario?.scenario === 'string' &&
+      Array.isArray(scenario.attempts) &&
+      Array.isArray(scenario.profiles) &&
+      Number.isFinite(scenario.jsWorkMs) &&
+      Number.isFinite(scenario.jsDutyPct),
+  );
+}
+
 function tryReadCollectedReport(repo, analysisRunId) {
   const destination = fs.mkdtempSync(
     path.join(os.tmpdir(), `app-profiling-collected-${analysisRunId}-`),
@@ -392,11 +419,10 @@ function tryReadCollectedReport(repo, analysisRunId) {
       return null;
     }
     const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-    const mode = report.meta?.mode;
-    if (mode === 'lookback-window' || mode === 'weekly-conclusions') {
-      return null;
-    }
-    if (!report.meta?.runId || !Array.isArray(report.scenarios)) {
+    if (!isReusableCollectedReport(report)) {
+      console.log(
+        `ℹ️ Ignoring analysis ${analysisRunId}: report does not match the current schema`,
+      );
       return null;
     }
     return report;
@@ -1637,7 +1663,7 @@ function aggregateWindow(runReports, meta = {}) {
         jsWorkMs: scenario.jsWorkMs,
         jsDutyPct: scenario.jsDutyPct,
         profileCount: scenario.profileCount,
-        attempts: scenario.attempts.length,
+        attempts: scenario.attempts?.length ?? 0,
         frames: scenarioFrameTotals(scenario).slice(0, WINDOW_FRAMES_PER_RUN),
       });
       grouped.set(key, entry);
@@ -2434,6 +2460,9 @@ function sampleRunsEvenly(runs, limit) {
   if (runs.length <= limit) {
     return [...runs];
   }
+  if (limit === 1) {
+    return [runs[0]];
+  }
   const step = (runs.length - 1) / (limit - 1);
   const indexes = new Set();
   for (let position = 0; position < limit; position += 1) {
@@ -2627,9 +2656,12 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) =>
-    fail(error instanceof Error ? error.message : String(error)),
-  );
+  main().catch((error) => {
+    if (error instanceof Error && error.stack) {
+      console.error(error.stack);
+    }
+    fail(error instanceof Error ? error.message : String(error));
+  });
 }
 
 export {
@@ -2640,6 +2672,7 @@ export {
   sampleRunsEvenly,
   planWeeklyRuns,
   reportsForRuns,
+  isReusableCollectedReport,
   writeEmptyScenarioManifest,
   findHermesProfiles,
   findAndroidSourcemaps,
