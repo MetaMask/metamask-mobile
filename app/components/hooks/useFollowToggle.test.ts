@@ -472,7 +472,7 @@ describe('useFollowToggleMany', () => {
 
     // Redux updates to an empty list (hasn't caught up yet).
     selectorState.followingProfileIds = [];
-    rerender();
+    rerender(undefined);
     await act(async () => {
       resolveCall({ followed: [], unfollowed: [] });
     });
@@ -491,7 +491,7 @@ describe('useFollowToggleMany', () => {
 
     // Now redux reflects the follow — the optimistic override is no longer needed.
     selectorState.followingProfileIds = ['trader-1'];
-    rerender();
+    rerender(undefined);
     await act(async () => {
       // Trigger a re-render so the cleanup effect sees the updated selector.
     });
@@ -572,7 +572,7 @@ describe('useFollowToggleMany', () => {
 
     selectorState.selectedAddress = '0xdef';
     await act(async () => {
-      rerender();
+      rerender(undefined);
     });
 
     expect(result.current.isFollowing('trader-1')).toBe(false);
@@ -596,11 +596,11 @@ describe('useFollowToggleMany', () => {
 
     selectorState.isUnlocked = false;
     await act(async () => {
-      rerender();
+      rerender(undefined);
     });
     selectorState.isUnlocked = true;
     await act(async () => {
-      rerender();
+      rerender(undefined);
     });
 
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
