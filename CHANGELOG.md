@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.13.0]
 
+### Uncategorized
+
+- Cherry-picking commits from main to release/8.13.0 for PR #36504 (#36504)
+
 ### Added
 
 - Added Immersve Card unlink and re-link funding allowance from Card Home (#36369)
