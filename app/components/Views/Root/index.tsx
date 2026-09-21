@@ -113,20 +113,19 @@ const Root = ({ foxCode }: RootProps) => {
                   <SnapsExecutionWebView />
                   ///: END:ONLY_INCLUDE_IF
                 }
-                {
-                  ///: BEGIN:ONLY_INCLUDE_IF(lighter)
-                  // Lighter Go/WASM signer host. Mounted like
-                  // SnapsExecutionWebView: PerpsController receives the bridge
-                  // at Engine init and calls queue until this page is ready.
-                  isLighterProviderEnabled() && <LighterSignerWebView />
-                  ///: END:ONLY_INCLUDE_IF
-                }
-
                 <QueryClientProvider client={reactQueryService.queryClient}>
                   <FeatureFlagOverrideProvider>
                     <ThemeProvider>
                       <NavigationProvider>
                         <ControllersGate>
+                          {
+                            ///: BEGIN:ONLY_INCLUDE_IF(lighter)
+                            // The signer observes the initialized keyring's lock lifecycle.
+                            isLighterProviderEnabled() && (
+                              <LighterSignerWebView />
+                            )
+                            ///: END:ONLY_INCLUDE_IF
+                          }
                           <UIMessengerProvider value={uiMessenger}>
                             <ToastContextWrapper>
                               <HardwareWalletProvider>

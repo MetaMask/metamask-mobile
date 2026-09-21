@@ -6,6 +6,7 @@ import type {
 } from '@metamask/perps-controller';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
+import Engine from '../../../../core/Engine';
 import {
   assertLighterClientParameters,
   assertLighterRegistrationMessage,
@@ -27,6 +28,7 @@ const LIGHTER_SIGNER_KEY_PREFIX = 'com.metamask.PERPS_LIGHTER_SIGNER';
 const LIGHTER_SIGNER_KEY_NAME = 'LIGHTER_SIGNER_PRIVATE_KEY';
 const PRIVATE_KEY_PATTERN = /^[0-9a-f]{64}$/u;
 const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
+export const LIGHTER_SIGNER_LOCKED_ERROR = 'Lighter signer wallet is locked';
 
 const resetListeners = new Set<() => void>();
 let generation = 0;
@@ -88,6 +90,9 @@ function signerKeyScope(params: LighterCreateClientParams) {
 }
 
 function assertGeneration(owner: number): void {
+  if (!Engine.context.KeyringController.isUnlocked()) {
+    throw new Error(LIGHTER_SIGNER_LOCKED_ERROR);
+  }
   if (unavailableError) throw unavailableError;
   if (owner !== generation) throw new Error(RELOAD_ERROR);
 }
@@ -109,7 +114,9 @@ async function withOwnership<T>(
   };
   resetListeners.add(onReset);
   try {
-    return await operation(owner, retired);
+    const result = await operation(owner, retired);
+    assertGeneration(owner);
+    return result;
   } finally {
     resetListeners.delete(onReset);
   }

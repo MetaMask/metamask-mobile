@@ -1,3 +1,4 @@
+import Engine from '../../../../core/Engine';
 import {
   connectLighterExecutor,
   LIGHTER_SIGNER_TIMEOUT_MS,
@@ -9,6 +10,14 @@ import {
 import QuickCrypto from 'react-native-quick-crypto';
 import type { Result as KeychainResult } from 'react-native-keychain';
 import SecureKeychain from '../../../../core/SecureKeychain';
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: { KeyringController: { isUnlocked: jest.fn(() => true) } },
+    controllerMessenger: { subscribe: jest.fn(), tryUnsubscribe: jest.fn() },
+  },
+}));
 
 jest.mock('react-native-quick-crypto', () => ({
   __esModule: true,
@@ -37,6 +46,9 @@ const clientResult = {
 describe('lighterSignerBridge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(Engine.context.KeyringController.isUnlocked)
+      .mockReturnValue(true);
     mockSecureKeychain.getSecureItem.mockResolvedValue(null);
     mockSecureKeychain.setSecureItem.mockResolvedValue({
       service: 'test',
@@ -48,6 +60,41 @@ describe('lighterSignerBridge', () => {
     reviveLighterBridge();
     resetLighterBridge();
     jest.useRealTimers();
+  });
+
+  it('rejects work arriving after wallet lock before reading the key', async () => {
+    jest
+      .mocked(Engine.context.KeyringController.isUnlocked)
+      .mockReturnValue(false);
+
+    await expect(
+      lighterSignerBridge.createClient({
+        chainId: 300,
+        accountIndex: 28,
+        nonce: 9,
+        apiKeyIndex: 7,
+      }),
+    ).rejects.toThrow('wallet is locked');
+
+    expect(mockSecureKeychain.getSecureItem).not.toHaveBeenCalled();
+  });
+
+  it('checks wallet state again before returning an executor result', async () => {
+    connectLighterExecutor(
+      jest.fn().mockImplementation(async () => {
+        jest
+          .mocked(Engine.context.KeyringController.isUnlocked)
+          .mockReturnValue(false);
+        return { token: 'retired', deadline: 123 };
+      }),
+    );
+
+    await expect(
+      lighterSignerBridge.execute({
+        function: '_createAuthToken',
+        params: [28, 7],
+      }),
+    ).rejects.toThrow('wallet is locked');
   });
 
   it('queues calls until the executor connects, then executes them', async () => {

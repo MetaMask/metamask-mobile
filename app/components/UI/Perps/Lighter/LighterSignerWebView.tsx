@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import type {
@@ -15,6 +16,7 @@ import {
   reviveLighterBridge,
   resetLighterBridge,
   setLighterBridgeUnavailable,
+  LIGHTER_SIGNER_LOCKED_ERROR,
   type LighterExecutorCall,
   type LighterExecutor,
 } from './lighterSignerBridge';
@@ -22,6 +24,8 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isTestEnvironment } from '../../../../util/test/utils';
 import Logger from '../../../../util/Logger';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import Engine from '../../../../core/Engine';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
 /**
  * Log dev-only signer readiness without mutating the page's live WASM client.
@@ -201,25 +205,30 @@ export function isValidLighterSignerResult(
  * On `ready` it connects the module-level lighterSignerBridge executor, which
  * releases any calls PerpsController queued before mount.
  */
-export const LighterSignerWebView = () => {
+const UnlockedLighterSignerWebView = () => {
   const webviewRef = useRef<WebView>(null);
   const mountedAtRef = useRef<number>(Date.now());
   const [reloadKey, setReloadKey] = useState(0);
+  const pageGenerationRef = useRef(0);
   const [isUnavailable, setIsUnavailable] = useState(false);
   const reloadAttemptsRef = useRef(0);
   const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
   const isUnavailableRef = useRef(false);
+  const [isWalletLocked, setIsWalletLocked] = useState(false);
+  const isWalletLockedRef = useRef(false);
 
   const handleFailure = useCallback(() => {
     if (
       reloadTimerRef.current ||
       !isMountedRef.current ||
+      isWalletLockedRef.current ||
       isUnavailableRef.current
     ) {
       return;
     }
     rejectAllPending('Lighter signer WebView reloaded; retry the operation');
+    pageGenerationRef.current += 1;
     if (reloadAttemptsRef.current >= MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS) {
       isUnavailableRef.current = true;
       setIsUnavailable(true);
@@ -241,7 +250,7 @@ export const LighterSignerWebView = () => {
     reloadTimerRef.current = setTimeout(() => {
       reloadTimerRef.current = null;
       if (isMountedRef.current) {
-        setReloadKey((previous) => previous + 1);
+        setReloadKey(pageGenerationRef.current);
       }
     }, delay);
   }, []);
@@ -251,9 +260,41 @@ export const LighterSignerWebView = () => {
     // A previous host instance may have exhausted its reloads and left the
     // bridge terminally unavailable. This mount is a real remount, so the
     // signer can serve calls again.
-    reviveLighterBridge();
+    const messenger = Engine.controllerMessenger;
+    const onLock = () => {
+      pageGenerationRef.current += 1;
+      isWalletLockedRef.current = true;
+      setIsWalletLocked(true);
+      if (reloadTimerRef.current) {
+        clearTimeout(reloadTimerRef.current);
+        reloadTimerRef.current = null;
+      }
+      rejectAllPending(LIGHTER_SIGNER_LOCKED_ERROR);
+      setLighterBridgeUnavailable(LIGHTER_SIGNER_LOCKED_ERROR);
+    };
+    const onUnlock = () => {
+      if (!isWalletLockedRef.current) return;
+      isWalletLockedRef.current = false;
+      setIsWalletLocked(false);
+      isUnavailableRef.current = false;
+      setIsUnavailable(false);
+      reloadAttemptsRef.current = 0;
+      // A new native page cannot retain the prior unlocked session's key.
+      pageGenerationRef.current += 1;
+      setReloadKey(pageGenerationRef.current);
+      reviveLighterBridge();
+    };
+    messenger.subscribe('KeyringController:lock', onLock);
+    messenger.subscribe('KeyringController:unlock', onUnlock);
+    if (Engine.context.KeyringController.isUnlocked()) {
+      reviveLighterBridge();
+    } else {
+      onLock();
+    }
     return () => {
       isMountedRef.current = false;
+      messenger.tryUnsubscribe('KeyringController:lock', onLock);
+      messenger.tryUnsubscribe('KeyringController:unlock', onUnlock);
       if (reloadTimerRef.current) {
         clearTimeout(reloadTimerRef.current);
         reloadTimerRef.current = null;
@@ -265,6 +306,12 @@ export const LighterSignerWebView = () => {
 
   const onMessage = useCallback(
     (event: WebViewMessageEvent) => {
+      if (
+        !isMountedRef.current ||
+        isWalletLockedRef.current ||
+        reloadKey !== pageGenerationRef.current
+      )
+        return;
       const message = parseLighterPageMessage(event.nativeEvent.data);
       if (!message) {
         DevLogger.log(
@@ -378,10 +425,10 @@ export const LighterSignerWebView = () => {
           break;
       }
     },
-    [handleFailure],
+    [handleFailure, reloadKey],
   );
 
-  if (isUnavailable) {
+  if (isUnavailable || isWalletLocked) {
     return null;
   }
 
@@ -424,4 +471,10 @@ export const LighterSignerWebView = () => {
       />
     </View>
   );
+};
+
+/** Keep the key-holding native page outside locked wallet sessions. */
+export const LighterSignerWebView = () => {
+  const isUnlocked = useSelector(selectIsUnlocked);
+  return isUnlocked ? <UnlockedLighterSignerWebView /> : null;
 };

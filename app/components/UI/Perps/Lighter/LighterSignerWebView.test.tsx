@@ -1,3 +1,5 @@
+import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import React from 'react';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import Logger from '../../../../util/Logger';
@@ -31,6 +33,9 @@ let mockWebViewProps: MockWebViewProps = {};
 let mockWebViewRenderCount = 0;
 let mockAttachWebViewRef = true;
 const mockPostMessage = jest.fn();
+const mockWebViewUnmount = jest.fn();
+
+jest.mock('react-redux', () => ({ useSelector: jest.fn(() => true) }));
 
 jest.mock('@metamask/react-native-webview', () => {
   const react = jest.requireActual('react') as typeof import('react');
@@ -39,6 +44,7 @@ jest.mock('@metamask/react-native-webview', () => {
       (props: MockWebViewProps, ref: React.ForwardedRef<unknown>) => {
         mockWebViewProps = props;
         mockWebViewRenderCount += 1;
+        react.useEffect(() => () => mockWebViewUnmount(), []);
         react.useImperativeHandle(
           ref,
           () =>
@@ -59,6 +65,14 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('./wasm-wrapper.standalone.html', () => ({
   __esModule: true,
   default: '<html />',
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: { KeyringController: { isUnlocked: jest.fn(() => true) } },
+    controllerMessenger: { subscribe: jest.fn(), tryUnsubscribe: jest.fn() },
+  },
 }));
 
 jest.mock('react-native-quick-crypto', () => ({
@@ -88,6 +102,10 @@ function messageEvent(message: unknown): WebViewMessageEvent {
 describe('LighterSignerWebView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(Engine.context.KeyringController.isUnlocked)
+      .mockReturnValue(true);
+    jest.mocked(useSelector).mockReturnValue(true);
     mockWebViewProps = {};
     mockWebViewRenderCount = 0;
     mockAttachWebViewRef = true;
@@ -98,6 +116,104 @@ describe('LighterSignerWebView', () => {
     resetLighterBridge();
     jest.restoreAllMocks();
     jest.useRealTimers();
+  });
+
+  const emitWalletEvent = (
+    name: 'KeyringController:lock' | 'KeyringController:unlock',
+  ) => {
+    const subscription = jest
+      .mocked(Engine.controllerMessenger.subscribe)
+      .mock.calls.find(([event]) => event === name);
+    expect(subscription).toBeDefined();
+    (subscription?.[1] as () => void)();
+  };
+
+  it('does not mount the native signer while the wallet is locked', () => {
+    jest.mocked(useSelector).mockReturnValue(false);
+
+    render(<LighterSignerWebView />);
+
+    expect(mockWebViewRenderCount).toBe(0);
+  });
+
+  it('retires pending signing and destroys the native page immediately on lock', async () => {
+    render(<LighterSignerWebView />);
+    act(() => mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' })));
+    const pending = lighterSignerBridge
+      .execute({ function: '_createAuthToken', params: [28, 7] })
+      .catch((error: Error) => error);
+    await act(async () => undefined);
+    expect(mockPostMessage).toHaveBeenCalledTimes(1);
+    const previousPage = mockWebViewProps;
+
+    act(() => {
+      jest
+        .mocked(Engine.context.KeyringController.isUnlocked)
+        .mockReturnValue(false);
+      emitWalletEvent('KeyringController:lock');
+    });
+
+    await expect(pending).resolves.toEqual(
+      new Error('Lighter signer wallet is locked'),
+    );
+    expect(mockWebViewUnmount).toHaveBeenCalledTimes(1);
+    act(() => previousPage.onMessage?.(messageEvent({ type: 'ready' })));
+    await expect(
+      lighterSignerBridge.execute({
+        function: '_createAuthToken',
+        params: [28, 7],
+      }),
+    ).rejects.toThrow('wallet is locked');
+    expect(mockPostMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not replace a live page for a repeated unlock notification', () => {
+    render(<LighterSignerWebView />);
+
+    act(() => emitWalletEvent('KeyringController:unlock'));
+
+    expect(mockWebViewRenderCount).toBe(1);
+    expect(mockWebViewUnmount).not.toHaveBeenCalled();
+  });
+
+  it('uses a fresh native page after a lock and unlock in one render batch', async () => {
+    render(<LighterSignerWebView />);
+    act(() => mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' })));
+
+    const retiredPage = mockWebViewProps;
+    act(() => {
+      jest
+        .mocked(Engine.context.KeyringController.isUnlocked)
+        .mockReturnValue(false);
+      emitWalletEvent('KeyringController:lock');
+      jest
+        .mocked(Engine.context.KeyringController.isUnlocked)
+        .mockReturnValue(true);
+      emitWalletEvent('KeyringController:unlock');
+      retiredPage.onMessage?.(messageEvent({ type: 'ready' }));
+    });
+
+    expect(mockWebViewUnmount).toHaveBeenCalledTimes(1);
+    expect(mockWebViewRenderCount).toBe(2);
+    const pending = lighterSignerBridge
+      .execute({ function: '_createAuthToken', params: [28, 7] })
+      .catch((error: Error) => error);
+    await act(async () => undefined);
+    expect(mockPostMessage).not.toHaveBeenCalled();
+    act(() => mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' })));
+    await act(async () => undefined);
+    expect(mockPostMessage).toHaveBeenCalledTimes(1);
+    const { executeId } = JSON.parse(mockPostMessage.mock.calls[0][0]);
+    act(() =>
+      mockWebViewProps.onMessage?.(
+        messageEvent({
+          type: 'executeResult',
+          executeId,
+          result: { token: 'fresh', deadline: 123 },
+        }),
+      ),
+    );
+    await expect(pending).resolves.toEqual({ token: 'fresh', deadline: 123 });
   });
 
   it('parses only supported message discriminants and field types', () => {
