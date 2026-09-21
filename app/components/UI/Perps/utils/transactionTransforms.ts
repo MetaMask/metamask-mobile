@@ -72,6 +72,31 @@ function getDirectionForAggregation(
 }
 
 /**
+ * Stable id for an aggregated fill, from its content only - never its position in the output.
+ * Activity details looks a row up by this id in a separately fetched set of fills, and the market
+ * page transforms one market while the details screen transforms all of them, so a positional id
+ * differs between the two and the lookup silently finds nothing.
+ *
+ * Keep all four segments: together they match `aggregateFillsByOrder`'s grouping keys, which is what
+ * makes ids unique per set. They are also a dedupe key (`usePerpsActivityQuery`,
+ * `usePerpsTransactionHistory`), where a collision drops a row.
+ *
+ * @param fill - An aggregated fill, as returned by aggregateFillsByOrder
+ * @returns A stable id for the fill's trade
+ */
+export function getFillTransactionId(fill: OrderFill): string {
+  const direction = (
+    getDirectionForAggregation(fill.direction) ??
+    fill.direction ??
+    'unknown'
+  ).replace(/\s+/g, '');
+
+  return [fill.orderId || 'fill', fill.symbol, direction, fill.timestamp].join(
+    '-',
+  );
+}
+
+/**
  * Aggregates the fills belonging to one trade so a trade the user placed once is shown once.
  * HyperLiquid splits a single order across the book - over several price levels and, for larger
  * orders, over several seconds - and each piece comes back as its own fill.
@@ -445,7 +470,6 @@ export function transformFillsToTransactions(
   return fillsToTransform.reduce((acc: PerpsTransaction[], fill, index) => {
     const {
       direction,
-      orderId,
       symbol,
       size,
       price,
@@ -566,9 +590,7 @@ export function transformFillsToTransactions(
     }
 
     acc.push({
-      id: individualIds
-        ? individualIds[index]
-        : `${orderId || 'fill'}-${timestamp}-${acc.length}`,
+      id: individualIds ? individualIds[index] : getFillTransactionId(fill),
       type: 'trade',
       category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,

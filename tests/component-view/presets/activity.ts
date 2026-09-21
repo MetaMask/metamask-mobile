@@ -31,6 +31,7 @@ import {
   mapPerpsTransaction,
   type ActivityListItem,
 } from '../../../app/util/activity-adapters';
+import { getFillTransactionId } from '../../../app/components/UI/Perps/utils/transactionTransforms';
 
 export const ACTIVITY_CV_ACCOUNT = '0x0000000000000000000000000000000000000001';
 
@@ -2541,10 +2542,15 @@ export const buildActivityCvPerpsOverviewOrderFill = (
   };
 };
 
+/**
+ * The row's testID is its transaction id (`ActivityListItemRowLayout` keys on `item.hash`, which
+ * `mapPerpsTransaction` sets from the id). Derived from the real helper rather than restated here,
+ * so the id format lives in one place - `transactionTransforms.test.ts` is where its shape is
+ * asserted.
+ */
 export const activityCvPerpsTradeRowHash = (
   kind: ActivityCvPerpsTradeKind,
-): string =>
-  `${ACTIVITY_CV_PERPS_TRADE_SPECS[kind].id}-${ACTIVITY_CV_PERPS_TRADE_FILL_TIMESTAMPS[kind]}`;
+): string => getFillTransactionId(buildActivityCvPerpsOverviewOrderFill(kind));
 
 const ACTIVITY_CV_PERPS_ORDER_TIMESTAMP_MS =
   ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 6000;

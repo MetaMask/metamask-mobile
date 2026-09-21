@@ -391,7 +391,7 @@ describe('PerpsMarketTradesList', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       // Verify navigation to correct route with transaction param
-      // ID format: {orderId}-{timestamp}-{index}
+      // ID format: {orderId}-{symbol}-{direction}-{timestamp}
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
@@ -411,7 +411,7 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(ethTrade.parent?.parent || ethTrade);
 
       // Verify navigation with correct transformed transaction data
-      // ID format: {orderId}-{timestamp}-{index}
+      // ID format: {orderId}-{symbol}-{direction}-{timestamp}
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
@@ -517,10 +517,16 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const logoKeys = screen.getAllByTestId('logo-key');
-      // ID format: {asset}-{orderId}-{timestamp}-{index}
-      expect(logoKeys[0]).toHaveTextContent('ETH-fill-1-1698700000000-0');
-      expect(logoKeys[1]).toHaveTextContent('ETH-fill-2-1698690000000-1');
-      expect(logoKeys[2]).toHaveTextContent('ETH-fill-3-1698680000000-2');
+      // ID format: {asset}-{orderId}-{symbol}-{direction}-{timestamp}
+      expect(logoKeys[0]).toHaveTextContent(
+        'ETH-fill-1-ETH-OpenLong-1698700000000',
+      );
+      expect(logoKeys[1]).toHaveTextContent(
+        'ETH-fill-2-ETH-CloseLong-1698690000000',
+      );
+      expect(logoKeys[2]).toHaveTextContent(
+        'ETH-fill-3-ETH-OpenShort-1698680000000',
+      );
     });
   });
 

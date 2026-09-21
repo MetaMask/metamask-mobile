@@ -1412,8 +1412,76 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([noOrderIdFill]);
 
-      // ID format: fill-{timestamp}-{index}
-      expect(result[0].id).toBe(`fill-${mockFill.timestamp}-0`);
+      // ID format: {orderId|fill}-{symbol}-{direction}-{timestamp}
+      expect(result[0].id).toBe(`fill-ETH-OpenLong-${mockFill.timestamp}`);
+    });
+
+    // The market page transforms one market's fills, activity details all of them. A positional id
+    // differed between the two, so details found nothing: "Transaction details are unavailable".
+    it('gives a fill the same ID whether transformed alone or with other markets', () => {
+      const btcEarlier = {
+        ...mockFill,
+        orderId: 'order-btc-1',
+        symbol: 'BTC',
+        timestamp: 1640995200000,
+      };
+      const ethBetween = {
+        ...mockFill,
+        orderId: 'order-eth-1',
+        symbol: 'ETH',
+        timestamp: 1640995300000,
+      };
+      // The row that failed: an ETH fill sits before it in full history but not in the BTC-only set.
+      const btcLater = {
+        ...mockFill,
+        orderId: 'order-btc-2',
+        symbol: 'BTC',
+        timestamp: 1640995400000,
+      };
+      const allMarkets = [btcEarlier, ethBetween, btcLater];
+
+      const idsFromAllMarkets = transformFillsToTransactions(allMarkets)
+        .filter((transaction) => transaction.asset === 'BTC')
+        .map((transaction) => transaction.id);
+      const idsFromBtcOnly = transformFillsToTransactions(
+        allMarkets.filter((fill) => fill.symbol === 'BTC'),
+      ).map((transaction) => transaction.id);
+
+      expect(idsFromBtcOnly).toStrictEqual(idsFromAllMarkets);
+    });
+
+    it('gives every fill in a set a unique ID', () => {
+      // Covers what the positional index used to keep apart: same-second closes, and no order id.
+      const fills = [
+        { ...mockFill, orderId: 'order-open', direction: 'Open Long' },
+        {
+          ...mockFill,
+          orderId: 'order-close-a',
+          direction: 'Close Long',
+          timestamp: 1640995500000,
+          pnl: '50',
+        },
+        {
+          ...mockFill,
+          orderId: 'order-close-b',
+          direction: 'Close Long',
+          timestamp: 1640995500500,
+          pnl: '25',
+        },
+        {
+          ...mockFill,
+          orderId: undefined as unknown as string,
+          symbol: 'BTC',
+          direction: 'Open Short',
+        },
+      ];
+
+      const ids = transformFillsToTransactions(fills).map(
+        (transaction) => transaction.id,
+      );
+
+      expect(ids.length).toBeGreaterThan(0);
+      expect(new Set(ids).size).toBe(ids.length);
     });
 
     it('strips hip3 prefix from symbol in subtitle', () => {

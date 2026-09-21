@@ -159,17 +159,18 @@ const syncEngineControllerState = (
   store.dispatch(updateBgState({ key }));
 };
 
-/** Trade fills append `-${index}` in transformFillsToTransactions. */
-const activityListRowTitleTestIdPattern = (hashPrefix: string): RegExp =>
-  new RegExp(`^activity-title-${hashPrefix}-\\d+$`);
-const activityListRowSubtitleTestIdPattern = (hashPrefix: string): RegExp =>
-  new RegExp(`^activity-subtitle-${hashPrefix}-\\d+$`);
-const activityListRowPrimaryAmountTestIdPattern = (
-  hashPrefix: string,
-): RegExp => new RegExp(`^activity-primary-amount-${hashPrefix}-\\d+$`);
-const activityListRowSecondaryAmountTestIdPattern = (
-  hashPrefix: string,
-): RegExp => new RegExp(`^activity-secondary-amount-${hashPrefix}-\\d+$`);
+/**
+ * A row's testID is its transaction id, which for a trade fill is now derived from the fill's
+ * content - no trailing list index to match loosely.
+ */
+const activityListRowTitleTestIdPattern = (hash: string): string =>
+  `activity-title-${hash}`;
+const activityListRowSubtitleTestIdPattern = (hash: string): string =>
+  `activity-subtitle-${hash}`;
+const activityListRowPrimaryAmountTestIdPattern = (hash: string): string =>
+  `activity-primary-amount-${hash}`;
+const activityListRowSecondaryAmountTestIdPattern = (hash: string): string =>
+  `activity-secondary-amount-${hash}`;
 
 const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
