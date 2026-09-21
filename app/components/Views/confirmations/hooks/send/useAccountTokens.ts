@@ -1,19 +1,17 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
-import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { EthAccountType } from '@metamask/keyring-api';
 import type { AccountGroupId } from '@metamask/account-api';
 import { getNetworkBadgeSource } from '../../utils/network';
+import { formatFiat } from '../../utils/fiat';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import {
-  AssetFiatFormatter,
-  useAssetFiatFormatter,
-} from '../pay/useAssetFiatFormatter';
+import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import {
   type ConfirmationAsset,
   selectConfirmationAssetsByAccountGroupId,
@@ -51,19 +49,21 @@ export function useAccountTokens({
   const accountGroupId =
     accountOverride === undefined ? undefined : overrideGroupId;
 
-  const { format: formatFiat } = useAssetFiatFormatter();
+  // Pay-flow confirmations price everything in USD. Resolved here and passed
+  // down so the selector stays unaware of transaction types.
+  const currencyOverride = useTransactionPayCurrency();
 
   const decoratedAssets = useDecoratedAssets(
     accountGroupId,
+    currencyOverride,
     includeNoBalance,
     tokenFilter,
-    formatFiat,
   );
 
   const remoteTokens = useRemoteTokens(
     decoratedAssets,
+    currencyOverride,
     enrichTokenRequests,
-    formatFiat,
   );
 
   const sortedAssets = useMemo(
@@ -78,33 +78,39 @@ export function useAccountTokens({
 }
 
 /**
- * Decoration now happens in `selectConfirmationAssetsByAccountGroupId`, which
- * memoises per store state rather than per hook instance, so every consumer
- * shares one computation. Only the consumer-specific filter and fiat formatting
- * remain here, since both depend on arguments the selector cannot see.
+ * Decoration and fiat formatting happen in
+ * `selectConfirmationAssetsByAccountGroupId`, which memoises per store state
+ * rather than per hook instance, so every consumer shares one computation.
+ * Only the consumer-specific token filter remains here, since it depends on a
+ * callback the selector cannot see.
  */
 function useDecoratedAssets(
   accountGroupId: AccountGroupId | undefined,
+  currencyOverride: string | undefined,
   includeNoBalance: boolean,
   tokenFilter: ((chainId: string, address: string) => boolean) | undefined,
-  formatFiat: AssetFiatFormatter,
 ): ConfirmationAsset[] {
   const selectAssets = useCallback(
     (state: RootState) =>
       includeNoBalance
-        ? selectConfirmationAssetsByAccountGroupId(state, accountGroupId)
+        ? selectConfirmationAssetsByAccountGroupId(
+            state,
+            accountGroupId,
+            currencyOverride,
+          )
         : selectConfirmationAssetsWithBalanceByAccountGroupId(
             state,
             accountGroupId,
+            currencyOverride,
           ),
-    [accountGroupId, includeNoBalance],
+    [accountGroupId, currencyOverride, includeNoBalance],
   );
 
   const assets = useSelector(selectAssets);
 
   // Returns the selector's array untouched when no filter is supplied, so the
   // reference stays stable and downstream memos are not invalidated.
-  const filteredAssets = useMemo(() => {
+  return useMemo(() => {
     if (!tokenFilter) {
       return assets;
     }
@@ -119,25 +125,16 @@ function useDecoratedAssets(
       return tokenFilter(chainId, assetId);
     });
   }, [assets, tokenFilter]);
-
-  return useMemo(
-    () =>
-      filteredAssets.map((asset) => ({
-        ...asset,
-        balanceInSelectedCurrency:
-          asset.fiat?.balance === undefined
-            ? undefined
-            : formatFiat(new BigNumber(asset.fiat.balance)),
-      })),
-    [filteredAssets, formatFiat],
-  );
 }
 
 function useRemoteTokens(
   assets: ConfirmationAsset[],
+  currencyOverride: string | undefined,
   enrichTokenRequests: EnrichTokenRequest[],
-  formatFiat: AssetFiatFormatter,
 ): ConfirmationAsset[] {
+  const selectedCurrency = useSelector(getSelectedCurrency);
+  const currency = currencyOverride ?? selectedCurrency;
+
   const assetIds = useMemo(
     () =>
       enrichTokenRequests.map((req) =>
@@ -156,8 +153,9 @@ function useRemoteTokens(
   // Only format when there is at least one enrichment placeholder to build,
   // so the formatter is never invoked for accounts with no remote tokens.
   const zeroFiat = useMemo(
-    () => (enrichTokenRequests.length > 0 ? (formatFiat(0) ?? '') : ''),
-    [enrichTokenRequests.length, formatFiat],
+    () =>
+      enrichTokenRequests.length > 0 ? (formatFiat(0, currency) ?? '') : '',
+    [currency, enrichTokenRequests.length],
   );
 
   return useMemo(
@@ -182,8 +180,6 @@ function useRemoteTokens(
             decimals: data.decimals ?? 18,
             image: data.iconUrl ?? '',
             isETH: false,
-            // Placeholders carry no balance, so no rate was ever requested.
-            isEvmRateEligible: false,
             isNative: false,
             key,
             logo: data.iconUrl ?? undefined,

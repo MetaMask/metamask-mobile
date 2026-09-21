@@ -26,10 +26,16 @@ import {
   selectSelectedAccountGroupInternalAccounts,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectShowFiatInTestnets } from '../../../../selectors/settings';
+import { selectStablecoins } from '../../../../selectors/featureFlagController/stableTokens';
 import type { RootState } from '../../../../reducers';
 import { isTestNet } from '../../../../util/networks';
-import { isExcludedAsset } from '../../../../enablement/assets/networks-customization';
+import {
+  ARC_USDC_ERC20_TOKEN_ADDRESS,
+  STABLE_USDT0_ERC20_ADDRESS,
+} from '../../../../enablement/assets/networks-customization';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { getNetworkBadgeSource } from '../utils/network';
+import { formatFiat } from '../utils/fiat';
 import { type AssetType, TokenStandard } from '../types/token';
 
 /**
@@ -44,20 +50,34 @@ import { type AssetType, TokenStandard } from '../types/token';
  * TokenRatesController, MultichainAssets*) are read here.
  */
 
+const EMPTY_ACCOUNTS: AccountRef[] = [];
+
+/**
+ * Chain-specific ERC-20s that duplicate the chain's native gas token (Arc
+ * USDC, Stable USDT0). Keys and values are lowercased at module load so
+ * lookups are case-insensitive.
+ *
+ * TODO: Duplicated from `app/enablement/assets/networks-customization.ts`,
+ * where the equivalent `isExcludedAsset` is private. Replace with the central
+ * helper once the assets team exports it.
+ */
+const EXCLUDED_ASSET_ADDRESS_BY_CHAIN_ID: Record<string, string> =
+  Object.fromEntries(
+    Object.entries({
+      [NETWORKS_CHAIN_ID.ARC]: ARC_USDC_ERC20_TOKEN_ADDRESS,
+      [NETWORKS_CHAIN_ID.STABLE]: STABLE_USDT0_ERC20_ADDRESS,
+    }).map(([chainId, address]) => [
+      chainId.toLowerCase(),
+      address.toLowerCase(),
+    ]),
+  );
+
 interface AccountRef {
   id: string;
   type: string;
 }
 
-const EMPTY_ACCOUNTS: AccountRef[] = [];
-
 export type ConfirmationAsset = AssetType & {
-  /**
-   * Whether the asset was eligible for an EVM fiat rate lookup. Computed once
-   * during decoration and carried on the asset so neither the rate-consumption
-   * walk nor `deriveAssetFiat` has to re-derive it.
-   */
-  isEvmRateEligible: boolean;
   key: string;
   sortKey: number;
 };
@@ -228,18 +248,42 @@ const selectAssetsByAccountGroupId = createSelector(
  * Adds the confirmation-specific display fields to each joined asset and
  * sorts by fiat balance.
  *
+ * `currencyOverride` is the currency that the display string
+ * (`balanceInSelectedCurrency`) is denominated in; `fiat` always stays in the
+ * user's preferred currency. Pay-flow confirmations price everything in USD,
+ * and taking that as an argument rather than reading the transaction keeps
+ * this file free of any knowledge of transaction types.
+ *
  * Computed once per store state and shared by every consumer via reselect
  * memoisation.
  */
 export const selectConfirmationAssetsByAccountGroupId = createSelector(
-  [selectAssetsByAccountGroupId, getSelectedCurrency, selectShowFiatInTestnets],
+  [
+    selectAssetsByAccountGroupId,
+    getSelectedCurrency,
+    (
+      _state: RootState,
+      _accountGroupId: AccountGroupId | undefined,
+      currencyOverride?: string,
+    ) => currencyOverride,
+    selectShowFiatInTestnets,
+    selectStablecoins,
+  ],
   (
     entries: BaseAsset[],
     selectedCurrency: string,
+    currencyOverride: string | undefined,
     showFiatOnTestnets: boolean,
+    stablecoins: Record<Hex, Hex[]>,
   ): ConfirmationAsset[] => {
     const assets = entries.map((entry) =>
-      decorateAsset({ ...entry, selectedCurrency, showFiatOnTestnets }),
+      decorateAsset({
+        ...entry,
+        displayCurrency: currencyOverride ?? selectedCurrency,
+        selectedCurrency,
+        showFiatOnTestnets,
+        stablecoins,
+      }),
     );
 
     assets.sort((a, b) => b.sortKey - a.sortKey);
@@ -268,6 +312,61 @@ function hasBalance(asset: ConfirmationAsset): boolean {
   );
 }
 
+/**
+ * Price of one unit of the asset in `displayCurrency`, or `undefined` when no
+ * usable rate exists.
+ *
+ * `AssetPrice.price` is already denominated in the user's preferred currency,
+ * so it only serves the non-override case. When the caller overrides to USD
+ * the rate must come from `usdPrice`; falling back to `price` there would
+ * label a preferred-currency amount with a dollar sign.
+ *
+ * Mirrors the rate selection that `useTokenFiatRates` performed before this
+ * pipeline moved into selectors, including the stablecoin bypass: a token on
+ * the remote-flagged stablecoin list is pinned to exactly 1 USD rather than
+ * inheriting the price API's drift around the peg.
+ */
+function getDisplayRate({
+  address,
+  chainId,
+  displayCurrency,
+  price,
+  stablecoins,
+}: {
+  address: string | undefined;
+  chainId: string;
+  displayCurrency: string;
+  price: AssetPrice | undefined;
+  stablecoins: Record<Hex, Hex[]>;
+}): number | undefined {
+  if (displayCurrency.toLowerCase() !== 'usd') {
+    return price?.price;
+  }
+
+  const isStablecoin = Boolean(
+    address &&
+      stablecoins[chainId.toLowerCase() as Hex]?.includes(
+        address.toLowerCase() as Hex,
+      ),
+  );
+
+  if (isStablecoin) {
+    return 1;
+  }
+
+  // `usdPrice` is only present on fungible prices; NFT prices have no USD
+  // figure, so there is nothing safe to display.
+  return price && 'usdPrice' in price ? price.usdPrice : undefined;
+}
+
+/** Whether the address is the excluded ERC-20 for the chain. */
+function isExcludedAsset(chainId: string, address: string): boolean {
+  return (
+    EXCLUDED_ASSET_ADDRESS_BY_CHAIN_ID[chainId.toLowerCase()] ===
+    address.toLowerCase()
+  );
+}
+
 function decorateAsset({
   accountId,
   accountType,
@@ -275,24 +374,25 @@ function decorateAsset({
   assetId,
   balance,
   chainId,
+  displayCurrency,
   isEvm,
   isNative,
   metadata,
   price,
   selectedCurrency,
   showFiatOnTestnets,
+  stablecoins,
 }: BaseAsset & {
+  displayCurrency: string;
   selectedCurrency: string;
   showFiatOnTestnets: boolean;
+  stablecoins: Record<Hex, Hex[]>;
 }): ConfirmationAsset {
   // Matches the controller's `Asset` contract: EVM assets expose the hex token
   // address as `assetId`, non-EVM assets expose the CAIP-19 ID. Consumers rely
   // on both forms -- `useCurrencyConversions` reads it as an address, while
   // `useSendActions` casts it to `CaipAssetType`.
   const publicAssetId = isEvm ? address : assetId;
-
-  // Mirrors `isEvmRateEligible`: EVM-scoped with a usable address.
-  const isEvmRateEligible = isEvm && Boolean(address);
 
   const isFiatHidden =
     !showFiatOnTestnets && Boolean(chainId) && isTestNet(chainId as Hex);
@@ -304,10 +404,24 @@ function decorateAsset({
   // divided by `10 ** decimals`.
   const amount = typeof balance?.amount === 'string' ? balance.amount : '0';
   const humanBalance = Number(amount);
+  const isBalanceUsable = !isFiatHidden && Number.isFinite(humanBalance);
 
   const fiatBalance =
-    !isFiatHidden && price?.price !== undefined && Number.isFinite(humanBalance)
+    isBalanceUsable && price?.price !== undefined
       ? humanBalance * price.price
+      : undefined;
+
+  const displayRate = getDisplayRate({
+    address,
+    chainId,
+    displayCurrency,
+    price,
+    stablecoins,
+  });
+
+  const displayBalance =
+    isBalanceUsable && displayRate !== undefined
+      ? humanBalance * displayRate
       : undefined;
 
   return {
@@ -322,6 +436,7 @@ function decorateAsset({
         : undefined,
     assetId: publicAssetId,
     balance: amount,
+    balanceInSelectedCurrency: formatFiat(displayBalance, displayCurrency),
     chainId,
     decimals,
     fiat:
@@ -334,7 +449,6 @@ function decorateAsset({
           },
     image: metadata.image ?? '',
     isETH: isNative && isEvm,
-    isEvmRateEligible,
     isNative,
     key: `${chainId.toLowerCase()}:${(address ?? '').toLowerCase()}`,
     logo: metadata.image ?? undefined,

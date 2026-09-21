@@ -1,9 +1,24 @@
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { RootState } from '../../../../reducers';
 import fixture from '../../../../selectors/assets/__fixtures__/assets-controller-state-log.json';
+import { ARC_USDC_ERC20_TOKEN_ADDRESS } from '../../../../enablement/assets/networks-customization';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { selectConfirmationAssetsByAccountGroupId } from './assets';
 
+// Formatting is exercised by the util's own suite; stubbed here so assertions
+// can target the amount and currency that reach it rather than locale output.
+jest.mock('../utils/fiat', () => ({
+  formatFiat: jest.fn((amount?: number, currency?: string) =>
+    amount === undefined ? undefined : `${currency}:${amount}`,
+  ),
+}));
+
 const ACCOUNT_TYPE = 'eip155:eoa';
+
+// Mainnet USDC. On the default stablecoin list, so it exercises the bypass.
+// Base USDC is not on that list, so it exercises the plain `usdPrice` path.
+const MAINNET_USDC_ASSET_ID =
+  'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 interface Fixture {
   AccountTreeController: {
@@ -176,6 +191,131 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
     );
 
     expect(after.length).toBe(before.length - 1);
+  });
+
+  it('excludes ERC-20s that duplicate the chain native gas token', () => {
+    // Arc exposes USDC both as the native gas token and as an ERC-20 backed
+    // by the same balance, so including both double-counts the holding.
+    const assetsController = (
+      fixture as unknown as {
+        AssetsController: {
+          assetsBalance: Record<string, Record<string, unknown>>;
+          assetsInfo: Record<string, unknown>;
+        };
+      }
+    ).AssetsController;
+
+    const accountId = Object.keys(assetsController.assetsBalance)[0];
+    const nativeAssetId = `eip155:5042/slip44:60`;
+    const erc20AssetId = `eip155:5042/erc20:${ARC_USDC_ERC20_TOKEN_ADDRESS}`;
+    const metadata = { symbol: 'USDC', name: 'USDC', decimals: 6, image: '' };
+
+    const state = buildState({
+      AssetsController: {
+        ...assetsController,
+        assetsBalance: {
+          ...assetsController.assetsBalance,
+          [accountId]: {
+            ...assetsController.assetsBalance[accountId],
+            [nativeAssetId]: { amount: '5' },
+            [erc20AssetId]: { amount: '5' },
+          },
+        },
+        assetsInfo: {
+          ...assetsController.assetsInfo,
+          [nativeAssetId]: { ...metadata, type: 'native' },
+          [erc20AssetId]: { ...metadata, type: 'erc20' },
+        },
+      },
+    });
+
+    const arcAssets = selectConfirmationAssetsByAccountGroupId(
+      state,
+      undefined,
+    ).filter((asset) => asset.chainId === NETWORKS_CHAIN_ID.ARC);
+
+    expect(arcAssets).toHaveLength(1);
+    expect(arcAssets[0].isNative).toBe(true);
+  });
+
+  describe('currency override', () => {
+    // Base USDC in the fixture: 49.933153 tokens, 0.8153… CHF, 1.0018… USD.
+    const BALANCE = 49.933153;
+    const PREFERRED_RATE = 0.815354205730783;
+    const USD_RATE = 1.0018133229553854;
+
+    function findBaseUsdc(currencyOverride?: string) {
+      return selectConfirmationAssetsByAccountGroupId(
+        buildState(),
+        undefined,
+        currencyOverride,
+      ).find(
+        (asset) =>
+          asset.symbol === 'USDC' && asset.chainId === NETWORKS_CHAIN_ID.BASE,
+      );
+    }
+
+    it('formats the balance in the preferred currency when not overridden', () => {
+      expect(findBaseUsdc()?.balanceInSelectedCurrency).toBe(
+        `chf:${BALANCE * PREFERRED_RATE}`,
+      );
+    });
+
+    it('formats the balance from usdPrice when overridden to USD', () => {
+      // Regression guard: falling back to `price` here would label a
+      // CHF amount with a dollar sign.
+      expect(findBaseUsdc('USD')?.balanceInSelectedCurrency).toBe(
+        `USD:${BALANCE * USD_RATE}`,
+      );
+    });
+
+    it('keeps fiat in the preferred currency when overridden', () => {
+      // `fiat` drives sorting and the account-level totals, which stay in the
+      // user's chosen currency regardless of what the pay flow displays.
+      expect(findBaseUsdc('USD')?.fiat).toStrictEqual({
+        balance: BALANCE * PREFERRED_RATE,
+        conversionRate: PREFERRED_RATE,
+        currency: 'chf',
+      });
+    });
+
+    it('pins stablecoins to exactly 1 USD when overridden', () => {
+      // The price API drifts around the peg; the pay flow quotes against 1:1.
+      const assetsController = (
+        fixture as unknown as {
+          AssetsController: {
+            assetsBalance: Record<string, Record<string, unknown>>;
+          };
+        }
+      ).AssetsController;
+
+      const accountId = Object.keys(assetsController.assetsBalance)[0];
+
+      const state = buildState({
+        AssetsController: {
+          ...assetsController,
+          assetsBalance: {
+            ...assetsController.assetsBalance,
+            [accountId]: {
+              ...assetsController.assetsBalance[accountId],
+              [MAINNET_USDC_ASSET_ID]: { amount: '100' },
+            },
+          },
+        },
+      });
+
+      const mainnetUsdc = selectConfirmationAssetsByAccountGroupId(
+        state,
+        undefined,
+        'USD',
+      ).find(
+        (asset) =>
+          asset.symbol === 'USDC' &&
+          asset.chainId === NETWORKS_CHAIN_ID.MAINNET,
+      );
+
+      expect(mainnetUsdc?.balanceInSelectedCurrency).toBe('USD:100');
+    });
   });
 
   it('returns the same reference for repeated calls with equal state', () => {
