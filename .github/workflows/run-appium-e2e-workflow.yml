@@ -496,6 +496,36 @@ jobs:
           IOS_DEVICE_POOL: ${{ steps.prepare-ios-appium.outputs.ios-device-pool }}
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
+      - name: Capture app startup log (iOS)
+        # A failed startup leaves the app on the native splash with no accessibility
+        # tree, so Appium reports a bare "did not reach login or wallet home" timeout
+        # and never surfaces the underlying JS error. Launch the app once against the
+        # system log to capture it before the suite runs.
+        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
+        continue-on-error: true
+        env:
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
+          IOS_BUNDLE_ID: io.metamask.MetaMask
+        run: |
+          set +e
+          mkdir -p tests/test-reports/ios-startup-log
+          out=tests/test-reports/ios-startup-log/startup.log
+          xcrun simctl spawn "$IOS_SIMULATOR_UDID" log stream \
+            --level debug --style syslog \
+            --predicate 'processImagePath CONTAINS "MetaMask" OR senderImagePath CONTAINS "MetaMask"' \
+            > "$out" 2>&1 &
+          stream_pid=$!
+          sleep 2
+          xcrun simctl terminate "$IOS_SIMULATOR_UDID" "$IOS_BUNDLE_ID" >/dev/null 2>&1
+          xcrun simctl launch "$IOS_SIMULATOR_UDID" "$IOS_BUNDLE_ID"
+          sleep 25
+          kill "$stream_pid" >/dev/null 2>&1
+          wait "$stream_pid" >/dev/null 2>&1
+          echo "===== iOS app startup log ====="
+          cat "$out"
+          echo "===== JS / RN errors ====="
+          grep -iE 'RCTFatal|ExceptionsManager|redbox|Unhandled|TypeError|ReferenceError|is not a function|undefined is not|Requiring module|Invariant' "$out" | head -50
+
       - name: Run Appium smoke tests (Android)
         id: run-tests-android
         if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
@@ -658,6 +688,16 @@ jobs:
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
+          if-no-files-found: ignore
+          retention-days: 7
+          runner-provider: ${{ inputs.runner_provider }}
+
+      - name: Upload iOS startup log (artifact stores)
+        if: ${{ inputs.platform == 'ios' && always() && steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: ios-startup-log-${{ inputs.test-suite-name }}
+          path: tests/test-reports/ios-startup-log/
           if-no-files-found: ignore
           retention-days: 7
           runner-provider: ${{ inputs.runner_provider }}
