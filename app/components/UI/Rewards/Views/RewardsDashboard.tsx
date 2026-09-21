@@ -685,6 +685,7 @@ const RewardsDashboard: React.FC = () => {
           referralCode={KOL_INVITE_FIXTURE.referralCode}
           onAccept={handleAcceptInvite}
           onDecline={handleDeclineInvite}
+          onClose={() => setIsInviteSheetVisible(false)}
         />
       </SafeAreaView>
     </ErrorBoundary>

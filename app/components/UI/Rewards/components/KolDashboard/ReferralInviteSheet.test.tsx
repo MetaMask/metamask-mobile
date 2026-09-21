@@ -17,6 +17,7 @@ const renderSheet = (
       referralCode="8F3A21"
       onAccept={jest.fn()}
       onDecline={jest.fn()}
+      onClose={jest.fn()}
       {...props}
     />,
   );
@@ -124,17 +125,41 @@ describe('ReferralInviteSheet', () => {
     await waitFor(() => expect(onAccept).toHaveBeenCalledWith('AB12CD'));
   });
 
-  it.each([
-    ['the decline button', KOL_DASHBOARD_SELECTORS.INVITE_DECLINE],
-    ['the close button', KOL_DASHBOARD_SELECTORS.INVITE_CLOSE],
-  ])('declines from %s', async (_name, testId) => {
+  it('declines from the decline button', async () => {
     const onAccept = jest.fn();
     const onDecline = jest.fn();
-    const { getByTestId } = renderSheet({ onAccept, onDecline });
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({ onAccept, onDecline, onClose });
 
-    fireEvent.press(getByTestId(testId));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_DECLINE));
 
     await waitFor(() => expect(onDecline).toHaveBeenCalled());
     expect(onAccept).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('closes without declining from the close button', async () => {
+    const onAccept = jest.fn();
+    const onDecline = jest.fn();
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({ onAccept, onDecline, onClose });
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CLOSE));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onDecline).not.toHaveBeenCalled();
+    expect(onAccept).not.toHaveBeenCalled();
+  });
+
+  it('closes without declining on hardware back', () => {
+    const onDecline = jest.fn();
+    const onClose = jest.fn();
+    const { UNSAFE_getByType } = renderSheet({ onDecline, onClose });
+
+    const modal = UNSAFE_getByType(Modal);
+    modal.props.onRequestClose();
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onDecline).not.toHaveBeenCalled();
   });
 });

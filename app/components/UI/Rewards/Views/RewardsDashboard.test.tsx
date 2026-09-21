@@ -292,11 +292,13 @@ jest.mock('../components/KolDashboard/ReferralInviteSheet', () => ({
     referralCode,
     onAccept,
     onDecline,
+    onClose,
   }: {
     isVisible: boolean;
     referralCode: string;
     onAccept: (code: string) => void;
     onDecline: () => void;
+    onClose: () => void;
   }) {
     const ReactActual = jest.requireActual('react');
     const { Pressable, View } = jest.requireActual('react-native');
@@ -315,6 +317,11 @@ jest.mock('../components/KolDashboard/ReferralInviteSheet', () => ({
         key: 'decline',
         testID: 'referral-invite-decline',
         onPress: onDecline,
+      }),
+      ReactActual.createElement(Pressable, {
+        key: 'close',
+        testID: 'referral-invite-close',
+        onPress: onClose,
       }),
     );
   },
@@ -2452,6 +2459,19 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('referral-invite-sheet')).toBeNull();
       expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
       expect(queryByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO)).toBeNull();
+    });
+
+    it('hides the invite without changing persona when the sheet is dismissed', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(getByTestId('referral-invite-close'));
+
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+      expect(
+        getByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO),
+      ).toBeOnTheScreen();
     });
 
     it('returns to the KOL dashboard when declining after a previous accept', () => {

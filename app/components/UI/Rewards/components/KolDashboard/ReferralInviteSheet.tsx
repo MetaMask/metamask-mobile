@@ -206,6 +206,8 @@ interface ReferralInviteSheetProps {
   /** Receives the code the user accepted, which they may have edited. */
   onAccept: (referralCode: string) => void;
   onDecline: () => void;
+  /** Dismisses the sheet without accepting or declining. */
+  onClose: () => void;
 }
 
 const ReferralInviteSheet: React.FC<ReferralInviteSheetProps> = ({
@@ -213,6 +215,7 @@ const ReferralInviteSheet: React.FC<ReferralInviteSheetProps> = ({
   referralCode: initialReferralCode,
   onAccept,
   onDecline,
+  onClose,
 }) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -232,18 +235,6 @@ const ReferralInviteSheet: React.FC<ReferralInviteSheetProps> = ({
     onAccept(referralCode);
   }, [onAccept, referralCode]);
 
-  // Overlay / hardware-back dismissals have no pending Accept, so they count
-  // as a decline. Accept and Decline already call their parent callbacks
-  // above, so skip a second decline when the sheet reports a pending action.
-  const handleSheetClose = useCallback(
-    (hasPendingAction?: boolean) => {
-      if (!hasPendingAction) {
-        onDecline();
-      }
-    },
-    [onDecline],
-  );
-
   if (!isVisible) {
     return null;
   }
@@ -256,20 +247,17 @@ const ReferralInviteSheet: React.FC<ReferralInviteSheetProps> = ({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={handleDecline}
+      onRequestClose={onClose}
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
           <BottomSheet
             ref={sheetRef}
-            onClose={handleSheetClose}
-            // The invite needs an explicit Accept or Decline, so swipe and
-            // overlay dismissal are off.
-            isInteractable={false}
+            onClose={onClose}
             testID={KOL_DASHBOARD_SELECTORS.INVITE_SHEET}
           >
             <BottomSheetHeader
-              onClose={handleDecline}
+              onClose={onClose}
               closeButtonProps={{
                 testID: KOL_DASHBOARD_SELECTORS.INVITE_CLOSE,
               }}
