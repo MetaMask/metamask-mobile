@@ -17,6 +17,7 @@ import {
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import PerpsProModalPortal from './PerpsProModalPortal';
 
 interface PerpsProTwapTerminateSheetProps {
   twapOrder: TwapOrder;
@@ -78,40 +79,42 @@ const PerpsProTwapTerminateSheet = ({
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      onClose={handleClose}
-      isInteractable={!isTerminating}
-      testID={PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET}
-    >
-      <BottomSheetHeader
+    <PerpsProModalPortal onRequestClose={handleClose}>
+      <BottomSheet
+        ref={sheetRef}
         onClose={handleClose}
-        closeButtonProps={{
-          testID: PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE,
-        }}
+        isInteractable={!isTerminating}
+        testID={PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET}
       >
-        {strings('perps.pro_positions_panel.twap_terminate.title', {
-          symbol: getPerpsDisplaySymbol(twapOrder.symbol),
-        })}
-      </BottomSheetHeader>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{
+            testID: PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE,
+          }}
+        >
+          {strings('perps.pro_positions_panel.twap_terminate.title', {
+            symbol: getPerpsDisplaySymbol(twapOrder.symbol),
+          })}
+        </BottomSheetHeader>
 
-      <Box paddingHorizontal={4}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings(
-            twapOrder.reduceOnly
-              ? 'perps.pro_positions_panel.twap_terminate.description_reduce_only'
-              : 'perps.pro_positions_panel.twap_terminate.description',
-          )}
-        </Text>
-      </Box>
+        <Box paddingHorizontal={4}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings(
+              twapOrder.reduceOnly
+                ? 'perps.pro_positions_panel.twap_terminate.description_reduce_only'
+                : 'perps.pro_positions_panel.twap_terminate.description',
+            )}
+          </Text>
+        </Box>
 
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        secondaryButtonProps={secondaryButtonProps}
-        primaryButtonProps={primaryButtonProps}
-        twClassName="pt-6"
-      />
-    </BottomSheet>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          secondaryButtonProps={secondaryButtonProps}
+          primaryButtonProps={primaryButtonProps}
+          twClassName="pt-6"
+        />
+      </BottomSheet>
+    </PerpsProModalPortal>
   );
 };
 
