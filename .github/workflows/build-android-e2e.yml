@@ -118,6 +118,24 @@ jobs:
             ${{ env.GRADLE_USER_HOME }}/wrapper
             ${{ env.GRADLE_USER_HOME }}/apk-cache
 
+      # TEMPORARY — remove before merging this PR.
+      # Builds before 13b60d87b8b lowered the Veriff SDK's minSdkVersion by
+      # editing the AAR manifests inside Gradle's transform cache. Gradle 9
+      # verifies those directories and rejects them as modified. The shared
+      # cache still holds the edits, and Gradle refuses them rather than
+      # regenerating, so they have to be deleted once.
+      - name: Drop Veriff transform workspaces patched by older builds
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for manifest in "${GRADLE_USER_HOME:-$HOME/.gradle}"/caches/*/transforms/*/transformed/jetified-*-7.14.1/AndroidManifest.xml; do
+            # Veriff ships these AARs with minSdkVersion 26; 24 is the old edit.
+            grep -qsF 'android:minSdkVersion="24"' "$manifest" || continue
+            workspace="${manifest%/transformed/*}"
+            echo "Removing patched transform workspace: $workspace"
+            rm -rf "$workspace"
+          done
+
       - name: Configure Gradle remote build cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         run: |
