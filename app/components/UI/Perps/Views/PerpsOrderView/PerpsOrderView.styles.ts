@@ -96,12 +96,6 @@ const createStyles = (colors: Colors) =>
       gap: 8,
       paddingHorizontal: 16,
     },
-    percentageButton: {
-      flex: 1,
-      minWidth: 0,
-      height: 48,
-      borderRadius: 12,
-    },
     keypad: {
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,

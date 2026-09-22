@@ -2761,7 +2761,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.25)}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               25%
             </Button>
@@ -2770,7 +2770,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.5)}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               50%
             </Button>
@@ -2779,7 +2779,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleMaxPress}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -2788,7 +2788,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleDonePress}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.done_button')}
             </Button>
