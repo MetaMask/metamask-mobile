@@ -1009,6 +1009,7 @@ describe('ManagePriceAlertsView', () => {
         alert_value: 3000,
         alert_recurring: true,
         alert_active: true,
+        alert_market_type: 'spot',
       });
     });
 
@@ -1078,6 +1079,7 @@ describe('ManagePriceAlertsView', () => {
         prev_alert_value: 3000,
         prev_alert_recurring: true,
         prev_alert_active: true,
+        alert_market_type: 'spot',
       });
     });
 
@@ -1144,6 +1146,7 @@ describe('ManagePriceAlertsView', () => {
         prev_alert_value: 12.5,
         prev_alert_recurring: true,
         prev_alert_active: true,
+        alert_market_type: 'spot',
       });
     });
   });
