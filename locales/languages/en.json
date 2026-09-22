@@ -1385,6 +1385,13 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "popular_traders": "Popular traders",
+    "profiles_to_follow": {
+      "title": "Profiles to follow",
+      "empty": "No traders to show yet.",
+      "error": "Couldn't load traders",
+      "retry": "Try again"
+    },
     "win_rate_tag": "{{winRate}} WR",
     "mute": {
       "on_accessibility_label": "Notifications on. Tap to mute this trader",
@@ -2276,6 +2283,13 @@
       "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
+      "close": "Close",
+      "sheet_position_summary": "{{direction}} {{asset}} {{leverage}}x",
+      "sheet_title_long": "Close Long {{asset}}",
+      "sheet_title_short": "Close Short {{asset}}",
+      "order_type_accessibility_label": "Order type: {{orderType}}",
+      "toggle_amount_display": "Toggle between fiat and token amount",
+      "total_inc_pnl": "Total (inc. P&L)",
       "margin": "Margin",
       "includes_pnl": "includes P&L",
       "pnl": "P&L",
@@ -6162,7 +6176,9 @@
     "others": "Others",
     "memo": "Memo",
     "network": "Network",
-    "custom": "Custom"
+    "custom": "Custom",
+    "no_contacts": "No contacts",
+    "no_contacts_desc": "If you add a contact, you’ll see it here."
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
