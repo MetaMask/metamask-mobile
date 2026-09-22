@@ -43,6 +43,7 @@ jest.mock('../../../../util/test/utils', () => ({
 
 jest.mock('../../../Braze', () => ({
   getBrazePlugin: jest.fn().mockReturnValue({ name: 'braze' }),
+  syncBrazeEventBlocklist: jest.fn(),
 }));
 
 jest.mock('../../../../util/analytics/appVersionSegmentPlugin', () =>
