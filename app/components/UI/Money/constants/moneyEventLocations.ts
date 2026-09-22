@@ -50,7 +50,7 @@ export enum MONEY_SURFACE_TYPES {
 
 export enum COMPONENT_NAMES {
   // — Money Balance Summary —
-  MONEY_BALANCE_SUMMARY_APY_TEXT_BUTTON = 'money_balance_summary_apy_text_button',
+  MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
   // — Section Headers —
   MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
@@ -67,6 +67,7 @@ export enum COMPONENT_NAMES {
   MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
+  MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT = 'money_earn_crypto_projected_amount',
 
   // — Activity —
   MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',

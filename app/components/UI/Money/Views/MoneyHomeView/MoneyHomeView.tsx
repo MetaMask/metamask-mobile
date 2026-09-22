@@ -574,20 +574,17 @@ const MoneyHomeView = () => {
   }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const handleApyInfoPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_APY_TOOLTIP,
-      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY_APY_TEXT_BUTTON,
-      label_en: `${strings('money.apy_label', { percentage: apyPercent, locale: 'en' })}${strings('money.apy_currency_suffix', { locale: 'en' })}`,
-      label_localized: `${strings('money.apy_label', { percentage: apyPercent })}${strings('money.apy_currency_suffix')}`,
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.APY,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY_APY,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
       params: { apy: apyPercent },
     });
-  }, [trackButtonClicked, navigation, apyPercent]);
+  }, [trackTooltipClicked, navigation, apyPercent]);
 
   const handleBalancePress = useCallback(() => {
     PreferencesController.setPrivacyMode(!privacyMode);
@@ -620,18 +617,16 @@ const MoneyHomeView = () => {
   }, [navigation, trackTooltipClicked]);
 
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_PROJECTED_EARNINGS,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
-      omit_label: 'privacy-sensitive',
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackTooltipClicked]);
 
   const handleMusdRowPress = useCallback(
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {

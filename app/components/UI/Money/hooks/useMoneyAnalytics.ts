@@ -62,16 +62,12 @@ const withRedirectType = <
 /**
  * Derives the tracking label pair (`label_en` + `label_localized`) from a single
  * `label_key` so callers state the key once and the two copies can never
- * contradict. Privacy-sensitive labels are omitted before the event is sent.
+ * contradict. No-op when no key is present (e.g. icon buttons, or callers that
+ * supply dynamically computed labels directly).
  */
 const withLabel = (
   props: MoneyButtonClickedInputProperties,
 ): MoneyButtonClickedEventProperties => {
-  if ('omit_label' in props) {
-    const { omit_label: _omitLabel, ...rest } = props;
-    return rest;
-  }
-
   if (
     props.button_type === MONEY_BUTTON_TYPES.TEXT &&
     'label_key' in props &&
