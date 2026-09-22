@@ -1,3 +1,4 @@
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 
 /**
@@ -37,18 +38,6 @@ export interface LimitOrderConfirmationModalParams {
    * Expiration label, e.g. "7 days".
    */
   expiry: string;
-  /**
-   * Estimated network fee, e.g. "$1.69".
-   */
-  networkFee: string;
-  /**
-   * Token the network fee is paid in, used for the network fee row avatar.
-   */
-  feeToken?: BridgeToken;
-  /**
-   * Fee disclaimer shown under the confirm button, e.g. "Includes 0.875% MetaMask fee".
-   */
-  feeDisclaimer?: string;
 }
 
 export interface LimitOrderConfirmationModalProps
@@ -63,9 +52,21 @@ export interface LimitOrderConfirmationModalProps
    */
   triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
-   * Fired when the user confirms the order.
+   * One-time EIP-7702 account upgrade fee, which is the only network cost of
+   * placing the order. The row is hidden entirely once the account is already
+   * delegated, since there is nothing left to pay for.
    */
-  onConfirm: () => void;
+  delegationFee: EIP7702UpgradeFee;
+  /**
+   * Token the network fee is paid in, used for the network fee row avatar.
+   */
+  feeToken?: BridgeToken;
+  primaryButton: {
+    onPress: () => void;
+    label: string;
+    isLoading?: boolean;
+  };
+  error?: string;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

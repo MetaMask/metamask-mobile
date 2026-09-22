@@ -14,7 +14,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconSize,
   IconName,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -114,12 +116,20 @@ function OrdersTabPanel<T>({
   keyExtractor,
   getItemChainId,
   emptyDescription,
+  isLoading,
+  isError,
+  isFetchingNextPage,
+  onRetry,
 }: {
   items: T[];
   renderItem?: (item: T, index: number) => React.ReactElement;
   keyExtractor?: (item: T, index: number) => string;
   getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
   emptyDescription: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  isFetchingNextPage?: boolean;
+  onRetry?: () => void;
 }) {
   const selectedChainId = useSelector(selectOrdersNetworkFilter);
 
@@ -130,6 +140,29 @@ function OrdersTabPanel<T>({
       ),
     [getItemChainId, items, selectedChainId],
   );
+
+  if (isLoading && filteredItems.length === 0) {
+    return (
+      <Box alignItems={BoxAlignItems.Center} paddingVertical={6}>
+        <Spinner
+          testID={OrdersTabsSelectorsIDs.LOADING}
+          spinnerIconProps={{ size: IconSize.Lg }}
+        />
+      </Box>
+    );
+  }
+
+  if (isError && filteredItems.length === 0) {
+    return (
+      <OrdersEmptyState
+        description={strings('bridge.orders.error')}
+        actionButtonText={strings('bridge.orders.try_again')}
+        onAction={onRetry}
+        testID={OrdersTabsSelectorsIDs.ERROR_STATE}
+        actionButtonTestID={OrdersTabsSelectorsIDs.RETRY_BUTTON}
+      />
+    );
+  }
 
   if (filteredItems.length === 0 || !renderItem) {
     return <OrdersEmptyState description={emptyDescription} />;
@@ -147,6 +180,14 @@ function OrdersTabPanel<T>({
           {renderItem(item, index)}
         </React.Fragment>
       ))}
+      {isFetchingNextPage ? (
+        <Box alignItems={BoxAlignItems.Center} paddingVertical={4}>
+          <Spinner
+            testID={OrdersTabsSelectorsIDs.NEXT_PAGE_LOADING}
+            spinnerIconProps={{ size: IconSize.Md }}
+          />
+        </Box>
+      ) : null}
     </Box>
   );
 }
@@ -156,6 +197,7 @@ function OrdersTabs<TOpen, THistory>({
   history,
   initialTab = OrdersTabKey.OpenOrders,
   enabledChainIds,
+  onTabChange,
 }: OrdersTabsProps<TOpen, THistory>) {
   const [selectedTab, setSelectedTab] = useState<OrdersTabKey>(initialTab);
 
@@ -186,11 +228,12 @@ function OrdersTabs<TOpen, THistory>({
         <TabsBar
           tabs={tabs}
           activeIndex={activeIndex}
-          onTabPress={(index) =>
-            setSelectedTab(
-              index === 1 ? OrdersTabKey.History : OrdersTabKey.OpenOrders,
-            )
-          }
+          onTabPress={(index) => {
+            const nextTab =
+              index === 1 ? OrdersTabKey.History : OrdersTabKey.OpenOrders;
+            setSelectedTab(nextTab);
+            onTabChange?.(nextTab);
+          }}
           testID={OrdersTabsSelectorsIDs.TABS_BAR}
         />
       </Box>
@@ -202,6 +245,10 @@ function OrdersTabs<TOpen, THistory>({
             renderItem={openOrders.renderItem}
             keyExtractor={openOrders.keyExtractor}
             getItemChainId={openOrders.getItemChainId}
+            isLoading={openOrders.isLoading}
+            isError={openOrders.isError}
+            isFetchingNextPage={openOrders.isFetchingNextPage}
+            onRetry={openOrders.onRetry}
             emptyDescription={strings('bridge.orders.empty.open_orders')}
           />
         ) : (
@@ -210,6 +257,10 @@ function OrdersTabs<TOpen, THistory>({
             renderItem={history.renderItem}
             keyExtractor={history.keyExtractor}
             getItemChainId={history.getItemChainId}
+            isLoading={history.isLoading}
+            isError={history.isError}
+            isFetchingNextPage={history.isFetchingNextPage}
+            onRetry={history.onRetry}
             emptyDescription={strings('bridge.orders.empty.history')}
           />
         )}

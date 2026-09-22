@@ -254,6 +254,35 @@ export function formatFeedTimestamp(
 }
 
 /**
+ * Duration a position was held, derived from its fills (e.g. `1d 20h`, `8h`,
+ * `45m`).
+ *
+ * Multi-day holds carry their remaining hours, because `1d` alone reads the
+ * same for 24 hours and 47. Below a day one unit is enough -- the card gives
+ * this a single right-aligned slot, and nobody needs `8h 13m`. A whole number
+ * of days drops the hours rather than padding `6d 0h`.
+ *
+ * Sub-minute holds round up to `1m` rather than reading `0m`.
+ */
+export function formatHoldDuration(durationMs: number): string {
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    return EM_DASH;
+  }
+
+  if (durationMs >= DAY) {
+    const days = Math.floor(durationMs / DAY);
+    const hours = Math.floor((durationMs % DAY) / HOUR);
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  }
+
+  if (durationMs >= HOUR) {
+    return `${Math.floor(durationMs / HOUR)}h`;
+  }
+
+  return `${Math.max(1, Math.floor(durationMs / MINUTE))}m`;
+}
+
+/**
  * Spelled-out post age for Social V1 feed cards (e.g. `40 min ago`).
  *
  * The V1 post header gives the timestamp its own right-aligned column, so

@@ -243,7 +243,7 @@ jobs:
       # is required before the hash can be computed.
       - name: Install Yarn dependencies with retry
         if: env.REPACK_ENABLED == 'true'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -335,6 +335,7 @@ jobs:
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
       distribute_external: true
+      build_attribution: official
     secrets: inherit
 
   repack-android-rc-build:
@@ -358,6 +359,7 @@ jobs:
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
+      build_attribution: official
     secrets: inherit
 
   # A repack publishes `ios-ipa-main-rc` / `android-apk-main-rc` — the names build.yml also
@@ -453,6 +455,7 @@ jobs:
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       distribute_external: true
+      build_attribution: official
     secrets: inherit
 
   trigger-android-rc-build:
@@ -480,6 +483,7 @@ jobs:
       platform: android
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
+      build_attribution: official
     secrets: inherit
 
   post-rc-build-comment:

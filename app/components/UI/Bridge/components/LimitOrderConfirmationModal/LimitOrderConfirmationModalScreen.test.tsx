@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import renderWithProvider, {
   DeepPartial,
@@ -8,8 +8,10 @@ import type { RootState } from '../../../../../reducers';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
+import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
 
 jest.mock('@react-navigation/native', () => ({
@@ -21,6 +23,10 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+}));
+
+jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
+  useEIP7702UpgradeFee: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -52,6 +58,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+const mockUseEIP7702UpgradeFee = jest.mocked(useEIP7702UpgradeFee);
 
 const mockSourceToken = {
   address: '0x0000000000000000000000000000000000000000',
@@ -78,8 +85,6 @@ const mockParams: LimitOrderConfirmationModalParams = {
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',
-  networkFee: '$1.69',
-  feeToken: mockSourceToken,
 };
 
 function renderScreen(state?: DeepPartial<RootState>) {
@@ -90,6 +95,12 @@ describe('LimitOrderConfirmationModalScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(mockParams);
+    mockUseEIP7702UpgradeFee.mockReturnValue({
+      status: 'ready',
+      displayFee: '$1.69',
+      preciseNativeFeeInHex: '0x1',
+      retry: jest.fn(),
+    });
   });
 
   it('displays the cost tolerance from bridge state', () => {
@@ -179,6 +190,86 @@ describe('LimitOrderConfirmationModalScreen', () => {
         ),
       ).toBeNull();
     });
+  });
+
+  it('displays the estimated account upgrade fee as the network fee', () => {
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    const networkFeeRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE,
+    );
+
+    expect(within(networkFeeRow).getByText('$1.69')).toBeOnTheScreen();
+  });
+
+  it('omits the network fee row when the account is already delegated', () => {
+    mockUseEIP7702UpgradeFee.mockReturnValue({
+      status: 'not-required',
+      retry: jest.fn(),
+    });
+
+    const { queryByTestId } = renderScreen(createBridgeTestState({}));
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE),
+    ).toBeNull();
+  });
+
+  it('confirms the order when the primary button is pressed while the fee estimate is ready', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+
+    expect(getByText('Confirm order')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(warnSpy).toHaveBeenCalledWith('Confirm limit order');
+    warnSpy.mockRestore();
+  });
+
+  it('displays an error banner and a "Try again" primary button when the fee estimate fails', () => {
+    mockUseEIP7702UpgradeFee.mockReturnValue({
+      status: 'error',
+      retry: jest.fn(),
+    });
+
+    const { getByText } = renderScreen(createBridgeTestState({}));
+
+    expect(getByText("Couldn't calculate the network fee.")).toBeOnTheScreen();
+    expect(getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('retries the fee estimate instead of confirming when pressed after a failure', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const retry = jest.fn();
+    mockUseEIP7702UpgradeFee.mockReturnValue({ status: 'error', retry });
+
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('derives the network fee token from the paying token chain', () => {
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    const networkFeeRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE,
+    );
+
+    // The native asset avatar for mainnet (mockSourceToken's chain) is
+    // rendered alongside the fee amount, confirming `getNativeSourceToken`
+    // was fed the paying token's chain id rather than left undefined.
+    expect(
+      within(networkFeeRow).getByTestId(TokenAvatarSelectorsIDs.TOKEN),
+    ).toBeOnTheScreen();
   });
 
   it('omits the comparison row while none is stored in bridge state', () => {
