@@ -74,7 +74,9 @@ export interface BridgeToken {
 }
 
 export enum BridgeViewMode {
+  /** @deprecated Legacy mode. Use `BridgeViewMode.Unified`. */
   Swap = 'Swap',
+  /** @deprecated Legacy mode. Use `BridgeViewMode.Unified`. */
   Bridge = 'Bridge',
   Unified = 'Unified',
 }

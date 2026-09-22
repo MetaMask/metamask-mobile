@@ -2,6 +2,7 @@ import {
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_OPEN_ORDER_2,
 } from '../api/recurringOrders.mock';
+import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
 import {
   formatRecurringExecutionPrice,
   formatRecurringInterval,
@@ -11,6 +12,7 @@ import {
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
   getUsdToCurrentCurrencyRate,
+  isRecurringSwapEligibleForAddFunds,
 } from './recurringOrders';
 
 describe('recurring order formatting', () => {
@@ -111,5 +113,44 @@ describe('recurring order formatting', () => {
     });
 
     expect(result).toBe('€1,800.00');
+  });
+});
+
+describe('isRecurringSwapEligibleForAddFunds', () => {
+  const insufficientBalanceSwap = MOCK_RECURRING_OPEN_ORDER_SWAPS[2];
+  const unrelatedSkippedSwap = MOCK_RECURRING_OPEN_ORDER_SWAPS[3];
+  const filledSwap = MOCK_RECURRING_OPEN_ORDER_SWAPS[0];
+
+  it('returns true when an insufficient-balance skip has no newer filled swap', () => {
+    expect(
+      isRecurringSwapEligibleForAddFunds(insufficientBalanceSwap, [
+        unrelatedSkippedSwap,
+        insufficientBalanceSwap,
+        filledSwap,
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false when a filled swap occurred after the skip', () => {
+    expect(
+      isRecurringSwapEligibleForAddFunds(insufficientBalanceSwap, [
+        filledSwap,
+        insufficientBalanceSwap,
+      ]),
+    ).toBe(false);
+  });
+
+  it('returns false for another skip reason', () => {
+    expect(
+      isRecurringSwapEligibleForAddFunds(unrelatedSkippedSwap, [
+        unrelatedSkippedSwap,
+      ]),
+    ).toBe(false);
+  });
+
+  it('returns false when the swap is absent from the loaded history', () => {
+    expect(
+      isRecurringSwapEligibleForAddFunds(insufficientBalanceSwap, [filledSwap]),
+    ).toBe(false);
   });
 });

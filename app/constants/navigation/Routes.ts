@@ -6,6 +6,7 @@ const Routes = {
   BROWSER_VIEW: 'BrowserView',
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   ACCOUNT_HUB_VIEW: 'AccountHubView',
+  MANAGE_ACCOUNTS_VIEW: 'ManageAccountsView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -304,6 +305,7 @@ const Routes = {
       SHARE_ADDRESS: 'ShareAddress',
       SHARE_ADDRESS_QR: 'ShareAddressQR',
       DELETE_ACCOUNT: 'DeleteAccount',
+      REMOVE_ACCOUNT: 'RemoveAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
       SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
@@ -347,6 +349,7 @@ const Routes = {
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
+    RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -420,6 +423,7 @@ const Routes = {
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
       SELECT_PROVIDER: 'PerpsSelectProvider',
       MODE_SELECTION: 'PerpsModeSelection',
+      OUTREACH_DETAILS: 'PerpsOutreachDetails',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -436,6 +440,7 @@ const Routes = {
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
+    PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
@@ -618,6 +623,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
   SEND: {
