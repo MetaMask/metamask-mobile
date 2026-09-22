@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   STATUS,
   buildWeeklyScenarioCard,
+  buildWeeklyMarkdown,
   buildWeeklyParentSlack,
   buildWeeklyReport,
   classifyScenario,
@@ -460,6 +461,124 @@ test('a slow run every scenario has run clean past is marked recovered', () => {
   assert.match(parent, /every one of them has run clean since/);
   assert.match(parent, /detailed in the thread for the record/);
   assert.doesNotMatch(parent, /One card per finding/);
+});
+
+test('every row of a slow run card is scaled to the same unit', () => {
+  const report = buildWeeklyReport({
+    thisWindow: {
+      meta: { profileCount: 10, symbolicatedProfileCount: 10 },
+      scenarios: [
+        scenarioFixture('Seedless Onboarding: Telegram Login New User', {
+          medianJsWorkMs: 3782,
+          maxJsWorkMs: 15_600,
+          spikeRatio: 4.13,
+          peakRunId: '34935384411',
+          peakRunUrl: 'https://example.com/34935384411',
+        }),
+        // On its own this pair is under 10 s and would render in ms, which
+        // put `8199.9 ms` between two rows counted in seconds.
+        scenarioFixture('Seedless Onboarding: Apple Login New User', {
+          medianJsWorkMs: 3113.7,
+          maxJsWorkMs: 8199.9,
+          spikeRatio: 2.63,
+          peakRunId: '34935384411',
+          peakRunUrl: 'https://example.com/34935384411',
+        }),
+        scenarioFixture('Fresh SRP wallet creation performance', {
+          medianJsWorkMs: 11_300,
+          maxJsWorkMs: 18_900,
+          spikeRatio: 1.68,
+          peakRunId: '34935384411',
+          peakRunUrl: 'https://example.com/34935384411',
+        }),
+      ],
+    },
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 17,
+    lastWeekRunCount: 0,
+  });
+
+  const [card] = weeklySlackCards(report);
+
+  assert.match(card, /JS work 15\.6 s in that run vs 3\.8 s weekly median/);
+  assert.match(card, /JS work 8\.2 s in that run vs 3\.1 s weekly median/);
+  assert.match(card, /JS work 18\.9 s in that run vs 11\.3 s weekly median/);
+  assert.doesNotMatch(card, / ms /);
+});
+
+test('the markdown record keeps a recovered slow run', () => {
+  const report = buildWeeklyReport({
+    thisWindow: spikeWindow(
+      ['Perps add funds', 'Money Home', 'Asset View'],
+      '34935384411',
+      { runsAfterPeak: 5, tailMedianJsWorkMs: 2000 },
+    ),
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 9,
+    lastWeekRunCount: 0,
+  });
+
+  const markdown = buildWeeklyMarkdown(report);
+
+  // Slack keeps this run "for the record", so the record has to carry it.
+  assert.match(markdown, /Nothing to action this week\./);
+  assert.match(markdown, /## Slow run \(recovered\) — \[34935384411\]/);
+  assert.match(markdown, /Perps add funds — JS work 4000\.0 ms in that run/);
+  assert.match(markdown, /history, not pending work/);
+  assert.doesNotMatch(
+    markdown,
+    /No Hermes JS regressions were detected versus the previous week/,
+  );
+});
+
+test('the markdown record lists recovered scenarios and stays short when clean', () => {
+  const recoveredOnly = buildWeeklyMarkdown(
+    buildWeeklyReport({
+      thisWindow: {
+        meta: { profileCount: 9, symbolicatedProfileCount: 9 },
+        scenarios: [
+          scenarioFixture('Measure Warm Start: Login To Wallet Screen', {
+            maxJsWorkMs: 4000,
+            spikeRatio: 1.88,
+            runsAfterPeak: 14,
+            tailMedianJsWorkMs: 2000,
+          }),
+        ],
+      },
+      lastWindow: { meta: {}, scenarios: [] },
+      bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+      thisWeekRunCount: 17,
+      lastWeekRunCount: 0,
+    }),
+  );
+
+  assert.match(recoveredOnly, /## Recovered, not reported as findings/);
+  assert.match(
+    recoveredOnly,
+    /Measure Warm Start: Login To Wallet Screen \(1\.88×, 14 runs ago\)/,
+  );
+
+  const clean = buildWeeklyMarkdown(
+    buildWeeklyReport({
+      thisWindow: {
+        meta: { profileCount: 20, symbolicatedProfileCount: 20 },
+        scenarios: [scenarioFixture('Healthy Start')],
+      },
+      lastWindow: { meta: {}, scenarios: [scenarioFixture('Healthy Start')] },
+      bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+      thisWeekRunCount: 20,
+      lastWeekRunCount: 19,
+    }),
+  );
+
+  assert.match(clean, /Nothing to action this week\./);
+  assert.match(
+    clean,
+    /No Hermes JS regressions were detected versus the previous week/,
+  );
+  assert.doesNotMatch(clean, /Slow run/);
 });
 
 test('two scenarios peaking on the same run are one slow run', () => {

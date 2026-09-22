@@ -546,6 +546,25 @@ export function buildWeeklyScenarioCard(card) {
   return lines.join('\n');
 }
 
+/**
+ * Every duration in one slow-run card is read against the others, so they are
+ * scaled together. Pair by pair, `15.6 s` and `8199.9 ms` end up in the same
+ * list and the reader converts before they can rank the rows.
+ */
+function sharedSpikeDurations(sharedSpike) {
+  const formatted = formatDurationsAlike(
+    sharedSpike.scenarios.flatMap((scenario) => [
+      scenario.maxJsWorkMs,
+      scenario.medianJsWorkMs,
+    ]),
+  );
+  return sharedSpike.scenarios.map((scenario, index) => ({
+    scenario,
+    peak: formatted[index * 2],
+    weekly: formatted[index * 2 + 1],
+  }));
+}
+
 export function buildSharedSpikeCard(sharedSpike) {
   // A recovered run is history: naming the owners is useful, paging them is
   // not, so only an open slow run uses live mentions.
@@ -561,11 +580,7 @@ export function buildSharedSpikeCard(sharedSpike) {
     }`,
     '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
-  for (const scenario of sharedSpike.scenarios) {
-    const [peak, weekly] = formatDurationsAlike([
-      scenario.maxJsWorkMs,
-      scenario.medianJsWorkMs,
-    ]);
+  for (const { scenario, peak, weekly } of sharedSpikeDurations(sharedSpike)) {
     lines.push(
       `  *${displayName(scenario.scenario)}* — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×) ${owner(scenario.scenario)}`,
     );
@@ -682,35 +697,38 @@ export function buildWeeklyMarkdown(report) {
     '',
   ];
   const sharedSpikes = report.sharedSpikes || [];
+  const recovered = report.recovered || [];
   if (hasNothingToAction(report)) {
     lines.push('Nothing to action this week.');
-    if (
-      recoveredSharedSpikes(report).length === 0 &&
-      !(report.recovered || []).length
-    ) {
+    // Slack says the recovered run is kept "for the record", so the record
+    // itself cannot stop at that sentence.
+    if (sharedSpikes.length === 0 && recovered.length === 0) {
       lines.push(
         'No Hermes JS regressions were detected versus the previous week.',
         '',
       );
-    } else {
-      lines.push('');
+      return lines.join('\n');
     }
-    return lines.join('\n');
+    lines.push('');
   }
   for (const sharedSpike of sharedSpikes) {
     lines.push(
-      `## Slow run — [${sharedSpike.runId}](${sharedSpike.runUrl}) peaked in ${sharedSpike.scenarios.length} scenarios`,
+      `## Slow run${sharedSpike.recovered ? ' (recovered)' : ''} — [${sharedSpike.runId}](${sharedSpike.runUrl}) peaked in ${sharedSpike.scenarios.length} scenarios`,
       '',
       'One run-level anomaly, not one regression per scenario. Numbers are Hermes JS work (sampled JS self time), not test duration.',
       '',
     );
-    for (const scenario of sharedSpike.scenarios) {
-      const [peak, weekly] = formatDurationsAlike([
-        scenario.maxJsWorkMs,
-        scenario.medianJsWorkMs,
-      ]);
+    for (const { scenario, peak, weekly } of sharedSpikeDurations(
+      sharedSpike,
+    )) {
       lines.push(
         `- ${displayName(scenario.scenario)} — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×), owner ${scenarioOwner(scenario.scenario)}`,
+      );
+    }
+    if (sharedSpike.recovered) {
+      lines.push(
+        '',
+        'Every scenario above has run clean since that run, so this is history, not pending work.',
       );
     }
     lines.push('');
@@ -732,6 +750,15 @@ export function buildWeeklyMarkdown(report) {
       );
     }
     lines.push(`Conclusion: ${card.conclusion}`);
+    lines.push('');
+  }
+  if (recovered.length > 0) {
+    lines.push('## Recovered, not reported as findings', '');
+    for (const item of recovered) {
+      lines.push(
+        `- ${displayName(item.scenario)} (${item.spikeRatio}×, ${item.runsAfterPeak} runs ago) — spiked earlier in the week and back on the median since.`,
+      );
+    }
     lines.push('');
   }
   return lines.join('\n');
