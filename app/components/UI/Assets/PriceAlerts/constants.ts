@@ -1,5 +1,7 @@
 /** Shared navigation params used by both Create and Manage screens. */
 export interface PriceAlertRouteParams {
+  /** Required by React Navigation's NavigatorScreenParams for nested navigation. */
+  [key: string]: unknown;
   symbol: string;
   ticker?: string;
   currentPrice: number;

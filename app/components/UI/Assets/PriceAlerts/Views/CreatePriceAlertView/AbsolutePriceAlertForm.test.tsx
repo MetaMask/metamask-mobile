@@ -21,6 +21,17 @@ jest.mock('../../api', () => ({
     mockUseSubmitPriceAlert(editingAlert),
 }));
 
+const mockPerpSubmit = jest.fn();
+const mockUseSubmitPerpAlert = jest.fn((_editingAlert?: unknown) => ({
+  submit: mockPerpSubmit,
+  isSubmitting: false,
+}));
+
+jest.mock('../../perpApi', () => ({
+  useSubmitPerpAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPerpAlert(editingAlert),
+}));
+
 const baseProps: React.ComponentProps<typeof AbsolutePriceAlertForm> = {
   assetId: 'eip155:1/slip44:60',
   displayTicker: 'ETH',

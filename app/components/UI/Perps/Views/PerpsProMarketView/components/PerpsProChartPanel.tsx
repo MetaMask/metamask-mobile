@@ -105,6 +105,12 @@ interface PerpsProChartPanelProps {
   currentPrice: number;
   /** Forwards Advanced Chart latest-bar close into `usePerpsSyncedChartPrice`. */
   onLatestPriceChange?: (price: number | undefined) => void;
+  /**
+   * Stable backend market identifier (e.g. 'btc-hyperliquid-mainnet'), sourced
+   * from `PerpsMarketData.id` in the parent. Used as the perp-alerts API key.
+   * Falls back to symbol+provider derivation when absent.
+   */
+  marketId?: string;
   onResolvedStateChange?: (
     symbol: string,
     state: PerpsMarketDetailSectionState,
@@ -131,6 +137,7 @@ const PerpsProChartPanel = ({
   onLatestPriceChange,
   onResolvedStateChange,
   onFreshDelivery,
+  marketId: marketIdProp,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -325,10 +332,10 @@ const PerpsProChartPanel = ({
   }, []);
 
   const handlePriceAlertsPress = useCallback(() => {
-    // Prefer the stable backend-issued id from the v3 Terminal snapshot; fall back to
-    // deriving it from symbol + provider for HyperLiquid-direct paths.
+    // Use the stable backend-issued id from the prop (sourced from PerpsMarketData
+    // in the parent); fall back to deriving it from symbol + provider.
     const marketId =
-      marketData?.id ??
+      marketIdProp ??
       `${symbol.toLowerCase()}-${marketData?.providerId ?? 'hyperliquid-mainnet'}`;
     // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
     const displaySymbol = getPerpsDisplaySymbol(symbol);
@@ -341,13 +348,7 @@ const PerpsProChartPanel = ({
       mode: 'perps',
       marketId,
     });
-  }, [
-    symbol,
-    marketData?.id,
-    marketData?.providerId,
-    currentPrice,
-    navigation,
-  ]);
+  }, [symbol, marketIdProp, marketData?.providerId, currentPrice, navigation]);
 
   let chartContent: React.ReactNode = (
     <Skeleton

@@ -157,18 +157,27 @@ const ManagePriceAlertsView: React.FC = () => {
       });
       navigation.goBack();
     } else if (alerts.length === 0) {
-      const createRoute = isPerpsMode
-        ? Routes.PERPS.CREATE_PRICE_ALERT
-        : Routes.CREATE_PRICE_ALERT;
-      navigation.replace(createRoute, {
-        symbol,
-        ticker,
-        currentPrice,
-        currentCurrency,
-        assetId,
-        mode,
-        marketId,
-      });
+      if (isPerpsMode) {
+        navigation.replace(Routes.PERPS.CREATE_PRICE_ALERT, {
+          symbol,
+          ticker,
+          currentPrice,
+          currentCurrency,
+          assetId,
+          mode,
+          marketId,
+        });
+      } else {
+        navigation.replace(Routes.CREATE_PRICE_ALERT, {
+          symbol,
+          ticker,
+          currentPrice,
+          currentCurrency,
+          assetId,
+          mode,
+          marketId,
+        });
+      }
     }
   }, [
     isLoading,
@@ -191,10 +200,7 @@ const ManagePriceAlertsView: React.FC = () => {
 
   const handleNavigateToCreate = useCallback(
     (editingAlert?: Alert) => {
-      const createRoute = isPerpsMode
-        ? Routes.PERPS.CREATE_PRICE_ALERT
-        : Routes.CREATE_PRICE_ALERT;
-      navigation.navigate(createRoute, {
+      const navParams = {
         symbol,
         ticker,
         currentPrice,
@@ -210,7 +216,12 @@ const ManagePriceAlertsView: React.FC = () => {
           (a): a is PercentChangeAlert => a.type === 'percent_change',
         ),
         editingAlert,
-      });
+      };
+      if (isPerpsMode) {
+        navigation.navigate(Routes.PERPS.CREATE_PRICE_ALERT, navParams);
+      } else {
+        navigation.navigate(Routes.CREATE_PRICE_ALERT, navParams);
+      }
     },
     [
       navigation,
