@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -18,11 +18,13 @@ import {
   TitleHub,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
 import TextShimmer from '../TextShimmer';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
-
+import { useTheme } from '../../../../../util/theme';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 interface MoneyBalanceSummaryProps {
   displayState: MoneyBalanceDisplayState;
   /**
@@ -58,6 +60,9 @@ const MoneyBalanceSummary = ({
   onBalancePress,
   showTitle = false,
 }: MoneyBalanceSummaryProps) => {
+  const { colors } = useTheme();
+  const tw = useTailwind();
+
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
   const showApy =
@@ -70,16 +75,23 @@ const MoneyBalanceSummary = ({
       alignItems={BoxAlignItems.Center}
       testID={MoneyBalanceSummaryTestIds.APY}
     >
-      <TextShimmer>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-          numberOfLines={1}
-        >
-          {strings('money.apy_label', { percentage: apy })}
-        </Text>
-      </TextShimmer>
+      <Pressable
+        onPress={onApyInfoPress}
+        style={({ pressed }) => pressed && tw.style('opacity-50')}
+      >
+        <DottedUnderline color={colors.success.default}>
+          <TextShimmer>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+              numberOfLines={1}
+            >
+              {strings('money.apy_label', { percentage: apy })}
+            </Text>
+          </TextShimmer>
+        </DottedUnderline>
+      </Pressable>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -89,18 +101,6 @@ const MoneyBalanceSummary = ({
       </Text>
     </Box>
   ) : undefined;
-
-  const apyInfoButton =
-    hasApy && onApyInfoPress ? (
-      <ButtonIcon
-        iconName={IconName.Info}
-        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-        size={ButtonIconSize.Sm}
-        onPress={onApyInfoPress}
-        accessibilityLabel={strings('money.apy_info_label')}
-        testID={MoneyBalanceSummaryTestIds.APY_INFO_BUTTON}
-      />
-    ) : undefined;
 
   const wrapPressable = (content: React.ReactNode) =>
     onBalancePress ? (
@@ -168,7 +168,6 @@ const MoneyBalanceSummary = ({
         titleProps={{ testID: MoneyBalanceSummaryTestIds.TITLE }}
         amount={renderBalanceSlot()}
         bottomLabel={apyLabel}
-        bottomLabelEndAccessory={apyInfoButton}
       />
     );
   }
@@ -176,14 +175,7 @@ const MoneyBalanceSummary = ({
   return (
     <Box twClassName="px-4 gap-1" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
       {renderBalanceSlot()}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
-      >
-        {apyLabel}
-        {apyInfoButton}
-      </Box>
+      {apyLabel}
     </Box>
   );
 };

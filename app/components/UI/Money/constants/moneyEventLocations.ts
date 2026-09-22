@@ -49,6 +49,9 @@ export enum MONEY_SURFACE_TYPES {
 }
 
 export enum COMPONENT_NAMES {
+  // — Money Balance Summary —
+  MONEY_BALANCE_SUMMARY_APY_TEXT_BUTTON = 'money_balance_summary_apy_text_button',
+
   // — Section Headers —
   MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
