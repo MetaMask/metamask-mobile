@@ -174,6 +174,7 @@ test('a spike the scenario has run clean past is not a finding', () => {
   assert.equal(report.recovered.length, 1);
   assert.equal(report.recovered[0].runsAfterPeak, 4);
   const parent = buildWeeklyParentSlack(report);
+  assert.match(parent, /\*Nothing to action this week\.\*/);
   assert.match(parent, /_Recovered, not reported as findings:_ Perps add funds/);
   assert.match(parent, /back on the median since/);
 });
@@ -298,6 +299,7 @@ test('weekly Slack parent is an exception report', () => {
     }),
   );
 
+  assert.match(empty, /Nothing to action this week/);
   assert.match(empty, /No Hermes JS regressions were detected versus the previous week/);
   assert.match(empty, /testing experiment/);
   assert.doesNotMatch(empty, /Healthy Start/);
@@ -382,6 +384,7 @@ test('one slow run is reported once, not as a regression per scenario', () => {
   // Counting zero of everything above real findings read as "nothing found".
   assert.doesNotMatch(parent, /0 isolated spike/);
   assert.match(parent, /No scenario regressed on its own this week/);
+  assert.doesNotMatch(parent, /Nothing to action this week/);
   // With nothing analyzable from the previous week, no card may claim a trend.
   assert.match(parent, /nothing here is a week-over-week comparison yet/);
 
@@ -450,10 +453,11 @@ test('a slow run every scenario has run clean past is marked recovered', () => {
   const [card] = weeklySlackCards(report);
   assert.match(card, /\*Slow run \(recovered\)\*/);
   assert.match(card, /has run clean since that run/);
-  assert.match(
-    buildWeeklyParentSlack(report),
-    /every one of them has run clean since/,
-  );
+  const parent = buildWeeklyParentSlack(report);
+  assert.match(parent, /\*Nothing to action this week\.\*/);
+  assert.match(parent, /every one of them has run clean since/);
+  assert.match(parent, /detailed in the thread for the record/);
+  assert.doesNotMatch(parent, /One card per finding/);
 });
 
 test('two scenarios peaking on the same run are one slow run', () => {

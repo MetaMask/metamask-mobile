@@ -574,9 +574,22 @@ export function weeklySlackCards(report) {
   ];
 }
 
+function openSharedSpikes(report) {
+  return (report.sharedSpikes || []).filter((spike) => !spike.recovered);
+}
+
+function recoveredSharedSpikes(report) {
+  return (report.sharedSpikes || []).filter((spike) => spike.recovered);
+}
+
+function hasNothingToAction(report) {
+  return report.cards.length === 0 && openSharedSpikes(report).length === 0;
+}
+
 export function buildWeeklyParentSlack(report) {
   const counts = countByStatus(report.cards);
   const sharedSpikes = report.sharedSpikes || [];
+  const recoveredSpikes = recoveredSharedSpikes(report);
   const lines = [
     '*Hermes CPU-profile weekly conclusions*',
     ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
@@ -587,11 +600,25 @@ export function buildWeeklyParentSlack(report) {
     `_Runs analyzed:_ ${report.meta.thisWeekRunCount} this week · ${report.meta.lastWeekRunCount} previous week (scheduled \`main\` only)`,
     `_Profiles:_ ${report.meta.thisWeekProfileCount} this week · sourcemaps ${report.meta.thisWeekSymbolicatedProfileCount}/${report.meta.thisWeekProfileCount}`,
   ];
-  if (report.cards.length === 0 && sharedSpikes.length === 0) {
-    lines.push(
-      '',
-      'No Hermes JS regressions were detected versus the previous week.',
-    );
+  if (hasNothingToAction(report)) {
+    lines.push('', '*Nothing to action this week.*');
+    if (recoveredSpikes.length === 0 && !(report.recovered || []).length) {
+      lines.push(
+        'No Hermes JS regressions were detected versus the previous week.',
+      );
+    } else {
+      for (const sharedSpike of recoveredSpikes) {
+        lines.push(
+          `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their weekly median JS work); every one of them has run clean since.`,
+        );
+      }
+      lines.push(...weeklyRecoveredLines(report));
+      if (recoveredSpikes.length > 0) {
+        lines.push(
+          '_The recovered run is detailed in the thread for the record._',
+        );
+      }
+    }
   } else {
     lines.push('');
     // An all-zero count line above real findings reads as "nothing found".
@@ -612,8 +639,8 @@ export function buildWeeklyParentSlack(report) {
     lines.push(
       '_Stable scenarios omitted. One card per finding follows in the thread._',
     );
+    lines.push(...weeklyRecoveredLines(report));
   }
-  lines.push(...weeklyRecoveredLines(report));
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
@@ -644,11 +671,19 @@ export function buildWeeklyMarkdown(report) {
     '',
   ];
   const sharedSpikes = report.sharedSpikes || [];
-  if (report.cards.length === 0 && sharedSpikes.length === 0) {
-    lines.push(
-      'No Hermes JS regressions were detected versus the previous week.',
-      '',
-    );
+  if (hasNothingToAction(report)) {
+    lines.push('Nothing to action this week.');
+    if (
+      recoveredSharedSpikes(report).length === 0 &&
+      !(report.recovered || []).length
+    ) {
+      lines.push(
+        'No Hermes JS regressions were detected versus the previous week.',
+        '',
+      );
+    } else {
+      lines.push('');
+    }
     return lines.join('\n');
   }
   for (const sharedSpike of sharedSpikes) {
