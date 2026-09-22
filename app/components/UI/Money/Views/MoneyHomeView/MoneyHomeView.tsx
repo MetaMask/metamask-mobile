@@ -113,7 +113,7 @@ import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
-const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
+const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
