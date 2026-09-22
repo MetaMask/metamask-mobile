@@ -829,6 +829,7 @@ const MoneyHomeView = () => {
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
             showMetalCard={hasMetalCard}
+            isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
             privacyMode={privacyMode}

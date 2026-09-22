@@ -7,9 +7,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -49,7 +46,7 @@ interface MoneyMetaMaskCardProps {
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
-  /** When true, disables the link-mode CTA. */
+  /** When true, disables link-mode press handlers. */
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
@@ -379,11 +376,20 @@ const MoneyMetaMaskCard = ({
     if (mode === 'upsell') {
       return handleGetNowPress;
     } else if (mode === 'link') {
+      if (isLinkDisabled) {
+        return undefined;
+      }
       return handleLinkPress;
     } else if (mode === 'manage') {
       return handleManagePress;
     }
-  }, [mode, handleGetNowPress, handleLinkPress, handleManagePress]);
+  }, [
+    mode,
+    isLinkDisabled,
+    handleGetNowPress,
+    handleLinkPress,
+    handleManagePress,
+  ]);
 
   const handleContentPress = useCallback(() => {
     getPressBehaviourByMode()?.();
@@ -472,7 +478,7 @@ const MoneyMetaMaskCard = ({
       <MoneySectionHeader
         title={strings(headerTitleKey)}
         onPress={
-          mode === 'verifying' || mode === 'loading'
+          mode === 'verifying' || mode === 'loading' || isLinkDisabled
             ? undefined
             : handleHeaderPress
         }
@@ -480,7 +486,7 @@ const MoneyMetaMaskCard = ({
       <Pressable
         style={moneyMetaMaskCardStyles.contentContainer}
         onPress={
-          mode === 'verifying' || mode === 'loading'
+          mode === 'verifying' || mode === 'loading' || isLinkDisabled
             ? undefined
             : handleContentPress
         }
