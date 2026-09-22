@@ -445,6 +445,16 @@ describe('RevealPrivateCredential', () => {
       ).toHaveStyle({ textAlign: 'center' });
     });
 
+    it('centers the header title so wrapped translations stay aligned', () => {
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential cancel={() => null} />,
+      );
+
+      expect(
+        getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TITLE_ID),
+      ).toHaveStyle({ textAlign: 'center' });
+    });
+
     it('renders password entry after completing security quiz', async () => {
       // Mock biometrics to fail so password entry is shown
       mockReauthenticate.mockRejectedValue(
