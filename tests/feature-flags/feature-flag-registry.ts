@@ -1230,7 +1230,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'configRegistryApiEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: true,
     status: FeatureFlagStatus.Active,
   },
 
