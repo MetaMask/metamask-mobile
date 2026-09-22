@@ -41,8 +41,7 @@ function getKeyData() {
 }
 
 function canonicalize(url: URL): string {
-  const signingOrigin =
-    COM_TO_IO_SIGNING_ORIGINS[url.hostname] ?? url.origin;
+  const signingOrigin = COM_TO_IO_SIGNING_ORIGINS[url.hostname] ?? url.origin;
   const sigParams = url.searchParams.get('sig_params');
 
   let params;
