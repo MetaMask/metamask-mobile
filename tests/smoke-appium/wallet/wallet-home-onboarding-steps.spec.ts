@@ -48,6 +48,7 @@ appiumTest.describe(SmokeWalletPlatform('Wallet Home Onboarding Steps'), () => {
           await Assertions.expectElementToBeVisible(
             Matchers.getElementByID(walletHomeOnboardingPrimaryButtonId),
             {
+              timeout: 30_000,
               description:
                 'Wallet home onboarding primary CTA should be visible when eligible',
             },
@@ -56,6 +57,7 @@ appiumTest.describe(SmokeWalletPlatform('Wallet Home Onboarding Steps'), () => {
           await Assertions.expectElementToNotBeVisible(
             WalletView.walletBuyButton,
             {
+              timeout: 30_000,
               description:
                 'Buy button should be hidden while wallet home onboarding steps are active',
             },

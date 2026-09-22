@@ -32,6 +32,55 @@ interface SectionConfig {
   };
 }
 
+const SECTIONS: SectionConfig[] = [
+  {
+    section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
+    sectionHeaderText: TrendingViewSelectorsText.SECTION_PREDICTIONS,
+    verifyItemVisible: () => TrendingView.verifyPredictionVisible('1'),
+    details: {
+      tapItem: () => TrendingView.tapPredictionRow('1'),
+      verifyVisible: () => TrendingView.verifyPredictionDetailsVisible(),
+      tapBack: () => TrendingView.tapBackFromPredictionDetails(),
+    },
+  },
+  {
+    section: TrendingViewSelectorsText.SECTION_PERPS,
+    sectionHeaderText: 'Perps movers',
+    verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
+    details: {
+      tapItem: () => TrendingView.tapPerpRow('BTC'),
+      verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
+      tapBack: () => TrendingView.tapBackFromPerpDetails(),
+    },
+  },
+  {
+    section: TrendingViewSelectorsText.SECTION_TOKENS,
+    sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
+    verifyItemVisible: () => TrendingView.verifyTokenVisible(USDC_ASSET_ID),
+    details: {
+      tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
+      verifyVisible: () => TrendingView.verifyTokenDetailsTitleVisible('USDC'),
+      tapBack: () => TrendingView.tapBackFromTokenDetails(),
+    },
+  },
+  {
+    section: TrendingViewSelectorsText.SECTION_STOCKS,
+    sectionHeaderText: TrendingViewSelectorsText.SECTION_STOCKS,
+    verifyItemVisible: () =>
+      TrendingView.verifyTokenVisible(RWA_STOCK_ASSET_ID),
+    details: {
+      tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
+      verifyVisible: () => TrendingView.verifyTokenDetailsTitleVisible('USDY'),
+      tapBack: () => TrendingView.tapBackFromTokenDetails(),
+    },
+  },
+  {
+    section: TrendingViewSelectorsText.SECTION_SITES,
+    sectionHeaderText: 'Popular',
+    verifyItemVisible: () => TrendingView.verifySiteVisible('Uniswap'),
+  },
+];
+
 appiumTest.describe(
   SmokeWalletPlatform('Trending Feed View All Navigation'),
   () => {
@@ -83,78 +132,23 @@ appiumTest.describe(
         });
     };
 
-    appiumTest(
-      'Navigate to all sections full views via View All and return to feed',
-      async ({ driver: _driver, currentDeviceDetails }) => {
-        await withFixtures(
-          {
-            fixture: new FixtureBuilder().withDetectedGeolocation('AR').build(),
-            restartDevice: true,
-            currentDeviceDetails,
-            testSpecificMock,
-          },
-          async () => {
-            await loginToAppPlaywright({ scenarioType: 'e2e' });
+    for (const config of SECTIONS) {
+      appiumTest(
+        `${config.section}: view all and item details`,
+        async ({ driver: _driver, currentDeviceDetails }) => {
+          await withFixtures(
+            {
+              fixture: new FixtureBuilder()
+                .withDetectedGeolocation('AR')
+                .build(),
+              restartDevice: true,
+              currentDeviceDetails,
+              testSpecificMock,
+            },
+            async () => {
+              await loginToAppPlaywright({ scenarioType: 'e2e' });
 
-            await TrendingView.tapTrendingTab();
-
-            const sectionsConfig: SectionConfig[] = [
-              {
-                section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
-                sectionHeaderText:
-                  TrendingViewSelectorsText.SECTION_PREDICTIONS,
-                verifyItemVisible: () =>
-                  TrendingView.verifyPredictionVisible('1'),
-                details: {
-                  tapItem: () => TrendingView.tapPredictionRow('1'),
-                  verifyVisible: () =>
-                    TrendingView.verifyPredictionDetailsVisible(),
-                  tapBack: () => TrendingView.tapBackFromPredictionDetails(),
-                },
-              },
-              {
-                section: TrendingViewSelectorsText.SECTION_PERPS,
-                sectionHeaderText: 'Perps movers',
-                verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
-                details: {
-                  tapItem: () => TrendingView.tapPerpRow('BTC'),
-                  verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
-                  tapBack: () => TrendingView.tapBackFromPerpDetails(),
-                },
-              },
-              {
-                section: TrendingViewSelectorsText.SECTION_TOKENS,
-                sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
-                verifyItemVisible: () =>
-                  TrendingView.verifyTokenVisible(USDC_ASSET_ID),
-                details: {
-                  tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
-                  verifyVisible: () =>
-                    TrendingView.verifyTokenDetailsTitleVisible('USDC'),
-                  tapBack: () => TrendingView.tapBackFromTokenDetails(),
-                },
-              },
-              {
-                section: TrendingViewSelectorsText.SECTION_STOCKS,
-                sectionHeaderText: TrendingViewSelectorsText.SECTION_STOCKS,
-                verifyItemVisible: () =>
-                  TrendingView.verifyTokenVisible(RWA_STOCK_ASSET_ID),
-                details: {
-                  tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
-                  verifyVisible: () =>
-                    TrendingView.verifyTokenDetailsTitleVisible('USDY'),
-                  tapBack: () => TrendingView.tapBackFromTokenDetails(),
-                },
-              },
-              {
-                section: TrendingViewSelectorsText.SECTION_SITES,
-                sectionHeaderText: 'Popular',
-                verifyItemVisible: () =>
-                  TrendingView.verifySiteVisible('Uniswap'),
-              },
-            ];
-
-            for (const config of sectionsConfig) {
+              await TrendingView.tapTrendingTab();
               await TrendingView.navigateToSectionTab(config.section);
               await TrendingView.verifySectionHeaderInFeed(
                 config.sectionHeaderText,
@@ -174,10 +168,10 @@ appiumTest.describe(
                 await config.details.tapBack();
                 await TrendingView.verifyFeedVisible();
               }
-            }
-          },
-        );
-      },
-    );
+            },
+          );
+        },
+      );
+    }
   },
 );
