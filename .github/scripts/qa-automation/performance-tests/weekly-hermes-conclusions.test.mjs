@@ -295,7 +295,10 @@ test('one slow run is reported once, not as a regression per scenario', () => {
   const cards = weeklySlackCards(report);
   assert.equal(cards.length, 1);
   assert.match(cards[0], /\*Slow run\*/);
-  assert.match(cards[0], /No team is tagged/);
+  assert.match(cards[0], /no team is notified/);
+  // Owners tell you who to ask about the run without paging four teams.
+  assert.match(cards[0], /owner mm-perps-engineering-team/);
+  assert.match(cards[0], /owner mm-earn-team/);
   assert.doesNotMatch(cards[0], /subteam/);
 });
 

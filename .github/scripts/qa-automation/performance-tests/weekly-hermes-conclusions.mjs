@@ -6,7 +6,10 @@
  * lists regressions, isolated spikes, new hot frames, and thin coverage.
  */
 
-import { slackTeamMention } from './link-scenario-artifacts.mjs';
+import {
+  scenarioTeam,
+  slackTeamMention,
+} from './link-scenario-artifacts.mjs';
 
 export const SPIKE_RATIO = 1.5;
 export const RELATIVE_WARN_RATIO = 1.1;
@@ -161,6 +164,14 @@ function formatDuration(value) {
 
 function scenarioKey(scenario) {
   return `${scenario.projectName}|${scenario.scenario}`;
+}
+
+/**
+ * Owning team as plain text. A slow run is not that team's regression, so it
+ * names the owner without the `<!subteam^…>` syntax that would page them.
+ */
+function scenarioOwner(scenario) {
+  return scenarioTeam(displayName(scenario)).handle;
 }
 
 function topContributor(scenario) {
@@ -428,12 +439,12 @@ export function buildWeeklyScenarioCard(card) {
 export function buildSharedSpikeCard(sharedSpike) {
   const lines = [
     `*Slow run* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
-    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. No team is tagged.`,
+    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. Owners are named for context; no team is notified.`,
     '_Scenarios and how far that run sat above their weekly median:_',
   ];
   for (const scenario of sharedSpike.scenarios) {
     lines.push(
-      `  *${displayName(scenario.scenario)}* — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×)`,
+      `  *${displayName(scenario.scenario)}* — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×) · owner ${scenarioOwner(scenario.scenario)}`,
     );
   }
   lines.push(
@@ -535,7 +546,7 @@ export function buildWeeklyMarkdown(report) {
     );
     for (const scenario of sharedSpike.scenarios) {
       lines.push(
-        `- ${displayName(scenario.scenario)} — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×)`,
+        `- ${displayName(scenario.scenario)} — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×), owner ${scenarioOwner(scenario.scenario)}`,
       );
     }
     lines.push('');
