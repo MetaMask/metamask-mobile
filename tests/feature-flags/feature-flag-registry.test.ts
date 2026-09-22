@@ -365,7 +365,6 @@ describe('Feature Flag Registry', () => {
 
     it('pins Home and Social AI percentage A/B flags to control', () => {
       const abTestFlags = [
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
         'homeTMCU610AbtestWalletHomePostOnboardingSteps',
         'socialAiTSA531AbtestWhatsHappeningExplore',
         'socialAiTSA612AbtestQuickBuy',
