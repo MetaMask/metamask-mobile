@@ -1662,10 +1662,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const handlePriceAlertsPress = useCallback(() => {
     if (!market) return;
     // Prefer the stable backend-issued id from the v3 Terminal snapshot; fall back to
-    // deriving it from symbol + provider for HyperLiquid-direct paths.
+    // deriving it from symbol + provider + network for HyperLiquid-direct paths.
+    // providerId is 'hyperliquid', not 'hyperliquid-mainnet', so we append '-mainnet'.
     const marketId =
       market.id ??
-      `${market.symbol.toLowerCase()}-${market.providerId ?? 'hyperliquid-mainnet'}`;
+      `${market.symbol.toLowerCase()}-${market.providerId ?? 'hyperliquid'}-mainnet`;
     // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
     const displaySymbol = getPerpsDisplaySymbol(market.symbol);
     navigation.navigate(Routes.PERPS.PRICE_ALERTS, {
@@ -2006,6 +2007,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                   isDisabled={!isMarketContextReady}
                   style={styles.marketSummaryFullscreenButton}
                   accessibilityLabel={strings('perps.price_alerts.open')}
+                  testID={
+                    PerpsMarketDetailsViewSelectorsIDs.PRICE_ALERTS_BUTTON
+                  }
                 />
               ) : undefined
             }

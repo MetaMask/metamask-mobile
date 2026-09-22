@@ -333,10 +333,11 @@ const PerpsProChartPanel = ({
 
   const handlePriceAlertsPress = useCallback(() => {
     // Use the stable backend-issued id from the prop (sourced from PerpsMarketData
-    // in the parent); fall back to deriving it from symbol + provider.
+    // in the parent); fall back to deriving it from symbol + provider + network.
+    // providerId is 'hyperliquid', not 'hyperliquid-mainnet', so we append '-mainnet'.
     const marketId =
       marketIdProp ??
-      `${symbol.toLowerCase()}-${marketData?.providerId ?? 'hyperliquid-mainnet'}`;
+      `${symbol.toLowerCase()}-${marketData?.providerId ?? 'hyperliquid'}-mainnet`;
     // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
     const displaySymbol = getPerpsDisplaySymbol(symbol);
     navigation.navigate(Routes.PERPS.PRICE_ALERTS, {
@@ -426,6 +427,9 @@ const PerpsProChartPanel = ({
                 variant={ButtonIconVariant.Filled}
                 onPress={handlePriceAlertsPress}
                 accessibilityLabel={strings('perps.price_alerts.open')}
+                testID={
+                  PerpsProMarketViewSelectorsIDs.CHART_PRICE_ALERTS_BUTTON
+                }
               />
             )}
             <ButtonIcon
