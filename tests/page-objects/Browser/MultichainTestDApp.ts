@@ -80,18 +80,97 @@ class MultichainTestDApp {
     ).catch(() => undefined);
   }
 
+  /**
+   * True when `#auto-connect-postmessage-button` exists and is DOM-enabled.
+   */
+  private async isAutoConnectButtonEnabled(): Promise<boolean> {
+    const ready = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+      getMultichainTestDappBaseUrl(),
+      `(() => {
+        const el = document.getElementById(${JSON.stringify(
+          SELECTORS.AUTO_CONNECT_BUTTON,
+        )});
+        if (!el) return false;
+        if ('disabled' in el && Boolean(el.disabled)) return false;
+        if (el.getAttribute('aria-disabled') === 'true') return false;
+        return true;
+      })()`,
+    );
+    return ready === true;
+  }
+
+  /**
+   * Poll until the auto-connect control is DOM-enabled (does not throw).
+   */
+  private async waitForAutoConnectButtonEnabled(
+    timeoutMs: number,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (await this.isAutoConnectButtonEnabled()) {
+        return true;
+      }
+      await wait(POLL_INTERVAL_MS);
+    }
+    return false;
+  }
+
+  private async reloadMultichainDapp(): Promise<void> {
+    await ChromeCdpHelpers.evaluateInWebView(
+      getMultichainTestDappBaseUrl(),
+      '(() => { location.reload(); return true; })()',
+    ).catch(() => undefined);
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    await wait(1_000);
+  }
+
+  /**
+   * Click `#auto-connect-postmessage-button` once the postMessage handshake
+   * enables it. On Android CI the provider can register after the first enable
+   * wait — reload once and retry (same recovery shape as BitcoinTestDapp).
+   */
   async useAutoConnectButton(): Promise<boolean> {
     if (this.connected) return true;
-    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-      getMultichainTestDappBaseUrl(),
-      SELECTORS.AUTO_CONNECT_BUTTON,
-    );
-    if (!clicked) {
-      logger.warn(`could not click #${SELECTORS.AUTO_CONNECT_BUTTON}`);
-      return false;
+
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        logger.warn(
+          `auto-connect attempt ${attempt}/${maxAttempts}: reloading dapp after enable/connect miss`,
+        );
+        await this.reloadMultichainDapp();
+      }
+
+      const enableWaitMs = attempt === 1 ? 15_000 : CONNECT_TIMEOUT_MS;
+      const enabled = await this.waitForAutoConnectButtonEnabled(enableWaitMs);
+      if (!enabled) {
+        logger.warn(
+          `#${SELECTORS.AUTO_CONNECT_BUTTON} not enabled within ${enableWaitMs}ms (attempt ${attempt})`,
+        );
+        continue;
+      }
+
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        getMultichainTestDappBaseUrl(),
+        SELECTORS.AUTO_CONNECT_BUTTON,
+        5_000,
+      );
+      if (!clicked) {
+        logger.warn(
+          `could not click #${SELECTORS.AUTO_CONNECT_BUTTON} (attempt ${attempt})`,
+        );
+        continue;
+      }
+
+      this.connected = await this.waitForDappConnected(
+        attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 15_000,
+      );
+      if (this.connected) {
+        return true;
+      }
     }
-    this.connected = await this.waitForDappConnected();
-    return this.connected;
+
+    return false;
   }
 
   async createSessionWithNetworks(chainIds: string[]): Promise<void> {
