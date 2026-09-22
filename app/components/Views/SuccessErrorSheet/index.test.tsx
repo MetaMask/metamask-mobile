@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
+import { BottomSheetFooter } from '@metamask/design-system-react-native';
 import SuccessErrorSheet from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SuccessErrorSheetSelectorsIDs } from './SuccessErrorSheet.testIds';
@@ -191,10 +192,13 @@ describe('SuccessErrorSheet', () => {
       },
     };
 
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, UNSAFE_getByType } = renderWithProvider(
       <SuccessErrorSheet route={route} />,
     );
 
+    expect(UNSAFE_getByType(BottomSheetFooter).props.twClassName).toBe(
+      'flex-row-reverse',
+    );
     expect(
       getByTestId(SuccessErrorSheetSelectorsIDs.PRIMARY_BUTTON),
     ).toBeOnTheScreen();
