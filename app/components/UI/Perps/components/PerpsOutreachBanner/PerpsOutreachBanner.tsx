@@ -128,67 +128,74 @@ const PerpsOutreachBannerContent = ({
       ]}
       testID={PerpsOutreachBannerSelectorsIDs.BANNER}
     >
-      <Pressable
-        onPress={isTappable ? handlePress : undefined}
-        disabled={!isTappable}
-        accessibilityRole={isTappable ? 'button' : undefined}
-        testID={PerpsOutreachBannerSelectorsIDs.CONTENT}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Start}
+        gap={2}
+        twClassName="px-4 pb-3"
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          gap={4}
-          twClassName="px-4 pb-3"
+        {/*
+          The close button stays a sibling of this Pressable rather than a
+          child: on Android a nested pressable does not reliably stop the
+          parent `onPress`, so dismissing could also route the deeplink and
+          open the details sheet.
+        */}
+        <Pressable
+          onPress={isTappable ? handlePress : undefined}
+          disabled={!isTappable}
+          accessibilityRole={isTappable ? 'button' : undefined}
+          style={tw.style('min-w-0 flex-1')}
+          testID={PerpsOutreachBannerSelectorsIDs.CONTENT}
         >
-          {showImage ? (
-            <Box
-              alignItems={BoxAlignItems.Center}
-              twClassName="h-[72px] w-[72px] overflow-hidden rounded-lg p-2"
-            >
-              <Image
-                source={{ uri: campaign.imageUrl }}
-                resizeMode="cover"
-                // rounded-lg on the Image itself (not just the wrapper) so
-                // future opaque assets don't show square corners inside the
-                // padded rounded frame.
-                style={tw.style('h-14 w-14 rounded-lg')}
-                onError={() => setImageFailed(true)}
-                testID={PerpsOutreachBannerSelectorsIDs.IMAGE}
-              />
-            </Box>
-          ) : null}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Start}
+            gap={4}
+          >
+            {showImage ? (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                twClassName="h-[72px] w-[72px] overflow-hidden rounded-lg p-2"
+              >
+                <Image
+                  source={{ uri: campaign.imageUrl }}
+                  resizeMode="cover"
+                  // rounded-lg on the Image itself (not just the wrapper) so
+                  // future opaque assets don't show square corners inside the
+                  // padded rounded frame.
+                  style={tw.style('h-14 w-14 rounded-lg')}
+                  onError={() => setImageFailed(true)}
+                  testID={PerpsOutreachBannerSelectorsIDs.IMAGE}
+                />
+              </Box>
+            ) : null}
 
-          <Box twClassName="min-w-0 flex-1 gap-0.5">
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
+            <Box twClassName="min-w-0 flex-1 gap-0.5">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
-                twClassName="min-w-0 flex-1"
               >
                 {campaign.title}
               </Text>
-              <ButtonIcon
-                iconName={IconName.Close}
-                size={ButtonIconSize.Sm}
-                onPress={handleDismiss}
-                accessibilityLabel={strings('navigation.close')}
-                testID={PerpsOutreachBannerSelectorsIDs.CLOSE_BUTTON}
-              />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {campaign.body}
+              </Text>
             </Box>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {campaign.body}
-            </Text>
           </Box>
-        </Box>
-      </Pressable>
+        </Pressable>
+
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Sm}
+          onPress={handleDismiss}
+          accessibilityLabel={strings('navigation.close')}
+          testID={PerpsOutreachBannerSelectorsIDs.CLOSE_BUTTON}
+        />
+      </Box>
     </Animated.View>
   );
 };

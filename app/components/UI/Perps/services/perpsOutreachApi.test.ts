@@ -1,11 +1,23 @@
-import axios from 'axios';
+import axios, { CanceledError } from 'axios';
 import {
   buildPerpsOutreachUrl,
   fetchPerpsOutreachBanner,
   type PerpsOutreachBanner,
 } from './perpsOutreachApi';
 
-jest.mock('axios');
+// Only `get` is stubbed: `isCancel` and `CanceledError` stay real so the
+// cancellation branch is exercised the way axios actually reports aborts.
+jest.mock('axios', () => {
+  const actual = jest.requireActual('axios');
+  return {
+    __esModule: true,
+    ...actual,
+    default: {
+      ...actual.default,
+      get: jest.fn(),
+    },
+  };
+});
 
 const mockAxiosGet = jest.mocked(axios.get);
 
@@ -137,6 +149,25 @@ describe('fetchPerpsOutreachBanner', () => {
     expect(result).toBeNull();
   });
 
+  it('returns null when linkUrl points at another universal link action', async () => {
+    // A MetaMask host alone is not enough: banner taps parse with a trusted
+    // origin, so a `/swap` or `/dapp` link would skip the interstitial.
+    mockAxiosGet.mockResolvedValue({
+      status: 200,
+      data: {
+        show: true,
+        banner: { ...BANNER, linkUrl: 'https://link.metamask.io/swap' },
+      },
+    });
+
+    const result = await fetchPerpsOutreachBanner({
+      endpoint: ENDPOINT,
+      address: '0xabc',
+    });
+
+    expect(result).toBeNull();
+  });
+
   it('defaults linkUrl to null when the backend omits it', async () => {
     const { linkUrl: _dropped, ...bannerWithoutLink } = BANNER;
     mockAxiosGet.mockResolvedValue({
@@ -190,6 +221,15 @@ describe('fetchPerpsOutreachBanner', () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  it('re-throws cancellations so they are not cached as an empty campaign', async () => {
+    const cancellation = new CanceledError('canceled');
+    mockAxiosGet.mockRejectedValue(cancellation);
+
+    await expect(
+      fetchPerpsOutreachBanner({ endpoint: ENDPOINT, address: '0xabc' }),
+    ).rejects.toBe(cancellation);
   });
 
   it('forwards the abort signal', async () => {

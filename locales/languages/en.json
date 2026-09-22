@@ -2891,7 +2891,7 @@
           "subtitle": "A sponsored trip with MetaMask, on us"
         }
       },
-      "contact": "Reach out on Telegram {{telegramHandle}}, or email ",
+      "contact": "Reach out on Telegram {{telegramHandle}}, or email {{email}}",
       "telegram_button": "Chat on Telegram",
       "schedule_button": "Schedule call"
     },

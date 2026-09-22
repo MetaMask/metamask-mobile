@@ -114,9 +114,10 @@ describe('PerpsOutreachDetailsView', () => {
     expect(
       getByTestId(PerpsOutreachDetailsViewSelectorsIDs.CONTACT_TEXT),
     ).toHaveTextContent(
-      `${strings('perps.outreach_details.contact', {
+      strings('perps.outreach_details.contact', {
         telegramHandle: CONTACT.telegramUsername,
-      })}${CONTACT.email}`,
+        email: CONTACT.email,
+      }),
     );
     expect(getByText(CONTACT.email)).toBeOnTheScreen();
   });

@@ -7,7 +7,8 @@ import {
   refine,
   string,
 } from '@metamask/superstruct';
-import axios from 'axios';
+import axios, { isCancel } from 'axios';
+import { ACTIONS } from '../../../../constants/deeplinks';
 import { isMetaMaskUniversalLink } from '../../../../core/DeeplinkManager/util/deeplinks';
 
 export interface PerpsOutreachContact {
@@ -23,10 +24,10 @@ export interface PerpsOutreachBanner {
   imageUrl: string;
   /**
    * URL opened when the user taps the banner. `null` when the campaign leaves
-   * the banner non-interactive. Typically a MetaMask universal link
-   * (e.g. `https://link.metamask.io/perps-outreach`), which the mobile client
-   * parses through `SharedDeeplinkManager` so it flows through the existing
-   * deeplink router.
+   * the banner non-interactive. Restricted to the outreach universal link
+   * (`https://link.metamask.io/perps-outreach`), which the mobile client parses
+   * through `SharedDeeplinkManager` so it flows through the existing deeplink
+   * router.
    */
   linkUrl: string | null;
   contact: PerpsOutreachContact | null;
@@ -47,10 +48,30 @@ export interface PerpsOutreachRequest {
 
 type PerpsOutreachQuery = Omit<PerpsOutreachRequest, 'endpoint' | 'signal'>;
 
-const MetaMaskUniversalLinkSchema = refine(
+const OUTREACH_LINK_PATH = `/${ACTIONS.PERPS_OUTREACH}`;
+
+/**
+ * Banner taps parse `linkUrl` with `ORIGIN_PERPS_OUTREACH`, a trusted in-app
+ * source that skips the deeplink interstitial. A host allowlist alone would let
+ * any other universal-link action (`/dapp`, `/send`, `/swap`) inherit that
+ * trust, so the path is pinned to the outreach sheet as well.
+ */
+const isPerpsOutreachLink = (url: string): boolean => {
+  if (!isMetaMaskUniversalLink(url)) {
+    return false;
+  }
+
+  try {
+    return new URL(url).pathname.replace(/\/+$/u, '') === OUTREACH_LINK_PATH;
+  } catch {
+    return false;
+  }
+};
+
+const PerpsOutreachLinkSchema = refine(
   string(),
-  'MetaMaskUniversalLink',
-  isMetaMaskUniversalLink,
+  'PerpsOutreachLink',
+  isPerpsOutreachLink,
 );
 
 const PerpsOutreachBannerSchema = object({
@@ -60,7 +81,7 @@ const PerpsOutreachBannerSchema = object({
   imageUrl: string(),
   // Older backend deployments omit `linkUrl` — treat missing as `null` so we
   // never fail validation on a non-breaking backend rollout.
-  linkUrl: defaulted(nullable(MetaMaskUniversalLinkSchema), null),
+  linkUrl: defaulted(nullable(PerpsOutreachLinkSchema), null),
   // Keep the banner compatible with deployments that predate backend-driven
   // contact configuration. The details sheet intentionally has no static
   // fallback when this field is absent.
@@ -123,7 +144,13 @@ export async function fetchPerpsOutreachBanner({
     ) as PerpsOutreachResponse;
 
     return result.show ? result.banner : null;
-  } catch {
+  } catch (error) {
+    // Leaving Perps mid-flight aborts the request. Re-throw so React Query
+    // treats it as a cancellation instead of caching an empty campaign for the
+    // query's `staleTime`; only network and validation failures hide the banner.
+    if (isCancel(error)) {
+      throw error;
+    }
     return null;
   }
 }

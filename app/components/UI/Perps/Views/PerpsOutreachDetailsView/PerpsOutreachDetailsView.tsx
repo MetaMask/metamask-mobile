@@ -160,6 +160,23 @@ const PerpsOutreachDetailsView = () => {
     Linking.openURL(`mailto:${email}`).catch(() => undefined);
   }, [email]);
 
+  // One `strings()` call so translators can place both the handle and the
+  // address anywhere in the sentence. The address is split back out of the
+  // translated copy to render it as the pressable mailto link in place.
+  const contactCopy = useMemo(() => {
+    if (!email) {
+      return null;
+    }
+
+    const sentence = strings('perps.outreach_details.contact', {
+      telegramHandle: telegramUsername,
+      email,
+    });
+    const [before, ...rest] = sentence.split(email);
+
+    return { before, after: rest.join(email) };
+  }, [email, telegramUsername]);
+
   const secondaryButtonProps = useMemo(
     () => ({
       children: strings('perps.outreach_details.telegram_button'),
@@ -255,16 +272,14 @@ const PerpsOutreachDetailsView = () => {
           />
         </Box>
 
-        {contact ? (
+        {contactCopy ? (
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="mt-6 text-center"
             testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_TEXT}
           >
-            {strings('perps.outreach_details.contact', {
-              telegramHandle: telegramUsername,
-            })}
+            {contactCopy.before}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.PrimaryDefault}
@@ -274,6 +289,7 @@ const PerpsOutreachDetailsView = () => {
             >
               {email}
             </Text>
+            {contactCopy.after}
           </Text>
         ) : null}
       </Box>

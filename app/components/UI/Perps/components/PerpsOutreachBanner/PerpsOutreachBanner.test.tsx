@@ -187,6 +187,16 @@ describe('PerpsOutreachBanner', () => {
     );
   });
 
+  it('does not route the campaign link when the close button is pressed', () => {
+    // The close control sits outside the tappable content so a dismiss cannot
+    // also open the details sheet through the parent press handler.
+    const { getByTestId } = renderBanner();
+
+    fireEvent.press(getByTestId(PerpsOutreachBannerSelectorsIDs.CLOSE_BUTTON));
+
+    expect(mockParseDeeplink).not.toHaveBeenCalled();
+  });
+
   it('parses every campaign tap without duplicate suppression', () => {
     const { getByTestId } = renderBanner();
     const content = getByTestId(PerpsOutreachBannerSelectorsIDs.CONTENT);
