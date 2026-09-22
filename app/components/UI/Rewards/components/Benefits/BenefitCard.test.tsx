@@ -257,4 +257,42 @@ describe('BenefitCard', () => {
       );
     });
   });
+
+  describe('preview variant', () => {
+    it('sizes the card so the next one peeks in the carousel', () => {
+      const benefit = createBenefit();
+
+      render(<BenefitCard benefit={benefit} variant="preview" />);
+
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'bg-section rounded-xl overflow-hidden',
+        { width: 210, height: 248 },
+      );
+    });
+
+    it('renders the cover image with the benefit thumbnail', () => {
+      const benefit = createBenefit({
+        id: 123,
+        thumbnail: 'https://cdn.example.com/benefit.png',
+      });
+
+      const { getByTestId } = render(
+        <BenefitCard benefit={benefit} variant="preview" />,
+      );
+
+      const image = getByTestId(
+        `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`,
+      );
+
+      expect(image).toBeOnTheScreen();
+      expect(image.props.source).toEqual({
+        uri: 'https://cdn.example.com/benefit.png',
+      });
+      expect(image.props.resizeMode).toBe('cover');
+    });
+  });
 });
