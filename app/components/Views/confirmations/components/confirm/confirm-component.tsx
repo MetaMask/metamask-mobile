@@ -10,6 +10,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import {
@@ -65,7 +66,7 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
 ];
 
