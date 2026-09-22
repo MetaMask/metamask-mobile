@@ -9,6 +9,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   Icon,
   IconColor,
@@ -19,47 +20,42 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { brandColor } from '@metamask/design-tokens';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import TagBase from '../../../../../component-library/base-components/TagBase';
-import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { PIX_BRAND_COLOR } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import { useVbaOnboardingRouting } from './hooks/useVbaOnboardingRouting';
-import LegalLink from './components/LegalLink';
-
-// Pix's badge is bold italic white on brand teal regardless of app theme.
-const PIX_TAG_TEXT_STYLE = {
-  color: brandColor.white,
-  fontStyle: 'italic' as const,
-  fontWeight: 'bold' as const,
-};
+import { useAdvanceVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 
 const BenefitRow = ({
-  icon,
-  children,
+  title,
+  description,
 }: {
-  icon: IconName;
-  children: React.ReactNode;
+  title: string;
+  description: string;
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
     twClassName="gap-3"
   >
-    <Box twClassName="shrink-0 pt-0.5">
-      <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
+    <Icon
+      name={IconName.Gift}
+      size={IconSize.Md}
+      color={IconColor.IconDefault}
+      twClassName="mt-1 shrink-0"
+    />
+    <Box twClassName="flex-1">
+      <Text variant={TextVariant.BodyLg}>{title}</Text>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {description}
+      </Text>
     </Box>
-    <Box twClassName="flex-1">{children}</Box>
   </Box>
 );
 
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const hydrateAndNavigate = useVbaOnboardingRouting('get-pix-key-continue');
+  const advanceOnboarding = useAdvanceVbaOnboarding('termsOne');
   const tw = useTailwind();
   const {
     disclaimers,
@@ -77,12 +73,12 @@ const GetPixKey = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(async () => {
-    // Record vendor-terms acceptance, then let the backend stage decide the
-    // next screen (rather than hardcoding Verify Identity) so resume works.
+    // Persist Terms 1 locally. Email creates the vendor session and flushes
+    // these accepted ids to the account before routing to Terms 2.
     if (await acceptDisclaimers()) {
-      await hydrateAndNavigate();
+      advanceOnboarding();
     }
-  }, [acceptDisclaimers, hydrateAndNavigate]);
+  }, [acceptDisclaimers, advanceOnboarding]);
 
   return (
     <SafeAreaView
@@ -90,130 +86,70 @@ const GetPixKey = () => {
       style={tw.style('flex-1 bg-default')}
     >
       <HeaderStandard
-        title={strings('virtual_bank_account.get_pix_key.navbar_title')}
         onBack={handleBack}
         backButtonProps={{ testID: GetPixKeySelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
+        contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
         testID={GetPixKeySelectorsIDs.CONTAINER}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
+        <Box alignItems={BoxAlignItems.Center} twClassName="mt-2">
+          <Box
+            alignItems={BoxAlignItems.Center}
+            twClassName="h-24 w-24 justify-center rounded-full bg-muted"
+          >
+            <Icon
+              name={IconName.Rocket}
+              size={IconSize.Xl}
+              color={IconColor.PrimaryDefault}
+            />
+          </Box>
+        </Box>
+        <Text
+          variant={TextVariant.HeadingLg}
+          fontWeight={FontWeight.Bold}
+          twClassName="mt-5 text-center"
+        >
           {strings('virtual_bank_account.get_pix_key.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
+          twClassName="mt-2 text-center"
         >
           {strings('virtual_bank_account.get_pix_key.description')}
         </Text>
 
-        <Box twClassName="mt-4 p-5 gap-5 rounded-xl bg-muted">
-          <BenefitRow icon={IconName.Share}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
-            >
-              <Text variant={TextVariant.BodyMd}>
-                {strings(
-                  'virtual_bank_account.get_pix_key.benefit_deposit_pix',
-                )}
-              </Text>
-              <TagBase
-                shape={TagShape.Rectangle}
-                style={{ backgroundColor: PIX_BRAND_COLOR }}
-                textProps={{ style: PIX_TAG_TEXT_STYLE }}
-              >
-                pix
-              </TagBase>
-            </Box>
-          </BenefitRow>
-          <BenefitRow icon={IconName.Global}>
-            <Text variant={TextVariant.BodyMd}>
-              {strings('virtual_bank_account.get_pix_key.benefit_payments')}
-            </Text>
-          </BenefitRow>
-        </Box>
-
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="mt-6"
-        >
-          {strings(
-            'virtual_bank_account.get_pix_key.agreements_disclosures_title',
-          )}
-        </Text>
-        <Box twClassName="mt-2 gap-2">
-          {isLoading ? (
-            <Box
-              testID={GetPixKeySelectorsIDs.DISCLAIMERS_LOADING}
-              twClassName="gap-2 py-1"
-            >
-              <Skeleton height={16} width="70%" />
-              <Skeleton height={16} width="55%" />
-            </Box>
-          ) : error ? (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              twClassName="gap-2 py-1"
-              testID={GetPixKeySelectorsIDs.DISCLAIMERS_ERROR}
-            >
-              <Box twClassName="shrink-0 pt-0.5">
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Sm}
-                  color={IconColor.ErrorDefault}
-                />
-              </Box>
-              <Box twClassName="flex-1 gap-1">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                >
-                  {strings(
-                    'virtual_bank_account.get_pix_key.disclaimers_error',
-                  )}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.PrimaryDefault}
-                  twClassName="underline"
-                  onPress={retry}
-                  testID={GetPixKeySelectorsIDs.DISCLAIMERS_RETRY}
-                >
-                  {strings(
-                    'virtual_bank_account.get_pix_key.disclaimers_retry',
-                  )}
-                </Text>
-              </Box>
-            </Box>
-          ) : (
-            disclaimers?.map((disclaimer) => (
-              <LegalLink
-                key={disclaimer.id}
-                onPress={() => Linking.openURL(disclaimer.url)}
-                testID={`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
-              >
-                {disclaimer.display_name}
-              </LegalLink>
-            ))
-          )}
+        <Box twClassName="mt-8 gap-6 rounded-3xl bg-muted p-5">
+          <BenefitRow
+            title={strings(
+              'virtual_bank_account.get_pix_key.benefit_receive_title',
+            )}
+            description={strings(
+              'virtual_bank_account.get_pix_key.benefit_receive_description',
+            )}
+          />
+          <BenefitRow
+            title={strings(
+              'virtual_bank_account.get_pix_key.benefit_add_money_title',
+            )}
+            description={strings(
+              'virtual_bank_account.get_pix_key.benefit_add_money_description',
+            )}
+          />
+          <BenefitRow
+            title={strings(
+              'virtual_bank_account.get_pix_key.benefit_currencies_title',
+            )}
+            description={strings(
+              'virtual_bank_account.get_pix_key.benefit_currencies_description',
+            )}
+          />
         </Box>
       </ScrollView>
 
       <Box twClassName="p-4 gap-3">
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextMuted}
-          twClassName="text-center"
-        >
-          {strings('virtual_bank_account.get_pix_key.agreement_text')}
-        </Text>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -225,13 +161,52 @@ const GetPixKey = () => {
         >
           {strings('virtual_bank_account.get_pix_key.button')}
         </Button>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextMuted}
-          twClassName="text-center"
-        >
-          {strings('virtual_bank_account.get_pix_key.powered_by_moonpay')}
-        </Text>
+        {error ? (
+          <Box
+            alignItems={BoxAlignItems.Center}
+            testID={GetPixKeySelectorsIDs.DISCLAIMERS_ERROR}
+          >
+            <Text variant={TextVariant.BodyXs} color={TextColor.ErrorDefault}>
+              {strings('virtual_bank_account.get_pix_key.disclaimers_error')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.PrimaryDefault}
+              onPress={retry}
+              testID={GetPixKeySelectorsIDs.DISCLAIMERS_RETRY}
+            >
+              {strings('virtual_bank_account.get_pix_key.disclaimers_retry')}
+            </Text>
+          </Box>
+        ) : (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextMuted}
+            twClassName="px-2 text-center"
+            testID={
+              isLoading ? GetPixKeySelectorsIDs.DISCLAIMERS_LOADING : undefined
+            }
+          >
+            {strings('virtual_bank_account.get_pix_key.agreement_prefix')}
+            {disclaimers?.map((disclaimer, index) => (
+              <React.Fragment key={disclaimer.id}>
+                {index > 0
+                  ? strings(
+                      'virtual_bank_account.get_pix_key.agreement_separator',
+                    )
+                  : ''}
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.PrimaryDefault}
+                  onPress={() => Linking.openURL(disclaimer.url)}
+                  testID={`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                >
+                  {disclaimer.display_name}
+                </Text>
+              </React.Fragment>
+            ))}
+          </Text>
+        )}
       </Box>
     </SafeAreaView>
   );

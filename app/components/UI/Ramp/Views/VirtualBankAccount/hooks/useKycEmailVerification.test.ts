@@ -2,11 +2,13 @@ import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
-import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
+import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockGetState = jest.fn();
+const mockGetVbaTermsOneAcceptance = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -16,11 +18,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./useVbaOnboardingRouting', () => ({
-  useVbaOnboardingRouting: jest.fn(),
+  useAdvanceVbaOnboarding: jest.fn(),
 }));
 
-const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
-const mockHydrateAndNavigate = jest.fn();
+const mockUseAdvanceVbaOnboarding = jest.mocked(useAdvanceVbaOnboarding);
+const mockAdvanceOnboarding = jest.fn();
 
 const mockKycControllerState = {
   email: null as string | null,
@@ -33,9 +35,27 @@ jest.mock('../../../../../../core/Engine', () => ({
         return mockKycControllerState;
       },
       startSession: jest.fn(),
+      recordVendorDisclaimers: jest.fn(),
       reset: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../../../core/redux', () => ({
+  store: {
+    getState: () => mockGetState(),
+  },
+}));
+
+jest.mock('../../../../../../selectors/rampsController', () => ({
+  selectSelectedVbaWalletAddress: jest.fn(
+    (state: { address?: string }) => state.address ?? null,
+  ),
+}));
+
+jest.mock('../vbaTermsOneStorage', () => ({
+  getVbaTermsOneAcceptance: (...args: unknown[]) =>
+    mockGetVbaTermsOneAcceptance(...args),
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -48,6 +68,7 @@ jest.mock('../../../../../../util/Logger', () => ({
 
 const mockKycController = Engine.context.KycController as unknown as {
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
+  recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
   reset: jest.Mock<Promise<void>, []>;
 };
 
@@ -67,9 +88,14 @@ describe('useKycEmailVerification', () => {
       id: 'session-1',
       finalStatus: 'new',
     });
+    mockKycController.recordVendorDisclaimers.mockResolvedValue([]);
     mockKycController.reset.mockResolvedValue(undefined);
-    mockHydrateAndNavigate.mockResolvedValue(undefined);
-    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockGetVbaTermsOneAcceptance.mockResolvedValue({
+      disclaimerIds: ['privacy', 'terms'],
+    });
+    mockAdvanceOnboarding.mockReturnValue(undefined);
+    mockUseAdvanceVbaOnboarding.mockReturnValue(mockAdvanceOnboarding);
   });
 
   afterEach(() => {
@@ -97,7 +123,7 @@ describe('useKycEmailVerification', () => {
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
-  it('starts the session then hydrates and navigates onward', async () => {
+  it('starts the session then advances the funnel onward', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result, '  user@example.com  ');
@@ -106,8 +132,27 @@ describe('useKycEmailVerification', () => {
       vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith('email-continue');
-    expect(mockHydrateAndNavigate).toHaveBeenCalled();
+    expect(mockGetVbaTermsOneAcceptance).toHaveBeenCalledWith('0xabc');
+    expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
+      disclaimerIds: ['privacy', 'terms'],
+    });
+    expect(mockUseAdvanceVbaOnboarding).toHaveBeenCalledWith('email');
+    expect(mockAdvanceOnboarding).toHaveBeenCalled();
+  });
+
+  it('does not advance when locally accepted Terms 1 ids are unavailable', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockGetVbaTermsOneAcceptance.mockResolvedValue(null);
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await enterEmailAndStart(result);
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.',
+    );
+    expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
+    expect(mockAdvanceOnboarding).not.toHaveBeenCalled();
   });
 
   it('alerts without hydrating when customer creation rejects', async () => {
@@ -123,7 +168,7 @@ describe('useKycEmailVerification', () => {
       'Identity verification',
       'Session creation failed.',
     );
-    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
+    expect(mockAdvanceOnboarding).not.toHaveBeenCalled();
   });
 
   it('does not start verification when the email is blank', async () => {

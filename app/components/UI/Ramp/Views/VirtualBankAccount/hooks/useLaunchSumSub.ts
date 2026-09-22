@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
   KycConsentRecord,
 } from '@metamask/kyc-controller';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -26,8 +24,8 @@ const toAcceptedDisclaimerKeys = (
 
 /**
  * On mount, records the session-scoped idOS / SumSub consents and opens the
- * SumSub document-verification journey back-to-back, then re-hydrates VBA
- * onboarding and routes to whatever stage the outcome resolves to.
+ * SumSub document-verification journey back-to-back, then advances the funnel
+ * with an optimistic pending KYC status (backend applicant status lags).
  *
  * The UKYC session was created at the email step (`startSession`) and its
  * consents were already accepted on Verify Identity, but they are re-recorded
@@ -46,7 +44,7 @@ const toAcceptedDisclaimerKeys = (
  *   retryable error and keep the user here rather than silently bouncing back.
  */
 export const useLaunchSumSub = (): UseLaunchSumSubResult => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const advanceOnboarding = useAdvanceVbaOnboarding('sumsub');
   const [isLaunching, setIsLaunching] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -84,14 +82,9 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
         });
 
         await KycController.launchProviderFlow({});
-        // The applicant has finished the SumSub SDK. `launchProviderFlow` only
-        // marks the session finalStatus 'pending' and starts polling — the
-        // applicant lifecycle (kycStatus) still reads 'new' for a moment while
-        // the backend processes the submission. So route straight to the
-        // pending screen (which polls for the final decision) rather than
-        // re-hydrating on a not-yet-updated status, which would resolve back to
-        // this launch screen and leave the user on an endless spinner.
-        navigation.navigate(Routes.RAMP.VBA_KYC_PENDING);
+        // Applicant finished the SDK; vendor status still lags, so advance
+        // the funnel with an optimistic pending kycStatus instead of hydrating.
+        advanceOnboarding();
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -104,7 +97,7 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
     };
 
     launch();
-  }, [navigation, attempt]);
+  }, [attempt, advanceOnboarding]);
 
   return { isLaunching, hasError, retry };
 };

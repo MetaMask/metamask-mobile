@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
+import ReduxService from '../../../../../../core/redux';
+import type { RootState } from '../../../../../../reducers';
+import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { VBA_KYC_VENDOR } from '../constants';
+import { saveVbaTermsOneAcceptance } from '../vbaTermsOneStorage';
 
 export type { KycDisclaimer };
 
@@ -19,10 +23,11 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs)
- * via {@link Engine.context.KycController.fetchVendorDisclaimers}.
+ * and stores the accepted document ids locally per wallet.
  *
- * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
- * Identity (`useKycSessionDisclaimers` → `KycController.fetchSessionDisclaimers`).
+ * The email step records the locally accepted ids against the customer after
+ * creating the Iron session. This lets product put Terms 1 before email even
+ * though the vendor API requires an email/customer before remote acceptance.
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
@@ -48,9 +53,16 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
     setIsAccepting(true);
     setError(null);
     try {
-      await Engine.context.KycController.recordVendorDisclaimers({
-        disclaimerIds: disclaimers.map(({ id }) => id),
-      });
+      const walletAddress = selectSelectedVbaWalletAddress(
+        ReduxService.store.getState() as RootState,
+      );
+      if (!walletAddress) {
+        throw new Error('No Money Account wallet is selected');
+      }
+      await saveVbaTermsOneAcceptance(
+        walletAddress,
+        disclaimers.map(({ id }) => id),
+      );
       return true;
     } catch (acceptError) {
       setError(

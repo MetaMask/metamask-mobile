@@ -1,12 +1,14 @@
-import { VbaOnboardingStage } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   navigateToVbaOnboardingRoute,
-  useVbaOnboardingRouting,
+  resetVbaOnboardingSnapshotCache,
+  useAdvanceVbaOnboarding,
+  useResumeVbaOnboarding,
 } from './useVbaOnboardingRouting';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 
 const mockNavigate = jest.fn();
 const navigation = {
@@ -19,6 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockHydrate = jest.fn();
 const mockGetState = jest.fn();
+const mockHasAcceptedVbaTermsOne = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -47,26 +50,53 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
-describe('useVbaOnboardingRouting', () => {
+jest.mock('../vbaTermsOneStorage', () => ({
+  hasAcceptedVbaTermsOne: (...args: unknown[]) =>
+    mockHasAcceptedVbaTermsOne(...args),
+}));
+
+describe('useResumeVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetVbaOnboardingSnapshotCache();
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockHydrate.mockResolvedValue(VbaOnboardingStage.EmailOtpRequired);
+    mockHasAcceptedVbaTermsOne.mockResolvedValue(false);
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+    });
   });
 
-  it('hydrates then navigates to the route for the returned stage', async () => {
-    const { result } = renderHook(() => useVbaOnboardingRouting());
+  it('hydrates then navigates to the route for the returned snapshot', async () => {
+    const { result } = renderHook(() => useResumeVbaOnboarding());
 
     await result.current();
 
     expect(mockHydrate).toHaveBeenCalledWith({ walletAddress: '0xabc' });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.GET_PIX_KEY);
+  });
+
+  it('resumes at email when Terms 1 is accepted locally', async () => {
+    mockHasAcceptedVbaTermsOne.mockResolvedValue(true);
+    const { result } = renderHook(() => useResumeVbaOnboarding());
+
+    await result.current();
+
+    expect(mockHasAcceptedVbaTermsOne).toHaveBeenCalledWith('0xabc');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_EMAIL);
   });
 
-  it('navigates to Money home when the stage is completed', async () => {
-    mockHydrate.mockResolvedValue(VbaOnboardingStage.Completed);
+  it('navigates to Money home when activation is ready', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      finalStatus: 'approved',
+      activation: 'ready',
+    });
 
-    const { result } = renderHook(() => useVbaOnboardingRouting());
+    const { result } = renderHook(() => useResumeVbaOnboarding());
 
     await result.current();
 
@@ -79,7 +109,7 @@ describe('useVbaOnboardingRouting', () => {
   it('opens the error screen when hydrate throws', async () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 
-    const { result } = renderHook(() => useVbaOnboardingRouting());
+    const { result } = renderHook(() => useResumeVbaOnboarding());
 
     await result.current();
 
@@ -89,7 +119,7 @@ describe('useVbaOnboardingRouting', () => {
   it('opens the error screen when no wallet address is selected', async () => {
     mockGetState.mockReturnValue({ address: null });
 
-    const { result } = renderHook(() => useVbaOnboardingRouting());
+    const { result } = renderHook(() => useResumeVbaOnboarding());
 
     await result.current();
 
@@ -100,7 +130,7 @@ describe('useVbaOnboardingRouting', () => {
   it('logs failures with the default source when none is supplied', async () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 
-    const { result } = renderHook(() => useVbaOnboardingRouting());
+    const { result } = renderHook(() => useResumeVbaOnboarding());
 
     await result.current();
 
@@ -116,7 +146,7 @@ describe('useVbaOnboardingRouting', () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 
     const { result } = renderHook(() =>
-      useVbaOnboardingRouting('get-pix-key-continue'),
+      useResumeVbaOnboarding('get-pix-key-continue'),
     );
 
     await result.current();
@@ -132,9 +162,7 @@ describe('useVbaOnboardingRouting', () => {
   it('logs failures with a per-call source override', async () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 
-    const { result } = renderHook(() =>
-      useVbaOnboardingRouting('hook-default'),
-    );
+    const { result } = renderHook(() => useResumeVbaOnboarding('hook-default'));
 
     await result.current('call-override');
 
@@ -150,5 +178,21 @@ describe('useVbaOnboardingRouting', () => {
     navigateToVbaOnboardingRoute(navigation, Routes.RAMP.GET_PIX_KEY);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.GET_PIX_KEY);
+  });
+});
+
+describe('useAdvanceVbaOnboarding', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetVbaOnboardingSnapshotCache();
+  });
+
+  it('advances Terms 1 to email without hydrating', () => {
+    const { result } = renderHook(() => useAdvanceVbaOnboarding('termsOne'));
+
+    result.current();
+
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_EMAIL);
   });
 });

@@ -1,15 +1,15 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
-import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
+import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 import { useKycStartSession } from './useKycStartSession';
 
 jest.mock('./useVbaOnboardingRouting', () => ({
-  useVbaOnboardingRouting: jest.fn(),
+  useAdvanceVbaOnboarding: jest.fn(),
 }));
 
-const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
-const mockHydrateAndNavigate = jest.fn();
+const mockUseAdvanceVbaOnboarding = jest.mocked(useAdvanceVbaOnboarding);
+const mockAdvanceOnboarding = jest.fn();
 
 const mockKycControllerState = {
   email: 'user@example.com' as string | null,
@@ -75,8 +75,8 @@ describe('useKycStartSession', () => {
     mockKycController.launchProviderFlow.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
-    mockHydrateAndNavigate.mockResolvedValue(undefined);
-    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
+    mockAdvanceOnboarding.mockReturnValue(undefined);
+    mockUseAdvanceVbaOnboarding.mockReturnValue(mockAdvanceOnboarding);
   });
 
   afterEach(() => {
@@ -97,10 +97,8 @@ describe('useKycStartSession', () => {
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
       credentialReusabilityConsentGiven: false,
     });
-    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith(
-      'verify-identity-continue',
-    );
-    expect(mockHydrateAndNavigate).toHaveBeenCalled();
+    expect(mockUseAdvanceVbaOnboarding).toHaveBeenCalledWith('providerTerms');
+    expect(mockAdvanceOnboarding).toHaveBeenCalled();
     expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
   });
 
@@ -137,7 +135,7 @@ describe('useKycStartSession', () => {
       'Email is missing. Go back and enter your email.',
     );
     expect(mockKycController.recordSessionDisclaimers).not.toHaveBeenCalled();
-    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
+    expect(mockAdvanceOnboarding).not.toHaveBeenCalled();
   });
 
   it('alerts when recording session disclaimers rejects', async () => {
@@ -153,6 +151,6 @@ describe('useKycStartSession', () => {
       'Identity verification',
       'Consent recording failed',
     );
-    expect(mockHydrateAndNavigate).not.toHaveBeenCalled();
+    expect(mockAdvanceOnboarding).not.toHaveBeenCalled();
   });
 });

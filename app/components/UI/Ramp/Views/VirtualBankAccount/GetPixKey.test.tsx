@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import { useVbaOnboardingRouting } from './hooks/useVbaOnboardingRouting';
+import { useAdvanceVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -19,20 +19,25 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./hooks/useVbaOnboardingRouting', () => ({
-  useVbaOnboardingRouting: jest.fn(),
+  useAdvanceVbaOnboarding: jest.fn(),
 }));
-const mockUseVbaOnboardingRouting = jest.mocked(useVbaOnboardingRouting);
-const mockHydrateAndNavigate = jest.fn();
+const mockUseAdvanceVbaOnboarding = jest.mocked(useAdvanceVbaOnboarding);
+const mockAdvanceOnboarding = jest.fn();
 
 jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockRetry = jest.fn();
 const mockAcceptDisclaimers = jest.fn();
 
-const loadedDisclaimer = {
+const privacyDisclaimer = {
   id: 'd-1',
-  url: 'https://iron.example/tc',
-  display_name: 'Iron T&C',
+  url: 'https://moonpay.example/privacy',
+  display_name: "MoonPay's Privacy Policy",
+};
+const termsDisclaimer = {
+  id: 'd-2',
+  url: 'https://moonpay.example/terms',
+  display_name: "MoonPay's Terms and Conditions",
 };
 
 describe('GetPixKey', () => {
@@ -40,7 +45,7 @@ describe('GetPixKey', () => {
     jest.clearAllMocks();
     jest.resetAllMocks();
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [loadedDisclaimer],
+      disclaimers: [privacyDisclaimer, termsDisclaimer],
       isLoading: false,
       isAccepting: false,
       error: null,
@@ -48,20 +53,17 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
     mockAcceptDisclaimers.mockResolvedValue(true);
-    mockHydrateAndNavigate.mockResolvedValue(undefined);
-    mockUseVbaOnboardingRouting.mockReturnValue(mockHydrateAndNavigate);
+    mockAdvanceOnboarding.mockReturnValue(undefined);
+    mockUseAdvanceVbaOnboarding.mockReturnValue(mockAdvanceOnboarding);
   });
 
-  it('renders the title, benefits, and agree and continue button', () => {
+  it('renders the activation design', () => {
     const { getByText, getByTestId } = renderWithProvider(<GetPixKey />);
 
-    expect(getByText('Get your Pix Key')).toBeOnTheScreen();
-    expect(getByText('Deposit with')).toBeOnTheScreen();
-    expect(getByText('pix')).toBeOnTheScreen();
-    expect(
-      getByText('Send local and international payments'),
-    ).toBeOnTheScreen();
-    expect(getByText('Powered by MoonPay.')).toBeOnTheScreen();
+    expect(getByText('Activate your Virtual Bank Account')).toBeOnTheScreen();
+    expect(getByText('Receive money locally')).toBeOnTheScreen();
+    expect(getByText('Add money with ease')).toBeOnTheScreen();
+    expect(getByText('Manage multiple currencies')).toBeOnTheScreen();
     expect(
       getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeOnTheScreen();
@@ -75,7 +77,7 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('records vendor disclaimers before hydrating and navigating onward', async () => {
+  it('stores Terms 1 locally before advancing to email', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
@@ -83,12 +85,10 @@ describe('GetPixKey', () => {
 
     fireEvent.press(button);
 
-    expect(mockUseVbaOnboardingRouting).toHaveBeenCalledWith(
-      'get-pix-key-continue',
-    );
+    expect(mockUseAdvanceVbaOnboarding).toHaveBeenCalledWith('termsOne');
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockHydrateAndNavigate).toHaveBeenCalled();
+      expect(mockAdvanceOnboarding).toHaveBeenCalled();
     });
   });
 
@@ -139,11 +139,11 @@ describe('GetPixKey', () => {
     const spy = jest.spyOn(Linking, 'openURL');
     const { getByText } = renderWithProvider(<GetPixKey />);
 
-    expect(getByText('Iron T&C')).toBeOnTheScreen();
+    expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
 
-    fireEvent.press(getByText('Iron T&C'));
+    fireEvent.press(getByText("MoonPay's Privacy Policy"));
 
-    expect(spy).toHaveBeenCalledWith('https://iron.example/tc');
+    expect(spy).toHaveBeenCalledWith('https://moonpay.example/privacy');
   });
 
   it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {

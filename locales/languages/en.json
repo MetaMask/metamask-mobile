@@ -1119,16 +1119,19 @@
   "virtual_bank_account": {
     "get_pix_key": {
       "navbar_title": "Bank account",
-      "title": "Get your Pix Key",
-      "description": "Send funds directly to your Money account from any bank account.",
-      "benefit_deposit_pix": "Deposit with",
-      "benefit_payments": "Send local and international payments",
-      "agreements_disclosures_title": "Agreements and disclosures",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agreement_text": "By continuing, you agree to the terms and conditions above.",
-      "powered_by_moonpay": "Powered by MoonPay.",
-      "button": "Agree and continue"
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1156,7 +1159,7 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Email is missing. Go back and enter your email."
     },
     "sumsub_kyc": {

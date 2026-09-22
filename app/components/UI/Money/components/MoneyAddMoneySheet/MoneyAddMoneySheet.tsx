@@ -39,7 +39,7 @@ import { selectHasUnapprovedTransactions } from '../../../../../selectors/transa
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useVbaOnboardingRouting } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { useResumeVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -62,7 +62,7 @@ const log = createProjectLogger('money-add-money-sheet');
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const hydrateAndNavigate = useVbaOnboardingRouting('money-add-money-sheet');
+  const resumeOnboarding = useResumeVbaOnboarding('money-add-money-sheet');
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
@@ -171,9 +171,9 @@ const MoneyAddMoneySheet: React.FC = () => {
     // Hydrate VBA onboarding from the account and route to whatever stage the
     // user is at (fresh users land on the email step; returning users resume).
     sheetRef.current?.onCloseBottomSheet(() => {
-      hydrateAndNavigate().catch(() => undefined);
+      resumeOnboarding().catch(() => undefined);
     });
-  }, [hydrateAndNavigate, trackSurfaceClicked]);
+  }, [resumeOnboarding, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
     trackSurfaceClicked({

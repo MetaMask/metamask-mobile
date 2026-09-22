@@ -15,7 +15,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { useVbaOnboardingRouting } from './hooks/useVbaOnboardingRouting';
+import { useResumeVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 
 export type VbaOnboardingStubVariant =
   | 'kyc_pending'
@@ -34,7 +34,7 @@ interface VbaOnboardingStubProps {
 
 const VbaOnboardingStub = ({ variant }: VbaOnboardingStubProps) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const hydrateAndNavigate = useVbaOnboardingRouting(`${variant}-retry`);
+  const resumeOnboarding = useResumeVbaOnboarding(`${variant}-retry`);
   const tw = useTailwind();
   const [isContinuing, setIsContinuing] = useState(false);
 
@@ -46,11 +46,11 @@ const VbaOnboardingStub = ({ variant }: VbaOnboardingStubProps) => {
     }
     setIsContinuing(true);
     try {
-      await hydrateAndNavigate();
+      await resumeOnboarding();
     } finally {
       setIsContinuing(false);
     }
-  }, [isContinuing, hydrateAndNavigate]);
+  }, [isContinuing, resumeOnboarding]);
 
   return (
     <SafeAreaView

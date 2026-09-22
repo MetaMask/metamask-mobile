@@ -8,7 +8,7 @@ import type {
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
-import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
+import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 
 interface UseKycStartSessionResult {
   isStarting: boolean;
@@ -22,16 +22,13 @@ const toAcceptedDisclaimerKeys = (
 
 /**
  * Records the session-scoped idOS / SumSub consents (Verify Identity), then
- * advances VBA onboarding by re-hydrating from the account and routing to the
- * stage the backend resolves to — the SumSub journey itself is launched on the
- * dedicated KycRequired screen ({@link useLaunchSumSub}), where it runs
+ * advances the Mobile funnel to SumSub. The journey itself is launched on the
+ * dedicated SumSub screen ({@link useLaunchSumSub}), where it runs
  * back-to-back with the session-consent record so the idOS applicant stays
  * valid.
  */
 export const useKycStartSession = (): UseKycStartSessionResult => {
-  const hydrateAndNavigate = useVbaOnboardingRouting(
-    'verify-identity-continue',
-  );
+  const advanceOnboarding = useAdvanceVbaOnboarding('providerTerms');
   const [isStarting, setIsStarting] = useState(false);
 
   const startSession = useCallback(async () => {
@@ -67,7 +64,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
         credentialReusabilityConsentGiven: false,
       });
 
-      await hydrateAndNavigate();
+      advanceOnboarding();
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -81,7 +78,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
     } finally {
       setIsStarting(false);
     }
-  }, [isStarting, hydrateAndNavigate]);
+  }, [isStarting, advanceOnboarding]);
 
   return { isStarting, startSession };
 };

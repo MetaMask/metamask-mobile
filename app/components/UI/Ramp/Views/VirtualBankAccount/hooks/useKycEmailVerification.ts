@@ -3,10 +3,14 @@ import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
+import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
+import type { RootState } from '../../../../../../reducers';
+import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { strings } from '../../../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../constants';
-import { useVbaOnboardingRouting } from './useVbaOnboardingRouting';
+import { getVbaTermsOneAcceptance } from '../vbaTermsOneStorage';
+import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -18,10 +22,13 @@ interface UseKycEmailVerificationResult {
   resetKyc: () => Promise<void>;
 }
 
-/** Starts or resumes the KYC session, then continues to Get Pix Key. */
+/**
+ * Starts or resumes the KYC session, records the Terms 1 ids accepted locally,
+ * then advances to the session-scoped Terms 2 page.
+ */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
-  const hydrateAndNavigate = useVbaOnboardingRouting('email-continue');
+  const advanceOnboarding = useAdvanceVbaOnboarding('email');
   const [email, setEmail] = useState(
     () => Engine.context.KycController?.state.email?.trim() ?? '',
   );
@@ -44,9 +51,22 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         email: trimmedEmail,
       });
 
-      // Let the backend stage decide the next screen (rather than hardcoding
-      // Get Pix Key) so a returning user resumes at the right step.
-      await hydrateAndNavigate();
+      const walletAddress = selectSelectedVbaWalletAddress(
+        ReduxService.store.getState() as RootState,
+      );
+      const termsOneAcceptance = walletAddress
+        ? await getVbaTermsOneAcceptance(walletAddress)
+        : null;
+      if (!termsOneAcceptance?.disclaimerIds.length) {
+        throw new Error(
+          strings('virtual_bank_account.kyc_email.terms_not_loaded_error'),
+        );
+      }
+      await Engine.context.KycController.recordVendorDisclaimers({
+        disclaimerIds: termsOneAcceptance.disclaimerIds,
+      });
+
+      advanceOnboarding();
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -61,7 +81,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, hydrateAndNavigate, trimmedEmail]);
+  }, [isVerifying, advanceOnboarding, trimmedEmail]);
 
   const resetKyc = useCallback(async () => {
     try {

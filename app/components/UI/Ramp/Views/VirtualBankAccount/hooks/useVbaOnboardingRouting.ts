@@ -7,11 +7,37 @@ import Logger from '../../../../../../util/Logger';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { getVbaRouteForStage } from '../getVbaRouteForStage';
+import {
+  completeVbaFunnelStep,
+  getVbaRouteForSnapshot,
+  type VbaFunnelStepId,
+  type VbaOnboardingRoute,
+} from '../vbaOnboardingFunnel';
+import {
+  EMPTY_VBA_ONBOARDING_SNAPSHOT,
+  type VbaOnboardingSnapshot,
+} from '../vbaOnboardingSnapshot';
+import { hasAcceptedVbaTermsOne } from '../vbaTermsOneStorage';
+
+let lastVbaOnboardingSnapshot: VbaOnboardingSnapshot =
+  EMPTY_VBA_ONBOARDING_SNAPSHOT;
+
+export const getLastVbaOnboardingSnapshot = (): VbaOnboardingSnapshot =>
+  lastVbaOnboardingSnapshot;
+
+export const setLastVbaOnboardingSnapshot = (
+  snapshot: VbaOnboardingSnapshot,
+): void => {
+  lastVbaOnboardingSnapshot = snapshot;
+};
+
+export const resetVbaOnboardingSnapshotCache = (): void => {
+  lastVbaOnboardingSnapshot = EMPTY_VBA_ONBOARDING_SNAPSHOT;
+};
 
 export const navigateToVbaOnboardingRoute = (
   navigation: AppNavigationProp,
-  route: ReturnType<typeof getVbaRouteForStage>,
+  route: VbaOnboardingRoute,
 ): void => {
   if (route === Routes.MONEY.HOME) {
     navigation.navigate(Routes.HOME_TABS, {
@@ -23,17 +49,19 @@ export const navigateToVbaOnboardingRoute = (
   navigation.navigate(route);
 };
 
+const openRecoverableError = (navigation: AppNavigationProp): void => {
+  navigateToVbaOnboardingRoute(navigation, Routes.RAMP.VBA_ONBOARDING_ERROR);
+};
+
 /**
- * Returns a callback that re-hydrates VBA onboarding from RampsController and
- * navigates to the route for the returned stage. On failure, opens the
- * recoverable error screen. Navigation is resolved from {@link useNavigation},
- * so callers only supply the telemetry `source`.
+ * Re-hydrates VBA onboarding facts from RampsController and navigates to the
+ * first incomplete funnel step. Use at entry points and retry, not after a
+ * successful local CTA.
  *
- * @param defaultSource - Caller/entry point, attached to error telemetry for
- * context. Can be overridden per call for dynamic sources.
+ * @param defaultSource - Caller/entry point for error telemetry.
  * @returns An async callback accepting an optional `source` override.
  */
-export const useVbaOnboardingRouting = (
+export const useResumeVbaOnboarding = (
   defaultSource = 'unspecified',
 ): ((source?: string) => Promise<void>) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -45,32 +73,58 @@ export const useVbaOnboardingRouting = (
           ReduxService.store.getState() as RootState,
         );
         if (!walletAddress) {
-          navigateToVbaOnboardingRoute(
-            navigation,
-            Routes.RAMP.VBA_ONBOARDING_ERROR,
-          );
+          openRecoverableError(navigation);
           return;
         }
 
-        const stage = await Engine.context.RampsController.hydrateVbaOnboarding({
-          walletAddress,
-        });
-        const route = getVbaRouteForStage(stage);
-        navigateToVbaOnboardingRoute(navigation, route);
+        const accountSnapshot =
+          (await Engine.context.RampsController.hydrateVbaOnboarding({
+            walletAddress,
+          })) as Omit<VbaOnboardingSnapshot, 'termsOneAccepted'>;
+        const snapshot: VbaOnboardingSnapshot = {
+          ...accountSnapshot,
+          termsOneAccepted:
+            accountSnapshot.vendorDisclaimersComplete ||
+            (await hasAcceptedVbaTermsOne(walletAddress)),
+        };
+        setLastVbaOnboardingSnapshot(snapshot);
+        navigateToVbaOnboardingRoute(
+          navigation,
+          getVbaRouteForSnapshot(snapshot),
+        );
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-onboarding' },
           context: {
-            name: 'useVbaOnboardingRouting',
+            name: 'useResumeVbaOnboarding',
             source,
           },
         });
-        navigateToVbaOnboardingRoute(
-          navigation,
-          Routes.RAMP.VBA_ONBOARDING_ERROR,
-        );
+        openRecoverableError(navigation);
       }
     },
     [navigation, defaultSource],
   );
+};
+
+/**
+ * Advances the Mobile funnel after a successful local action without
+ * re-hydrating (avoids backend lag sending the user backward).
+ *
+ * @param stepId - Funnel step the user just completed.
+ * @returns A callback that navigates to the next incomplete step.
+ */
+export const useAdvanceVbaOnboarding = (
+  stepId: VbaFunnelStepId,
+): (() => void) => {
+  const navigation = useNavigation<AppNavigationProp>();
+
+  return useCallback(() => {
+    const snapshot = completeVbaFunnelStep(
+      getLastVbaOnboardingSnapshot(),
+      stepId,
+    );
+    setLastVbaOnboardingSnapshot(snapshot);
+    navigateToVbaOnboardingRoute(navigation, getVbaRouteForSnapshot(snapshot));
+  }, [navigation, stepId]);
 };
