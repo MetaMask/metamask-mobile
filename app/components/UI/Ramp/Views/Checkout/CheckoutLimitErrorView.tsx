@@ -12,18 +12,14 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 
 export interface CheckoutLimitErrorViewProps {
-  /** Starts the hosted-widget hand-off. */
+  providerName: string;
   onContinuePress: () => void;
-  /** True while the hand-off is in flight; disables the action. */
   isPending: boolean;
 }
 
-/**
- * Body of the Checkout sheet when the Coinbase embedded checkout reports a
- * guest-checkout limit and the API attached a hosted-widget fallback: offers
- * to continue with the user's Coinbase account instead of a fixed error.
- */
+/** Checkout sheet body for a per-user limit error with a hosted-widget fallback. */
 const CheckoutLimitErrorView = ({
+  providerName,
   onContinuePress,
   isPending,
 }: CheckoutLimitErrorViewProps) => (
@@ -35,6 +31,7 @@ const CheckoutLimitErrorView = ({
     >
       {strings(
         'fiat_on_ramp_aggregator.checkout_guest_limit_reached_description',
+        { provider: providerName },
       )}
     </Text>
     <Button
@@ -45,7 +42,8 @@ const CheckoutLimitErrorView = ({
       isFullWidth
     >
       {strings(
-        'fiat_on_ramp_aggregator.checkout_continue_with_coinbase_account',
+        'fiat_on_ramp_aggregator.checkout_continue_with_provider_account',
+        { provider: providerName },
       )}
     </Button>
   </Box>

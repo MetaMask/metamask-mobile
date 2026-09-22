@@ -7,9 +7,7 @@ export type CloseSource =
   | 'callback_error'
   | 'http_error'
   | 'background'
-  // Coinbase embedded checkout limit-error fallback: the user tapped
-  // "Continue with your Coinbase account" and Checkout handed the flow off
-  // to the hosted widget in an external browser.
+  // Embedded checkout limit-error fallback handed off to the hosted widget.
   | 'fallback_hosted';
 
 export interface FunnelBaseProps {

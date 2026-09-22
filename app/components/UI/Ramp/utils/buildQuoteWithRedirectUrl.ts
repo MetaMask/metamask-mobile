@@ -1,12 +1,6 @@
 import { isExternalBrowserQuote, type Quote } from '@metamask/ramps-controller';
 import { getRampCallbackBaseUrl } from './getRampCallbackBaseUrl';
 
-/**
- * Rewrites a URL's `redirectUrl` query parameter in place. Shared by
- * `buildQuoteWithRedirectUrl` (a Quote's `buyURL`) and
- * `buildFallbackWidgetQuote` (a bare buy-widget URL) so both go through the
- * same rewrite.
- */
 function withRedirectUrl(url: string, redirectUrl: string): string {
   const parsed = new URL(url);
   parsed.searchParams.set('redirectUrl', redirectUrl);
@@ -38,14 +32,8 @@ export function getProviderDeeplinkRedirectUrl(providerCode: string): string {
   return `metamask://on-ramp/providers/${providerCode}`;
 }
 
-/**
- * Builds the minimal Quote-shaped object `getBuyWidgetData` needs (it reads
- * only `quote.quote.buyURL`) from a bare buy-widget URL and a provider code,
- * rewriting the URL's `redirectUrl` the same way `buildQuoteWithRedirectUrl`
- * does for an IN_APP_OS_BROWSER quote. Used by the Coinbase embedded
- * checkout's guest-limit fallback, which starts from a fallback buy-widget
- * URL rather than a full Quote.
- */
+// Minimal Quote-shaped object for `getBuyWidgetData` (it reads only `buyURL`),
+// built from a bare fallback buy-widget URL.
 export function buildFallbackWidgetQuote(
   url: string,
   providerCode: string,

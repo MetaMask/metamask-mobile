@@ -45,9 +45,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import {
-  useCoinbaseEmbeddedCheckout,
+  useCheckoutPageEvents,
   type CheckoutErrorCtaMode,
-} from '../../hooks/useCoinbaseEmbeddedCheckout';
+} from '../../hooks/useCheckoutPageEvents';
 import CheckoutLimitErrorView from './CheckoutLimitErrorView';
 import {
   closeSession,
@@ -76,7 +76,7 @@ import {
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
 import type { RampSurface } from '../../types/depositAnalytics';
-import type { BuyWidgetFallback } from '../../utils/coinbaseEmbedded';
+import type { BuyWidgetFallback } from '../../utils/checkoutPageEvents';
 
 interface CheckoutParams {
   url: string;
@@ -108,10 +108,8 @@ interface CheckoutParams {
    * resetting to `RAMPS_ORDER_DETAILS`. Headless consumers drive their own UI.
    */
   headlessSessionId?: string;
-  /** Hosted-widget fallback for Coinbase quotes, used when the embedded checkout hits a guest limit. */
+  /** Hosted-widget fallback offered when the embedded checkout page reports a per-user limit. */
   fallbackBuyWidget?: BuyWidgetFallback;
-  /** Which page-event dialect to parse from the WebView; only Coinbase today. */
-  checkoutEvents?: 'coinbase';
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -200,10 +198,8 @@ const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
-  // Which CTA the error screen shows: 'retry' remounts the WebView (the
-  // default, e.g. HTTP/navigation errors); 'go_back' is for errors where
-  // remounting would just replay a broken/single-use state (e.g. a reused
-  // Coinbase checkout link); its CTA calls navigation.goBack() instead.
+  // 'retry' remounts the WebView; 'go_back' is for errors a remount would
+  // only replay (e.g. a consumed single-use checkout link).
   const [errorCtaMode, setErrorCtaMode] =
     useState<CheckoutErrorCtaMode>('retry');
   const showError = useCallback(
@@ -235,7 +231,6 @@ const Checkout = () => {
     cryptocurrency,
     headlessSessionId,
     fallbackBuyWidget,
-    checkoutEvents,
   } = params ?? {};
 
   // Resolve the provider's iframe background color for the current theme.
@@ -714,18 +709,8 @@ const Checkout = () => {
     [],
   );
 
-  // Coinbase embedded checkout: the page never navigates to a callback URL,
-  // it stays on pay.coinbase.com and posts `polling_success` once funds are
-  // sent. This is the embedded flow's equivalent of the callback-URL branch
-  // in handleNavigationStateChange: leave the WebView and land on
-  // OrderDetails for the precreated order registered above
-  // (addPrecreatedOrder), which OrderDetails refreshes until polling
-  // resolves the final state. Without an order id there is nothing to show,
-  // so fall back to closing the sheet.
-  //
-  // One-shot: shares isRedirectionHandledRef with handleNavigationStateChange
-  // so a duplicate polling_success message, or a polling_success racing a
-  // concurrent callback-URL navigation, can only navigate once.
+  // Embedded pages report completion over the WebView bridge instead of a
+  // callback URL; shares isRedirectionHandledRef so navigation happens once.
   const handleEmbeddedCompleted = useCallback(() => {
     if (isRedirectionHandledRef.current) {
       return;
@@ -769,11 +754,8 @@ const Checkout = () => {
     cryptocurrency,
   ]);
 
-  // Coinbase error branches must fail a headless session the same way the
-  // pre-existing navError/webviewHttpError paths do: a headless caller is
-  // waiting on the session's callbacks, not on an in-app ErrorView it never
-  // asked for. Only fall back to the in-app ErrorView when there was no
-  // headless session to fail.
+  // A headless caller waits on session callbacks, not an in-app ErrorView,
+  // so page errors fail the session like navError/webviewHttpError do.
   const handleEmbeddedError = useCallback(
     (message: string, ctaMode?: CheckoutErrorCtaMode) => {
       if (failHeadlessCheckout(new Error(message))) {
@@ -784,8 +766,7 @@ const Checkout = () => {
     [failHeadlessCheckout, showError],
   );
 
-  // The user is leaving this Checkout for the hosted flow: mark it handled
-  // so nothing else closes or resolves it, and attribute the close.
+  // Leaving for the hosted flow: mark handled so nothing else closes this.
   const handleFallbackOpened = useCallback(() => {
     closeSourceRef.current = 'fallback_hosted';
     isRedirectionHandledRef.current = true;
@@ -802,14 +783,13 @@ const Checkout = () => {
   );
 
   const {
-    onMessage: handleCoinbaseMessage,
+    onMessage: handlePageMessage,
     limitErrorCode: embeddedLimitErrorCode,
     isFallbackPending,
     onFallbackPress: handleFallbackPress,
-  } = useCoinbaseEmbeddedCheckout({
-    enabled: checkoutEvents === 'coinbase',
-    fallbackBuyWidget,
+  } = useCheckoutPageEvents({
     providerCode,
+    fallbackBuyWidget,
     walletAddress,
     chainId: network,
     isHeadless: Boolean(headlessSessionId),
@@ -924,11 +904,8 @@ const Checkout = () => {
     );
   }
 
-  // Coinbase embedded checkout hit a guest-checkout limit and the API sent a
-  // hosted-widget fallback: offer to continue with the user's Coinbase
-  // account instead of the fixed error (the hook never enters limit_error
-  // without a fallback, but the check stays here too so this branch can
-  // never render without one).
+  // Per-user limit with a hosted-widget fallback: offer the provider
+  // account flow instead of a fixed error.
   if (embeddedLimitErrorCode && fallbackBuyWidget) {
     return (
       <BottomSheet
@@ -941,6 +918,7 @@ const Checkout = () => {
         <ScreenLayout>
           <ScreenLayout.Body>
             <CheckoutLimitErrorView
+              providerName={providerName}
               onContinuePress={handleFallbackPress}
               isPending={isFallbackPending}
             />
@@ -1030,7 +1008,7 @@ const Checkout = () => {
               : handleNavigationStateChangeWithDedup
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-          onMessage={handleCoinbaseMessage}
+          onMessage={handlePageMessage}
           testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>

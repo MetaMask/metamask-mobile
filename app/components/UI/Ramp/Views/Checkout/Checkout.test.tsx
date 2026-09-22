@@ -1831,7 +1831,6 @@ describe('Checkout', () => {
       walletAddress: '0xabc',
       orderId: 'cdp-order-1',
       network: 'eip155:1',
-      checkoutEvents: 'coinbase' as const,
     };
 
     const fireCoinbaseEvent = (
@@ -2340,8 +2339,7 @@ describe('Checkout', () => {
           chainId: 'eip155:1',
         });
 
-        // openHostedBuyWidget owns the navigation reset once the hand-off
-        // has happened; Checkout never pops its own sheet for this flow.
+        // openHostedBuyWidget owns the navigation reset; Checkout never pops.
         expect(mockParentPop).not.toHaveBeenCalled();
       });
 
@@ -2366,8 +2364,7 @@ describe('Checkout', () => {
 
         expect(getByText('Something went wrong')).toBeOnTheScreen();
         expect(mockOpenHostedBuyWidget).not.toHaveBeenCalled();
-        // The sheet (header + close button) is still mounted; nothing
-        // navigated away underneath the error.
+        // The sheet is still mounted; nothing navigated away under the error.
         expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
         expect(mockNavigation.getParent).not.toHaveBeenCalled();
         expect(mockNavigation.reset).not.toHaveBeenCalled();
@@ -2400,8 +2397,7 @@ describe('Checkout', () => {
 
         expect(mockOpenHostedBuyWidget).toHaveBeenCalledTimes(1);
         expect(getByText('Something went wrong')).toBeOnTheScreen();
-        // No pop, no reset: the hand-off never completed, so nothing
-        // navigated away and the user still sees an in-app error.
+        // Hand-off never completed, so nothing navigated away.
         expect(mockNavigation.getParent).not.toHaveBeenCalled();
         expect(mockNavigation.reset).not.toHaveBeenCalled();
         expect(getByTestId('checkout-close-button')).toBeOnTheScreen();

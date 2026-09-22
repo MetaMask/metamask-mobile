@@ -1,7 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
 import type { WebViewMessageEvent } from '@metamask/react-native-webview';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useCoinbaseEmbeddedCheckout } from './useCoinbaseEmbeddedCheckout';
+import type { FunnelBaseProps } from '../utils/webviewFunnelAnalytics';
+import { useCheckoutPageEvents } from './useCheckoutPageEvents';
 
 jest.mock('./useRampsQuotes', () => ({
   useRampsQuotes: jest.fn(),
@@ -28,7 +29,7 @@ const mockUseAnalytics = jest.requireMock(
   '../../../hooks/useAnalytics/useAnalytics',
 ).useAnalytics as jest.Mock;
 
-const BASE_PROPS = {
+const BASE_PROPS: FunnelBaseProps = {
   checkout_session_id: 'sess-1',
   location: 'Checkout',
   ramp_type: 'UNIFIED_BUY_2',
@@ -54,16 +55,15 @@ const makeMessage = (
   }) as unknown as WebViewMessageEvent;
 
 function setup(
-  overrides: Partial<Parameters<typeof useCoinbaseEmbeddedCheckout>[0]> = {},
+  overrides: Partial<Parameters<typeof useCheckoutPageEvents>[0]> = {},
 ) {
   const onCompleted = jest.fn();
   const onError = jest.fn();
   const onFallbackOpened = jest.fn();
   const hook = renderHook(() =>
-    useCoinbaseEmbeddedCheckout({
-      enabled: true,
-      fallbackBuyWidget: FALLBACK,
+    useCheckoutPageEvents({
       providerCode: 'coinbase-m',
+      fallbackBuyWidget: FALLBACK,
       walletAddress: '0xabc',
       chainId: '1',
       isHeadless: false,
@@ -91,7 +91,7 @@ function setup(
   };
 }
 
-describe('useCoinbaseEmbeddedCheckout', () => {
+describe('useCheckoutPageEvents', () => {
   const mockGetBuyWidgetData = jest.fn();
   const mockOpenHostedBuyWidget = jest.fn();
   const mockTrackEvent = jest.fn();
@@ -125,10 +125,22 @@ describe('useCoinbaseEmbeddedCheckout', () => {
   });
 
   describe('onMessage', () => {
-    it('is undefined when not enabled', () => {
-      const { hook } = setup({ enabled: false });
+    it('is undefined for a provider without a page-event adapter', () => {
+      const { hook } = setup({ providerCode: 'moonpay' });
 
       expect(hook.result.current.onMessage).toBeUndefined();
+    });
+
+    it('is undefined without a provider code', () => {
+      const { hook } = setup({ providerCode: undefined });
+
+      expect(hook.result.current.onMessage).toBeUndefined();
+    });
+
+    it('is attached for a Coinbase provider code with the /providers/ prefix', () => {
+      const { hook } = setup({ providerCode: '/providers/coinbase-m' });
+
+      expect(hook.result.current.onMessage).toBeInstanceOf(Function);
     });
 
     it('ignores messages from an untrusted origin', () => {

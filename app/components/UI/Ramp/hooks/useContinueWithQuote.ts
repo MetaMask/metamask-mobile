@@ -20,10 +20,7 @@ import {
   acceptedAmountMatchesRequest,
   logTransakQuoteMismatch,
 } from '../utils/transakQuoteParity';
-import {
-  getQuoteBuyWidgetFallback,
-  isCoinbaseProviderId,
-} from '../utils/coinbaseEmbedded';
+import { getQuoteBuyWidgetFallback } from '../utils/checkoutPageEvents';
 import {
   checkGooglePayAvailability,
   needsGooglePayPreflight,
@@ -297,11 +294,8 @@ export function useContinueWithQuote(
           },
         });
       };
-      // Coinbase Google Pay has no hosted fallback and its embedded page
-      // emits nothing when Google Pay cannot pay in the WebView, so ask Play
-      // Services first. This runs before the buy-widget fetch so no Coinbase
-      // order is reserved for a user who could never pay it. Only an explicit
-      // "no" stops here; an unknown answer proceeds as before.
+      // Coinbase's page emits nothing when Google Pay can't pay in the WebView,
+      // so ask Play Services before reserving an order. Only an explicit "no" stops.
       const effectivePaymentMethodId =
         quote.quote?.paymentMethod ??
         ctx.paymentMethodId ??
@@ -396,9 +390,6 @@ export function useContinueWithQuote(
             orderId: buyWidget.orderId?.trim() || undefined,
             headlessSessionId: ctx.headlessSessionId,
             fallbackBuyWidget: getQuoteBuyWidgetFallback(quote),
-            checkoutEvents: isCoinbaseProviderId(quote.provider)
-              ? 'coinbase'
-              : undefined,
           }),
         );
       } catch (error) {

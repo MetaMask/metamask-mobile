@@ -1,52 +1,14 @@
-import type { Quote } from '@metamask/ramps-controller';
-
 import {
   COINBASE_CHECKOUT_ORIGINS,
   COINBASE_EVENT_PREFIX,
+  COINBASE_EXPIRED_SESSION_TOKEN,
   COINBASE_LIMIT_ERROR_CODES,
-  getQuoteBuyWidgetFallback,
+  coinbaseCheckoutPageEventAdapter,
   isCoinbaseCheckoutUrl,
   isCoinbaseProviderId,
   parseCoinbaseCheckoutEvent,
+  toCheckoutPageEvent,
 } from './coinbaseEmbedded';
-
-const makeQuote = (buyWidget?: Record<string, unknown>): Quote =>
-  ({
-    quote: buyWidget ? { buyWidget } : {},
-  }) as unknown as Quote;
-
-describe('getQuoteBuyWidgetFallback', () => {
-  it('returns the fallback when present with a url', () => {
-    const fallback = {
-      url: 'https://pay.coinbase.com/buy',
-      browser: 'IN_APP_OS_BROWSER',
-    };
-    const quote = makeQuote({ url: 'https://example.com', fallback });
-
-    expect(getQuoteBuyWidgetFallback(quote)).toEqual(fallback);
-  });
-
-  it('returns undefined when buyWidget has no fallback', () => {
-    const quote = makeQuote({ url: 'https://example.com' });
-
-    expect(getQuoteBuyWidgetFallback(quote)).toBeUndefined();
-  });
-
-  it('returns undefined when buyWidget is absent', () => {
-    const quote = makeQuote();
-
-    expect(getQuoteBuyWidgetFallback(quote)).toBeUndefined();
-  });
-
-  it('returns undefined when fallback.url is empty', () => {
-    const quote = makeQuote({
-      url: 'https://example.com',
-      fallback: { url: '', browser: 'IN_APP_OS_BROWSER' },
-    });
-
-    expect(getQuoteBuyWidgetFallback(quote)).toBeUndefined();
-  });
-});
 
 describe('COINBASE_LIMIT_ERROR_CODES', () => {
   it('contains the three known limit error codes', () => {
@@ -196,5 +158,118 @@ describe('isCoinbaseProviderId', () => {
 
   it('returns false for undefined', () => {
     expect(isCoinbaseProviderId(undefined)).toBe(false);
+  });
+});
+
+describe('toCheckoutPageEvent', () => {
+  it.each([
+    ['load_success', 'loaded'],
+    ['apple_pay_button_pressed', 'payment_started'],
+    ['google_pay_button_pressed', 'payment_started'],
+    ['pending_payment_auth', 'payment_started'],
+    ['payment_authorized', 'payment_started'],
+    ['commit_success', 'committed'],
+    ['polling_success', 'completed'],
+    ['commit_error', 'payment_failed'],
+    ['polling_error', 'payment_failed'],
+    ['cancel', 'cancelled'],
+    ['polling_start', 'tracked_only'],
+    ['verification_success', 'tracked_only'],
+  ] as const)('maps %s to %s and keeps the raw name', (eventName, kind) => {
+    expect(toCheckoutPageEvent({ eventName })).toEqual({
+      kind,
+      name: eventName,
+      errorCode: undefined,
+    });
+  });
+
+  it('maps load_error with an expired session token to a link_expired load failure', () => {
+    expect(
+      toCheckoutPageEvent({
+        eventName: 'load_error',
+        errorCode: COINBASE_EXPIRED_SESSION_TOKEN,
+      }),
+    ).toEqual({
+      kind: 'load_failed',
+      name: 'load_error',
+      errorCode: COINBASE_EXPIRED_SESSION_TOKEN,
+      reason: 'link_expired',
+    });
+  });
+
+  it('maps any other load_error to a load failure without a reason', () => {
+    expect(
+      toCheckoutPageEvent({ eventName: 'load_error', errorCode: 'other' }),
+    ).toEqual({ kind: 'load_failed', name: 'load_error', errorCode: 'other' });
+  });
+
+  it.each([...COINBASE_LIMIT_ERROR_CODES])(
+    'maps session_error %s to limit_reached',
+    (errorCode) => {
+      expect(
+        toCheckoutPageEvent({ eventName: 'session_error', errorCode }),
+      ).toEqual({ kind: 'limit_reached', name: 'session_error', errorCode });
+    },
+  );
+
+  it('maps a non-limit session_error to failed', () => {
+    expect(
+      toCheckoutPageEvent({
+        eventName: 'session_error',
+        errorCode: 'ERROR_CODE_OTHER',
+      }),
+    ).toEqual({
+      kind: 'failed',
+      name: 'session_error',
+      errorCode: 'ERROR_CODE_OTHER',
+    });
+  });
+
+  it('maps a session_error without a code to failed', () => {
+    expect(toCheckoutPageEvent({ eventName: 'session_error' })).toEqual({
+      kind: 'failed',
+      name: 'session_error',
+      errorCode: undefined,
+    });
+  });
+});
+
+describe('coinbaseCheckoutPageEventAdapter', () => {
+  it('matches Coinbase provider ids only', () => {
+    expect(coinbaseCheckoutPageEventAdapter.matches('coinbase-m')).toBe(true);
+    expect(
+      coinbaseCheckoutPageEventAdapter.matches('/providers/coinbase'),
+    ).toBe(true);
+    expect(coinbaseCheckoutPageEventAdapter.matches('moonpay')).toBe(false);
+  });
+
+  it('trusts the Coinbase checkout origin only', () => {
+    expect(
+      coinbaseCheckoutPageEventAdapter.isTrustedUrl(
+        'https://pay.coinbase.com/buy',
+      ),
+    ).toBe(true);
+    expect(
+      coinbaseCheckoutPageEventAdapter.isTrustedUrl('https://evil.example.com'),
+    ).toBe(false);
+  });
+
+  it('parses a Coinbase message body into a neutral event', () => {
+    const data = JSON.stringify({
+      eventName: `${COINBASE_EVENT_PREFIX}session_error`,
+      data: { errorCode: 'ERROR_CODE_GUEST_TRANSACTION_LIMIT' },
+    });
+
+    expect(coinbaseCheckoutPageEventAdapter.parse(data)).toEqual({
+      kind: 'limit_reached',
+      name: 'session_error',
+      errorCode: 'ERROR_CODE_GUEST_TRANSACTION_LIMIT',
+    });
+  });
+
+  it('returns undefined for a body that is not a Coinbase event', () => {
+    expect(
+      coinbaseCheckoutPageEventAdapter.parse('{"type":"IFRAME_DETECTED"}'),
+    ).toBeUndefined();
   });
 });

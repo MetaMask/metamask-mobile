@@ -12,24 +12,16 @@ import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation'
 import { useRampsController } from './useRampsController';
 
 export interface OpenHostedBuyWidgetParams {
-  /** The hosted buy-widget URL to open. */
   url: string;
-  /** The deeplink Coinbase (or another provider) redirects back to. */
   redirectUrl: string;
   providerCode: string;
-  /** Raw order id from the buy-widget response, trimmed before use. */
   orderId?: string | null;
   walletAddress?: string | null;
   chainId?: string;
 }
 
 export interface UseOpenHostedBuyWidgetResult {
-  /**
-   * Opens a hosted buy widget in an external browser (Android's default
-   * browser via `Linking.openURL`, or an in-app auth session via
-   * `InAppBrowser.openAuth` on iOS), registers a precreated order when one
-   * is available, and navigates back into the app once the browser closes.
-   */
+  /** Opens the widget in the OS browser, registers the precreated order, and navigates back on close. */
   openHostedBuyWidget: (params: OpenHostedBuyWidgetParams) => Promise<void>;
 }
 

@@ -575,7 +575,7 @@ describe('useContinueWithQuote', () => {
       );
     });
 
-    it('carries fallbackBuyWidget and checkoutEvents for a Coinbase quote with a fallback', async () => {
+    it('carries fallbackBuyWidget for a Coinbase quote with a fallback', async () => {
       mockGetBuyWidgetData.mockResolvedValue({
         url: 'https://checkout.example.com/embed',
         orderId: 'ord-coinbase-1',
@@ -593,7 +593,6 @@ describe('useContinueWithQuote', () => {
             url: 'https://pay.coinbase.com/buy?sessionToken=fallback-token',
             browser: 'IN_APP_OS_BROWSER',
           },
-          checkoutEvents: 'coinbase',
         }),
       );
     });
@@ -633,7 +632,7 @@ describe('useContinueWithQuote', () => {
         expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
         const [, navigateParams] = mockNavigate.mock.calls[0];
         expect(navigateParams).toEqual(
-          expect.objectContaining({ checkoutEvents: 'coinbase' }),
+          expect.objectContaining({ providerCode: 'coinbase-m' }),
         );
       },
     );
@@ -656,7 +655,7 @@ describe('useContinueWithQuote', () => {
       expect(mockCheckGooglePayAvailability).not.toHaveBeenCalled();
     });
 
-    it('leaves fallbackBuyWidget and checkoutEvents undefined for a non-Coinbase quote', async () => {
+    it('leaves fallbackBuyWidget undefined for a non-Coinbase quote', async () => {
       mockGetBuyWidgetData.mockResolvedValue({
         url: 'https://checkout.example.com/embed',
         orderId: 'ord-456',
@@ -671,7 +670,6 @@ describe('useContinueWithQuote', () => {
       expect(navigateParams).toEqual(
         expect.objectContaining({
           fallbackBuyWidget: undefined,
-          checkoutEvents: undefined,
         }),
       );
     });

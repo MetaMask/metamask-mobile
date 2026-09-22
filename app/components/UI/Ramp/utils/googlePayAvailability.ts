@@ -5,28 +5,13 @@ import { isCoinbaseProviderId } from './coinbaseEmbedded';
 
 const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
 
-/**
- * How long to wait for Play Services before treating the answer as unknown.
- * The bridge only calls back on a result; a failed Play Services connection
- * is logged natively and never surfaces, so an unbounded await could hang
- * the Continue button forever.
- */
+// A failed Play Services connection never calls back, so bound the wait.
 export const GOOGLE_PAY_AVAILABILITY_TIMEOUT_MS = 3000;
 
 export type GooglePayAvailability = 'available' | 'unavailable' | 'unknown';
 
-/**
- * Whether a quote needs the native Google Pay preflight before its checkout
- * opens: Android, a Coinbase provider, and Google Pay as the payment method.
- * Coinbase serves Google Pay only through its embedded guest checkout, and
- * that page shows a dead "This purchase is unavailable" state with no event
- * when Google Pay cannot pay inside the WebView, so the app asks Play
- * Services first instead of reserving an order the user can never pay.
- *
- * @param providerId - The quote's provider id (e.g. "/providers/coinbase-m").
- * @param paymentMethodId - The payment method id (e.g. "/payments/google-pay").
- * @returns True when the preflight applies.
- */
+// Android + Coinbase + Google Pay: the embedded page shows a dead "unavailable"
+// state with no event when Google Pay can't pay in the WebView.
 export function needsGooglePayPreflight(
   providerId: string | undefined,
   paymentMethodId: string | undefined,
@@ -46,17 +31,8 @@ interface ReactNativePaymentsModule {
   ) => void;
 }
 
-/**
- * Asks Play Services whether Google Pay is ready to pay on this device
- * (`Wallet.Payments.isReadyToPay`, bridged by `@metamask/react-native-payments`).
- *
- * Only an explicit "no" from Play Services is reported as `'unavailable'`.
- * A missing bridge, a thrown error, or a slow response resolves `'unknown'`
- * so the checkout proceeds as it did before the preflight existed: a flaky
- * check must never lock a paying user out.
- *
- * @returns The availability verdict.
- */
+// Only an explicit "no" from Play Services is 'unavailable'; a missing bridge,
+// error or timeout is 'unknown' so a flaky check never locks a paying user out.
 export async function checkGooglePayAvailability(): Promise<GooglePayAvailability> {
   const canMakePayments = (
     NativeModules.ReactNativePayments as ReactNativePaymentsModule | undefined
@@ -77,9 +53,8 @@ export async function checkGooglePayAvailability(): Promise<GooglePayAvailabilit
 
     try {
       canMakePayments(
-        // Coinbase drives the real Google Pay app even on its sandbox (the
-        // sandbox flag lives on the payment link), so the production
-        // readiness answer is the honest one.
+        // Coinbase uses the real Google Pay app even on its sandbox, so ask
+        // for production readiness.
         { environment: 'PRODUCTION' },
         () => settle('unknown'),
         (result) => settle(result === false ? 'unavailable' : 'available'),

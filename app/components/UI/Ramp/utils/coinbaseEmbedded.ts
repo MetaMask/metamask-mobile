@@ -1,50 +1,9 @@
-import type { Quote } from '@metamask/ramps-controller';
+import type {
+  CheckoutPageEvent,
+  ProviderCheckoutPageEventAdapter,
+} from './checkoutPageEvents';
 
-/**
- * Fallback buy widget entry the API returns on a Coinbase quote so the
- * embedded checkout can hand the user to the hosted Coinbase widget when
- * Coinbase reports a per-user limit. Not yet part of the published
- * `BuyWidget` type in `@metamask/ramps-controller`.
- */
-export interface BuyWidgetFallback {
-  url: string;
-  browser: 'IN_APP_OS_BROWSER' | 'APP_BROWSER';
-}
-
-/**
- * Buy widget shape that may include the API-only `fallback` field.
- * Used for reading the optional field from quote.quote.buyWidget at runtime.
- */
-interface BuyWidgetWithFallback {
-  fallback?: BuyWidgetFallback;
-}
-
-/**
- * Gets the hosted-widget fallback for a Coinbase quote when present.
- * The fallback lets the embedded checkout hand off to the hosted Coinbase
- * widget after Coinbase reports a per-user guest checkout limit.
- *
- * @param quote - The quote that may include quote.buyWidget.fallback.
- * @returns The fallback buy widget, or undefined when absent or empty.
- */
-export function getQuoteBuyWidgetFallback(
-  quote: Quote,
-): BuyWidgetFallback | undefined {
-  const fallback = (quote.quote?.buyWidget as BuyWidgetWithFallback | undefined)
-    ?.fallback;
-  return fallback?.url ? fallback : undefined;
-}
-
-/**
- * Whether a quote's provider id is a Coinbase provider (e.g. "coinbase",
- * "coinbase-m", or the same with a "/providers/" prefix). Coinbase quotes
- * open the embedded checkout, whose page events Checkout parses. Ideally the
- * API would flag this on the quote; until then this is the single place the
- * check lives.
- *
- * @param providerId - The quote's `provider` id.
- * @returns True for a Coinbase provider id.
- */
+/** Matches "coinbase", "coinbase-m" and their "/providers/" forms; ideally the API would flag this. */
 export function isCoinbaseProviderId(providerId: string | undefined): boolean {
   if (!providerId) return false;
 
@@ -52,38 +11,17 @@ export function isCoinbaseProviderId(providerId: string | undefined): boolean {
   return code === 'coinbase' || code.startsWith('coinbase-');
 }
 
-/**
- * Prefix Coinbase's embedded checkout page uses on every event name it
- * posts from the top frame (e.g. "onramp_api.load_success").
- */
 export const COINBASE_EVENT_PREFIX = 'onramp_api.';
 
-/**
- * Coinbase session_error codes that mean the guest checkout limit was hit
- * and the user should be offered the hosted-widget fallback.
- */
+/** session_error codes meaning the guest checkout limit was hit. */
 export const COINBASE_LIMIT_ERROR_CODES = new Set([
   'ERROR_CODE_GUEST_TRANSACTION_LIMIT',
   'ERROR_CODE_GUEST_TRANSACTION_COUNT',
   'ERROR_CODE_LIMITS_UPGRADE_BLOCKED',
 ]);
 
-/**
- * Origins the Coinbase embedded checkout page events are trusted from.
- * Any WebView message whose posting-frame URL does not match one of these
- * origins is ignored, even if its body happens to parse as a Coinbase
- * event shape.
- */
 export const COINBASE_CHECKOUT_ORIGINS = ['https://pay.coinbase.com'];
 
-/**
- * Checks whether a WebView message's posting-frame URL belongs to a
- * trusted Coinbase checkout origin.
- *
- * @param url - The `event.nativeEvent.url` of the WebView message, if any.
- * @returns True when the URL parses and its origin is in
- * `COINBASE_CHECKOUT_ORIGINS`.
- */
 export function isCoinbaseCheckoutUrl(url: string | undefined): boolean {
   if (!url) return false;
 
@@ -94,26 +32,15 @@ export function isCoinbaseCheckoutUrl(url: string | undefined): boolean {
   }
 }
 
-/**
- * A parsed Coinbase embedded checkout page event, with the
- * `onramp_api.` prefix stripped from the event name.
- */
+/** A Coinbase page event with the `onramp_api.` prefix stripped from the name. */
 export interface CoinbaseCheckoutEvent {
   eventName: string;
   errorCode?: string;
   errorMessage?: string;
 }
 
-/**
- * Parses a WebView message body as a Coinbase embedded checkout page event.
- * Coinbase posts `event.nativeEvent.data` as a JSON string
- * `{ eventName, data?: { errorCode, errorMessage } }` from the top frame.
- * Any other message shape (e.g. `{ type: 'IFRAME_DETECTED' }`) is ignored.
- *
- * @param data - The raw WebView message body to parse.
- * @returns The parsed event, or undefined when the body is not a Coinbase
- * checkout event.
- */
+// Coinbase posts a JSON string `{ eventName, data?: { errorCode, errorMessage } }`;
+// any other shape (e.g. `{ type: 'IFRAME_DETECTED' }`) yields undefined.
 export function parseCoinbaseCheckoutEvent(
   data: unknown,
 ): CoinbaseCheckoutEvent | undefined {
@@ -147,3 +74,61 @@ export function parseCoinbaseCheckoutEvent(
     return undefined;
   }
 }
+
+/** load_error code for an already consumed single-use checkout link. */
+export const COINBASE_EXPIRED_SESSION_TOKEN = 'expired_session_token';
+
+/** Events not listed here (load_pending, polling_start, ...) are tracked but change nothing. */
+export function toCheckoutPageEvent(
+  event: CoinbaseCheckoutEvent,
+): CheckoutPageEvent {
+  const { eventName: name, errorCode } = event;
+  switch (name) {
+    case 'load_success':
+      return { kind: 'loaded', name, errorCode };
+    case 'load_error':
+      return {
+        kind: 'load_failed',
+        name,
+        errorCode,
+        ...(errorCode === COINBASE_EXPIRED_SESSION_TOKEN
+          ? { reason: 'link_expired' as const }
+          : {}),
+      };
+    case 'apple_pay_button_pressed':
+    case 'google_pay_button_pressed':
+    case 'pending_payment_auth':
+    case 'payment_authorized':
+      return { kind: 'payment_started', name, errorCode };
+    case 'commit_success':
+      return { kind: 'committed', name, errorCode };
+    case 'polling_success':
+      return { kind: 'completed', name, errorCode };
+    case 'commit_error':
+    case 'polling_error':
+      return { kind: 'payment_failed', name, errorCode };
+    case 'cancel':
+      return { kind: 'cancelled', name, errorCode };
+    case 'session_error':
+      return {
+        kind:
+          errorCode && COINBASE_LIMIT_ERROR_CODES.has(errorCode)
+            ? 'limit_reached'
+            : 'failed',
+        name,
+        errorCode,
+      };
+    default:
+      return { kind: 'tracked_only', name, errorCode };
+  }
+}
+
+export const coinbaseCheckoutPageEventAdapter: ProviderCheckoutPageEventAdapter =
+  {
+    matches: isCoinbaseProviderId,
+    isTrustedUrl: isCoinbaseCheckoutUrl,
+    parse: (data) => {
+      const parsed = parseCoinbaseCheckoutEvent(data);
+      return parsed ? toCheckoutPageEvent(parsed) : undefined;
+    },
+  };
