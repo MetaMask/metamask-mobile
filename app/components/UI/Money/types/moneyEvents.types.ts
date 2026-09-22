@@ -97,26 +97,39 @@ type MoneyButtonClickedBaseProperties = Partial<
     button_row_button_count?: number;
   };
 
-/** The resolved label pair as sent in the event payload. */
+/** The resolved label pair as sent in the event payload when available. */
 type MoneyButtonLabel = {
   label_en: string;
   label_localized: string;
 };
 
 export type MoneyTextButtonClickedEventProperties =
-  MoneyButtonClickedBaseProperties & MoneyButtonLabel;
+  MoneyButtonClickedBaseProperties & Partial<MoneyButtonLabel>;
 
 type MoneyIconButtonClickedEventProperties = MoneyButtonClickedBaseProperties;
 
 /**
- * Callers may either supply the resolved `label_en`/`label_localized` pair
- * (for dynamically computed labels) or a single `label_key` (an i18n key) that
- * the hook resolves into both. The two forms are mutually exclusive so a label
- * and its key can never contradict.
+ * Callers must either supply a static label key, resolved labels, or explicitly
+ * omit the label when the rendered value is privacy-sensitive. The omission
+ * marker is consumed before the event is sent.
  */
 type MoneyButtonLabelInput =
-  | (MoneyButtonLabel & { label_key?: never })
-  | { label_key: string; label_en?: never; label_localized?: never };
+  | (MoneyButtonLabel & {
+      label_key?: never;
+      omit_label?: never;
+    })
+  | {
+      label_key: string;
+      label_en?: never;
+      label_localized?: never;
+      omit_label?: never;
+    }
+  | {
+      omit_label: 'privacy-sensitive';
+      label_key?: never;
+      label_en?: never;
+      label_localized?: never;
+    };
 
 type MoneyTextButtonClickedInputProperties = MoneyButtonClickedBaseProperties &
   MoneyButtonLabelInput;
