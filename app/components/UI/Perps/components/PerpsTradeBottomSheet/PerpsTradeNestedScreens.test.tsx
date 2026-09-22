@@ -6,18 +6,25 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsTPSLViewSelector,
+  PerpsTPSLViewSelectorsIDs,
+} from '../../Perps.testIds';
 import { PerpsTradeTPSLScreen } from './PerpsTradeNestedScreens';
 
 const mockGoBack = jest.fn();
 const mockHandleTakeProfitOff = jest.fn();
 const mockHandleStopLossOff = jest.fn();
+const mockHandleTakeProfitPercentageButton = jest.fn();
+const mockHandleStopLossPercentageButton = jest.fn();
 const mockHandleStopLossPriceChange = jest.fn();
 let mockHasChanges = true;
 let mockIsValid = true;
 let mockTakeProfitError = '';
 let mockStopLossError = '';
 let mockStopLossLiquidationError = '';
+let mockExpectedTakeProfitPnL: number | undefined;
+let mockExpectedStopLossPnL: number | undefined;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   usePerpsTradeSheet: () => ({
@@ -53,6 +60,8 @@ jest.mock('../../hooks/usePerpsTPSLForm', () => ({
     buttons: {
       handleTakeProfitOff: mockHandleTakeProfitOff,
       handleStopLossOff: mockHandleStopLossOff,
+      handleTakeProfitPercentageButton: mockHandleTakeProfitPercentageButton,
+      handleStopLossPercentageButton: mockHandleStopLossPercentageButton,
       handleTakeProfitSignToggle: jest.fn(),
       handleStopLossSignToggle: jest.fn(),
     },
@@ -66,6 +75,8 @@ jest.mock('../../hooks/usePerpsTPSLForm', () => ({
     display: {
       formattedTakeProfitPercentage: '30',
       formattedStopLossPercentage: '30',
+      expectedTakeProfitPnL: mockExpectedTakeProfitPnL,
+      expectedStopLossPnL: mockExpectedStopLossPnL,
     },
   }),
 }));
@@ -92,6 +103,8 @@ describe('PerpsTradeNestedScreens', () => {
     mockTakeProfitError = '';
     mockStopLossError = '';
     mockStopLossLiquidationError = '';
+    mockExpectedTakeProfitPnL = undefined;
+    mockExpectedStopLossPnL = undefined;
   });
 
   it('commits TP/SL before returning to Trade', async () => {
@@ -171,7 +184,7 @@ describe('PerpsTradeNestedScreens', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('swaps Save for the keypad while an input is focused', () => {
+  it('keeps Save visible and shows take-profit presets above the keypad', () => {
     render(<PerpsTradeTPSLScreen {...defaultProps} />);
 
     fireEvent(
@@ -183,9 +196,31 @@ describe('PerpsTradeNestedScreens', () => {
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getPerpsTPSLViewSelector.takeProfitPercentageButton(50),
+      ),
+    ).toBeOnTheScreen();
     expect(screen.getByText('7')).toBeOnTheScreen();
+  });
+
+  it('applies the preset for the focused TP/SL section', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    fireEvent(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      'focus',
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsTPSLViewSelector.stopLossPercentageButton(-25),
+      ),
+    );
+
+    expect(mockHandleStopLossPercentageButton).toHaveBeenCalledWith(-25);
+    expect(mockHandleTakeProfitPercentageButton).not.toHaveBeenCalled();
   });
 
   it('hides the keypad again from Done', () => {
@@ -203,6 +238,16 @@ describe('PerpsTradeNestedScreens', () => {
     expect(
       screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows expected profit and loss for populated fields', () => {
+    mockExpectedTakeProfitPnL = 42.5;
+    mockExpectedStopLossPnL = -12.25;
+
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    expect(screen.getByText('Expected profit: $42.50')).toBeOnTheScreen();
+    expect(screen.getByText('Expected loss: $12.25')).toBeOnTheScreen();
   });
 
   it('routes keypad input to the focused field', () => {

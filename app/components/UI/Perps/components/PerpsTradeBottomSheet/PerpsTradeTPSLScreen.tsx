@@ -44,9 +44,13 @@ import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import {
   formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsTPSLViewSelector,
+  PerpsTPSLViewSelectorsIDs,
+} from '../../Perps.testIds';
 import { usePerpsTradeSheet } from './PerpsTradeBottomSheet';
 
 /** Lets the keypad mount and section layout settle before measuring. */
@@ -187,9 +191,18 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     handleStopLossPercentageFocus,
     handleStopLossPercentageBlur,
   } = tpslForm.handlers;
-  const { handleTakeProfitOff, handleStopLossOff } = tpslForm.buttons;
-  const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
-    tpslForm.display;
+  const {
+    handleTakeProfitOff,
+    handleStopLossOff,
+    handleTakeProfitPercentageButton,
+    handleStopLossPercentageButton,
+  } = tpslForm.buttons;
+  const {
+    formattedTakeProfitPercentage,
+    formattedStopLossPercentage,
+    expectedTakeProfitPnL,
+    expectedStopLossPnL,
+  } = tpslForm.display;
 
   const currentPriceDisplay = formatPerpsFiat(effectiveEntryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
@@ -213,6 +226,18 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       undefined
     : undefined;
   const inputsDisabled = isUpdating;
+  const formatExpectedPnL = (pnl: number) =>
+    pnl >= 0
+      ? strings('perps.tpsl.expected_profit', {
+          amount: formatPerpsFiat(Math.abs(pnl), {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          }),
+        })
+      : strings('perps.tpsl.expected_loss', {
+          amount: formatPerpsFiat(Math.abs(pnl), {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          }),
+        });
 
   // Low-value assets need more decimals than the USD default so a trigger
   // price like $0.00214 can be entered.
@@ -466,15 +491,16 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     [handleSave, hasChanges, isUpdating, isValid],
   );
 
-  const doneButtonProps = useMemo(
-    () => ({
-      children: strings('perps.tpsl.done'),
-      onPress: dismissKeypad,
-      size: ButtonSize.Lg,
-      testID: PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
-    }),
-    [dismissKeypad],
-  );
+  const focusedPresets =
+    focusedInput === 'takeProfitPrice' ||
+    focusedInput === 'takeProfitPercentage'
+      ? TP_SL_VIEW_CONFIG.TakeProfitRoePresets
+      : TP_SL_VIEW_CONFIG.StopLossRoePresets;
+  const handlePresetPress =
+    focusedInput === 'takeProfitPrice' ||
+    focusedInput === 'takeProfitPercentage'
+      ? handleTakeProfitPercentageButton
+      : handleStopLossPercentageButton;
 
   return (
     <Box accessible={false} twClassName="flex-1">
@@ -619,6 +645,14 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 >
                   {takeProfitErrorMessage}
                 </HelpText>
+              ) : takeProfitPrice && expectedTakeProfitPnL !== undefined ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-right"
+                >
+                  {formatExpectedPnL(expectedTakeProfitPnL)}
+                </Text>
               ) : null}
             </Box>
           </View>
@@ -730,6 +764,14 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 >
                   {stopLossErrorMessage}
                 </HelpText>
+              ) : stopLossPrice && expectedStopLossPnL !== undefined ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-right"
+                >
+                  {formatExpectedPnL(expectedStopLossPnL)}
+                </Text>
               ) : null}
             </Box>
           </View>
@@ -748,9 +790,47 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
         twClassName="w-full"
         onLayout={handleKeypadFooterLayout}
       >
+        <BottomSheetFooter primaryButtonProps={saveButtonProps} />
         {focusedInput ? (
           <>
-            <BottomSheetFooter primaryButtonProps={doneButtonProps} />
+            <Box
+              accessible={false}
+              flexDirection={BoxFlexDirection.Row}
+              paddingHorizontal={4}
+              paddingTop={2}
+              gap={2}
+            >
+              {focusedPresets.map((percentage) => (
+                <Button
+                  key={percentage}
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  twClassName="flex-1"
+                  onPress={() => handlePresetPress(percentage)}
+                  isDisabled={inputsDisabled}
+                  testID={
+                    percentage > 0
+                      ? getPerpsTPSLViewSelector.takeProfitPercentageButton(
+                          percentage,
+                        )
+                      : getPerpsTPSLViewSelector.stopLossPercentageButton(
+                          percentage,
+                        )
+                  }
+                >
+                  {percentage > 0 ? `+${percentage}%` : `${percentage}%`}
+                </Button>
+              ))}
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                twClassName="flex-1"
+                onPress={dismissKeypad}
+                testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
+              >
+                {strings('perps.tpsl.done')}
+              </Button>
+            </Box>
             <Box accessible={false} paddingHorizontal={4} paddingTop={2}>
               <Keypad
                 value={keypadValue}
@@ -765,9 +845,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
               />
             </Box>
           </>
-        ) : (
-          <BottomSheetFooter primaryButtonProps={saveButtonProps} />
-        )}
+        ) : null}
       </Box>
     </Box>
   );
