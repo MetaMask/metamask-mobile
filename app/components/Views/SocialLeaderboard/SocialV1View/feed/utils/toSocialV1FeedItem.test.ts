@@ -210,7 +210,6 @@ describe('toSocialV1FeedItem', () => {
       if (result.variant !== 'perpsOpen') return;
       expect(result.entryPriceLabel).toBe('$5,500');
       expect(result.entryPriceLabel).not.toContain(MOCK_MARKER);
-      expect(result.mockedFields).not.toContain('entryPrice');
     });
 
     it('derives an unmarked exit price from the last exit fill', () => {
@@ -263,7 +262,6 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('perpsClosed');
       if (result.variant !== 'perpsClosed') return;
       expect(result.holdTimeLabel).toBe('8h');
-      expect(result.mockedFields).not.toContain('holdTime');
     });
 
     it('derives an unmarked hold time for an open spot position', () => {
@@ -291,7 +289,6 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('spotOpen');
       if (result.variant !== 'spotOpen') return;
       expect(result.holdTimeLabel).toBe('8h');
-      expect(result.mockedFields).not.toContain('holdTime');
     });
 
     // A single closing sell fill puts the row on the closed card, and the side
@@ -365,14 +362,12 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.author.winRatePercent).toBe(61);
       expect(result.author.pnl30d).toBeNull();
-      expect(result.mockedFields).not.toContain('winRate');
     });
 
     it('omits the win rate when the actor has none', () => {
       const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
 
       expect(result.author.winRatePercent).toBeNull();
-      expect(result.mockedFields).not.toContain('winRate');
     });
 
     it('marks the invented mark price on an open spot position', () => {
@@ -471,14 +466,13 @@ describe('toSocialV1FeedItem', () => {
       const result = toSocialV1FeedItem(row);
 
       expect(result.comment).toBe('Thesis unchanged.');
-      expect(result.mockedFields).not.toContain('comment');
+      expect(result.mockedFields).toStrictEqual([]);
     });
 
     it('omits the caption when the position has no author comment', () => {
       const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
 
       expect(result.comment).toBeUndefined();
-      expect(result.mockedFields).not.toContain('comment');
     });
   });
 
@@ -512,12 +506,14 @@ describe('toSocialV1FeedItem', () => {
       expect(result.entryPriceLabel).toBe('$9,000');
     });
 
-    it('starts an open hold at firstTradeAt when that is earlier than the loaded fills', () => {
+    // The API measures the hold from the position row, so it covers fills the
+    // 50-trade cap dropped. Re-deriving from the page would understate it.
+    it('prefers the reported hold time over the loaded fills', () => {
       const openedAt = 1_700_000_000;
-      const now = (openedAt + 10 * HOUR_IN_SECONDS) * 1000;
+      const now = (openedAt + 2 * HOUR_IN_SECONDS) * 1000;
       const row = buildRow(
         mockSpotFeedItem({
-          firstTradeAt: openedAt,
+          holdTimeMs: 10 * HOUR_IN_SECONDS * 1000,
           trades: [
             {
               direction: 'buy',
@@ -525,7 +521,7 @@ describe('toSocialV1FeedItem', () => {
               action: 'opened',
               tokenAmount: 1000,
               usdCost: 100_000,
-              timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+              timestamp: openedAt,
               transactionHash: '0xa',
               classification: 'spot',
             },

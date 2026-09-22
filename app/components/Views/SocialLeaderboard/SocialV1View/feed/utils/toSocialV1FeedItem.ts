@@ -86,35 +86,32 @@ const deriveExitPrice = (core: CoreFeedItem): number | null => {
 /**
  * How long the position has been held, in milliseconds.
  *
- * A closed position measures first fill to last. An open one is still running,
- * so it measures first fill to `now` -- `lastTradeAt` would freeze the clock at
- * the most recent top-up and understate a long hold.
+ * The API reports this directly -- measured from the position row, so it is
+ * right even when the fill history was truncated. The fill-derived span below
+ * is the fallback for responses that predate the field: a closed position
+ * measures first fill to last, an open one measures first fill to `now`,
+ * because `lastTradeAt` would freeze the clock at the most recent top-up.
  */
 const deriveHoldDurationMs = (
   core: CoreFeedItem,
   isClosed: boolean,
   now: number,
 ): number | null => {
+  const reported = asFeedCardItem(core).holdTimeMs;
+  if (isPresentNumber(reported) && reported > 0) {
+    return reported;
+  }
+
   const timestamps = (core.trades ?? []).map((trade) =>
     tradeTimestampToMs(trade.timestamp),
   );
-  const firstTradeAt = asFeedCardItem(core).firstTradeAt;
-  const firstFromPosition =
-    firstTradeAt == null ? null : tradeTimestampToMs(firstTradeAt);
-  const firstFromFills = timestamps.length > 0 ? Math.min(...timestamps) : null;
-  // `firstTradeAt` survives the 50-fill cap, so a truncated history still
-  // starts at the real open. When both exist, the earlier one wins.
-  const first =
-    firstFromPosition != null && firstFromFills != null
-      ? Math.min(firstFromPosition, firstFromFills)
-      : (firstFromPosition ?? firstFromFills);
 
-  if (first == null) {
+  if (timestamps.length === 0) {
     return null;
   }
-  const lastFromFills = timestamps.length > 0 ? Math.max(...timestamps) : null;
-  const last = isClosed ? (lastFromFills ?? first) : now;
-  const span = last - first;
+
+  const first = Math.min(...timestamps);
+  const span = (isClosed ? Math.max(...timestamps) : now) - first;
   return span > 0 ? span : null;
 };
 

@@ -23,10 +23,11 @@ export type FeedCardItem = CoreFeedItem & {
   actor: FeedCardActor;
   commentCount?: number;
   replyCount?: number;
-  /** Unix seconds of the position's first fill. */
-  firstTradeAt?: number | null;
-  /** Unix seconds of the first sell in position metrics. */
-  firstSellAt?: number | null;
+  /**
+   * How long the position has been held, in milliseconds. Closed positions
+   * are final; open ones are measured to the time the response was built.
+   */
+  holdTimeMs?: number | null;
   /**
    * Average entry in USD from remaining cost basis / remaining holding.
    * Null when the position is flat.
