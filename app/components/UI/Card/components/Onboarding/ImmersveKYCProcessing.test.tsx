@@ -208,6 +208,22 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
+  it('does not route expected spend and resets to KYC_PENDING after the timeout', () => {
+    setNextAction({ type: 'expected_spend' });
+    render(<ImmersveKYCProcessing />);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockRoute).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+    });
+  });
+
   it('resets to KYC_PENDING after the pending timeout', () => {
     setNextAction({ type: 'pending' });
     render(<ImmersveKYCProcessing />);

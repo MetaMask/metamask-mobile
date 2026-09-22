@@ -43,6 +43,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * terminal state.
  * - kyc (+url) → open the Immersve KYC webview modal (once)
  * - pending    → spinner + auto-poll; 30s timeout → KYC_PENDING
+ * - expected_spend → same as pending (no spend form on this screen)
  * - rejected   → KYC_FAILED (blocked / kyc_check_failed)
  * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
  */
@@ -143,9 +144,14 @@ const ImmersveKYCProcessing = () => {
     isExpiring,
   ]);
 
-  // 30s cutoff only while background checks are pending (not during the webview).
+  // 30s cutoff while background checks are pending, and when Immersve asks
+  // for an expected spend amount. There is no spend form on this screen, so
+  // that action would otherwise leave the spinner up with no exit.
   useEffect(() => {
-    if (nextAction?.type !== 'pending') {
+    if (
+      nextAction?.type !== 'pending' &&
+      nextAction?.type !== 'expected_spend'
+    ) {
       return undefined;
     }
     const id = setTimeout(() => {
