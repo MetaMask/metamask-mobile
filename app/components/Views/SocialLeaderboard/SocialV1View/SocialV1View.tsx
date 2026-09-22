@@ -485,7 +485,7 @@ const SocialV1View: React.FC = () => {
                   ? { uri: myProfile.imageUrl }
                   : superheroAvatar
               }
-              style={tw.style('w-8 h-8 rounded-full')}
+              style={tw.style('w-10 h-10 rounded-full')}
             />
           </Pressable>
         }
@@ -546,7 +546,7 @@ const SocialV1View: React.FC = () => {
               aligned with the tabs bar. */}
           <PagerView
             ref={pagerRef}
-            style={tw.style('flex-1 mt-4')}
+            style={tw.style('flex-1 mt-6')}
             initialPage={LANDING_INDEX}
             onPageSelected={handlePageSelected}
             testID={SocialV1ViewSelectorsIDs.PAGER}

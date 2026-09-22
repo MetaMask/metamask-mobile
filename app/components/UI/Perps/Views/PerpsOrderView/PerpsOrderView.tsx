@@ -46,7 +46,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
-import { endTrace, TraceName } from '../../../../../util/trace';
+import { TraceName } from '../../../../../util/trace';
+import {
+  completePerpsTradeSheetInteractiveTrace,
+  failPerpsTradeSheetInteractiveTrace,
+} from '../../utils/perpsTradeSheetInteractiveTrace';
 import Keypad from '../../../../Base/Keypad';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -61,6 +65,7 @@ import {
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
+import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePayTokenOrMoneyAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenOrMoneyAccountBalance';
 import { useMoneyAccountDepositAndOrder } from '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder';
@@ -292,6 +297,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   useTransactionPayMetrics();
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const styles = createStyles(colors);
 
@@ -1378,8 +1384,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           ? Number.parseFloat(
               (orderForm.direction === 'long'
                 ? currentTopOfBook?.bestBid
-                : currentTopOfBook?.bestAsk) ??
-                currentPrice?.price ??
+                : currentTopOfBook?.bestAsk) ||
+                currentPrice?.price ||
                 '',
             )
           : marketPrice;
@@ -1438,25 +1444,43 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setIsLimitPriceFocused(false);
   }, [orderForm.asset, orderForm.direction, track]);
 
-  const handleTradeSheetOrderTypeSelect = useCallback(
-    (type: OrderType) => {
-      if (type !== 'market' && type !== 'limit') {
-        return;
-      }
+  // The sheet only offers market and limit, so the header control swaps
+  // between them on tap rather than opening a second bottom sheet.
+  const handleTradeSheetOrderTypeToggle = useCallback(() => {
+    const nextType = orderForm.type === 'limit' ? 'market' : 'limit';
 
-      setOrderType(type);
-      setIsOrderTypeVisible(false);
-      if (type === 'market') {
-        setLimitPrice(undefined);
-        setIsLimitPriceFocused(false);
-      } else if (!orderForm.limitPrice) {
-        tradeSheetLimitPriceInputMethodRef.current = null;
-        setIsInputFocused(false);
-        setIsLimitPriceFocused(true);
-      }
-    },
-    [orderForm.limitPrice, setLimitPrice, setOrderType],
-  );
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
+        orderForm.direction === 'long'
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+        nextType === 'limit'
+          ? PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT
+          : PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
+    });
+
+    setOrderType(nextType);
+    if (nextType === 'market') {
+      setLimitPrice(undefined);
+      setIsLimitPriceFocused(false);
+      return;
+    }
+    // Switching to market clears the price, so limit always needs one.
+    tradeSheetLimitPriceInputMethodRef.current = null;
+    setIsInputFocused(false);
+    setIsLimitPriceFocused(true);
+  }, [
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    setLimitPrice,
+    setOrderType,
+    track,
+  ]);
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
@@ -1938,6 +1962,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isPayWithDisabled) {
       return;
     }
+    setConfirmationMetric({
+      properties: {
+        mm_pay_token_list_opened: true,
+      },
+    });
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
@@ -1945,7 +1974,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tradeSheetPayTokenIdentityRef.current = payTokenIdentity;
     resetPerpsPaymentTokenSelection();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [isPayWithDisabled, navigation, payTokenIdentity, track]);
+  }, [
+    isPayWithDisabled,
+    navigation,
+    payTokenIdentity,
+    setConfirmationMetric,
+    track,
+  ]);
 
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
@@ -2100,17 +2135,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [fromTokenDetails, navigation]);
 
   const handleTradeSheetInteractive = useCallback(() => {
-    endTrace({
-      name: TraceName.PerpsTradeSheetInteractive,
-      data: { success: true },
-    });
+    completePerpsTradeSheetInteractiveTrace();
   }, []);
 
   const handleTradeSheetCancelBeforeInteractive = useCallback(() => {
-    endTrace({
-      name: TraceName.PerpsTradeSheetInteractive,
-      data: { success: false, reason: 'dismissed_before_interactive' },
-    });
+    failPerpsTradeSheetInteractiveTrace('dismissed_before_interactive');
   }, []);
 
   if (useBottomSheet) {
@@ -2311,7 +2340,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onPercentagePress={handlePercentagePress}
                 onMaxPress={handleMaxPress}
                 onDonePress={handleDonePress}
-                onOrderTypePress={() => setIsOrderTypeVisible(true)}
+                onOrderTypeToggle={handleTradeSheetOrderTypeToggle}
                 onLimitPricePress={handleTradeSheetLimitPricePress}
                 onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
@@ -2370,15 +2399,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               />
             ),
           }}
-        />
-        <PerpsOrderTypeBottomSheet
-          isVisible={isOrderTypeVisible}
-          onClose={() => setIsOrderTypeVisible(false)}
-          onSelect={handleTradeSheetOrderTypeSelect}
-          currentOrderType={tradeSheetOrderType}
-          availableOrderTypes={['market', 'limit']}
-          asset={orderForm.asset}
-          direction={orderForm.direction}
         />
         {selectedTooltip === 'margin' && (
           <PerpsBottomSheetTooltip
