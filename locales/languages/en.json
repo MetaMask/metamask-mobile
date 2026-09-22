@@ -3212,6 +3212,9 @@
       "close_button": "Close",
       "history_button": "View activity",
       "available": "Available"
+    },
+    "price_alerts": {
+      "open": "Open price alerts"
     }
   },
   "market_insights": {

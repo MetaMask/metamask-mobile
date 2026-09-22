@@ -21,10 +21,12 @@ import {
   type AlertType,
   type CreatePriceAlertRouteParams,
   CreatePriceAlertTestIds,
+  PriceAlertAnalytics,
 } from '../../constants';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import usePerpAlertSaveFlow from '../../perpApi';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
@@ -50,7 +52,10 @@ const CreatePriceAlertView: React.FC = () => {
     existingPercentAlerts,
     editingAlert,
     initialType,
+    mode,
+    marketId,
   } = route.params;
+  const isPerpsMode = mode === 'perps';
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
@@ -58,12 +63,20 @@ const CreatePriceAlertView: React.FC = () => {
     !isEditing &&
     (existingAbsoluteAlerts?.length ?? 0) === 0 &&
     (existingPercentAlerts?.length ?? 0) === 0;
-  const { saveAlert } = useAlertSaveFlow({
+
+  // Spot flow — always call both hooks to satisfy Rules of Hooks.
+  const { saveAlert: spotSaveAlert } = useAlertSaveFlow({
     assetId,
     displayTicker,
     fromManage,
     shouldAutoWatchlistOnCreate,
   });
+  const { saveAlert: perpSaveAlert } = usePerpAlertSaveFlow({
+    marketId: marketId ?? '',
+    displayTicker,
+    fromManage,
+  });
+  const saveAlert = isPerpsMode ? perpSaveAlert : spotSaveAlert;
   const [alertType, setAlertType] = useState<AlertType>(
     editingAlert?.type ?? initialType ?? 'absolute_price',
   );
@@ -76,8 +89,11 @@ const CreatePriceAlertView: React.FC = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties({
-          asset_id: assetId,
+          asset_id: isPerpsMode ? (marketId ?? assetId) : assetId,
           token_symbol: displayTicker,
+          alert_market_type: isPerpsMode
+            ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+            : PriceAlertAnalytics.MARKET_TYPE.SPOT,
           has_existing_alert:
             (existingAbsoluteAlerts?.length ?? 0) > 0 ||
             (existingPercentAlerts?.length ?? 0) > 0,
@@ -86,6 +102,8 @@ const CreatePriceAlertView: React.FC = () => {
     );
   }, [
     assetId,
+    marketId,
+    isPerpsMode,
     createEventBuilder,
     displayTicker,
     existingAbsoluteAlerts,
@@ -124,13 +142,16 @@ const CreatePriceAlertView: React.FC = () => {
           onBack={handleBack}
         />
 
-        <AlertTypeToggle
-          value={alertType}
-          onChange={setAlertType}
-          isDisabled={isEditing}
-        />
+        {/* Percent-change tab is not supported by the perp alerts API */}
+        {!isPerpsMode && (
+          <AlertTypeToggle
+            value={alertType}
+            onChange={setAlertType}
+            isDisabled={isEditing}
+          />
+        )}
 
-        {alertType === 'percent_change' ? (
+        {!isPerpsMode && alertType === 'percent_change' ? (
           <PercentChangeAlertForm
             assetId={assetId}
             saveAlert={saveAlert}
@@ -146,6 +167,7 @@ const CreatePriceAlertView: React.FC = () => {
             saveAlert={saveAlert}
             editingAlert={editingAbsoluteAlert}
             existingAbsoluteAlerts={existingAbsoluteAlerts}
+            marketId={isPerpsMode ? marketId : undefined}
           />
         )}
 
