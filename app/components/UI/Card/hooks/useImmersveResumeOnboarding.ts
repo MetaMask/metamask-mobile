@@ -22,6 +22,7 @@ interface ResumeParams {
   navigateFromRoot?: boolean;
   /** Analytics entrypoint for the resume funnel (SIGN_UP | AUTHENTICATION). */
   entrypoint?: CardEntryPoint.SIGN_UP | CardEntryPoint.AUTHENTICATION;
+  alreadyAuthenticated?: boolean;
 }
 
 export const useImmersveResumeOnboarding = () => {
@@ -40,6 +41,7 @@ export const useImmersveResumeOnboarding = () => {
       showAccountExistsToast,
       navigateFromRoot,
       entrypoint = CardEntryPoint.SIGN_UP,
+      alreadyAuthenticated = false,
     }: ResumeParams): Promise<void> => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -57,7 +59,9 @@ export const useImmersveResumeOnboarding = () => {
 
         controller.setSelectedCountry(country);
 
-        await signIn({ country, address });
+        if (!alreadyAuthenticated) {
+          await signIn({ country, address });
+        }
 
         const resume = await controller.getResumeCardInfo();
 

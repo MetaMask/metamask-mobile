@@ -145,6 +145,7 @@ export type CardModalsNavigationParamList = {
   CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
   CardDigitalWalletInstructionsModal: undefined;
+  CardSignInHelpModal: undefined;
 };
 
 /**

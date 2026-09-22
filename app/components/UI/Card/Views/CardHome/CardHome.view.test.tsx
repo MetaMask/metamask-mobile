@@ -277,37 +277,42 @@ describe('CardHome', () => {
     });
 
     describe('when unauthenticated (teaser mode)', () => {
-      it('shows CardAuthentication login form when Change Asset button is pressed while unauthenticated', async () => {
-        const { getByTestId, findByTestId } = renderCardHomeView({
-          overrides: {
-            engine: {
-              backgroundState: {
-                CardController: { isAuthenticated: false },
+      it('shows CardAuthentication when Change Asset is pressed while unauthenticated', async () => {
+        const { getByTestId, findByTestId, queryByTestId } = renderCardHomeView(
+          {
+            overrides: {
+              engine: {
+                backgroundState: {
+                  CardController: { isAuthenticated: false },
+                },
               },
             },
+            extraRoutes: [
+              {
+                name: Routes.CARD.AUTHENTICATION,
+                Component: CardAuthentication,
+              },
+            ],
           },
-          extraRoutes: [
-            {
-              name: Routes.CARD.AUTHENTICATION,
-              Component: CardAuthentication,
-            },
-          ],
-        });
+        );
 
         fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
 
         expect(
+          await findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+        ).toBeOnTheScreen();
+        expect(
           await findByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
         ).toBeOnTheScreen();
         expect(
-          await findByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
-        ).toBeOnTheScreen();
+          queryByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
+        ).toBeNull();
         expect(
-          await findByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
-        ).toBeOnTheScreen();
+          queryByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        ).toBeNull();
         expect(
-          await findByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
-        ).toBeOnTheScreen();
+          queryByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
+        ).toBeNull();
       });
     });
   });
