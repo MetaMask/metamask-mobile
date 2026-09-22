@@ -150,21 +150,33 @@ const selectQuarterBuy = async (
   fireEvent.press(await screen.findByTestId(getQuickBuyPercentPillTestId(25)));
 };
 
-/** Local Quick Buy path: BridgeController.fetchQuotes, not Redux quote polling. */
-const expectDirectFetchQuotes = (featureId: FeatureId) => {
-  expect(Engine.context.BridgeController.fetchQuotes).toHaveBeenCalled();
-  const lastCall = (
-    Engine.context.BridgeController.fetchQuotes as jest.Mock
-  ).mock.calls.at(-1);
-  expect(lastCall?.[0]).toEqual(
-    expect.objectContaining({
-      srcTokenAmount: expect.stringMatching(/^[1-9]/),
-    }),
+/** Migrated Quick Buy polls via updateBridgeQuoteRequestParams. feature_id is the metrics arg. */
+const waitForQuoteRequest = async (featureId: FeatureId) => {
+  await waitFor(
+    () => {
+      const quoteCall = (
+        Engine.context.BridgeController
+          .updateBridgeQuoteRequestParams as jest.Mock
+      ).mock.calls
+        .filter(
+          (call: [{ srcTokenAmount?: string }?, { feature_id?: FeatureId }?]) =>
+            Boolean(
+              call[0]?.srcTokenAmount && /^[1-9]/.test(call[0].srcTokenAmount),
+            ),
+        )
+        .at(-1);
+
+      expect(quoteCall?.[0]).toEqual(
+        expect.objectContaining({
+          srcTokenAmount: expect.stringMatching(/^[1-9]/),
+        }),
+      );
+      expect(quoteCall?.[1]).toEqual(
+        expect.objectContaining({ feature_id: featureId }),
+      );
+    },
+    { timeout: WAIT_MS },
   );
-  expect(lastCall?.[1]).toBe(featureId);
-  expect(
-    Engine.context.BridgeController.updateBridgeQuoteRequestParams,
-  ).not.toHaveBeenCalled();
 };
 
 describeForPlatforms('QuickBuySheet', () => {
@@ -225,16 +237,16 @@ describeForPlatforms('QuickBuySheet', () => {
     await waitForConfirmEnabled(screen);
   });
 
-  it('fetches quotes through BridgeController.fetchQuotes after a buy pill is selected', async () => {
+  it('requests a quote through updateBridgeQuoteRequestParams after a buy pill is selected', async () => {
     const screen = renderQuickBuySheet();
 
     await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
-    expectDirectFetchQuotes(FeatureId.UNKNOWN);
+    await waitForQuoteRequest(FeatureId.QUICK_BUY_TOKEN_DETAILS);
   });
 
-  it('maps leaderboard analytics source to QUICK_BUY_FOLLOW_TRADING on fetchQuotes', async () => {
+  it('maps leaderboard analytics source to QUICK_BUY_FOLLOW_TRADING on the quote request', async () => {
     const screen = renderQuickBuySheet({
       analyticsContext: { source: 'leaderboard' },
     });
@@ -242,7 +254,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
-    expectDirectFetchQuotes(FeatureId.QUICK_BUY_FOLLOW_TRADING);
+    await waitForQuoteRequest(FeatureId.QUICK_BUY_FOLLOW_TRADING);
   });
 
   it('keeps confirm disabled when fetchQuotes returns no quotes', async () => {
@@ -253,7 +265,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitFor(
       () => {
-        expect(Engine.context.BridgeController.fetchQuotes).toHaveBeenCalled();
+        expect(screen.queryByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD)).toBeNull();
       },
       { timeout: WAIT_MS },
     );
@@ -261,7 +273,6 @@ describeForPlatforms('QuickBuySheet', () => {
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
-    expect(screen.queryByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD)).toBeNull();
   });
 
   it('keeps confirm disabled when fetchQuotes rejects', async () => {
@@ -282,9 +293,6 @@ describeForPlatforms('QuickBuySheet', () => {
       screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
-    expect(
-      Engine.context.BridgeController.updateBridgeQuoteRequestParams,
-    ).not.toHaveBeenCalled();
   });
 
   it('opens the pay-with token list when the pay-with row is pressed', async () => {
@@ -431,7 +439,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await waitFor(() => {
       expect(submitSpy).toHaveBeenCalled();
     });
-    expectDirectFetchQuotes(FeatureId.UNKNOWN);
+    await waitForQuoteRequest(FeatureId.QUICK_BUY_TOKEN_DETAILS);
   });
 
   it('shows percentage pills instead of the CTA in both trade modes while empty', async () => {
@@ -888,7 +896,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await expectSlippageModal(screen, '0x1', '0x1');
   });
 
-  it('maps token details analytics source to QUICK_BUY_TOKEN_DETAILS on fetchQuotes', async () => {
+  it('maps token details analytics source to QUICK_BUY_TOKEN_DETAILS on the quote request', async () => {
     const screen = renderQuickBuySheet({
       analyticsContext: { source: 'asset_details' },
     });
@@ -896,10 +904,10 @@ describeForPlatforms('QuickBuySheet', () => {
     await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
-    expectDirectFetchQuotes(FeatureId.QUICK_BUY_TOKEN_DETAILS);
+    await waitForQuoteRequest(FeatureId.QUICK_BUY_TOKEN_DETAILS);
   });
 
-  it('maps explore analytics source to QUICK_BUY_EXPLORE on fetchQuotes', async () => {
+  it('maps explore analytics source to QUICK_BUY_EXPLORE on the quote request', async () => {
     const screen = renderQuickBuySheet({
       analyticsContext: { source: 'explore_crypto' },
     });
@@ -907,7 +915,7 @@ describeForPlatforms('QuickBuySheet', () => {
     await selectQuarterBuy(screen);
     await waitForQuoteTotal(screen);
 
-    expectDirectFetchQuotes(FeatureId.QUICK_BUY_EXPLORE);
+    await waitForQuoteRequest(FeatureId.QUICK_BUY_EXPLORE);
   });
 
   it('returns to the amount screen when high-impact cancel is pressed', async () => {
