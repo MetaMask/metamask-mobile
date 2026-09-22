@@ -1,3 +1,4 @@
+import { strings } from '../../../../../locales/i18n';
 import { getPerpsHomeScreenOptions } from './index';
 
 describe('getPerpsHomeScreenOptions', () => {
@@ -11,6 +12,6 @@ describe('getPerpsHomeScreenOptions', () => {
     const options = getPerpsHomeScreenOptions();
 
     expect(options.headerShown).toBe(false);
-    expect(options.title).toBe('Markets');
+    expect(options.title).toBe(strings('perps.markets.title'));
   });
 });
