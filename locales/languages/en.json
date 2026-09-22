@@ -6169,7 +6169,9 @@
     "others": "Others",
     "memo": "Memo",
     "network": "Network",
-    "custom": "Custom"
+    "custom": "Custom",
+    "no_contacts": "No contacts",
+    "no_contacts_desc": "If you add a contact, you’ll see it here."
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
