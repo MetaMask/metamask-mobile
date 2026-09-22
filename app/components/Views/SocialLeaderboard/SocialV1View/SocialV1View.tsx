@@ -485,7 +485,7 @@ const SocialV1View: React.FC = () => {
                   ? { uri: myProfile.imageUrl }
                   : superheroAvatar
               }
-              style={tw.style('w-8 h-8 rounded-full')}
+              style={tw.style('w-10 h-10 rounded-full')}
             />
           </Pressable>
         }

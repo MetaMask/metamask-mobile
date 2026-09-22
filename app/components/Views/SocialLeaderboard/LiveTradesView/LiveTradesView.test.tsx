@@ -2,23 +2,14 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { getFeedItemTestId } from '../FeedView/FeedView.testIds';
 import LiveTradesView from './LiveTradesView';
-import { MOCK_LIVE_TRADES_POSTS } from './mocks/liveTradesFeed.mock';
+import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-
-jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
-      <View testID={`social-feed-post-shell-${post.id}`} />
-    ),
-  };
-});
 
 describe('LiveTradesView', () => {
   it('renders a single Live stream toggle above the mock feed list', () => {
@@ -31,6 +22,9 @@ describe('LiveTradesView', () => {
       screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
     expect(
@@ -41,13 +35,11 @@ describe('LiveTradesView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders mocked live trade posts in the scroll surface', () => {
+  it('renders compact V0 feed rows for mocked live trades', () => {
     renderWithProvider(<LiveTradesView />);
 
-    MOCK_LIVE_TRADES_POSTS.forEach((post) => {
-      expect(
-        screen.getByTestId(`social-feed-post-shell-${post.id}`),
-      ).toBeOnTheScreen();
+    MOCK_LIVE_TRADES_ITEMS.forEach((item) => {
+      expect(screen.getByTestId(getFeedItemTestId(item.id))).toBeOnTheScreen();
     });
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-live-trades-1'),

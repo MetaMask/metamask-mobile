@@ -1,106 +1,85 @@
 import { MINUTE } from '../../../../../constants/time';
-import type { SocialV1FeedPost } from '../../SocialV1View/feed/types';
+import { mapFeedItem } from '../../FeedView/utils/mapFeedItem';
+import type { FeedItem } from '../../FeedView/types';
 import {
-  mockOpenPerpsFeedItem,
-  mockOpenSpotFeedItem,
-} from '../../SocialV1View/feed/mocks/socialV1Feed.mock';
+  mockPerpFeedItem,
+  mockSpotFeedItem,
+} from '../../FeedView/mocks/coreFeed.mock';
 
-const minutesAgo = (minutes: number) => Date.now() - minutes * MINUTE;
+const minutesAgoSec = (minutes: number) =>
+  Math.floor((Date.now() - minutes * MINUTE) / 1000);
+
+const requireFeedItem = (item: ReturnType<typeof mapFeedItem>): FeedItem => {
+  if (!item) {
+    throw new Error('liveTradesFeed.mock: mapFeedItem returned null');
+  }
+  return item;
+};
 
 /**
- * Static Live trades tab fixtures until the websocket stream lands. Open
- * positions mirror the Trending card layout (Copy trade, live PnL).
+ * Static Live trades fixtures until the websocket stream lands. Uses the V0
+ * `FeedItem` shape so rows render through `FeedItemRow`.
  */
-export const MOCK_LIVE_TRADES_POSTS: SocialV1FeedPost[] = [
-  {
-    id: 'live-trade-post-jeanphil',
-    authorHandle: 'iamthefaceof.sol',
-    authorImageUrl: null,
-    winRateLabel: '68% WR*',
-    timestampMs: minutesAgo(1),
-    commentId: 'live-trade-comment-jeanphil',
-    reactions: [],
-    item: mockOpenSpotFeedItem({
-      id: 'live-trade-jeanphil',
-      timestamp: minutesAgo(1),
-      asset: {
-        symbol: 'JEANPHIL',
-        avatar: {
-          positionId: 'live-pos-jeanphil',
-          chain: 'solana',
-          tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-          tokenImageUrl: null,
-          tokenSymbol: 'JEANPHIL',
+export const MOCK_LIVE_TRADES_ITEMS: FeedItem[] = [
+  requireFeedItem(
+    mapFeedItem(
+      mockSpotFeedItem({
+        positionId: 'live-trade-pepe',
+        tokenSymbol: 'PEPE',
+        tokenName: 'Pepe',
+        currentValueUSD: 172_970,
+        pnlValueUsd: -1_315,
+        pnlPercent: -0.76,
+        timestamp: minutesAgoSec(13),
+        lastTradeAt: minutesAgoSec(13),
+        actor: {
+          profileId: 'live-trader-sebastian',
+          address: '0x1111111111111111111111111111111111111111',
+          name: 'sebastian',
+          imageUrl: null,
         },
-      },
-      side: 'sell',
-      markPriceLabel: '$0.003068*',
-      entryPriceLabel: '$0.003166',
-      holdTimeLabel: '1d 16h',
-      valueLabel: '$18,982.17',
-      pnlLabel: '+9.11%',
-      isPnlPositive: true,
-    }),
-  },
-  {
-    id: 'live-trade-post-incoginu',
-    authorHandle: '8p4F...CTFs',
-    authorImageUrl: null,
-    winRateLabel: '72% WR*',
-    timestampMs: minutesAgo(17),
-    commentId: 'live-trade-comment-incoginu',
-    reactions: [],
-    item: mockOpenSpotFeedItem({
-      id: 'live-trade-incoginu',
-      timestamp: minutesAgo(17),
-      asset: {
-        symbol: 'INCOGINU',
-        avatar: {
-          positionId: 'live-pos-incoginu',
-          chain: 'solana',
-          tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-          tokenImageUrl: null,
-          tokenSymbol: 'INCOGINU',
+      }),
+    ),
+  ),
+  requireFeedItem(
+    mapFeedItem(
+      mockSpotFeedItem({
+        positionId: 'live-trade-googl',
+        tokenSymbol: 'GOOGL',
+        tokenName: 'Alphabet',
+        tokenAddress: '0x0000000000000000000000000000000000000002',
+        currentValueUSD: 9_270,
+        pnlValueUsd: 844,
+        pnlPercent: 9.12,
+        timestamp: minutesAgoSec(21),
+        lastTradeAt: minutesAgoSec(21),
+        actor: {
+          profileId: 'live-trader-pepe-punk',
+          address: '0x2222222222222222222222222222222222222222',
+          name: 'pepe-punk',
+          imageUrl: null,
         },
-      },
-      side: 'buy',
-      markPriceLabel: '$0.004821*',
-      entryPriceLabel: '$0.004900',
-      holdTimeLabel: '17m',
-      valueLabel: '$4,210.50',
-      pnlLabel: '-2.00%',
-      isPnlPositive: false,
-    }),
-  },
-  {
-    id: 'live-trade-post-btc-perp',
-    authorHandle: 'thedefimetro.sol',
-    authorImageUrl: null,
-    winRateLabel: '64% WR*',
-    timestampMs: minutesAgo(39),
-    commentId: 'live-trade-comment-btc-perp',
-    reactions: [],
-    item: mockOpenPerpsFeedItem({
-      id: 'live-trade-wbtc-short',
-      timestamp: minutesAgo(39),
-      asset: {
-        symbol: 'WBTC',
-        avatar: {
-          positionId: 'live-pos-wbtc',
-          chain: 'hyperliquid',
-          tokenAddress: '',
-          tokenImageUrl: null,
-          tokenSymbol: 'WBTC',
+      }),
+    ),
+  ),
+  requireFeedItem(
+    mapFeedItem(
+      mockPerpFeedItem({
+        positionId: 'live-trade-msft-short',
+        tokenSymbol: 'MSFT',
+        tokenName: 'Microsoft',
+        currentValueUSD: 48_500,
+        pnlValueUsd: -620,
+        pnlPercent: -1.28,
+        timestamp: minutesAgoSec(34),
+        lastTradeAt: minutesAgoSec(34),
+        actor: {
+          profileId: 'live-trader-msft-whale',
+          address: '0x3333333333333333333333333333333333333333',
+          name: 'macro-msft',
+          imageUrl: null,
         },
-      },
-      direction: 'short',
-      markPriceLabel: '$94,120*',
-      valueLabel: '-$0.16',
-      pnlLabel: '-1.45%',
-      isPnlPositive: false,
-      leverageLabel: '5x',
-      entryPriceLabel: '$94,850',
-      holdTimeLabel: '39m',
-    }),
-  },
+      }),
+    ),
+  ),
 ];
