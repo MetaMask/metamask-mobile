@@ -127,7 +127,7 @@ The user-approved submission of one Order Preview for execution. Commit sends on
 _Avoid_: New order request, order-details echo, re-quote at submit time
 
 **Order Receipt**:
-The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable. Receipt statuses are `filled`, `partially_filled`, `not_filled`, `rejected`, and `reconciliation_required`.
+The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable. Receipt statuses are `pending`, `submitted`, `filled`, `partially_filled`, `not_filled`, `rejected`, and `reconciliation_required`; `pending` and `submitted` are in-progress statuses the backend reports while the operation is still being worked, observed by committing the same Order Preview again.
 _Avoid_: Order Result, raw venue response
 
 **Reconciliation**:
