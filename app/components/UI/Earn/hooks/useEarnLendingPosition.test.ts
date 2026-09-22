@@ -86,39 +86,6 @@ describe('useEarnLendingPositions', () => {
             isEligible: true,
           },
         },
-        TokensController: {
-          allTokens: {
-            '0x1': {
-              '0x456': [
-                {
-                  address: '0x123',
-                  symbol: 'USDC',
-                },
-              ],
-            },
-          },
-        },
-        CurrencyRateController: {
-          currentCurrency: 'USD',
-          currencyRates: {
-            USD: {
-              conversionDate: Date.now(),
-              conversionRate: 1,
-              usdConversionRate: 1,
-            },
-          },
-        },
-        TokenRatesController: {
-          marketData: {
-            '0x1': {
-              '0x123': {
-                tokenAddress: '0x123',
-                currency: 'USD',
-                price: 1,
-              },
-            },
-          },
-        },
       },
     },
   };

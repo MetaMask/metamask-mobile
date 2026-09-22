@@ -35,6 +35,7 @@ import { getOctokit } from '@actions/github';
 import { execFileSync } from 'child_process';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
+import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
 
 type Octokit = ReturnType<typeof getOctokit>;
 
@@ -90,7 +91,10 @@ const FLAKY_THRESHOLD_PERCENT = 20;
 const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const OUTPUT_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
 // Prior per-file state written here for Stage 3 to merge with fresh findings.
-const PRIOR_STATE_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-prior-state.json');
+const PRIOR_STATE_PATH = join(
+  WORKSPACE_ROOT,
+  '.ai-pr-analyzer/flaky-prior-state.json',
+);
 
 // Per-file state persisted inside the sticky comment body. The findings field
 // is typed as unknown[] here because Stage 1 only passes it through — Stage 3
@@ -149,7 +153,9 @@ function emptyWindowCounts(): WindowCounts {
 // The windows a run of the given age (in days) contributes to — every window
 // at least as wide as the run's age.
 function windowKeysForAge(ageDays: number): WindowKey[] {
-  return WINDOWS_DAYS.filter((d) => ageDays <= d).map((d) => `${d}d` as WindowKey);
+  return WINDOWS_DAYS.filter((d) => ageDays <= d).map(
+    (d) => `${d}d` as WindowKey,
+  );
 }
 
 const env = {
@@ -165,10 +171,6 @@ const env = {
 // TypeScript — a modified .js test file in a PR is essentially never expected.
 // The failure-log regex still tolerates .js so that legacy pre-migration
 // entries in old CI logs don't silently break history sampling.
-const UNIT_TEST_FILE_PATTERN = /\.(test|spec)\.(ts|tsx)$/;
-// Excludes component-view tests (separate CI job/suite) and Detox/Appium e2e
-// specs (separate workflows) — this workflow only reasons about Jest unit tests.
-const EXCLUDE_PATTERNS = [/\.view\.test\./, /^tests\/smoke\//];
 
 function sh(cmd: string, args: string[]): string {
   return execFileSync(cmd, args, { encoding: 'utf8' }).trim();
@@ -191,7 +193,9 @@ async function mapWithConcurrency<T, R>(
     }
   }
 
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker),
+  );
   return results;
 }
 
@@ -300,7 +304,11 @@ function computeNeedsAnalysis(
 function getModifiedUnitTestFiles(): string[] {
   let diffOutput: string;
   try {
-    diffOutput = sh('git', ['diff', '--name-only', `origin/${env.baseRef}...HEAD`]);
+    diffOutput = sh('git', [
+      'diff',
+      '--name-only',
+      `origin/${env.baseRef}...${env.headSha || 'HEAD'}`,
+    ]);
   } catch (error) {
     core.warning(`git diff failed: ${(error as Error).message}`);
     return [];
@@ -310,11 +318,12 @@ function getModifiedUnitTestFiles(): string[] {
     .split('\n')
     .map((f) => f.trim())
     .filter(Boolean)
-    .filter((f) => UNIT_TEST_FILE_PATTERN.test(f))
-    .filter((f) => !EXCLUDE_PATTERNS.some((pattern) => pattern.test(f)));
+    .filter((f) => isFlakyWorkflowUnitTestPath(f));
 }
 
-async function getCompletedRunsInLookback(octokit: Octokit): Promise<WorkflowRun[]> {
+async function getCompletedRunsInLookback(
+  octokit: Octokit,
+): Promise<WorkflowRun[]> {
   const [owner, repo] = env.repo.split('/');
   const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -323,18 +332,25 @@ async function getCompletedRunsInLookback(octokit: Octokit): Promise<WorkflowRun
   try {
     // paginate.iterator walks the Link header page-by-page so we can stop at
     // MAX_RUNS_LISTED instead of buffering the whole (potentially huge) year.
-    const iterator = octokit.paginate.iterator(octokit.rest.actions.listWorkflowRuns, {
-      owner,
-      repo,
-      workflow_id: WORKFLOW,
-      branch: 'main',
-      status: 'completed',
-      created: `>=${since}`,
-      per_page: 100,
-    });
+    const iterator = octokit.paginate.iterator(
+      octokit.rest.actions.listWorkflowRuns,
+      {
+        owner,
+        repo,
+        workflow_id: WORKFLOW,
+        branch: 'main',
+        status: 'completed',
+        created: `>=${since}`,
+        per_page: 100,
+      },
+    );
     for await (const { data } of iterator) {
       for (const r of data) {
-        runs.push({ id: r.id, conclusion: r.conclusion, createdAt: r.created_at });
+        runs.push({
+          id: r.id,
+          conclusion: r.conclusion,
+          createdAt: r.created_at,
+        });
         if (runs.length >= MAX_RUNS_LISTED) return runs;
       }
     }
@@ -367,13 +383,16 @@ async function getFailedTestFilesForRun(
       per_page: 100,
     });
   } catch (error) {
-    core.warning(`listJobsForWorkflowRun ${runId} failed: ${(error as Error).message}`);
+    core.warning(
+      `listJobsForWorkflowRun ${runId} failed: ${(error as Error).message}`,
+    );
     return [];
   }
 
   // Only unit-test shards ("Unit tests (N)") can contain Jest FAIL lines.
   const failedUnitJobs = jobs.filter(
-    (j) => j.conclusion === 'failure' && j.name.startsWith(UNIT_TEST_JOB_PREFIX),
+    (j) =>
+      j.conclusion === 'failure' && j.name.startsWith(UNIT_TEST_JOB_PREFIX),
   );
 
   const logParts = await mapWithConcurrency(
@@ -399,7 +418,9 @@ async function getFailedTestFilesForRun(
   const logOutput = logParts.join('\n');
   // Alternation order: try the longest extension first so "tsx" isn't
   // truncated to "ts" by an early match.
-  const matches = logOutput.matchAll(/FAIL\s+(\S+\.(?:test|spec)\.(?:tsx|ts|js))(?=\s|$)/gm);
+  const matches = logOutput.matchAll(
+    /FAIL\s+(\S+\.(?:test|spec)\.(?:tsx|ts|js))(?=\s|$)/gm,
+  );
   return [...matches].map((m) => m[1]);
 }
 
@@ -431,7 +452,10 @@ async function buildHistory(
   // short windows accurate if the cap is ever hit.
   const failedRuns = countableRuns
     .filter((r) => r.conclusion === 'failure')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
     .slice(0, MAX_FAILED_LOG_FETCHES);
 
   // Denominator = success runs (all) + failed runs actually inspected above.
@@ -439,7 +463,8 @@ async function buildHistory(
   // and denominator so the reported rate stays consistent.
   const runsSampled = emptyWindowCounts();
   for (const run of [...successRuns, ...failedRuns]) {
-    for (const key of windowKeysForAge(ageInDays(run.createdAt))) runsSampled[key]++;
+    for (const key of windowKeysForAge(ageInDays(run.createdAt)))
+      runsSampled[key]++;
   }
 
   // Fetch failed-file lists for all failed runs concurrently. Each run only
@@ -460,7 +485,8 @@ async function buildHistory(
     const keys = windowKeysForAge(ageInDays(run.createdAt));
     for (const file of failedFilesPerRun[i]) {
       if (!modifiedFiles.includes(file)) continue;
-      if (!failuresByFile.has(file)) failuresByFile.set(file, emptyWindowCounts());
+      if (!failuresByFile.has(file))
+        failuresByFile.set(file, emptyWindowCounts());
       const counts = failuresByFile.get(file) as WindowCounts;
       for (const key of keys) counts[key]++;
     }
@@ -509,7 +535,11 @@ function writeHistoryFile(
 
 function writePriorStateFile(state: CommentState | null): void {
   mkdirSync(dirname(PRIOR_STATE_PATH), { recursive: true });
-  const empty: CommentState = { version: 1, windows: [...WINDOWS_DAYS], files: {} };
+  const empty: CommentState = {
+    version: 1,
+    windows: [...WINDOWS_DAYS],
+    files: {},
+  };
   writeFileSync(PRIOR_STATE_PATH, JSON.stringify(state ?? empty, null, 2));
 }
 
@@ -569,7 +599,9 @@ async function main(): Promise<void> {
     // No modified test file changed since it was last analyzed.
     // Skip all expensive work — history sampling, AI, and comment update —
     // so an unrelated push leaves the existing sticky comment exactly as-is.
-    console.log('⏭️  No modified test files changed since last analysis — skipping');
+    console.log(
+      '⏭️  No modified test files changed since last analysis — skipping',
+    );
     core.setOutput('should_analyze', 'false');
     core.setOutput('files_to_analyze', '');
     return;
@@ -582,13 +614,24 @@ async function main(): Promise<void> {
   writePriorStateFile(priorState);
 
   const runs = await getCompletedRunsInLookback(octokit);
-  const { files, runsSampled } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
+  const { files, runsSampled } = await buildHistory(
+    octokit,
+    owner,
+    repo,
+    modifiedFiles,
+    runs,
+  );
   console.log(
     `🔍 Sampled ${runs.length} completed ci.yml run(s) on main over the last ${LOOKBACK_DAYS}d ` +
       `(${runsSampled['30d']} failure/success within window)`,
   );
 
-  const result = writeHistoryFile(files, runsSampled, needsAnalysis, env.headSha);
+  const result = writeHistoryFile(
+    files,
+    runsSampled,
+    needsAnalysis,
+    env.headSha,
+  );
 
   const flakyCount = files.filter((f) => f.flaky).length;
   console.log(

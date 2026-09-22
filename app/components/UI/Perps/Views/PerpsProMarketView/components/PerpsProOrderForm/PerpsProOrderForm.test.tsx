@@ -96,6 +96,7 @@ const createTwap = (
   onHoursChange: jest.fn(),
   onMinutesChange: jest.fn(),
   onRandomizeChange: jest.fn(),
+  onRuntimeInfoPress: jest.fn(),
   ...overrides,
 });
 
@@ -1684,6 +1685,50 @@ describe('PerpsProOrderForm', () => {
     });
   });
 
+  describe('TWAP summary', () => {
+    const twapSummary = {
+      runtime: '30 mins',
+      sizePerSuborder: '0.00001 BTC',
+    };
+
+    it('lists runtime and size per suborder', () => {
+      renderForm({
+        orderType: 'twap',
+        summary: { margin: '$16.91', liquidationPrice: '--', twapSummary },
+      });
+
+      expect(
+        screen.getByTestId(ids.SUMMARY_TWAP_RUNTIME_VALUE),
+      ).toHaveTextContent('30 mins');
+      expect(
+        screen.getByTestId(ids.SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE),
+      ).toHaveTextContent('0.00001 BTC');
+    });
+
+    it('drops est liquidation and slippage rows', () => {
+      renderForm({
+        orderType: 'twap',
+        summary: {
+          margin: '$16.91',
+          liquidationPrice: '$70,000',
+          slippage: '0.5%',
+          twapSummary,
+        },
+      });
+
+      expect(screen.queryByTestId(ids.SUMMARY_LIQUIDATION)).toBeNull();
+      expect(screen.queryByTestId(ids.SUMMARY_SLIPPAGE)).toBeNull();
+    });
+
+    it('keeps est liquidation for non-TWAP order types', () => {
+      renderForm({
+        summary: { margin: '$16.91', liquidationPrice: '$70,000' },
+      });
+
+      expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toBeOnTheScreen();
+    });
+  });
+
   describe('Figma layout', () => {
     it('uses 16-point spacing between form sections', () => {
       renderForm();
@@ -1734,6 +1779,22 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).not.toHaveStyle({
         justifyContent: 'space-between',
       });
+    });
+
+    it('stretches margin mode and leverage to share the full column width', () => {
+      renderForm();
+
+      const marginModeStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.MARGIN_MODE_BUTTON).props.style,
+      );
+      const leverageStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.LEVERAGE_BUTTON).props.style,
+      );
+
+      expect(marginModeStyle.flexGrow).toBe(1);
+      expect(marginModeStyle.flexBasis).toBe('0%');
+      expect(leverageStyle.flexGrow).toBe(1);
+      expect(leverageStyle.flexBasis).toBe('0%');
     });
 
     it('uses 4-point spacing between summary rows', () => {

@@ -4,6 +4,7 @@ import { stakingWithdrawalConfirmationState } from '../../../../../../../util/te
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../../../hooks/useConfirmReject';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingWithdrawal from './staking-withdrawal';
@@ -53,6 +54,10 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
+}));
+
 jest.mock('../../../../components/UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
 }));
@@ -85,6 +90,7 @@ describe('StakingWithdrawal', () => {
   const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
@@ -96,6 +102,7 @@ describe('StakingWithdrawal', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmReject.mockReturnValue({ onReject: jest.fn() });
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
@@ -109,6 +116,7 @@ describe('StakingWithdrawal', () => {
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
+    mockUseConfirmReject.mockImplementation(() => ({ onReject: mockOnReject }));
 
     const { getByText } = renderWithProvider(
       <StakingWithdrawal

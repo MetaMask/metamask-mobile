@@ -1,5 +1,4 @@
 import { NavigationProp } from '@react-navigation/native';
-import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { useSelector } from 'react-redux';
@@ -9,6 +8,7 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import Logger from '../../../../util/Logger';
+import { mockTheme } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -66,19 +66,6 @@ jest.mock(
 
 jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      error: {
-        default: mockTestHexColors.ERROR_DARK,
-      },
-      accent04: {
-        normal: mockTestHexColors.ACCENT_BLUE,
-      },
-    },
-  })),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -409,8 +396,8 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        iconColor: mockTestHexColors.ERROR_DARK,
-        backgroundColor: mockTestHexColors.ACCENT_BLUE,
+        iconColor: mockTheme.colors.error.default,
+        backgroundColor: mockTheme.colors.accent04.normal,
         hasNoTimeout: false,
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),

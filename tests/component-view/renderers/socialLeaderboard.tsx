@@ -48,7 +48,7 @@ export function renderTopTradersView(
 
   return renderComponentViewScreen(
     TopTradersView as unknown as React.ComponentType,
-    { name: Routes.SOCIAL_LEADERBOARD.VIEW },
+    { name: Routes.SOCIAL.V0 },
     { state },
   );
 }
@@ -72,7 +72,7 @@ export function renderTopTradersViewWithRoutes(
 
   return renderScreenWithRoutes(
     TopTradersView as unknown as React.ComponentType,
-    { name: Routes.SOCIAL_LEADERBOARD.VIEW },
+    { name: Routes.SOCIAL.V0 },
     extraRoutes,
     { state },
   );

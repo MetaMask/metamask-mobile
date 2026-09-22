@@ -1,6 +1,6 @@
 import { LimitOrderExecutionType } from '../constants/limitOrders';
 import {
-  initialLimitOrderPriceAdjustState,
+  getInitialLimitOrderPriceAdjustState,
   limitOrderPriceAdjustReducer,
   type LimitOrderPriceAdjustState,
 } from './limitOrderPriceAdjustReducer';
@@ -14,12 +14,33 @@ const modifiedState: LimitOrderPriceAdjustState = {
   customValue: '8',
 };
 
+const initialLimitOrderPriceAdjustState = getInitialLimitOrderPriceAdjustState({
+  executionType: LimitOrderExecutionType.BUY,
+  isLimitFiatMode: true,
+});
+
 describe('limitOrderPriceAdjustReducer', () => {
-  it('matches the expected initial state', () => {
+  it('starts price fields unset on the side and denomination it is given', () => {
     expect(initialLimitOrderPriceAdjustState).toEqual({
       executionType: LimitOrderExecutionType.BUY,
       limitPrice: undefined,
       isLimitFiatMode: true,
+      isTrackingMarket: true,
+      isCustomActive: false,
+      customValue: undefined,
+    });
+  });
+
+  it('starts on the counter-token denomination when it is given one', () => {
+    expect(
+      getInitialLimitOrderPriceAdjustState({
+        executionType: LimitOrderExecutionType.SELL,
+        isLimitFiatMode: false,
+      }),
+    ).toEqual({
+      executionType: LimitOrderExecutionType.SELL,
+      limitPrice: undefined,
+      isLimitFiatMode: false,
       isTrackingMarket: true,
       isCustomActive: false,
       customValue: undefined,
@@ -243,9 +264,10 @@ describe('limitOrderPriceAdjustReducer', () => {
   });
 
   describe('flipSide', () => {
-    it('flips buy to sell and resets price fields', () => {
+    it('flips sell to buy and resets price fields onto the given denomination', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'flipSide',
+        isLimitFiatMode: true,
       });
 
       expect(result).toEqual({
@@ -258,19 +280,20 @@ describe('limitOrderPriceAdjustReducer', () => {
       });
     });
 
-    it('flips sell to buy and resets price fields', () => {
+    it('flips buy to sell and resets price fields onto the given denomination', () => {
       const result = limitOrderPriceAdjustReducer(
         {
           ...modifiedState,
           executionType: LimitOrderExecutionType.BUY,
+          isLimitFiatMode: true,
         },
-        { type: 'flipSide' },
+        { type: 'flipSide', isLimitFiatMode: false },
       );
 
       expect(result).toEqual({
         executionType: LimitOrderExecutionType.SELL,
         limitPrice: undefined,
-        isLimitFiatMode: true,
+        isLimitFiatMode: false,
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
@@ -279,15 +302,37 @@ describe('limitOrderPriceAdjustReducer', () => {
   });
 
   describe('reset', () => {
-    it('resets price fields while preserving execution type', () => {
+    it('resets price fields onto the given side and denomination', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'reset',
+        executionType: LimitOrderExecutionType.BUY,
+        isLimitFiatMode: true,
       });
+
+      expect(result).toEqual({
+        executionType: LimitOrderExecutionType.BUY,
+        limitPrice: undefined,
+        isLimitFiatMode: true,
+        isTrackingMarket: true,
+        isCustomActive: false,
+        customValue: undefined,
+      });
+    });
+
+    it('resets price fields onto the counter-token denomination of a sell', () => {
+      const result = limitOrderPriceAdjustReducer(
+        { ...modifiedState, executionType: LimitOrderExecutionType.BUY },
+        {
+          type: 'reset',
+          executionType: LimitOrderExecutionType.SELL,
+          isLimitFiatMode: false,
+        },
+      );
 
       expect(result).toEqual({
         executionType: LimitOrderExecutionType.SELL,
         limitPrice: undefined,
-        isLimitFiatMode: true,
+        isLimitFiatMode: false,
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,

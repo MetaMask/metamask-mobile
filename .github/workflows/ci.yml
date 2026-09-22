@@ -12,9 +12,11 @@ on:
       - stable
   merge_group:
   schedule:
-    # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
-    # This helps to identy the flaky and failed tests on main branch
-    - cron: '0 2-6 * * *'
+    # Scheduled workflows run from the default main branch. Run iOS E2E every
+    # two hours from 06:00 through 22:00 UTC on weekdays.
+    - cron: '0 6-22/2 * * 1-5'
+    # Run iOS E2E twice per day on Saturday and Sunday.
+    - cron: '0 12,20 * * 0,6'
   workflow_call:
     inputs:
       runner_provider:
@@ -54,7 +56,7 @@ on:
 
 concurrency:
   # Scheduled runs must not share the main-branch SHA group. A schedule that
-  # takes longer than the hourly cadence would otherwise replace the previous
+  # takes longer than the two-hour cadence would otherwise replace the previous
   # pending run when the next schedule is created.
   group: >-
     ${{ github.workflow }}-${{
@@ -107,7 +109,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -116,21 +118,21 @@ jobs:
       - name: Restore .metamask folder
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.restore-metamask.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -183,7 +185,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -238,7 +240,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -247,7 +249,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Deduplicate dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -297,7 +299,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -306,7 +308,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Run @lavamoat/git-safe-dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -376,7 +378,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -437,7 +439,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -542,7 +544,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -551,12 +553,63 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --no-build-android
 
+      # Sample RSS to /tmp (survives Metro 137). Do not tee samples to the log.
+      # Retry: the process sits near the 16 GB ceiling; a later attempt often fits.
+      # Do not raise NODE_OPTIONS.
       - name: Generate iOS bundle
-        run: yarn gen-bundle:ios
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         env:
           # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
           # into gen-bundle:ios, an inline value silently shadows it.
           NODE_OPTIONS: --max-old-space-size=6144
+        with:
+          timeout_minutes: 25
+          max_attempts: 3
+          retry_wait_seconds: 30
+          shell: bash
+          command: |
+            set -euo pipefail
+            MEM_LOG=/tmp/js-bundle-rss.log
+            echo "=== attempt $(date -u +%Y-%m-%dT%H:%M:%SZ) NODE_OPTIONS=${NODE_OPTIONS:-<unset>} ===" >> "${MEM_LOG}"
+
+            monitor_resources() {
+              while true; do
+                MEM="$(free -m | awk '/^Mem:/ { printf "mem=%s/%sMB", $3, $2 } /^Swap:/ { printf " swap=%s/%sMB", $3, $2 }')"
+                TOP="$(ps -eo rss=,comm= | sort -rn | head -3 | awk '{ printf "%s=%dMB ", $2, $1 / 1024 }')"
+                CGCUR="-"
+                if [ -r /sys/fs/cgroup/memory.current ]; then
+                  CGCUR="$(( $(cat /sys/fs/cgroup/memory.current) / 1048576 ))MB"
+                fi
+                echo "[rss $(date -u +%H:%M:%S)] ${MEM} cgroup=${CGCUR} top=[${TOP}]" >> "${MEM_LOG}"
+                sleep 5
+              done
+            }
+            monitor_resources &
+            MONITOR_PID=$!
+            trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
+            yarn gen-bundle:ios
+
+      - name: Report bundle-step peak memory
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          MEM_LOG=/tmp/js-bundle-rss.log
+          if [ ! -s "${MEM_LOG}" ]; then
+            echo "No memory samples captured."
+            exit 0
+          fi
+          PEAK="$(grep '\[rss ' "${MEM_LOG}" | awk -F'mem=' '{ split($2, a, "/"); if (a[1] + 0 > max) { max = a[1] + 0; line = $0 } } END { print line }')"
+          CGPEAK=""
+          if [ -r /sys/fs/cgroup/memory.peak ]; then
+            CGPEAK=" (cgroup peak $(( $(cat /sys/fs/cgroup/memory.peak) / 1048576 ))MB)"
+          fi
+          LINE="JS bundle peak: ${PEAK}${CGPEAK}"
+          echo "${LINE}"
+          {
+            echo "### JS bundle size check: memory"
+            echo
+            echo "${LINE}"
+          } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
@@ -783,7 +836,7 @@ jobs:
           path: ios
       - name: Download iOS bundle (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ios-bundle
           path: ios
@@ -889,7 +942,7 @@ jobs:
         run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
       - name: Upload CI JS deps artifact
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ci-js-deps
           path: ci-js-deps.tar.gz
@@ -929,7 +982,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1009,7 +1062,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1027,7 +1080,7 @@ jobs:
           path: tests/coverage/
       - name: Download coverage shards (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: coverage-*
           path: tests/coverage/
@@ -1224,7 +1277,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1310,7 +1363,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1516,7 +1569,7 @@ jobs:
         # uploaded by the earliest attempt is always the one shards will use.
         if: ${{ steps.fetch.outputs.available == 'true' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./e2e-timings.json
@@ -1638,8 +1691,8 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on Android only, so on PRs into main it runs only when Android was requested via
-  # run-appium-android-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # Runs on Android only, so on PRs into main it runs when path filters select
+  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
   # release/* that build Android.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
@@ -1711,7 +1764,7 @@ jobs:
       # GitHub Actions artifact store — download via actions/* regardless of provider.
       - name: Download fixture validation results
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
@@ -1772,7 +1825,7 @@ jobs:
           path: coverage/
       - name: Download lcov.info (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lcov.info
           path: coverage/
@@ -1921,7 +1974,7 @@ jobs:
       actions: write
     steps:
       - name: Delete CI JS deps artifact
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({

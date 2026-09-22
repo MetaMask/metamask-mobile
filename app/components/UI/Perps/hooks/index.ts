@@ -24,6 +24,7 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsVisibleCandleCount } from './usePerpsVisibleCandleCount';
 export { usePerpsProOrderBookExpanded } from './usePerpsProOrderBookExpanded';
 export { usePerpsProOrderBookPosition } from './usePerpsProOrderBookPosition';
 export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
@@ -88,6 +89,9 @@ export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
+export { useIsActivePerpsTrader } from './useIsActivePerpsTrader';
+// Removed from barrel: usePerpsClosePositionForm consumes this barrel.
+// Import directly: import { usePerpsClosePositionForm } from './hooks/usePerpsClosePositionForm';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
@@ -97,6 +101,9 @@ export {
   default as usePerpsToasts,
   getPerpsToastLabels,
 } from './usePerpsToasts';
+
+// A/B tests
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

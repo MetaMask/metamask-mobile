@@ -147,6 +147,7 @@ export interface StateFixtureBuilder {
   withMinimalTokensController(chainIds?: string[]): StateFixtureBuilder;
   withMinimalSmartTransactions(): StateFixtureBuilder;
   withMinimalGasFee(): StateFixtureBuilder;
+  withMinimalEarnController(): StateFixtureBuilder;
   withMinimalTransactionController(): StateFixtureBuilder;
   withMinimalKeyringController(): StateFixtureBuilder;
   withMinimalMultichainNetwork(isEvmSelected?: boolean): StateFixtureBuilder;
@@ -586,6 +587,35 @@ export function createStateFixture(): StateFixtureBuilder {
               ...bg,
               GasFeeController: {
                 gasFeeEstimatesByChainId: {},
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState> as PlainObject,
+      );
+      return api;
+    },
+    withMinimalEarnController() {
+      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
+        string,
+        unknown
+      >;
+      current = deepMerge(
+        current as PlainObject,
+        {
+          engine: {
+            backgroundState: {
+              ...bg,
+              EarnController: {
+                pooled_staking: {
+                  isEligible: false,
+                },
+                lending: {
+                  markets: [],
+                  positions: [],
+                  isEligible: false,
+                },
+                tron_staking: null,
+                lastUpdated: 0,
               },
             },
           },

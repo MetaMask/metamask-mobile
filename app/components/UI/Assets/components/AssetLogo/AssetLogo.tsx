@@ -4,18 +4,20 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import { TokenI } from '../../../Tokens/types';
+import type { TokenI } from '../../../Tokens/types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import styleSheet from './AssetLogo.styles';
 import { getFallbackAssetImageUrls } from './AssetLogo.utils';
 import { useSmartImageFallback } from './AssetLogo.hook';
+
+type AssetLogoAsset = Omit<TokenI, 'balance'>;
 
 const AssetLogo = ({
   asset,
   size = AvatarTokenSize.Lg,
   testID,
 }: {
-  asset: TokenI;
+  asset: AssetLogoAsset;
   size?: AvatarTokenSize;
   testID?: string;
 }) => {

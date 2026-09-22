@@ -9,9 +9,11 @@
 #      On success → stage as fingerprint-reuse-android-apk-* (collision-safe), set found=true,
 #      then best-effort publish android-apk-* for future lookup (only after reuse is committed,
 #      so a partial publish cannot break Gradle fallback).
-#   3. On validated hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
+#   3. On validated hit + main_branch_only (test-only) → re-upload APKs and
+#      their donor sourcemaps as-is (app JS unchanged).
 #   4. On validated hit + app changes → skip Gradle, @expo/repack-app both profiles with
-#      current JS, then upload (fingerprint ignores JS-only changes).
+#      current JS, then upload the APKs and newly generated sourcemaps
+#      (fingerprint ignores JS-only changes).
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -181,7 +183,23 @@ jobs:
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source_fingerprint }}
-          artifact-names: ${{ format('["android-apk-{0}","android-apk-{1}"]', needs.check-builds-needed.outputs.with-srp-build-name, needs.check-builds-needed.outputs.without-srp-build-name) }}
+          # JS-repack reuse only needs the donor APKs because Metro creates maps
+          # for the replacement bundle. As-is reuse must also carry the donor
+          # maps: they are the only maps that describe the JS inside those APKs.
+          artifact-names: >-
+            ${{
+              inputs.main_branch_only &&
+              format(
+                '["android-apk-{0}","android-apk-{1}","android-sourcemaps-{0}","android-sourcemaps-{1}"]',
+                needs.check-builds-needed.outputs.with-srp-build-name,
+                needs.check-builds-needed.outputs.without-srp-build-name
+              ) ||
+              format(
+                '["android-apk-{0}","android-apk-{1}"]',
+                needs.check-builds-needed.outputs.with-srp-build-name,
+                needs.check-builds-needed.outputs.without-srp-build-name
+              )
+            }}
           github-token: ${{ github.token }}
           workflow-file: ci.yml
           main-branch-only: ${{ inputs.main_branch_only }}
@@ -194,7 +212,20 @@ jobs:
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source_fingerprint }}
-          artifact-names: ${{ format('["android-apk-{0}","android-apk-{1}"]', needs.check-builds-needed.outputs.with-srp-build-name, needs.check-builds-needed.outputs.without-srp-build-name) }}
+          artifact-names: >-
+            ${{
+              inputs.main_branch_only &&
+              format(
+                '["android-apk-{0}","android-apk-{1}","android-sourcemaps-{0}","android-sourcemaps-{1}"]',
+                needs.check-builds-needed.outputs.with-srp-build-name,
+                needs.check-builds-needed.outputs.without-srp-build-name
+              ) ||
+              format(
+                '["android-apk-{0}","android-apk-{1}"]',
+                needs.check-builds-needed.outputs.with-srp-build-name,
+                needs.check-builds-needed.outputs.without-srp-build-name
+              )
+            }}
           github-token: ${{ github.token }}
           workflow-file: run-performance-e2e.yml
           main-branch-only: ${{ inputs.main_branch_only }}
@@ -207,7 +238,20 @@ jobs:
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source_fingerprint }}
-          artifact-names: ${{ format('["android-apk-{0}","android-apk-{1}"]', needs.check-builds-needed.outputs.with-srp-build-name, needs.check-builds-needed.outputs.without-srp-build-name) }}
+          artifact-names: >-
+            ${{
+              inputs.main_branch_only &&
+              format(
+                '["android-apk-{0}","android-apk-{1}","android-sourcemaps-{0}","android-sourcemaps-{1}"]',
+                needs.check-builds-needed.outputs.with-srp-build-name,
+                needs.check-builds-needed.outputs.without-srp-build-name
+              ) ||
+              format(
+                '["android-apk-{0}","android-apk-{1}"]',
+                needs.check-builds-needed.outputs.with-srp-build-name,
+                needs.check-builds-needed.outputs.without-srp-build-name
+              )
+            }}
           github-token: ${{ github.token }}
           workflow-file: run-performance-e2e-manual.yml
           main-branch-only: ${{ inputs.main_branch_only }}
@@ -261,7 +305,7 @@ jobs:
         id: download-with-srp
         if: steps.candidate.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -273,10 +317,34 @@ jobs:
         id: download-without-srp
         if: steps.candidate.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.candidate.outputs.run-id }}
+
+      - name: Download candidate with-SRP sourcemaps
+        id: download-sourcemaps-with-srp
+        if: steps.candidate.outputs.found == 'true' && inputs.main_branch_only
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: android-sourcemaps-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/sourcemaps/with-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.candidate.outputs.run-id }}
+
+      - name: Download candidate without-SRP sourcemaps
+        id: download-sourcemaps-without-srp
+        if: steps.candidate.outputs.found == 'true' && inputs.main_branch_only
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: android-sourcemaps-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/sourcemaps/without-srp
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ steps.candidate.outputs.run-id }}
@@ -289,6 +357,9 @@ jobs:
           CANDIDATE_SOURCE_WORKFLOW: ${{ steps.candidate.outputs.source-workflow }}
           DOWNLOAD_WITH_SRP: ${{ steps.download-with-srp.outcome }}
           DOWNLOAD_WITHOUT_SRP: ${{ steps.download-without-srp.outcome }}
+          REQUIRE_SOURCEMAPS: ${{ inputs.main_branch_only }}
+          DOWNLOAD_SOURCEMAPS_WITH_SRP: ${{ steps.download-sourcemaps-with-srp.outcome }}
+          DOWNLOAD_SOURCEMAPS_WITHOUT_SRP: ${{ steps.download-sourcemaps-without-srp.outcome }}
         run: |
           set -euo pipefail
 
@@ -300,18 +371,33 @@ jobs:
 
           with_srp_apk="$(find artifacts/with-srp -name '*.apk' -type f 2>/dev/null | head -1 || true)"
           without_srp_apk="$(find artifacts/without-srp -name '*.apk' -type f 2>/dev/null | head -1 || true)"
+          with_srp_map="$(find artifacts/sourcemaps/with-srp -name '*.map' -type f 2>/dev/null | head -1 || true)"
+          without_srp_map="$(find artifacts/sourcemaps/without-srp -name '*.map' -type f 2>/dev/null | head -1 || true)"
 
           if [ "$DOWNLOAD_WITH_SRP" = "success" ] \
             && [ "$DOWNLOAD_WITHOUT_SRP" = "success" ] \
             && [ -n "$with_srp_apk" ] \
-            && [ -n "$without_srp_apk" ]; then
+            && [ -n "$without_srp_apk" ] \
+            && {
+              [ "$REQUIRE_SOURCEMAPS" != "true" ] ||
+              {
+                [ "$DOWNLOAD_SOURCEMAPS_WITH_SRP" = "success" ] &&
+                [ "$DOWNLOAD_SOURCEMAPS_WITHOUT_SRP" = "success" ] &&
+                [ -n "$with_srp_map" ] &&
+                [ -n "$without_srp_map" ];
+              };
+            }; then
             echo "valid=true" >> "$GITHUB_OUTPUT"
             echo "Validated downloaded performance APKs from $CANDIDATE_SOURCE_WORKFLOW run $CANDIDATE_RUN_ID"
             echo "  with-SRP: $with_srp_apk ($(du -h "$with_srp_apk" | cut -f1))"
             echo "  without-SRP: $without_srp_apk ($(du -h "$without_srp_apk" | cut -f1))"
+            if [ "$REQUIRE_SOURCEMAPS" = "true" ]; then
+              echo "  with-SRP sourcemap: $with_srp_map"
+              echo "  without-SRP sourcemap: $without_srp_map"
+            fi
           else
             echo "valid=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Reusable run $CANDIDATE_RUN_ID was found but artifact download/validation failed (with-srp=$DOWNLOAD_WITH_SRP, without-srp=$DOWNLOAD_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+            echo "::warning::Reusable run $CANDIDATE_RUN_ID was found but artifact download/validation failed (with-srp=$DOWNLOAD_WITH_SRP, without-srp=$DOWNLOAD_WITHOUT_SRP, maps-with-srp=$DOWNLOAD_SOURCEMAPS_WITH_SRP, maps-without-srp=$DOWNLOAD_SOURCEMAPS_WITHOUT_SRP); falling back to fresh dual Gradle builds."
           fi
 
       # Re-stage on this run so upload does not re-download from the prior run
@@ -328,7 +414,7 @@ jobs:
         id: restage-with-srp
         if: steps.validate-downloads.outputs.valid == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -342,7 +428,7 @@ jobs:
         id: restage-without-srp
         if: steps.validate-downloads.outputs.valid == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -393,7 +479,7 @@ jobs:
         id: publish-lookup-with-srp
         if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -404,10 +490,31 @@ jobs:
         id: publish-lookup-without-srp
         if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
+          if-no-files-found: error
+          overwrite: true
+
+      # Test-only runs upload donor APKs without changing their JS. Copy the
+      # donor maps onto this run so profiles and their exact maps are retained
+      # together. Repack runs create and upload new maps later instead.
+      - name: Publish with-SRP sourcemaps for future reuse
+        if: steps.finalize.outputs.found == 'true' && inputs.main_branch_only
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-sourcemaps-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/sourcemaps/with-srp
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Publish without-SRP sourcemaps for future reuse
+        if: steps.finalize.outputs.found == 'true' && inputs.main_branch_only
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-sourcemaps-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/sourcemaps/without-srp
           if-no-files-found: error
           overwrite: true
 
@@ -551,7 +658,7 @@ jobs:
         if: >-
           needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
           inputs.main_branch_only != true
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -560,28 +667,28 @@ jobs:
 
       - name: Download reused with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
       - name: Download reused without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
 
       - name: Download fresh with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
       - name: Download fresh without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -709,6 +816,30 @@ jobs:
           rm -rf artifacts/with-srp artifacts/without-srp
           mv artifacts/with-srp-repacked artifacts/with-srp
           mv artifacts/without-srp-repacked artifacts/without-srp
+
+      # Keep variant-specific names so both the analyzer and a later test-only
+      # run can retrieve the exact map paired with each APK.
+      - name: Upload repacked with-SRP sourcemap for future reuse
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-sourcemaps-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: sourcemaps/android/index.android.bundle.with-srp.map
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Upload repacked without-SRP sourcemap for future reuse
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-sourcemaps-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: sourcemaps/android/index.android.bundle.without-srp.map
+          if-no-files-found: error
+          overwrite: true
 
       - name: Upload APKs to BrowserStack
         id: browserstack-upload

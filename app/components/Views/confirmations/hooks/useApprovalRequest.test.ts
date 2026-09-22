@@ -54,11 +54,20 @@ const PAGE_META_MOCK = {
   test: 'value',
 };
 
+// Runs the real selector against a minimal state, rather than stubbing its
+// result, so `selectFirstPendingApproval` is actually exercised.
 const mockSelector = (
   approvalRequests: ApprovalControllerState['pendingApprovals'],
 ) => {
-  (useSelector as jest.MockedFn<typeof useSelector>).mockReturnValue(
-    approvalRequests,
+  (useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(
+    (selector) =>
+      selector({
+        engine: {
+          backgroundState: {
+            ApprovalController: { pendingApprovals: approvalRequests },
+          },
+        },
+      }),
   );
 };
 

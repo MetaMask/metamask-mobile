@@ -39,13 +39,6 @@ jest.mock('../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/assetsUnifyState',
-  () => ({
-    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../TokenDetails/components/useAssetVisibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({

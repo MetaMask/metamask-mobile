@@ -8,7 +8,7 @@ import {
   PERPS_EVENT_VALUE,
   PerpsMode,
 } from '@metamask/perps-controller';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useEffectEvent, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -16,6 +16,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsModeSelectionBottomSheet from '../../components/PerpsModeSelectionBottomSheet';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMode } from '../../hooks/usePerpsMode';
+import { selectPerpsLastViewedMarketSymbol } from '../../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
 import { markPerpsModeSelectionCompleted } from '../../utils/perpsModeSelectionStorage';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
@@ -30,6 +31,7 @@ import {
   dropPerpsHomeFromStackHistory,
   resolvePerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams,
+  withHomeDroppedFromHistory,
 } from '../../utils/perpsModeSwitch';
 
 type ModeSelectionRoute = RouteProp<
@@ -61,9 +63,11 @@ const PerpsModeSelectionView: React.FC = () => {
   });
   const { mode: selectedMode, setMode } = usePerpsMode();
   const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
 
   const hasSelectedRef = useRef(false);
   const dismissEmittedRef = useRef(false);
+  const continuedAsPreselectedRef = useRef(false);
   const openedAtRef = useRef(Date.now());
 
   const emitDismissIfNeeded = useCallback(() => {
@@ -80,23 +84,6 @@ const PerpsModeSelectionView: React.FC = () => {
     });
   }, [entry, source, track]);
 
-  // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
-  // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
-  useEffect(() => {
-    openedAtRef.current = Date.now();
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
-      emitDismissIfNeeded();
-    });
-    return unsubscribe;
-  }, [emitDismissIfNeeded, navigation]);
-
-  const handleClose = useCallback(() => {
-    // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;
-    // emit here so dismiss is recorded even if navigation teardown is odd.
-    emitDismissIfNeeded();
-    navigation.goBack();
-  }, [emitDismissIfNeeded, navigation]);
-
   const continueAfterSelection = useCallback(
     (mode: PerpsMode) => {
       if (entry === 'home' && mode === PerpsMode.Pro) {
@@ -108,10 +95,10 @@ const PerpsModeSelectionView: React.FC = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
+              params: withHomeDroppedFromHistory({
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source,
-              },
+              }),
             },
           ],
         });
@@ -129,6 +116,7 @@ const PerpsModeSelectionView: React.FC = () => {
             resolvePerpsHomeNavigationTarget(
               isProModeEnabled && mode === PerpsMode.Pro,
               { source },
+              lastViewedMarketSymbol,
             ),
           ),
         );
@@ -147,8 +135,45 @@ const PerpsModeSelectionView: React.FC = () => {
 
       // `home` + Lite: dismiss only — already on Perps Home.
     },
-    [entry, isProModeEnabled, navigation, source],
+    [entry, isProModeEnabled, lastViewedMarketSymbol, navigation, source],
   );
+
+  const continueAsPreselectedIfNeeded = useCallback(() => {
+    if (
+      entry !== 'trade' ||
+      hasSelectedRef.current ||
+      continuedAsPreselectedRef.current
+    ) {
+      return;
+    }
+    continuedAsPreselectedRef.current = true;
+    markPerpsModeSelectionCompleted().catch(() => undefined);
+    requestAnimationFrame(() => {
+      continueAfterSelection(selectedMode);
+    });
+  }, [continueAfterSelection, entry, selectedMode]);
+
+  const handleBeforeRemove = useEffectEvent(() => {
+    emitDismissIfNeeded();
+    continueAsPreselectedIfNeeded();
+  });
+
+  // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
+  // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () =>
+      handleBeforeRemove(),
+    );
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;
+    // emit here so dismiss is recorded even if navigation teardown is odd.
+    emitDismissIfNeeded();
+    continueAsPreselectedIfNeeded();
+    navigation.goBack();
+  }, [continueAsPreselectedIfNeeded, emitDismissIfNeeded, navigation]);
 
   const handleSelect = useCallback(
     async (mode: PerpsMode) => {

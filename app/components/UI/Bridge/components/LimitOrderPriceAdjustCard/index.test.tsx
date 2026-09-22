@@ -1,8 +1,13 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
+import {
+  LIMIT_ORDER_NEAR_MARKET_PERCENT,
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import { LimitOrderPriceAdjustCard } from './index';
 import { LimitOrderPriceAdjustCardSelectorsIDs } from './testIds';
 import { LimitOrderPriceAdjustInputSectionSelectorsIDs } from './InputSection/testIds';
@@ -104,5 +109,42 @@ describe('LimitOrderPriceAdjustCard', () => {
 
     expect(onMarketPresetPress).toHaveBeenCalledTimes(1);
     expect(onPercentPresetPress).toHaveBeenCalledWith(5);
+  });
+
+  it('forwards the price comparison direction to the input section', () => {
+    const { getByText } = renderCard({
+      orderSide: LimitOrderExecutionType.BUY,
+      priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+    });
+
+    expect(getByText(strings('bridge.limit.is_at_or_above'))).toBeOnTheScreen();
+  });
+
+  it('renders the near-market warning when the trigger price is near market', () => {
+    const { getByTestId } = renderCard({ isTriggerPriceNearMarket: true });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustCardSelectorsIDs.NEAR_MARKET_WARNING),
+    ).toHaveTextContent(
+      strings('bridge.limit.trigger_price_near_market', {
+        percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
+      }),
+    );
+  });
+
+  it('hides the near-market warning when the trigger price is not near market', () => {
+    const { queryByTestId } = renderCard({ isTriggerPriceNearMarket: false });
+
+    expect(
+      queryByTestId(LimitOrderPriceAdjustCardSelectorsIDs.NEAR_MARKET_WARNING),
+    ).toBeNull();
+  });
+
+  it('hides the near-market warning when the flag is omitted', () => {
+    const { queryByTestId } = renderCard();
+
+    expect(
+      queryByTestId(LimitOrderPriceAdjustCardSelectorsIDs.NEAR_MARKET_WARNING),
+    ).toBeNull();
   });
 });

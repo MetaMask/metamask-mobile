@@ -32,27 +32,34 @@ import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
 /**
- * Determines the close direction category for aggregation purposes.
+ * Determines the direction category for aggregation purposes.
  * Returns a normalized direction string for grouping fills that should be aggregated together.
+ * Opens, closes and flips all qualify: a single order that HyperLiquid filled in several
+ * pieces must be shown as one trade whichever way it moved the position.
  *
- * @param direction - The fill direction string (e.g., "Close Long", "Close Short", "Sell")
- * @returns A normalized close direction for grouping, or null if not a close fill
+ * @param direction - The fill direction string (e.g., "Close Long", "Open Short", "Long > Short")
+ * @returns A normalized direction for grouping, or null when the direction is unknown
  */
-function getCloseDirectionForAggregation(
+function getDirectionForAggregation(
   direction: string | undefined,
 ): string | null {
   if (!direction) return null;
 
   const [part1, part2] = direction.split(' ');
 
-  // Handle standard close directions
-  if (part1 === 'Close') {
-    return `Close ${part2}`; // "Close Long" or "Close Short"
+  // Handle standard open and close directions
+  if (part1 === 'Open' || part1 === 'Close') {
+    return `${part1} ${part2}`; // e.g. "Open Long" or "Close Short"
   }
 
-  // Handle spot-perps and prelaunch markets that use "Sell" for closing
-  if (direction === 'Sell') {
-    return 'Sell';
+  // Handle position flips, which HyperLiquid reports as "Long > Short"
+  if (part2 === '>') {
+    return direction;
+  }
+
+  // Handle spot-perps and prelaunch markets that use "Buy"/"Sell"
+  if (direction === 'Buy' || direction === 'Sell') {
+    return direction;
   }
 
   // Handle auto-deleveraging as a closeable position
@@ -60,59 +67,172 @@ function getCloseDirectionForAggregation(
     return 'Auto-Deleveraging';
   }
 
-  // Not a close fill - don't aggregate
+  // Unknown direction - don't aggregate
   return null;
 }
 
 /**
- * Aggregates fills that occur at the same timestamp for the same asset when closing positions.
- * This handles cases where a stop loss or take profit order is split into multiple fills
- * by HyperLiquid, ensuring users see the aggregate PnL instead of partial amounts.
+ * Aggregates the fills belonging to one trade so a trade the user placed once is shown once.
+ * HyperLiquid splits a single order across the book - over several price levels and, for larger
+ * orders, over several seconds - and each piece comes back as its own fill.
  *
- * Aggregation criteria:
- * - Same asset symbol
- * - Same timestamp (truncated to the same second)
- * - Same close direction (Close Long, Close Short, Sell, or Auto-Deleveraging)
+ * Fills are grouped when they share an asset and a direction category (Open Long, Close Short,
+ * Long > Short, Buy, Sell, Auto-Deleveraging...) and the same order id, which covers an order
+ * that filled across several price levels or several seconds.
+ *
+ * Close-category fills (Close Long/Short, Sell, Auto-Deleveraging) additionally group by the
+ * second they landed in, because HyperLiquid splits a triggered TP/SL into several child orders
+ * that fill together under different order ids. That cross-order rule is deliberately limited to
+ * the close side: two separate opens on one market inside the same second are two trades, and
+ * merging them would report a size the user never placed.
  *
  * For aggregated fills:
  * - Sizes are summed
  * - PnLs are summed
  * - Fees are summed
  * - Price is calculated as VWAP (Volume Weighted Average Price)
- * - First fill's orderId and metadata are preserved
+ * - Latest fill's orderId, timestamp and metadata are preserved
+ * - startPosition is the position the order started from, chosen by pickOpeningPosition
  * - detailedOrderType (Stop Loss, Take Profit) is preserved from any grouped fill
  * - liquidation info is preserved from any grouped fill
  *
  * @param fills - Array of OrderFill objects to aggregate
- * @returns Array of OrderFill objects with close fills aggregated by timestamp
+ * @returns Array of OrderFill objects with each order's fills aggregated into one
  */
-export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
-  // Map to group fills by aggregation key
-  const aggregationMap = new Map<string, OrderFill[]>();
+/**
+ * Picks the position an order started from out of its fills.
+ *
+ * The fills of one order walk the position in a single direction, so the opening position is
+ * the largest one any fill saw. It is picked by magnitude rather than by position in the list
+ * because a book sweep gives every fill the same millisecond, which leaves the list in whatever
+ * order history returned it.
+ *
+ * A flip is the exception: it names the side it opened from ("Long > Short"), and a fill that
+ * has already crossed over reports the new position on the other side, which can be larger than
+ * the one the order opened with. Those fills are skipped so flipping a small position into a
+ * big one still reports the small one as the start.
+ *
+ * The original signed value is returned - auto-deleveraging reads its sign for the long/short
+ * label.
+ *
+ * @param fills - The fills of a single aggregated order
+ * @returns The signed startPosition the order opened from, or undefined when no fill carries one
+ */
+function pickOpeningPosition(fills: OrderFill[]): string | undefined {
+  const [openingSide, flipMarker] = (fills[0]?.direction || '').split(' ');
+  const isFlip = flipMarker === '>';
+
+  let openingPosition: string | undefined;
+
+  for (const fill of fills) {
+    if (!fill.startPosition) {
+      continue;
+    }
+
+    const startPosition = BigNumber(fill.startPosition);
+
+    const stillOnOpeningSide =
+      openingSide === 'Long'
+        ? startPosition.isGreaterThan(0)
+        : startPosition.isLessThan(0);
+    if (isFlip && !stillOnOpeningSide) {
+      continue;
+    }
+
+    if (
+      openingPosition === undefined ||
+      startPosition
+        .absoluteValue()
+        .isGreaterThan(BigNumber(openingPosition).absoluteValue())
+    ) {
+      openingPosition = fill.startPosition;
+    }
+  }
+
+  return openingPosition;
+}
+
+export function aggregateFillsByOrder(fills: OrderFill[]): OrderFill[] {
+  // Seed groups, keyed by the rule that may pull fills of different orders together
+  const secondGroups: { bucket: string; fills: OrderFill[] }[] = [];
+  const secondGroupByKey = new Map<
+    string,
+    { bucket: string; fills: OrderFill[] }
+  >();
   // Array to preserve non-aggregatable fills in order
   const nonAggregatableFills: OrderFill[] = [];
 
-  // Group fills by asset + timestamp (truncated to second) + close direction
+  // Seed one group per order, except on the close side, where the same second is the
+  // seed instead so a trigger order split into several child order ids stays together.
   for (const fill of fills) {
-    const closeDirection = getCloseDirectionForAggregation(fill.direction);
+    const direction = getDirectionForAggregation(fill.direction);
 
-    if (closeDirection === null) {
-      // Not a close fill - don't aggregate, preserve as-is
+    if (direction === null) {
+      // Unknown direction - don't aggregate, preserve as-is
       nonAggregatableFills.push(fill);
       continue;
     }
 
-    // Create aggregation key: asset + timestamp (truncated to second) + close direction
-    const timestampSecond = Math.floor(fill.timestamp / 1000);
-    const aggregationKey = `${fill.symbol}-${timestampSecond}-${closeDirection}`;
+    const bucket = `${fill.symbol}-${direction}`;
+    const isCloseCategory =
+      direction.startsWith('Close ') ||
+      direction === 'Sell' ||
+      direction === 'Auto-Deleveraging';
+    const seedKey = isCloseCategory
+      ? `${bucket}-second-${Math.floor(fill.timestamp / 1000)}`
+      : `${bucket}-order-${fill.orderId || `solo-${fill.timestamp}`}`;
 
-    const existingGroup = aggregationMap.get(aggregationKey);
+    const existingGroup = secondGroupByKey.get(seedKey);
     if (existingGroup) {
-      existingGroup.push(fill);
+      existingGroup.fills.push(fill);
     } else {
-      aggregationMap.set(aggregationKey, [fill]);
+      const group = { bucket, fills: [fill] };
+      secondGroupByKey.set(seedKey, group);
+      secondGroups.push(group);
     }
   }
+
+  // Link the seed groups that share an order id, which merges the per-second close groups an
+  // order filled over several seconds into the one trade the user placed. The union is
+  // transitive, so close seeds can chain: X@s1, {X,Y}@s2, {Y,Z}@s3 end up as one entry even
+  // though X and Z share no order id. Every hop still needs a same-second close collision,
+  // which is the condition the pre-fix code already merged on, and order-seeded groups (opens,
+  // buys, flips) cannot take part because each of those seeds holds a single order.
+  const groupOwner = secondGroups.map((_group, index) => index);
+  const resolveOwner = (index: number): number => {
+    let owner = index;
+    while (groupOwner[owner] !== owner) {
+      owner = groupOwner[owner];
+    }
+    return owner;
+  };
+
+  const ownerByOrderKey = new Map<string, number>();
+  secondGroups.forEach((group, index) => {
+    for (const fill of group.fills) {
+      if (!fill.orderId) {
+        continue;
+      }
+      const orderKey = `${group.bucket}-${fill.orderId}`;
+      const knownOwner = ownerByOrderKey.get(orderKey);
+      if (knownOwner === undefined) {
+        ownerByOrderKey.set(orderKey, resolveOwner(index));
+      } else {
+        groupOwner[resolveOwner(index)] = resolveOwner(knownOwner);
+      }
+    }
+  });
+
+  const aggregationMap = new Map<number, OrderFill[]>();
+  secondGroups.forEach((group, index) => {
+    const owner = resolveOwner(index);
+    const owned = aggregationMap.get(owner);
+    if (owned) {
+      owned.push(...group.fills);
+    } else {
+      aggregationMap.set(owner, [...group.fills]);
+    }
+  });
 
   // Build aggregated fills
   const aggregatedFills: OrderFill[] = [];
@@ -124,8 +244,12 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       continue;
     }
 
-    // Aggregate multiple fills
-    const firstFill = groupedFills[0];
+    // Aggregate multiple fills. The latest fill stands in for the completed order, so the
+    // row keeps its place in a history sorted newest first.
+    const fillsOldestFirst = [...groupedFills].sort(
+      (a, b) => a.timestamp - b.timestamp,
+    );
+    const latestFill = fillsOldestFirst[fillsOldestFirst.length - 1];
 
     // Sum sizes, PnLs, and fees
     let totalSize = BigNumber(0);
@@ -136,9 +260,9 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
     // Preserve detailedOrderType and liquidation from any fill in the group
     let aggregatedDetailedOrderType: string | undefined;
     let aggregatedLiquidation: OrderFill['liquidation'];
-    let aggregatedStartPosition: string | undefined;
+    const aggregatedStartPosition = pickOpeningPosition(fillsOldestFirst);
 
-    for (const fill of groupedFills) {
+    for (const fill of fillsOldestFirst) {
       const size = BigNumber(fill.size);
       const price = BigNumber(fill.price);
       const pnl = BigNumber(fill.pnl || '0');
@@ -158,34 +282,29 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       if (fill.liquidation && !aggregatedLiquidation) {
         aggregatedLiquidation = fill.liquidation;
       }
-
-      // Use the startPosition from the first fill (represents position before any fills)
-      if (fill.startPosition && !aggregatedStartPosition) {
-        aggregatedStartPosition = fill.startPosition;
-      }
     }
 
     // Calculate VWAP: totalNotional / totalSize
     const vwapPrice = totalSize.isZero()
-      ? BigNumber(firstFill.price)
+      ? BigNumber(latestFill.price)
       : totalNotional.dividedBy(totalSize);
 
     // Create aggregated fill
     const aggregatedFill: OrderFill = {
-      orderId: firstFill.orderId, // Use first fill's orderId
-      symbol: firstFill.symbol,
-      side: firstFill.side,
+      orderId: latestFill.orderId,
+      symbol: latestFill.symbol,
+      side: latestFill.side,
       size: totalSize.toString(),
       price: vwapPrice.toString(),
       pnl: totalPnl.toString(),
-      direction: firstFill.direction,
+      direction: latestFill.direction,
       fee: totalFee.toString(),
-      feeToken: firstFill.feeToken,
-      timestamp: firstFill.timestamp, // Use first fill's timestamp
+      feeToken: latestFill.feeToken,
+      timestamp: latestFill.timestamp, // Order is complete at its last fill
       startPosition: aggregatedStartPosition,
-      success: firstFill.success,
+      success: latestFill.success,
       liquidation: aggregatedLiquidation,
-      orderType: firstFill.orderType,
+      orderType: latestFill.orderType,
       detailedOrderType: aggregatedDetailedOrderType,
     };
 
@@ -266,21 +385,64 @@ export interface DepositRequest {
 }
 
 /**
+ * Builds the ids of the rows shown when aggregation is off.
+ *
+ * The provider-neutral `OrderFill` model carries no execution id yet (HyperLiquid's `tid` does
+ * not reach it), so the id is derived from the fill's own content plus how many identical fills
+ * precede it. Unlike an index into the rendered list, that leaves every existing id untouched
+ * when a newer fill arrives, which keeps FlashList keys and Activity Details resolution stable
+ * across a refresh. The `fill-` namespace keeps these ids clear of the aggregated rows, whose
+ * id carries the last fill's orderId and timestamp.
+ *
+ * @param fills - The fills about to be turned into rows, in render order
+ * @returns One id per fill, positionally aligned with `fills`
+ */
+function buildIndividualFillIds(fills: OrderFill[]): string[] {
+  const occurrences = new Map<string, number>();
+
+  return fills.map((fill) => {
+    const key = `${fill.orderId || 'fill'}-${fill.timestamp}-${fill.size}-${
+      fill.price
+    }`;
+    const occurrence = occurrences.get(key) ?? 0;
+    occurrences.set(key, occurrence + 1);
+    return `fill-${key}-${occurrence}`;
+  });
+}
+
+export interface TransformFillsToTransactionsOptions {
+  /**
+   * When true (the default), collapse the fills of one order into a single row. When false,
+   * list every execution HyperLiquid reported on its own, newest first.
+   */
+  aggregate?: boolean;
+}
+
+/**
  * Transform abstract OrderFill objects to PerpsTransaction format.
- * Close fills that occur at the same timestamp for the same asset are automatically
- * aggregated to show combined PnL (handles split stop loss/take profit orders).
+ * When `aggregate` is true the fills of one order are collapsed first, so an open, close or
+ * flip that HyperLiquid filled in several pieces shows combined size, PnL and fees instead of
+ * partial amounts. When it is false each execution is listed separately, which is what the
+ * Aggregated control turns off.
  *
  * @param fills - Array of abstract OrderFill objects
+ * @param options - Transform options
  * @returns Array of PerpsTransaction objects
  */
 export function transformFillsToTransactions(
   fills: OrderFill[],
+  { aggregate = true }: TransformFillsToTransactionsOptions = {},
 ): PerpsTransaction[] {
-  // Aggregate close fills that occur at the same timestamp for the same asset
-  // This handles split stop loss/take profit orders that execute as multiple fills
-  const aggregatedFills = aggregateFillsByTimestamp(fills);
+  // Collapse each order's fills into the one trade the user placed, unless the viewer asked
+  // to see the individual executions.
+  const fillsToTransform = aggregate
+    ? aggregateFillsByOrder(fills)
+    : [...fills].sort((left, right) => right.timestamp - left.timestamp);
+  const individualIds = aggregate
+    ? undefined
+    : buildIndividualFillIds(fillsToTransform);
 
-  return aggregatedFills.reduce((acc: PerpsTransaction[], fill) => {
+  return fillsToTransform.reduce((acc: PerpsTransaction[], fill, index) => {
     const {
       direction,
       orderId,
@@ -330,7 +492,11 @@ export function transformFillsToTransactions(
     let displayAmount = '';
     let fillSize = size;
     if (isFlipped) {
+      // The flip leaves the traded size minus the position it opened from. Take that opening
+      // position's magnitude first: a short opens from a negative position, and subtracting the
+      // traded size straight from it adds the two magnitudes instead of cancelling them.
       fillSize = BigNumber(fill.startPosition || '0')
+        .absoluteValue()
         .minus(fill.size)
         .absoluteValue()
         .toString();
@@ -400,7 +566,9 @@ export function transformFillsToTransactions(
     }
 
     acc.push({
-      id: `${orderId || 'fill'}-${timestamp}-${acc.length}`,
+      id: individualIds
+        ? individualIds[index]
+        : `${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
       category: isOpened || isBuy ? 'position_open' : 'position_close',
       title,

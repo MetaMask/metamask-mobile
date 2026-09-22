@@ -356,6 +356,17 @@ describe('orderBookGrouping', () => {
       expect(result.asks).toHaveLength(1);
       expect(result.maxTotal).toBe(1.5);
     });
+
+    // TAT-3966: the size ladder needs its own denominator, not the cumulative one.
+    it('reports the largest single level size across the trimmed ladder', () => {
+      // Trimmed to one level a side: bid size 1, ask size 1.5.
+      expect(groupOrderBook(book, null, 1).maxSize).toBe(1.5);
+      // Untrimmed, the deeper bid (size 2) is the largest single level, even
+      // though the largest cumulative total is 3.
+      const full = groupOrderBook(book, null, 10);
+      expect(full.maxSize).toBe(2);
+      expect(full.maxTotal).toBe(3);
+    });
   });
 
   describe('getDepthRatio / getDepthWidth / formatters', () => {
@@ -395,8 +406,61 @@ describe('orderBookGrouping', () => {
             totalNotional: '1',
           },
           100,
+          'total',
         ),
       ).toBe(50);
+    });
+
+    // TAT-3966: the bar has to measure whatever the ladder says it is listing
+    // by, otherwise a tiny level sitting deep in the book renders as a near-full
+    // bar just because everything in front of it is included.
+    it('scales the depth bar against the level size when listing by size', () => {
+      const level: OrderBookLevel = {
+        price: '1',
+        size: '2',
+        total: '50',
+        notional: '2',
+        totalNotional: '50',
+      };
+
+      expect(getDepthWidth(level, 8, 'size')).toBe(25);
+    });
+
+    it('keeps scaling against the cumulative total when listing by total', () => {
+      const level: OrderBookLevel = {
+        price: '1',
+        size: '2',
+        total: '50',
+        notional: '2',
+        totalNotional: '50',
+      };
+
+      expect(getDepthWidth(level, 100, 'total')).toBe(50);
+    });
+
+    it('gives the smallest level a smaller bar than the largest when listing by size', () => {
+      const shallow: OrderBookLevel = {
+        price: '1',
+        size: '0.5',
+        total: '49',
+        notional: '0.5',
+        totalNotional: '49',
+      };
+      const deep: OrderBookLevel = {
+        price: '2',
+        size: '10',
+        total: '10',
+        notional: '20',
+        totalNotional: '20',
+      };
+
+      // Cumulatively the shallow level dwarfs the deep one; per tick it must not.
+      expect(getDepthWidth(shallow, 49, 'total')).toBeGreaterThan(
+        getDepthWidth(deep, 49, 'total'),
+      );
+      expect(getDepthWidth(shallow, 10, 'size')).toBeLessThan(
+        getDepthWidth(deep, 10, 'size'),
+      );
     });
 
     it('formats spread percent and column values', () => {

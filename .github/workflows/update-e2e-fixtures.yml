@@ -49,7 +49,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get PR details
         id: pr
@@ -90,7 +90,7 @@ jobs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Determine whether this PR is from a fork
         id: is-fork
@@ -111,7 +111,7 @@ jobs:
       PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
       RUN_ID: ${{ steps.validate-ci.outputs.RUN_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
@@ -198,7 +198,7 @@ jobs:
 
       - name: Checkout
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
@@ -321,7 +321,7 @@ jobs:
     if: ${{ !cancelled() && needs.update-fixtures.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
@@ -347,7 +347,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: yarn
@@ -417,7 +417,7 @@ jobs:
       - is-fork-pull-request
       - check-status
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Post comment if the update failed
         run: |

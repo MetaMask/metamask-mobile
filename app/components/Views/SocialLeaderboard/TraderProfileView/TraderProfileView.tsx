@@ -274,7 +274,7 @@ const TraderProfileView = () => {
           [SocialLeaderboardEventProperties.IS_OPEN]: isOpenTab,
         });
       }
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+      navigation.navigate(Routes.SOCIAL.POSITION, {
         traderId,
         traderName,
         traderImageUrl: profile?.profile.imageUrl ?? undefined,

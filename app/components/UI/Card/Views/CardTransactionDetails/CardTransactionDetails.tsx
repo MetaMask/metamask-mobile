@@ -31,7 +31,10 @@ import {
   getCardTransactionHeroCopy,
   getCardTransactionStatusColor,
 } from '../../utils/cardTransactionDisplayInfo';
-import { formatCardAmount } from '../../utils/cardTransactionAmount';
+import {
+  formatCardAmount,
+  formatNetworkFeeLabel,
+} from '../../utils/cardTransactionAmount';
 import { getMerchantCategoryLabel } from '../../utils/merchantCategoryLabel';
 import { getCardTransactionHeroToken } from '../../utils/getCardTransactionHeroToken';
 import { getCardDeclineReasonLabel } from '../../utils/moneyAccountCardTransaction';
@@ -173,6 +176,11 @@ const CardTransactionDetails = () => {
   );
 
   const fundingSource = transaction?.fundingSources.find((fs) => fs.txHash);
+
+  const networkFeeLabel = useMemo(
+    () => formatNetworkFeeLabel(transaction?.feeAmount, heroToken.symbol),
+    [transaction?.feeAmount, heroToken.symbol],
+  );
   const displayTransactionId = transaction?.reference ?? transaction?.id;
 
   const handleBack = useCallback(() => {
@@ -281,6 +289,7 @@ const CardTransactionDetails = () => {
       locationLabel={locationLabel}
       declineReason={getCardDeclineReasonLabel(transaction)}
       transactionId={displayTransactionId}
+      networkFeeLabel={networkFeeLabel}
       heroToken={heroToken}
       onBack={handleBack}
       onReportPress={handleReportPress}
