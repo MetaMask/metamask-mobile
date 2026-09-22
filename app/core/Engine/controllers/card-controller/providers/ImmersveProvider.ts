@@ -17,6 +17,7 @@ import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
   AuthTokenValidity,
+  CardAccountLookupResult,
   CardAction,
   CardAuthResult,
   CardAuthSession,
@@ -28,6 +29,7 @@ import {
   CardFundingAsset,
   CardFundingSourceResult,
   CardHomeData,
+  CardInitiateAuthOptions,
   CardProviderCapabilities,
   CardProviderError,
   CardProviderErrorCode,
@@ -56,6 +58,10 @@ const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
 
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
+
+export const IMMERSVE_NO_ACCOUNT_ERROR_CODES: ReadonlySet<string> = new Set([
+  'ACCOUNT_DOES_NOT_EXIST',
+]);
 
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
@@ -454,7 +460,7 @@ export class ImmersveProvider implements ICardProvider {
 
   async initiateAuth(
     country: string,
-    options?: { address?: string },
+    options?: CardInitiateAuthOptions,
   ): Promise<CardAuthSession> {
     const address = options?.address;
     if (!address) {
@@ -474,7 +480,7 @@ export class ImmersveProvider implements ICardProvider {
           scopes: ['cardholder-partner'],
           address,
           url: this.appUrl,
-          autoSignup: true,
+          autoSignup: options?.autoSignup ?? true,
         },
       );
 
@@ -491,10 +497,46 @@ export class ImmersveProvider implements ICardProvider {
         },
       };
     } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        typeof error.errorCode === 'string' &&
+        IMMERSVE_NO_ACCOUNT_ERROR_CODES.has(error.errorCode)
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.NotFound,
+          `Account does not exist for ${address}`,
+          error.statusCode,
+          error.errorCode,
+        );
+      }
       reportAndMap(error, 'initiateAuth', {
         network: this.network,
         country,
       });
+    }
+  }
+
+  async lookupAccount(address: string): Promise<CardAccountLookupResult> {
+    try {
+      await this.service.post<ImmersveLoginInitResponse>('/auth/login-init', {
+        loginMethod: 'siwe',
+        network: this.network,
+        clientApplicationId: this.clientApplicationId,
+        scopes: ['cardholder-partner'],
+        address,
+        url: this.appUrl,
+        autoSignup: false,
+      });
+      return 'found';
+    } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        typeof error.errorCode === 'string' &&
+        IMMERSVE_NO_ACCOUNT_ERROR_CODES.has(error.errorCode)
+      ) {
+        return 'not_found';
+      }
+      return 'unknown';
     }
   }
 
