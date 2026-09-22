@@ -8,6 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
+import { getPerpsSliderSelector } from '../../Perps.testIds';
 
 /**
  * Mirrors `@metamask/design-system-react-native`'s Slider geometry constants
@@ -229,6 +230,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           {COMPACT_LABEL_MARKS.map((mark) => (
             <Pressable
               key={mark.step}
+              testID={getPerpsSliderSelector.compactLabel(mark.step)}
               style={[styles.compactLabel, { left: mark.left }]}
               onPress={() => handleLabelPress(mark.step)}
               disabled={disabled}
