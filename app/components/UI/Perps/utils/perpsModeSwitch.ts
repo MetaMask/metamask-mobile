@@ -7,6 +7,7 @@ import {
   type NavigatorScreenParams,
 } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectPerpsLastViewedMarketSymbol,
@@ -208,6 +209,9 @@ export const resetToPerpsHomeTarget = (
   navigation: { reset: (...args: never[]) => void },
   target: PerpsHomeNavigationTarget,
 ): void => {
+  DevLogger.log(
+    `[PR-TAT-3786] BUG_MARKER: Perps stack replaced with ${target.screen}; replace animation decides the transition direction`,
+  );
   // Same assertion rationale as `navigateToPerpsHomeTarget`: the screen name
   // is resolved at runtime, so `reset()` cannot correlate it with its params.
   (
