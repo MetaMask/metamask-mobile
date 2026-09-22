@@ -1992,6 +1992,8 @@
         "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
+        "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",

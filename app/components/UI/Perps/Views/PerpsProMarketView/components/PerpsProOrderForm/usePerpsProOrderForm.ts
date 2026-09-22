@@ -117,9 +117,11 @@ import { getLimitPriceFarFromMarketWarning } from '../../../../utils/limitPriceF
 import {
   canonicalizeOrderPrice,
   getLimitPriceCrossingWarning,
+  getLimitVsTriggerWarning,
   getOrderFormFieldIssueMessage,
   getOrderFormFieldIssues,
   getScalePriceCrossingWarning,
+  isAdvisoryOrderFormFieldIssue,
 } from '../../../../utils/triggerOrderValidation';
 import {
   CHASE_ORDER_UI_CONFIG,
@@ -2101,10 +2103,13 @@ export const usePerpsProOrderForm = ({
           midPrice: assetData.price,
           szDecimals,
         });
-    if (currentFieldIssues.length > 0) {
-      const firstIssue = currentFieldIssues[0];
-      const message = getOrderFormFieldIssueMessage(firstIssue);
-      reportValidationFailure(message);
+    const currentBlockingIssue = currentFieldIssues.find(
+      (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+    );
+    if (currentBlockingIssue) {
+      reportValidationFailure(
+        getOrderFormFieldIssueMessage(currentBlockingIssue),
+      );
       return;
     }
 
@@ -2254,7 +2259,9 @@ export const usePerpsProOrderForm = ({
         return;
       }
       if (!validationResult.isValid) {
-        const firstFieldIssue = validationResult.fieldIssues[0];
+        const firstFieldIssue = validationResult.fieldIssues.find(
+          (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+        );
         const firstError =
           validationResult.errors[0] ||
           (firstFieldIssue
@@ -2304,9 +2311,12 @@ export const usePerpsProOrderForm = ({
         midPrice: latestMidPriceRef.current,
         szDecimals,
       });
-      if (latestFieldIssues.length > 0) {
+      const latestBlockingIssue = latestFieldIssues.find(
+        (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+      );
+      if (latestBlockingIssue) {
         reportValidationFailure(
-          getOrderFormFieldIssueMessage(latestFieldIssues[0]),
+          getOrderFormFieldIssueMessage(latestBlockingIssue),
         );
         return;
       }
@@ -2364,7 +2374,9 @@ export const usePerpsProOrderForm = ({
         }
         if (!latestScaleValidation.validationResult.isValid) {
           const firstFieldIssue =
-            latestScaleValidation.validationResult.fieldIssues[0];
+            latestScaleValidation.validationResult.fieldIssues.find(
+              (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+            );
           const firstError =
             latestScaleValidation.validationResult.errors[0] ||
             (firstFieldIssue
@@ -2926,7 +2938,14 @@ export const usePerpsProOrderForm = ({
           setIsOrderTypeVisible(false);
           return;
         }
-        if (type !== orderForm.type) {
+        // Only forget that a price was committed when its value is actually
+        // discarded. Switching between trigger types (stop market to stop
+        // limit) carries the prices over untouched, so treating them as
+        // freshly typed would silently drop guidance the user has already
+        // earned about a price that has not changed.
+        const clearsPriceDrafts =
+          type === 'twap' || type === 'scale' || type === 'chase';
+        if (type !== orderForm.type && clearsPriceDrafts) {
           resetPriceInputInteraction();
         }
         setOrderType(type);
@@ -3586,7 +3605,9 @@ export const usePerpsProOrderForm = ({
     );
     if (triggerIssue && hasBlurredTriggerPrice) {
       return {
-        severity: 'error' as const,
+        severity: isAdvisoryOrderFormFieldIssue(triggerIssue)
+          ? ('warning' as const)
+          : ('error' as const),
         message: getOrderFormFieldIssueMessage(triggerIssue),
       };
     }
@@ -3603,6 +3624,17 @@ export const usePerpsProOrderForm = ({
 
     if (!hasBlurredLimitPrice) {
       return undefined;
+    }
+
+    const limitVsTriggerWarning = getLimitVsTriggerWarning({
+      orderType: orderForm.type,
+      direction: orderForm.direction,
+      limitPrice: normalizedLimitPrice,
+      triggerPrice: normalizedTriggerPrice,
+      szDecimals,
+    });
+    if (limitVsTriggerWarning) {
+      return { severity: 'warning' as const, message: limitVsTriggerWarning };
     }
 
     const warning = getLimitPriceCrossingWarning({
@@ -3629,6 +3661,7 @@ export const usePerpsProOrderForm = ({
     isScaleOrder,
     orderForm.direction,
     normalizedLimitPrice,
+    normalizedTriggerPrice,
     orderForm.type,
     orderValidation.fieldIssues,
     scaleCrossingReferencePrice,
