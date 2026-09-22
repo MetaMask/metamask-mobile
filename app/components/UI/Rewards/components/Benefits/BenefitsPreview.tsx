@@ -14,8 +14,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
-import { ScrollView } from 'react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, useWindowDimensions } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
@@ -35,8 +35,8 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import BenefitEmptyList from './BenefitEmptyList.tsx';
 
 const BENEFIT_CARD_GAP = 12;
-const BENEFIT_CARD_SNAP_INTERVAL =
-  BENEFIT_PREVIEW_CARD_WIDTH + BENEFIT_CARD_GAP;
+const CAROUSEL_EDGE_PADDING = 16;
+const BENEFIT_CARD_PITCH = BENEFIT_PREVIEW_CARD_WIDTH + BENEFIT_CARD_GAP;
 
 const BenefitsPreview = () => {
   const tw = useTailwind();
@@ -51,6 +51,28 @@ const BenefitsPreview = () => {
 
   const hasBenefits = benefits.length > 0;
   const topBenefits = benefits.slice(0, 3);
+  const { width: screenWidth } = useWindowDimensions();
+
+  // Snapping on the card pitch alone would need a viewport of 242px or less
+  // for the trailing tile to reach a snap point, so on a phone the last tile
+  // springs back instead of settling. Explicit offsets snap every tile but
+  // the last flush-left, and the last one flush-right with its neighbour
+  // peeking in, matching EarnRewardsPreview.
+  const snapOffsets = useMemo(() => {
+    const count = topBenefits.length;
+    const contentWidth =
+      CAROUSEL_EDGE_PADDING * 2 +
+      count * BENEFIT_PREVIEW_CARD_WIDTH +
+      Math.max(0, count - 1) * BENEFIT_CARD_GAP;
+    // Clamped so a viewport wide enough to show every tile keeps the offsets
+    // ascending rather than pointing past the end of the content.
+    const maxScroll = Math.max(0, contentWidth - screenWidth);
+    return Array.from({ length: count }, (_, index) =>
+      index === count - 1
+        ? maxScroll
+        : Math.min(index * BENEFIT_CARD_PITCH, maxScroll),
+    );
+  }, [topBenefits.length, screenWidth]);
 
   const benefitsCountLabel =
     benefits.length > 99 ? '99+' : String(benefits.length);
@@ -100,8 +122,7 @@ const BenefitsPreview = () => {
       horizontal
       showsHorizontalScrollIndicator={false}
       decelerationRate="fast"
-      snapToInterval={BENEFIT_CARD_SNAP_INTERVAL}
-      snapToAlignment="start"
+      snapToOffsets={snapOffsets}
       contentContainerStyle={tw.style('gap-3 px-4')}
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
     >
