@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Dimensions, Pressable } from 'react-native';
+import { Dimensions, Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -44,7 +44,7 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
 /** Padding 4px 16px with fully rounded pill corners. */
 const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
+  'grow flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
 
 /** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
 const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
@@ -112,10 +112,13 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           </SkeletonPlaceholder>
         </Box>
       ) : (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="w-full flex-1 rounded-full"
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style(
+            'grow flex-row items-center rounded-full',
+          )}
         >
           {ranges.map((range) => {
             const isSelected = selected === range;
@@ -198,7 +201,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               onChartTypeSelect={onChartTypeSelect}
             />
           ) : null}
-        </Box>
+        </ScrollView>
       )}
     </Box>
   );

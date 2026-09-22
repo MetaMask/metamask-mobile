@@ -27,6 +27,16 @@ describe('TimeRangeSelector', () => {
     expect(getByText('1Y')).toBeOnTheScreen();
   });
 
+  it('renders the range row in a horizontal scroll view so periods are not clipped', () => {
+    const { UNSAFE_getByProps } = render(
+      <TimeRangeSelector {...defaultProps} />,
+    );
+
+    const scrollRow = UNSAFE_getByProps({ horizontal: true });
+
+    expect(scrollRow.props.showsHorizontalScrollIndicator).toBe(false);
+  });
+
   it('renders only specified ranges when ranges prop is provided', () => {
     const { getByText, queryByText } = render(
       <TimeRangeSelector {...defaultProps} ranges={['1H', '1D', '1W']} />,

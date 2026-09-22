@@ -69,7 +69,7 @@ const styleSheet = (params: { theme: Theme }) =>
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
-      width: '100%',
+      flexGrow: 1,
       borderRadius: 8,
       minHeight: TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
     } as ViewStyle,
