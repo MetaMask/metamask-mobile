@@ -362,9 +362,11 @@ const mockRenderEmbeddedCheckoutOverlay = jest.fn(
 const mockEmbeddedCheckoutDefaults: {
   phase: 'inactive' | 'preparing' | 'ready' | 'settling';
   renderOverlay: typeof mockRenderEmbeddedCheckoutOverlay | null;
+  error: string | null;
 } = {
   phase: 'inactive',
   renderOverlay: null,
+  error: null,
 };
 let mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
 
@@ -2198,6 +2200,7 @@ describe('BuildQuote', () => {
       mockEmbeddedCheckout = {
         phase: 'ready',
         renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
       };
 
       const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
@@ -2214,6 +2217,7 @@ describe('BuildQuote', () => {
       mockEmbeddedCheckout = {
         phase: 'ready',
         renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
       };
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
@@ -2227,6 +2231,7 @@ describe('BuildQuote', () => {
       mockEmbeddedCheckout = {
         phase: 'preparing',
         renderOverlay: null,
+        error: null,
       };
 
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
@@ -2244,6 +2249,7 @@ describe('BuildQuote', () => {
       mockEmbeddedCheckout = {
         phase: 'preparing',
         renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
       };
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -2259,6 +2265,7 @@ describe('BuildQuote', () => {
       mockEmbeddedCheckout = {
         phase: 'settling',
         renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
       };
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -2273,6 +2280,29 @@ describe('BuildQuote', () => {
       // The spinner is mocked in Jest, so the loading label is asserted
       // through the accessibility label the button derives from it.
       expect(continueButton.props.accessibilityLabel).toBe('Processing');
+    });
+
+    it('shows the provider reason and restores Continue when the checkout is unpurchasable', () => {
+      mockEmbeddedCheckout = {
+        phase: 'inactive',
+        renderOverlay: null,
+        error:
+          'This item is not available for purchase with Crossmint at this moment',
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      expect(
+        getByText(
+          'This item is not available for purchase with Crossmint at this moment',
+        ),
+      ).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(false);
     });
   });
 });
