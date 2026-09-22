@@ -7340,28 +7340,24 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         {
           id: 'esports',
           tagSlug: 'esports',
-          label: 'E-sports',
           iconName: 'Speedometer',
           enabled: true,
         },
         {
           id: 'culture',
           tagSlug: 'pop-culture',
-          label: 'Culture',
           iconName: 'StarFilled',
           enabled: true,
         },
         {
           id: 'finance',
           tagSlug: 'finance',
-          label: 'Finance',
           iconName: 'Bank',
           enabled: true,
         },
         {
           id: 'tech',
           tagSlug: 'tech',
-          label: 'Tech',
           iconName: 'Data',
           enabled: true,
         },
