@@ -6112,17 +6112,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  brazeSegmentForwarding: {
-    name: 'brazeSegmentForwarding',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      allowedEvents: [],
-      allowedTraits: [],
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
   brazeBannerHome: {
     name: 'brazeBannerHome',
     type: FeatureFlagType.Remote,
