@@ -3584,16 +3584,6 @@ export const usePerpsProOrderForm = ({
     const triggerIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'triggerPrice',
     );
-    DevLogger.log(
-      '[TAT-3918] BUG_MARKER: trigger issue blocks placement but is hidden until blur:',
-      JSON.stringify({
-        orderType: orderForm.type,
-        direction: orderForm.direction,
-        hasTriggerIssue: Boolean(triggerIssue),
-        hasBlurredTriggerPrice,
-        hiddenFromUser: Boolean(triggerIssue) && !hasBlurredTriggerPrice,
-      }),
-    );
     if (triggerIssue && hasBlurredTriggerPrice) {
       return {
         severity: 'error' as const,
