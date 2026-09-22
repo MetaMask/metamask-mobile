@@ -25,6 +25,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
+  PerpsOutreachDetails: undefined;
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;
