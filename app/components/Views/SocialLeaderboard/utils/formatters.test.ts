@@ -11,8 +11,37 @@ import {
   formatTradeDayLabel,
   formatFeedTimestamp,
   formatFeedPostAge,
+  formatAbbreviatedCount,
+  formatFollowerCountLabel,
   formatHoldDuration,
+  EM_DASH,
 } from './formatters';
+
+describe('formatAbbreviatedCount', () => {
+  it('returns an em dash for nullish or non-finite values', () => {
+    expect(formatAbbreviatedCount(null)).toBe(EM_DASH);
+    expect(formatAbbreviatedCount(undefined)).toBe(EM_DASH);
+    expect(formatAbbreviatedCount(Number.NaN)).toBe(EM_DASH);
+  });
+
+  it('keeps values under one thousand as grouped digits', () => {
+    expect(formatAbbreviatedCount(999)).toBe('999');
+  });
+
+  it('abbreviates thousands with one decimal and a K suffix', () => {
+    expect(formatAbbreviatedCount(65700)).toBe('65.7K');
+  });
+});
+
+describe('formatFollowerCountLabel', () => {
+  it('uses the singular follower string for a count of one', () => {
+    expect(formatFollowerCountLabel(1)).toBe('1 follower');
+  });
+
+  it('uses the abbreviated plural follower string for large counts', () => {
+    expect(formatFollowerCountLabel(65700)).toBe('65.7K followers');
+  });
+});
 
 describe('formatUsd', () => {
   it('formats positive USD values with two decimal places', () => {

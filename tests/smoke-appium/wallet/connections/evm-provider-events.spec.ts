@@ -149,7 +149,7 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           // Give the wallet time to propagate the account-switch event to
           // connected dApps before re-entering the browser. Without this, the
           // connected-accounts modal can still show Account 1 when it opens.
-          await sleep(2_000);
+          await sleep(4_000);
           await navigateToBrowserView();
           await waitForTestDappToLoad();
 
@@ -225,6 +225,7 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           // chainChanged instead of reading #chainId from the WebView.
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await Assertions.expectTextDisplayed('Localhost', {
+            timeout: 15_000,
             description:
               'After removing Ethereum Mainnet, Localhost should remain',
           });

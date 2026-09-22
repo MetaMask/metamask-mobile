@@ -2579,7 +2579,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-wallet (0.1.15):
+  - react-native-wallet (0.1.24):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4320,7 +4320,7 @@ SPEC CHECKSUMS:
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: db3a70efc9fa0c00f5499d7798283bf0585cbd37
   react-native-view-shot: 2829bd78c1fef42db12553bf85833e05a1a73609
-  react-native-wallet: a3edbe60e993deb1ed334cceaf13c242fa766ca2
+  react-native-wallet: e214223b29ad469ff80a41d23c6b9bf7f9c41ac6
   react-native-webview-mm: 6778d7b2462256e4ba33ae1daa5ef137b17cae71
   React-NativeModulesApple: 2b658272ca69df0694cf5d54f9510aa7c33977bc
   React-networking: 6be0b80e18e710dd30e77b04838ec46666a7bb78
