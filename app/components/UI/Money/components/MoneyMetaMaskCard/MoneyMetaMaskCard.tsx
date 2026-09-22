@@ -35,6 +35,7 @@ import {
 } from '../../../Card/util/metrics';
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
+import { MoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -50,6 +51,7 @@ interface MoneyMetaMaskCardProps {
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
    * Metal card image and 3% cashback copy.
@@ -271,6 +273,7 @@ const MoneyMetaMaskCard = ({
   onGetNowPress,
   onLinkPress,
   onManagePress,
+  onHeaderPress,
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
@@ -396,8 +399,9 @@ const MoneyMetaMaskCard = ({
   }, [getPressBehaviourByMode]);
 
   const handleHeaderPress = useCallback(() => {
+    onHeaderPress?.(mode);
     getPressBehaviourByMode()?.();
-  }, [getPressBehaviourByMode]);
+  }, [getPressBehaviourByMode, mode, onHeaderPress]);
 
   let content: React.ReactNode = null;
   if (mode === 'link') {

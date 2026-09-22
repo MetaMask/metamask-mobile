@@ -48,7 +48,10 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
-import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import {
+  deriveMoneyMetaMaskCardMode,
+  MoneyMetaMaskCardMode,
+} from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -229,6 +232,7 @@ const MoneyHomeView = () => {
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
+    getLinkFlowRedirectTarget,
     startLinkFlow,
     isCardAuthenticated,
     isCardVerified,
@@ -550,6 +554,34 @@ const MoneyHomeView = () => {
     navigateToCardHome,
   ]);
 
+  const getPressRedirectTargetByMode = useCallback(
+    (mode: MoneyMetaMaskCardMode) => {
+      if (mode === 'link') {
+        return getLinkFlowRedirectTarget();
+      }
+
+      if (mode === 'upsell' || mode === 'manage') {
+        return SCREEN_NAMES.CARD_HOME;
+      }
+
+      return undefined;
+    },
+    [getLinkFlowRedirectTarget],
+  );
+
+  const handleMetaMaskCardHeaderPress = useCallback(
+    (mode: MoneyMetaMaskCardMode) => {
+      const redirectTarget = getPressRedirectTargetByMode(mode);
+      if (!redirectTarget) return;
+
+      trackSurfaceClicked({
+        redirect_target: redirectTarget,
+        component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION_HEADER,
+      });
+    },
+    [getPressRedirectTargetByMode, trackSurfaceClicked],
+  );
+
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
       ...MONEY_HOME_CARD_ORIGIN,
@@ -817,6 +849,7 @@ const MoneyHomeView = () => {
         node: (
           <MoneyMetaMaskCard
             mode={metamaskCardMode}
+            onHeaderPress={handleMetaMaskCardHeaderPress}
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
