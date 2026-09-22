@@ -229,8 +229,8 @@ describe('useInsufficientNativeReserveError', () => {
     );
 
     expect(result.current).toStrictEqual({
-      maxSwappableNativeBalance: '9.8',
-      minimumNativeBalanceToBeKeptInAccount: '0.2',
+      maxSwappableNativeBalance: '9.95',
+      minimumNativeBalanceToBeKeptInAccount: '0.05',
     });
   });
 
@@ -238,7 +238,7 @@ describe('useInsufficientNativeReserveError', () => {
     mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
     const { result } = renderHookWithWrapper(() =>
       useInsufficientNativeReserveError({
-        amount: '9.8',
+        amount: '9.95',
         token: ARC_USDC_BRIDGE_TOKEN,
         latestAtomicBalance: BigNumber.from('10000000'), // 10 USDC
         walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',

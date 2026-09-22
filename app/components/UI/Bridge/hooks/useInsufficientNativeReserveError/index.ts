@@ -27,11 +27,11 @@ const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
   [key in ChainIdHexOrCaip]?: string;
 } = {
   '0x8f': '10',
-  // Arc: USDC is the native gas token. Reserve should cover a swap round trip
-  // (return leg ~200-250k gas, paid before incoming USDC lands), not just a
-  // bare transfer (~0.00042 USDC). 0.2 gives enough headroom for the
-  // following swap, including approve, network fee, and swap provider fee.
-  '0x13b2': '0.2',
+  // Arc: reserve pays gas only for ONE swap-or-bridge + its approve
+  // (~528k gas worst case). The 0.875% MetaMask fee is taken from the swap
+  // amount, not this native balance, so it's excluded here.
+  // 0.05 = ~5x base-fee-spike headroom over the 20 gwei floor.
+  '0x13b2': '0.05',
   [BTC_MAINNET_CHAIN_ID]: '0.00003',
 };
 
