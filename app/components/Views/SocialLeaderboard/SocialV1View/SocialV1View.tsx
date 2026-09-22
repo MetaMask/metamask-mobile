@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -43,6 +44,10 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import {
+  consumeSocialV1FocusTrending,
+  refreshSocialV1ComposedFeed,
+} from './feed/store/socialV1ComposedFeedStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -144,7 +149,6 @@ const SocialV1View: React.FC = () => {
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
   // The landing tab is the first one, so the surface always opens on index 0.
   const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
-
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
@@ -331,9 +335,12 @@ const SocialV1View: React.FC = () => {
     };
   });
 
-  const handlePlaceholderHeaderAction = useCallback(() => undefined, []);
   const handleOpenMyProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
+  }, [navigation]);
+
+  const handleOpenComposer = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
@@ -420,6 +427,26 @@ const SocialV1View: React.FC = () => {
     [changeTab],
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      // Reconcile with the composed-post store on every focus. A store update
+      // that lands while this screen is blurred (the composer is pushed on top
+      // of it) reaches no subscribers, and re-subscribing does not replay it.
+      refreshSocialV1ComposedFeed();
+
+      if (!consumeSocialV1FocusTrending()) {
+        return;
+      }
+      programmaticTabChangeRef.current = true;
+      pagerRef.current?.setPage(trendingIndex);
+      if (activeIndex !== trendingIndex) {
+        changeTab(trendingIndex);
+      } else {
+        trendingPageRef.current?.scrollToOffset(0, true);
+      }
+    }, [activeIndex, changeTab, trendingIndex]),
+  );
+
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -471,7 +498,7 @@ const SocialV1View: React.FC = () => {
             <ButtonIcon
               iconName={IconName.Add}
               size={ButtonIconSize.Md}
-              onPress={handlePlaceholderHeaderAction}
+              onPress={handleOpenComposer}
               testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
             />
           </Box>

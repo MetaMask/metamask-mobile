@@ -1,7 +1,7 @@
 import { merge } from 'lodash';
 import { act } from '@testing-library/react-native';
 import {
-  TransactionMeta,
+  type TransactionMeta,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -21,7 +21,15 @@ import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+  },
+  TransactionStatus: {
+    confirmed: 'confirmed',
+    dropped: 'dropped',
+    failed: 'failed',
+  },
+  TransactionType: {},
   updateEIP7702BatchData: jest.fn(),
 }));
 jest.mock('../../../../../core/Engine', () => ({

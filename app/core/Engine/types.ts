@@ -398,6 +398,16 @@ import {
   type PredictPortfolioServiceActions,
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictOrderPreviewService,
+  type PredictOrderPreviewServiceActions,
+  type PredictOrderPreviewServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderPreviewService';
+import {
+  RecurringOrdersDataService,
+  type RecurringOrdersDataServiceActions,
+  type RecurringOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/RecurringOrdersDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -716,6 +726,8 @@ export type GlobalActions =
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
+  | PredictOrderPreviewServiceActions
+  | RecurringOrdersDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -838,6 +850,8 @@ export type GlobalEvents =
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
+  | PredictOrderPreviewServiceEvents
+  | RecurringOrdersDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -999,6 +1013,8 @@ export type MessengerClients = {
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
+  PredictOrderPreviewService: PredictOrderPreviewService;
+  RecurringOrdersDataService: RecurringOrdersDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1212,6 +1228,8 @@ export type MessengerClientsToInitialize =
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
+  | 'PredictOrderPreviewService'
+  | 'RecurringOrdersDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'

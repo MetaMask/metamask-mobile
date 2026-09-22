@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, Platform, StyleSheet } from 'react-native';
+import { Animated, Linking, Platform, StyleSheet } from 'react-native';
 import {
   WebView,
   type WebViewMessageEvent,
@@ -16,8 +16,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
+import { useTheme } from '../../../../../util/theme';
 import { colors as commonColors } from '../../../../../styles/common';
 import { parseCrossmintCheckoutMessage } from '../../utils/crossmintCheckoutMessage';
 import { needsLegacyApplePay } from '../../utils/needsLegacyApplePay';
@@ -44,6 +46,14 @@ const MAX_WEBVIEW_HEIGHT = 400;
 const READY_FALLBACK_MS = 1200;
 
 /**
+ * Reveal deadline once the page has posted anything, proving the bridge
+ * works: the ready event is expected and this only guards against it never
+ * coming. Their ready lands ~1.7s after load end, so the short deadline
+ * above would reveal an empty slot first.
+ */
+const READY_WITH_BRIDGE_FALLBACK_MS = 8000;
+
+/**
  * Crossmint drops their in-checkout terms line per project. Must stay in step
  * with their setting: ahead of them ours vanishes too, behind them it shows
  * twice. Off for staging; production is a separate project.
@@ -64,13 +74,43 @@ const TOP_CROP = 24;
 /** iOS fallback, where no events arrive: room for the payment button alone. */
 const DEFAULT_WEBVIEW_HEIGHT = 50;
 
+/**
+ * Crossfade from Continue to the payment button. Short enough to read as the
+ * button appearing, long enough to cover a paint that lands a frame late.
+ */
+const REVEAL_DURATION_MS = AnimationDuration.Promptly;
+
+/**
+ * Where the caller's Continue button sits while the overlay is off-layout:
+ * flush with the action section's inner bottom edge, above its bottom
+ * padding (`actionSection.paddingBottom` in BuildQuote.styles). Anchoring
+ * here lets the overlay fade in over Continue and then join the layout in
+ * the same place, so the swap moves nothing.
+ */
+const ACTION_SECTION_BOTTOM_PADDING = 16;
+
+/**
+ * hidden: loading off-layout, invisible, so WebKit paints the button early.
+ * revealing: fading in over the caller's Continue button.
+ * revealed: in the layout, Continue gone.
+ */
+type RevealPhase = 'hidden' | 'revealing' | 'revealed';
+
 interface WalletPayCheckoutOverlayProps {
   checkoutUrl: string;
   /** Whether the WebView takes taps. Stays mounted either way, for order events. */
   interactive: boolean;
+  /**
+   * Hides the checkout again after it was shown, keeping it mounted for
+   * order events, so the caller can put its own state in the slot.
+   */
+  concealed?: boolean;
   webviewHeight?: number;
   onMessage: (event: WebViewMessageEvent) => void;
-  /** Fires once the button has rendered and settled; nothing is drawn before it. */
+  /**
+   * Fires once the button has rendered and faded in over Continue, so the
+   * caller can drop Continue without a visible swap.
+   */
   onReady: () => void;
 }
 
@@ -137,16 +177,47 @@ function CrossmintTermsNotice() {
 function WalletPayCheckoutOverlay({
   checkoutUrl,
   interactive,
+  concealed = false,
   webviewHeight = DEFAULT_WEBVIEW_HEIGHT,
   onMessage,
   onReady,
 }: WalletPayCheckoutOverlayProps) {
   const userAgent = useMemo(() => getCrossmintCheckoutUserAgent(), []);
-  const [isReady, setIsReady] = useState(false);
+  const { colors } = useTheme();
+  const [phase, setPhase] = useState<RevealPhase>('hidden');
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRevealed = useRef(false);
   const sawReadyEvent = useRef(false);
+  const sawAnyMessage = useRef(false);
+  const revealOpacity = useRef(new Animated.Value(0)).current;
+  const isRevealed = phase === 'revealed' && !concealed;
+
+  // Read at fade end rather than captured by the effect, so a caller that
+  // re-creates onReady mid-fade neither restarts the fade nor gets stale.
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+
+  useEffect(() => {
+    if (phase !== 'revealing') {
+      return;
+    }
+    let cancelled = false;
+    Animated.timing(revealOpacity, {
+      toValue: 1,
+      duration: REVEAL_DURATION_MS,
+      useNativeDriver: true,
+    }).start(() => {
+      if (cancelled) {
+        return;
+      }
+      setPhase('revealed');
+      onReadyRef.current();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [phase, revealOpacity]);
 
   // What Crossmint reports, less the crop; the fixed size on iOS.
   const height = contentHeight
@@ -163,19 +234,21 @@ function WalletPayCheckoutOverlay({
       return;
     }
     hasRevealed.current = true;
-    setIsReady(true);
-    onReady();
-  }, [onReady]);
+    setPhase('revealing');
+  }, []);
 
-  const armFallback = useCallback(() => {
-    if (hasRevealed.current) {
-      return;
-    }
-    if (fallbackTimer.current) {
-      clearTimeout(fallbackTimer.current);
-    }
-    fallbackTimer.current = setTimeout(markReady, READY_FALLBACK_MS);
-  }, [markReady]);
+  const armFallback = useCallback(
+    (delayMs: number = READY_FALLBACK_MS) => {
+      if (hasRevealed.current) {
+        return;
+      }
+      if (fallbackTimer.current) {
+        clearTimeout(fallbackTimer.current);
+      }
+      fallbackTimer.current = setTimeout(markReady, delayMs);
+    },
+    [markReady],
+  );
 
   useEffect(
     () => () => {
@@ -189,6 +262,15 @@ function WalletPayCheckoutOverlay({
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
       const message = parseCrossmintCheckoutMessage(event.nativeEvent.data);
+
+      // First word from the page: the bridge works, so the ready event will
+      // come and the load-end deadline must not reveal ahead of it.
+      if (!sawAnyMessage.current) {
+        sawAnyMessage.current = true;
+        if (!sawReadyEvent.current) {
+          armFallback(READY_WITH_BRIDGE_FALLBACK_MS);
+        }
+      }
 
       if (message?.event === CHECKOUT_READY_EVENT) {
         // Not the reveal: their terms line is still on screen. Wait for a
@@ -229,7 +311,9 @@ function WalletPayCheckoutOverlay({
     if (fallbackTimer.current) {
       return;
     }
-    armFallback();
+    armFallback(
+      sawAnyMessage.current ? READY_WITH_BRIDGE_FALLBACK_MS : undefined,
+    );
   }, [armFallback]);
 
   const styles = useMemo(
@@ -246,25 +330,57 @@ function WalletPayCheckoutOverlay({
           marginTop: -TOP_CROP,
           backgroundColor: commonColors.transparent,
         },
-        // Stays mounted so the page keeps loading, but draws nothing and joins
-        // no layout. Absolute rather than zero-height: the caller's action
-        // section uses a `gap`, which a zero-height child still earns.
-        loading: {
+        // Off the layout while loading and fading, anchored where the button
+        // will end up. Absolute rather than zero-height: the caller's action
+        // section uses a `gap`, which a zero-height child still earns. Kept
+        // at full size rather than clipped: WebKit only paints what is
+        // exposed, so a zero-height box left the button unpainted until the
+        // reveal, which then showed an empty slot for a few frames.
+        floating: {
           position: 'absolute',
-          height: 0,
+          left: 0,
+          right: 0,
+          bottom: ACTION_SECTION_BOTTOM_PADDING,
+        },
+        hidden: {
           opacity: 0,
-          overflow: 'hidden',
+        },
+        // Above Continue, on the screen surface, so the fade covers it
+        // rather than blending the two.
+        revealing: {
+          zIndex: 1,
+          backgroundColor: colors.background.default,
         },
       }),
-    [height],
+    [height, colors.background.default],
   );
 
+  const phaseStyle = useMemo(() => {
+    if (concealed) {
+      return [styles.floating, styles.hidden];
+    }
+    switch (phase) {
+      case 'hidden':
+        return [styles.floating, styles.hidden];
+      case 'revealing':
+        return [styles.floating, styles.revealing, { opacity: revealOpacity }];
+      default:
+        return undefined;
+    }
+  }, [concealed, phase, styles, revealOpacity]);
+
   return (
-    <Box style={isReady ? undefined : styles.loading}>
+    // Off-layout it overlaps Continue; nothing in it (the terms link
+    // included) may take a tap until it is the only thing there.
+    <Animated.View
+      style={phaseStyle}
+      pointerEvents={isRevealed ? 'auto' : 'none'}
+      testID={WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.ROOT}
+    >
       {CROSSMINT_RENDERS_TERMS ? null : <CrossmintTermsNotice />}
       <Box
         style={styles.host}
-        pointerEvents={interactive && isReady ? 'auto' : 'none'}
+        pointerEvents={interactive && isRevealed ? 'auto' : 'none'}
         testID={WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY}
       >
         <WebView
@@ -291,7 +407,7 @@ function WalletPayCheckoutOverlay({
           userAgent={userAgent}
         />
       </Box>
-    </Box>
+    </Animated.View>
   );
 }
 
