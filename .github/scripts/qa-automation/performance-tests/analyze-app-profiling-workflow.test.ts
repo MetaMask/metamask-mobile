@@ -19,6 +19,7 @@ type WorkflowStep = {
 
 type Workflow = {
   concurrency?: { group: string; 'cancel-in-progress'?: boolean };
+  env?: Record<string, string>;
   on: {
     schedule?: { cron: string }[];
     pull_request?: unknown;
@@ -155,7 +156,6 @@ describe('Analyze App Profiling triggers', () => {
     const slackStep = notify.steps.find(
       (step) => step.name === 'Post Slack summary',
     );
-
     expect(slackStep?.if).toContain('inputs.post_to_slack');
     expect(slackStep?.if).toContain("github.event_name == 'schedule'");
     expect(slackStep?.if).toContain(
@@ -168,10 +168,26 @@ describe('Analyze App Profiling triggers', () => {
       'analyze',
       'upload-scenario-profiles',
     ]);
-    expect(slackStep?.env?.SLACK_TARGET).toContain('C07KB8HRZ4J');
-    expect(slackStep?.env?.SLACK_TARGET).toContain('UEYQL2PEV');
-    expect(slackStep?.env?.SLACK_TARGET).toContain("github.ref == 'refs/heads/main'");
     expect(slackStep?.env?.GITHUB_RUN_ID).toBe('${{ github.run_id }}');
+  });
+
+  it('routes Slack by the branch that produced the profiles', () => {
+    const workflow = loadWorkflow();
+
+    const target = workflow.env?.SLACK_TARGET ?? '';
+
+    expect(target).toContain('C07KB8HRZ4J');
+    expect(target).toContain('UEYQL2PEV');
+    // A workflow_run listener always runs from the default branch, so
+    // github.ref would send a chained branch run to the channel.
+    expect(target).toContain('github.event.workflow_run.head_branch');
+    expect(target).toContain('github.ref_name');
+    expect(target).not.toContain("github.ref == 'refs/heads/main'");
+    for (const job of Object.values(workflow.jobs)) {
+      for (const step of job.steps) {
+        expect(step.env?.SLACK_TARGET).toBeUndefined();
+      }
+    }
   });
 
   it('keeps digests for a week and collected history for two', () => {
@@ -249,9 +265,6 @@ describe('Analyze App Profiling triggers', () => {
       (step) => step.name === 'Post Slack failure notice',
     );
 
-    expect(notice?.env?.SLACK_TARGET).toContain('C07KB8HRZ4J');
-    expect(notice?.env?.SLACK_TARGET).toContain("github.ref == 'refs/heads/main'");
-    // The link must point at the failed performance run, not this reporter.
     expect(notice?.env?.GITHUB_RUN_URL).toBe(
       '${{ github.event.workflow_run.html_url }}',
     );
@@ -271,7 +284,6 @@ describe('Analyze App Profiling triggers', () => {
     );
     // A Slack outage must not turn a failed analysis into a failed workflow.
     expect(failureStep?.['continue-on-error']).toBe(true);
-    expect(failureStep?.env?.SLACK_TARGET).toContain('C07KB8HRZ4J');
     expect(failureStep?.env?.GITHUB_RUN_URL).toContain(
       'actions/runs/${{ github.run_id }}',
     );

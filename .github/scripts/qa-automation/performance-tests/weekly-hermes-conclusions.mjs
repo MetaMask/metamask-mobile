@@ -547,9 +547,18 @@ export function buildWeeklyScenarioCard(card) {
 }
 
 export function buildSharedSpikeCard(sharedSpike) {
+  // A recovered run is history: naming the owners is useful, paging them is
+  // not, so only an open slow run uses live mentions.
+  const owner = sharedSpike.recovered
+    ? (scenario) => `· owner ${scenarioOwner(scenario)}`
+    : (scenario) => scenarioOwnerMention(scenario);
   const lines = [
     `*Slow run${sharedSpike.recovered ? ' (recovered)' : ''}* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
-    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. Owning teams are tagged.`,
+    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. ${
+      sharedSpike.recovered
+        ? 'Owners are named for the record; no team is notified.'
+        : 'Owning teams are tagged.'
+    }`,
     '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
   for (const scenario of sharedSpike.scenarios) {
@@ -558,7 +567,7 @@ export function buildSharedSpikeCard(sharedSpike) {
       scenario.medianJsWorkMs,
     ]);
     lines.push(
-      `  *${displayName(scenario.scenario)}* — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×) ${scenarioOwnerMention(scenario.scenario)}`,
+      `  *${displayName(scenario.scenario)}* — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×) ${owner(scenario.scenario)}`,
     );
   }
   lines.push(

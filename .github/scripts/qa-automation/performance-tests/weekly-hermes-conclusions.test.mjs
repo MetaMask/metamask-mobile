@@ -451,6 +451,10 @@ test('a slow run every scenario has run clean past is marked recovered', () => {
   const [card] = weeklySlackCards(report);
   assert.match(card, /\*Slow run \(recovered\)\*/);
   assert.match(card, /has run clean since that run/);
+  // Nothing to action must not page six teams for the record.
+  assert.doesNotMatch(card, /subteam/);
+  assert.match(card, /owner mm-perps-engineering-team/);
+  assert.match(card, /no team is notified/);
   const parent = buildWeeklyParentSlack(report);
   assert.match(parent, /\*Nothing to action this week\.\*/);
   assert.match(parent, /every one of them has run clean since/);

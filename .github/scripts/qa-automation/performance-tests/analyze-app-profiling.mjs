@@ -462,8 +462,8 @@ function tryReadCollectedReport(repo, analysisRunId) {
   }
 }
 
-function loadCollectedReports(repo, sinceIso, untilIso) {
-  const analysisRuns = JSON.parse(
+function listCompletedAnalysisRuns(repo) {
+  return JSON.parse(
     runGh([
       'run',
       'list',
@@ -477,6 +477,15 @@ function loadCollectedReports(repo, sinceIso, untilIso) {
       'databaseId,conclusion,createdAt,status',
     ]) || '[]',
   );
+}
+
+function loadCollectedReports(
+  repo,
+  sinceIso,
+  untilIso,
+  { listAnalysisRuns = listCompletedAnalysisRuns, readReport = tryReadCollectedReport } = {},
+) {
+  const analysisRuns = listAnalysisRuns(repo);
   const sinceMs = Date.parse(sinceIso) - 6 * 60 * 60 * 1000;
   const untilMs = Date.parse(untilIso) + 24 * 60 * 60 * 1000;
   const byPerformanceRunId = new Map();
@@ -491,11 +500,17 @@ function loadCollectedReports(repo, sinceIso, untilIso) {
     if (created < sinceMs || created > untilMs) {
       continue;
     }
-    const report = tryReadCollectedReport(repo, analysisRun.databaseId);
+    const report = readReport(repo, analysisRun.databaseId);
     if (!report) {
       continue;
     }
-    byPerformanceRunId.set(String(report.meta.runId), report);
+    // `gh run list` is newest first, so the first report found for a run is
+    // the freshest analysis of it. A later, older one must not replace it.
+    const performanceRunId = String(report.meta.runId);
+    if (byPerformanceRunId.has(performanceRunId)) {
+      continue;
+    }
+    byPerformanceRunId.set(performanceRunId, report);
   }
   return byPerformanceRunId;
 }
@@ -2840,6 +2855,7 @@ export {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
   isReusableCollectedReport,

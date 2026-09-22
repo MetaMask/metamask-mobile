@@ -80,6 +80,15 @@ permissions:
   contents: read
   actions: read
 
+env:
+  # A workflow_run listener always runs from the default branch, so
+  # `github.ref` would route a chained branch run to the channel. The branch
+  # that actually produced the profiles is the one that decides.
+  SLACK_TARGET: >-
+    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
+        && 'C07KB8HRZ4J'
+        || 'UEYQL2PEV' }}
+
 concurrency:
   # Weekly jobs share one group. Per-run collection keys on the performance
   # run so a chain and a dispatch of the same id collapse.
@@ -110,8 +119,6 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
-          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           # Link to the performance run that failed, not to this reporter.
           GITHUB_RUN_URL: ${{ github.event.workflow_run.html_url }}
           GITHUB_RUN_LABEL: 'Failed performance run'
@@ -268,8 +275,6 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
-          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_RUN_LABEL: 'Failed analysis job'
           ANALYZED_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
@@ -365,8 +370,6 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
-          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
@@ -400,8 +403,6 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
-          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_RUN_LABEL: 'Failed scenario artifact upload'
         run: |

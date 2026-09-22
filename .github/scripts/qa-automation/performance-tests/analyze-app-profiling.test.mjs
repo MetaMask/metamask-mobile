@@ -11,6 +11,7 @@ import {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
   isReusableCollectedReport,
@@ -236,6 +237,36 @@ test('collected reports from an older schema are not reused', () => {
     false,
   );
   assert.equal(isReusableCollectedReport({ scenarios: [scenario] }), false);
+});
+
+test('the newest analysis of a run wins over an older one', () => {
+  const analysisRuns = [
+    // gh run list is newest first.
+    { databaseId: 300, status: 'completed', conclusion: 'success', createdAt: '2026-09-19T12:00:00Z' },
+    { databaseId: 200, status: 'completed', conclusion: 'failure', createdAt: '2026-09-18T12:00:00Z' },
+    { databaseId: 100, status: 'completed', conclusion: 'success', createdAt: '2026-09-17T12:00:00Z' },
+    { databaseId: 50, status: 'completed', conclusion: 'success', createdAt: '2026-08-01T12:00:00Z' },
+  ];
+  const reports = {
+    300: { meta: { runId: '900', analysis: 'newest' }, scenarios: [] },
+    100: { meta: { runId: '900', analysis: 'older' }, scenarios: [] },
+    50: { meta: { runId: '800', analysis: 'out of window' }, scenarios: [] },
+  };
+
+  const collected = loadCollectedReports(
+    'MetaMask/metamask-mobile',
+    '2026-09-14T00:00:00.000Z',
+    '2026-09-21T00:00:00.000Z',
+    {
+      listAnalysisRuns: () => analysisRuns,
+      readReport: (_repo, analysisRunId) => reports[analysisRunId] || null,
+    },
+  );
+
+  assert.equal(collected.get('900').meta.analysis, 'newest');
+  // A failed analysis and one outside the window are not history.
+  assert.equal(collected.has('800'), false);
+  assert.equal(collected.size, 1);
 });
 
 test('reportsForRuns keeps the week when one run lost its artifacts', async () => {
