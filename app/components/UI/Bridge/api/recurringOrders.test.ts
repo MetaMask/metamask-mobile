@@ -12,7 +12,10 @@ import {
   getRecurringSwaps,
   resetRecurringOrdersMockState,
 } from './recurringOrders';
-import { RecurringOrderStatus } from './recurringOrders.types';
+import {
+  RecurringOrderStatus,
+  RecurringSwapStatus,
+} from './recurringOrders.types';
 
 const WALLET_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 

@@ -1,4 +1,3 @@
-import type { Mock } from 'jest-mock';
 import Engine from '../../../app/core/Engine';
 import {
   cancelRecurringOrder,
@@ -14,7 +13,7 @@ import type {
 type MessengerCall = (action: string, ...args: unknown[]) => unknown;
 
 const messengerCall = Engine.controllerMessenger
-  .call as unknown as Mock<MessengerCall>;
+  .call as unknown as jest.MockedFunction<MessengerCall>;
 const defaultImplementation = messengerCall.getMockImplementation();
 
 interface RecurringOrdersDataServiceMockOptions {
