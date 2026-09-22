@@ -32,6 +32,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   selectCurrencyRates,
@@ -44,7 +45,10 @@ import { DetailRow } from '../../components/LimitOrderConfirmationModal/DetailRo
 import type { BridgeToken } from '../../types';
 import { getTokenImageSource } from '../../utils';
 import { showRecurringOrderCanceledToast } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
-import { RecurringOrderStatus } from '../../api/recurringOrders.types';
+import {
+  RecurringOrderStatus,
+  type RecurringSwap,
+} from '../../api/recurringOrders.types';
 import { useRecurringSwaps } from '../../hooks/useRecurringSwaps';
 import {
   formatRecurringExecutionPrice,
@@ -55,6 +59,7 @@ import {
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
   getUsdToCurrentCurrencyRate,
+  isRecurringSwapEligibleForAddFunds,
 } from '../../utils/recurringOrders';
 import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
@@ -148,6 +153,20 @@ function RecurringOrderDetailsView() {
 
   const handleDuplicateOrder = useCallback(() => undefined, []);
 
+  const handleSwapPress = useCallback(
+    (swap: RecurringSwap) => {
+      navigation.navigate(Routes.BRIDGE.RECURRING_SWAP_DETAILS, {
+        order,
+        swap,
+        showAddFundsCta: isRecurringSwapEligibleForAddFunds(
+          swap,
+          swapsQuery.swaps,
+        ),
+      });
+    },
+    [navigation, order, swapsQuery.swaps],
+  );
+
   const handleScroll = useCallback(
     ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
       const distanceFromBottom =
@@ -199,8 +218,6 @@ function RecurringOrderDetailsView() {
   });
   const priceRange = formatRecurringPriceRange({
     priceRange: order.priceRange,
-    currentCurrency,
-    usdToCurrentCurrencyRate,
   });
   const averageExecutionPrice = formatRecurringExecutionPrice({
     priceUsd: order.averageExecutionPriceUsd,
@@ -406,6 +423,7 @@ function RecurringOrderDetailsView() {
                   swap={swap}
                   sourceToken={sourceToken}
                   destinationToken={destinationToken}
+                  onPress={() => handleSwapPress(swap)}
                 />
               ))}
             </Box>

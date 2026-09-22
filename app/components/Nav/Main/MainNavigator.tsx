@@ -17,6 +17,7 @@ import {
   createBottomTabNavigator,
   type BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -98,9 +99,12 @@ import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDe
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabBarFloating, {
   FloatingTabBarInsetContext,
 } from '../../../component-library/components/Navigation/TabBarFloating';
+import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import {
   HEADER_NAV_BAR_AB_KEY,
   HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
@@ -112,8 +116,18 @@ import {
 } from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../hooks';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
-import { toJsTabOptions } from './HomeTabs/homeTabs.mappers';
-import type { HomeTabDefinition, HomeTabKey } from './HomeTabs/homeTabs.types';
+import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
+import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
+import {
+  TAB_BAR_VISIBLE_STYLE,
+  toJsTabOptions,
+  toNativeTabOptions,
+} from './HomeTabs/homeTabs.mappers';
+import type {
+  HomeTabDefinition,
+  HomeTabKey,
+  HomeTabRoute,
+} from './HomeTabs/homeTabs.types';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -182,6 +196,7 @@ import {
   SocialPostComposerView,
   MyProfileView,
   FollowConnectionsView,
+  ProfilesToFollowView,
   ManageProfileView,
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
@@ -229,6 +244,7 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
+const NativeTab = createNativeBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
@@ -620,6 +636,7 @@ const HOME_TAB_COMPONENTS = {
 } satisfies Record<HomeTabKey, unknown>;
 
 const HomeTabs = () => {
+  const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
@@ -637,6 +654,11 @@ const HomeTabs = () => {
     headerNavBarVariant.trailingNavBarAction === 'none'
       ? undefined
       : headerNavBarVariant.trailingNavBarAction;
+  const isNativeTabBar = useIsNativeTabBar();
+  const safeAreaInsets = useSafeAreaInsets();
+  const nativeTabBarInset =
+    getTabBarFloatingBottomPadding(safeAreaInsets.bottom) +
+    TAB_BAR_FLOATING_HEIGHT;
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
@@ -654,11 +676,15 @@ const HomeTabs = () => {
     trackMoneyTabPressRef.current?.();
   }, []);
 
-  const { tabs, trackBottomNavPress } = useHomeTabDefinitions({
-    isMoneyAccountVisible,
-    showSocialTab,
-    trackMoneyTabPress,
-  });
+  const { tabs, trackBottomNavPress, getNativeTabListeners } =
+    useHomeTabDefinitions({
+      isMoneyAccountVisible,
+      showSocialTab,
+      trackMoneyTabPress,
+    });
+  const systemSlotTab = useNativeSystemSlotTab(
+    headerNavBarVariant.trailingNavBarAction,
+  );
 
   // Control only: a modal trigger the bar handles itself.
   const tradeOptions: ExtendedBottomTabNavigationOptions = {
@@ -748,6 +774,21 @@ const HomeTabs = () => {
     />
   );
 
+  const renderNativeTabScreen = (tab: HomeTabDefinition) => (
+    <NativeTab.Screen
+      key={tab.name}
+      name={tab.name}
+      options={
+        tab.hidesTabBarFor
+          ? ({ route }: { route: HomeTabRoute }) =>
+              toNativeTabOptions(tab, route)
+          : toNativeTabOptions(tab)
+      }
+      listeners={getNativeTabListeners(tab)}
+      component={HOME_TAB_COMPONENTS[tab.key]}
+    />
+  );
+
   /*
    * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
    * mounted here (above Tab.Navigator) so their BottomSheets render inside
@@ -761,6 +802,42 @@ const HomeTabs = () => {
    * the innermost (most recently mounted) provider active for state-based
    * Retry toasts so we don't double-fire when both are mounted.
    */
+  if (isNativeTabBar) {
+    return (
+      <PredictPreviewSheetProvider>
+        <TrendingQuickBuySheetProvider>
+          {isMoneyAccountEnabled ? (
+            <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+          ) : null}
+          <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                tabBarMinimizeBehavior: 'onScrollDown',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
+              }}
+            >
+              {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+          </FloatingTabBarInsetContext.Provider>
+        </TrendingQuickBuySheetProvider>
+      </PredictPreviewSheetProvider>
+    );
+  }
+
   return (
     <PredictPreviewSheetProvider>
       <TrendingQuickBuySheetProvider>
@@ -771,7 +848,13 @@ const HomeTabs = () => {
           <JsTab.Navigator
             initialRouteName={Routes.WALLET.HOME}
             tabBar={renderTabBar}
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+              headerShown: false,
+              // Never suspend blurred tabs: react-native-screens' delayed freeze
+              // can drop the activityState commit when a tab is left mid-mount,
+              // leaving the old screen (usually Money) stuck on top.
+              freezeOnBlur: false,
+            }}
           >
             {tabs.slice(0, 3).map(renderJsTabScreen)}
 
@@ -1262,6 +1345,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.FOLLOW_CONNECTIONS}
             component={FollowConnectionsView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.PROFILES_TO_FOLLOW}
+            component={ProfilesToFollowView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.MANAGE_PROFILE}
