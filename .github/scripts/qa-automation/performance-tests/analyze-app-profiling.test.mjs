@@ -877,7 +877,7 @@ test('reports mention a retry only when the scenario had several attempts', () =
   );
 });
 
-test('Slack leads with a testing disclaimer and keeps sourcemaps as a caveat', () => {
+test('Slack keeps sourcemaps as a caveat and does not lead with a disclaimer', () => {
   const report = {
     meta: { runId: '1', profileCount: 2, symbolicatedProfileCount: 0, ai: false },
     scenarios: groupProfiles([
@@ -887,8 +887,7 @@ test('Slack leads with a testing disclaimer and keeps sourcemaps as a caveat', (
     aiAnalysis: null,
   };
   const slack = buildSlack(report);
-  const [, disclaimer] = slack.split('\n');
-  assert.match(disclaimer, /Testing experiment, not a production alert/);
+  assert.doesNotMatch(slack, /production alert/);
   assert.match(
     slack,
     /2\/2 profiles had no matching sourcemap, so frame names cannot be traced/,
@@ -1460,8 +1459,7 @@ test('a flat profile is named instead of hiding its repeated frames', () => {
 
 test('window Slack digest separates the median from the spikiest run', () => {
   const slack = buildWindowSlack(threeRunWindow());
-  const [, disclaimer] = slack.split('\n');
-  assert.match(disclaimer, /testing experiment, not a production alert/);
+  assert.doesNotMatch(slack, /production alert/);
   assert.match(slack, /last 24h/);
   assert.match(slack, /median JS work 120\.0 ms \(range 100\.0 ms – 400\.0 ms\)/);
   assert.match(

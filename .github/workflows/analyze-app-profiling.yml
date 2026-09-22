@@ -9,11 +9,12 @@
 # Cadence:
 # - After a *scheduled* 6-hour performance run: collect `report.json` only.
 #   No Slack. No per-scenario profile zips.
-# - After a *manually dispatched* performance run: full digest + Slack DM
-#   (existing investigation path).
+# - After a *manually dispatched* performance run: full digest + Slack
+#   (#metamask-performance on main; personal DM on a branch).
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
 #   week vs the week before). Slack lists only regressions / spikes / new
-#   hot frames. Stable scenarios are omitted.
+#   hot frames. Stable scenarios are omitted. On main this posts to
+#   #metamask-performance.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -70,7 +71,7 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Send the analysis summary to the personal testing Slack DM'
+        description: 'Send the analysis summary to Slack (#metamask-performance on main)'
         required: false
         type: boolean
         default: true
@@ -109,7 +110,8 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_TARGET: UEYQL2PEV
+          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
+          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           # Link to the performance run that failed, not to this reporter.
           GITHUB_RUN_URL: ${{ github.event.workflow_run.html_url }}
           GITHUB_RUN_LABEL: 'Failed performance run'
@@ -120,7 +122,6 @@ jobs:
           mkdir -p /tmp/analyze-app-profiling
           {
             echo "*Hermes CPU-profile analysis did not run*"
-            echo ":test_tube: Testing experiment, not a production alert."
             echo
             echo "The performance suite finished as \`${PERFORMANCE_CONCLUSION}\`, so there are no profiles to analyze."
             echo
@@ -267,7 +268,8 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_TARGET: UEYQL2PEV
+          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
+          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_RUN_LABEL: 'Failed analysis job'
           ANALYZED_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
@@ -276,7 +278,6 @@ jobs:
           mkdir -p /tmp/analyze-app-profiling
           {
             echo "*Hermes CPU-profile analysis failed*"
-            echo ":test_tube: Testing experiment, not a production alert."
             echo
             echo "The performance suite finished, but this analysis job failed, so no digest was produced."
             echo
@@ -364,7 +365,8 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_TARGET: UEYQL2PEV
+          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
+          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
@@ -398,7 +400,8 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_TARGET: UEYQL2PEV
+          # #metamask-performance on main; Javier's DM on a branch so tests do not page the channel.
+          SLACK_TARGET: ${{ github.ref == 'refs/heads/main' && 'C07KB8HRZ4J' || 'UEYQL2PEV' }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_RUN_LABEL: 'Failed scenario artifact upload'
         run: |
@@ -406,7 +409,6 @@ jobs:
           mkdir -p /tmp/analyze-app-profiling
           {
             echo "*Hermes scenario artifacts failed to publish*"
-            echo ":test_tube: Testing experiment, not a production alert."
             echo
             echo "The profiles were analyzed, but one or more per-scenario downloads failed to upload, so no incomplete digest was sent."
             echo

@@ -1544,8 +1544,7 @@ function buildSlack(report) {
   const maps =
     `${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`;
   const lines = [
-    '*Hermes CPU-profile analysis*',
-    ':test_tube: Testing experiment, not a production alert.',
+    `*Hermes CPU-profile analysis*`,
     '',
     `_Run:_ \`${report.meta.runId || 'local'}\` · _Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount} · _Maps:_ ${maps}`,
   ];
@@ -1929,7 +1928,6 @@ function buildWindowSlack(window) {
   const { meta } = window;
   const lines = [
     `*Hermes CPU-profile analysis — last ${meta.lookbackHours}h*`,
-    ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
     '',
     `_Window:_ ${meta.since?.slice(0, 16)}Z → ${meta.until?.slice(0, 16)}Z`,
     `_Runs:_ ${meta.runCount} · _Scenarios:_ ${window.scenarios.length} · _Profiles:_ ${meta.profileCount}`,
@@ -2003,7 +2001,6 @@ function buildWindowSlack(window) {
       `_Caveat:_ ${meta.profileCount - meta.symbolicatedProfileCount}/${meta.profileCount} profiles had no matching sourcemap, so frame names cannot be traced to files or owners.`,
     );
   }
-  lines.push('_Disclaimer:_ Testing experiment only — not a production alert.');
   return lines.join('\n');
 }
 

@@ -168,7 +168,9 @@ describe('Analyze App Profiling triggers', () => {
       'analyze',
       'upload-scenario-profiles',
     ]);
-    expect(slackStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    expect(slackStep?.env?.SLACK_TARGET).toContain('C07KB8HRZ4J');
+    expect(slackStep?.env?.SLACK_TARGET).toContain('UEYQL2PEV');
+    expect(slackStep?.env?.SLACK_TARGET).toContain("github.ref == 'refs/heads/main'");
     expect(slackStep?.env?.GITHUB_RUN_ID).toBe('${{ github.run_id }}');
   });
 
@@ -247,7 +249,8 @@ describe('Analyze App Profiling triggers', () => {
       (step) => step.name === 'Post Slack failure notice',
     );
 
-    expect(notice?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    expect(notice?.env?.SLACK_TARGET).toContain('C07KB8HRZ4J');
+    expect(notice?.env?.SLACK_TARGET).toContain("github.ref == 'refs/heads/main'");
     // The link must point at the failed performance run, not this reporter.
     expect(notice?.env?.GITHUB_RUN_URL).toBe(
       '${{ github.event.workflow_run.html_url }}',
@@ -268,7 +271,7 @@ describe('Analyze App Profiling triggers', () => {
     );
     // A Slack outage must not turn a failed analysis into a failed workflow.
     expect(failureStep?.['continue-on-error']).toBe(true);
-    expect(failureStep?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    expect(failureStep?.env?.SLACK_TARGET).toContain('C07KB8HRZ4J');
     expect(failureStep?.env?.GITHUB_RUN_URL).toContain(
       'actions/runs/${{ github.run_id }}',
     );

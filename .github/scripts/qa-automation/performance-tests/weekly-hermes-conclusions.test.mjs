@@ -301,8 +301,8 @@ test('weekly Slack parent is an exception report', () => {
 
   assert.match(empty, /Nothing to action this week/);
   assert.match(empty, /No Hermes JS regressions were detected versus the previous week/);
-  assert.match(empty, /testing experiment/);
   assert.doesNotMatch(empty, /Healthy Start/);
+  assert.doesNotMatch(empty, /production alert/);
 
   const withCards = buildWeeklyParentSlack(
     buildWeeklyReport({
@@ -391,11 +391,9 @@ test('one slow run is reported once, not as a regression per scenario', () => {
   const cards = weeklySlackCards(report);
   assert.equal(cards.length, 1);
   assert.match(cards[0], /\*Slow run\*/);
-  assert.match(cards[0], /no team is notified/);
-  // Owners tell you who to ask about the run without paging four teams.
-  assert.match(cards[0], /owner mm-perps-engineering-team/);
-  assert.match(cards[0], /owner mm-earn-team/);
-  assert.doesNotMatch(cards[0], /subteam/);
+  assert.match(cards[0], /Owning teams are tagged/);
+  assert.match(cards[0], /subteam\^S094DMAQNCV/);
+  assert.match(cards[0], /subteam\^S052NJFKX6Y/);
   // A bare duration reads as the test's wall clock, which this is not.
   assert.match(
     cards[0],

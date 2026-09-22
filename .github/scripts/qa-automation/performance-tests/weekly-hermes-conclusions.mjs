@@ -194,6 +194,10 @@ function scenarioOwner(scenario) {
   return scenarioTeam(displayName(scenario)).handle;
 }
 
+function scenarioOwnerMention(scenario) {
+  return slackTeamMention(displayName(scenario));
+}
+
 function topContributor(scenario) {
   return scenario?.contributors?.[0] || null;
 }
@@ -545,7 +549,7 @@ export function buildWeeklyScenarioCard(card) {
 export function buildSharedSpikeCard(sharedSpike) {
   const lines = [
     `*Slow run${sharedSpike.recovered ? ' (recovered)' : ''}* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
-    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. Owners are named for context; no team is notified.`,
+    `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. Owning teams are tagged.`,
     '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
   for (const scenario of sharedSpike.scenarios) {
@@ -554,7 +558,7 @@ export function buildSharedSpikeCard(sharedSpike) {
       scenario.medianJsWorkMs,
     ]);
     lines.push(
-      `  *${displayName(scenario.scenario)}* — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×) · owner ${scenarioOwner(scenario.scenario)}`,
+      `  *${displayName(scenario.scenario)}* — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×) ${scenarioOwnerMention(scenario.scenario)}`,
     );
   }
   lines.push(
@@ -592,7 +596,6 @@ export function buildWeeklyParentSlack(report) {
   const recoveredSpikes = recoveredSharedSpikes(report);
   const lines = [
     '*Hermes CPU-profile weekly conclusions*',
-    ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
     '',
     `_This week:_ ${report.meta.thisWeek.since.slice(0, 16)}Z → ${report.meta.thisWeek.until.slice(0, 16)}Z`,
     `_Previous week:_ ${report.meta.lastWeek.since.slice(0, 16)}Z → ${report.meta.lastWeek.until.slice(0, 16)}Z`,
@@ -656,7 +659,6 @@ export function buildWeeklyParentSlack(report) {
       `_Coverage:_ sampled ${report.meta.thisWeekRunCount}/${report.meta.thisWeekRunsAvailable} and ${report.meta.lastWeekRunCount}/${report.meta.lastWeekRunsAvailable} scheduled runs; medians come from those samples.`,
     );
   }
-  lines.push('_Disclaimer:_ Testing experiment only — not a production alert.');
   return lines.join('\n');
 }
 
