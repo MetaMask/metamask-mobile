@@ -20,8 +20,8 @@ const createOrder = (overrides: Partial<LighterOrder> = {}): LighterOrder => ({
   ...overrides,
 });
 
-// Exercise the installed controller so removing the dependency patch restores
-// the regression observed in the Lighter testnet cancellation proof.
+// Exercise the installed controller to guard the upstream fix for the
+// regression observed in the Lighter testnet cancellation proof.
 describe('Lighter order normalization', () => {
   it.each([
     ['canceled', '0.00000', '0'],

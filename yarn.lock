@@ -11257,9 +11257,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:17.2.0":
-  version: 17.2.0
-  resolution: "@metamask/perps-controller@npm:17.2.0"
+"@metamask/perps-controller@npm:^17.3.0":
+  version: 17.3.0
+  resolution: "@metamask/perps-controller@npm:17.3.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -11271,25 +11271,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
-  checksum: 10/b716fcb77009b3ea90a94894a570a257d46d15b3dfa84adb5d9812a4e2a92cf02b027e0c69d31dd44739fcef983812f2e7c8851eb0c8ffc8716cdfb2514435b2
-  languageName: node
-  linkType: hard
-
-"@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A17.2.0#~/.yarn/patches/@metamask-perps-controller-npm-17.2.0-2953c6dff8.patch":
-  version: 17.2.0
-  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A17.2.0#~/.yarn/patches/@metamask-perps-controller-npm-17.2.0-2953c6dff8.patch::version=17.2.0&hash=e0f137"
-  dependencies:
-    "@metamask/abi-utils": "npm:^2.0.3"
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-    "@nktkas/hyperliquid": "npm:^0.33.1"
-    bignumber.js: "npm:^9.1.2"
-    reselect: "npm:^5.1.1"
-    uuid: "npm:^11.1.1"
-  checksum: 10/b7aa9d04cbd1f93d38d1827bf8978b9178c762749291cbc3a0270cf4f3e93f56cca3e270708fdd7eb8ffa4fc0a500e729969973033db247bf32d2e7a81e1a048
+  checksum: 10/cffe29b9913582424ee4861100051cbdd8059170e49eacb414de88c15ff72f7be701d0f9dfa430251afdd0cbfe19dfdf2024533c562b30ccaccf5d1ae7390bd4
   languageName: node
   linkType: hard
 
@@ -39371,7 +39353,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "patch:@metamask/perps-controller@npm%3A17.2.0#~/.yarn/patches/@metamask-perps-controller-npm-17.2.0-2953c6dff8.patch"
+    "@metamask/perps-controller": "npm:^17.3.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
