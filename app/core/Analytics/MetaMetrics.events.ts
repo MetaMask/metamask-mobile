@@ -553,6 +553,7 @@ enum EVENT_NAME {
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
   APP_UNLOCKED = 'App Unlocked',
+  ROUTE_RESTORE_EVALUATED = 'Route Restore Evaluated',
 
   // Reset Wallet Confirmed Modal
   RESET_WALLET_CONFIRMED = 'Reset Wallet Confirmed',
@@ -1542,6 +1543,7 @@ const events = {
   // Login screen
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
   APP_UNLOCKED: generateOpt(EVENT_NAME.APP_UNLOCKED),
+  ROUTE_RESTORE_EVALUATED: generateOpt(EVENT_NAME.ROUTE_RESTORE_EVALUATED),
 
   // Delete Wallet Modal
   RESET_WALLET_CONFIRMED: generateOpt(EVENT_NAME.RESET_WALLET_CONFIRMED),

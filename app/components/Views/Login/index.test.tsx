@@ -2049,6 +2049,21 @@ describe('Login', () => {
       expect(result).toBe(false);
     });
 
+    it('swallows back button press while covering a locked session', () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+      renderWithProvider(<Login />);
+
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      const result = handleBackPress();
+
+      // Returning true consumes the event: the screens underneath stay covered.
+      expect(result).toBe(true);
+      expect(mockLockApp).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
     it('shows security alert when passcode is not set', async () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error(PASSCODE_NOT_SET_ERROR));
 

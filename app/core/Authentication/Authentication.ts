@@ -907,13 +907,10 @@ class AuthenticationService {
             await navigateToPostUnlockHome();
           }
         } else {
-          // No password provided or derived. Navigate to login.
-          NavigationService.navigation?.reset({
-            routes: [
-              {
-                name: Routes.ONBOARDING.LOGIN,
-              },
-            ],
+          // No password provided or derived. Cover the existing screens with
+          // login rather than replacing them, so unlocking can reveal them again.
+          NavigationService.navigation?.navigate(Routes.ONBOARDING.LOGIN, {
+            locked: true,
           });
         }
       } else {

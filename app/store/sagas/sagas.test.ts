@@ -441,7 +441,7 @@ describe('appStateListenerTask', () => {
     expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
-  it('calls lockApp, navigates to login, and tracks error when unlockWallet fails', async () => {
+  it('covers the existing screens with login and tracks error when unlockWallet fails', async () => {
     const mockError = new Error('Authentication failed');
     (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(mockError);
 
@@ -453,9 +453,10 @@ describe('appStateListenerTask', () => {
     await expectSaga(appStateListenerTask).silentRun(100);
 
     expect(Authentication.unlockWallet).toHaveBeenCalled();
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN, {
+      locked: true,
     });
+    expect(mockReset).not.toHaveBeenCalled();
     expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
       'Lockscreen: Authentication failed',
       'Authentication failed',

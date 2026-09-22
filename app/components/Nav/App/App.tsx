@@ -1154,6 +1154,10 @@ const AppFlow = () => {
         component={Login}
         options={{
           contentStyle: { backgroundColor: colors.background.default },
+          // Login covers a locked session, so it must not be dismissable. The
+          // inherited transparentModal presentation already rules out a swipe;
+          // this holds if that presentation ever changes.
+          gestureEnabled: false,
         }}
       />
       {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
