@@ -196,10 +196,11 @@ Follow existing test patterns covering:
 
 | Redux Property                          | LaunchDarkly Key                        | Variants               | Purpose                                  |
 | --------------------------------------- | --------------------------------------- | ---------------------- | ---------------------------------------- |
-| `perpsTAT1937AbtestButtonColor`         | `perps-tat1937-abtest-button-color`     | `control`, `colors`    | Button color A/B test (TAT-1937)         |
 | `perpsTAT3938AbtestScreenVsBottomSheet` | `perpsTAT3938AbtestScreenVsBottomSheet` | `control`, `treatment` | Shared screen vs bottom-sheet experience |
 
-For `perpsTAT1937AbtestButtonColor`, `control` (white/white) is the required `useABTest` fallback and therefore the default experience; `colors` (green long / red short) is the active-experiment variant. That flag is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
+The `perpsTAT1937AbtestButtonColor` experiment has concluded. Long and Short
+trade actions now always use the success and error semantic palettes,
+respectively.
 
 `perpsTAT3938AbtestScreenVsBottomSheet` defaults to `control` (full-page screens). Consume it only through `usePerpsScreenVsBottomSheetAbTest()` — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md). The LaunchDarkly key is camelCase so it matches `useABTest` / Redux.
 

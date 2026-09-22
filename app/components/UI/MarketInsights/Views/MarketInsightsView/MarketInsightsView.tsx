@@ -56,6 +56,7 @@ import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsigh
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { isSafeUrl } from '../../utils/marketInsightsFormatting';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import PerpsDirectionButton from '../../../Perps/components/PerpsDirectionButton';
 import type {
   MarketInsightsTweet,
   MarketInsightsTrend,
@@ -886,24 +887,24 @@ const MarketInsightsView: React.FC = () => {
               twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
             >
               <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-                <Button
-                  variant={ButtonVariant.Primary}
+                <PerpsDirectionButton
+                  direction="long"
                   size={ButtonSize.Lg}
                   twClassName="flex-1"
                   onPress={() => handlePerpsDirectionPress('long')}
                   testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
                 >
                   {strings('perps.market.long')}
-                </Button>
-                <Button
-                  variant={ButtonVariant.Primary}
+                </PerpsDirectionButton>
+                <PerpsDirectionButton
+                  direction="short"
                   size={ButtonSize.Lg}
                   twClassName="flex-1"
                   onPress={() => handlePerpsDirectionPress('short')}
                   testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
                 >
                   {strings('perps.market.short')}
-                </Button>
+                </PerpsDirectionButton>
               </Box>
               <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
                 <Text
