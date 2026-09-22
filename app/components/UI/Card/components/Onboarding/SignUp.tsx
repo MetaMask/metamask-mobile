@@ -225,7 +225,6 @@ const SignUp = () => {
         return;
       }
       // Local UI only — do not call setSelectedCountry here. That would switch
-      // the active provider / clear Baanx before the user confirms with Next.
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(ukRegion);
       setPhoneRegion(ukRegion);
@@ -490,10 +489,8 @@ const SignUp = () => {
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
-      // Clear Baanx while it is still the active provider, then continue as
-      // a new Immersve user (setSelectedCountry + SIWE happen in resume).
       if (fromMigration) {
-        await Engine.context.CardController.logout();
+        Engine.context.CardController.beginMigration();
       }
       await resumeImmersveOnboarding({
         country: selectedCountry.key,
@@ -503,6 +500,9 @@ const SignUp = () => {
         entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
+      if (fromMigration) {
+        Engine.context.CardController.cancelMigration();
+      }
       setImmersveError(getCardProviderErrorMessage(e));
     } finally {
       setIsImmersveSubmitting(false);
