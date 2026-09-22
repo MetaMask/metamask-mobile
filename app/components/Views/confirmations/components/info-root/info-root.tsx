@@ -125,6 +125,8 @@ const Info = ({ route }: InfoProps) => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [
       TransactionType.moneyAccountDeposit,
+      // OGP: membershipSubscription will be added
+      TransactionType.membershipSubscription as unknown as TransactionType,
     ])
   ) {
     return <MoneyAccountDepositInfo />;

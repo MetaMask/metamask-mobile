@@ -36,6 +36,18 @@ import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransaction
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-questionnaire/scam-questionnaire.constants';
 
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
+
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
 jest.mock('../../hooks/useConfirmActions', () => ({
@@ -112,6 +124,8 @@ const mockAlerts = [
 ];
 
 describe('Footer', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    'membershipSubscription' as TransactionType;
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
@@ -419,7 +433,10 @@ describe('Footer', () => {
     ).not.toBeDisabled();
   });
 
-  it('hides footer by default for moneyAccountDeposit transaction type', () => {
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])('hides footer by default for %s transaction type', (transactionType) => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
@@ -447,7 +464,7 @@ describe('Footer', () => {
         to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         value: '0x0',
       },
-      type: TransactionType.moneyAccountDeposit,
+      type: transactionType,
     } as unknown as TransactionMeta;
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

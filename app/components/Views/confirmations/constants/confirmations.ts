@@ -14,6 +14,8 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.deployContract,
   TransactionType.moneyAccountDeposit,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsDeposit,
@@ -49,6 +51,8 @@ export const TRANSFER_TRANSACTION_TYPES = [
 
 export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.moneyAccountDeposit,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -111,6 +115,8 @@ export const ACTIVITY_FIAT_FRACTION_DIGITS = 2;
  */
 export const PAY_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -129,6 +135,8 @@ export const RELAY_DEPOSIT_TYPES = [
 
 export const MM_PAY_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsDeposit,
@@ -146,6 +154,8 @@ export const MM_PAY_TRANSACTION_TYPES = [
  */
 export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
 ] as const;
 
 /**

@@ -54,6 +54,8 @@ import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.moneyAccountDeposit,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
