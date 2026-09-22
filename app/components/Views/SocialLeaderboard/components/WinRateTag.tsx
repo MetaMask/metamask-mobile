@@ -5,6 +5,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
+import { markMocked } from '../SocialV1View/feed/mockMarker';
 import { formatPercent } from '../utils/formatters';
 
 /** At or above this win rate the tag switches to the highlighted treatment. */
@@ -19,6 +20,12 @@ export interface WinRateTagProps {
    * placeholder -- a trader with no win-rate data has no badge to show.
    */
   winRatePercent?: number | null;
+  /**
+   * Appends the mock marker. The V1 feed invents win rates (a feed row carries
+   * no trader stats), while the leaderboard reads real ones -- so the marker is
+   * a caller's concern rather than something this tag can infer.
+   */
+  isMocked?: boolean;
   testID?: string;
 }
 
@@ -30,12 +37,19 @@ export interface WinRateTagProps {
  * leaderboard rows and the V1 feed post header so both surfaces agree on the
  * threshold, the copy and the precision.
  */
-const WinRateTag: React.FC<WinRateTagProps> = ({ winRatePercent, testID }) => {
+const WinRateTag: React.FC<WinRateTagProps> = ({
+  winRatePercent,
+  isMocked = false,
+  testID,
+}) => {
   if (winRatePercent == null) {
     return null;
   }
 
   const isElite = winRatePercent >= ELITE_WIN_RATE_PERCENT;
+  const label = strings('social_leaderboard.win_rate_tag', {
+    winRate: formatPercent(winRatePercent, { showSign: false, decimals: 0 }),
+  });
 
   return (
     <Tag
@@ -47,12 +61,7 @@ const WinRateTag: React.FC<WinRateTagProps> = ({ winRatePercent, testID }) => {
       twClassName="shrink-0"
       testID={testID}
     >
-      {strings('social_leaderboard.win_rate_tag', {
-        winRate: formatPercent(winRatePercent, {
-          showSign: false,
-          decimals: 0,
-        }),
-      })}
+      {isMocked ? markMocked(label) : label}
     </Tag>
   );
 };

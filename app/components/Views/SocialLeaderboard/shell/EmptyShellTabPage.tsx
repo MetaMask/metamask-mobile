@@ -1,15 +1,65 @@
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import type { ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ScrollView,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
+import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import { useTheme } from '../../../../util/theme';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
+import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import type { SocialV1FeedTab } from '../SocialV1View/feed/types';
+import type {
+  SocialV1FeedPost,
+  SocialV1FeedTab,
+} from '../SocialV1View/feed/types';
+
+/** Insert the Popular traders rail after this many Trending posts. */
+export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
+
+export const SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID =
+  'social-v1-feed-footer-loading';
+export const SOCIAL_V1_FEED_ERROR_TEST_ID = 'social-v1-feed-error';
+export const SOCIAL_V1_FEED_RETRY_TEST_ID = 'social-v1-feed-retry';
+
+/**
+ * Hold the refresh spinner for a beat so a fast refetch does not flicker.
+ * Matches V0's feed.
+ */
+const REFRESH_MIN_DURATION_MS = 1000;
+
+/**
+ * How close to the bottom a settled scroll must land to pull the next page.
+ * Generous because this fires on scroll end rather than continuously.
+ */
+const END_REACHED_THRESHOLD_PX = 600;
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -44,7 +94,70 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
-  const { posts, pendingPost, pendingStartedAtMs } = useSocialV1Feed(tab);
+  const {
+    posts,
+    pendingPost,
+    pendingStartedAtMs,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh,
+  } = useSocialV1Feed(tab);
+
+  const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+
+  /**
+   * Pull-to-refresh, and the only recovery path once a later fetch fails:
+   * `useTraderFeed` clears `hasNextPage` on error, so paging cannot get the
+   * user unstuck and the inline retry only renders on an empty feed.
+   */
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const minDuration = new Promise<void>((resolve) =>
+        setTimeout(resolve, REFRESH_MIN_DURATION_MS),
+      );
+      await Promise.all([refresh(), minDuration]);
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_feed',
+          operation: 'pull_to_refresh',
+          extraMessage: 'Social V1 feed pull-to-refresh failed',
+          source: 'EmptyShellTabPage',
+          error: err,
+        }),
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
+
+  /**
+   * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
+   * `onScroll`, which `SocialV1View` owns for the collapsing header -- layering
+   * a JS callback onto that reanimated handler would mean composing a worklet
+   * with a non-worklet. The trade-off is that a page is requested when the
+   * scroll settles rather than continuously, so the threshold is generous.
+   */
+  const handleScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!hasNextPage) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMore();
+      }
+    },
+    [hasNextPage, loadMore],
+  );
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
   useEffect(() => {
@@ -84,6 +197,21 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [],
   );
 
+  const showPopularTraders = tab === 'trending';
+  const leadingPosts = showPopularTraders
+    ? posts.slice(0, TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+    : posts;
+  const trailingPosts = showPopularTraders
+    ? posts.slice(TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+    : [];
+
+  const renderPosts = (feedPosts: SocialV1FeedPost[]) =>
+    feedPosts.map((post) => (
+      <SocialFeedPostEntrance key={post.id} animate={!seenPostIds.has(post.id)}>
+        <SocialFeedPostShell post={post} />
+      </SocialFeedPostEntrance>
+    ));
+
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
       <Animated.ScrollView
@@ -92,7 +220,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         contentContainerStyle={tw.style('flex-grow')}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
+        onMomentumScrollEnd={handleScrollSettled}
+        onScrollEndDrag={handleScrollSettled}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
         testID={scrollTestID}
       >
         {hasBeenActive ? (
@@ -111,15 +249,44 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   startedAtMs={pendingStartedAtMs}
                 />
               ) : null}
-              {posts.map((post) => (
-                <SocialFeedPostEntrance
-                  key={post.id}
-                  animate={!seenPostIds.has(post.id)}
-                >
-                  <SocialFeedPostShell post={post} />
-                </SocialFeedPostEntrance>
-              ))}
+              {renderPosts(leadingPosts)}
             </Box>
+            {showPopularTraders ? <PopularTradersCarousel /> : null}
+            {trailingPosts.length > 0 ? (
+              <Box twClassName="px-4 gap-6">{renderPosts(trailingPosts)}</Box>
+            ) : null}
+            {isFetchingNextPage ? (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                twClassName="px-4"
+                testID={SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID}
+              >
+                <ActivityIndicator size="small" />
+              </Box>
+            ) : null}
+            {error && posts.length === 0 ? (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                twClassName="px-4 py-16 gap-3"
+                testID={SOCIAL_V1_FEED_ERROR_TEST_ID}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('social_leaderboard.feed.error.title')}
+                </Text>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Sm}
+                  onPress={refresh}
+                  testID={SOCIAL_V1_FEED_RETRY_TEST_ID}
+                >
+                  {strings('social_leaderboard.feed.error.retry')}
+                </Button>
+              </Box>
+            ) : null}
           </Box>
         ) : null}
       </Animated.ScrollView>

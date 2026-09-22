@@ -70,7 +70,7 @@ export interface PerpsNavigationHandlers {
   navigateToAdjustMargin: (
     position: Position,
     mode: 'add' | 'remove',
-    options?: { enableHaptics?: boolean },
+    options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
   ) => void;
   navigateToClosePosition: (
     position: Position,
@@ -307,12 +307,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       mode: 'add' | 'remove',
-      options?: { enableHaptics?: boolean },
+      options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
     ) => {
       navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
         position,
         mode,
         enableHaptics: options?.enableHaptics,
+        ...(options?.useBottomSheet ? { useBottomSheet: true } : {}),
       });
     },
     [navigation],

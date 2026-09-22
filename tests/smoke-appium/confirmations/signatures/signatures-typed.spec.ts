@@ -9,6 +9,7 @@ import {
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../../flows/browser.flow.js';
+import { tapTestDappButtonAndWaitForConfirm } from '../../../flows/confirmations.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
@@ -28,6 +29,7 @@ import { AnvilManager } from '../../../seeder/anvil-manager.js';
 const SIGNATURE_LIST = [
   {
     specName: 'Typed V1 Sign',
+    buttonId: TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
     testDappBtn: () =>
       WebView.tapById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA, {
         pageUrl: getDappUrl(0),
@@ -39,6 +41,7 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'Typed V3 Sign',
+    buttonId: TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
     testDappBtn: () =>
       WebView.tapById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3, {
         pageUrl: getDappUrl(0),
@@ -50,6 +53,7 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'Typed V4 Sign',
+    buttonId: TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     testDappBtn: () =>
       WebView.tapById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4, {
         pageUrl: getDappUrl(0),
@@ -87,6 +91,7 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
   for (const {
     specName,
+    buttonId,
     testDappBtn,
     requestType,
     additionAssertions,
@@ -131,7 +136,10 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
             await FooterActions.tapCancelButton();
             await Assertions.expectElementToNotBeVisible(requestType());
 
-            await testDappBtn();
+            // Use the robust tap helper for the confirm path: on Android it
+            // retries the tap until the footer confirm button appears (handles
+            // WebView not being interactive immediately after modal dismiss).
+            await tapTestDappButtonAndWaitForConfirm(buttonId, specName);
             await Assertions.expectElementToBeVisible(requestType());
 
             // check different sections are visible
