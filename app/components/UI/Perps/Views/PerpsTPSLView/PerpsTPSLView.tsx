@@ -83,6 +83,31 @@ import {
   TP_SL_VIEW_CONFIG,
 } from '../../constants/perpsConfig';
 
+/**
+ * Longest wait for a sheet close animation before confirming anyway. Comfortably
+ * past the animation, short enough not to read as a hang.
+ */
+const DISMISS_TIMEOUT_MS = 1000;
+
+/**
+ * Await a dismissal that may never call back.
+ *
+ * Resolves on the dismissal callback, or on {@link DISMISS_TIMEOUT_MS},
+ * whichever lands first, and only ever once.
+ *
+ * @param dismiss - Dismissal that takes a post-dismiss callback.
+ * @returns Resolves once the route has dismissed, or the wait has expired.
+ */
+export function waitForDismissal(dismiss: (afterDismiss: () => void) => void) {
+  const dismissed = new Promise<void>((resolve) => {
+    dismiss(resolve);
+  });
+  const expired = new Promise<void>((resolve) => {
+    setTimeout(resolve, DISMISS_TIMEOUT_MS);
+  });
+  return Promise.race([dismissed, expired]);
+}
+
 /** ButtonBase resolves `textClassName` per press state, so it takes a function. */
 const getClearTextClassName = () => 'text-primary-default';
 
@@ -243,11 +268,12 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   // Android Fabric note in handleConfirm.
   const dismiss = useCallback(
     (afterDismiss?: () => void) => {
-      if (isSheet) {
-        // The sheet pops the route from its close-animation callback, so work
-        // that must not race the transition has to run from there rather than
-        // beside it.
-        sheetRef.current?.onCloseBottomSheet(afterDismiss);
+      // The sheet pops the route from its close-animation callback, so work
+      // that must not race the transition has to run from there rather than
+      // beside it. With no ref attached there is no animation to wait on, so
+      // fall through to the screen path rather than dropping the callback.
+      if (isSheet && sheetRef.current) {
+        sheetRef.current.onCloseBottomSheet(afterDismiss);
         return;
       }
       navigation.goBack();
@@ -696,7 +722,12 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     // Dismiss first (same as PerpsClosePositionView). Updating while this
     // screen is still dismissing crashes Android Fabric under nav v7 —
     // optimistic parent re-render races react-native-screens' transition.
-    await new Promise<void>((resolve) => dismiss(resolve));
+    //
+    // The sheet can drop its close callback — a close already in flight returns
+    // before storing it — so this settles on a timer too. Waiting forever would
+    // strand the update behind a spinner, which is worse than confirming a beat
+    // early.
+    await waitForDismissal(dismiss);
 
     // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
     await onConfirm(
@@ -1496,7 +1527,10 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
-        <BottomSheetHeader onBack={handleBack}>
+        <BottomSheetHeader
+          onBack={handleBack}
+          backButtonProps={{ testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON }}
+        >
           {strings('perps.tpsl.title')}
         </BottomSheetHeader>
         {body}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
-import PerpsTPSLView from './PerpsTPSLView';
+import PerpsTPSLView, { waitForDismissal } from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 import {
   getPerpsTPSLViewSelector,
@@ -1147,6 +1147,41 @@ describe('PerpsTPSLView', () => {
       });
 
       expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    // The real sheet drops its close callback when a close is already in
+    // flight, and returns before storing it. Neither BottomSheet mock
+    // reproduces that, so the guarantee is asserted on the helper directly.
+    describe('waitForDismissal', () => {
+      it('resolves once the dismissal calls back', async () => {
+        await expect(
+          waitForDismissal((afterDismiss) => afterDismiss()),
+        ).resolves.toBeUndefined();
+      });
+
+      it('resolves when the dismissal never calls back', async () => {
+        jest.useFakeTimers();
+
+        const pending = waitForDismissal(() => undefined);
+        jest.advanceTimersByTime(5000);
+
+        await expect(pending).resolves.toBeUndefined();
+        jest.useRealTimers();
+      });
+
+      it('resolves once when the callback and the timeout both fire', async () => {
+        jest.useFakeTimers();
+        let afterDismiss = () => undefined as void;
+
+        const pending = waitForDismissal((callback) => {
+          afterDismiss = callback;
+        });
+        afterDismiss();
+        jest.advanceTimersByTime(5000);
+
+        await expect(pending).resolves.toBeUndefined();
+        jest.useRealTimers();
+      });
     });
 
     it('shows liquidation distance and a trend icon', () => {

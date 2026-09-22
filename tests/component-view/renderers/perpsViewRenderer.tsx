@@ -891,21 +891,33 @@ const defaultTPSLParams = {
 };
 
 /**
+ * Hoisted so the sheet arm keeps a stable component identity across renders
+ * rather than remounting on every call.
+ */
+const PerpsTPSLSheetView = () => <PerpsTPSLView variant="sheet" />;
+
+/**
  * Renders PerpsTPSLView. Use in PerpsTPSLView.view.test.tsx.
+ *
+ * `variant` selects the A/B arm: omit it for the full-screen control, or pass
+ * `sheet` for the bottom-sheet treatment.
  */
 export function renderPerpsTPSLView(
   options: {
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    variant?: 'screen' | 'sheet';
   } = {},
 ) {
   const initialParams = {
     ...defaultTPSLParams,
     ...options.initialParams,
   };
+  const Component =
+    options.variant === 'sheet' ? PerpsTPSLSheetView : PerpsTPSLView;
   return renderPerpsView(
-    PerpsTPSLView as unknown as React.ComponentType,
+    Component as unknown as React.ComponentType,
     Routes.PERPS.TPSL,
     { ...options, initialParams, streamOverrides: options.streamOverrides },
   );
