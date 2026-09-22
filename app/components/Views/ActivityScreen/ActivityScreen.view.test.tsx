@@ -458,8 +458,9 @@ describeForPlatforms('ActivityScreen', () => {
     );
 
     await waitFor(() => {
-      expect(getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length)
-        .toBeGreaterThan(0);
+      expect(
+        getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length,
+      ).toBeGreaterThan(0);
     });
   });
 

@@ -77,7 +77,9 @@ describe('PerpsTransactionsView', () => {
       await screen.findByText(strings('perps.transactions.aggregated')),
     ).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText(strings('perps.transactions.tabs.orders')));
+    fireEvent.press(
+      screen.getByText(strings('perps.transactions.tabs.orders')),
+    );
 
     await waitFor(() => {
       expect(
