@@ -56,9 +56,23 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
-import { ConfirmationLaunchSource } from '../../confirm/confirm-component';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
+
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
+
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  'membershipSubscription' as unknown as TransactionType;
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -472,18 +486,13 @@ describe('CustomAmountInfo', () => {
   });
 
   it('shows membership payment coverage instead of the Money balance projection', () => {
-    useRouteMock.mockReturnValue({
-      key: 'membership',
-      name: 'ConfirmationRequestModal',
-      params: { launchedFrom: ConfirmationLaunchSource.MembershipTopUp },
-    });
     useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
+      type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
       txParams: { from: '0x123' },
     } as ReturnType<typeof useTransactionMetadataRequest>);
 
     const { getByText } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
+      transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     });
 
     expect(
@@ -512,24 +521,20 @@ describe('CustomAmountInfo', () => {
   });
 
   it('can prepare a fixed membership amount without displaying the keypad', async () => {
-    useRouteMock.mockReturnValue({
-      key: 'membership',
-      name: 'ConfirmationRequestModal',
-      params: {
-        amount: '5',
-        launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
-      },
-    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
     const updateTokenAmount = jest.fn().mockResolvedValue(undefined);
     useTransactionCustomAmountMock.mockReturnValue(
       createCustomAmountMock({
-        amountFiat: '5',
+        amountFiat: '1',
         depositPrefillStatus: DepositPrefillStatus.Skipped,
         updateTokenAmount,
       }),
     );
     const { getByTestId, queryByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
+      transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     });
 
     await act(async () => {
@@ -548,23 +553,26 @@ describe('CustomAmountInfo', () => {
   ])(
     'does not expose membership amount entry when prefill is %s',
     (depositPrefillStatus) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as ReturnType<typeof useTransactionMetadataRequest>);
       useRouteMock.mockReturnValue({
         key: 'membership',
         name: 'ConfirmationRequestModal',
         params: {
-          amount: '5',
-          launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
+          amount: '1',
         },
       });
       useTransactionCustomAmountMock.mockReturnValue(
         createCustomAmountMock({
-          amountFiat: '5',
+          amountFiat: '1',
           depositPrefillStatus,
         }),
       );
 
       const { getByTestId, queryByTestId } = render({
-        transactionType: TransactionType.moneyAccountDeposit,
+        transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
       });
       fireEvent.press(getByTestId('custom-amount-input'));
 

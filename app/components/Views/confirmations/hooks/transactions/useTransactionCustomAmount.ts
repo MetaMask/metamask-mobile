@@ -13,10 +13,7 @@ import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import {
-  ConfirmationLaunchSource,
-  ConfirmationParams,
-} from '../../components/confirm/confirm-component';
+import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { debounce } from 'lodash';
 import Engine from '../../../../../core/Engine';
 import {
@@ -68,10 +65,11 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit &&
     getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
-  const { amount: defaultAmount, launchedFrom } =
-    useParams<ConfirmationParams>();
-  const isMembershipTopUp =
-    launchedFrom === ConfirmationLaunchSource.MembershipTopUp;
+  const isMembershipSubscription = hasTransactionType(transactionMeta, [
+    // OGP: membershipSubscription will be added
+    TransactionType.membershipSubscription as unknown as TransactionType,
+  ]);
+  const { amount: defaultAmount } = useParams<ConfirmationParams>();
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
@@ -298,7 +296,7 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmount = useCallback(
     (value: string) => {
-      if (isMembershipTopUp) {
+      if (isMembershipSubscription) {
         return;
       }
       let newAmount = value.replace(/^0+/, '') || '0';
@@ -339,7 +337,7 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
     },
     [
-      isMembershipTopUp,
+      isMembershipSubscription,
       isFiatBuyLimited,
       fiatMaxAmount,
       isMaxAmount,
@@ -350,7 +348,7 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number): boolean => {
-      if (isMembershipTopUp) {
+      if (isMembershipSubscription) {
         return false;
       }
       if (!balanceUsd) {
@@ -410,7 +408,7 @@ export function useTransactionCustomAmount({
     [
       balanceUsd,
       isMaxAmount,
-      isMembershipTopUp,
+      isMembershipSubscription,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -422,7 +420,7 @@ export function useTransactionCustomAmount({
   useEffect(() => {
     // Keep the original payment amount through token/account changes; prefill
     // readiness still triggers quote preparation in CustomAmountInfo.
-    if (isMembershipTopUp) {
+    if (isMembershipSubscription) {
       return;
     }
     // Skip if the user has manually typed on the keypad — a transient
@@ -475,12 +473,12 @@ export function useTransactionCustomAmount({
     // of waiting for hasPrefilled to toggle. Same-token balance updates do not
     // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDepositPrefilled, payTokenKey, isMembershipTopUp]);
+  }, [isDepositPrefilled, payTokenKey, isMembershipSubscription]);
 
   useEffect(() => {
     if (
       isAddMusdFlow &&
-      !isMembershipTopUp &&
+      !isMembershipSubscription &&
       balanceUsd &&
       balanceUsd > 0 &&
       !hasPrefilled.current
@@ -499,7 +497,7 @@ export function useTransactionCustomAmount({
     }
   }, [
     isAddMusdFlow,
-    isMembershipTopUp,
+    isMembershipSubscription,
     balanceUsd,
     setConfirmationMetric,
     updatePendingAmountPercentage,

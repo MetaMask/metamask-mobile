@@ -49,10 +49,7 @@ import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMe
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import {
-  ConfirmationParams,
-  ConfirmationLaunchSource,
-} from '../../confirm/confirm-component';
+import { ConfirmationParams } from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import EngineService from '../../../../../../core/EngineService';
@@ -165,9 +162,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
-    const { launchedFrom } = useParams<ConfirmationParams>();
-    const isMembershipTopUp =
-      launchedFrom === ConfirmationLaunchSource.MembershipTopUp;
+    const isMembershipSubscription = hasTransactionType(transactionMeta, [
+      // OGP: membershipSubscription will be added
+      TransactionType.membershipSubscription as unknown as TransactionType,
+    ]);
 
     const {
       amountFiat,
@@ -217,14 +215,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // A fixed membership payment never opens amount entry, including on errors
     // or when the selected funding source cannot cover the payment.
     const stage =
-      isMembershipTopUp && amountStage === CustomAmountStage.AmountInput
+      isMembershipSubscription && amountStage === CustomAmountStage.AmountInput
         ? CustomAmountStage.NoQuote
         : amountStage;
 
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
-    useMMPayNavigation(stage, setStage, isMembershipTopUp);
+    useMMPayNavigation(stage, setStage, isMembershipSubscription);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -473,10 +471,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               (isPrefillPending || isDepositPrefillLoading)
             }
             // Editable amounts remain an escape hatch from stalled quotes.
-            onPress={isMembershipTopUp ? undefined : handleAmountPress}
+            onPress={isMembershipSubscription ? undefined : handleAmountPress}
             disabled={!hasPaymentOption}
             showCursor={
-              !isMembershipTopUp && stage === CustomAmountStage.AmountInput
+              !isMembershipSubscription &&
+              stage === CustomAmountStage.AmountInput
             }
           />
           {hasAlert && (
@@ -485,12 +484,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount &&
             disablePay !== true &&
             !hasAlert &&
-            (isMoneyAccountDeposit ? (
-              isMembershipTopUp ? (
-                <MembershipInfo amountFiat={amountFiat} />
-              ) : (
-                <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
-              )
+            (isMembershipSubscription ? (
+              <MembershipInfo amountFiat={amountFiat} />
+            ) : isMoneyAccountDeposit ? (
+              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
@@ -542,7 +539,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {!isMembershipTopUp &&
+          {!isMembershipSubscription &&
             stage === CustomAmountStage.AmountInput &&
             (hasPaymentOption || hasAccountNoFunds) && (
               <DepositKeyboard
@@ -563,7 +560,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               />
             )}
           {showBuyButton && <CustomAmountBuy />}
-          {isMembershipTopUp &&
+          {isMembershipSubscription &&
           amountStage === CustomAmountStage.AmountInput ? (
             <Button
               variant={ButtonVariant.Primary}

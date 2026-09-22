@@ -46,7 +46,21 @@ import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { DepositPrefillStatus } from './useDepositPrefillAmount';
-import { ConfirmationLaunchSource } from '../../components/confirm/confirm-component';
+
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
+
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  'membershipSubscription' as unknown as TransactionType;
 
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -745,11 +759,12 @@ describe('useTransactionCustomAmount', () => {
 
   it('rejects keypad and percentage edits for membership top-ups', () => {
     useParamsMock.mockReturnValue({
-      amount: '5',
-      launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
+      amount: '1',
     });
     const { result } = runHook({
-      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+      transactionMeta: {
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      },
     });
 
     act(() => {
@@ -758,14 +773,13 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.updatePendingAmountPercentage(50)).toBe(false);
     });
 
-    expect(result.current.amountFiat).toBe('5');
+    expect(result.current.amountFiat).toBe('1');
     expect(result.current.hasUserEditedAmountRef.current).toBe(false);
   });
 
   it('keeps the membership amount when the payment token loses its balance', () => {
     useParamsMock.mockReturnValue({
-      amount: '5',
-      launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
+      amount: '1',
     });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -781,7 +795,9 @@ describe('useTransactionCustomAmount', () => {
       setPayToken: jest.fn(),
     });
     const { result, rerender } = runHook({
-      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+      transactionMeta: {
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      },
     });
 
     act(() => {
@@ -792,7 +808,7 @@ describe('useTransactionCustomAmount', () => {
       rerender({});
     });
 
-    expect(result.current.amountFiat).toBe('5');
+    expect(result.current.amountFiat).toBe('1');
   });
 
   it('preserves an explicit money account deposit amount when balance prefill is enabled', async () => {
