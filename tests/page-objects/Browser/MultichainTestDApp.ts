@@ -82,12 +82,23 @@ class MultichainTestDApp {
 
   async useAutoConnectButton(): Promise<boolean> {
     if (this.connected) return true;
-    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-      getMultichainTestDappBaseUrl(),
-      SELECTORS.AUTO_CONNECT_BUTTON,
-    );
+    // On freshly-booted CI devices the MetaMask WebView can take several
+    // seconds to appear in `mobile: getContexts`. Retry the CDP click for the
+    // full CONNECT_TIMEOUT_MS budget so a transient "WebView not found" failure
+    // does not surface as a test failure (mirrors invokeMethodOnChain's loop).
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    let clicked = false;
+    while (!clicked && Date.now() < deadline) {
+      clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        getMultichainTestDappBaseUrl(),
+        SELECTORS.AUTO_CONNECT_BUTTON,
+      );
+      if (!clicked) await wait(POLL_INTERVAL_MS);
+    }
     if (!clicked) {
-      logger.warn(`could not click #${SELECTORS.AUTO_CONNECT_BUTTON}`);
+      logger.warn(
+        `could not click #${SELECTORS.AUTO_CONNECT_BUTTON} within ${CONNECT_TIMEOUT_MS}ms`,
+      );
       return false;
     }
     this.connected = await this.waitForDappConnected();
@@ -337,6 +348,7 @@ class MultichainTestDApp {
     await Gestures.waitAndTap(
       Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       {
+        timeout: 30_000,
         checkForDisplayed: true,
         checkEnabled: true,
         elemDescription: 'MultichainTestDApp confirm button',
