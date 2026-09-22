@@ -261,13 +261,10 @@ const CardWelcome = () => {
           onPress={handleButtonPress}
           testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
           size={ButtonSize.Lg}
-          style={styles.getStartedButton}
           isFullWidth
+          twClassName="bg-white"
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.getStartedButtonText}
-          >
+          <Text variant={TextVariant.BodyMd} twClassName="text-black">
             {strings(
               hasCardholderAccounts
                 ? 'card.card_onboarding.login_button'
@@ -276,16 +273,16 @@ const CardWelcome = () => {
           </Text>
         </ButtonBase>
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Tertiary}
           onPress={handleClose}
           testID={CardWelcomeSelectors.NOT_NOW_BUTTON}
           size={ButtonSize.Lg}
-          style={styles.notNowButton}
           isFullWidth
+          textProps={{
+            twClassName: 'text-white',
+          }}
         >
-          <Text variant={TextVariant.BodyMd} style={styles.notNowButtonText}>
-            {strings('card.card_onboarding.not_now_button')}
-          </Text>
+          {strings('card.card_onboarding.not_now_button')}
         </Button>
       </SafeAreaView>
     </LinearGradient>

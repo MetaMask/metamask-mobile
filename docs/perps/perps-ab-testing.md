@@ -10,10 +10,11 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 
 ## Active tests
 
-| Flag key (Redux / `useABTest`)          | Variants               | Purpose                                  |
-| --------------------------------------- | ---------------------- | ---------------------------------------- |
-| `perpsTAT1937AbtestButtonColor`         | `control`, `colors`    | Long/short button color (TAT-1937)       |
-| `perpsTAT3938AbtestScreenVsBottomSheet` | `control`, `treatment` | Shared screen vs bottom-sheet experience |
+| Flag key (Redux / `useABTest`)           | Variants               | Purpose                                                                   |
+| ---------------------------------------- | ---------------------- | ------------------------------------------------------------------------- |
+| `perpsTAT1937AbtestButtonColor`          | `control`, `colors`    | Long/short button color (TAT-1937)                                        |
+| `perpsTAT3938AbtestScreenVsBottomSheet`  | `control`, `treatment` | Shared screen vs bottom-sheet experience                                  |
+| `perpsTAT3597AbtestPerpsSectionPriority` | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597) |
 
 `perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition. See [`docs/perps/perps-feature-flags.md`](./perps-feature-flags.md).
 
@@ -108,3 +109,17 @@ If a future conversion bypasses the shared analytics wrappers, wire its
 assignment explicitly according to [`docs/ab-testing.md`](../ab-testing.md)
 when that flow is added. Do not add speculative custom-tracker APIs to this
 shared hook, and do not add new `ab_tests` payloads.
+
+## Perps section priority (`perpsTAT3597AbtestPerpsSectionPriority`)
+
+Places the Perps section above Tokens on wallet home for active Perps traders. Config lives in `app/components/Views/Homepage/abTestConfig.ts`, since the experiment is owned by the homepage layout rather than Perps.
+
+### How to read the results
+
+**The primary readout is intent to treat.** `Experiment Viewed` fires for every assigned user on wallet home, including users who are not eligible and users without Perps enabled — all of whom receive the control layout. That is deliberate: eligibility is activity-based and treatment can influence it on later visits, so gating exposure on it would condition the population on an outcome. Do not read the headline numbers as an eligible-user comparison.
+
+**The eligible subgroup is a secondary cut**, taken on `perps_priority_eligible`. That property rides every `section_viewed` event rather than only the Perps section's, because in control the Perps section sits below Tokens and fires only on scroll — recording eligibility there would limit the observable eligible-control group to users who had already scrolled to Perps, which is close to the behaviour being measured.
+
+Eligibility deliberately describes the person, not the selected account: `evaluateIsActivePerpsTrader` falls back to a wallet-wide recent-action timestamp when the selected account holds no positions or resting orders. The subgroup can therefore include a recently active trader whose currently selected account holds nothing. This applies identically in both arms, so it costs the cut some precision without biasing it.
+
+**Eligibility is captured once per visit, before section order is decided** (`useIsActivePerpsTrader` in `Homepage.tsx`, supplied through `PerpsPriorityEligibilityContext`). Capturing at first render stops sections reordering after they are on screen, at the cost that a user whose Perps data has not loaded yet stays in the control layout for that visit and is reported ineligible. This only reduces treatment reach; it does not move users between arms. Quantify how often initial data is unavailable before reading the subgroup cut.

@@ -165,6 +165,22 @@ describe('ConnectQRInstruction', () => {
     expect(queryByText('connect_qr_hardware.ngravezero')).toBeNull();
   });
 
+  it('stretches the continue button footer to the full content width', () => {
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRInstruction
+        navigation={mockNavigation}
+        onConnect={mockOnConnect}
+        renderAlert={mockRenderAlert}
+      />,
+      { state: initialState },
+    );
+
+    expect(getByTestId(ConnectQRHardwareSelectorsIDs.FOOTER)).toHaveStyle({
+      width: '100%',
+      paddingHorizontal: 16,
+    });
+  });
+
   it('calls onConnect when continue button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <ConnectQRInstruction

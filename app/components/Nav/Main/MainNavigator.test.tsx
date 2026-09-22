@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -11,6 +12,11 @@ import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import OfflineMode from '../../Views/OfflineMode';
+import {
+  slideFromRightNativeOptions,
+  transparentModalStackOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
+
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -19,6 +25,7 @@ jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
     Screen: 'Screen',
+    Group: 'Group',
   }),
 }));
 
@@ -127,6 +134,7 @@ describe('MainNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -237,19 +245,17 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle).
+      // inherits the themed content background (native-stack uses contentStyle)
+      // and the hidden header, so pushed screens need no options of their own.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
+          headerShown: false,
           contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toEqual(
-        expect.objectContaining({
-          headerShown: false,
-        }),
-      );
+      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
     });
 
     it.each([
@@ -382,13 +388,11 @@ describe('MainNavigator', () => {
       name: string;
       component: React.ComponentType;
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -417,13 +421,11 @@ describe('MainNavigator', () => {
       name: string;
       component: { name: string };
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -453,13 +455,11 @@ describe('MainNavigator', () => {
           contentStyle?: unknown;
         };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -467,6 +467,28 @@ describe('MainNavigator', () => {
           options: child.props.options,
         })) as ScreenChild[];
     };
+
+    const groupedScreenNames = (group?: ReactTestInstance): string[] =>
+      (group?.children ?? [])
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'props' in child &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+    // Look the Group up by a route it owns rather than by position, so adding
+    // another Group to MainNavigator does not silently repoint these tests.
+    const findGroupContaining = (
+      root: ReactTestInstance,
+      screenName: string,
+    ): ReactTestInstance | undefined =>
+      root
+        .findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+        )
+        .find((group) => groupedScreenNames(group).includes(screenName));
 
     it('includes Home screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
@@ -516,6 +538,244 @@ describe('MainNavigator', () => {
       );
 
       expect(cashTokensScreen).toBeDefined();
+    });
+
+    it('shares slide-from-right options on one Group for wallet full views', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.WALLET.TOKENS_FULL_VIEW);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.WALLET.TOKENS_FULL_VIEW,
+        Routes.WALLET.DEFI_FULL_VIEW,
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        Routes.WALLET.WATCHLIST_FULL_VIEW,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the explore pushes', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.EXPLORE_SEARCH);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.EXPLORE_SEARCH,
+        Routes.SITES_FULL_VIEW,
+        Routes.WHATS_HAPPENING_DETAIL,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the nft screens', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, 'NftDetails');
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        'NftDetails',
+        'NftDetailsFullImage',
+        Routes.WALLET.NFTS_FULL_VIEW,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the reward benefits', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.REWARD_BENEFIT_FULL_VIEW);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.REWARD_BENEFIT_FULL_VIEW,
+        Routes.REWARD_BENEFITS_FULL_VIEW,
+      ]);
+    });
+
+    it('keeps the reward benefits out of the nft group', () => {
+      // The two clusters are adjacent and share options, but they are separate
+      // products and must not collapse into one group.
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const nftGroup = findGroupContaining(root, 'NftDetails');
+
+      expect(groupedScreenNames(nftGroup)).not.toContain(
+        Routes.REWARD_BENEFIT_FULL_VIEW,
+      );
+    });
+
+    it('keeps BROWSER.HOME out of the explore group', () => {
+      // BROWSER.HOME is also registered as a hidden tab in HomeTabs, so it is a
+      // duplicate route name rather than an Explore sub-page.
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.BROWSER.HOME);
+
+      expect(group).toBeUndefined();
+    });
+
+    it('shares slide-from-right options on one Group for Social V1 screens', () => {
+      const stateWithSocialV1 = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                socialAiTSA1122AbtestSocialBundleV1: 'treatment',
+              },
+            },
+          },
+        },
+      };
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialV1,
+      });
+
+      const group = findGroupContaining(root, Routes.SOCIAL.V1);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.SOCIAL.V1,
+        Routes.SOCIAL.POST_COMPOSER,
+        Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.FOLLOW_CONNECTIONS,
+        Routes.SOCIAL.PROFILES_TO_FOLLOW,
+        Routes.SOCIAL.MANAGE_PROFILE,
+        Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+        Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+        Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+      ]);
+      const v1Screen = (group?.children ?? []).find(
+        (child): child is ReactTestInstance =>
+          typeof child === 'object' &&
+          'props' in child &&
+          child.props?.name === Routes.SOCIAL.V1,
+      );
+      expect(v1Screen?.props?.options?.freezeOnBlur).toBe(false);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
+    });
+
+    it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
+      const stateWithSocialLeaderboard = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                socialAiTSA1122AbtestSocialBundleV1: 'control',
+              },
+            },
+          },
+        },
+      };
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialLeaderboard,
+      });
+
+      const group = findGroupContaining(root, Routes.SOCIAL.PROFILE);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.SOCIAL.PROFILE,
+        Routes.SOCIAL.POSITION,
+        Routes.SOCIAL.ONBOARDING,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V1);
+      expect(groupedScreenNames(group)).not.toContain(
+        Routes.SOCIAL.TRADING_SIGNALS_SETUP,
+      );
+    });
+
+    it('shares slide-from-right options on one Group for Money push screens', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.MONEY.ROOT);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.MONEY.ROOT,
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.TRANSACTION_DETAILS,
+        Routes.MONEY.CARD_TRANSACTION_DETAILS,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
+      expect(groupedScreenNames(group)).not.toContain(
+        Routes.MONEY.FIRST_TIME_DEPOSIT,
+      );
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
+      expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('shares slide-from-right options on one Group for the VBA screens', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.RAMP.GET_PIX_KEY);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.RAMP.VBA_KYC_EMAIL,
+        Routes.RAMP.GET_PIX_KEY,
+        Routes.RAMP.VBA_VERIFY_IDENTITY,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);
+    });
+
+    it('shares slide-from-right options on one Group for trending and RWA full views', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(
+        root,
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      );
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+      ]);
     });
 
     it('includes Bridge routes', () => {
@@ -644,13 +904,11 @@ describe('MainNavigator', () => {
         name: string;
         component: { name: string };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -892,13 +1150,11 @@ describe('MainNavigator', () => {
           contentStyle?: unknown;
         };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -1032,7 +1288,6 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
       expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
@@ -1117,7 +1372,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
       expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
@@ -1230,8 +1484,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1245,8 +1497,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('ios_from_right');
     });
   });
 
@@ -1282,13 +1532,11 @@ describe('MainNavigator', () => {
       name: string;
       component: { name: string };
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -1315,6 +1563,29 @@ describe('MainNavigator', () => {
 
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
+
+    const followConnectionsScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
+    );
+
+    expect(followConnectionsScreen).toBeDefined();
+    expect(followConnectionsScreen?.component.name).toBe(
+      'FollowConnectionsView',
+    );
+
+    const profilesToFollowScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.PROFILES_TO_FOLLOW,
+    );
+
+    expect(profilesToFollowScreen).toBeDefined();
+    expect(profilesToFollowScreen?.component.name).toBe('ProfilesToFollowView');
+
+    const postComposerScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
+    );
+
+    expect(postComposerScreen).toBeDefined();
+    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
 
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
@@ -1352,18 +1623,19 @@ describe('MainNavigator', () => {
       state: stateWithSocialV1Control,
     });
 
-    const screenNames = root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenNames = root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => child.props.name);
 
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
+    expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
+    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
     expect(screenNames).not.toContain(
@@ -1404,13 +1676,11 @@ describe('MainNavigator', () => {
     const rootStackScreenNames = (container: {
       root: ReactTestInstance;
     }): string[] =>
-      container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => child.props.name);
 
@@ -1638,22 +1908,28 @@ describe('MainNavigator', () => {
         );
       });
 
-      it('hides the header for the root REWARDS_FLOW route', () => {
-        // The flow renders its own headers, so the outer root-stack screen must
-        // not draw one on top.
+      it('inherits the hidden header for the root REWARDS_FLOW route', () => {
+        // The flow renders its own headers. MainNavigator already defaults
+        // headerShown to false, so this screen does not need to repeat it.
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
 
+        const mainNavigator = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Navigator' &&
+            node.props?.initialRouteName === 'Home',
+        )[0];
         const rewardsFlowScreen = root.findAll(
           (node: ReactTestInstance) =>
             node.type?.toString?.() === 'Screen' &&
             node.props?.name === Routes.REWARDS_FLOW,
         )[0];
 
-        expect(rewardsFlowScreen?.props?.options).toEqual(
+        expect(mainNavigator?.props?.screenOptions).toEqual(
           expect.objectContaining({ headerShown: false }),
         );
+        expect(rewardsFlowScreen?.props?.options).toBeUndefined();
       });
     });
 
@@ -1856,6 +2132,44 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_SELECT_SHEET,
           ]),
         );
+      });
+
+      it('shares overlay options on one Group for the rewards sheets', () => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const screenNamesIn = (group?: ReactTestInstance): string[] =>
+          (group?.children ?? [])
+            .filter(
+              (child): child is ReactTestInstance =>
+                typeof child === 'object' &&
+                'props' in child &&
+                typeof child.props?.name === 'string',
+            )
+            .map((child) => child.props.name as string);
+        // Look the Group up by a route it owns rather than by position, so
+        // adding another Group to MainNavigator does not repoint this test.
+        const group = root
+          .findAll(
+            (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+          )
+          .find((candidate) =>
+            screenNamesIn(candidate).includes(
+              Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+            ),
+          );
+
+        expect(group?.props?.screenOptions).toEqual(
+          transparentModalStackOptions,
+        );
+        expect(screenNamesIn(group)).toEqual([
+          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+          Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+          Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+          Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+          Routes.MODAL.REWARDS_SELECT_SHEET,
+        ]);
       });
     });
 

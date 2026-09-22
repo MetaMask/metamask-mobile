@@ -892,6 +892,7 @@ export type RootStackParamList = {
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
   RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
+  RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -1000,7 +1001,10 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  SocialPostComposerView: undefined;
   MyProfileView: undefined;
+  FollowConnectionsView: { initialTab: 'followers' | 'following' };
+  ProfilesToFollowView: undefined;
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {
     field: 'displayName' | 'handle' | 'bio' | 'socials';
@@ -1131,6 +1135,7 @@ export type RootStackParamList = {
   CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
   CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
   CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
+  CardContactDetails: CardScreensStackParamList['CardContactDetails'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
@@ -1165,6 +1170,8 @@ export type RootStackParamList = {
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
+  CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
+  CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes
   Recipient: SendStackParamList['Recipient'];

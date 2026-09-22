@@ -275,6 +275,8 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (55.0.8):
     - ExpoModulesCore
+  - ExpoGlassEffect (55.0.11):
+    - ExpoModulesCore
   - ExpoHaptics (55.0.14):
     - ExpoModulesCore
   - ExpoImage (55.0.11):
@@ -3278,7 +3280,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-wallet (0.1.15):
+  - react-native-wallet (0.1.24):
     - boost
     - DoubleConversion
     - fast_float
@@ -4613,6 +4615,7 @@ DEPENDENCIES:
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoGlassEffect (from `../node_modules/expo-glass-effect/ios`)
   - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
@@ -4862,6 +4865,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoGlassEffect:
+    :path: "../node_modules/expo-glass-effect/ios"
   ExpoHaptics:
     :path: "../node_modules/expo-haptics/ios"
   ExpoImage:
@@ -5211,6 +5216,7 @@ SPEC CHECKSUMS:
   ExpoDomWebView: b2e9d601f9cb77d3c97da73234e175b64be91928
   ExpoFileSystem: 61e663d0bbd1a973d324530d1d6ee559a5e5192c
   ExpoFont: a7e34a75bdfb703fa07a0e87807f836236608c76
+  ExpoGlassEffect: 2dedac2fe817f9b02d0dad29ce0aef7afebc5cd4
   ExpoHaptics: 679f09dc37d5981e619bc197732007a3334e80b8
   ExpoImage: 5854bd51edd7c0a775755473598f9daeb3fde4e3
   ExpoKeepAwake: d0eb7a0719500d2a43fbf29b6f79e84d70c75ebf
@@ -5324,7 +5330,7 @@ SPEC CHECKSUMS:
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: f8e9788554c53a1852166cd119d6e7c324b16dfe
   react-native-view-shot: 39463aa6cfaeab0a3533cc63f869d52d025ef2ff
-  react-native-wallet: e082f2023e0fc86b51ac6c0a7596dcdf17ee30b0
+  react-native-wallet: 482212e527215cb70adce3a091ec3507e5b82ae4
   react-native-webview-mm: 7aecbcdea6e0a0172f11dcbfd97e6921781b32a8
   React-NativeModulesApple: 70b1879ac2b642ef784fb6d43360c40803b0a142
   React-networking: 49160c13f35f3eb93791d062c330caea323bde87
