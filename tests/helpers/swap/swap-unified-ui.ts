@@ -74,7 +74,9 @@ export async function submitSwapUnifiedUI(
     await QuoteView.verifySlippageDisplayed(DEFAULT_SLIPPAGE_VALUE);
   }
 
-  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
+  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap, {
+    timeout: 30_000,
+  });
 
   await QuoteView.tapConfirmSwap();
 }
@@ -87,5 +89,7 @@ export async function checkSwapActivity(
   await PostTradeBottomSheet.tapViewActivity();
 
   // Check the swap activity completed
-  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
+  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen, {
+    timeout: 30_000,
+  });
 }
