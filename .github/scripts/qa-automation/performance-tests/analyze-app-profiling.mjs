@@ -74,6 +74,7 @@ const SPIKE_RATIO = 1.5;
 // part is bounded by wall clock instead of a run count: newest days first,
 // stop when the budget is gone. `--max-runs-per-week` can still cap it.
 const DEFAULT_ANALYSIS_BUDGET_MINUTES = 25;
+const BUDGET_EXHAUSTED = 'analysis time budget exhausted';
 const KNOWN_PROJECTS = [
   'android-onboarding-seedless',
   'browserstack-android',
@@ -2538,6 +2539,26 @@ function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek = null) {
   };
 }
 
+/**
+ * Runs the previous week left unspent go back to this week. Only days that
+ * already have data are retried, so recovering a run cannot move the day set
+ * the previous week was matched against.
+ */
+function runsToRetryWithLeftoverBudget(runs, skipped, dayKeys) {
+  const outOfBudget = new Set(
+    skipped
+      .filter((entry) => entry.reason === BUDGET_EXHAUSTED)
+      .map((entry) => entry.runId),
+  );
+  if (outOfBudget.size === 0) {
+    return [];
+  }
+  return runsOnUtcDates(
+    runs.filter((run) => outOfBudget.has(String(run.databaseId))),
+    dayKeys,
+  );
+}
+
 async function reportsForRuns({
   args,
   runs,
@@ -2570,9 +2591,8 @@ async function reportsForRuns({
     // Runs arrive newest first, so an exhausted budget drops the oldest runs,
     // which are also the ones whose artifacts are closest to expiring.
     if (clock() >= deadlineMs) {
-      const reason = 'analysis time budget exhausted';
-      console.warn(`⚠️ Skipping ${label} run ${runId}: ${reason}`);
-      skipped.push({ runId, reason });
+      console.warn(`⚠️ Skipping ${label} run ${runId}: ${BUDGET_EXHAUSTED}`);
+      skipped.push({ runId, reason: BUDGET_EXHAUSTED });
       continue;
     }
     console.log(`\n▶️ ${label} run ${runId} (${run.createdAt})`);
@@ -2711,6 +2731,30 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   });
   const lastWeekReports = lastWeek.reports;
 
+  // The previous week is mostly expired or already collected, so it usually
+  // returns its half of the budget in seconds. Spend what is left on the
+  // this-week runs that were dropped.
+  const retryRuns = runsToRetryWithLeftoverBudget(
+    thisWeekPlan.selected,
+    thisWeek.skipped,
+    lastWeekComparable.thisWeekDays,
+  );
+  if (retryRuns.length > 0 && Date.now() < startedAtMs + budgetMs) {
+    console.log(
+      `⏱️ Unused previous-week budget: retrying ${retryRuns.length} this-week runs`,
+    );
+    const retried = await reportsForRuns({
+      args,
+      runs: retryRuns,
+      collectedByRunId,
+      outputDirectory,
+      skillAnalyzerPath,
+      label: 'this-week retry',
+      deadlineMs: startedAtMs + budgetMs,
+    });
+    thisWeekReports.push(...retried.reports);
+  }
+
   const thisWindow = aggregateWindow(thisWeekReports, {
     lookbackHours: 168,
     since: bounds.thisWeek.since,
@@ -2741,7 +2785,7 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   });
   writeWeeklyOutputs(outputDirectory, weekly);
   console.log(
-    `\n✅ Wrote weekly conclusions for ${weekly.cards.length} flagged scenarios (${thisWeekReports.length} this-week reports, ${lastWeekReports.length} last-week reports, ${thisWeek.skipped.length + lastWeek.skipped.length} runs skipped) to ${outputDirectory}`,
+    `\n✅ Wrote weekly conclusions for ${weekly.cards.length} flagged scenarios (${thisWeekReports.length}/${thisWeekRunsAvailable} this-week reports, ${lastWeekReports.length}/${lastWeekComparable.runs.length} last-week reports) to ${outputDirectory}`,
   );
 }
 
@@ -2761,6 +2805,7 @@ export {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  runsToRetryWithLeftoverBudget,
   reportsForRuns,
   isReusableCollectedReport,
   writeEmptyScenarioManifest,

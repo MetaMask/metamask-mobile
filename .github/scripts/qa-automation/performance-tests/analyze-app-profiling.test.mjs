@@ -11,6 +11,7 @@ import {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  runsToRetryWithLeftoverBudget,
   reportsForRuns,
   isReusableCollectedReport,
   findHermesProfiles,
@@ -305,6 +306,33 @@ test('reportsForRuns stops rebuilding runs once the time budget is gone', async 
   assert.deepEqual(skipped, [
     { runId: '2', reason: 'analysis time budget exhausted' },
   ]);
+});
+
+test('leftover budget retries dropped runs only on days that already have data', () => {
+  const runs = [
+    { databaseId: 9, createdAt: '2026-09-17T06:00:00Z' },
+    { databaseId: 8, createdAt: '2026-09-16T06:00:00Z' },
+    { databaseId: 7, createdAt: '2026-09-14T06:00:00Z' },
+    { databaseId: 6, createdAt: '2026-09-17T00:00:00Z' },
+  ];
+  const skipped = [
+    { runId: '9', reason: 'analysis time budget exhausted' },
+    { runId: '8', reason: 'analysis time budget exhausted' },
+    // A day with no data at all must not come back and shift the comparison.
+    { runId: '7', reason: 'analysis time budget exhausted' },
+    { runId: '6', reason: 'No named Hermes profiles found' },
+  ];
+
+  const retry = runsToRetryWithLeftoverBudget(runs, skipped, [
+    '2026-09-16',
+    '2026-09-17',
+  ]);
+
+  assert.deepEqual(
+    retry.map((run) => run.databaseId),
+    [9, 8],
+  );
+  assert.deepEqual(runsToRetryWithLeftoverBudget(runs, [], ['2026-09-17']), []);
 });
 
 test('reportsForRuns prefers a collected report over re-analysis', async () => {
