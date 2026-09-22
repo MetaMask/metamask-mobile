@@ -46,6 +46,10 @@ jest.mock('../../../util/test/utils', () => ({
   isTestEnvironment: true,
 }));
 
+jest.mock('../../../styles/loadOswaldFonts', () => ({
+  loadOswaldFonts: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Root', () => {
   /** Must match `testID` on the `View` returned by `jest.mock('../../Nav/App')`. */
   const mockedAppTestId = 'mock-app';

@@ -59,6 +59,8 @@
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
+		D4E5F6A708B94C1D9E2F3A4C /* Oswald-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D4E5F6A708B94C1D9E2F3A4B /* Oswald-Medium.ttf */; };
+		D4E5F6A708B94C1D9E2F3A4E /* Oswald-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D4E5F6A708B94C1D9E2F3A4D /* Oswald-SemiBold.ttf */; };
 		E4B580722E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
@@ -189,6 +191,8 @@
 		D0CBAE789660472DB719C765 /* libLottie.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libLottie.a; sourceTree = "<group>"; };
 		D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
+		D4E5F6A708B94C1D9E2F3A4B /* Oswald-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Oswald-Medium.ttf"; path = "../app/fonts/Oswald-Medium.ttf"; sourceTree = "<group>"; };
+		D4E5F6A708B94C1D9E2F3A4D /* Oswald-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Oswald-SemiBold.ttf"; path = "../app/fonts/Oswald-SemiBold.ttf"; sourceTree = "<group>"; };
 		E4B580712E32F462008165E1 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		E4B580752E33A001008165E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaMask/AppDelegate.swift; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -354,6 +358,8 @@
 				EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */,
 				A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */,
 				2679C48F8CD642C68116DD24 /* config.json */,
+				D4E5F6A708B94C1D9E2F3A4B /* Oswald-Medium.ttf */,
+				D4E5F6A708B94C1D9E2F3A4D /* Oswald-SemiBold.ttf */,
 				F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */,
 				D3350113F0764105B1E60002 /* MMSans-Bold.otf */,
 				4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */,
@@ -600,6 +606,8 @@
 				AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */,
 				49D8E62C506F4A63889EEC7F /* branch.json in Resources */,
 				3466654F43654D36B5D478CA /* config.json in Resources */,
+				D4E5F6A708B94C1D9E2F3A4C /* Oswald-Medium.ttf in Resources */,
+				D4E5F6A708B94C1D9E2F3A4E /* Oswald-SemiBold.ttf in Resources */,
 				8C3986ED969040AEBC7A3856 /* MMPoly-Regular.otf in Resources */,
 				C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */,
 				3F123FD0EA9146FEBC864879 /* MMSans-Medium.otf in Resources */,

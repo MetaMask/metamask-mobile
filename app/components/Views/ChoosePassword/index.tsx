@@ -79,6 +79,7 @@ import type { AuthData } from '../../../core/Authentication/Authentication';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
@@ -868,6 +869,7 @@ const ChoosePassword = () => {
                 title={strings('choose_password.title')}
                 titleProps={{
                   testID: ChoosePasswordSelectorsIDs.TITLE_ID,
+                  style: oswaldOnboardingTitleStyle,
                 }}
                 bottomLabel={
                   getOauth2LoginSuccess()

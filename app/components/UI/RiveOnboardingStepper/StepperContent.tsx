@@ -15,6 +15,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useOswaldSquadTitleStyle } from '../../../styles/oswaldDisplay';
 import { RiveOnboardingStepperTestIds } from './RiveOnboardingStepper.testIds';
 
 const FADE_IN_DURATION_MS = 800;
@@ -36,6 +37,7 @@ const StepperContent = ({
   onClose,
   closeButtonIconColor,
 }: StepperContentProps) => {
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   // Using useSharedValue + useAnimatedStyle instead of Reanimated's `entering`
   // prop to avoid a first-paint bug where entering animations can temporarily
   // position the component at (0,0), causing it to render above the progress bar.
@@ -72,6 +74,7 @@ const StepperContent = ({
         twClassName="text-center mb-1"
         color={titleTextColor}
         numberOfLines={1}
+        style={squadTitleStyle}
         testID={RiveOnboardingStepperTestIds.TITLE}
       >
         {title}

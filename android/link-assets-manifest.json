@@ -26,6 +26,14 @@
       "sha1": "c1a9a094a8b367b66a4b9fade67239cf7cc55ce6"
     },
     {
+      "path": "app/fonts/Oswald-Medium.ttf",
+      "sha1": "f8f934cfb4e3fa5f637a985f1333e00a3dc226e3"
+    },
+    {
+      "path": "app/fonts/Oswald-SemiBold.ttf",
+      "sha1": "3e01bde22cd1f4d8f5ffe177d69b20f1ef989f87"
+    },
+    {
       "path": "app/fonts/MMPoly-Regular.otf",
       "sha1": "b6cd0bc868fe5f53469bf52246917210c807954d"
     },

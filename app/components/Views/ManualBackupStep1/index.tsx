@@ -49,6 +49,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SeedPhraseConcealer from '../RevealPrivateCredential/components/SeedPhraseConcealer';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -349,6 +350,7 @@ const ManualBackupStep1 = () => {
         <Box gap={1}>
           <TitleStandard
             title={strings('manual_backup_step_1.action')}
+            titleProps={{ style: oswaldOnboardingTitleStyle }}
             bottomLabel={strings('manual_backup_step_1.description')}
           />
           <TextButton

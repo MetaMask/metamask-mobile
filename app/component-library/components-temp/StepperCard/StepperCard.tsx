@@ -16,6 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
+import { useOswaldSquadTitleStyle } from '../../../styles/oswaldDisplay';
 import { StepperCardProps } from './StepperCard.types';
 
 const StepperCard = ({
@@ -25,6 +26,7 @@ const StepperCard = ({
   testID,
 }: StepperCardProps) => {
   const tw = useTailwind();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
 
   const getTestId = (suffix: string) =>
     testID ? `${testID}-${suffix}` : undefined;
@@ -73,6 +75,7 @@ const StepperCard = ({
           <Text
             variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
+            style={step.titleStyle ?? squadTitleStyle}
             testID={getTestId('title')}
           >
             {step.title}

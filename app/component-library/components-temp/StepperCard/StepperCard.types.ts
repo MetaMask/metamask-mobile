@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { ImageSourcePropType } from 'react-native';
+import { ImageSourcePropType, StyleProp, TextStyle } from 'react-native';
 
 export interface StepperCardCta {
   text: string;
@@ -9,6 +9,10 @@ export interface StepperCardCta {
 
 export interface StepperCardStep {
   title: string;
+  /**
+   * Optional title style override. Defaults to Oswald SemiBold on the card.
+   */
+  titleStyle?: StyleProp<TextStyle>;
   description: string;
   /**
    * When provided, an info icon is rendered inline after the description text.

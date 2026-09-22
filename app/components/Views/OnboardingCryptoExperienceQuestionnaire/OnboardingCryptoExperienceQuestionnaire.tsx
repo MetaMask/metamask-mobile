@@ -24,6 +24,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
@@ -130,6 +131,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Bold}
+          style={oswaldOnboardingTitleStyle}
         >
           {strings('onboarding_crypto_experience_questionnaire.title')}
         </Text>

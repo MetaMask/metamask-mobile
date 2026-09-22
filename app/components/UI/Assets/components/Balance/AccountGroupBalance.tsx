@@ -19,12 +19,10 @@ import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeO
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
-import {
-  SensitiveText,
-  SensitiveTextLength,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OswaldText } from '../../../../../styles/OswaldText';
+import { oswaldHomeBalanceStyle } from '../../../../../styles/oswaldDisplay';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
@@ -57,6 +55,7 @@ const AccountGroupBalance = ({
   onNotificationsPrimaryPress,
 }: AccountGroupBalanceProps) => {
   const { PreferencesController } = Engine.context;
+  const tw = useTailwind();
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
   const shouldShowWalletHomeOnboardingSteps = useSelector(
@@ -178,14 +177,12 @@ const AccountGroupBalance = ({
         style={styles.balanceContainer}
       >
         <Skeleton hideChildren={isLoading}>
-          <SensitiveText
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <OswaldText
+            style={[tw.style('text-default'), oswaldHomeBalanceStyle]}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
           >
-            {displayBalance}
-          </SensitiveText>
+            {privacyMode ? '•'.repeat(12) : displayBalance}
+          </OswaldText>
         </Skeleton>
 
         {balanceChange1d && (

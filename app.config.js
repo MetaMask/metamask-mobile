@@ -71,6 +71,8 @@ module.exports = {
           './app/fonts/MMSans-Medium.otf',
           './app/fonts/MMSans-Bold.otf',
           './app/fonts/MMPoly-Regular.otf',
+          './app/fonts/Oswald-Medium.ttf',
+          './app/fonts/Oswald-SemiBold.ttf',
         ],
       },
     ],

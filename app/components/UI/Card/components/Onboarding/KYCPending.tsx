@@ -23,6 +23,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { useOswaldSquadTitleStyle } from '../../../../../styles/oswaldDisplay';
 import { colors as importedColors } from '../../../../../styles/common';
 import { useSelector } from 'react-redux';
 
@@ -36,6 +37,7 @@ const SMALL_SCREEN_THRESHOLD = 700;
 const KYCPending = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedView = useRef(false);
@@ -95,6 +97,7 @@ const KYCPending = () => {
             variant={TextVariant.HeadingLg}
             twClassName="text-white"
             testID="kyc-pending-title"
+            style={squadTitleStyle}
           >
             {strings('card.card_onboarding.kyc_pending.title')}
           </Text>

@@ -13,6 +13,7 @@ import {
   useCardHeaderHandlers,
   type CardHeaderMode,
 } from '../../hooks/useCardHeaderHandlers';
+import { useOswaldSquadTitleStyle } from '../../../../../styles/oswaldDisplay';
 
 interface OnboardingStepProps {
   title: string;
@@ -48,6 +49,7 @@ const OnboardingStep = ({
   onBackPress,
 }: OnboardingStepProps) => {
   const tw = useTailwind();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   const headerHandlers = useCardHeaderHandlers(headerMode);
   const resolvedHeaderHandlers =
     headerMode === 'back' && onBackPress
@@ -77,6 +79,7 @@ const OnboardingStep = ({
           variant={TextVariant.HeadingLg}
           testID="onboarding-step-title"
           twClassName="text-default"
+          style={squadTitleStyle}
         >
           {title}
         </Text>

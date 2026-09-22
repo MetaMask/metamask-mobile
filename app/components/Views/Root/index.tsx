@@ -17,7 +17,10 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTestEnvironment } from '../../../util/test/utils';
+import {
+  isE2EOrExpEnvironment,
+  isTestEnvironment,
+} from '../../../util/test/utils';
 import ScreenTtcProbeHost from '../../../hooks/performance/ScreenTtcProbeHost';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
@@ -33,6 +36,7 @@ import {
   createUIMessenger,
   UIMessenger,
 } from '../../../messengers/ui-messenger';
+import { loadOswaldFonts } from '../../../styles/loadOswaldFonts';
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -46,6 +50,9 @@ const styles = StyleSheet.create({
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
+  const [oswaldFontsReady, setOswaldFontsReady] = useState(
+    isE2EOrExpEnvironment,
+  );
 
   // We use a ref to make sure the UI messenger is only created once.
   const uiMessengerRef = useRef<UIMessenger | null>(null);
@@ -80,6 +87,19 @@ const Root = ({ foxCode }: RootProps) => {
     EntryScriptWeb3.init();
     // Lock screen orientation to portrait on app start
     ScreenOrientationService.lockToPortrait();
+    // TEMPORARY prototype — block first paint until Oswald is registered.
+    // Otherwise iOS falls back to Inter and never re-renders after loadAsync.
+    if (!isE2EOrExpEnvironment) {
+      loadOswaldFonts()
+        .catch((error) => {
+          Logger.error(error as Error, {
+            message: 'Failed to load Oswald prototype fonts',
+          });
+        })
+        .finally(() => {
+          setOswaldFontsReady(true);
+        });
+    }
     // Wait for store to be initialized in Detox tests
     if (isTestEnvironment) {
       waitForStore();
@@ -90,6 +110,10 @@ const Root = ({ foxCode }: RootProps) => {
 
   // Only wait for store in test mode, fonts are handled inside theme context
   if (isTestEnvironment && isStoreLoading) {
+    return null;
+  }
+
+  if (!isE2EOrExpEnvironment && !oswaldFontsReady) {
     return null;
   }
 

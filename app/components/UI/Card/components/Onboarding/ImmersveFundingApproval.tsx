@@ -26,6 +26,7 @@ import {
   BadgeNetwork,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useOswaldSquadTitleStyle } from '../../../../../styles/oswaldDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
@@ -161,6 +162,7 @@ const ReadOnlyTokenRow = () => (
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   const theme = useTheme();
   const {
     countryKey,
@@ -495,6 +497,7 @@ const ImmersveFundingApproval = () => {
           <Text
             variant={TextVariant.HeadingLg}
             twClassName="text-text-default py-4"
+            style={squadTitleStyle}
           >
             {strings(titleKey)}
           </Text>

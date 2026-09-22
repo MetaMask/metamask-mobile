@@ -351,7 +351,7 @@ describe('MoneyOnboardingView', () => {
         StyleSheet.flatten(
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.style,
         ).fontSize,
-      ).toBe(18);
+      ).toBe(24);
       expect(
         StyleSheet.flatten(
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.style,

@@ -32,6 +32,7 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
+import { useOswaldSquadTitleStyle } from '../../../../../styles/oswaldDisplay';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useOptin } from '../../hooks/useOptIn';
 import {
@@ -53,6 +54,7 @@ import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagCon
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
+  const squadTitleStyle = useOswaldSquadTitleStyle();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
 
@@ -336,7 +338,11 @@ const OnboardingMainStep: React.FC = () => {
       )}
 
       <Box twClassName="w-full gap-2">
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="text-center"
+          style={squadTitleStyle}
+        >
           {strings('rewards.onboarding.title')}
         </Text>
 

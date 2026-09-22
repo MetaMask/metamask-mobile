@@ -36,6 +36,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
@@ -416,6 +417,7 @@ const ManualBackupStep2 = ({
       >
         <TitleStandard
           title={strings('manual_backup_step_2.action')}
+          titleProps={{ style: oswaldOnboardingTitleStyle }}
           bottomLabel={strings('manual_backup_step_2.info')}
         />
         <Box twClassName="flex-1 gap-4">
