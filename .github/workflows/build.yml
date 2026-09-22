@@ -524,23 +524,6 @@ jobs:
             ~/_work/.gradle/wrapper
           key: gradle-release-main-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      # TEMPORARY — remove before merging this PR. See the matching step in
-      # build-android-e2e.yml: older builds edited the Veriff AAR manifests
-      # inside Gradle's transform cache, and Gradle 9 rejects those workspaces
-      # rather than regenerating them.
-      - name: Drop Veriff transform workspaces patched by older builds (Android)
-        if: matrix.platform == 'android'
-        shell: bash
-        run: |
-          shopt -s nullglob
-          for manifest in "${GRADLE_USER_HOME:-$HOME/.gradle}"/caches/*/transforms/*/transformed/jetified-*-7.14.1/AndroidManifest.xml; do
-            # Veriff ships these AARs with minSdkVersion 26; 24 is the old edit.
-            grep -qsF 'android:minSdkVersion="24"' "$manifest" || continue
-            workspace="${manifest%/transformed/*}"
-            echo "Removing patched transform workspace: $workspace"
-            rm -rf "$workspace"
-          done
-
       # iOS: Clean up any existing keychains from previous runs
       - name: Clean up existing keychains
         if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
