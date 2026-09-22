@@ -1,11 +1,13 @@
 import { createSelector } from 'reselect';
+import { hasProperty } from '@metamask/utils';
 import {
   validatedVersionGatedFeatureFlag,
-  VersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
 import { selectRemoteFeatureFlags } from '..';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
-const FEATURE_FLAG_NAME = 'routeRestoration';
+const DEFAULT_ROUTE_RESTORATION_ENABLED = false;
 
 /**
  * Whether unlocking may return the user to the screen they left.
@@ -16,10 +18,21 @@ const FEATURE_FLAG_NAME = 'routeRestoration';
 export const selectRouteRestorationEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    const remoteFlag = remoteFeatureFlags?.[
-      FEATURE_FLAG_NAME
-    ] as unknown as VersionGatedFeatureFlag;
+    if (!hasProperty(remoteFeatureFlags, FeatureFlagNames.routeRestoration)) {
+      return DEFAULT_ROUTE_RESTORATION_ENABLED;
+    }
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    const rawFlag = remoteFeatureFlags[FeatureFlagNames.routeRestoration];
+
+    // Boolean dev-tool local overrides take precedence.
+    if (typeof rawFlag === 'boolean') {
+      return rawFlag;
+    }
+
+    return (
+      validatedVersionGatedFeatureFlag(
+        rawFlag as unknown as VersionGatedFeatureFlag,
+      ) ?? DEFAULT_ROUTE_RESTORATION_ENABLED
+    );
   },
 );
