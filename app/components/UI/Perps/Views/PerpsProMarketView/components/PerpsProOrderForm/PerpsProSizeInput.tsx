@@ -18,7 +18,6 @@ import React, { useCallback, useRef } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
-import { DevLogger } from '../../../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
@@ -82,11 +81,6 @@ const PerpsProSizeInput = ({
   });
   const canPressDenominationToggle =
     !isDisabled && canToggleDenomination && Boolean(onToggleDenomination);
-  if (!canPressDenominationToggle) {
-    DevLogger.log(
-      `[TAT-3976] BUG_MARKER: size unit toggle inert - canToggleDenomination=${canToggleDenomination} isDisabled=${isDisabled} unit=${denomination.unit}`,
-    );
-  }
   const inputAccessoryViewID =
     Platform.OS === 'ios'
       ? getPerpsProInputAccessoryID(ids.SIZE_INPUT)
