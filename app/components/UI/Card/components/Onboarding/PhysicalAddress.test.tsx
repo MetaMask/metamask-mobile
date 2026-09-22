@@ -77,39 +77,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-// Mock Checkbox component
-jest.mock('../../../../../component-library/components/Checkbox', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { TouchableOpacity, View } = jest.requireActual('react-native');
-
-  return ({
-    testID,
-    isChecked,
-    onPress,
-    label,
-  }: {
-    testID?: string;
-    isChecked?: boolean;
-    onPress?: () => void;
-    label?: React.ReactNode;
-  }) =>
-    React.createElement(
-      TouchableOpacity,
-      {
-        testID,
-        onPress,
-        accessibilityState: { checked: isChecked },
-      },
-      React.createElement(
-        View,
-        { testID: `${testID}-indicator` },
-        isChecked ? '✓' : '',
-      ),
-      label,
-    );
-});
-
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -215,47 +182,58 @@ jest.mock('@metamask/design-system-react-native', () => {
       Md: 'md',
       Lg: 'lg',
     },
-  };
-});
-
-// Mock TextField
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-
-  const MockTextField = ({
-    testID,
-    onChangeText,
-    value,
-    placeholder,
-    accessibilityLabel,
-    keyboardType,
-    maxLength,
-  }: {
-    testID?: string;
-    onChangeText?: (text: string) => void;
-    value?: string;
-    placeholder?: string;
-    accessibilityLabel?: string;
-    keyboardType?: string;
-    maxLength?: number;
-  }) =>
-    React.createElement(TextInput, {
+    Checkbox: ({
       testID,
-      onChangeText,
+      isSelected,
+      onChange,
+      label,
+    }: {
+      testID?: string;
+      isSelected?: boolean;
+      onChange?: () => void;
+      label?: React.ReactNode;
+    }) => {
+      const { TouchableOpacity, View } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        {
+          testID,
+          onPress: onChange,
+          accessibilityState: { checked: isSelected },
+        },
+        React.createElement(
+          View,
+          { testID: `${testID}-indicator` },
+          isSelected ? '✓' : '',
+        ),
+        label,
+      );
+    },
+    TextField: ({
       value,
-      placeholder,
-      accessibilityLabel,
-      keyboardType,
-      maxLength,
-    });
-
-  MockTextField.displayName = 'TextField';
-
-  return {
-    __esModule: true,
-    default: MockTextField,
+      onChangeText,
+      onBlur,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 
