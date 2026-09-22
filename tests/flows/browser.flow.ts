@@ -28,17 +28,13 @@ const TEST_DAPP_LOAD_POLL_MS = 500;
 const waitForAndroidTestDappHeadingViaCdp = async (
   pageUrl: string,
 ): Promise<void> => {
-  const logoId = TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE;
   await Utilities.waitUntil(
     async () => {
-      const text = await ChromeCdpHelpers.evaluateInWebView<string | null>(
+      const text = await ChromeCdpHelpers.readTextByIdInWebView(
         pageUrl,
-        `(() => {
-          const el = document.getElementById(${JSON.stringify(logoId)});
-          return el ? (el.textContent ?? '').trim() : null;
-        })()`,
+        TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
       );
-      return Boolean(text && text.includes(TEST_DAPP_LOAD_LABEL));
+      return text?.trim().includes(TEST_DAPP_LOAD_LABEL) ?? false;
     },
     {
       timeout: TEST_DAPP_LOAD_TIMEOUT_MS,

@@ -99,13 +99,8 @@ class MultichainTestDApp {
     return ready === true;
   }
 
-  /**
-   * Poll until the auto-connect control is DOM-enabled (does not throw).
-   */
-  private async waitForAutoConnectButtonEnabled(
-    timeoutMs: number,
-  ): Promise<boolean> {
-    const deadline = Date.now() + timeoutMs;
+  private async waitForAutoConnectButtonEnabled(): Promise<boolean> {
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
     while (Date.now() < deadline) {
       if (await this.isAutoConnectButtonEnabled()) {
         return true;
@@ -119,9 +114,31 @@ class MultichainTestDApp {
     await ChromeCdpHelpers.evaluateInWebView(
       getMultichainTestDappBaseUrl(),
       '(() => { location.reload(); return true; })()',
-    ).catch(() => undefined);
+    );
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    await wait(1_000);
+
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      const loaded = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+        getMultichainTestDappBaseUrl(),
+        `(() => {
+          const navigation = performance.getEntriesByType('navigation')[0];
+          return document.readyState === 'complete' &&
+            navigation?.type === 'reload' &&
+            Boolean(document.getElementById(${JSON.stringify(
+              SELECTORS.AUTO_CONNECT_BUTTON,
+            )}));
+        })()`,
+      );
+      if (loaded) {
+        return;
+      }
+      await wait(POLL_INTERVAL_MS);
+    }
+
+    throw new Error(
+      `Multichain test dapp did not finish reloading within ${CONNECT_TIMEOUT_MS}ms`,
+    );
   }
 
   /**
@@ -141,11 +158,10 @@ class MultichainTestDApp {
         await this.reloadMultichainDapp();
       }
 
-      const enableWaitMs = attempt === 1 ? 15_000 : CONNECT_TIMEOUT_MS;
-      const enabled = await this.waitForAutoConnectButtonEnabled(enableWaitMs);
+      const enabled = await this.waitForAutoConnectButtonEnabled();
       if (!enabled) {
         logger.warn(
-          `#${SELECTORS.AUTO_CONNECT_BUTTON} not enabled within ${enableWaitMs}ms (attempt ${attempt})`,
+          `#${SELECTORS.AUTO_CONNECT_BUTTON} not enabled within ${CONNECT_TIMEOUT_MS}ms (attempt ${attempt})`,
         );
         continue;
       }
@@ -162,9 +178,7 @@ class MultichainTestDApp {
         continue;
       }
 
-      this.connected = await this.waitForDappConnected(
-        attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 15_000,
-      );
+      this.connected = await this.waitForDappConnected();
       if (this.connected) {
         return true;
       }
