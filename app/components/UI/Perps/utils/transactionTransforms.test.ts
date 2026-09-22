@@ -924,6 +924,150 @@ describe('transactionTransforms', () => {
       expect(result[0].fill?.size).toBe('5.57');
     });
 
+    it('lists every execution separately when aggregation is turned off', () => {
+      // Hyperliquid testnet order 60252966679: 8.29 SOL opened in four fills.
+      const sizes = ['2.92', '0.4', '2.35', '2.62'];
+      const fills: OrderFill[] = sizes.map((size, index) => ({
+        ...mockFill,
+        orderId: 'open-order-agg',
+        direction: 'Open Long',
+        size,
+        fee: '0.1',
+        timestamp: 1700000000000 + index,
+      }));
+
+      const aggregated = transformFillsToTransactions(fills);
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+
+      expect(aggregated).toHaveLength(1);
+      expect(aggregated[0].subtitle).toBe('8.29 ETH');
+      expect(individual).toHaveLength(4);
+      expect(individual.map((tx) => tx.subtitle)).toEqual([
+        '2.62 ETH',
+        '2.35 ETH',
+        '0.4 ETH',
+        '2.92 ETH',
+      ]);
+    });
+
+    it('gives individual executions ids that cannot collide with the aggregated row', () => {
+      // The aggregated row carries its last fill's orderId and timestamp, so the newest fill
+      // of an order would otherwise mint exactly the same id as the row combining it.
+      const fills: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-A',
+          size: '2',
+          timestamp: 1700000002000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-A',
+          size: '3',
+          timestamp: 1700000001000,
+        },
+      ];
+
+      const aggregated = transformFillsToTransactions(fills);
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+
+      const aggregatedIds = new Set(aggregated.map((tx) => tx.id));
+      expect(individual.filter((tx) => aggregatedIds.has(tx.id))).toStrictEqual(
+        [],
+      );
+    });
+
+    it('keeps both executions when two fills of one order share timestamp, size and price', () => {
+      // HyperLiquid does not guarantee those four values identify one execution, so a fill
+      // must never be dropped for looking like another.
+      const fills: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-twin',
+          direction: 'Open Long',
+          size: '1.5',
+          price: '3000',
+          fee: '0.1',
+          timestamp: 1700000000000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-twin',
+          direction: 'Open Long',
+          size: '1.5',
+          price: '3000',
+          fee: '0.1',
+          timestamp: 1700000000000,
+        },
+      ];
+
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+      const aggregated = transformFillsToTransactions(fills);
+
+      expect(individual).toHaveLength(2);
+      expect(new Set(individual.map((tx) => tx.id)).size).toBe(2);
+      expect(aggregated).toHaveLength(1);
+      expect(aggregated[0].subtitle).toBe('3 ETH');
+    });
+
+    it('leaves existing execution ids unchanged when a newer fill is prepended', () => {
+      const existing: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-history',
+          direction: 'Open Long',
+          size: '2',
+          timestamp: 1700000001000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-history',
+          direction: 'Open Long',
+          size: '3',
+          timestamp: 1700000000000,
+        },
+      ];
+      const newerFill: OrderFill = {
+        ...mockFill,
+        orderId: 'order-newer',
+        direction: 'Open Long',
+        size: '1',
+        timestamp: 1700000002000,
+      };
+
+      const before = transformFillsToTransactions(existing, {
+        aggregate: false,
+      });
+      const after = transformFillsToTransactions([newerFill, ...existing], {
+        aggregate: false,
+      });
+
+      expect(after.map((tx) => tx.id).slice(1)).toStrictEqual(
+        before.map((tx) => tx.id),
+      );
+    });
+
+    it('defaults to aggregating when no options are passed', () => {
+      const fills: OrderFill[] = ['1', '2'].map((size, index) => ({
+        ...mockFill,
+        orderId: 'open-order-default',
+        direction: 'Open Long',
+        size,
+        timestamp: 1700000000000 + index,
+      }));
+
+      const result = transformFillsToTransactions(fills);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('3 ETH');
+    });
+
     it('should handle empty fills array', () => {
       const result = transformFillsToTransactions([]);
       expect(result).toEqual([]);

@@ -199,8 +199,6 @@ function RecurringOrderDetailsView() {
   });
   const priceRange = formatRecurringPriceRange({
     priceRange: order.priceRange,
-    currentCurrency,
-    usdToCurrentCurrencyRate,
   });
   const averageExecutionPrice = formatRecurringExecutionPrice({
     priceUsd: order.averageExecutionPriceUsd,

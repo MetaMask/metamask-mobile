@@ -26,6 +26,7 @@ import {
 } from '../../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
+import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
@@ -266,6 +267,43 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_EMPTY,
       ),
     ).toHaveTextContent(strings('bridge.recurring.history_empty'));
+  });
+
+  it('keeps the price range in USD when EUR is selected', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+      overrides: {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'EUR',
+              currencyRates: {
+                ETH: {
+                  conversionRate: 1800,
+                  usdConversionRate: 2000,
+                },
+              },
+            },
+            AssetsController: {
+              selectedCurrency: 'eur',
+            },
+          },
+        },
+      },
+    });
+
+    await openOrderDetails(renderResult);
+
+    const summary = within(
+      renderResult.getByTestId(RecurringOrderDetailsViewSelectorsIDs.SUMMARY),
+    );
+    expect(
+      summary.getByText(
+        formatRecurringPriceRange({
+          priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('uses failed copy when a skipped swap has no reason', async () => {
