@@ -74,22 +74,32 @@ interface PredictDataExtras {
 }
 
 type ActivityDataExtras<ActivityType> = ActivityType extends PredictActivityKind
-  ? PredictDataExtras
-  : ActivityType extends PerpsOrderKind
-    ? { perpsTriggerOrderType?: TriggerOrderType }
-    : ActivityType extends 'stake' | 'unstake'
-      ? { fees?: ActivityFee[] }
-      : object;
+  ? PredictDataExtras & ActivityDataExtrasCommon
+  : ActivityDataExtrasCommon;
 
-type WithMobileDataTokens<T> = T extends {
-  data: infer D;
-  type: infer ActivityType;
+interface ActivityDataExtrasCommon {
+  fees?: ActivityFee[];
+  perpsTriggerOrderType?: TriggerOrderType;
 }
-  ? Omit<T, 'data'> & {
-      data: WithMobileTokenAmount<D> & ActivityDataExtras<ActivityType>;
-    }
-  : T;
 
-export type ActivityListItem = WithMobileDataTokens<
-  ClientUtilsActivityItem & { isEarliestNonce?: boolean }
+type SplitByKind<T> = {
+  [Kind in ActivityKind]: T extends {
+    type: infer ActivityType;
+    data: infer D;
+  }
+    ? Kind extends Extract<ActivityType, ActivityKind>
+      ? Omit<T, 'type' | 'data'> & {
+          type: Kind;
+          data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;
+        }
+      : never
+    : never;
+}[ActivityKind];
+
+type WithMobileFields<T> = T extends unknown
+  ? T & { isEarliestNonce?: boolean }
+  : never;
+
+export type ActivityListItem = WithMobileFields<
+  SplitByKind<ClientUtilsActivityItem>
 >;
