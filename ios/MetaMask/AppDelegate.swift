@@ -21,12 +21,40 @@ final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   }
 }
 
+/// iOS 27, when the app is built with that SDK, refuses to launch unless the
+/// app adopts the scene lifecycle. The window has to be created from the
+/// window scene so it tracks the iPhone Duo inner display instead of
+/// `UIScreen.main`.
+@objc(SceneDelegate)
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+  var window: UIWindow?
+
+  func scene(
+    _ scene: UIScene,
+    willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions
+  ) {
+    guard let windowScene = scene as? UIWindowScene,
+          let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+      return
+    }
+
+    let window = UIWindow(windowScene: windowScene)
+    self.window = window
+    appDelegate.window = window
+    window.makeKeyAndVisible()
+    appDelegate.startReactNative(in: window)
+  }
+}
+
 @main
 class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
 
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
+  private var didStartReactNative = false
+  private var storedLaunchOptions: [UIApplication.LaunchOptionsKey: Any]?
   private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
   private var isForwardingNotificationResponse = false
 
@@ -56,9 +84,7 @@ class AppDelegate: ExpoAppDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-
-    window = UIWindow(frame: UIScreen.main.bounds)
-    window?.makeKeyAndVisible()
+    storedLaunchOptions = launchOptions
 
     // Safe Firebase configuration — validates plist before configure() to prevent
     // FIRInstallations from throwing an uncatchable NSException on launch when
@@ -72,9 +98,6 @@ class AppDelegate: ExpoAppDelegate {
        apiKey.hasPrefix("AIzaSy") {
       FirebaseApp.configure()
     }
-
-    let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
-    let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
@@ -113,13 +136,6 @@ class AppDelegate: ExpoAppDelegate {
       BrazeHelperPopulateInitialPayload(launchOptions)
     }
 
-    factory.startReactNative(
-      withModuleName: "MetaMask",
-      in: window,
-      initialProperties: initialProps,
-      launchOptions: launchOptions
-    )
-
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
     // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations.
@@ -129,6 +145,21 @@ class AppDelegate: ExpoAppDelegate {
     claimNotificationCenterDelegate()
 
     return superResult
+  }
+
+  func startReactNative(in window: UIWindow) {
+    guard !didStartReactNative, let factory = reactNativeFactory else {
+      return
+    }
+    didStartReactNative = true
+
+    let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
+    factory.startReactNative(
+      withModuleName: "MetaMask",
+      in: window,
+      initialProperties: ["foxCode": foxCode],
+      launchOptions: storedLaunchOptions
+    )
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {

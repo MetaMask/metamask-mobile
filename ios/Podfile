@@ -191,12 +191,38 @@ post_install do |installer|
   # source. Xcode 26 turns on explicit modules by default, so compiling BrazeUI
   # (and the RN wrapper's Swift) fails with:
   #   import BrazeKit → missing required module 'SystemConfiguration'
+  # Xcode 27 also rejects any IPHONEOS_DEPLOYMENT_TARGET below 15.0, including
+  # resource-bundle targets that still inherit an old podspec minimum.
+  minimum_deployment_target = Gem::Version.new('15.1')
   installer.pods_project.targets.each do |target|
-    next unless target.name == 'BrazeUI' || target.name == 'braze-react-native-sdk'
-
     target.build_configurations.each do |config|
-      config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+      if target.name == 'BrazeUI' || target.name == 'braze-react-native-sdk'
+        config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+      end
+
+      current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      next if current.nil? || current.empty?
+      if Gem::Version.new(current) < minimum_deployment_target
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = minimum_deployment_target.to_s
+      end
     end
+  end
+
+  # Referenced directly by MetaMask.xcodeproj, so it is not a Pods target.
+  # node_modules is restored by yarn, which puts this project back to iOS 9.
+  aes_project_path = File.expand_path('../node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj', __dir__)
+  if File.exist?(aes_project_path)
+    aes_project = Xcodeproj::Project.open(aes_project_path)
+    aes_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        next if current.nil? || current.empty?
+        if Gem::Version.new(current) < minimum_deployment_target
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = minimum_deployment_target.to_s
+        end
+      end
+    end
+    aes_project.save
   end
 
   # This is necessary for Xcode 14, because it signs resource bundles by default
