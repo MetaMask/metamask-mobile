@@ -11,10 +11,6 @@ import {
   mapMoneyAccountPlusPricing,
   type MoneyAccountPlusPricingView,
 } from '../utils/mapMoneyAccountPlusPricing';
-import {
-  isMockPricingEnabled,
-  MOCK_PLUS_PRICING,
-} from './useSubscriptionPricing.mock';
 
 export interface UseSubscriptionPricingResult {
   plusPricing: MoneyAccountPlusPricingView;
@@ -55,7 +51,7 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   // before React commits enabled:false after background auto-lock.
   const { data, isLoading, error, refetch } = useQuery<PricingResponse>({
     queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
-    enabled: isUnlocked && !isMockPricingEnabled,
+    enabled: isUnlocked,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -75,15 +71,6 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   const retry = useCallback(() => {
     refetch().catch(() => undefined);
   }, [refetch]);
-
-  if (isMockPricingEnabled) {
-    return {
-      plusPricing: MOCK_PLUS_PRICING,
-      isLoading: false,
-      hasError: false,
-      retry,
-    };
-  }
 
   return {
     plusPricing,

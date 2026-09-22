@@ -31,11 +31,6 @@ import {
   selectSubscriptionByProduct,
 } from '../../../../../selectors/subscriptionController';
 import { MembershipTestIds } from './Membership.testIds';
-import {
-  isMockMembershipEnabled,
-  MOCK_MEMBERSHIP_PRICING,
-  MOCK_MEMBERSHIP_SUBSCRIPTION,
-} from './Membership.mock';
 import { getMembershipDetails } from './Membership.utils';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -204,13 +199,7 @@ const Membership = () => {
   const subscription = useSelector(selectMoneyAccountPlusSubscription);
   const plusPricing = useSelector(selectMoneyAccountPlusPricing);
   const membershipDetails = useMemo(
-    () =>
-      isMockMembershipEnabled
-        ? getMembershipDetails(
-            MOCK_MEMBERSHIP_SUBSCRIPTION,
-            MOCK_MEMBERSHIP_PRICING,
-          )
-        : getMembershipDetails(subscription, plusPricing),
+    () => getMembershipDetails(subscription, plusPricing),
     [plusPricing, subscription],
   );
 
