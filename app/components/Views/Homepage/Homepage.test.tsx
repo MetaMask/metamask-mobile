@@ -282,6 +282,23 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
   })),
 }));
 
+jest.mock(
+  '../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery',
+  () => ({
+    useSuggestedWatchlistItemsQuery: jest.fn(() => ({
+      data: [],
+      isLoading: false,
+    })),
+  }),
+);
+
+jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations', () => ({
+  useTokenWatchlistAddItemMutation: jest.fn(() => ({
+    mutate: jest.fn(),
+    isPending: false,
+  })),
+}));
+
 const mockBalanceBreakdownSection = jest.fn();
 jest.mock('./Sections/BalanceBreakdown', () => {
   const { View } = jest.requireActual('react-native');

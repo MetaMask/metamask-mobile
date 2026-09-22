@@ -1,6 +1,7 @@
 import {
   Box,
   ButtonSize as ButtonSizeHero,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -420,12 +421,15 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
             </Box>
           )}
           {isSheetMode && (
-            <Box twClassName="items-center gap-2 py-4">
+            // Asymmetric padding: below the block the fee summary adds its own
+            // pt-4 on top of the container gap, so equal padding here would sit
+            // the value block optically high.
+            <Box twClassName="items-center gap-2 pt-[22px] pb-[10px]">
               {isPreviewLoading ? (
                 <>
                   <Skeleton
                     width={160}
-                    height={48}
+                    height={58}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -442,8 +446,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               ) : (
                 <>
                   <Text
-                    variant={TextVariant.HeadingLg}
-                    twClassName="font-medium"
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-[48px] leading-[58px] tracking-tight"
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
@@ -461,13 +465,13 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                     })}
                   </Text>
                   <Text
-                    twClassName="font-bold"
+                    variant={TextVariant.BodyLg}
+                    twClassName="font-medium"
                     color={
                       percentPnl > 0
                         ? TextColor.SuccessDefault
                         : TextColor.ErrorDefault
                     }
-                    variant={TextVariant.BodyMd}
                   >
                     {`${signal}${formatPrice(Math.abs(cashPnl), {
                       maximumDecimals: 2,
@@ -477,19 +481,25 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               )}
             </Box>
           )}
-          {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
-          <PredictFeeSummary
-            disabled={!preview}
-            loading={isPreviewLoading}
-            total={total}
-            handleFeesInfoPress={handleFeesInfoPress}
-          />
-          <View style={styles.cashOutButtonContainer}>
-            {renderCashOutButton()}
-            <Text variant={TextVariant.BodyXs} style={styles.cashOutButtonText}>
-              {strings('predict.cash_out_info')}
-            </Text>
-          </View>
+          {/* Grouped so the container gap does not separate them, matching the buy sheet */}
+          <Box twClassName="w-full">
+            {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
+            <PredictFeeSummary
+              disabled={!preview}
+              loading={isPreviewLoading}
+              total={total}
+              handleFeesInfoPress={handleFeesInfoPress}
+            />
+            <View style={styles.cashOutButtonContainer}>
+              {renderCashOutButton()}
+              <Text
+                variant={TextVariant.BodyXs}
+                style={styles.cashOutButtonText}
+              >
+                {strings('predict.cash_out_info')}
+              </Text>
+            </View>
+          </Box>
         </View>
       </View>
       {isFeeBreakdownVisible && (

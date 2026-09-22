@@ -25,6 +25,7 @@ import { MONEY_ACCOUNT_DEPOSIT_MOCKS } from '../../../api-mocking/mock-responses
 import { applyTokenHoldingsMocks } from '../../../api-mocking/mock-responses/pay/holdings-mocks.js';
 import {
   BUY_ORDER_STATUS_MOCKS,
+  RAMPS_ORDER_STORAGE_MOCKS,
   setupRegionAwareOnRampMocks,
   RAMPS_QUOTE_MOCKS,
 } from '../../../api-mocking/mock-responses/ramps/ramps-mocks.js';
@@ -90,6 +91,7 @@ appiumTest.describe(
                 mockServer,
                 RampsRegions[RampsRegionsEnum.FRANCE],
               );
+              await RAMPS_ORDER_STORAGE_MOCKS(mockServer);
               await RAMPS_QUOTE_MOCKS(mockServer, 'native');
               await BUY_ORDER_STATUS_MOCKS(mockServer);
             },

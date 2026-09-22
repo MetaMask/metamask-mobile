@@ -93,6 +93,14 @@ const mockInternalAccountsById = {
     scopes: ['eip155:0'],
     metadata: { name: 'Account 2' },
   },
+  'account-3': {
+    address: '0xAccount3Address',
+    scopes: ['eip155:0'],
+    metadata: {
+      name: 'Ledger Account',
+      keyring: { type: 'Ledger Hardware' },
+    },
+  },
 };
 
 const mockAccountGroupsByWallet = [
@@ -228,6 +236,18 @@ describe('AccountSelector', () => {
     );
 
     expect(getByText('Account 1')).toBeOnTheScreen();
+  });
+
+  it('keeps a gap between the label and the account name', () => {
+    const { getByTestId } = render(
+      <AccountSelector
+        label="From"
+        selectedAddress="0xAccount1Address"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL)).toHaveStyle({ gap: 8 });
   });
 
   it('opens modal when pill is pressed', () => {
@@ -406,6 +426,62 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
 
     expect(getByText('Custom sheet title')).toBeOnTheScreen();
+  });
+
+  it('filters account groups using isAccountAllowed', () => {
+    const accountGroupsWithLedger = [
+      ...mockAccountGroupsByWallet,
+      {
+        title: 'Ledger',
+        wallet: { id: 'wallet-ledger' },
+        data: [
+          {
+            id: 'group-3',
+            accounts: ['account-3'],
+            metadata: { name: 'Ledger Account' },
+          },
+        ],
+      },
+    ];
+    const { useSelector } = jest.requireMock('react-redux');
+    const { selectAccountToGroupMap } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    const { selectInternalAccountsById } = jest.requireMock(
+      '../../../../../selectors/accountsController',
+    );
+    const { selectVisibleAccountGroupsByWallet } = jest.requireMock(
+      '../../../../../selectors/multichainAccounts/manageAccounts',
+    );
+    const { selectAvatarAccountType } = jest.requireMock(
+      '../../../../../selectors/settings',
+    );
+
+    useSelector.mockImplementation(
+      (selector: (...args: unknown[]) => unknown) => {
+        if (selector === selectInternalAccountsById)
+          return mockInternalAccountsById;
+        if (selector === selectVisibleAccountGroupsByWallet)
+          return accountGroupsWithLedger;
+        if (selector === selectAccountToGroupMap) return mockAccountToGroupMap;
+        if (selector === selectAvatarAccountType) return 'HD Key Tree';
+        return undefined;
+      },
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <AccountSelector
+        onAccountSelected={mockOnAccountSelected}
+        isAccountAllowed={(account) =>
+          account.metadata.keyring?.type !== 'Ledger Hardware'
+        }
+      />,
+    );
+
+    fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
+
+    expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
+    expect(queryByTestId('account-group-group-3')).toBeNull();
   });
 });
 

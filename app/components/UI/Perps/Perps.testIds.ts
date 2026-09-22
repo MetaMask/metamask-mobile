@@ -1146,6 +1146,23 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
   LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
 } as const;
 
+export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-adjust-margin-bottom-sheet',
+  MODE_TOGGLE: 'perps-adjust-margin-bottom-sheet-mode-toggle',
+  ADD_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-add-mode',
+  REMOVE_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-remove-mode',
+  CONFIRM_BUTTON: 'perps-adjust-margin-bottom-sheet-confirm-button',
+  DONE_BUTTON: 'perps-adjust-margin-bottom-sheet-done-button',
+  SLIDER: 'perps-adjust-margin-bottom-sheet-slider',
+  ERROR: 'perps-adjust-margin-bottom-sheet-error',
+  MARGIN_VALUE: 'perps-adjust-margin-bottom-sheet-margin-value',
+  AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
+  LIQUIDATION_PRICE_VALUE:
+    'perps-adjust-margin-bottom-sheet-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE:
+    'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
+} as const;
+
 // ========================================
 // PERPS HERO CARD VIEW SELECTORS
 // ========================================

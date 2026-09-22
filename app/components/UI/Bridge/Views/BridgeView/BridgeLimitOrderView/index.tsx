@@ -291,9 +291,6 @@ const BridgeLimitOrderViewContent = () => {
         triggerPrice,
         triggerToken: quotedToken,
         expiry: expiration,
-        networkFee: '0',
-        feeToken: sourceToken,
-        feeDisclaimer: '',
       },
     });
   }, [
