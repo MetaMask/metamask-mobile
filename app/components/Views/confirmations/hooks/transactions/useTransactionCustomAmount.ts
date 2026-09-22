@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  selectRelayAtomicMaxEnabled,
+  selectRelayFixedSpread,
+} from '../../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../../reducers';
 import { isSubsidizedRoute } from '../../utils/relayFixedSpread';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
@@ -115,6 +119,9 @@ export function useTransactionCustomAmount({
     [],
   );
   const relayFixedSpreadConfig = useSelector(selectRelayFixedSpread);
+  const isAtomicMaxEnabled = useSelector((state: RootState) =>
+    selectRelayAtomicMaxEnabled(state, transactionMeta),
+  );
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -287,6 +294,7 @@ export function useTransactionCustomAmount({
     { chainId: payToken?.chainId ?? '', address: payToken?.address ?? '' },
     { chainId, address: tokenAddress ?? '' },
   );
+  const shouldHintAtomicMax = isAtomicMaxEnabled && isFixedSpreadRoute;
 
   const setIsMax = useCallback(
     (value: boolean) => {
@@ -296,13 +304,13 @@ export function useTransactionCustomAmount({
         config.isMaxAmount = value;
 
         if (isMoneyAccountDeposit) {
-          // Route configuration is only a hint; Core verifies the returned
-          // subsidy and re-quotes if the hint does not match.
-          config.atomic = value && !isFixedSpreadRoute ? false : undefined;
+          // Only hint atomic when Core enables it. Route configuration is
+          // predictive; Core verifies the subsidy and re-quotes if needed.
+          config.atomic = value && !shouldHintAtomicMax ? false : undefined;
         }
       });
     },
-    [isMoneyAccountDeposit, transactionId, isFixedSpreadRoute],
+    [isMoneyAccountDeposit, transactionId, shouldHintAtomicMax],
   );
 
   useEffect(() => {
@@ -313,10 +321,10 @@ export function useTransactionCustomAmount({
     Engine.context.TransactionPayController.setTransactionConfig(
       transactionId,
       (config) => {
-        config.atomic = isFixedSpreadRoute ? undefined : false;
+        config.atomic = shouldHintAtomicMax ? undefined : false;
       },
     );
-  }, [isFixedSpreadRoute, isMaxAmount, isMoneyAccountDeposit, transactionId]);
+  }, [shouldHintAtomicMax, isMaxAmount, isMoneyAccountDeposit, transactionId]);
 
   const updatePendingAmount = useCallback(
     (value: string) => {

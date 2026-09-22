@@ -1653,8 +1653,87 @@ describe('useTransactionCustomAmount', () => {
       expect(config.atomic).toBe(false);
     });
 
-    it('leaves atomic as undefined (preserves true) when Max is pressed and route IS fixed-spread', async () => {
-      const { result } = runHook({
+    it.each([
+      { default: true },
+      { transactionTypes: { [TransactionType.moneyAccountDeposit]: true } },
+    ])(
+      'uses an atomic hint for a fixed-spread route when atomic max is enabled by %j',
+      async (atomicMaxEnabled) => {
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    ...fixedSpreadOverrides,
+                    confirmations_pay_extended: {
+                      payStrategies: { relay: { atomicMaxEnabled } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(100);
+        });
+
+        const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+          const cfg: Record<string, unknown> = {};
+          call[1](cfg);
+          return Object.hasOwn(cfg, 'atomic');
+        });
+        expect(atomicCall).toBeDefined();
+        const cfg: Record<string, unknown> = {};
+        atomicCall?.[1](cfg);
+        expect(cfg.atomic).toBeUndefined();
+      },
+    );
+
+    it.each([
+      undefined,
+      { default: false },
+      {
+        default: true,
+        transactionTypes: { [TransactionType.moneyAccountDeposit]: false },
+      },
+    ])(
+      'keeps fixed-spread Max non-atomic when atomic max is disabled by %j',
+      async (atomicMaxEnabled) => {
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+          stateOverrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    ...fixedSpreadOverrides,
+                    confirmations_pay_extended: {
+                      payStrategies: { relay: { atomicMaxEnabled } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        await act(async () => {
+          result.current.updatePendingAmountPercentage(100);
+        });
+
+        const config: Record<string, unknown> = {};
+        setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+        expect(config.atomic).toBe(false);
+      },
+    );
+
+    it('updates the active Max hint when the atomic max gate changes', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+      const { store } = runHook({
         transactionMeta: depositTransactionMeta,
         stateOverrides: {
           engine: {
@@ -1666,20 +1745,85 @@ describe('useTransactionCustomAmount', () => {
           },
         },
       });
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+      expect(config.atomic).toBe(false);
 
-      await act(async () => {
-        result.current.updatePendingAmountPercentage(100);
-      });
+      for (const enabled of [true, false]) {
+        setTransactionConfigMock.mockClear();
+        const nextState = merge({}, store.getState(), {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  confirmations_pay_extended: {
+                    payStrategies: {
+                      relay: { atomicMaxEnabled: { default: enabled } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
 
-      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
-        const cfg: Record<string, unknown> = {};
-        call[1](cfg);
-        return Object.hasOwn(cfg, 'atomic');
+        await act(async () => {
+          store.replaceReducer(() => nextState);
+        });
+
+        expect(setTransactionConfigMock).toHaveBeenCalled();
+        setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+        expect(config.atomic).toBe(enabled ? undefined : false);
+      }
+    });
+
+    it('refreshes the active Max hint when switching between matching and non-matching routes', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+      const initialPayToken =
+        useTransactionPayTokenMock.getMockImplementation()?.();
+      const { rerender } = runHook({
+        transactionMeta: depositTransactionMeta,
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  ...fixedSpreadOverrides,
+                  confirmations_pay_extended: {
+                    payStrategies: {
+                      relay: { atomicMaxEnabled: { default: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
-      expect(atomicCall).toBeDefined();
-      const cfg: Record<string, unknown> = {};
-      atomicCall?.[1](cfg);
-      expect(cfg.atomic).toBeUndefined();
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+      expect(config.atomic).toBeUndefined();
+
+      for (const matches of [false, true]) {
+        setTransactionConfigMock.mockClear();
+        useTransactionPayTokenMock.mockReturnValue({
+          ...initialPayToken,
+          payToken: {
+            ...initialPayToken?.payToken,
+            address: matches
+              ? TOKEN_ADDRESS_MOCK
+              : '0x9999999999999999999999999999999999999999',
+          },
+        } as ReturnType<typeof useTransactionPayToken>);
+
+        await act(async () => {
+          rerender({});
+        });
+
+        expect(setTransactionConfigMock).toHaveBeenCalled();
+        setTransactionConfigMock.mock.calls.forEach((call) => call[1](config));
+        expect(config.atomic).toBe(matches ? undefined : false);
+      }
     });
 
     it('does not treat a fixed-spread source with a different destination as an atomic route', async () => {
