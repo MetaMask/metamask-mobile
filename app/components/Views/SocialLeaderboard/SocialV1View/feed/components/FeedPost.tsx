@@ -32,6 +32,8 @@ export interface FeedPostProps {
   timestamp: number;
   /** Author's own words. Omitted posts render the card with no caption. */
   comment?: string;
+  /** Appends the mock marker to the win-rate badge. */
+  isWinRateMocked?: boolean;
   /**
    * Wall-clock instant used to format the post age. Pass a shared value so a
    * refresh recomputes every post's label together. Defaults to `Date.now()`.
@@ -55,6 +57,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
   author,
   timestamp,
   comment,
+  isWinRateMocked = false,
   now,
   children,
 }) => (
@@ -98,6 +101,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
           </Text>
           <WinRateTag
             winRatePercent={author.winRatePercent}
+            isMocked={isWinRateMocked}
             testID={getSocialFeedPostWinRateTestId(id)}
           />
         </Box>

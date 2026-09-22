@@ -37,6 +37,7 @@ import { SwapsLimitOrderExpirationModalScreen } from './components/SwapsLimitOrd
 import { SwapsLimitOrderDefaultCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderDefaultCostToleranceModal';
 import { SwapsLimitOrderCustomCostToleranceModal } from './components/SwapsLimitOrderCostToleranceModal/SwapsLimitOrderCustomCostToleranceModal';
 import { LimitOrderConfirmationModalScreen } from './components/LimitOrderConfirmationModal/LimitOrderConfirmationModalScreen';
+import { LimitOrderCostToleranceInfoSheetScreen } from './components/LimitOrderCostToleranceInfoSheet/LimitOrderCostToleranceInfoSheetScreen';
 import { RecurringIntervalSheetScreen } from './components/RecurringIntervalSheet/RecurringIntervalSheetScreen';
 import { RecurringRepeatInfoSheetScreen } from './components/RecurringRepeatInfoSheet/RecurringRepeatInfoSheetScreen';
 import { PriceRangeSheetScreen } from './components/PriceRangeSheet/PriceRangeSheetScreen';
@@ -153,6 +154,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL}
       component={LimitOrderConfirmationModalScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL}
+      component={LimitOrderCostToleranceInfoSheetScreen}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECURRING_INTERVAL_MODAL}

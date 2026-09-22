@@ -38,6 +38,17 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
+// The feed pages now fetch through `useTraderFeed`, which reads keyring state
+// and React Query. This suite is about the V1 chrome -- tabs, header, filters --
+// so stub the data source and let the feed's own suites cover it.
+// The feed now fetches through `useTraderFeed`, which needs keyring state and
+// React Query. This suite covers the V1 chrome, so stand in for the data source
+// while still driving the real composed-post store the banner tests depend on.
+jest.mock('./feed/hooks/useSocialV1Feed', () => ({
+  useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
+    .mockUseSocialV1Feed,
+}));
+
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => {
