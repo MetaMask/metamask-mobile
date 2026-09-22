@@ -197,8 +197,8 @@ export class BrazePlugin extends EventPlugin {
         continue;
       }
 
-      this.sentTraitFingerprints.set(key, fingerprint);
       Braze.setCustomUserAttribute(key, sanitized);
+      this.sentTraitFingerprints.set(key, fingerprint);
     }
   }
 

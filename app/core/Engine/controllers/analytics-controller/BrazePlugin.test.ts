@@ -325,6 +325,25 @@ describe('BrazePlugin', () => {
         'dark',
       );
     });
+
+    it('retries a trait after setCustomUserAttribute throws', () => {
+      plugin.setBrazeProfileId('profile-123');
+      mockBraze.setCustomUserAttribute.mockImplementationOnce(() => {
+        throw new Error('native write failed');
+      });
+
+      plugin.identify(makeIdentifyEvent({ trait1: 'dark' }));
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledTimes(1);
+      mockBraze.setCustomUserAttribute.mockClear();
+
+      plugin.identify(makeIdentifyEvent({ trait1: 'dark' }));
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'trait1',
+        'dark',
+      );
+    });
   });
 
   describe('setLanguage', () => {
