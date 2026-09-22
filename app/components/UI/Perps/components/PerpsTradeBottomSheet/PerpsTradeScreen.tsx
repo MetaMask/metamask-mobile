@@ -44,6 +44,7 @@ import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
+import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -92,7 +93,8 @@ interface PerpsTradeScreenProps {
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
-  onOrderTypePress: () => void;
+  /** Swaps between market and limit; the sheet offers no other order types. */
+  onOrderTypeToggle: () => void;
   onLimitPricePress: () => void;
   onLimitPriceKeypadChange: (value: {
     value: string;
@@ -260,7 +262,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onPercentagePress,
   onMaxPress,
   onDonePress,
-  onOrderTypePress,
+  onOrderTypeToggle,
   onLimitPricePress,
   onLimitPriceKeypadChange,
   onLimitPricePresetPress,
@@ -286,7 +288,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       : strings('perps.order.limit');
   const isEditing = isInputFocused || isLimitPriceFocused;
   const limitPriceDisplay = limitPrice
-    ? formatPerpsFiat(limitPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+    ? isLimitPriceFocused
+      ? `$${limitPrice}`
+      : formatPerpsFiat(limitPrice, { ranges: PRICE_RANGES_UNIVERSAL })
     : strings('perps.order.set_price');
 
   return (
@@ -337,27 +341,27 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             )}
           </Box>
         </Box>
-        <Box
-          accessible={false}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <SelectButton
-            testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-            variant={SelectButtonVariant.Primary}
-            size={SelectButtonSize.Md}
-            placeholder={orderTypeLabel}
-            value={orderTypeLabel}
-            accessibilityLabel={strings(
-              'perps.trade_sheet.order_type_accessibility_label',
-              { orderType: orderTypeLabel },
-            )}
-            isDisabled={isOrderTypeDisabled}
-            onPress={onOrderTypePress}
-            endArrowDirection="down"
-          />
-        </Box>
+        <SelectButton
+          testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          size={SelectButtonSize.Md}
+          placeholder={orderTypeLabel}
+          value={orderTypeLabel}
+          accessibilityLabel={strings(
+            'perps.trade_sheet.order_type_accessibility_label',
+            { orderType: orderTypeLabel },
+          )}
+          isDisabled={isOrderTypeDisabled}
+          onPress={onOrderTypeToggle}
+          hideEndArrow
+          endAccessory={
+            <Icon
+              name={IconName.SwapHorizontal}
+              size={IconSize.Sm}
+              color={IconColor.IconDefault}
+            />
+          }
+        />
       </Box>
 
       <PerpsTradeSheetTitleBanner title={title} banner={banner} />
@@ -681,7 +685,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               value={limitPrice || ''}
               onChange={onLimitPriceKeypadChange}
               currency="USD_PERPS"
-              decimals={5}
+              decimals={LIMIT_PRICE_CONFIG.KeypadDecimals}
             />
           </Box>
         ) : null}
@@ -732,7 +736,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isLoading={isSubmitting}
               onPress={onSubmit}
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
-              twClassName="rounded-xl"
             >
               {submitLabel ?? directionLabel}
             </ButtonSemantic>
