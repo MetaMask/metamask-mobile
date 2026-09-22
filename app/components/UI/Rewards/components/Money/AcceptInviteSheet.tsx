@@ -331,8 +331,15 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const canAccept =
     hasCodeToValidate && !isValidating && !isRejectedCode && !isAccepting;
 
+  // An offer is viewed only once this sheet is showing one: never on a
+  // payload still in flight, and never for a stale deeplink or an existing
+  // referee, which close themselves without the user seeing an invite. Those
+  // closes answer nothing, so a viewed here would have no response to pair
+  // with.
+  const isOfferOnScreen = !isCopyPending && !shouldDismissForReferralVariant;
+
   useEffect(() => {
-    if (hasTrackedOfferViewedRef.current) {
+    if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
       return;
     }
     hasTrackedOfferViewedRef.current = true;
@@ -343,7 +350,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
         )
         .build(),
     );
-  }, [createEventBuilder, initialReferralCode, trackEvent]);
+  }, [createEventBuilder, initialReferralCode, isOfferOnScreen, trackEvent]);
 
   // One answer per sheet, and the first one recorded is the answer: a close
   // that follows Accept or Decline is the sheet acting on that press, not a
@@ -443,6 +450,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   useEffect(() => {
     if (shouldDismissForReferralVariant) {
+      // Deliberately not `handleGoBack`: no offer was on screen to answer, so
+      // this close is not a response and no viewed was recorded for it.
       navigation.goBack();
     }
   }, [navigation, shouldDismissForReferralVariant]);
