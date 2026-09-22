@@ -6158,6 +6158,8 @@ describe('usePerpsProOrderForm', () => {
         mockOrderForm.direction = direction;
         mockOrderForm.limitPrice = limitPrice;
         mockContextValue.triggerPrice = triggerPrice;
+        // The rule reads both prices, so both must be finished being typed.
+        mockContextValue.hasBlurredTriggerPrice = true;
         mockValidation.isValid = true;
         mockValidation.fieldIssues = [];
         const { result, rerender } = renderProForm();
@@ -6174,6 +6176,51 @@ describe('usePerpsProOrderForm', () => {
         expect(result.current.isPlaceOrderDisabled).toBe(false);
       },
     );
+
+    it('stays quiet about a trigger price the user is still typing', () => {
+      // Short take-limit with the limit already taken from Mid. On the way to
+      // 3000 the trigger passes through '3' and '30', both below that limit,
+      // which would read as "limit is above trigger" if the rule fired before
+      // the trigger was committed.
+      mockOrderForm.type = 'take_profit_limit';
+      mockOrderForm.direction = 'short';
+      mockOrderForm.limitPrice = '2500';
+      mockContextValue.triggerPrice = '3';
+      mockContextValue.hasBlurredTriggerPrice = false;
+      mockValidation.isValid = true;
+      mockValidation.fieldIssues = [];
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+    });
+
+    it('warns once the half-typed trigger price is committed', () => {
+      mockOrderForm.type = 'take_profit_limit';
+      mockOrderForm.direction = 'short';
+      mockOrderForm.limitPrice = '2500';
+      mockContextValue.triggerPrice = '3';
+      mockContextValue.hasBlurredTriggerPrice = true;
+      mockValidation.isValid = true;
+      mockValidation.fieldIssues = [];
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'warning',
+        message: strings(
+          'perps.order.validation.limit_price_above_trigger_warning',
+        ),
+      });
+    });
 
     it('stays quiet when a stop limit buy rests at or above its trigger', () => {
       mockOrderForm.type = 'stop_limit';

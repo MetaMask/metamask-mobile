@@ -3643,13 +3643,19 @@ export const usePerpsProOrderForm = ({
       return undefined;
     }
 
-    const limitVsTriggerWarning = getLimitVsTriggerWarning({
-      orderType: orderForm.type,
-      direction: orderForm.direction,
-      limitPrice: normalizedLimitPrice,
-      triggerPrice: normalizedTriggerPrice,
-      szDecimals,
-    });
+    // This rule reads both prices, so it waits for both to be committed. The
+    // trigger updates on every keystroke, and most prefixes of a number land on
+    // the wrong side of an already-set limit ('3' and '30' on the way to 3000),
+    // which would flash a fill warning about a price the user is still typing.
+    const limitVsTriggerWarning = hasBlurredTriggerPrice
+      ? getLimitVsTriggerWarning({
+          orderType: orderForm.type,
+          direction: orderForm.direction,
+          limitPrice: normalizedLimitPrice,
+          triggerPrice: normalizedTriggerPrice,
+          szDecimals,
+        })
+      : undefined;
     if (limitVsTriggerWarning) {
       return { severity: 'warning' as const, message: limitVsTriggerWarning };
     }

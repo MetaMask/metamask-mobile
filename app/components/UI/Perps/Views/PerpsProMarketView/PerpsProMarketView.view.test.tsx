@@ -2952,7 +2952,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'silently blocks an invalid stop-market price until blur shows guidance',
+    'warns about an invalid stop-market price on blur without blocking it',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
@@ -2965,27 +2965,28 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       fireEvent.changeText(triggerInput, '1000');
 
+      // Mid-typing, the form stays quiet rather than judging a half-entered price.
       await waitFor(
         () => {
           expect(
             screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
           ).not.toBeOnTheScreen();
-          expect(placeOrderButton).toBeDisabled();
         },
         { timeout: TIMEOUT_MS },
       );
 
       fireEvent(triggerInput, 'blur');
 
+      // A stop on the wrong side of mid is advice, not a blocker: the user is
+      // told about it and can still place the order.
       await waitFor(
         () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
             strings('perps.order.validation.trigger_must_be_above_mid'),
           );
-          expect(placeOrderButton).toBeDisabled();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
         },
         { timeout: TIMEOUT_MS },
       );
