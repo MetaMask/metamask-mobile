@@ -1,9 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
+import { useQuery } from '@metamask/react-data-query';
+import {
+  SubscriptionService,
+  type PricingResponse,
+} from '@metamask/subscription-controller';
 import Logger from '../../../../../../util/Logger';
-import { selectMoneyAccountPlusPricing } from '../../../../../../selectors/subscriptionController';
-import type { MoneyAccountPlusPricingView } from '../utils/mapMoneyAccountPlusPricing';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import {
+  mapMoneyAccountPlusPricing,
+  type MoneyAccountPlusPricingView,
+} from '../utils/mapMoneyAccountPlusPricing';
 
 export interface UseSubscriptionPricingResult {
   plusPricing: MoneyAccountPlusPricingView;
@@ -11,6 +18,10 @@ export interface UseSubscriptionPricingResult {
   hasError: boolean;
   retry: () => void;
 }
+
+export const SUBSCRIPTION_PRICING_QUERY_KEY = [
+  `${SubscriptionService.name}:getPricing`,
+] as const;
 
 const PRICING_ERROR_LOG_OPTIONS = {
   tags: {
@@ -25,60 +36,46 @@ const PRICING_ERROR_LOG_OPTIONS = {
 } as const;
 
 /**
- * Fetches Money Account Plus pricing through SubscriptionController and
- * exposes loading, error, and retry state for the Pro plan-selection UI.
- *
- * Duplicate in-flight requests are ignored. Prices stay in controller state
- * and are read via {@link selectMoneyAccountPlusPricing}.
+ * Fetches Money Account Plus pricing through SubscriptionService via
+ * react-data-query and maps it for the Pro plan-selection UI.
  *
  * @returns Mapped Plus pricing, fetch status, and a retry callback.
  */
 export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
-  const plusPricing = useSelector(selectMoneyAccountPlusPricing);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const inFlightRef = useRef(false);
-  const isMountedRef = useRef(true);
+  const isUnlocked = useSelector(selectIsUnlocked);
 
-  const fetchPricing = useCallback(async () => {
-    if (inFlightRef.current) {
+  // Pause while locked so queryFn never reaches AuthenticationController
+  // getBearerToken. Also disable automatic focus/reconnect refetches:
+  // ReactQueryService wires AppState → focusManager, and react-data-query
+  // uses staleTime: 0, so a foreground/reconnect can otherwise run queryFn
+  // before React commits enabled:false after background auto-lock.
+  const { data, isLoading, error, refetch } = useQuery<PricingResponse>({
+    queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
+    enabled: isUnlocked,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  useEffect(() => {
+    if (!error) {
       return;
     }
 
-    inFlightRef.current = true;
-    setIsLoading(true);
-    setHasError(false);
+    const loggedError =
+      error instanceof Error ? error : new Error(String(error));
+    Logger.error(loggedError, PRICING_ERROR_LOG_OPTIONS);
+  }, [error]);
 
-    try {
-      await Engine.context.SubscriptionController.getPricing();
-    } catch (error) {
-      const loggedError =
-        error instanceof Error ? error : new Error(String(error));
-      Logger.error(loggedError, PRICING_ERROR_LOG_OPTIONS);
-      if (isMountedRef.current) {
-        setHasError(true);
-      }
-    } finally {
-      inFlightRef.current = false;
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
+  const plusPricing = useMemo(() => mapMoneyAccountPlusPricing(data), [data]);
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    fetchPricing();
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [fetchPricing]);
+  const retry = useCallback(() => {
+    refetch().catch(() => undefined);
+  }, [refetch]);
 
   return {
     plusPricing,
     isLoading,
-    hasError,
-    retry: fetchPricing,
+    hasError: Boolean(error),
+    retry,
   };
 };
