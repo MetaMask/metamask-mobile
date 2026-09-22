@@ -10,7 +10,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useTheme , LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView.testIds';
 
 const LIVE_PULSE_HALF_MS = 900;
