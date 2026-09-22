@@ -17,7 +17,10 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTestEnvironment } from '../../../util/test/utils';
+import {
+  isE2EOrExpEnvironment,
+  isTestEnvironment,
+} from '../../../util/test/utils';
 import ScreenTtcProbeHost from '../../../hooks/performance/ScreenTtcProbeHost';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
@@ -47,7 +50,9 @@ const styles = StyleSheet.create({
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
-  const [oswaldFontsReady, setOswaldFontsReady] = useState(isTestEnvironment);
+  const [oswaldFontsReady, setOswaldFontsReady] = useState(
+    isE2EOrExpEnvironment,
+  );
 
   // We use a ref to make sure the UI messenger is only created once.
   const uiMessengerRef = useRef<UIMessenger | null>(null);
@@ -84,7 +89,7 @@ const Root = ({ foxCode }: RootProps) => {
     ScreenOrientationService.lockToPortrait();
     // TEMPORARY prototype — block first paint until Oswald is registered.
     // Otherwise iOS falls back to Inter and never re-renders after loadAsync.
-    if (!isTestEnvironment) {
+    if (!isE2EOrExpEnvironment) {
       loadOswaldFonts()
         .catch((error) => {
           Logger.error(error as Error, {
@@ -108,7 +113,7 @@ const Root = ({ foxCode }: RootProps) => {
     return null;
   }
 
-  if (!isTestEnvironment && !oswaldFontsReady) {
+  if (!isE2EOrExpEnvironment && !oswaldFontsReady) {
     return null;
   }
 
