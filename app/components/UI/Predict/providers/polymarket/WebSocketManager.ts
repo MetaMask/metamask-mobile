@@ -48,6 +48,14 @@ const MARKET_PRICE_EMIT_THROTTLE_MS = 250;
 const HEARTBEAT_CHECK_INTERVAL_MS = 5000;
 const MARKET_STALE_THRESHOLD_MS = 60000;
 const RTDS_STALE_THRESHOLD_MS = 15000;
+const SPORTS_STALE_THRESHOLD_MS = 60000;
+/**
+ * Upper bound for sports reconnect backoff. Sports reconnects indefinitely
+ * while game subscriptions exist (unlike market/RTDS which stop after
+ * MAX_RECONNECT_ATTEMPTS), so this delay cap bounds the retry rate instead.
+ * See PRED-1334.
+ */
+const MAX_RECONNECT_DELAY_MS = 30000;
 
 type GameUpdateCallback = (update: GameUpdate) => void;
 type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
@@ -208,6 +216,9 @@ export class WebSocketManager {
   private sportsPingInterval: ReturnType<typeof setInterval> | null = null;
   private marketPingInterval: ReturnType<typeof setInterval> | null = null;
 
+  private sportsLastMessageAt = 0;
+  private sportsHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private sportsHeartbeatTimeouts = 0;
   private marketLastMessageAt = 0;
   private marketHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -337,6 +348,7 @@ export class WebSocketManager {
       this.sportsWs.onopen = () => {
         this.sportsReconnectAttempts = 0;
         this.startSportsPing();
+        this.startSportsHeartbeat();
         this.emitConnectionStatusIfChanged();
       };
 
@@ -395,6 +407,9 @@ export class WebSocketManager {
   }
 
   private handleSportsMessage = (event: WebSocketMessageEvent): void => {
+    // Any byte from the server (game data or PONG) proves the socket is alive.
+    this.sportsLastMessageAt = Date.now();
+
     const data = this.parseSportsMessageData(event.data);
 
     if (!data) {
@@ -446,16 +461,19 @@ export class WebSocketManager {
       return;
     }
 
-    if (this.sportsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      return;
-    }
-
     if (this.sportsReconnectTimeout) {
       return;
     }
 
+    // Unlike market/RTDS, sports reconnects indefinitely while game
+    // subscriptions exist. Giving up permanently left scores frozen until the
+    // app was fully restarted (PRED-1334); the capped delay bounds the retry
+    // rate instead of an attempt budget.
     const attemptNumber = this.sportsReconnectAttempts + 1;
-    const delay = RECONNECT_DELAY_MS * attemptNumber;
+    const delay = Math.min(
+      RECONNECT_DELAY_MS * attemptNumber,
+      MAX_RECONNECT_DELAY_MS,
+    );
 
     this.sportsReconnectTimeout = setTimeout(() => {
       this.sportsReconnectTimeout = null;
@@ -479,8 +497,63 @@ export class WebSocketManager {
     }
   }
 
+  /**
+   * Detects a silently-dead sports socket. The sports server streams game
+   * updates for every live game worldwide and never sends a close frame when
+   * the connection dies half-open (network switch, NAT timeout), so without
+   * this check the client keeps a dead socket and scores freeze until the app
+   * is restarted (PRED-1334). The sports stream is chatty whenever any game is
+   * live, so a SPORTS_STALE_THRESHOLD_MS silence window reliably indicates a
+   * dead socket; forcing a reconnect is cheap because the stream needs no
+   * subscribe handshake.
+   */
+  private startSportsHeartbeat(): void {
+    this.sportsLastMessageAt = Date.now();
+    this.sportsHeartbeatInterval = setInterval(() => {
+      if (this.sportsWs?.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      const sinceLast = Date.now() - this.sportsLastMessageAt;
+      if (sinceLast > SPORTS_STALE_THRESHOLD_MS) {
+        DevLogger.log(
+          'WebSocketManager: sports WebSocket stale, forcing reconnect',
+          { sinceLast, threshold: SPORTS_STALE_THRESHOLD_MS },
+        );
+        this.sportsHeartbeatTimeouts++;
+        // Only the second timeout in a staleness episode reaches Sentry: the
+        // first is usually a transient blip, and since sports reconnects
+        // indefinitely a persistent outage would otherwise emit one error per
+        // reconnect cycle.
+        if (this.sportsHeartbeatTimeouts === 2) {
+          Logger.error(
+            new Error('WebSocketManager: sports WebSocket heartbeat timeout'),
+            this.getErrorContext('sportsHeartbeat', 'sports', {
+              sinceLastMessageMs: sinceLast,
+              thresholdMs: SPORTS_STALE_THRESHOLD_MS,
+              heartbeatTimeouts: this.sportsHeartbeatTimeouts,
+            }),
+          );
+        } else {
+          DevLogger.log(
+            'WebSocketManager: sports WebSocket stale (transient timeout)',
+            { sinceLast, threshold: SPORTS_STALE_THRESHOLD_MS },
+          );
+        }
+        this.sportsWs.close();
+      }
+    }, HEARTBEAT_CHECK_INTERVAL_MS);
+  }
+
+  private stopSportsHeartbeat(): void {
+    if (this.sportsHeartbeatInterval) {
+      clearInterval(this.sportsHeartbeatInterval);
+      this.sportsHeartbeatInterval = null;
+    }
+  }
+
   private cleanupSportsConnection(): void {
     this.stopSportsPing();
+    this.stopSportsHeartbeat();
 
     if (this.sportsReconnectTimeout) {
       clearTimeout(this.sportsReconnectTimeout);
@@ -507,6 +580,7 @@ export class WebSocketManager {
   private disconnectSports(): void {
     this.cleanupSportsConnection();
     this.sportsReconnectAttempts = 0;
+    this.sportsHeartbeatTimeouts = 0;
   }
 
   subscribeToMarketPrices(
