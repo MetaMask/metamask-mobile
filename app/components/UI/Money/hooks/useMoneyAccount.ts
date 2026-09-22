@@ -6,6 +6,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -62,6 +63,7 @@ export interface InitiateDepositOptions {
    * land somewhere other than the Money tab — see `navigateOnConfirm`.
    */
   launchedFrom?: ConfirmationLaunchSource;
+  transactionType?: TransactionType;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -224,7 +226,10 @@ export function useMoneyAccountDeposit() {
             },
           ],
           skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
+          transactions: [
+            approveTx,
+            { ...depositTx, type: options?.transactionType ?? depositTx.type },
+          ],
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);

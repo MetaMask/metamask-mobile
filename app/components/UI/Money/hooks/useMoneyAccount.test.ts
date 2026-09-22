@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { providerErrors } from '@metamask/rpc-errors';
+import { TransactionType } from '@metamask/transaction-controller';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { useSelector } from 'react-redux';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -35,6 +36,17 @@ import useMoneyToasts from './useMoneyToasts';
 import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 
 jest.mock('react-redux');
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
@@ -191,6 +203,8 @@ const mockDepositFailed = jest.fn();
 const mockWithdrawFailed = jest.fn();
 const MOCK_DEPOSIT_FAILED_TOAST = { type: 'deposit-failed' };
 const MOCK_WITHDRAW_FAILED_TOAST = { type: 'withdraw-failed' };
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  'membershipSubscription' as TransactionType;
 
 // 'key' in options is used instead of destructuring defaults so that
 // an explicit { vaultConfig: undefined } is treated as "use undefined",
@@ -526,6 +540,31 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
   });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])(
+    'forwards %s through the explicit transactionType option',
+    async (transactionType) => {
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await act(async () => {
+        await result.current.initiateDeposit({
+          transactionType,
+        });
+      });
+
+      expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactions: [
+            expect.objectContaining({ type: 'tokenMethodApprove' }),
+            expect.objectContaining({ type: transactionType }),
+          ],
+        }),
+      );
+    },
+  );
 
   it('uses AdvancedCustomAmount loader when deposit prefill is disabled', async () => {
     mockDepositPrefillEnabled(false);
