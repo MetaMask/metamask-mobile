@@ -28,8 +28,12 @@ export interface UsePerpsAdjustMarginDataReturn {
   position: Position | null;
   /** Whether position data is still loading */
   isLoading: boolean;
+  /** Whether all authoritative position fields are valid for adjustment */
+  hasValidPositionData: boolean;
   /** Current margin in position */
   currentMargin: number;
+  /** Margin after applying the current input amount */
+  newMargin: number;
   /** Position notional value */
   positionValue: number;
   /** Max amount that can be added/removed */
@@ -51,6 +55,30 @@ export interface UsePerpsAdjustMarginDataReturn {
   /** Position leverage */
   positionLeverage: number;
 }
+
+const parseFiniteNumber = (
+  value: string | number | null | undefined,
+  fallback = 0,
+): number => {
+  if (
+    value === null ||
+    value === undefined ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
+    return fallback;
+  }
+  const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+};
+
+const parseMaxLeverage = (
+  value: string | number | null | undefined,
+  fallback: number,
+): number =>
+  parseFiniteNumber(
+    typeof value === 'string' ? value.trim().replace(/x$/i, '') : value,
+    fallback,
+  );
 
 /**
  * Hook for margin adjustment data and calculations
@@ -89,52 +117,61 @@ export function usePerpsAdjustMarginData(
     () => (symbol ? markets.find((m) => m.symbol === symbol) : null),
     [symbol, markets],
   );
-  const maxLeverage = marketInfo?.maxLeverage
-    ? parseInt(marketInfo.maxLeverage, 10)
-    : MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage;
-
-  // Derived values from live position
-  const currentMargin = useMemo(
-    () => parseFloat(position?.marginUsed || '0'),
-    [position],
+  const parsedMaxLeverage = parseMaxLeverage(
+    marketInfo?.maxLeverage,
+    MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage,
   );
+  const maxLeverage =
+    parsedMaxLeverage > 0
+      ? parsedMaxLeverage
+      : MARGIN_ADJUSTMENT_CONFIG.FallbackMaxLeverage;
 
-  const positionValue = useMemo(
-    () => parseFloat(position?.positionValue || '0'),
-    [position],
-  );
-
-  const currentLiquidationPrice = useMemo(
-    () => parseFloat(position?.liquidationPrice || '0'),
-    [position],
-  );
-
-  const positionSize = useMemo(
-    () => Math.abs(parseFloat(position?.size || '0')),
-    [position],
-  );
-
-  const entryPrice = useMemo(
-    () => parseFloat(position?.entryPrice || '0'),
-    [position],
-  );
-
-  const isLong = useMemo(
-    () => parseFloat(position?.size || '0') > 0,
-    [position],
-  );
+  // Parse the live position once so every derived calculation uses one snapshot.
+  const {
+    currentMargin,
+    positionValue,
+    currentLiquidationPrice,
+    positionSize,
+    entryPrice,
+    isLong,
+    parsedPositionLeverage,
+    hasValidPositionData,
+  } = useMemo(() => {
+    const signedPositionSize = parseFiniteNumber(position?.size);
+    const currentMarginValue = parseFiniteNumber(position?.marginUsed);
+    const positionValueValue = parseFiniteNumber(position?.positionValue);
+    const entryPriceValue = parseFiniteNumber(position?.entryPrice);
+    const leverageValue = parseFiniteNumber(position?.leverage?.value);
+    return {
+      currentMargin: currentMarginValue,
+      positionValue: positionValueValue,
+      currentLiquidationPrice: parseFiniteNumber(position?.liquidationPrice),
+      positionSize: Math.abs(signedPositionSize),
+      entryPrice: entryPriceValue,
+      isLong: signedPositionSize > 0,
+      parsedPositionLeverage: leverageValue,
+      hasValidPositionData:
+        Boolean(position) &&
+        currentMarginValue > 0 &&
+        positionValueValue > 0 &&
+        signedPositionSize !== 0 &&
+        entryPriceValue > 0 &&
+        leverageValue > 0,
+    };
+  }, [position]);
 
   const currentPrice = useMemo(
-    () => parseFloat(livePrices?.[symbol]?.price || '0'),
+    () => parseFiniteNumber(livePrices?.[symbol]?.price),
     [livePrices, symbol],
   );
 
   const spendableBalance = useMemo(
-    () => parseFloat(account?.spendableBalance || '0'),
+    () => parseFiniteNumber(account?.spendableBalance),
     [account],
   );
 
-  const positionLeverage = position?.leverage?.value || maxLeverage;
+  const positionLeverage =
+    parsedPositionLeverage > 0 ? parsedPositionLeverage : maxLeverage;
 
   // Calculate max removable/addable amount
   const maxAmount = useMemo(() => {
@@ -214,7 +251,9 @@ export function usePerpsAdjustMarginData(
   return {
     position,
     isLoading: isInitialLoading,
+    hasValidPositionData,
     currentMargin,
+    newMargin,
     positionValue,
     maxAmount,
     currentLiquidationPrice,

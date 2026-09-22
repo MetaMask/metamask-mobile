@@ -23,6 +23,14 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   };
 });
 
+// See the view suite: the real hook needs keyring state and React Query, and
+// this suite is about the shell.
+jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed', () => ({
+  useSocialV1Feed: jest.requireActual(
+    '../SocialV1View/feed/mocks/mockComposedFeedHook',
+  ).mockUseSocialV1Feed,
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
