@@ -28,8 +28,7 @@ import {
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
-
-const USD_CURRENCY = 'USD';
+import { augmentTempoCurrencyRates } from '../../enablement/assets/tempo';
 
 // CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
 // vault token that should never surface as regular ERC-20 tokens in the wallet
@@ -576,14 +575,10 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
-    (state) =>
-      state.engine?.backgroundState?.NetworkController
-        ?.networkConfigurationsByChainId ?? {},
   ],
   (
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsPrice: AssetsControllerState['assetsPrice'],
-    networkConfigurationsByChainId: NetworkState['networkConfigurationsByChainId'],
   ): CurrencyRateState['currencyRates'] => {
     const result: CurrencyRateState['currencyRates'] = {};
 
@@ -619,33 +614,7 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       };
     }
 
-    const hasUsdNativeCurrency = Object.values(
-      networkConfigurationsByChainId,
-    ).some(({ nativeCurrency }) => nativeCurrency === USD_CURRENCY);
-    const usdPrice = Object.values(assetsPrice).reduce<
-      FungibleAssetPrice | undefined
-    >(
-      (latest, price) =>
-        price.assetPriceType === 'fungible' &&
-        Number.isFinite(price.price) &&
-        price.price > 0 &&
-        Number.isFinite(price.usdPrice) &&
-        price.usdPrice > 0 &&
-        (!latest || price.lastUpdated > latest.lastUpdated)
-          ? price
-          : latest,
-      undefined,
-    );
-
-    if (hasUsdNativeCurrency && !result[USD_CURRENCY] && usdPrice) {
-      result[USD_CURRENCY] = {
-        conversionDate: usdPrice.lastUpdated / 1000,
-        conversionRate: usdPrice.price / usdPrice.usdPrice,
-        usdConversionRate: 1,
-      };
-    }
-
-    return result;
+    return augmentTempoCurrencyRates(result, assetsPrice);
   },
 );
 

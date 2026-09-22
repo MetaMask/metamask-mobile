@@ -53,14 +53,6 @@ const tempoPathUsdAssetId = `eip155:4217/erc20:${tempoPathUsdAddressLowercase}`;
 const tempoBridgedUsdcAddressLowercase: Hex =
   '0x20c0000000000000000000000000000000000001';
 const tempoBridgedUsdcAssetId = `eip155:4217/erc20:${tempoBridgedUsdcAddressLowercase}`;
-const tempoNetworkControllerState = {
-  NetworkController: {
-    networkConfigurationsByChainId: {
-      [tempoChainId]: { nativeCurrency: 'USD' },
-    },
-  },
-};
-
 function makeMockPrice(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     assetPriceType: 'fungible',
@@ -1779,7 +1771,6 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
                 }),
               },
             },
-            ...tempoNetworkControllerState,
           },
         },
       };
@@ -1821,7 +1812,6 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
                   }),
                 },
               },
-              ...tempoNetworkControllerState,
             },
           },
         };
@@ -1831,6 +1821,38 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
         expect(result.USD).toBeUndefined();
       },
     );
+
+    it('does not derive a USD rate from a token price on another chain', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates: {},
+            },
+            AssetsController: {
+              assetsInfo: {
+                [erc20AssetId]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [erc20AssetId]: makeMockPrice({
+                  id: 'usdc-price',
+                  price: 0.9,
+                  usdPrice: 1,
+                }),
+              },
+            },
+          },
+        },
+      };
+
+      const result = getCurrencyRateControllerCurrencyRates(state);
+
+      expect(result.USD).toBeUndefined();
+    });
   });
 });
 
@@ -1968,7 +1990,11 @@ describe('getTokenRatesControllerMarketData', () => {
                 }),
               },
             },
-            ...tempoNetworkControllerState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [tempoChainId]: { nativeCurrency: 'USD' },
+              },
+            },
           },
         },
       };
@@ -1987,6 +2013,9 @@ describe('getTokenRatesControllerMarketData', () => {
       expect(pathUsdMarketData.currency).toBe('USD');
       expect(bridgedUsdcMarketData.price).toBeCloseTo(0.99);
       expect(bridgedUsdcMarketData.currency).toBe('USD');
+      expect(
+        getCurrencyRateControllerCurrencyRates(state).USD?.conversionRate,
+      ).toBeCloseTo(0.9108 / 0.99);
     });
   });
 
