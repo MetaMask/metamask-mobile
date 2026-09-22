@@ -140,18 +140,31 @@ export const CardSDKProvider = ({
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);
 
-  // Fetch user data ONLY on initial mount if onboardingId already exists.
-  // This prevents fetching when onboardingId is newly set during email verification,
-  // which could cause race conditions and navigation issues.
-  // hasInitialOnboardingId is fixed at mount, so including full deps is safe:
-  // when it is false, the effect always no-ops even if onboardingId appears later.
+  // Keep latest fetchUserData without putting it in the resume-fetch effect deps.
+  // fetchUserData changes when effectiveLocation changes (and when the first fetch
+  // writes location), which would otherwise re-trigger getRegistrationStatus.
+  const fetchUserDataRef = useRef(fetchUserData);
   useEffect(() => {
-    if (!sdk || !onboardingId || !hasInitialOnboardingId) {
+    fetchUserDataRef.current = fetchUserData;
+  }, [fetchUserData]);
+
+  // One-shot resume fetch: run when SDK is ready and onboardingId existed at mount.
+  // hasFetchedInitialUserDataRef also blocks re-runs when SDK is recreated after a
+  // location update from the first fetch.
+  const hasFetchedInitialUserDataRef = useRef(false);
+  useEffect(() => {
+    if (
+      !sdk ||
+      !onboardingId ||
+      !hasInitialOnboardingId ||
+      hasFetchedInitialUserDataRef.current
+    ) {
       return;
     }
 
-    fetchUserData();
-  }, [sdk, onboardingId, hasInitialOnboardingId, fetchUserData]);
+    hasFetchedInitialUserDataRef.current = true;
+    fetchUserDataRef.current();
+  }, [sdk, onboardingId, hasInitialOnboardingId]);
 
   const logoutFromProvider = useCallback(async () => {
     try {
