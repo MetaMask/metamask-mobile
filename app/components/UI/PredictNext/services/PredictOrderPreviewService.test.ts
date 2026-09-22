@@ -15,6 +15,7 @@ import {
   type PredictDecimal,
   type PredictEntityId,
   type PredictOrderPreview,
+  type PredictOrderReceipt,
   type PredictVenueId,
   type PredictAmount,
   type PredictSignedAmount,
@@ -42,7 +43,8 @@ const preview: PredictOrderPreview = {
 };
 
 const previewOrder = jest.fn<Promise<PredictOrderPreview>, []>();
-const trading = { previewOrder };
+const commitOrder = jest.fn<Promise<PredictOrderReceipt>, []>();
+const trading = { previewOrder, commitOrder };
 
 const serviceWith = (submitDelayMs?: number) => {
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
