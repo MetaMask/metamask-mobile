@@ -282,6 +282,17 @@ export type PerpsStackParamList = {
      */
     enableHaptics?: boolean;
     /**
+     * Screen-vs-bottom-sheet treatment, resolved by the caller. Only the
+     * position-edit entry points pass it; the order flow keeps the full screen
+     * either way and must not read the experiment.
+     *
+     * The navigator needs the arm before the screen mounts, so it cannot be
+     * resolved inside the view: screen `options` is a plain function and the
+     * sheet must skip the stack animation that would otherwise slide its
+     * backdrop in.
+     */
+    useBottomSheet?: boolean;
+    /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
      */

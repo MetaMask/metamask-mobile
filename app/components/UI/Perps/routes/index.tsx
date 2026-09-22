@@ -140,6 +140,24 @@ export const getAdjustMarginOptions = (
         headerShown: false,
       };
 
+export const getTpslOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        // The sheet draws its own backdrop fade and slide. Leaving the stack
+        // animation on would slide the whole transparent screen, backdrop
+        // included, which is what separates this from the modify modal.
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
+      }
+    : {
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
+        headerShown: false,
+      };
+
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
@@ -465,11 +483,9 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.TPSL}
                 component={PerpsTPSLRouter}
-                options={{
-                  ...transparentModalScreenOptions,
-                  title: strings('perps.tpsl.title'),
-                  headerShown: false,
-                }}
+                options={({ route }) =>
+                  getTpslOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Adjust Margin View */}

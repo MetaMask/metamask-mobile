@@ -37,9 +37,10 @@ describe('PerpsTPSLRouter', () => {
     useAbTestMock.mockReturnValue({ useBottomSheet: false });
   });
 
-  it('renders the sheet for a position edit under treatment', () => {
-    useRouteMock.mockReturnValue({ params: { position } } as never);
-    useAbTestMock.mockReturnValue({ useBottomSheet: true });
+  it('renders the sheet when the caller resolved the treatment', () => {
+    useRouteMock.mockReturnValue({
+      params: { position, useBottomSheet: true },
+    } as never);
 
     const { getByTestId } = render(<PerpsTPSLRouter />);
 
@@ -54,23 +55,26 @@ describe('PerpsTPSLRouter', () => {
     expect(getByTestId('tpsl-screen')).toBeOnTheScreen();
   });
 
-  it('keeps the order flow on the screen even under treatment', () => {
-    // No position param means TP/SL was opened while placing an order, which
-    // already runs inside the trade sheet under treatment.
+  it('keeps the order flow on the screen', () => {
+    // The order flow omits the param: it already runs inside the trade sheet
+    // under treatment, so converting it would stack a sheet on a sheet.
     useRouteMock.mockReturnValue({ params: { asset: 'ETH' } } as never);
-    useAbTestMock.mockReturnValue({ useBottomSheet: true });
 
     const { getByTestId } = render(<PerpsTPSLRouter />);
 
     expect(getByTestId('tpsl-screen')).toBeOnTheScreen();
   });
 
-  it('does not read the experiment for the order flow', () => {
-    useRouteMock.mockReturnValue({ params: { asset: 'ETH' } } as never);
+  it('never reads the experiment itself', () => {
+    // The navigator needs the arm before this mounts, so the caller owns the
+    // read. Reading it here too would expose the order flow, which is never
+    // treated.
+    useRouteMock.mockReturnValue({
+      params: { position, useBottomSheet: true },
+    } as never);
 
     render(<PerpsTPSLRouter />);
 
-    // Reading it would record an exposure for users who are never treated.
     expect(useAbTestMock).not.toHaveBeenCalled();
   });
 });
