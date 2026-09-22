@@ -751,6 +751,10 @@ describe('handleUniversalLink', () => {
           domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
           description: 'test deeplink domain',
         },
+        {
+          domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+          description: 'com test deeplink domain',
+        },
       ] as const;
 
       it.each(testCases)(
@@ -828,6 +832,10 @@ describe('handleUniversalLink', () => {
       {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
       },
     ] as const;
 
@@ -1292,6 +1300,7 @@ describe('handleUniversalLink', () => {
         AppConstants.MM_UNIVERSAL_LINK_HOST,
         AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
         AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
       ];
 
       for (const domain of testCases) {
@@ -1438,6 +1447,10 @@ describe('handleUniversalLink', () => {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
       },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
+      },
     ] as const;
 
     it.each(testCases)(
@@ -1508,6 +1521,10 @@ describe('handleUniversalLink', () => {
       {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
       },
     ] as const;
 

@@ -5,6 +5,7 @@ describe('isAllowedPredictDeeplink', () => {
     'metamask://predict?feed=live',
     'https://link.metamask.io/predict?feed=live',
     'https://link-test.metamask.io/predict?feed=sports&tab=tennis',
+    'https://link-test.metamask.com/predict?feed=sports&tab=tennis',
   ])('allows MetaMask-owned Predict destination %s', (url) => {
     expect(isAllowedPredictDeeplink(url)).toBe(true);
   });

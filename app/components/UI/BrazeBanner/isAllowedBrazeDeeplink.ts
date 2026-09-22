@@ -18,6 +18,7 @@ const getAllowedHttpsHosts = (): ReadonlySet<string> =>
     AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
     AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
     AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+    AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
   ]);
 
 /**
