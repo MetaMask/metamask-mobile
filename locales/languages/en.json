@@ -9270,6 +9270,7 @@
         "max_token_price": "Max {{symbol}} price",
         "min_placeholder": "Market price",
         "max_placeholder": "Market price",
+        "max_must_exceed_min": "Max price must be more than the min price",
         "clear": "Clear",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
