@@ -1041,12 +1041,6 @@ const PerpsProPositionsPanel = ({
   );
 
   const renderChaseCard = (order: ChaseOrder, index: number) => {
-    Logger.log(
-      '[TAT-3980] BUG_MARKER: chase card rendered without market-select handler symbol=' +
-        order.symbol +
-        ' hasOnSelectMarket=' +
-        String(Boolean(onSelectMarket)),
-    );
     const displayOrderSymbol = getPerpsDisplaySymbol(order.symbol);
     const isHistoryOrder = isChaseHistoryOrder(order);
     const isCancelable = !isHistoryOrder;
