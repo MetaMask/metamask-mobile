@@ -79,6 +79,20 @@ jest.mock('./feed/components/SocialFeedPostShell', () => {
   };
 });
 
+jest.mock('./feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
+  };
+});
+
 jest.mock('../components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,

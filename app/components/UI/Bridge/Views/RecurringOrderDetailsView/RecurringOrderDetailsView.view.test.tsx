@@ -28,6 +28,7 @@ import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
 import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
+import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
 async function openInProgressOrderDetails(
@@ -208,7 +209,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[2],
-        status: strings('bridge.recurring.not_enough_gas'),
+        status: strings('bridge.recurring.insufficient_balance'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
@@ -221,6 +222,12 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[4],
         status: strings('bridge.recurring.failed'),
+        received: '+0 USDC',
+        spent: '-0 ETH',
+      },
+      {
+        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
+        status: strings('bridge.recurring.needs_smart_account'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
@@ -251,6 +258,27 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
           filledOrderCount: 2,
           totalOrderCount: 5,
         }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens swap details when a history row is pressed', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+    await openOrderDetails(renderResult);
+
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+        ),
+      ),
+    );
+
+    expect(
+      await renderResult.findByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.SCREEN,
       ),
     ).toBeOnTheScreen();
   });
