@@ -109,7 +109,10 @@ jobs:
 
       # Fails the job when every walked day came back incomplete, so a broken
       # nightly shows up here instead of decaying into a staleness line on PRs.
+      # That failure still writes an index file; publishing it would look like
+      # a valid chain artifact from a build the producer already declared unusable.
       - name: Build the index
+        id: build-index
         working-directory: .github/scripts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -119,7 +122,7 @@ jobs:
         run: yarn flaky-build-history-index
 
       - name: Publish the index
-        if: always()
+        if: steps.build-index.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
           name: flaky-history-index
