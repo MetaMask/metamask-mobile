@@ -63,8 +63,8 @@ BrazePlugin.identify()
 
 Handled via `useBrazeIdentity` hook in `app/core/Braze/`:
 
-- **On sign-in**: `setBrazeUser()` → reads `canonicalProfileId` from `AuthenticationController.state.srpSessionData` → `Braze.changeUser(canonicalProfileId)` only when the ID is new on this plugin instance. Native Braze already no-ops a same-ID `changeUser` after a cold start. A new identity refreshes banners; repeating the same identity only registers placement IDs once per process. Repeat identifies skip `changeUser` and only send traits whose values changed.
-- **On sign-out**: `clearBrazeUser()` → clears plugin identity + `Braze.wipeData()` → plugin becomes a no-op. The banner placement registry is cleared so the next identified user can fetch campaigns.
+- **On sign-in**: `setBrazeUser()` → `Braze.enableSDK()` then `Braze.changeUser(canonicalProfileId)` only when the ID is new on this plugin instance. Native Braze already no-ops a same-ID `changeUser` after a cold start. A new identity refreshes banners; repeating the same identity skips `changeUser` and banner refresh. Repeat identifies skip `changeUser` and only send traits whose values changed.
+- **On sign-out / wallet reset**: `clearBrazeUser()` → clears plugin identity and `Braze.disableSDK()` so the previous profile is not messaged until the next identify. Does not call `wipeData` (that path is reserved for a future user-deletion flow). Home does not mount `BrazeBanner` until a canonical profile ID exists.
 
 ## Testing
 

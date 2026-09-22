@@ -21,8 +21,7 @@ import Logger from '../../../../util/Logger';
  *
  * On sign-in (and whenever the cached canonical profile ID changes),
  * `setBrazeUser(canonicalProfileId)` identifies Braze. A new identity
- * refreshes banners; the same identity only registers placement IDs once
- * per process.
+ * refreshes banners; the same identity skips `changeUser` and banner refresh.
  *
  * While signed in, registers Braze push only after the NaaP push controller
  * has enabled push and persisted its current FCM token.
@@ -30,8 +29,8 @@ import Logger from '../../../../util/Logger';
  * On app launch, retries one push unregistration left pending by a previous
  * session before changing the Braze identity.
  *
- * On sign-out `clearBrazeUser()` makes the plugin a no-op so events are no
- * longer attributed to the previous user.
+ * On sign-out / wallet reset `clearBrazeUser()` disables the native SDK until
+ * the next identify so events are no longer attributed to the previous user.
  */
 export function useBrazeIdentity(): void {
   const isSignedIn = useSelector(selectIsSignedIn);
