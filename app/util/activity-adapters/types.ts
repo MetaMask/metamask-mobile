@@ -67,9 +67,7 @@ type PredictActivityKind =
   | 'predictionClaimWinnings';
 
 interface PredictDataExtras {
-  /** Predict market title (e.g. "Will ETH reach $10k?") — predict-only. */
   eventTitle?: string;
-  /** Predict market icon URL used by the activity row avatar. */
   icon?: string;
 }
 
@@ -82,18 +80,20 @@ interface ActivityDataExtrasCommon {
   perpsTriggerOrderType?: TriggerOrderType;
 }
 
+type ActivityItemForKind<T, Kind extends ActivityKind> = T extends {
+  type: infer ActivityType;
+  data: infer D;
+}
+  ? Kind extends Extract<ActivityType, ActivityKind>
+    ? Omit<T, 'type' | 'data'> & {
+        type: Kind;
+        data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;
+      }
+    : never
+  : never;
+
 type SplitByKind<T> = {
-  [Kind in ActivityKind]: T extends {
-    type: infer ActivityType;
-    data: infer D;
-  }
-    ? Kind extends Extract<ActivityType, ActivityKind>
-      ? Omit<T, 'type' | 'data'> & {
-          type: Kind;
-          data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;
-        }
-      : never
-    : never;
+  [Kind in ActivityKind]: ActivityItemForKind<T, Kind>;
 }[ActivityKind];
 
 type WithMobileFields<T> = T extends unknown

@@ -1,7 +1,7 @@
 import { strings } from '../../../locales/i18n';
 import { mergeActivityItemSponsoredFees } from './fees';
 import type { ActivityListItem, TokenAmount } from './types';
-import { isUnlimitedApprovalAmount } from './adapters/helpers';
+import { isSpendingCapUnlimited } from './adapters/helpers';
 
 const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
@@ -29,7 +29,7 @@ function isSpendingCapWithAmount(item: ActivityListItem): boolean {
   }
   const token = 'token' in item.data ? item.data.token : undefined;
   return Boolean(
-    token?.amount || isUnlimitedApprovalAmount(token?.amount, token?.decimals),
+    token?.amount || isSpendingCapUnlimited(token?.amount, token?.decimals),
   );
 }
 
@@ -172,7 +172,7 @@ export const formatActivityListDateHeader = (timestamp: number) => {
 };
 
 const getTokenActivityValue = (token: TokenAmount) => {
-  const amount = isUnlimitedApprovalAmount(token.amount, token.decimals)
+  const amount = isSpendingCapUnlimited(token.amount, token.decimals)
     ? strings('confirm.unlimited')
     : (token.amount ?? '');
 

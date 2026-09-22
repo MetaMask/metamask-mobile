@@ -21,7 +21,7 @@ import {
   getLocalActivityFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
 } from './helpers';
 import {
   mobileActivityAdapterEnvironment,
@@ -624,7 +624,7 @@ function enrichApprovalActivity(
 
   const data = transactionGroup.initialTransaction.txParams?.data;
   const token = activity.data.token;
-  const isUnlimited = isUnlimitedApprovalAmount(token?.amount, token?.decimals);
+  const isUnlimited = isSpendingCapUnlimited(token?.amount, token?.decimals);
   let next: ActivityListItem = activity;
 
   if (activity.type === 'approveSpendingCap' && data) {

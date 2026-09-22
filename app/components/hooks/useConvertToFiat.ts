@@ -16,7 +16,7 @@ import { selectContractExchangeRatesByChainId } from '../../selectors/tokenRates
 import { safeToChecksumAddress } from '../../util/address';
 import {
   getHumanReadableTokenAmount,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
   toMarketRateLookupToken,
   type TokenAmount,
 } from '../../util/activity-adapters';
@@ -111,7 +111,7 @@ export function useConvertToFiat(chainId?: string) {
 
   return useCallback(
     (token: TokenAmount | undefined): number | undefined => {
-      if (!token || isUnlimitedApprovalAmount(token.amount, token.decimals)) {
+      if (!token || isSpendingCapUnlimited(token.amount, token.decimals)) {
         return undefined;
       }
 

@@ -31,7 +31,7 @@ import {
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
   isPerpsOrderKind,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
   shouldShowPlusSign,
   type Status,
   type TokenAmount,
@@ -917,7 +917,7 @@ function resolveAmount(
 ): string | undefined {
   if (!token) return undefined;
 
-  const isUnlimited = isUnlimitedApprovalAmount(token.amount, token.decimals);
+  const isUnlimited = isSpendingCapUnlimited(token.amount, token.decimals);
   const displayAmount = isUnlimited
     ? strings('confirm.unlimited')
     : getHumanReadableTokenAmount(token);

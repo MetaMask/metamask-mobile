@@ -26,12 +26,6 @@ function findV2Order(
   );
 }
 
-/**
- * Maps ramp orders alongside their originating order id — the id isn't part
- * of the shared `ActivityListItem` shape, so callers that need to resolve a
- * row by order id (e.g. Activity Details, navigated from OrderDetails) index
- * off this instead of the plain item list.
- */
 function useRampActivityItemPairs(): { id: string; item: ActivityListItem }[] {
   const legacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();

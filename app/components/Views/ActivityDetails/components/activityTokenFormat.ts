@@ -4,7 +4,7 @@ import {
   formatTokenDisplayAmount,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
   type TokenAmount,
 } from '../../../../util/activity-adapters';
 import { useFormatters } from '../../../hooks/useFormatters';
@@ -28,7 +28,7 @@ export function useFormatActivityTokenAmount() {
         return undefined;
       }
 
-      if (isUnlimitedApprovalAmount(token.amount, token.decimals)) {
+      if (isSpendingCapUnlimited(token.amount, token.decimals)) {
         return strings('confirm.unlimited');
       }
 

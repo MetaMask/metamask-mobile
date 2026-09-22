@@ -19,6 +19,7 @@ import {
   type ActivityAdapterEnvironment,
   type ActivityTokenMetadata,
 } from './environment';
+import { calcTokenAmount } from '../../transactions';
 
 const NATIVE_FEE_DECIMALS = 18;
 
@@ -257,17 +258,15 @@ export function getTokenApprovalAmountFromData(
   );
 }
 
-export function isUnlimitedApprovalAmount(
-  amount: string | undefined,
+export function isSpendingCapUnlimited(
+  value: number | string | undefined,
   decimals = 0,
 ): boolean {
-  if (!amount) {
+  if (value === undefined) {
     return false;
   }
 
-  return (
-    Number.parseFloat(amount) / 10 ** decimals > TOKEN_VALUE_UNLIMITED_THRESHOLD
-  );
+  return calcTokenAmount(value, decimals).gte(TOKEN_VALUE_UNLIMITED_THRESHOLD);
 }
 
 function getTransactionStatusKey(
