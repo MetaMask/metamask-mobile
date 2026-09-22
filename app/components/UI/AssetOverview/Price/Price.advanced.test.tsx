@@ -1807,9 +1807,9 @@ describe('PriceAdvanced', () => {
       );
       rerender(<PriceAdvanced {...baseProps} />);
 
-      // Line mode renders PriceChart, not AdvancedChart
+      // Line mode renders PriceChart visible; AdvancedChart stays mounted but hidden
       expect(getByTestId('mock-price-chart')).toBeOnTheScreen();
-      expect(queryByTestId('mock-advanced-chart')).toBeNull();
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
       // Indicators are NOT cleared from Redux when switching to line mode
       expect(mockDispatch).not.toHaveBeenCalledWith({
         type: 'SET_TOKEN_INDICATORS',
@@ -2054,13 +2054,13 @@ describe('PriceAdvanced', () => {
       });
     };
 
-    it('renders PriceChart instead of AdvancedChart when chart type is Line', () => {
+    it('renders PriceChart visible and AdvancedChart hidden when chart type is Line', () => {
       enableLineMode();
-      const { getByTestId, queryByTestId } = render(
-        <PriceAdvanced {...baseProps} />,
-      );
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      // PriceChart should be visible in line mode
       expect(getByTestId('mock-price-chart')).toBeOnTheScreen();
-      expect(queryByTestId('mock-advanced-chart')).not.toBeOnTheScreen();
+      // AdvancedChart stays mounted but hidden to avoid re-initialization on toggle
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
     });
 
     it('renders TimeRangeSelector in line mode when flag OFF', () => {

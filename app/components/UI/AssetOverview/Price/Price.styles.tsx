@@ -73,6 +73,12 @@ const styleSheet = (params: { theme: Theme }) =>
       borderRadius: 8,
       minHeight: TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
     } as ViewStyle,
+    /** Used to keep WebView mounted but invisible when line chart is shown */
+    hiddenChartContainer: {
+      position: 'absolute',
+      opacity: 0,
+      pointerEvents: 'none',
+    } as ViewStyle,
   });
 
 export default styleSheet;

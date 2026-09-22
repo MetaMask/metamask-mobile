@@ -1091,6 +1091,9 @@ const PriceAdvanced = ({
     );
   }
 
+  // Extract preset values to avoid react-compiler false positive on `useSubscriptPriceFormat`
+  const chartPresets = advancedChartLineChromePresets.tokenOverview;
+
   return (
     <>
       {/* ── Title ──────────────────────────────────────────────────────── */}
@@ -1184,7 +1187,7 @@ const PriceAdvanced = ({
         })()}
 
       {/* ── Chart area ─────────────────────────────────────────────────── */}
-      {isLineMode ? (
+      {isLineMode && (
         <Box
           twClassName={
             isTechnicalIndicatorsEnabled
@@ -1204,78 +1207,73 @@ const PriceAdvanced = ({
             }
           />
         </Box>
-      ) : (
-        <Box
-          twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
-        >
-          <View
-            testID="advanced-chart-touch-container"
-            style={[styles.chartContainer, { height: chartHeight }]}
-          >
-            {Platform.OS === 'ios' && (
-              <View style={styles.edgeOverlay} pointerEvents="box-only" />
-            )}
-            <AdvancedChart
-              ohlcvData={ohlcvData}
-              ohlcvSeriesKey={ohlcvSeriesKey}
-              webViewInstanceKey={
-                isTechnicalIndicatorsEnabled
-                  ? chartWebViewSessionKey
-                  : undefined
-              }
-              realtimeBar={realtimeBar}
-              height={chartHeight}
-              showVolume={(() => {
-                if (isTechnicalIndicatorsEnabled) {
-                  return (
-                    chartType === ChartType.Candles &&
-                    activeIndicators.has('Volume')
-                  );
-                }
-                return chartType === ChartType.Candles;
-              })()}
-              volumeOverlay
-              chartType={chartType}
-              indicators={showChartIndicators ? indicatorsArray : []}
-              selectedMAs={showChartIndicators ? selectedMAs : []}
-              subPaneHeightRatio={
-                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
-              }
-              useSubscriptPriceFormat={
-                advancedChartLineChromePresets.tokenOverview
-                  .useSubscriptPriceFormat
-              }
-              isLoading={
-                isTechnicalIndicatorsEnabled
-                  ? !hasChartBeenRevealed && chartLoading
-                  : chartLoading
-              }
-              ohlcvPagination={ohlcvPagination}
-              visibleFromMs={visibleFromMs}
-              visibleToMs={visibleToMs}
-              onCrosshairMove={handleCrosshairMove}
-              onChartInteracted={handleChartInteracted}
-              onChartTradingViewClicked={handleChartTradingViewClicked}
-              onSkeletonHidden={handleAdvancedChartSkeletonHidden}
-              onChartLayoutSettled={
-                isTechnicalIndicatorsEnabled
-                  ? handleAdvancedChartLayoutSettled
-                  : undefined
-              }
-              onError={handleAdvancedChartError}
-              onInitFailed={handleAdvancedChartInitFailed}
-              lineColorOverride={initialAmbientColor}
-              successColorOverride={
-                initialAmbientColor ? ambientSuccessGreen : undefined
-              }
-              errorColorOverride={
-                initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
-              }
-              legendOverlay={tokenDetailsLegendOverlay}
-            />
-          </View>
-        </Box>
       )}
+
+      {/* Keep AdvancedChart mounted but hidden in line mode to avoid re-initialization */}
+      <Box
+        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+        style={isLineMode ? styles.hiddenChartContainer : undefined}
+      >
+        <View
+          testID="advanced-chart-touch-container"
+          style={[styles.chartContainer, { height: chartHeight }]}
+        >
+          {Platform.OS === 'ios' && (
+            <View style={styles.edgeOverlay} pointerEvents="box-only" />
+          )}
+          <AdvancedChart
+            ohlcvData={ohlcvData}
+            ohlcvSeriesKey={ohlcvSeriesKey}
+            webViewInstanceKey={
+              isTechnicalIndicatorsEnabled ? chartWebViewSessionKey : undefined
+            }
+            realtimeBar={realtimeBar}
+            height={chartHeight}
+            showVolume={(() => {
+              if (isTechnicalIndicatorsEnabled) {
+                return (
+                  chartType === ChartType.Candles &&
+                  activeIndicators.has('Volume')
+                );
+              }
+              return chartType === ChartType.Candles;
+            })()}
+            volumeOverlay
+            chartType={chartType}
+            indicators={showChartIndicators ? indicatorsArray : []}
+            selectedMAs={showChartIndicators ? selectedMAs : []}
+            subPaneHeightRatio={chartPresets.subPaneHeightRatio}
+            useSubscriptPriceFormat={chartPresets.useSubscriptPriceFormat}
+            isLoading={
+              isTechnicalIndicatorsEnabled
+                ? !hasChartBeenRevealed && chartLoading
+                : chartLoading
+            }
+            ohlcvPagination={ohlcvPagination}
+            visibleFromMs={visibleFromMs}
+            visibleToMs={visibleToMs}
+            onCrosshairMove={handleCrosshairMove}
+            onChartInteracted={handleChartInteracted}
+            onChartTradingViewClicked={handleChartTradingViewClicked}
+            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+            onChartLayoutSettled={
+              isTechnicalIndicatorsEnabled
+                ? handleAdvancedChartLayoutSettled
+                : undefined
+            }
+            onError={handleAdvancedChartError}
+            onInitFailed={handleAdvancedChartInitFailed}
+            lineColorOverride={initialAmbientColor}
+            successColorOverride={
+              initialAmbientColor ? ambientSuccessGreen : undefined
+            }
+            errorColorOverride={
+              initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+            }
+            legendOverlay={tokenDetailsLegendOverlay}
+          />
+        </View>
+      </Box>
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
       {(() => {
