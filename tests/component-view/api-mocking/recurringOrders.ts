@@ -1,24 +1,32 @@
+import type { Mock } from 'jest-mock';
 import Engine from '../../../app/core/Engine';
 import {
+  cancelRecurringOrder,
   getRecurringOrders,
   getRecurringSwaps,
+  resetRecurringOrdersMockState,
 } from '../../../app/components/UI/Bridge/api/recurringOrders';
 import type {
   RecurringOrdersQueryParams,
   RecurringSwapsQueryParams,
 } from '../../../app/components/UI/Bridge/queries/recurringOrders';
 
-const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
+type MessengerCall = (action: string, ...args: unknown[]) => unknown;
+
+const messengerCall = Engine.controllerMessenger
+  .call as unknown as Mock<MessengerCall>;
 const defaultImplementation = messengerCall.getMockImplementation();
 
 interface RecurringOrdersDataServiceMockOptions {
   recurringOrders?: typeof getRecurringOrders;
   recurringSwaps?: typeof getRecurringSwaps;
+  cancelRecurringOrder?: typeof cancelRecurringOrder;
 }
 
 export function setupRecurringOrdersDataServiceMock({
   recurringOrders = getRecurringOrders,
   recurringSwaps = getRecurringSwaps,
+  cancelRecurringOrder: cancelRecurringOrderRequest = cancelRecurringOrder,
 }: RecurringOrdersDataServiceMockOptions = {}) {
   messengerCall.mockImplementation(
     (...messengerArgs: [string, ...unknown[]]) => {
@@ -43,11 +51,21 @@ export function setupRecurringOrdersDataServiceMock({
         return recurringSwaps(orderId, { ...params, cursor });
       }
 
+      if (action === 'RecurringOrdersDataService:cancelRecurringOrder') {
+        const [, orderId] = messengerArgs as [string, string];
+        return cancelRecurringOrderRequest(orderId);
+      }
+
       return defaultImplementation?.(...messengerArgs);
     },
   );
 }
 
 export function clearRecurringOrdersDataServiceMock() {
-  messengerCall.mockImplementation(defaultImplementation);
+  if (defaultImplementation) {
+    messengerCall.mockImplementation(defaultImplementation);
+  } else {
+    messengerCall.mockReset();
+  }
+  resetRecurringOrdersMockState();
 }
