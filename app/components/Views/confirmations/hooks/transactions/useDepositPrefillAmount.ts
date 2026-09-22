@@ -95,6 +95,8 @@ export function useDepositPrefillAmount({
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
+    // OGP: membershipSubscription will be added
+    TransactionType.membershipSubscription as unknown as TransactionType,
   ]);
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 

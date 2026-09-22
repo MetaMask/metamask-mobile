@@ -34,7 +34,11 @@ export async function getTransactionPayAmountCalls(
   accountOverride?: Hex,
 ): Promise<UpdateTransactionPayAmountCall[] | undefined> {
   if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+    hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+      // OGP: membershipSubscription will be added
+      TransactionType.membershipSubscription as unknown as TransactionType,
+    ])
   ) {
     try {
       return await updateMoneyAccountDepositTokenAmount(

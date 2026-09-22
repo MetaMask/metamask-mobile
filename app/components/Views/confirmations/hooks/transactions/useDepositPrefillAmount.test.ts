@@ -26,6 +26,18 @@ import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
 
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
+
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
 }));
@@ -221,6 +233,8 @@ function runHook(options?: { autoSelectFiatPayment?: boolean }) {
 }
 
 describe('useDepositPrefillAmount', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    'membershipSubscription' as TransactionType;
   beforeEach(() => {
     jest.resetAllMocks();
     mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Treatment);
@@ -284,6 +298,24 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBeDefined();
     });
+
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])(
+      'enables explicit amount prefill for %s transactions',
+      (transactionType) => {
+        setupMocks({
+          transactionMeta: makeTransactionMeta({ type: transactionType }),
+        });
+        useParamsMock.mockReturnValue({ amount: '5' });
+
+        const { result } = runHook();
+
+        expect(result.current.prefillAmount).toBe('5');
+        expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      },
+    );
 
     it('prefills the explicit Money amount instead of a balance percentage', () => {
       useParamsMock.mockReturnValue({ amount: '5' });
@@ -408,6 +440,7 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
     });
+
   });
 
   describe('prefillAmount computation', () => {
