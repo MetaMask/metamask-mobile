@@ -97,6 +97,16 @@ describe('useBottomSafeAreaInset', () => {
     expect(result.current).toBe(0);
   });
 
+  // `adjustResize` shrinks the frame when the keyboard opens while the window
+  // stays full height, so the raw gap is the keyboard rather than a nav bar.
+  it('caps the derived inset so an open keyboard cannot inflate it', () => {
+    arrangeInsets({ insetBottom: 0, frameHeight: WINDOW_HEIGHT - 700 });
+
+    const { result } = renderHook(() => useBottomSafeAreaInset());
+
+    expect(result.current).toBe(64);
+  });
+
   it('returns zero when the frame is taller than the window', () => {
     arrangeInsets({ insetBottom: 0, frameHeight: WINDOW_HEIGHT + 10 });
 
