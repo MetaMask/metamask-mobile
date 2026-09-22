@@ -24,6 +24,12 @@ export interface SocialV1FeedAuthor {
    * in which case the badge is omitted.
    */
   winRatePercent: number | null;
+  /** 30-day realized PnL in USD. Null when the feed actor omitted it. */
+  pnl30d?: number | null;
+  /** 30-day sell count behind the win rate. */
+  tradeCount30d?: number | null;
+  /** Profiles following this trader. */
+  followerCount?: number | null;
 }
 
 interface SocialV1FeedItemBase {

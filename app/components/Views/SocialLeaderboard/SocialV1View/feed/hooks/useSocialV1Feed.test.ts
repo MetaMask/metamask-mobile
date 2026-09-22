@@ -92,11 +92,10 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].authorHandle).toBe('aparjey');
     });
 
-    // The envelope's win rate is invented, so it has to carry the marker.
-    it('marks the invented win-rate label', () => {
+    it('omits the win-rate label when the actor has no win rate', () => {
       const { result } = renderHook(() => useSocialV1Feed('trending'));
 
-      expect(result.current.posts[0].winRateLabel).toContain('*');
+      expect(result.current.posts[0].winRateLabel).toBeUndefined();
     });
 
     it('reads the leaderboard scope on Trending', () => {

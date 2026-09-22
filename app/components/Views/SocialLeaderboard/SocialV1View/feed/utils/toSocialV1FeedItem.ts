@@ -11,13 +11,9 @@ import {
 import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
 import { markMocked, type SocialV1MockedField } from '../mockMarker';
-import {
-  mockAutoClose,
-  mockComment,
-  mockMarkPrice,
-  mockWinRatePercent,
-} from '../mocks/socialV1Enrichment';
+import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
+import { asFeedCardItem, toWholePercent } from './feedCardStats';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -40,6 +36,11 @@ const toUnitPrice = (trade: Trade): number | null => {
  * That ratio is the fallback for rows whose fill history did not come through.
  */
 const deriveAverageEntryPrice = (core: CoreFeedItem): number | null => {
+  const storedEntry = asFeedCardItem(core).entryPriceUsd;
+  if (isPresentNumber(storedEntry) && storedEntry > 0) {
+    return storedEntry;
+  }
+
   const entryFills = (core.trades ?? []).filter(
     (trade) => trade.intent === 'enter',
   );
@@ -97,13 +98,23 @@ const deriveHoldDurationMs = (
   const timestamps = (core.trades ?? []).map((trade) =>
     tradeTimestampToMs(trade.timestamp),
   );
+  const firstTradeAt = asFeedCardItem(core).firstTradeAt;
+  const firstFromPosition =
+    firstTradeAt == null ? null : tradeTimestampToMs(firstTradeAt);
+  const firstFromFills = timestamps.length > 0 ? Math.min(...timestamps) : null;
+  // `firstTradeAt` survives the 50-fill cap, so a truncated history still
+  // starts at the real open. When both exist, the earlier one wins.
+  const first =
+    firstFromPosition != null && firstFromFills != null
+      ? Math.min(firstFromPosition, firstFromFills)
+      : (firstFromPosition ?? firstFromFills);
 
-  if (timestamps.length === 0) {
+  if (first == null) {
     return null;
   }
-
-  const first = Math.min(...timestamps);
-  const span = (isClosed ? Math.max(...timestamps) : now) - first;
+  const lastFromFills = timestamps.length > 0 ? Math.max(...timestamps) : null;
+  const last = isClosed ? (lastFromFills ?? first) : now;
+  const span = last - first;
   return span > 0 ? span : null;
 };
 
@@ -128,16 +139,17 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
 /**
  * Maps one loaded feed row into the V1 card model.
  *
- * Everything the API reports -- identity, time, symbol, direction, leverage,
- * value, P&L, open vs closed -- comes straight from the row, as does anything
- * derivable from its fills. Only genuinely absent values are invented, and each
- * one is recorded in `mockedFields` and rendered with a `*` suffix.
+ * Identity, time, symbol, direction, leverage, value, P&L, the author's win
+ * rate and caption, entry (when position metrics stored one) and hold time
+ * come from the row. Mark price and the perp auto-close bracket are still
+ * invented, and each invented value is recorded in `mockedFields`.
  */
 export function toSocialV1FeedItem(
   row: TraderFeedRow,
   now: number = Date.now(),
 ): SocialV1FeedItem {
   const { item, core } = row;
+  const card = asFeedCardItem(core);
   const mockedFields: SocialV1MockedField[] = [];
 
   const author = {
@@ -145,14 +157,14 @@ export function toSocialV1FeedItem(
     username: item.username,
     address: item.traderAddress,
     avatarUri: item.avatarUri ?? null,
-    winRatePercent: mockWinRatePercent(item.traderId),
+    winRatePercent: toWholePercent(card.actor.winRate30d),
+    pnl30d: card.actor.pnl30d ?? null,
+    tradeCount30d: card.actor.tradeCount30d ?? null,
+    followerCount: card.actor.followerCount ?? null,
   };
-  mockedFields.push('winRate');
 
-  const comment = mockComment(item.traderId, core.positionId);
-  if (comment) {
-    mockedFields.push('comment');
-  }
+  const commentText = core.authorComment?.text?.trim();
+  const comment = commentText || undefined;
 
   const base = {
     id: item.id,
@@ -166,7 +178,7 @@ export function toSocialV1FeedItem(
       symbol: item.type === 'perps' ? item.marketSymbol : item.tokenSymbol,
       avatar: item.tokenAvatar,
     },
-    comment: comment ? markMocked(comment) : undefined,
+    comment,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     isPnlPositive: item.isPnlPositive,

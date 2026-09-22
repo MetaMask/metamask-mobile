@@ -1,6 +1,7 @@
 import type {
   FeedItem as CoreFeedItem,
   FeedResponse,
+  ProfileSummary,
   Trade,
 } from '@metamask/social-controllers';
 import type { TradeAction } from '../../utils/tradeAction';
@@ -12,13 +13,33 @@ import type { TradeAction } from '../../utils/tradeAction';
 
 type TradeWithAction = Trade & { action?: TradeAction };
 
+/**
+ * Feed-card fields the API returns beside `CoreFeedItem`. Kept local so this
+ * fixture does not depend on the V1 view, and so tests can set them before
+ * the published controller types include them.
+ */
+interface FeedCardOverrides {
+  actor?: ProfileSummary & {
+    winRate30d?: number | null;
+    pnl30d?: number | null;
+    tradeCount30d?: number | null;
+    followerCount?: number | null;
+  };
+  commentCount?: number;
+  replyCount?: number;
+  firstTradeAt?: number | null;
+  firstSellAt?: number | null;
+  entryPriceUsd?: number | null;
+}
+
 /** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
-type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades'> & {
-  marginUsd?: number | null;
-  /** The API's open/closed verdict; absent on older responses. */
-  isOpen?: boolean;
-  trades?: TradeWithAction[];
-};
+type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades' | 'actor'> &
+  FeedCardOverrides & {
+    marginUsd?: number | null;
+    /** The API's open/closed verdict; absent on older responses. */
+    isOpen?: boolean;
+    trades?: TradeWithAction[];
+  };
 
 const buildTrade = (
   overrides: Partial<TradeWithAction> = {},
