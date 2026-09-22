@@ -17,7 +17,18 @@ const mockHandleTakeProfitOff = jest.fn();
 const mockHandleStopLossOff = jest.fn();
 const mockHandleTakeProfitPercentageButton = jest.fn();
 const mockHandleStopLossPercentageButton = jest.fn();
+const mockHandleTakeProfitPriceChange = jest.fn();
+const mockHandleTakeProfitPercentageChange = jest.fn();
 const mockHandleStopLossPriceChange = jest.fn();
+const mockHandleStopLossPercentageChange = jest.fn();
+const mockHandleTakeProfitPriceFocus = jest.fn();
+const mockHandleTakeProfitPercentageFocus = jest.fn();
+const mockHandleStopLossPriceFocus = jest.fn();
+const mockHandleStopLossPercentageFocus = jest.fn();
+const mockHandleTakeProfitPriceBlur = jest.fn();
+const mockHandleTakeProfitPercentageBlur = jest.fn();
+const mockHandleStopLossPriceBlur = jest.fn();
+const mockHandleStopLossPercentageBlur = jest.fn();
 let mockHasChanges = true;
 let mockIsValid = true;
 let mockTakeProfitError = '';
@@ -44,18 +55,18 @@ jest.mock('../../hooks/usePerpsTPSLForm', () => ({
       stopLossSign: '-',
     },
     handlers: {
-      handleTakeProfitPriceChange: jest.fn(),
-      handleTakeProfitPercentageChange: jest.fn(),
+      handleTakeProfitPriceChange: mockHandleTakeProfitPriceChange,
+      handleTakeProfitPercentageChange: mockHandleTakeProfitPercentageChange,
       handleStopLossPriceChange: mockHandleStopLossPriceChange,
-      handleStopLossPercentageChange: jest.fn(),
-      handleTakeProfitPriceFocus: jest.fn(),
-      handleTakeProfitPriceBlur: jest.fn(),
-      handleTakeProfitPercentageFocus: jest.fn(),
-      handleTakeProfitPercentageBlur: jest.fn(),
-      handleStopLossPriceFocus: jest.fn(),
-      handleStopLossPriceBlur: jest.fn(),
-      handleStopLossPercentageFocus: jest.fn(),
-      handleStopLossPercentageBlur: jest.fn(),
+      handleStopLossPercentageChange: mockHandleStopLossPercentageChange,
+      handleTakeProfitPriceFocus: mockHandleTakeProfitPriceFocus,
+      handleTakeProfitPriceBlur: mockHandleTakeProfitPriceBlur,
+      handleTakeProfitPercentageFocus: mockHandleTakeProfitPercentageFocus,
+      handleTakeProfitPercentageBlur: mockHandleTakeProfitPercentageBlur,
+      handleStopLossPriceFocus: mockHandleStopLossPriceFocus,
+      handleStopLossPriceBlur: mockHandleStopLossPriceBlur,
+      handleStopLossPercentageFocus: mockHandleStopLossPercentageFocus,
+      handleStopLossPercentageBlur: mockHandleStopLossPercentageBlur,
     },
     buttons: {
       handleTakeProfitOff: mockHandleTakeProfitOff,
@@ -260,6 +271,74 @@ describe('PerpsTradeNestedScreens', () => {
     fireEvent.press(screen.getByText('9'));
 
     expect(mockHandleStopLossPriceChange).toHaveBeenCalledWith('909');
+  });
+
+  it.each([
+    [
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      mockHandleTakeProfitPriceChange,
+      '1109',
+    ],
+    [
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
+      mockHandleTakeProfitPercentageChange,
+      '309',
+    ],
+    [
+      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
+      mockHandleStopLossPercentageChange,
+      '309',
+    ],
+  ])('routes keypad input from %s', (testID, changeHandler, expectedValue) => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+    fireEvent(screen.getByTestId(testID), 'focus');
+
+    fireEvent.press(screen.getByText('9'));
+
+    expect(changeHandler).toHaveBeenCalledWith(expectedValue);
+  });
+
+  it.each([
+    [
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      mockHandleTakeProfitPriceFocus,
+      mockHandleTakeProfitPriceBlur,
+    ],
+    [
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT,
+      mockHandleTakeProfitPercentageFocus,
+      mockHandleTakeProfitPercentageBlur,
+    ],
+    [
+      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+      mockHandleStopLossPriceFocus,
+      mockHandleStopLossPriceBlur,
+    ],
+    [
+      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT,
+      mockHandleStopLossPercentageFocus,
+      mockHandleStopLossPercentageBlur,
+    ],
+  ])('forwards focus and blur from %s', (testID, focusHandler, blurHandler) => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+    const input = screen.getByTestId(testID);
+
+    fireEvent(input, 'focus');
+    fireEvent(input, 'blur');
+
+    expect(focusHandler).toHaveBeenCalledTimes(1);
+    expect(blurHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a trigger price beyond the digit limit', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT),
+      '12345678901234567890',
+    );
+
+    expect(mockHandleTakeProfitPriceChange).not.toHaveBeenCalled();
   });
 
   it('renders the ROE signs as static indicators', () => {
