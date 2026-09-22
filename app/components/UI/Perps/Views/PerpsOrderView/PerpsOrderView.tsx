@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
-  Button as DSButton,
+  Button,
   ButtonBaseSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
@@ -2756,42 +2756,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <DSButton
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
             >
               25%
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
             >
               50%
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleMaxPress}
               style={styles.percentageButton}
             >
               {strings('perps.deposit.max_button')}
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleDonePress}
               style={styles.percentageButton}
             >
               {strings('perps.deposit.done_button')}
-            </DSButton>
+            </Button>
           </View>
 
           <Keypad
@@ -2858,7 +2858,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               {placeOrderLabel}
             </ButtonSemantic>
           ) : (
-            <DSButton
+            <Button
               variant={ButtonVariant.Primary}
               size={ButtonSizeRNDesignSystem.Lg}
               isFullWidth
@@ -2868,7 +2868,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
-            </DSButton>
+            </Button>
           )}
         </View>
       )}

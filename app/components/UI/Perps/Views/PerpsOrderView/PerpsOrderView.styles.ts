@@ -99,6 +99,8 @@ const createStyles = (colors: Colors) =>
     percentageButton: {
       flex: 1,
       minWidth: 0,
+      height: 48,
+      borderRadius: 12,
     },
     keypad: {
       paddingHorizontal: 16,
