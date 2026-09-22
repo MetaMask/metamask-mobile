@@ -6,14 +6,14 @@ import {
   ReduceMotion,
 } from 'react-native-reanimated';
 
-const FONT_SIZE_DURATION = 150;
-const LAYOUT_DURATION = 100;
+const FONT_SIZE_DURATION = 270;
+const LAYOUT_DURATION = 270;
 /**
  * Entry and exit are quicker than the reflow so an appended character reads as
  * an immediate response to the keypress rather than something fading in.
  */
-const ENTER_DURATION = 100;
-const EXIT_DURATION = 100;
+const ENTER_DURATION = 150;
+const EXIT_DURATION = 130;
 const EASING = Easing.out(Easing.cubic);
 
 /** Duration for animated font-size changes. */

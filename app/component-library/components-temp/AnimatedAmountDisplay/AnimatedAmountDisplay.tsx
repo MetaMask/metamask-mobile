@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   Text as RNText,
+  View,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
@@ -147,25 +148,20 @@ const AnimatedAmountDisplay = ({
       rollDigits={rollDigits}
       style={style}
       testID={amountTestID}
-      containerStyle={
-        amountTestID
-          ? (StyleSheet.flatten(style) as StyleProp<ViewStyle>)
-          : undefined
-      }
       value={value}
       variant={variant}
     />
   );
 
   const content = loading ? (
-    <Animated.View
+    <View
       style={[styles.container, containerStyle]}
       testID={onPress ? undefined : testID}
     >
       {loadingContent}
-    </Animated.View>
+    </View>
   ) : (
-    <Animated.View
+    <View
       style={[styles.container, containerStyle]}
       testID={onPress ? undefined : testID}
     >
@@ -180,7 +176,7 @@ const AnimatedAmountDisplay = ({
         </Animated.View>
       ) : null}
       <Animated.View layout={layout}>{renderAffix(suffix)}</Animated.View>
-    </Animated.View>
+    </View>
   );
 
   if (!onPress) {
