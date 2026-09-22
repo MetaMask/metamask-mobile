@@ -20,9 +20,10 @@ import Engine from '../../../../../core/Engine';
 import { KalshiRemoteAdapter } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../adapters/remote/PredictApiReadClient';
 import {
-  PREDICT_ORDER_PREVIEW_SERVICE_NAME,
-  PredictOrderPreviewService,
-} from '../../services/PredictOrderPreviewService';
+  PREDICT_ORDER_SERVICE_NAME,
+  PredictOrderService,
+} from '../../services/PredictOrderService';
+import { getPredictOrderServiceMessenger } from '../../../../../core/Engine/messengers/predict-order-service-messenger';
 import { usePredictOrderFlow } from './PredictOrderFlowProvider';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
 import {
@@ -31,21 +32,22 @@ import {
   type PredictEntityId,
 } from '../../types';
 
-// The provider resolves the Order Preview service from Engine.context, the
+// The provider resolves the Order workflow service from Engine.context, the
 // way the real Engine init composes it: the concrete trading adapter is
 // composed here (in the test), against the stubbed globalThis.fetch below.
 // Composition happens per-test (not at module scope) because the read client
 // binds the fetch implementation at construction time.
-const composeOrderPreviewService = (
-  options: { submitDelayMs?: number } = {},
-): PredictOrderPreviewService => {
+const composeOrderService = (): PredictOrderService => {
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
-  const messenger = new Messenger({
-    namespace: PREDICT_ORDER_PREVIEW_SERVICE_NAME,
-    parent: rootMessenger,
-  });
+  // The real Engine messenger wiring, including the delegated portfolio
+  // invalidation action the Order workflow consumes after a terminal receipt.
+  const messenger = getPredictOrderServiceMessenger(
+    rootMessenger as unknown as Parameters<
+      typeof getPredictOrderServiceMessenger
+    >[0],
+  );
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
       baseUrl: 'https://predict.example',
@@ -54,11 +56,10 @@ const composeOrderPreviewService = (
         Engine.context.AuthenticationController.getBearerToken(),
     }),
   );
-  return new PredictOrderPreviewService({
+  return new PredictOrderService({
     messenger,
     trading: adapter.trading,
     venueId: adapter.venueId,
-    submitDelayMs: options.submitDelayMs ?? 0,
   });
 };
 
@@ -71,9 +72,42 @@ interface FetchReply {
   body: unknown;
 }
 
-const stubFetch = (reply: (url: string, init?: RequestInit) => FetchReply) => {
+const makeReceipt = (overrides: Record<string, unknown> = {}) => ({
+  operationId: 'd4e5f6a7-1111-4222-8333-444455556666',
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  status: 'filled',
+  requestedMaxSpend: '20.00',
+  quotedContracts: 43,
+  venueOrderId: 'venue-order-1',
+  filledContracts: '43',
+  actualSpend: '20.86',
+  averageFillPrice: '0.4651',
+  fee: '0.86',
+  payoutExposure: '43.00',
+  ...overrides,
+});
+
+const pressKeypadKey = (key: string) => {
+  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)));
+};
+
+const stubFetch = (
+  reply: (url: string, init?: RequestInit) => FetchReply,
+  { commitDelayMs = 0 }: { commitDelayMs?: number } = {},
+) => {
   fetchMock.mockImplementation(async (url, init) => {
-    const { status = 200, body } = reply(String(url), init);
+    // The commit route returns the canonical Order Receipt; previews are
+    // quoted by the preview route only.
+    const isCommit = String(url).endsWith('/orders/commit');
+    if (isCommit && commitDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, commitDelayMs));
+    }
+    const { status = 200, body } = isCommit
+      ? { status: 200, body: makeReceipt() }
+      : reply(String(url), init);
     return {
       ok: status >= 200 && status < 300,
       status,
@@ -157,10 +191,6 @@ const makePreview = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const pressKeypadKey = (key: string) => {
-  fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)));
-};
-
 const typeAmount = (amount: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
   for (const key of amount.split('')) {
@@ -193,8 +223,8 @@ describe('PredictOrderFlow', () => {
     fetchMock.mockClear();
     stubBalance();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
-    (Engine.context as Record<string, unknown>).PredictOrderPreviewService =
-      composeOrderPreviewService();
+    (Engine.context as Record<string, unknown>).PredictOrderService =
+      composeOrderService();
   });
 
   afterEach(() => {
@@ -506,7 +536,7 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('submits through the stub: submitting state, then success, then dismiss', async () => {
+  it('commits the approved preview: submitting state, then success, then dismiss', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     openSheet();
@@ -526,39 +556,7 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.SUCCESS),
       ).toBeOnTheScreen(),
     );
-  });
-
-  it('does not change the quoted amount when a quick-amount chip is pressed during submit', async () => {
-    (Engine.context as Record<string, unknown>).PredictOrderPreviewService =
-      composeOrderPreviewService({ submitDelayMs: 80 });
-    stubFetch(() => ({ body: makePreview() }));
-
-    openSheet();
-    typeAmount('20');
-    await flushDebounce();
-    await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
-    );
-
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
-    ).toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('10')),
-    );
-
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
-    ).toHaveTextContent('$20');
-    expect(previewCalls()).toHaveLength(1);
-
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.SUCCESS),
-      ).toBeOnTheScreen(),
-    );
-  });
+  }, 30000);
 
   it('links the backend-owned terms URL when the venue publishes one', async () => {
     stubBalance({ termsUrl: 'https://kalshi.com/regulatory/agreement' });

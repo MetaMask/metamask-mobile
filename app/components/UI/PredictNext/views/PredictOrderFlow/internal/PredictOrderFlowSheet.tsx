@@ -46,8 +46,8 @@ import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 import {
   isPreviewExpired,
-  type PredictOrderPreviewService,
-} from '../../../services/PredictOrderPreviewService';
+  type PredictOrderService,
+} from '../../../services/PredictOrderService';
 
 import { OrderAmountInput } from './OrderAmountInput';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
@@ -72,7 +72,7 @@ export interface PredictOrderFlowIntent {
 
 interface PredictOrderFlowSheetProps {
   intent: PredictOrderFlowIntent;
-  service: PredictOrderPreviewService;
+  service: PredictOrderService;
   onClose: () => void;
 }
 
@@ -217,7 +217,10 @@ export const PredictOrderFlowSheet = ({
     setIsKeypadOpen(false);
     setPhase('submitting');
     try {
-      await service.submitOrder(intent.venueId, preview.previewId);
+      // The service coalesces repeated commits and observes in-progress
+      // operations; receipt-specific states (fill, rejection, reconciliation)
+      // render in the follow-up slice.
+      await service.commitPreview(intent.venueId, preview.previewId);
       setPhase('success');
     } catch {
       setPhase('input');
