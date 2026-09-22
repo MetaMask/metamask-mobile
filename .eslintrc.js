@@ -141,6 +141,9 @@ module.exports = {
         'app/components/hooks/useOTAUpdates.ts',
         'app/components/Nav/Main/index.js',
         'app/components/Nav/App/App.tsx',
+        // Card: capabilities are re-read from Engine when providerId/location
+        // change; Engine.context is a module singleton, not a reactive dep.
+        'app/components/UI/Card/hooks/useCardCapabilities.ts',
       ],
       rules: {
         'react-hooks/exhaustive-deps': 'off',
