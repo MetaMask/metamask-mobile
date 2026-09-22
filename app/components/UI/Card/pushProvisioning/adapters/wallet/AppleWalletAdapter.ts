@@ -12,7 +12,6 @@ import {
   WalletType,
   ProvisionCardParams,
   ProvisioningResult,
-  CardActivationEvent,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
 } from '../../types';
@@ -66,30 +65,6 @@ export class AppleWalletAdapter
 
   protected getExpectedPlatform(): PlatformOSType {
     return 'ios';
-  }
-
-  /**
-   * Handle activation event from native module
-   *
-   * iOS SDK sends events with 'state' property (the TS types incorrectly say 'actionStatus').
-   * Possible values: 'activated' (success), 'canceled' (error or user cancel).
-   * Note: The SDK never sends a 'failed' status - errors result in 'canceled'.
-   */
-  protected handleNativeActivationEvent(data: unknown): void {
-    const typedData = data as {
-      serialNumber?: string;
-      state?: string;
-    };
-    const event: CardActivationEvent = {
-      serialNumber: typedData.serialNumber,
-      status:
-        typedData.state === 'activated'
-          ? 'activated'
-          : typedData.state === 'canceled'
-            ? 'canceled'
-            : 'failed', // Defensive fallback for unknown statuses
-    };
-    this.notifyActivationListeners(event);
   }
 
   /**

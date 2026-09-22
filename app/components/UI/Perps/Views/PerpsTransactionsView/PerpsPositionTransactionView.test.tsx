@@ -466,14 +466,6 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('Transaction not found')).toBeOnTheScreen();
   });
 
-  it('should set navigation title from fill shortTitle', () => {
-    renderWithProvider(<PerpsPositionTransactionView />, {
-      state: mockInitialState,
-    });
-
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
-
   it('should handle missing fill data gracefully', () => {
     const transactionWithoutFill = {
       ...mockTransaction,

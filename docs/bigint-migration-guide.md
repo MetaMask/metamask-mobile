@@ -55,11 +55,7 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 
 ### @MetaMask/card
 
-- `app/components/UI/Card/hooks/useAssetBalances.tsx`
-- `app/components/UI/Card/hooks/useCardDelegation.test.ts`
-- `app/components/UI/Card/hooks/useCardDelegation.ts`
-- `app/components/UI/Card/hooks/useNeedsGasFaucet.ts`
-- `app/components/UI/Card/sdk/CardSDK.ts`
+_(migrated — no remaining burndown entries)_
 
 ### @MetaMask/confirmations
 
