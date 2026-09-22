@@ -15,6 +15,7 @@ import { WARNING_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { useSwapsBannersContext } from '../SwapsBannersContext';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { isArcTokenUSDC } from '../../../../../../enablement/assets/arc';
 
 /**
  * Warns when the entered amount would spend the native balance that has to stay
@@ -47,6 +48,13 @@ export const InsufficientNativeReserveBanner = () => {
 
   const { maxSwappableNativeBalance, minimumNativeBalanceToBeKeptInAccount } =
     insufficientNativeReserveError;
+  const isArcUSDC = sourceToken ? isArcTokenUSDC(sourceToken) : false;
+  const titleKey = isArcUSDC
+    ? 'bridge.insufficient_native_reserve_title_arc'
+    : 'bridge.insufficient_native_reserve_title';
+  const messageKey = isArcUSDC
+    ? 'bridge.insufficient_native_reserve_message_arc'
+    : 'bridge.insufficient_native_reserve_message';
 
   return (
     <BannerBase
@@ -59,10 +67,10 @@ export const InsufficientNativeReserveBanner = () => {
           size={IconSize.Lg}
         />
       }
-      title={strings('bridge.insufficient_native_reserve_title', {
+      title={strings(titleKey, {
         ticker: sourceToken?.symbol,
       })}
-      description={strings('bridge.insufficient_native_reserve_message', {
+      description={strings(messageKey, {
         ticker: sourceToken?.symbol,
         minimumReserve: minimumNativeBalanceToBeKeptInAccount,
         maxSwappable: maxSwappableNativeBalance,

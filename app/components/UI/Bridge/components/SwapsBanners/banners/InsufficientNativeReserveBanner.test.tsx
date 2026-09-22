@@ -8,7 +8,8 @@ import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficien
 import { BridgeTabKey } from '../../../Views/BridgeView/BridgeView.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { InsufficientNativeReserveBanner } from './InsufficientNativeReserveBanner';
-import { renderBanner } from './testUtils';
+import { renderBanner, createBannerState } from './testUtils';
+import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../../enablement/assets/arc';
 
 /**
  * Unit fallback: reserve banner needs isolated quote + session overrides.
@@ -70,6 +71,31 @@ describe('InsufficientNativeReserveBanner', () => {
     );
 
     expect(onAdjustSourceAmount).toHaveBeenCalledWith('5');
+  });
+
+  it('uses the Arc-specific reserve message for Arc USDC', () => {
+    const { getByText } = renderBanner(<InsufficientNativeReserveBanner />, {
+      state: createBannerState({
+        sourceToken: ARC_USDC_BRIDGE_TOKEN,
+      }),
+    });
+
+    expect(
+      getByText(
+        strings('bridge.insufficient_native_reserve_title_arc', {
+          ticker: 'USDC',
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('bridge.insufficient_native_reserve_message_arc', {
+          ticker: 'USDC',
+          minimumReserve: '10',
+          maxSwappable: '5',
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('gives way to the insufficient balance state', () => {
