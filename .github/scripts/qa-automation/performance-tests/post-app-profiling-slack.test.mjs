@@ -191,7 +191,10 @@ test('postSummary threads overflow instead of truncating', async () => {
   assert.equal(calls[0].thread_ts, undefined);
   assert.equal(calls[1].thread_ts, 'ts-1');
   assert.doesNotMatch(calls[0].text, /Truncated for Slack/);
-  assert.match(calls[1].text, /<https:\/\/example.com\/run\|GitHub run>/);
+  assert.equal(
+    calls[1].text.includes('<https://example.com/run|GitHub run>'),
+    true,
+  );
   assert.ok(calls[0].text.includes('a'.repeat(30_000)));
   assert.ok(calls[1].text.includes('b'.repeat(30_000)));
 });
@@ -216,10 +219,13 @@ test('postSummary posts weekly scenario cards in the parent thread', async () =>
 
   assert.equal(calls.length, 2);
   assert.equal(calls[0].thread_ts, undefined);
-  assert.doesNotMatch(calls[0].text, /example.com\/run/);
+  assert.equal(calls[0].text.includes('https://example.com/run'), false);
   assert.equal(calls[1].thread_ts, 'ts-1');
   assert.match(calls[1].text, /Perps add funds/);
-  assert.match(calls[1].text, /<https:\/\/example.com\/run\|GitHub run>/);
+  assert.equal(
+    calls[1].text.includes('<https://example.com/run|GitHub run>'),
+    true,
+  );
 });
 
 test('postSummary falls back to opening a DM when the direct post is rejected', async () => {
