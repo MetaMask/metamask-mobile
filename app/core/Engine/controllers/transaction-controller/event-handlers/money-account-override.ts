@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../../../components/Views/confirmations/constants/confirmations';
 
 import Engine from '../../../../Engine';
 import ReduxService from '../../../../redux';
@@ -35,10 +36,8 @@ function refreshOverrideAccountBalances(address: string): void {
 }
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
-  // OGP: membershipSubscription will be added
-  TransactionType.membershipSubscription as unknown as TransactionType,
 ];
 
 function isMoneyAccountTransaction(transaction: TransactionMeta): boolean {
