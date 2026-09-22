@@ -1,15 +1,18 @@
 import { loginToAppPlaywright } from './wallet.flow';
-import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import QuoteView from '../page-objects/swaps/QuoteView';
 import PostTradeBottomSheet from '../page-objects/swaps/PostTradeBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
-import { prepareSwapsTestEnvironment } from '../helpers/swap/prepareSwapsTestEnvironment';
 
 /**
  * Runs the ETH (Mainnet) -> ETH (Base) bridge flow, from opening the swap
  * screen through the transaction showing as Confirmed in the activity list.
+ *
+ * Callers should disable smart transactions in the fixture
+ * (`withDisabledSmartTransactions`) so this flow can stay on wallet home after
+ * login — matching swap-action smoke — instead of burning suite budget on a
+ * Settings → Reset Account detour.
  */
 export async function runEthToBaseBridgeFlow(
   destNetwork: string,
@@ -18,9 +21,7 @@ export async function runEthToBaseBridgeFlow(
   const sourceSymbol = 'ETH';
   const destChainId = '0x2105';
   await loginToAppPlaywright({ scenarioType: 'e2e' });
-  await prepareSwapsTestEnvironment();
 
-  await TabBarComponent.tapWallet();
   await WalletView.tapWalletSwapButton();
   await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
     timeout: 20000,

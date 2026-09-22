@@ -19,19 +19,19 @@
         "app/declarations/@keystonehq/ur-decoder.d.ts"
       ],
       "@metamask/perps-controller/types": [
-        "node_modules/@metamask/perps-controller/dist/types/index.d.cts"
+        "node_modules/@metamask/perps-controller/dist/types/index.d.ts"
       ],
       "@metamask/perps-controller/constants": [
-        "node_modules/@metamask/perps-controller/dist/constants/index.d.cts"
+        "node_modules/@metamask/perps-controller/dist/constants/index.d.ts"
       ],
       "@metamask/perps-controller/constants/*": [
-        "node_modules/@metamask/perps-controller/dist/constants/*.d.cts"
+        "node_modules/@metamask/perps-controller/dist/constants/*.d.ts"
       ],
       "@metamask/perps-controller/utils/*": [
-        "node_modules/@metamask/perps-controller/dist/utils/*.d.cts"
+        "node_modules/@metamask/perps-controller/dist/utils/*.d.ts"
       ],
       "@metamask/perps-controller/services/*": [
-        "node_modules/@metamask/perps-controller/dist/services/*.d.cts"
+        "node_modules/@metamask/perps-controller/dist/services/*.d.ts"
       ],
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"

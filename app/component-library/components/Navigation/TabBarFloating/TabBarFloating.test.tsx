@@ -12,6 +12,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import TabBarFloating, {
   type TabBarFloatingTrailingAction,
 } from './TabBarFloating';
@@ -28,6 +29,8 @@ import {
 jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
   trackExploreSearchOpened: jest.fn(),
 }));
+
+jest.mock('../../../../util/haptics');
 
 const mockNavigateToMoneyHome = jest.fn();
 jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
@@ -274,6 +277,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON));
 
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
   });
@@ -318,6 +322,14 @@ describe('TabBarFloating', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET_VIEW,
     });
+  });
+
+  it('plays the tab-change haptic on every tab press', () => {
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
   it('navigates to the social tab route from the Social tab', () => {

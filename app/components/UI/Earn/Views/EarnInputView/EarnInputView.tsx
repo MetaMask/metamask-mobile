@@ -76,6 +76,7 @@ import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsL
 import {
   doesTokenRequireAllowanceReset,
   formatChainIdForAnalytics,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -894,7 +895,7 @@ const EarnInputView = () => {
       stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING
         ? (tronApyPercent ?? undefined)
         : earnToken?.experience?.apr !== undefined
-          ? `${earnToken.experience.apr}%`
+          ? `${formatEarnRatePercentage(earnToken.experience.apr)}%`
           : undefined;
     const tooltipName =
       stakingExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING

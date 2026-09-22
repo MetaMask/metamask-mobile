@@ -121,6 +121,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -284,8 +285,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
   // Use centralized navigation hook for all Perps navigation
-  const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
-    usePerpsNavigation();
+  const {
+    navigateToOrder,
+    navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+  } = usePerpsNavigation();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   // Use position management hook for bottom sheet state and handlers
   const {
@@ -1195,6 +1201,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           chartLibrary,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
+          ...(useBottomSheet ? { useBottomSheet: true } : {}),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -1213,6 +1220,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       marketData,
       isButtonColorTestEnabled,
       chartLibrary,
+      useBottomSheet,
     ],
   );
 
@@ -1313,9 +1321,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
+      // The bottom sheet treatment carries its own add/remove toggle, so the
+      // separate action-choice sheet is redundant there.
+      if (useBottomSheet) {
+        navigateToAdjustMargin(existingPosition, 'add', {
+          useBottomSheet: true,
+        });
+        return;
+      }
+
       openAdjustMarginSheet();
     });
-  }, [gate, existingPosition, openAdjustMarginSheet, isEligible, track]);
+  }, [
+    gate,
+    existingPosition,
+    openAdjustMarginSheet,
+    isEligible,
+    track,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
@@ -1420,10 +1445,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
-      // Navigate directly to PerpsAdjustMarginView with mode='add'
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
-        position: existingPosition,
-        mode: 'add',
+      navigateToAdjustMargin(existingPosition, 'add', {
+        useBottomSheet,
       });
 
       // Track the interaction - use ADD_MARGIN interaction type for banner clicks
@@ -1435,7 +1458,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
       });
     });
-  }, [gate, existingPosition, navigation, track, isEligible]);
+  }, [
+    gate,
+    existingPosition,
+    track,
+    isEligible,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   // Handler for "Set Stop Loss" from stop loss prompt banner
   const handleSetStopLossFromBanner = useCallback(() => {
@@ -2036,19 +2066,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (
-            perpsInsightsReport ? (
-              <MarketInsightsEntryCard
-                report={perpsInsightsReport}
-                timeAgo={perpsInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                traceId={perpsInsightsEntryTraceId}
-                source="perps"
-                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-              />
-            ) : (
-              <MarketInsightsEntryCardSkeleton />
-            )
+            <Box twClassName="mb-4">
+              {perpsInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={perpsInsightsReport}
+                  timeAgo={perpsInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                  traceId={perpsInsightsEntryTraceId}
+                  source="perps"
+                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
+            </Box>
           ) : null}
 
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
@@ -2270,6 +2302,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
           testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_ACTION_SHEET}
+          useBottomSheet={useBottomSheet}
         />
       )}
 
@@ -2279,6 +2312,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           sheetRef={adjustMarginActionSheetRef}
           position={existingPosition ?? undefined}
           onClose={closeAdjustMarginSheet}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

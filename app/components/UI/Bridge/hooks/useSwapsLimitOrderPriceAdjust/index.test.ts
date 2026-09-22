@@ -2,7 +2,10 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { createMockToken } from '../../testUtils/fixtures';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
+import {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { useSwapsLimitOrderPriceAdjust } from './index';
 
@@ -700,6 +703,116 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       const { result } = renderPriceAdjustHook();
 
       expect(result.current.isTriggerPriceNearMarket).toBe(false);
+    });
+  });
+
+  describe('priceComparisonDirection', () => {
+    it('reads as at or below for a buy seeded at market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
+
+    it('reads as at or above for a buy priced above market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleLimitPriceChange('1.2');
+      });
+
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      );
+    });
+
+    it('reads as at or below for a buy priced below market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handlePercentPress(5);
+      });
+
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
+
+    it('reads as at or above for a sell seeded at market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.onQuoteUnitPress?.();
+      });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      );
+    });
+
+    it('reads as at or below for a sell priced below market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.onQuoteUnitPress?.();
+      });
+
+      act(() => {
+        result.current.handleLimitPriceChange('1900');
+      });
+
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
+
+    it('compares the fiat equivalent when the price is denominated in the counter token', () => {
+      mockUseLiveTokenFiatRate.mockImplementation((token) =>
+        token?.symbol === 'ETH' ? 2000 : 1,
+      );
+
+      const { result } = renderPriceAdjustHook({ destToken: usdc });
+
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.limitPrice).toBe('2000');
+
+      act(() => {
+        result.current.handleLimitPriceChange('1900');
+      });
+
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
+
+    it('keeps the side default when the quoted token has no fiat rate', () => {
+      mockUseLiveTokenFiatRate.mockReturnValue(undefined);
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
+
+    it('keeps the buy default for a market price seeded from a rate that does not round evenly', () => {
+      // A market-seeded price is rounded/truncated for display
+      // (formatLimitOrderFiatPrice, formatLimitOrderQuickPrice), so it lands
+      // a hair away from the raw live rate whenever that rate isn't a round
+      // number. It should still read as at-market rather than flipping to
+      // the opposite of the side's default.
+      mockFiatRates({ destRate: 4321.987654321 });
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.limitPrice).toBe('4321.9877');
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
     });
   });
 

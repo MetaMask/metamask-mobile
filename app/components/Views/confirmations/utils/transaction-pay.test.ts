@@ -948,7 +948,9 @@ describe('Transaction Pay Utils', () => {
 
     it.each([
       TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
       TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
     ] as const)(
       'sets refundTo but leaves atomic unset for %s',
       (transactionType) => {

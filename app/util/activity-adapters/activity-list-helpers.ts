@@ -216,46 +216,38 @@ export function enrichTokenFromApi(
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;
-  const rawFrom = (() => {
-    if (item.raw?.type === 'apiEvmTransaction') {
-      return item.raw.data.from;
-    }
-
-    if (item.raw?.type === 'localTransaction') {
-      return item.raw.data.initialTransaction.txParams.from;
-    }
-
-    if (item.raw?.type === 'keyringTransaction') {
-      return item.raw.data.from[0]?.address;
-    }
-
-    return undefined;
-  })();
-
-  const rawTo = (() => {
-    if (item.raw?.type === 'apiEvmTransaction') {
-      return item.raw.data.to;
-    }
-
-    if (item.raw?.type === 'localTransaction') {
-      return item.raw.data.initialTransaction.txParams.to;
-    }
-
-    if (item.raw?.type === 'keyringTransaction') {
-      return item.raw.data.to[0]?.address;
-    }
-
-    return undefined;
-  })();
-
   return {
-    from:
-      'from' in data && typeof data.from === 'string'
-        ? data.from
-        : (rawFrom ?? ''),
-    to: 'to' in data && typeof data.to === 'string' ? data.to : (rawTo ?? ''),
+    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
+    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
   };
 };
+
+function getItemHash(item: ActivityListItem) {
+  return item.hash?.toLowerCase();
+}
+
+export function getLastEvmItemIndex(
+  groupedItems: GroupedActivityListItem[],
+  evmItems: ActivityListItem[],
+) {
+  const evmItemHashes = new Set(
+    evmItems.flatMap((item) => {
+      const hash = getItemHash(item);
+      return hash ? [hash] : [];
+    }),
+  );
+
+  for (let index = groupedItems.length - 1; index >= 0; index -= 1) {
+    const row = groupedItems[index];
+    const hash = row?.type === 'item' ? getItemHash(row.item) : undefined;
+
+    if (hash && evmItemHashes.has(hash)) {
+      return index;
+    }
+  }
+
+  return -1;
+}
 
 export const getGroupedActivityListItemKey = (
   item: GroupedActivityListItem,
@@ -269,29 +261,10 @@ export const getGroupedActivityListItemKey = (
     return `date-header-${item.date}`;
   }
 
-  const raw = item.item.raw;
-  const { chainId } = item.item;
-  if (raw?.type === 'localTransaction') {
-    const txId =
-      raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
-    if (txId) {
-      return `local-transaction-${chainId}-${txId}`;
-    }
-  }
+  const { chainId = '', timestamp, type, hash } = item.item;
+  const identity = hash ?? String(index);
 
-  if (raw?.type === 'keyringTransaction' && raw.data.id) {
-    return `keyring-transaction-${chainId}-${raw.data.id}`;
-  }
-
-  if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
-    return `api-evm-transaction-${chainId}-${item.item.hash}`;
-  }
-
-  if (item.item.hash) {
-    return `${chainId}-${item.item.type}-${item.item.hash}`;
-  }
-
-  return `${chainId}-${item.item.type}-${item.item.timestamp}-${index}`;
+  return `${chainId}:${timestamp}:${type}:${identity}`;
 };
 
 function parseDate(timestamp: number) {

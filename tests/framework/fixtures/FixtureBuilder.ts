@@ -36,6 +36,7 @@ import {
 } from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SPOT_PRICES_SUPPORT_INFO,
   TEST_ANALYTICS_ID,
 } from './constants.ts';
 import {
@@ -51,7 +52,6 @@ import {
   toWeiHex,
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
-import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import type { CaipAssetType } from '@metamask/utils';
 import type {

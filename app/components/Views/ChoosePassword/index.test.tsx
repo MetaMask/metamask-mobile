@@ -425,9 +425,21 @@ describe('ChoosePassword', () => {
   it('renders correctly', async () => {
     const component = renderWithProviders(<ChoosePassword />);
     await waitForInit();
-    expect(
-      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
-    ).toBeOnTheScreen();
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    expect(passwordInput).toHaveProp(
+      'placeholder',
+      strings('choose_password.new_password_placeholder'),
+    );
+    expect(confirmPasswordInput).toHaveProp(
+      'placeholder',
+      strings('choose_password.confirm_password_placeholder'),
+    );
   });
 
   describe('UI State', () => {
@@ -608,24 +620,48 @@ describe('ChoosePassword', () => {
       await waitForInit();
 
       await fillForm(component, 'Test123456!', 'DifferentPassword123!');
+      fireEvent.press(
+        component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      );
 
       expect(
         component.getByText(strings('choose_password.password_error')),
       ).toBeOnTheScreen();
     });
 
-    it('submit button is disabled when passwords do not match', async () => {
+    it('does not show a password mismatch error before confirm reaches the minimum length', async () => {
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const { passwordInput, confirmPasswordInput } =
+        getFormElements(component);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test123456!');
+        fireEvent.changeText(confirmPasswordInput, 'x');
+      });
+
+      expect(
+        component.queryByText(strings('choose_password.password_error')),
+      ).toBeNull();
+    });
+
+    it('keeps submit enabled and validates mismatched passwords on press', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
       await fillForm(component, 'StrongPassword123', 'DifferentPassword123');
 
-      // Avoid getFormElements here: the checkbox is checked after fillForm,
-      // so querying its testID would find two elements (checkbox + inner Icon).
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
-      expect(submitButton).toBeDisabled();
+      expect(submitButton).toBeEnabled();
+
+      fireEvent.press(submitButton);
+
+      expect(
+        component.getByText(strings('choose_password.password_error')),
+      ).toBeOnTheScreen();
       expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
 
@@ -991,6 +1027,7 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: false,
       };
       const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
 
       const learnMoreLink = component.getByTestId(
         ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
@@ -1008,6 +1045,40 @@ describe('ChoosePassword', () => {
           title: 'support.metamask.io',
         },
       });
+    });
+
+    it('does not accept the password-loss acknowledgement when the learn more link is pressed', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID),
+        );
+      });
+
+      expect(
+        component.getByTestId(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ).props.accessibilityState?.checked,
+      ).toBe(false);
+
+      await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      expect(
+        component.getByText(strings('choose_password.acknowledgement_error')),
+      ).toBeOnTheScreen();
+      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
   });
 
@@ -1172,7 +1243,7 @@ describe('ChoosePassword', () => {
     });
   });
 
-  describe('OAuth Submit Button Behaviour', () => {
+  describe('Submit Button Behaviour', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -1186,14 +1257,13 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
-      // OAuth users do not need the checkbox to enable submission
       await fillForm(component, 'Test1234', 'Test1234', false);
 
       const { submitButton } = getFormElements(component);
-      expect(submitButton).not.toBeDisabled();
+      expect(submitButton).toBeEnabled();
     });
 
-    it('submit button requires the checkbox for non-OAuth users', async () => {
+    it('shows an acknowledgement error on press for non-OAuth users', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1202,14 +1272,19 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
-      // Passwords match and are long enough but checkbox is not checked
       await fillForm(component, 'Test1234', 'Test1234', false);
 
       const { submitButton } = getFormElements(component);
-      expect(submitButton).toBeDisabled();
+      fireEvent.press(submitButton);
+
+      expect(submitButton).toBeEnabled();
+      expect(
+        component.getByText(strings('choose_password.acknowledgement_error')),
+      ).toBeOnTheScreen();
+      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
 
-    it('submit button requires the checkbox when oauthLoginSuccess is undefined', async () => {
+    it('keeps submit enabled when oauthLoginSuccess is undefined', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1220,39 +1295,30 @@ describe('ChoosePassword', () => {
       await fillForm(component, 'Test1234', 'Test1234', false);
 
       const { submitButton } = getFormElements(component);
-      expect(submitButton).toBeDisabled();
+      expect(submitButton).toBeEnabled();
     });
   });
 
-  describe('OAuth Login Description Text', () => {
-    it('shows iOS-specific description when on iOS with OAuth login', async () => {
-      const originalPlatform = Platform.OS;
-      Object.defineProperty(Platform, 'OS', { writable: true, value: 'ios' });
+  describe('Title and description', () => {
+    it('shows the create-password title and device description', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
+        oauthLoginSuccess: false,
       };
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
-      expect(() =>
-        component.getByText(/Use this for wallet recovery/),
-      ).not.toThrow();
-
-      Object.defineProperty(Platform, 'OS', {
-        writable: true,
-        value: originalPlatform,
-      });
+      expect(
+        component.getByText(strings('choose_password.title')),
+      ).toBeOnTheScreen();
+      expect(
+        component.getByText(strings('choose_password.create_description')),
+      ).toBeOnTheScreen();
     });
 
-    it('shows Android description when on Android with OAuth login', async () => {
-      const originalPlatform = Platform.OS;
-      Object.defineProperty(Platform, 'OS', {
-        writable: true,
-        value: 'android',
-      });
+    it('shows the iOS social-login description for OAuth users', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1262,14 +1328,11 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
-      expect(() =>
-        component.getByText(/If you lose this password/),
-      ).not.toThrow();
-
-      Object.defineProperty(Platform, 'OS', {
-        writable: true,
-        value: originalPlatform,
-      });
+      expect(
+        component.getByText(
+          strings('choose_password.description_social_login_update_ios'),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -1314,11 +1377,14 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('keeps submit disabled until geolocation refresh completes', async () => {
+    it('disables submit with a loading state until geolocation refresh completes', async () => {
       store = mockStore(createInitialState(UNKNOWN_LOCATION));
       ReduxService.store = store as unknown as ReduxStore;
-      mockRefreshGeolocation.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve('US'), 500)),
+      let resolveGeolocation: (location: string) => void = () => undefined;
+      mockRefreshGeolocation.mockReturnValue(
+        new Promise((resolve) => {
+          resolveGeolocation = resolve;
+        }),
       );
       (
         Authentication.componentAuthenticationType as jest.Mock
@@ -1348,17 +1414,18 @@ describe('ChoosePassword', () => {
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
       expect(submitButton).toBeDisabled();
+      expect(submitButton).toBeBusy();
 
-      await waitFor(
-        () => {
-          expect(submitButton).not.toBeDisabled();
-        },
-        { timeout: 2000 },
-      );
+      fireEvent.press(submitButton);
+      expect(mockNewWalletAndKeychain).not.toHaveBeenCalled();
 
       await act(async () => {
-        fireEvent.press(submitButton);
+        resolveGeolocation('US');
       });
+
+      expect(submitButton).toBeEnabled();
+
+      fireEvent.press(submitButton);
 
       await waitFor(() => {
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
@@ -1441,7 +1508,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('keeps the acknowledgement checkbox unchecked by default for USA non-OAuth users', async () => {
+    it('keeps submit enabled when the acknowledgement checkbox is unchecked by default', async () => {
       store = mockStore(createInitialState('US'));
       ReduxService.store = store as unknown as ReduxStore;
       mockRoute.params = {
@@ -1456,7 +1523,7 @@ describe('ChoosePassword', () => {
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
-      expect(submitButton).toBeDisabled();
+      expect(submitButton).toBeEnabled();
     });
 
     it('sends marketing opt-in=true when OAuth user checks the checkbox before submitting', async () => {
@@ -2056,7 +2123,7 @@ describe('ChoosePassword', () => {
           const submitButton = component.getByTestId(
             ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
           );
-          expect(submitButton).not.toBeDisabled();
+          expect(submitButton).toBeEnabled();
         },
         { timeout: 2000 },
       );

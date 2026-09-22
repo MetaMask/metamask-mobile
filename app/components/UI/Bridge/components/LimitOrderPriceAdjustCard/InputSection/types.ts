@@ -1,5 +1,8 @@
 import type { TextInputSelectionChangeEvent } from 'react-native';
-import { LimitOrderExecutionType } from '../../../constants/limitOrders';
+import {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../../constants/limitOrders';
 
 export interface InputSectionRef {
   blur: () => void;
@@ -62,6 +65,11 @@ export interface InputSectionProps {
    * Market comparison shown after the secondary value.
    */
   marketComparison?: { label: string; isNegative: boolean };
+  /**
+   * Which way the headline comparison reads ("is at or above" / "is at or
+   * below"). Defaults to the execution type's comparison when omitted.
+   */
+  priceComparisonDirection?: LimitOrderPriceComparisonDirection;
   /**
    * Optional test ID for the root element.
    */

@@ -27,8 +27,7 @@ import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
-
-export const DEBOUNCE_WAIT = 300;
+import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
@@ -41,6 +40,7 @@ interface UpdateQuoteParamsOptions {
 
 /**
  * Hook for handling bridge quote request updates
+ * @deprecated Use useSwapQuotes for new features. Avoid adding new functionality to this hook.
  * @returns {Function} A debounced function to update quote parameters
  */
 export const useBridgeQuoteRequest = (
@@ -179,14 +179,38 @@ export const useBridgeQuoteRequest = (
     ],
   );
 
-  // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
-    let traceId: string | undefined;
-    let requestDispatched = false;
-    const debounced = debounce((requestOptions: UpdateQuoteParamsOptions) => {
-      requestDispatched = true;
-      return updateQuoteParams(requestOptions);
-    }, DEBOUNCE_WAIT);
+    const debounced = debounce(
+      (requestOptions: UpdateQuoteParamsOptions = {}) => {
+        if (
+          !sourceToken ||
+          !destToken ||
+          sourceAmount === undefined ||
+          !destChainId ||
+          !walletAddress
+        ) {
+          return updateQuoteParams(requestOptions);
+        }
+
+        const traceId =
+          sourceAmount && sourceAmount !== '.'
+            ? swapQuoteFetchTrace.start({
+                srcChainId: sourceToken?.chainId,
+                destChainId: destToken?.chainId,
+                isRefresh: requestOptions.isRefresh ?? false,
+              })
+            : undefined;
+
+        if (!traceId) {
+          cancelOwnedTrace();
+        } else {
+          ownedTraceId.current = traceId;
+        }
+
+        return updateQuoteParams({ ...requestOptions, traceId });
+      },
+      DEBOUNCE_WAIT,
+    );
 
     const debouncedWithTrace = ((
       requestOptions: UpdateQuoteParamsOptions = {},
@@ -200,38 +224,16 @@ export const useBridgeQuoteRequest = (
       ) {
         debounced.cancel();
         cancelOwnedTrace();
-        traceId = undefined;
         return;
       }
 
-      traceId =
-        sourceAmount && sourceAmount !== '.'
-          ? swapQuoteFetchTrace.start({
-              srcChainId: sourceToken?.chainId,
-              destChainId: destToken?.chainId,
-              isRefresh: requestOptions.isRefresh ?? false,
-            })
-          : undefined;
-      requestDispatched = false;
+      cancelOwnedTrace();
 
-      if (!traceId) {
-        cancelOwnedTrace();
-      } else {
-        ownedTraceId.current = traceId;
-      }
-
-      debounced({
-        ...requestOptions,
-        traceId,
-      });
+      debounced(requestOptions);
     }) as DebouncedFunc<typeof updateQuoteParams>;
 
     debouncedWithTrace.cancel = () => {
       debounced.cancel();
-      if (!requestDispatched && traceId) {
-        swapQuoteFetchTrace.finish('cancelled', traceId);
-      }
-      traceId = undefined;
     };
     debouncedWithTrace.flush = () => debounced.flush();
 

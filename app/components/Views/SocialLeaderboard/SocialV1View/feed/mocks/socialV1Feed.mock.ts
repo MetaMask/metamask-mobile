@@ -1,22 +1,31 @@
+import { HOUR, MINUTE } from '../../../../../../constants/time';
 import type {
   SocialV1FeedItem,
   SocialV1PerpsClosedFeedItem,
   SocialV1PerpsOpenFeedItem,
-  SocialV1SpotCompactFeedItem,
+  SocialV1SpotClosedFeedItem,
+  SocialV1SpotOpenFeedItem,
 } from '../types';
 
-const BTC_OPEN_CHART_SERIES = [
-  98000, 99500, 101200, 103800, 102400, 104213, 108900, 112400, 118200, 124800,
-];
+// Relative so the mock posts keep reading as recent activity rather than
+// aging into an absolute date as the fixture gets older.
+const minutesAgo = (minutes: number) => Date.now() - minutes * MINUTE;
+const hoursAgo = (hours: number) => Date.now() - hours * HOUR;
 
 export const mockOpenPerpsFeedItem = (
   overrides: Partial<SocialV1PerpsOpenFeedItem> = {},
 ): SocialV1PerpsOpenFeedItem => ({
   id: 'v1-feed-btc-open',
   variant: 'perpsOpen',
+  author: {
+    id: 'v1-trader-doji',
+    username: 'Doji',
+    address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+    avatarUri: null,
+    winRatePercent: 92,
+  },
+  timestamp: minutesAgo(40),
   comment: 'Leverage is a lifestyle.',
-  showChart: true,
-  chartSeries: BTC_OPEN_CHART_SERIES,
   asset: {
     symbol: 'BTC',
     avatar: {
@@ -43,8 +52,15 @@ export const mockClosedPerpsFeedItem = (
 ): SocialV1PerpsClosedFeedItem => ({
   id: 'v1-feed-eth-closed',
   variant: 'perpsClosed',
+  author: {
+    id: 'v1-trader-kaito',
+    username: 'kaito.eth',
+    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    avatarUri: null,
+    winRatePercent: 61,
+  },
+  timestamp: hoursAgo(3),
   comment: 'Risk managed. Mostly.',
-  showChart: false,
   asset: {
     symbol: 'ETH',
     avatar: {
@@ -66,32 +82,75 @@ export const mockClosedPerpsFeedItem = (
   ...overrides,
 });
 
-export const mockCompactSpotFeedItem = (
-  overrides: Partial<SocialV1SpotCompactFeedItem> = {},
-): SocialV1SpotCompactFeedItem => ({
-  id: 'v1-feed-pepe-compact',
-  variant: 'spotCompact',
+export const mockOpenSpotFeedItem = (
+  overrides: Partial<SocialV1SpotOpenFeedItem> = {},
+): SocialV1SpotOpenFeedItem => ({
+  id: 'v1-feed-pump-open',
+  variant: 'spotOpen',
+  author: {
+    id: 'v1-trader-frog',
+    username: 'frogwater',
+    address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    avatarUri: null,
+    winRatePercent: null,
+  },
+  timestamp: minutesAgo(8),
   asset: {
-    symbol: 'PEPE',
+    symbol: 'PUMP',
     avatar: {
-      positionId: 'v1-pos-pepe-compact',
-      chain: 'ethereum',
-      tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+      positionId: 'v1-pos-pump-open',
+      chain: 'solana',
+      tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
       tokenImageUrl: null,
-      tokenSymbol: 'PEPE',
+      tokenSymbol: 'PUMP',
     },
   },
   side: 'buy',
-  marketCapLabel: '$4.2B',
-  volumeLabel: '$44.5M',
-  valueLabel: '$5,610.00',
-  pnlLabel: '+9.84%',
+  markPriceLabel: '$0.0\u20868618',
+  entryPriceLabel: '$0.0\u20844947',
+  holdTimeLabel: '1d 20h',
+  valueLabel: '$128,400.00',
+  pnlLabel: '+74.2%',
+  isPnlPositive: true,
+  ...overrides,
+});
+
+export const mockClosedSpotFeedItem = (
+  overrides: Partial<SocialV1SpotClosedFeedItem> = {},
+): SocialV1SpotClosedFeedItem => ({
+  id: 'v1-feed-aapl-closed',
+  variant: 'spotClosed',
+  author: {
+    id: 'v1-trader-lark',
+    username: 'lark.eth',
+    address: '0x514910771af9ca656af840dff83e8264ecf986ca',
+    avatarUri: null,
+    winRatePercent: 74,
+  },
+  timestamp: hoursAgo(6),
+  asset: {
+    symbol: 'AAPL',
+    avatar: {
+      positionId: 'v1-pos-aapl-closed',
+      chain: 'ethereum',
+      tokenAddress: '0x0000000000000000000000000000000000000001',
+      tokenImageUrl: null,
+      tokenSymbol: 'AAPL',
+    },
+  },
+  side: 'sell',
+  entryPriceLabel: '$207.57',
+  exitPriceLabel: '$237.88',
+  holdTimeLabel: '6d',
+  valueLabel: '+$9,373.20',
+  pnlLabel: '+14.6%',
   isPnlPositive: true,
   ...overrides,
 });
 
 export const MOCK_SOCIAL_V1_FEED_ITEMS: SocialV1FeedItem[] = [
   mockOpenPerpsFeedItem(),
+  mockOpenSpotFeedItem(),
   mockClosedPerpsFeedItem(),
-  mockCompactSpotFeedItem(),
+  mockClosedSpotFeedItem(),
 ];

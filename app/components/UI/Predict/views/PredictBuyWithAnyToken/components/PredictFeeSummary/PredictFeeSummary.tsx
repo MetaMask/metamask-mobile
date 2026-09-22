@@ -68,7 +68,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
 
   if (loading) {
     return (
-      <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
+      <Box twClassName="pt-4 pb-6 flex-col gap-4">
         <Box twClassName="py-1">
           <Box twClassName="flex-row justify-between items-center">
             <Box twClassName="flex-row items-center gap-1">
@@ -94,7 +94,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
 
   return (
     <>
-      <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
+      <Box twClassName="pt-4 pb-6 flex-col gap-4">
         <TouchableOpacity
           onPress={handleFeesInfoPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

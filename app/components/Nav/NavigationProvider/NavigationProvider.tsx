@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  DarkTheme,
   DefaultTheme,
   NavigationContainer,
   NavigationContainerRef,
@@ -21,6 +22,8 @@ import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -50,6 +53,10 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
   const dispatch = useDispatch();
+  const { themeAppearance } = useTheme();
+  // The native tab bar takes its appearance from here, not the system theme.
+  const navigationTheme =
+    themeAppearance === AppThemeKey.dark ? DarkTheme : DefaultTheme;
 
   // Start the navigation-init trace exactly once, on first render. A lazy
   // useState initializer runs a single time and—unlike reading/writing a ref
@@ -115,12 +122,12 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     <NavigationContainer
       // Using transparent background to support transparent modals
       // The actual app background is handled by individual screens.
-      // Spread DefaultTheme so required fields (e.g. fonts in v7) stay defined —
-      // casting a partial object as Theme would hide that at compile time.
+      // Spread the full theme so required fields (e.g. fonts in v7) stay
+      // defined — casting a partial object as Theme would hide that at compile time.
       theme={{
-        ...DefaultTheme,
+        ...navigationTheme,
         colors: {
-          ...DefaultTheme.colors,
+          ...navigationTheme.colors,
           background: 'transparent',
         },
       }}

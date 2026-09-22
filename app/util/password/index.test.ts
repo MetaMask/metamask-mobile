@@ -1,7 +1,9 @@
 import {
   doesPasswordMatch,
   getPasswordStrengthWord,
+  MIN_PASSWORD_LENGTH,
   passwordRequirementsMet,
+  shouldShowPasswordMismatchError,
 } from '.';
 import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
 
@@ -91,5 +93,37 @@ describe('passwordRequirementsMet', () => {
   });
   it('should fail when password is lt 8 in length', () => {
     expect(passwordRequirementsMet('lol')).toEqual(false);
+  });
+});
+
+describe('shouldShowPasswordMismatchError', () => {
+  const password = 'a'.repeat(MIN_PASSWORD_LENGTH);
+
+  it('returns false while confirm password is shorter than the minimum length', () => {
+    expect(
+      shouldShowPasswordMismatchError(
+        password,
+        'x'.repeat(MIN_PASSWORD_LENGTH - 1),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true when confirm password meets the minimum length and differs', () => {
+    expect(
+      shouldShowPasswordMismatchError(
+        password,
+        'b'.repeat(MIN_PASSWORD_LENGTH),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when passwords match', () => {
+    expect(shouldShowPasswordMismatchError(password, password)).toBe(false);
+  });
+
+  it('returns false when the password field is empty', () => {
+    expect(
+      shouldShowPasswordMismatchError('', 'b'.repeat(MIN_PASSWORD_LENGTH)),
+    ).toBe(false);
   });
 });

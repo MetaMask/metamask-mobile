@@ -7,8 +7,8 @@ import type { SocialShellTab } from '../types';
 export type SocialFilterType = 'all' | 'tokens' | 'perps' | 'predictions';
 
 /**
- * Trader cohort filter. `following` is exposed on Feed and Live trades only
- * (see `TAB_COHORT_OPTIONS`).
+ * Trader cohort filter. `following` is exposed on the Live trades sheet
+ * (see `TAB_COHORT_OPTIONS`). The Leaderboard chip row omits it.
  */
 export type SocialTraderCohort =
   | 'all'

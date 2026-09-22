@@ -1,23 +1,21 @@
 import { toHex } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
-import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
-import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
-import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
-import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 import { EVM_SCOPE } from '../constants/networks';
 
 /**
  * Chain IDs that support lending functionality through Aave pools.
  */
-const LENDING_CHAIN_IDS: Hex[] = Object.keys(
+const LENDING_CHAIN_IDS: CaipChainId[] = Object.keys(
   CHAIN_ID_TO_AAVE_POOL_CONTRACT,
-).map((chainId) => toHex(chainId as Hex));
+).map((chainId) => toEvmCaipChainId(toHex(chainId as Hex)));
 
 /**
  * Hook that provides multi-network polling for Earn/lending functionality.
@@ -52,23 +50,25 @@ export const useEarnNetworkPolling = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const useTokenDetection = useSelector(selectUseTokenDetection);
 
-  useTokenBalancesPolling({ chainIds: LENDING_CHAIN_IDS });
-  useCurrencyRatePolling({ chainIds: LENDING_CHAIN_IDS });
-  useTokenRatesPolling({ chainIds: LENDING_CHAIN_IDS });
-  useTokenDetectionPolling({
-    chainIds: useTokenDetection ? LENDING_CHAIN_IDS : [],
-    address: selectedAccount?.address as Hex,
-  });
-
-  // Import tokens from all lending chains
+  // Force-refresh balances, prices, and detected tokens across all lending
+  // chains for the selected account via the unified AssetsController.
   useEffect(() => {
-    Engine.context.TokenDetectionController.detectTokens({
+    if (!selectedAccount) {
+      return;
+    }
+
+    Engine.context.AssetsController.getAssets([selectedAccount], {
+      forceUpdate: true,
       chainIds: LENDING_CHAIN_IDS,
-      selectedAddress: selectedAccount?.address as Hex,
-    }).catch(console.error);
-  }, [selectedAccount?.address]);
+      assetTypes: FUNGIBLE_ASSET_TYPES,
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        'useEarnNetworkPolling: AssetsController.getAssets failed',
+      );
+    });
+  }, [selectedAccount]);
 
   return null;
 };

@@ -1,3 +1,4 @@
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   Messenger,
   type MessengerActions,
@@ -16,3 +17,27 @@ export const getPredictMarketDataServiceMessenger = (
     namespace: 'PredictMarketDataService',
     parent: rootMessenger,
   });
+
+export type PredictMarketDataServiceInitMessenger = Messenger<
+  'PredictMarketDataServiceInit',
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+  never
+>;
+
+export const getPredictMarketDataServiceInitMessenger = (
+  rootMessenger: RootMessenger<
+    MessengerActions<PredictMarketDataServiceInitMessenger>,
+    MessengerEvents<PredictMarketDataServiceInitMessenger>
+  >,
+): PredictMarketDataServiceInitMessenger => {
+  const messenger: PredictMarketDataServiceInitMessenger = new Messenger({
+    namespace: 'PredictMarketDataServiceInit',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['AuthenticationController:getBearerToken'],
+    events: [],
+    messenger,
+  });
+  return messenger;
+};

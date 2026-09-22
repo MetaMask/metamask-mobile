@@ -25,6 +25,9 @@ jest.mock('react-redux', () => ({
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
     selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
   }),
 );
@@ -322,6 +325,7 @@ describe('usePerpsActivityItems', () => {
     expect(usePerpsActivityQuery).toHaveBeenCalledWith(
       `eip155:42161:${address}`,
       true,
+      { fillDisplay: 'aggregated' },
     );
   });
 
@@ -332,6 +336,8 @@ describe('usePerpsActivityItems', () => {
 
     renderHook(() => usePerpsActivityItems());
 
-    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true);
+    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true, {
+      fillDisplay: 'aggregated',
+    });
   });
 });

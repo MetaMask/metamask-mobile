@@ -11,10 +11,10 @@ import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrder
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import {
+  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
   getSwapsLimitOrderExpirationLabel,
 } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -40,13 +40,30 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
+jest.mock('../../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn().mockReturnValue({
+    selectedTab: 'limit',
+    renderedTab: 'limit',
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: {
+      displayBalance: '1.0',
+      atomicBalance: undefined,
+    },
+  }),
+}));
+
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
 }));
 
 jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
@@ -212,13 +229,13 @@ jest.mock('../../../components/LimitOrderDetails', () => {
   return {
     __esModule: true,
     default: ({
-      slippage,
-      onPricePress,
+      costTolerance,
+      onCostTolerancePress,
       expiration,
       onExpirationPress,
     }: {
-      slippage: string;
-      onPricePress: () => void;
+      costTolerance: string;
+      onCostTolerancePress: () => void;
       expiration: string;
       onExpirationPress: () => void;
     }) => (
@@ -229,8 +246,11 @@ jest.mock('../../../components/LimitOrderDetails', () => {
         >
           <Text>{expiration}</Text>
         </View>
-        <View testID="limit-order-details-price-row" onTouchEnd={onPricePress}>
-          <Text>{slippage}</Text>
+        <View
+          testID="limit-order-details-cost-tolerance-row"
+          onTouchEnd={onCostTolerancePress}
+        >
+          <Text>{costTolerance}</Text>
         </View>
       </View>
     ),
@@ -309,6 +329,7 @@ function buildPriceAdjustMock() {
     limitPrice: '1',
     marketComparison: undefined,
     isTriggerPriceNearMarket: false,
+    priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
@@ -367,10 +388,6 @@ describe('BridgeLimitOrderView', () => {
     mockIsCustomPercentFocused = false;
     mockSourceAmount = '';
 
-    jest.mocked(useLatestBalance).mockReturnValue({
-      displayBalance: '1.0',
-      atomicBalance: undefined,
-    });
     jest
       .mocked(useLimitOrderSwapInputs)
       .mockImplementation(() => buildSwapInputsMock());
@@ -382,7 +399,6 @@ describe('BridgeLimitOrderView', () => {
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
-    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
   });
 
   it('renders the limit order container and source token input', () => {
@@ -519,19 +535,6 @@ describe('BridgeLimitOrderView', () => {
     ).toBe(true);
   });
 
-  it('disables the keypad confirm button when source balance is too low', () => {
-    mockIsAmountFocused = true;
-    mockSourceAmount = '2';
-    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
-
-    const { getByTestId } = renderLimitOrderView();
-
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
-  });
-
   it('composes the token warning, activation, hardware wallet, and missing price banners', () => {
     const { getByTestId } = renderLimitOrderView();
 
@@ -638,29 +641,36 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays 2% when slippage is not set', () => {
+  it('displays 2% when the cost tolerance is not set', () => {
     const { getByText } = renderLimitOrderView();
 
     expect(getByText('2%')).toBeOnTheScreen();
   });
 
-  it('displays the selected slippage percent from state', () => {
-    const { getByText } = renderLimitOrderView({ slippage: '2' });
+  it('resets cost tolerance to the default when navigating to the limit orders screen', () => {
+    const { getByText, store } = renderLimitOrderView({
+      limitOrderCostTolerance: '3',
+    });
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(
+      getByText(`${LIMIT_ORDER_DEFAULT_COST_TOLERANCE}%`),
+    ).toBeOnTheScreen();
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe(
+      LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+    );
   });
 
-  it('navigates to the swap default slippage modal when the slippage row is pressed', () => {
+  it('navigates to the limit order default cost tolerance modal when the cost tolerance row is pressed', () => {
     const { getByTestId } = renderLimitOrderView();
 
-    fireEvent(getByTestId('limit-order-details-price-row'), 'touchEnd');
+    fireEvent(
+      getByTestId('limit-order-details-cost-tolerance-row'),
+      'touchEnd',
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: mockSourceToken.chainId,
-        destChainId: mockDestToken.chainId,
-      },
+      screen:
+        Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_DEFAULT_COST_TOLERANCE_MODAL,
     });
   });
 

@@ -46,6 +46,7 @@ import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -71,7 +72,12 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
-import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
+import { preserveHomeDroppedFromHistory } from '../../utils/perpsModeSwitch';
+import { usePerpsDroppedHomeBack } from '../../hooks/usePerpsDroppedHomeBack';
+import {
+  selectPerpsMode,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
 
 // Stable empty reference so the always-mounted list header doesn't churn when
 // the Recently Viewed rail has nothing to show.
@@ -350,7 +356,10 @@ const PerpsMarketListView = ({
                 ...routes,
                 {
                   name: Routes.PERPS.MARKET_DETAILS,
-                  params: detailsParams,
+                  params: preserveHomeDroppedFromHistory(detailsParams, {
+                    index: state.index,
+                    routes: state.routes,
+                  }),
                 },
               ],
             });
@@ -364,7 +373,13 @@ const PerpsMarketListView = ({
         // component's ROOT-based navigation), which would skip MARKET_LIST on
         // back and land the user on PERPS_HOME instead.
         navigation.dispatch(
-          StackActions.push(Routes.PERPS.MARKET_DETAILS, detailsParams),
+          StackActions.push(
+            Routes.PERPS.MARKET_DETAILS,
+            preserveHomeDroppedFromHistory(
+              detailsParams,
+              navigation.getState(),
+            ),
+          ),
         );
       }
     },
@@ -456,7 +471,24 @@ const PerpsMarketListView = ({
     }
   }, [filteredMarkets.length, fadeAnimation]);
 
-  const handleBackPressed = perpsNavigation.navigateBack;
+  const perpsMode = useSelector(selectPerpsMode);
+  const { navigateBack, resetToHome, navigateToWallet, canGoBack } =
+    perpsNavigation;
+
+  const leaveViaFallback = useCallback(() => {
+    if (perpsMode === PerpsMode.Pro) {
+      navigateToWallet();
+      return;
+    }
+    resetToHome(PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS);
+  }, [resetToHome, navigateToWallet, perpsMode]);
+
+  const handleBackPressed = usePerpsDroppedHomeBack({
+    canGoBack,
+    navigateBack,
+    navigation,
+    leaveViaFallback,
+  });
 
   // emit the search query + results/no-results screen view.
   // Stored in a ref (event-callback pattern) so both the debounce timer and the
