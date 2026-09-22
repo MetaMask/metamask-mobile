@@ -3610,26 +3610,32 @@ export const usePerpsProOrderForm = ({
         : undefined;
     }
 
-    const fieldIssues = orderValidation.fieldIssues;
-    const triggerIssue = fieldIssues.find(
-      (fieldIssue) => fieldIssue.field === 'triggerPrice',
+    // Only a field the user has finished editing may speak, so a half-typed
+    // price is not judged mid-keystroke.
+    const visibleIssues = orderValidation.fieldIssues.filter((fieldIssue) =>
+      fieldIssue.field === 'triggerPrice'
+        ? hasBlurredTriggerPrice
+        : hasBlurredLimitPrice,
     );
-    if (triggerIssue && hasBlurredTriggerPrice) {
+    // A blocking issue explains why the order cannot be placed, so it outranks
+    // advice about a price that would place fine. Ordering by field instead
+    // would let a trigger warning hide the empty limit price holding the CTA
+    // down, leaving the form disabled with nothing on screen explaining it.
+    const blockingIssue = visibleIssues.find(
+      (fieldIssue) => !isAdvisoryOrderFormFieldIssue(fieldIssue),
+    );
+    if (blockingIssue) {
       return {
-        severity: isAdvisoryOrderFormFieldIssue(triggerIssue)
-          ? ('warning' as const)
-          : ('error' as const),
-        message: getOrderFormFieldIssueMessage(triggerIssue),
+        severity: 'error' as const,
+        message: getOrderFormFieldIssueMessage(blockingIssue),
       };
     }
 
-    const limitIssue = fieldIssues.find(
-      (fieldIssue) => fieldIssue.field === 'limitPrice',
-    );
-    if (limitIssue && hasBlurredLimitPrice) {
+    const advisoryIssue = visibleIssues[0];
+    if (advisoryIssue) {
       return {
-        severity: 'error' as const,
-        message: getOrderFormFieldIssueMessage(limitIssue),
+        severity: 'warning' as const,
+        message: getOrderFormFieldIssueMessage(advisoryIssue),
       };
     }
 

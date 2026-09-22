@@ -6137,8 +6137,9 @@ describe('usePerpsProOrderForm', () => {
         direction: 'long',
         triggerPrice: '95000',
         limitPrice: '90000',
-        message:
-          'Limit price is below the trigger price. Your order is unlikely to fill.',
+        message: strings(
+          'perps.order.validation.limit_price_below_trigger_warning',
+        ),
       },
       {
         name: 'a take profit limit sell resting above its trigger',
@@ -6146,8 +6147,9 @@ describe('usePerpsProOrderForm', () => {
         direction: 'short',
         triggerPrice: '90000',
         limitPrice: '95000',
-        message:
-          'Limit price is above the trigger price. Your order is unlikely to fill.',
+        message: strings(
+          'perps.order.validation.limit_price_above_trigger_warning',
+        ),
       },
     ] as const)(
       'warns about $name without blocking it',
@@ -6190,7 +6192,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.priceCardMessage).toBeUndefined();
     });
 
-    it('shows the trigger warning before the required limit error', () => {
+    it('shows the blocking limit error rather than advice about a placeable trigger', () => {
       mockOrderForm.type = 'stop_limit';
       mockOrderForm.limitPrice = undefined;
       mockContextValue.triggerPrice = '1000';
@@ -6214,10 +6216,13 @@ describe('usePerpsProOrderForm', () => {
       });
       rerender({});
 
+      // The missing limit price is what holds the CTA down, so it is what the
+      // user is told; the wrong-side trigger is only advice and would place.
       expect(result.current.priceCardMessage).toEqual({
-        severity: 'warning',
-        message: 'Trigger price must be higher than mid price',
+        severity: 'error',
+        message: strings('perps.order.validation.limit_price_required'),
       });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it.each(['stop_limit', 'take_profit_limit'] as const)(
