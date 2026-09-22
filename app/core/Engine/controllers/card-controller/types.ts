@@ -37,6 +37,11 @@ export const DEFAULT_CARD_PROVIDER_ID = CardProviderIds.Baanx;
 
 export const MONEY_ACCOUNT_LAUNCH_MS = Date.UTC(2026, 4, 1);
 
+export interface CardAccountLookupCacheEntry {
+  result: 'found' | 'not_found';
+  checkedAt: number;
+}
+
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 
@@ -143,6 +148,8 @@ export type CardControllerState = {
    * Typed as Record<string, Json> for StateConstraint; cast at read sites.
    */
   redeemWithdrawal: Record<string, Json> | null;
+  signInLink: Record<string, Json> | null;
+  accountLookupCache: Record<string, Json>;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
