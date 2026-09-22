@@ -13,7 +13,9 @@ import {
   weeklySlackCards,
   isIsolatedSpike,
   isNewHotFrame,
+  isRisingWithinWeek,
   isWorseThanLastWeek,
+  hasRecoveredSinceSpike,
   utcMondayStart,
   weekBounds,
   lastWeekRunsMatchingThisWeekDays,
@@ -35,6 +37,12 @@ function scenarioFixture(name, overrides = {}) {
     spikeRatio: 1.1,
     peakRunId: '11',
     peakRunUrl: 'https://example.com/11',
+    runsAfterPeak: 0,
+    tailRuns: 2,
+    tailMedianJsWorkMs: 2000,
+    earlierMedianJsWorkMs: 2000,
+    latestRunId: '11',
+    latestRunUrl: 'https://example.com/11',
     hasDominantFrame: true,
     contributors: [
       {
@@ -134,6 +142,89 @@ test('isolated spike is not a trend when the median is stable', () => {
 
   assert.equal(isIsolatedSpike(current), true);
   assert.equal(classifyScenario(current, previous), STATUS.SPIKE);
+});
+
+test('a spike the scenario has run clean past is not a finding', () => {
+  const current = scenarioFixture('Perps add funds', {
+    medianJsWorkMs: 2000,
+    maxJsWorkMs: 4000,
+    spikeRatio: 2,
+    // Four runs came after the peak and the newest two sit on the median.
+    runsAfterPeak: 4,
+    tailMedianJsWorkMs: 2050,
+    earlierMedianJsWorkMs: 2000,
+  });
+
+  assert.equal(hasRecoveredSinceSpike(current), true);
+  assert.equal(isRisingWithinWeek(current), false);
+  assert.equal(classifyScenario(current, null), STATUS.RECOVERED);
+
+  const report = buildWeeklyReport({
+    thisWindow: {
+      meta: { profileCount: 9, symbolicatedProfileCount: 9 },
+      scenarios: [current],
+    },
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 9,
+    lastWeekRunCount: 0,
+  });
+
+  assert.deepEqual(report.cards, []);
+  assert.equal(report.recovered.length, 1);
+  assert.equal(report.recovered[0].runsAfterPeak, 4);
+  const parent = buildWeeklyParentSlack(report);
+  assert.match(parent, /_Recovered, not reported as findings:_ Perps add funds/);
+  assert.match(parent, /back on the median since/);
+});
+
+test('a spike in the newest run is still reported', () => {
+  const current = scenarioFixture('Perps add funds', {
+    medianJsWorkMs: 2000,
+    maxJsWorkMs: 4000,
+    spikeRatio: 2,
+    runsAfterPeak: 0,
+    // Above the median but not a sustained rise against the earlier runs.
+    tailMedianJsWorkMs: 2400,
+    earlierMedianJsWorkMs: 2000,
+  });
+
+  assert.equal(hasRecoveredSinceSpike(current), false);
+  assert.equal(isRisingWithinWeek(current), false);
+  assert.equal(classifyScenario(current, null), STATUS.SPIKE);
+  assert.match(
+    buildWeeklyScenarioCard(
+      classifyWeeklyScenarios({ scenarios: [current] }, { scenarios: [] })[0],
+    ),
+    /newest run of the week is the peak/,
+  );
+});
+
+test('the newest runs sitting above the earlier ones is a rising trend', () => {
+  const current = scenarioFixture('Perps add funds', {
+    medianJsWorkMs: 2200,
+    maxJsWorkMs: 4000,
+    spikeRatio: 1.82,
+    runsAfterPeak: 0,
+    tailRuns: 2,
+    tailMedianJsWorkMs: 3900,
+    earlierMedianJsWorkMs: 2000,
+  });
+
+  assert.equal(isRisingWithinWeek(current), true);
+  assert.equal(classifyScenario(current, null), STATUS.RISING);
+
+  const [card] = classifyWeeklyScenarios(
+    { scenarios: [current] },
+    { scenarios: [] },
+  );
+  const rendered = buildWeeklyScenarioCard(card);
+  assert.match(rendered, /\*Rising within the week\*/);
+  assert.match(
+    rendered,
+    /last 2 runs of the week sit at 3900\.0 ms against 2000\.0 ms/,
+  );
+  assert.match(rendered, /check what landed mid-week/);
 });
 
 test('new hot frame requires symbolicated identities to change', () => {
@@ -251,7 +342,7 @@ test('a card without a previous week says so instead of printing n/a', () => {
   assert.doesNotMatch(rendered, /n\/a/);
 });
 
-function spikeWindow(names, peakRunId) {
+function spikeWindow(names, peakRunId, overrides = {}) {
   return {
     meta: { profileCount: 10, symbolicatedProfileCount: 10 },
     scenarios: names.map((name) =>
@@ -261,6 +352,7 @@ function spikeWindow(names, peakRunId) {
         spikeRatio: 2,
         peakRunId,
         peakRunUrl: `https://example.com/${peakRunId}`,
+        ...overrides,
       }),
     ),
   };
@@ -334,6 +426,34 @@ test('a comparison is not printed in two different units', () => {
     '3.8 s',
   ]);
   assert.deepEqual(formatDurationsAlike([400, 120]), ['400.0 ms', '120.0 ms']);
+});
+
+test('a slow run every scenario has run clean past is marked recovered', () => {
+  const report = buildWeeklyReport({
+    thisWindow: spikeWindow(
+      ['Perps add funds', 'Money Home', 'Asset View'],
+      '34935384411',
+      { runsAfterPeak: 5, tailMedianJsWorkMs: 2000 },
+    ),
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 9,
+    lastWeekRunCount: 0,
+  });
+
+  // The bad run is still named once, but as history and not as pending work.
+  assert.equal(report.cards.length, 0);
+  assert.equal(report.sharedSpikes.length, 1);
+  assert.equal(report.sharedSpikes[0].recovered, true);
+  assert.deepEqual(report.recovered, []);
+
+  const [card] = weeklySlackCards(report);
+  assert.match(card, /\*Slow run \(recovered\)\*/);
+  assert.match(card, /has run clean since that run/);
+  assert.match(
+    buildWeeklyParentSlack(report),
+    /every one of them has run clean since/,
+  );
 });
 
 test('two scenarios peaking on the same run are one slow run', () => {

@@ -1358,6 +1358,35 @@ test('aggregateWindow reports per-run medians and how often a frame stayed hot',
   assert.equal(warmStart.runsObserved, 1);
 });
 
+test('aggregateWindow places the peak in time, not in processing order', () => {
+  const [perps] = threeRunWindow().scenarios;
+
+  // Runs 1, 2, 3 are chronological; the peak is run 3, the newest.
+  assert.equal(perps.peakRunId, '3');
+  assert.equal(perps.runsAfterPeak, 0);
+  assert.equal(perps.latestRunId, '3');
+  assert.equal(perps.latestJsWorkMs, 400);
+  assert.equal(perps.tailRuns, 2);
+  assert.equal(perps.tailMedianJsWorkMs, 260);
+  assert.equal(perps.earlierMedianJsWorkMs, 100);
+});
+
+test('aggregateWindow counts the runs a scenario ran after its peak', () => {
+  const window = aggregateWindow(
+    [
+      windowRunReport('1', [windowScenario('Perps', { jsWorkMs: 400 })]),
+      windowRunReport('2', [windowScenario('Perps', { jsWorkMs: 100 })]),
+      windowRunReport('3', [windowScenario('Perps', { jsWorkMs: 110 })]),
+    ],
+    { lookbackHours: 168 },
+  );
+  const [perps] = window.scenarios;
+
+  assert.equal(perps.peakRunId, '1');
+  assert.equal(perps.runsAfterPeak, 2);
+  assert.equal(perps.tailMedianJsWorkMs, 105);
+});
+
 test('window digest drops frames that were hot in only one run', () => {
   const [perps] = threeRunWindow().scenarios;
   assert.equal(

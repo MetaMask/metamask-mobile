@@ -25,23 +25,31 @@ export const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export const STATUS = {
   WORSE: 'worse-than-last-week',
+  RISING: 'rising-within-the-week',
   SPIKE: 'isolated-spike',
   NEW_FRAME: 'new-hot-frame',
   INSUFFICIENT: 'insufficient-data',
+  // Kept out of the findings: the spike is real but the scenario has run
+  // clean since, so there is nothing to open work on.
+  RECOVERED: 'recovered-spike',
 };
 
 const STATUS_RANK = {
   [STATUS.WORSE]: 0,
-  [STATUS.NEW_FRAME]: 1,
-  [STATUS.SPIKE]: 2,
-  [STATUS.INSUFFICIENT]: 3,
+  [STATUS.RISING]: 1,
+  [STATUS.NEW_FRAME]: 2,
+  [STATUS.SPIKE]: 3,
+  [STATUS.INSUFFICIENT]: 4,
+  [STATUS.RECOVERED]: 5,
 };
 
 const STATUS_LABEL = {
   [STATUS.WORSE]: 'Worse than last week',
+  [STATUS.RISING]: 'Rising within the week',
   [STATUS.SPIKE]: 'Isolated spike',
   [STATUS.NEW_FRAME]: 'New hot frame',
   [STATUS.INSUFFICIENT]: 'Insufficient data',
+  [STATUS.RECOVERED]: 'Recovered spike',
 };
 
 /**
@@ -231,6 +239,36 @@ export function isIsolatedSpike(current) {
   return Boolean(current && current.spikeRatio >= SPIKE_RATIO);
 }
 
+/**
+ * The newest runs of the week sit above the earlier ones. A regression landed
+ * mid-week reads as a spike against a weekly median the earlier days still
+ * dominate, so this is the signal that is worth acting on.
+ */
+export function isRisingWithinWeek(current) {
+  if (!current || !(current.earlierMedianJsWorkMs > 0)) {
+    return false;
+  }
+  return (
+    current.tailMedianJsWorkMs >=
+    current.earlierMedianJsWorkMs * SPIKE_RATIO
+  );
+}
+
+/**
+ * The spike is behind the scenario: later runs came back to the median. Only
+ * says so once there is a run after the peak to prove it.
+ */
+export function hasRecoveredSinceSpike(current) {
+  if (!current || !(current.runsAfterPeak > 0)) {
+    return false;
+  }
+  return (
+    current.medianJsWorkMs > 0 &&
+    current.tailMedianJsWorkMs <=
+      current.medianJsWorkMs * RELATIVE_WARN_RATIO
+  );
+}
+
 export function isNewHotFrame(current, previous) {
   const currentTop = topContributor(current);
   const previousTop = topContributor(previous);
@@ -258,7 +296,20 @@ function conclusionLine(status, current, previous) {
   if (status === STATUS.NEW_FRAME) {
     return `Top symbolicated frame changed from \`${topContributor(previous).name}\` to \`${currentTop.name}\`.`;
   }
-  return `One run reached ${current.spikeRatio}× this week's median JS work; the rest of the week sits on the median.`;
+  if (status === STATUS.RISING) {
+    const [earlier, tail] = formatDurationsAlike([
+      current.earlierMedianJsWorkMs,
+      current.tailMedianJsWorkMs,
+    ]);
+    return `The last ${current.tailRuns} runs of the week sit at ${tail} against ${earlier} earlier in the week, so this is not a one-off: check what landed mid-week.`;
+  }
+  if (status === STATUS.RECOVERED) {
+    return `The peak is ${current.runsAfterPeak} runs old and the scenario has run clean since, so no work is implied.`;
+  }
+  if (current.runsAfterPeak === 0) {
+    return `The newest run of the week is the peak, at ${current.spikeRatio}× the median JS work, so this may be starting rather than over.`;
+  }
+  return `One run reached ${current.spikeRatio}× this week's median JS work and the runs since have not come back to it.`;
 }
 
 export function classifyScenario(current, previous) {
@@ -269,6 +320,7 @@ export function classifyScenario(current, previous) {
   const worse = isWorseThanLastWeek(current, previous);
   const spike = isIsolatedSpike(current);
   const newFrame = isNewHotFrame(current, previous);
+  const rising = spike && isRisingWithinWeek(current);
   const needsPrevious = worse || newFrame;
   const thinCurrent = !hasEnoughRuns(current);
   const thinPrevious = needsPrevious && !hasEnoughRuns(previous);
@@ -282,10 +334,13 @@ export function classifyScenario(current, previous) {
   if (worse) {
     return STATUS.WORSE;
   }
+  if (rising) {
+    return STATUS.RISING;
+  }
   if (newFrame) {
     return STATUS.NEW_FRAME;
   }
-  return STATUS.SPIKE;
+  return hasRecoveredSinceSpike(current) ? STATUS.RECOVERED : STATUS.SPIKE;
 }
 
 /**
@@ -295,7 +350,9 @@ export function classifyScenario(current, previous) {
 export function collapseSharedSpikes(cards) {
   const byRun = new Map();
   for (const card of cards) {
-    if (card.status !== STATUS.SPIKE || !card.current.peakRunId) {
+    const spiked =
+      card.status === STATUS.SPIKE || card.status === STATUS.RECOVERED;
+    if (!spiked || !card.current.peakRunId) {
       continue;
     }
     const runId = String(card.current.peakRunId);
@@ -319,6 +376,9 @@ export function collapseSharedSpikes(cards) {
         maxRatio: Math.max(
           ...grouped.map((card) => card.current.spikeRatio || 0),
         ),
+        // A bad run is still worth naming, but if every scenario has run
+        // clean since, it is history rather than something to chase.
+        recovered: grouped.every((card) => card.status === STATUS.RECOVERED),
         scenarios: grouped
           .map((card) => ({
             scenario: card.scenario,
@@ -398,9 +458,30 @@ function weeklyDaysWithDataMarkdown(report) {
   return [`Days with data: ${formatDateList(thisWeekDays)}${suffix}`];
 }
 
+/**
+ * Spikes that are already behind the scenario: one line, never a card, so the
+ * week is accounted for without asking anyone to look into them.
+ */
+function weeklyRecoveredLines(report) {
+  const recovered = report.recovered || [];
+  if (recovered.length === 0) {
+    return [];
+  }
+  const names = recovered
+    .map(
+      (item) =>
+        `${displayName(item.scenario)} (${item.spikeRatio}×, ${item.runsAfterPeak} runs ago)`,
+    )
+    .join(', ');
+  return [
+    `_Recovered, not reported as findings:_ ${names} — spiked earlier in the week and back on the median since.`,
+  ];
+}
+
 function countByStatus(cards) {
   return {
     worse: cards.filter((card) => card.status === STATUS.WORSE).length,
+    rising: cards.filter((card) => card.status === STATUS.RISING).length,
     spike: cards.filter((card) => card.status === STATUS.SPIKE).length,
     newFrame: cards.filter((card) => card.status === STATUS.NEW_FRAME)
       .length,
@@ -449,8 +530,12 @@ export function buildWeeklyScenarioCard(card) {
     }
   }
   if (current.peakRunUrl && current.spikeRatio >= SPIKE_RATIO) {
+    const age =
+      current.runsAfterPeak > 0
+        ? `, ${current.runsAfterPeak} runs before the end of the week`
+        : ', the newest run of the week';
     lines.push(
-      `_Peak:_ <${current.peakRunUrl}|${current.peakRunId}> at JS work ${formatDuration(current.maxJsWorkMs)} (${current.spikeRatio}× this week's median JS work)`,
+      `_Peak:_ <${current.peakRunUrl}|${current.peakRunId}> at JS work ${formatDuration(current.maxJsWorkMs)} (${current.spikeRatio}× this week's median JS work${age})`,
     );
   }
   lines.push(`_Conclusion:_ ${conclusion}`);
@@ -459,7 +544,7 @@ export function buildWeeklyScenarioCard(card) {
 
 export function buildSharedSpikeCard(sharedSpike) {
   const lines = [
-    `*Slow run* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
+    `*Slow run${sharedSpike.recovered ? ' (recovered)' : ''}* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
     `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. Owners are named for context; no team is notified.`,
     '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
@@ -473,7 +558,9 @@ export function buildSharedSpikeCard(sharedSpike) {
     );
   }
   lines.push(
-    '_Conclusion:_ check that run before opening any per-scenario work; the rest of the week sits on the median.',
+    sharedSpike.recovered
+      ? '_Conclusion:_ every scenario above has run clean since that run, so read it as one bad run and not as pending work; worth a look only if the same run id keeps coming back.'
+      : '_Conclusion:_ the runs since have not come back to the median, so check that run before opening any per-scenario work.',
   );
   return lines.join('\n');
 }
@@ -510,7 +597,7 @@ export function buildWeeklyParentSlack(report) {
     // An all-zero count line above real findings reads as "nothing found".
     if (report.cards.length > 0) {
       lines.push(
-        `_Scenario findings:_ ${counts.worse} worse than last week · ${counts.spike} isolated spike · ${counts.newFrame} new hot frame · ${counts.insufficient} insufficient data`,
+        `_Scenario findings:_ ${counts.worse} worse than last week · ${counts.rising} rising within the week · ${counts.spike} spike in the newest runs · ${counts.newFrame} new hot frame · ${counts.insufficient} insufficient data`,
       );
     } else {
       lines.push(
@@ -519,13 +606,14 @@ export function buildWeeklyParentSlack(report) {
     }
     for (const sharedSpike of sharedSpikes) {
       lines.push(
-        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their weekly median JS work), reported once instead of per scenario.`,
+        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their weekly median JS work), reported once instead of per scenario${sharedSpike.recovered ? '; every one of them has run clean since' : ''}.`,
       );
     }
     lines.push(
       '_Stable scenarios omitted. One card per finding follows in the thread._',
     );
   }
+  lines.push(...weeklyRecoveredLines(report));
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
@@ -614,8 +702,17 @@ export function buildWeeklyReport({
   thisWeekDays = [],
   lastWeekDays = [],
 }) {
-  const { cards, sharedSpikes } = collapseSharedSpikes(
+  const collapsed = collapseSharedSpikes(
     classifyWeeklyScenarios(thisWindow, lastWindow),
+  );
+  const sharedSpikes = collapsed.sharedSpikes;
+  // A spike the scenario has already run clean past is not a finding. It is
+  // summarized in one line so the week is still accounted for.
+  const cards = collapsed.cards.filter(
+    (card) => card.status !== STATUS.RECOVERED,
+  );
+  const recovered = collapsed.cards.filter(
+    (card) => card.status === STATUS.RECOVERED,
   );
   return {
     meta: {
@@ -640,5 +737,12 @@ export function buildWeeklyReport({
     },
     cards,
     sharedSpikes,
+    recovered: recovered.map((card) => ({
+      scenario: card.scenario,
+      spikeRatio: card.current.spikeRatio,
+      runsAfterPeak: card.current.runsAfterPeak,
+      peakRunId: card.current.peakRunId,
+      peakRunUrl: card.current.peakRunUrl,
+    })),
   };
 }

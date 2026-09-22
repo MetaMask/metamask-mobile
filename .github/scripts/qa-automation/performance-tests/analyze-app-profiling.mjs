@@ -69,6 +69,9 @@ const WINDOW_SCENARIOS_IN_CHAT = 8;
 // A run whose JS work exceeds this multiple of the scenario median is called
 // out separately instead of being averaged into the headline number.
 const SPIKE_RATIO = 1.5;
+// Newest runs of a scenario, used to tell a spike that is still happening
+// from one the scenario has already run clean past.
+const TAIL_RUNS = 2;
 // Every run in the week is considered. Reusing a collected report is free, so
 // once collection has been running the whole week is analyzed. Rebuilding a
 // run from raw profiles costs ~60-75 s (symbolication, not download), so that
@@ -1681,6 +1684,7 @@ function aggregateWindow(runReports, meta = {}) {
       entry.observations.push({
         runId: report.meta.runId,
         runUrl: report.meta.runUrl,
+        createdAt: report.meta.createdAt || null,
         jsWorkMs: scenario.jsWorkMs,
         jsDutyPct: scenario.jsDutyPct,
         profileCount: scenario.profileCount,
@@ -1699,6 +1703,18 @@ function aggregateWindow(runReports, meta = {}) {
       const medianJsWorkMs = median(jsWork);
       const maxJsWorkMs = Math.max(...jsWork);
       const peak = entry.observations.find(
+        (observation) => observation.jsWorkMs === maxJsWorkMs,
+      );
+      // Runs are not processed in order (collected reports and retries are
+      // interleaved), so recency has to come from the run timestamps.
+      const chronological = [...entry.observations].sort(
+        (left, right) =>
+          Date.parse(left.createdAt || 0) - Date.parse(right.createdAt || 0),
+      );
+      const tail = chronological.slice(-TAIL_RUNS);
+      const earlier = chronological.slice(0, -TAIL_RUNS);
+      const latest = chronological.at(-1);
+      const peakIndex = chronological.findIndex(
         (observation) => observation.jsWorkMs === maxJsWorkMs,
       );
 
@@ -1760,6 +1776,18 @@ function aggregateWindow(runReports, meta = {}) {
             : 0,
         peakRunId: peak?.runId || null,
         peakRunUrl: peak?.runUrl || null,
+        peakRunCreatedAt: peak?.createdAt || null,
+        // A spike the scenario has already run clean past is a different
+        // finding from one sitting in the newest runs.
+        runsAfterPeak: peakIndex < 0 ? 0 : chronological.length - 1 - peakIndex,
+        tailRuns: tail.length,
+        tailMedianJsWorkMs: median(tail.map((item) => item.jsWorkMs)),
+        earlierMedianJsWorkMs: earlier.length
+          ? median(earlier.map((item) => item.jsWorkMs))
+          : 0,
+        latestRunId: latest?.runId || null,
+        latestRunUrl: latest?.runUrl || null,
+        latestJsWorkMs: latest?.jsWorkMs ?? 0,
         // Long scenario captures spread JS work over thousands of frames, so
         // the skill's 5% actionability bar is usually missed. Say so instead
         // of dropping the repeated frames.
