@@ -982,7 +982,6 @@ export const usePerpsProOrderForm = ({
     szDecimals,
     maxPossibleAmount: sizeSliderMaxAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
-    forceUsd: isScaleOrder,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
   });
