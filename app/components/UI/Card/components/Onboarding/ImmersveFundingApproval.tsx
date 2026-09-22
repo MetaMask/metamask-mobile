@@ -267,6 +267,9 @@ const ImmersveFundingApproval = () => {
       return;
     }
     if (cardHomeData?.card) {
+      await Engine.context.CardController.markMigrationCompleted().catch(
+        () => undefined,
+      );
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
@@ -276,6 +279,9 @@ const ImmersveFundingApproval = () => {
     hasCreatedCard.current = true;
     try {
       await createCard(fundingSourceId);
+      await Engine.context.CardController.markMigrationCompleted().catch(
+        () => undefined,
+      );
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
