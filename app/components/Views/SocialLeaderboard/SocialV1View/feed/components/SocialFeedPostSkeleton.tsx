@@ -1,13 +1,29 @@
-import React from 'react';
-import { View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../util/theme';
+import React from 'react';
+import { View, type ViewStyle } from 'react-native';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
+import { SocialFeedSkeletonPlaceholder } from './SocialFeedSkeletonPlaceholder';
 
 export interface SocialFeedPostSkeletonProps {
   index: number;
 }
+
+const SkeletonBlock: React.FC<{ twClassName: string }> = ({ twClassName }) => {
+  const tw = useTailwind();
+  return <View style={tw.style(twClassName)} />;
+};
+
+const SkeletonAvatarInlineGroup: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const tw = useTailwind();
+  return (
+    <View style={tw.style('flex-row items-center gap-2 flex-1')}>
+      <SkeletonBlock twClassName="w-8 h-8 rounded-full" />
+      {children}
+    </View>
+  );
+};
 
 /**
  * Loading placeholder matching {@link SocialFeedPostShell}: author row,
@@ -17,25 +33,18 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
   index,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const rootStyle = tw.style('gap-3') as ViewStyle;
 
   return (
-    <View
-      style={tw.style('gap-3')}
-      testID={getSocialFeedPostSkeletonTestId(index)}
-    >
-      <SkeletonPlaceholder
-        backgroundColor={colors.background.section}
-        highlightColor={colors.background.subsection}
-      >
-        <View style={tw.style('gap-3')}>
+    <View testID={getSocialFeedPostSkeletonTestId(index)} style={rootStyle}>
+      <SocialFeedSkeletonPlaceholder>
+        <View style={rootStyle}>
           <View style={tw.style('flex-row items-center justify-between')}>
-            <View style={tw.style('flex-row items-center gap-2 flex-1')}>
-              <View style={tw.style('w-8 h-8 rounded-full')} />
-              <View style={tw.style('w-28 h-4 rounded')} />
-              <View style={tw.style('w-16 h-5 rounded-full')} />
-            </View>
-            <View style={tw.style('w-8 h-3 rounded')} />
+            <SkeletonAvatarInlineGroup>
+              <SkeletonBlock twClassName="w-28 h-4 rounded" />
+              <SkeletonBlock twClassName="w-16 h-5 rounded-full" />
+            </SkeletonAvatarInlineGroup>
+            <SkeletonBlock twClassName="w-8 h-3 rounded" />
           </View>
           <View
             style={tw.style(
@@ -43,31 +52,30 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
             )}
           >
             <View style={tw.style('flex-row items-center justify-between')}>
-              <View style={tw.style('flex-row items-center gap-2 flex-1')}>
-                <View style={tw.style('w-8 h-8 rounded-full')} />
+              <SkeletonAvatarInlineGroup>
                 <View style={tw.style('gap-1.5')}>
-                  <View style={tw.style('w-20 h-4 rounded')} />
-                  <View style={tw.style('w-12 h-3 rounded')} />
+                  <SkeletonBlock twClassName="w-20 h-4 rounded" />
+                  <SkeletonBlock twClassName="w-12 h-3 rounded" />
                 </View>
-              </View>
+              </SkeletonAvatarInlineGroup>
               <View style={tw.style('items-end gap-1.5')}>
-                <View style={tw.style('w-24 h-5 rounded')} />
-                <View style={tw.style('w-14 h-3 rounded')} />
+                <SkeletonBlock twClassName="w-24 h-5 rounded" />
+                <SkeletonBlock twClassName="w-14 h-3 rounded" />
               </View>
             </View>
             <View style={tw.style('h-px bg-border-muted')} />
             <View style={tw.style('flex-row justify-between')}>
-              <View style={tw.style('w-20 h-3 rounded')} />
-              <View style={tw.style('w-16 h-3 rounded')} />
+              <SkeletonBlock twClassName="w-20 h-3 rounded" />
+              <SkeletonBlock twClassName="w-16 h-3 rounded" />
             </View>
-            <View style={tw.style('w-full h-10 rounded-full')} />
+            <SkeletonBlock twClassName="w-full h-10 rounded-full" />
           </View>
           <View style={tw.style('flex-row items-center gap-4')}>
-            <View style={tw.style('w-10 h-4 rounded')} />
-            <View style={tw.style('w-10 h-4 rounded')} />
+            <SkeletonBlock twClassName="w-10 h-4 rounded" />
+            <SkeletonBlock twClassName="w-10 h-4 rounded" />
           </View>
         </View>
-      </SkeletonPlaceholder>
+      </SocialFeedSkeletonPlaceholder>
     </View>
   );
 };
