@@ -201,6 +201,141 @@ describe('rpc-domain-utils', () => {
       spy.mockRestore();
     });
   });
+  describe('initializeRpcProviderDomains persisted hostname store', () => {
+    const chainsWithInfura: SafeChain[] = [
+      {
+        chainId: 1,
+        name: 'Ethereum',
+        nativeCurrency: { symbol: 'ETH' },
+        rpc: ['https://mainnet.infura.io'],
+      },
+    ];
+
+    /** Mocks the two persisted stores by key. */
+    const mockStorage = (chainsRaw: string | null, storeRaw: string | null) => {
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key: string) =>
+        key === 'SAFE_CHAINS_CACHE'
+          ? Promise.resolve(chainsRaw)
+          : Promise.resolve(storeRaw),
+      );
+    };
+
+    /** Returns the latest payload init persisted to the hostname store. */
+    const capturePersistedStore = (): string | null => {
+      const calls = (StorageWrapper.setItem as jest.Mock).mock.calls.filter(
+        (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
+      );
+      return calls.length > 0 ? calls[calls.length - 1][1] : null;
+    };
+
+    it('persists the derived hostnames when the store is missing', async () => {
+      // Arrange
+      setupTestEnvironment();
+      mockStorage(JSON.stringify(chainsWithInfura), null);
+      // Act
+      await initializeRpcProviderDomains();
+      // Assert
+      const persisted = JSON.parse(capturePersistedStore() as string);
+      expect(persisted.version).toBe(1);
+      expect(persisted.hostnames).toEqual(['mainnet.infura.io']);
+      expect(persisted.chainsCacheFingerprint).toEqual(expect.any(String));
+      expect(getKnownDomains()?.has('mainnet.infura.io')).toBe(true);
+    });
+
+    it('hydrates from the persisted store without re-parsing the chains list', async () => {
+      // Arrange — derive once to capture the fingerprint for this cache content
+      setupTestEnvironment();
+      const chainsRaw = JSON.stringify(chainsWithInfura);
+      mockStorage(chainsRaw, null);
+      await initializeRpcProviderDomains();
+      const fingerprint = (
+        JSON.parse(capturePersistedStore() as string) as {
+          chainsCacheFingerprint: string;
+        }
+      ).chainsCacheFingerprint;
+
+      // Act — a store entry for the same cache content hydrates directly, so
+      // its hostnames win over what the chains list would derive
+      setupTestEnvironment();
+      (StorageWrapper.setItem as jest.Mock).mockClear();
+      mockStorage(
+        chainsRaw,
+        JSON.stringify({
+          version: 1,
+          chainsCacheFingerprint: fingerprint,
+          hostnames: ['hydrated.from.store'],
+        }),
+      );
+      await initializeRpcProviderDomains();
+
+      // Assert — hydrated from the store, and nothing was re-persisted
+      expect(getKnownDomains()).toEqual(new Set(['hydrated.from.store']));
+      expect(
+        (StorageWrapper.setItem as jest.Mock).mock.calls.filter(
+          (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
+        ),
+      ).toHaveLength(0);
+    });
+
+    it('re-derives and re-persists when the chains cache changed', async () => {
+      // Arrange — persist hostnames for one chains list
+      setupTestEnvironment();
+      mockStorage(JSON.stringify(chainsWithInfura), null);
+      await initializeRpcProviderDomains();
+      const staleStore = capturePersistedStore();
+
+      // Act — the chains cache content changed, so the stale store is ignored
+      setupTestEnvironment();
+      const updatedChains: SafeChain[] = [
+        {
+          chainId: 100,
+          name: 'Gnosis',
+          nativeCurrency: { symbol: 'xDAI' },
+          rpc: ['https://rpc.gnosischain.com'],
+        },
+      ];
+      mockStorage(JSON.stringify(updatedChains), staleStore);
+      await initializeRpcProviderDomains();
+
+      // Assert
+      expect(getKnownDomains()).toEqual(new Set(['rpc.gnosischain.com']));
+      const persisted = JSON.parse(capturePersistedStore() as string);
+      expect(persisted.hostnames).toEqual(['rpc.gnosischain.com']);
+      expect(persisted.chainsCacheFingerprint).not.toEqual(
+        (
+          JSON.parse(staleStore as string) as {
+            chainsCacheFingerprint: string;
+          }
+        ).chainsCacheFingerprint,
+      );
+    });
+
+    it('re-derives when the persisted store is corrupt', async () => {
+      // Arrange
+      setupTestEnvironment();
+      mockStorage(JSON.stringify(chainsWithInfura), 'not valid json {');
+      // Act
+      await initializeRpcProviderDomains();
+      // Assert
+      expect(getKnownDomains()).toEqual(new Set(['mainnet.infura.io']));
+      expect(JSON.parse(capturePersistedStore() as string).hostnames).toEqual([
+        'mainnet.infura.io',
+      ]);
+    });
+
+    it('keeps the derived set when persisting fails', async () => {
+      // Arrange
+      setupTestEnvironment();
+      mockStorage(JSON.stringify(chainsWithInfura), null);
+      (StorageWrapper.setItem as jest.Mock).mockRejectedValue(
+        new Error('write failed'),
+      );
+      // Act
+      await expect(initializeRpcProviderDomains()).resolves.not.toThrow();
+      // Assert — the in-memory set stays authoritative for this session
+      expect(getKnownDomains()).toEqual(new Set(['mainnet.infura.io']));
+    });
+  });
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
       beforeEach(async () => {
