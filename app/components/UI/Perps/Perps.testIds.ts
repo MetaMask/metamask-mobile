@@ -1020,11 +1020,27 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
-  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
-  CLOSE_BUTTON: 'perps-trade-sheet-close-button',
+  HEADER_PRICE: 'perps-trade-sheet-header-price',
+  HEADER_CHANGE: 'perps-trade-sheet-header-change',
+  HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',
+  PAY_WITH_SKELETON: 'perps-trade-sheet-pay-with-skeleton',
+  MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
+  FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
+  ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
-  LIQUIDATION_ROW: 'perps-trade-sheet-liquidation-row',
+  LIMIT_PRICE_ROW: 'perps-trade-sheet-limit-price-row',
+  AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
+  PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
+  MARGIN_ROW: 'perps-trade-sheet-margin-row',
+  SLIPPAGE_ROW: 'perps-trade-sheet-slippage-row',
+  LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
+  LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
+  LIMIT_PRICE_PRESET_PERCENTAGE_1:
+    'perps-trade-sheet-limit-price-preset-percentage-1',
+  LIMIT_PRICE_PRESET_PERCENTAGE_2:
+    'perps-trade-sheet-limit-price-preset-percentage-2',
+  KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
