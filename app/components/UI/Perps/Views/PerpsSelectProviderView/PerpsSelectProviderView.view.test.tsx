@@ -7,6 +7,7 @@ import '../../../../../../tests/component-view/mocks';
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsSelectProviderView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { PerpsSelectProviderViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsSelectProviderView', () => {
   beforeEach(() => {
@@ -25,7 +26,7 @@ describe('PerpsSelectProviderView', () => {
     renderPerpsSelectProviderView();
 
     expect(
-      await screen.findByTestId('perps-select-provider-sheet'),
+      await screen.findByTestId(PerpsSelectProviderViewSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
   });
 
@@ -33,7 +34,9 @@ describe('PerpsSelectProviderView', () => {
     renderPerpsSelectProviderView();
 
     expect(
-      await screen.findByTestId('perps-select-provider-sheet-close-button'),
+      await screen.findByTestId(
+        PerpsSelectProviderViewSelectorsIDs.CLOSE_BUTTON,
+      ),
     ).toBeOnTheScreen();
   });
 });

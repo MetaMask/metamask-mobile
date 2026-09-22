@@ -38,6 +38,18 @@ const _getSizes = (scaleVertical, baseModel) => {
   return { currSize, baseScreenSize };
 };
 
+/**
+ * Scale a size relative to the current device dimensions.
+ *
+ * @param {number} size - The size to scale.
+ * @param {object} [options] - Scaling options.
+ * @param {number} [options.factor] - Interpolation factor for the scaled delta.
+ * @param {boolean} [options.scaleVertical] - Scale against height instead of width.
+ * @param {boolean} [options.scaleUp] - Allow scaling above the original size.
+ * @param {number} [options.baseSize] - Override the current screen size.
+ * @param {0|1|2} [options.baseModel] - Base device model to scale against.
+ * @returns {number} The scaled size.
+ */
 const scale = (
   size,
   {

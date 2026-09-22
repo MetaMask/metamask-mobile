@@ -16,6 +16,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { HeaderStandard } from '@metamask/design-system-react-native';
+import { selectIsSocialLoginBasicFunctionalityLocked } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const GeneralSettings = () => {
   const tw = useTailwind();
@@ -25,8 +26,14 @@ const GeneralSettings = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
+  const isSocialLoginBasicFunctionalityLocked = useSelector(
+    selectIsSocialLoginBasicFunctionalityLocked,
+  );
 
   const handleSwitchToggle = () => {
+    if (isSocialLoginBasicFunctionalityLocked) {
+      return;
+    }
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
@@ -64,7 +71,10 @@ const GeneralSettings = () => {
         onBack={() => navigation.goBack()}
       />
       <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
-        <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
+        <BasicFunctionalityComponent
+          disabled={isSocialLoginBasicFunctionalityLocked}
+          handleSwitchToggle={handleSwitchToggle}
+        />
         <BackupAndSyncToggle
           trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}
         />

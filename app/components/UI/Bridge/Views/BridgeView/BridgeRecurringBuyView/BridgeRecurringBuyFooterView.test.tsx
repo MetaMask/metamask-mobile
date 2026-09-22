@@ -6,7 +6,7 @@ import renderWithProvider, {
 import { RequestStatus } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
-import { useBridgeQuoteData } from '../../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { mockQuoteWithMetadata } from '../../../_mocks_/bridgeQuoteWithMetadata';
 import { createBridgeTestState } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
@@ -27,20 +27,11 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
-
-jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData } = jest.requireMock(
-    '../../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
-  };
-});
 
 /**
  * Builds Redux state that satisfies BridgeRecurringBuyFooterView render
@@ -101,18 +92,16 @@ describe('BridgeRecurringBuyFooterView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext)
       .mockImplementation(() => mockUseBridgeQuoteData);
   });
 
   it('renders nothing when loading without an active quote', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: true,
-        activeQuote: null,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: true,
+      activeQuote: null,
+    }));
 
     const { queryByTestId } = renderFooter(buildActiveQuoteState());
 
@@ -120,13 +109,11 @@ describe('BridgeRecurringBuyFooterView', () => {
   });
 
   it('renders nothing when there is no active quote', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: false,
-        activeQuote: null,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: false,
+      activeQuote: null,
+    }));
 
     const { queryByTestId } = renderFooter(buildActiveQuoteState());
 
@@ -165,12 +152,10 @@ describe('BridgeRecurringBuyFooterView', () => {
   });
 
   it('shows the confirm button as loading when the quote is refreshing', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: true,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: true,
+    }));
 
     const { getByTestId } = renderFooter(buildActiveQuoteState());
 

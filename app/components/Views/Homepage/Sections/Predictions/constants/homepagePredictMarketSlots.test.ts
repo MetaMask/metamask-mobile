@@ -1,6 +1,6 @@
 import {
-  HOMEPAGE_PREDICT_EVENT_QUERY,
-  HOMEPAGE_PREDICT_EVENT_SLOTS,
+  buildHomepagePredictEventQuery,
+  getHomepagePredictEventSlots,
   HOMEPAGE_PREDICT_MARKET_SLOTS,
 } from './homepagePredictMarketSlots';
 
@@ -32,7 +32,9 @@ describe('homepagePredictMarketSlots', () => {
   });
 
   it('derives event-backed slots without the BTC series', () => {
-    const eventSlots = HOMEPAGE_PREDICT_EVENT_SLOTS;
+    const eventSlots = getHomepagePredictEventSlots(
+      HOMEPAGE_PREDICT_MARKET_SLOTS,
+    );
 
     expect(eventSlots).toEqual([
       {
@@ -49,10 +51,32 @@ describe('homepagePredictMarketSlots', () => {
   });
 
   it('queries both event-backed slots as open events', () => {
-    const query = HOMEPAGE_PREDICT_EVENT_QUERY;
+    const query = buildHomepagePredictEventQuery(HOMEPAGE_PREDICT_MARKET_SLOTS);
 
     expect(query).toBe(
       'active=true&archived=false&closed=false&id=202857&id=659518',
+    );
+  });
+
+  it('builds event filters from an arbitrary mixed slot order', () => {
+    const query = buildHomepagePredictEventQuery([
+      HOMEPAGE_PREDICT_MARKET_SLOTS[2],
+      HOMEPAGE_PREDICT_MARKET_SLOTS[1],
+      HOMEPAGE_PREDICT_MARKET_SLOTS[0],
+    ]);
+
+    expect(query).toBe(
+      'active=true&archived=false&closed=false&id=659518&id=202857',
+    );
+  });
+
+  it('encodes configured event IDs as query values', () => {
+    const query = buildHomepagePredictEventQuery([
+      { type: 'event', id: '1&closed=true', slug: 'event' },
+    ]);
+
+    expect(query).toBe(
+      'active=true&archived=false&closed=false&id=1%26closed%3Dtrue',
     );
   });
 });

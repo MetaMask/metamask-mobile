@@ -9,6 +9,7 @@ import {
   IconName as DsIconName,
 } from '@metamask/design-system-react-native';
 import QuickBuyTradeModeToggle from './QuickBuyTradeModeToggle';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
 const QuickBuyToolbar: React.FC = () => {
@@ -36,7 +37,7 @@ const QuickBuyToolbar: React.FC = () => {
           size={ButtonIconSize.Md}
           isDisabled={!isQuickAmountPreferencesLoaded}
           onPress={() => setActiveScreen('editQuickAmounts')}
-          testID="quick-buy-edit-amounts-button"
+          testID={QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON}
         />
       ) : (
         // Keep the toggle optically centered when settings is hidden.
@@ -51,7 +52,7 @@ const QuickBuyToolbar: React.FC = () => {
         iconName={DsIconName.Close}
         size={ButtonIconSize.Md}
         onPress={onClose}
-        testID="quick-buy-close-button"
+        testID={QuickBuySheetSelectorsIDs.CLOSE_BUTTON}
       />
     </Box>
   );

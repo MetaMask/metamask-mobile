@@ -1,30 +1,50 @@
+import { IconName } from '@metamask/design-system-react-native';
+
 export interface ProHubStats {
   /** Formatted currency string for lifetime Pro earnings. */
   lifetimeEarnings: string;
   /** Formatted currency string for Money balance earnings. */
   moneyBalance: string;
+  /** Annual percentage yield earned on the Money balance, as a percentage. */
+  moneyBalanceApy: number;
   /** Formatted currency string for mUSD back earnings. */
   musdBack: string;
+  /** Share of spend returned as mUSD, as a percentage. */
+  musdBackRate: number;
 }
 
-export interface ProHubNextPayment {
-  /** Formatted currency string for the upcoming membership charge. */
-  amount: string;
-  /** Human-readable date of the next charge. */
-  date: string;
+export interface AlsoIncludedItem {
+  id: string;
+  iconName: IconName;
+  titleKey: string;
+  subtitleKey: string;
+  badgeKey?: string;
 }
 
 // TODO: replace with real API data once the membership endpoint is available.
 export const MOCK_PRO_HUB_STATS: ProHubStats = {
   lifetimeEarnings: '$86.42',
   moneyBalance: '+$48.92',
+  moneyBalanceApy: 7,
   musdBack: '$0.00',
+  musdBackRate: 3,
 };
 
-export const MOCK_NEXT_PAYMENT: ProHubNextPayment = {
-  amount: '$49.99',
-  date: 'Jul 20, 2027',
-};
+export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [
+  {
+    id: 'transaction_protection',
+    iconName: IconName.SecurityTick,
+    titleKey: 'pro_hub.also_included.transaction_protection.title',
+    subtitleKey: 'pro_hub.also_included.transaction_protection.subtitle',
+    badgeKey: 'pro_hub.also_included.transaction_protection.badge',
+  },
+  {
+    id: 'priority_support',
+    iconName: IconName.Call,
+    titleKey: 'pro_hub.also_included.priority_support.title',
+    subtitleKey: 'pro_hub.also_included.priority_support.subtitle',
+  },
+];
 
 export type TradeAllowanceKind = 'currency' | 'count';
 

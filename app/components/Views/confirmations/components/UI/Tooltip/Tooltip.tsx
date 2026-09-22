@@ -1,13 +1,18 @@
-import React, { ReactNode, useState } from 'react';
-import { HeaderStandard, Text } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import React, { ReactNode, useCallback, useRef, useState } from 'react';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
+  Box,
+  Text,
+} from '@metamask/design-system-react-native';
+import { Modal, TouchableOpacity, View, ViewStyle } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
-import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
@@ -37,27 +42,53 @@ export const TooltipModal = ({
   title,
   tooltipTestId = 'tooltip-modal',
 }: TooltipModalProps) => {
-  const { styles } = useStyles(styleSheet, { title: title ?? '' });
+  const { styles } = useStyles(styleSheet, {});
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
 
   return (
-    <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
-      <View style={styles.modalView}>
-        <HeaderStandard
-          title={title}
-          onClose={() => setOpen(false)}
-          closeButtonProps={{
-            testID: `${tooltipTestId}-close-btn`,
-          }}
-        />
-        <View style={styles.modalContent}>
-          {typeof content === 'string' ? (
-            <Text style={styles.modalContentValue}>{content}</Text>
-          ) : (
-            content
-          )}
-        </View>
-      </View>
-    </BottomModal>
+    <>
+      {open && (
+        <Modal
+          visible
+          animationType="none"
+          transparent
+          presentationStyle="overFullScreen"
+          onRequestClose={handleRequestClose}
+        >
+          <BottomSheet
+            ref={bottomSheetRef}
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
+          >
+            <BottomSheetHeader
+              onClose={handleRequestClose}
+              closeButtonProps={{
+                testID: `${tooltipTestId}-close-btn`,
+              }}
+            >
+              {title}
+            </BottomSheetHeader>
+            <Box twClassName="flex flex-col">
+              <View style={styles.modalContent}>
+                {typeof content === 'string' ? (
+                  <Text style={styles.modalContentValue}>{content}</Text>
+                ) : (
+                  content
+                )}
+              </View>
+            </Box>
+          </BottomSheet>
+        </Modal>
+      )}
+    </>
   );
 };
 

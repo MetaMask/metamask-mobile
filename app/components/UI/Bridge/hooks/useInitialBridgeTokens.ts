@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import type { CaipChainId } from '@metamask/utils';
+import type { FeatureId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { useBalancesByAssetId } from './useBalancesByAssetId';
 import { useFetchPopularTokens } from './useFetchPopularTokens';
@@ -7,19 +8,28 @@ import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
 import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
 import type { IncludeAsset } from '../types';
 import { getMinimalIncludedAssets } from '../utils/cacheUtils';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
+
+export interface UseInitialBridgeTokensParams {
+  /** A list of chain IDs to fetch tokens for. */
+  chainIds?: CaipChainId[];
+  searchString?: string;
+}
 
 /**
  * Custom hook to fetch popular tokens from the Bridge API with caching
- * @param chainIds - A list of chain IDs to fetch tokens for
+ * @param params - Configuration object containing chainIds, searchString,
+ * and featureId
  * @returns Object containing the filtered assets to include in the API request,
  * a function to fetch popular tokens, and the balances indexed by assetId for
  * O(1) lookup when merging with API results
  */
-export const useInitialBridgeTokens = (
-  chainIds?: CaipChainId[],
-  searchString?: string,
-) => {
+export const useInitialBridgeTokens = ({
+  chainIds,
+  searchString,
+}: UseInitialBridgeTokensParams) => {
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
+  const featureId = useSwapsFeatureId();
 
   const chainIdsToFetch = useMemo(() => {
     if (chainIds) {
@@ -75,9 +85,10 @@ export const useInitialBridgeTokens = (
         chainIds: chainIdsToFetch,
         includeAssets: includeAssetsObject,
         signal,
+        featureId,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [includeAssetsId, chainIdsToFetch, fetchTokens],
+    [includeAssetsId, chainIdsToFetch, fetchTokens, featureId],
   );
 
   const searchQuery = searchString?.trim();

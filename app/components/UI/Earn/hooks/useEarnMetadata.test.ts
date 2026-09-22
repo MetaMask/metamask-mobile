@@ -33,7 +33,7 @@ describe('useEarnMetadata', () => {
     });
   });
 
-  it('should return default values when earnToken is not provided', () => {
+  it('returns default values when earnToken is not provided', () => {
     const { result } = renderHookWithProvider(() =>
       useEarnMetadata(null as unknown as EarnTokenDetails),
     );
@@ -46,7 +46,7 @@ describe('useEarnMetadata', () => {
     });
   });
 
-  it('should calculate correct values for STABLECOIN_LENDING experience', () => {
+  it('calculates values for STABLECOIN_LENDING experience', () => {
     const mockEarnToken: EarnTokenDetails = {
       address: '0x123',
       chainId: '1',
@@ -71,7 +71,7 @@ describe('useEarnMetadata', () => {
     });
   });
 
-  it('should use vault metadata for POOLED_STAKING experience', () => {
+  it('uses vault metadata for POOLED_STAKING experience', () => {
     const mockEarnToken: EarnTokenDetails = {
       address: '0x123',
       chainId: '1',
@@ -105,7 +105,7 @@ describe('useEarnMetadata', () => {
     });
   });
 
-  it('should handle decimal places correctly for STABLECOIN_LENDING', () => {
+  it('rounds decimal places for STABLECOIN_LENDING', () => {
     const mockEarnToken: EarnTokenDetails = {
       address: '0x123',
       chainId: '1',
@@ -130,7 +130,27 @@ describe('useEarnMetadata', () => {
     });
   });
 
-  it('should handle zero APR for STABLECOIN_LENDING', () => {
+  it('removes trailing zero from stablecoin lending APR', () => {
+    const mockEarnToken: EarnTokenDetails = {
+      address: '0x123',
+      chainId: '1',
+      decimals: 18,
+      symbol: 'USDC',
+      ticker: 'USDC',
+      experience: {
+        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        apr: '4.0',
+      },
+    } as EarnTokenDetails;
+
+    const { result } = renderHookWithProvider(() =>
+      useEarnMetadata(mockEarnToken),
+    );
+
+    expect(result.current.annualRewardRate).toBe('4%');
+  });
+
+  it('returns zero APR for STABLECOIN_LENDING', () => {
     const mockEarnToken: EarnTokenDetails = {
       address: '0x123',
       chainId: '1',
@@ -148,14 +168,14 @@ describe('useEarnMetadata', () => {
     );
 
     expect(result.current).toEqual({
-      annualRewardRate: '0.0%',
+      annualRewardRate: '0%',
       annualRewardRateDecimal: 0,
       annualRewardRateValue: 0,
       isLoadingEarnMetadata: false,
     });
   });
 
-  it('should handle zero APR for POOLED_STAKING', () => {
+  it('returns zero APR for POOLED_STAKING', () => {
     const mockEarnToken: EarnTokenDetails = {
       address: '0x123',
       chainId: '1',

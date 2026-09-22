@@ -74,6 +74,14 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ORDER_SIZE_MIN]: 'perps.order.validation.minimum_amount',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID]:
     'perps.order.validation.invalid_leverage',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_INVALID]:
+    'perps.errors.orderValidation.marginModeInvalid',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED]:
+    'perps.errors.orderValidation.marginModeUnsupported',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_POSITION_OPEN]:
+    'perps.errors.orderValidation.marginModePositionOpen',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN]:
+    'perps.errors.orderValidation.marginModeOrderOpen',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION]:
     'perps.order.validation.leverage_below_position',
   [PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED]:

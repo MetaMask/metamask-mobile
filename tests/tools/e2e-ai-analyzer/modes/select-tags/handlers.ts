@@ -324,6 +324,8 @@ const E2E_RELEVANT_WORKFLOW_EXACT_PATHS = new Set([
   '.github/workflows/build-ios-e2e.yml',
   '.github/workflows/update-e2e-fixtures.yml',
   '.github/workflows/build.yml',
+  '.github/actions/setup-e2e-env/action.yml',
+  '.github/actions/smart-e2e-selection/action.yml',
 ]);
 
 const E2E_RELEVANT_SCRIPT_PREFIXES = [

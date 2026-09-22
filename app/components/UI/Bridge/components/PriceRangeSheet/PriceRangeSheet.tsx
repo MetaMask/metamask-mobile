@@ -8,14 +8,16 @@ import React, {
 import { Pressable } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
+  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
   ButtonSize,
-  ButtonsAlignment,
+  ButtonVariant,
   FilterButton,
   FontWeight,
   SegmentedControl,
@@ -35,7 +37,9 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  isInvertedPriceRange,
   isValidPriceRange,
+  PRICE_RANGE_CURRENCY,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   tokenPairRateFromFiatRates,
@@ -45,7 +49,6 @@ import {
   FIAT_INPUT_DECIMALS,
   FIAT_KEYPAD_CURRENCY,
 } from '../../utils/sourceAmountInputMode';
-import RecurringBottomSheet from '../RecurringBottomSheet';
 import { SwapsKeypad } from '../SwapsKeypad';
 import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
@@ -143,17 +146,15 @@ function PriceRangeAmountField({
 }
 
 const PriceRangeSheet = ({
-  isVisible,
   sourceToken,
   destToken,
-  sourceFiatRate,
-  destFiatRate,
-  currentCurrency,
+  sourceUsdRate,
+  destUsdRate,
   initialTokenSide,
   initialMin,
   initialMax,
-  onClose,
   onConfirm,
+  goBack,
 }: PriceRangeSheetProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -169,15 +170,6 @@ const PriceRangeSheet = ({
   );
 
   useEffect(() => {
-    if (isVisible) {
-      setPendingTokenSide(initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE);
-      setPendingMin(initialMin ?? '');
-      setPendingMax(initialMax ?? '');
-      setFocusedField(null);
-    }
-  }, [initialMax, initialMin, initialTokenSide, isVisible]);
-
-  useEffect(() => {
     if (focusedField !== 'max') {
       return;
     }
@@ -190,24 +182,25 @@ const PriceRangeSheet = ({
   }, [focusedField]);
 
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
-  const selectedFiatRate =
-    pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
+  const selectedUsdRate =
+    pendingTokenSide === 'source' ? sourceUsdRate : destUsdRate;
   const hasLivePrice =
-    selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
+    selectedUsdRate !== undefined && Number.isFinite(selectedUsdRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
-  const currencySymbol = getCurrencySymbol(currentCurrency);
+  const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
+  const currencySymbol = getCurrencySymbol(PRICE_RANGE_CURRENCY);
   const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
     () =>
       formatTokenPrice(
         selectedToken?.symbol,
-        selectedFiatRate,
-        currentCurrency,
+        selectedUsdRate,
+        PRICE_RANGE_CURRENCY,
       ),
-    [currentCurrency, selectedFiatRate, selectedToken?.symbol],
+    [selectedToken?.symbol, selectedUsdRate],
   );
   const exchangeRateLabel = useMemo(
     () =>
@@ -215,13 +208,13 @@ const PriceRangeSheet = ({
         selected: pendingTokenSide,
         sourceSymbol: sourceToken?.symbol,
         destSymbol: destToken?.symbol,
-        quoteRate: tokenPairRateFromFiatRates(sourceFiatRate, destFiatRate),
+        quoteRate: tokenPairRateFromFiatRates(sourceUsdRate, destUsdRate),
       }),
     [
-      destFiatRate,
+      destUsdRate,
       destToken?.symbol,
       pendingTokenSide,
-      sourceFiatRate,
+      sourceUsdRate,
       sourceToken?.symbol,
     ],
   );
@@ -235,11 +228,6 @@ const PriceRangeSheet = ({
     closeKeypad();
     sheetRef.current?.onCloseBottomSheet();
   }, [closeKeypad]);
-
-  const handleSheetClosed = useCallback(() => {
-    closeKeypad();
-    onClose();
-  }, [closeKeypad, onClose]);
 
   const focusField = useCallback((field: PriceRangeField) => {
     setFocusedField(field);
@@ -262,22 +250,22 @@ const PriceRangeSheet = ({
 
   const handleMinPercentPress = useCallback(
     (percent: number) => {
-      if (selectedFiatRate === undefined) {
+      if (selectedUsdRate === undefined) {
         return;
       }
-      setPendingMin(applyPercentToPrice(selectedFiatRate, percent));
+      setPendingMin(applyPercentToPrice(selectedUsdRate, percent));
     },
-    [selectedFiatRate],
+    [selectedUsdRate],
   );
 
   const handleMaxPercentPress = useCallback(
     (percent: number) => {
-      if (selectedFiatRate === undefined) {
+      if (selectedUsdRate === undefined) {
         return;
       }
-      setPendingMax(applyPercentToPrice(selectedFiatRate, percent));
+      setPendingMax(applyPercentToPrice(selectedUsdRate, percent));
     },
-    [selectedFiatRate],
+    [selectedUsdRate],
   );
 
   const handleKeypadChange = useCallback(
@@ -294,8 +282,11 @@ const PriceRangeSheet = ({
     [focusedField],
   );
 
-  const handleClearAll = useCallback(() => {
+  const handleClearMin = useCallback(() => {
     setPendingMin('');
+  }, []);
+
+  const handleClearMax = useCallback(() => {
     setPendingMax('');
   }, []);
 
@@ -307,7 +298,7 @@ const PriceRangeSheet = ({
       isValidPriceRange(pendingMin, pendingMax)
         ? {
             tokenSide: pendingTokenSide,
-            currency: currentCurrency,
+            currency: PRICE_RANGE_CURRENCY,
             min: pendingMin,
             max: pendingMax,
           }
@@ -317,22 +308,18 @@ const PriceRangeSheet = ({
   }, [
     canConfirm,
     closeSheet,
-    currentCurrency,
     onConfirm,
     pendingMax,
     pendingMin,
     pendingTokenSide,
   ]);
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <RecurringBottomSheet
+    <BottomSheet
       ref={sheetRef}
       testID={PriceRangeSheetSelectorsIDs.SHEET}
-      onClose={handleSheetClosed}
+      goBack={goBack}
+      onClose={closeKeypad}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -430,11 +417,31 @@ const PriceRangeSheet = ({
             </Box>
 
             <Box gap={4}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('bridge.recurring.price_range.min_token_price', {
-                  symbol: selectedToken?.symbol ?? '',
-                })}
-              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="-mr-3 min-h-8"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('bridge.recurring.price_range.min_token_price', {
+                    symbol: selectedToken?.symbol ?? '',
+                  })}
+                </Text>
+                {pendingMin ? (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleClearMin}
+                    testID={PriceRangeSheetSelectorsIDs.CLEAR_MIN}
+                  >
+                    {strings('bridge.recurring.price_range.clear')}
+                  </Button>
+                ) : null}
+              </Box>
               <PricePercentRow
                 bound="min"
                 percents={PRICE_RANGE_MIN_PERCENTS}
@@ -453,11 +460,31 @@ const PriceRangeSheet = ({
             </Box>
 
             <Box gap={4}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('bridge.recurring.price_range.max_token_price', {
-                  symbol: selectedToken?.symbol ?? '',
-                })}
-              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="-mr-3 min-h-8"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('bridge.recurring.price_range.max_token_price', {
+                    symbol: selectedToken?.symbol ?? '',
+                  })}
+                </Text>
+                {pendingMax ? (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleClearMax}
+                    testID={PriceRangeSheetSelectorsIDs.CLEAR_MAX}
+                  >
+                    {strings('bridge.recurring.price_range.clear')}
+                  </Button>
+                ) : null}
+              </Box>
               <PricePercentRow
                 bound="max"
                 percents={PRICE_RANGE_MAX_PERCENTS}
@@ -473,6 +500,15 @@ const PriceRangeSheet = ({
                 testID={PriceRangeSheetSelectorsIDs.MAX_INPUT}
                 onPress={() => focusField('max')}
               />
+              {showInvertedRangeError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={PriceRangeSheetSelectorsIDs.MAX_ERROR}
+                >
+                  {strings('bridge.recurring.price_range.max_must_exceed_min')}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         </ScrollView>
@@ -486,15 +522,6 @@ const PriceRangeSheet = ({
         ) : null}
       </Box>
       <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        twClassName="gap-4"
-        secondaryButtonProps={{
-          children: strings('bridge.recurring.price_range.clear_all'),
-          onPress: handleClearAll,
-          isDisabled: !pendingMin && !pendingMax,
-          size: ButtonSize.Lg,
-          testID: PriceRangeSheetSelectorsIDs.CLEAR_ALL,
-        }}
         primaryButtonProps={{
           children: strings('bridge.recurring.confirm'),
           onPress: handleConfirm,
@@ -513,7 +540,7 @@ const PriceRangeSheet = ({
         onChange={handleKeypadChange}
         onClose={() => setFocusedField(null)}
       />
-    </RecurringBottomSheet>
+    </BottomSheet>
   );
 };
 

@@ -10,9 +10,6 @@ const styleSheet = (params: { theme: Theme }) =>
     stakingEarnings: {
       paddingTop: 16,
     },
-    badgeWrapper: {
-      alignSelf: 'center',
-    },
     balances: {
       flex: 1,
       flexDirection: 'column',

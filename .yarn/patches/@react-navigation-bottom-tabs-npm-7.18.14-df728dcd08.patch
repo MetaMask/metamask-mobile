@@ -1,0 +1,145 @@
+diff --git a/lib/module/unstable/NativeBottomTabView.native.js b/lib/module/unstable/NativeBottomTabView.native.js
+index 084cc3262105b15011ef4ef0307fe70b07fc59cb..8086284b5da8137a13d26ea56281f973dd33515f 100644
+--- a/lib/module/unstable/NativeBottomTabView.native.js
++++ b/lib/module/unstable/NativeBottomTabView.native.js
+@@ -229,7 +229,7 @@ export function NativeBottomTabView({
+           tabBarIcon,
+           tabBarBadge,
+           tabBarSystemItem,
+-          tabBarBlurEffect = dark ? 'systemMaterialDark' : 'systemMaterial',
++          tabBarBlurEffect,
+           tabBarStyle,
+           overrideScrollViewContentInsetAdjustmentBehavior
+         } = options;
+@@ -269,6 +269,7 @@ export function NativeBottomTabView({
+         const selectedIcon = typeof tabBarIcon === 'function' ? getPlatformIcon(tabBarIcon({
+           focused: true
+         })) : undefined;
++        const shouldUseCustomIOSAppearance = tabBarBackgroundColor != null || tabBarShadowColor != null || tabBarBlurEffect != null || options.tabBarInactiveTintColor != null || options.tabBarLabelStyle != null || tabBarBadgeStyle != null;
+         return /*#__PURE__*/_jsx(Tabs.Screen, {
+           onWillDisappear: () => onTransitionStart({
+             closing: true,
+@@ -323,7 +324,7 @@ export function NativeBottomTabView({
+             icon: icon?.ios ?? icon?.shared,
+             selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared,
+             systemItem: tabBarSystemItem,
+-            scrollEdgeAppearance: {
++            scrollEdgeAppearance: shouldUseCustomIOSAppearance ? {
+               tabBarBackgroundColor,
+               tabBarShadowColor,
+               tabBarBlurEffect,
+@@ -336,8 +337,8 @@ export function NativeBottomTabView({
+               compactInline: {
+                 normal: tabItemAppearance
+               }
+-            },
+-            standardAppearance: {
++            } : undefined,
++            standardAppearance: shouldUseCustomIOSAppearance ? {
+               tabBarBackgroundColor,
+               tabBarShadowColor,
+               tabBarBlurEffect,
+@@ -350,7 +351,7 @@ export function NativeBottomTabView({
+               compactInline: {
+                 normal: tabItemAppearance
+               }
+-            },
++            } : undefined,
+             overrideScrollViewContentInsetAdjustmentBehavior
+           },
+           children: /*#__PURE__*/_jsx(Deferred, {
+diff --git a/src/unstable/NativeBottomTabView.native.tsx b/src/unstable/NativeBottomTabView.native.tsx
+index e918b8247d230edd763434cc440ef4a00235fecd..297332df07c00da5902597afe533061e72dc3413 100644
+--- a/src/unstable/NativeBottomTabView.native.tsx
++++ b/src/unstable/NativeBottomTabView.native.tsx
+@@ -349,7 +349,7 @@ export function NativeBottomTabView({ state, navigation, descriptors }: Props) {
+             tabBarIcon,
+             tabBarBadge,
+             tabBarSystemItem,
+-            tabBarBlurEffect = dark ? 'systemMaterialDark' : 'systemMaterial',
++            tabBarBlurEffect,
+             tabBarStyle,
+             overrideScrollViewContentInsetAdjustmentBehavior,
+           } = options;
+@@ -410,6 +410,14 @@ export function NativeBottomTabView({ state, navigation, descriptors }: Props) {
+               ? getPlatformIcon(tabBarIcon({ focused: true }))
+               : undefined;
+ 
++          const shouldUseCustomIOSAppearance =
++            tabBarBackgroundColor != null ||
++            tabBarShadowColor != null ||
++            tabBarBlurEffect != null ||
++            options.tabBarInactiveTintColor != null ||
++            options.tabBarLabelStyle != null ||
++            tabBarBadgeStyle != null;
++
+           return (
+             <Tabs.Screen
+               onWillDisappear={() =>
+@@ -456,34 +464,38 @@ export function NativeBottomTabView({ state, navigation, descriptors }: Props) {
+                 icon: icon?.ios ?? icon?.shared,
+                 selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared,
+                 systemItem: tabBarSystemItem,
+-                scrollEdgeAppearance: {
+-                  tabBarBackgroundColor,
+-                  tabBarShadowColor,
+-                  tabBarBlurEffect,
+-                  stacked: {
+-                    normal: tabItemAppearance,
+-                  },
+-                  inline: {
+-                    normal: tabItemAppearance,
+-                  },
+-                  compactInline: {
+-                    normal: tabItemAppearance,
+-                  },
+-                },
+-                standardAppearance: {
+-                  tabBarBackgroundColor,
+-                  tabBarShadowColor,
+-                  tabBarBlurEffect,
+-                  stacked: {
+-                    normal: tabItemAppearance,
+-                  },
+-                  inline: {
+-                    normal: tabItemAppearance,
+-                  },
+-                  compactInline: {
+-                    normal: tabItemAppearance,
+-                  },
+-                },
++                scrollEdgeAppearance: shouldUseCustomIOSAppearance
++                  ? {
++                      tabBarBackgroundColor,
++                      tabBarShadowColor,
++                      tabBarBlurEffect,
++                      stacked: {
++                        normal: tabItemAppearance,
++                      },
++                      inline: {
++                        normal: tabItemAppearance,
++                      },
++                      compactInline: {
++                        normal: tabItemAppearance,
++                      },
++                    }
++                  : undefined,
++                standardAppearance: shouldUseCustomIOSAppearance
++                  ? {
++                      tabBarBackgroundColor,
++                      tabBarShadowColor,
++                      tabBarBlurEffect,
++                      stacked: {
++                        normal: tabItemAppearance,
++                      },
++                      inline: {
++                        normal: tabItemAppearance,
++                      },
++                      compactInline: {
++                        normal: tabItemAppearance,
++                      },
++                    }
++                  : undefined,
+                 overrideScrollViewContentInsetAdjustmentBehavior,
+               }}
+             >

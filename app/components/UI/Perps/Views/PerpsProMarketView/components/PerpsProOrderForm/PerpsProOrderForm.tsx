@@ -242,8 +242,39 @@ const OrderSummary = ({
   feeDiscountPercentage,
   onSlippagePress,
   onFeesInfoPress,
+  twapSummary,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
+    {twapSummary ? (
+      <>
+        <KeyValueRow
+          keyLabel={strings('perps.pro_order_form.twap.summary_runtime')}
+          value={twapSummary.runtime}
+          keyTextProps={summaryKeyTextProps}
+          valueTextProps={{
+            ...summaryValueTextProps,
+            testID: ids.SUMMARY_TWAP_RUNTIME_VALUE,
+          }}
+          twClassName={summaryRowClassName}
+          style={summaryRowStyle}
+          testID={ids.SUMMARY_TWAP_RUNTIME}
+        />
+        <KeyValueRow
+          keyLabel={strings(
+            'perps.pro_order_form.twap.summary_size_per_suborder',
+          )}
+          value={twapSummary.sizePerSuborder}
+          keyTextProps={summaryKeyTextProps}
+          valueTextProps={{
+            ...summaryValueTextProps,
+            testID: ids.SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE,
+          }}
+          twClassName={summaryRowClassName}
+          style={summaryRowStyle}
+          testID={ids.SUMMARY_TWAP_SIZE_PER_SUBORDER}
+        />
+      </>
+    ) : null}
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
@@ -253,16 +284,18 @@ const OrderSummary = ({
       style={summaryRowStyle}
       testID={ids.SUMMARY_MARGIN}
     />
-    <KeyValueRow
-      keyLabel={strings('perps.pro_order_form.est_liquidation')}
-      value={liquidationPrice}
-      keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryBeforeAfterValueTextProps}
-      twClassName={summaryBeforeAfterRowClassName}
-      style={summaryRowStyle}
-      testID={ids.SUMMARY_LIQUIDATION}
-    />
-    {slippage !== undefined ? (
+    {twapSummary ? null : (
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.est_liquidation')}
+        value={liquidationPrice}
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={summaryBeforeAfterValueTextProps}
+        twClassName={summaryBeforeAfterRowClassName}
+        style={summaryRowStyle}
+        testID={ids.SUMMARY_LIQUIDATION}
+      />
+    )}
+    {!twapSummary && slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
         value={slippage}
@@ -746,7 +779,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="h-8 rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -755,7 +788,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}

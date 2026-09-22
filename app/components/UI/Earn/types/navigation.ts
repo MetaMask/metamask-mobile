@@ -9,6 +9,7 @@ import type {
   LendingMaxWithdrawalModalParams,
   LendingWithdrawalConfirmationParams,
 } from '../Earn.types';
+import type { EarnModuleNavigationContext } from './earnModuleEvents.types';
 
 /**
  * Param list for screens inside the Earn screen stack (`EarnScreenStack`).
@@ -16,7 +17,11 @@ import type {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnScreensStackParamList = {
-  EarnSearchList: undefined;
+  EarnSearchList:
+    | {
+        analyticsContext?: EarnModuleNavigationContext;
+      }
+    | undefined;
   EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
   EarnLendingWithdrawalConfirmation:
     | LendingWithdrawalConfirmationParams

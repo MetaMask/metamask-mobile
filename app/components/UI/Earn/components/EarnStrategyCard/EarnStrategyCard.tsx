@@ -18,7 +18,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { truncateNumber } from '../../utils';
+import { formatEarnRatePercentage } from '../../utils';
 import EarnNoFeeTag from '../EarnNoFeeTag';
 import EarnStrategyInfoRow from '../EarnStrategyInfoRow';
 import {
@@ -44,11 +44,11 @@ const getRateCopy = (
   const base = strings('earn.strategy_selection.up_to');
 
   if (rate.type === 'APY') {
-    return `${base} ${strings('earn_module.rate_apy', { percentage: truncateNumber(rate.percentage) })}`;
+    return `${base} ${strings('earn_module.rate_apy', { percentage: formatEarnRatePercentage(rate.percentage) })}`;
   }
 
   if (rate.type === 'APR') {
-    return `${base} ${strings('earn_module.rate_apr', { percentage: truncateNumber(rate.percentage) })}`;
+    return `${base} ${strings('earn_module.rate_apr', { percentage: formatEarnRatePercentage(rate.percentage) })}`;
   }
 };
 
@@ -79,7 +79,7 @@ const EarnStrategyCard = ({
       <Box
         twClassName={`w-full rounded-xl border bg-muted p-3 ${
           isPrimary ? 'min-h-[196px]' : 'min-h-[100px]'
-        } ${isActive ? 'border-white' : 'border-muted'}`}
+        } ${isActive ? 'border-default' : 'border-muted'}`}
         accessible={false}
       >
         <Box

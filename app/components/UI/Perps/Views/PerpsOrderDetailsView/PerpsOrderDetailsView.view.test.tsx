@@ -8,6 +8,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  defaultOrderDetailsOrder,
   defaultOrderForViews,
   renderPerpsOrderDetailsView,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
@@ -107,6 +108,9 @@ describe('PerpsOrderDetailsView', () => {
 
     await waitFor(() => {
       expect(cancelOrder).toHaveBeenCalledTimes(1);
+      expect(cancelOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ orderId: defaultOrderDetailsOrder.orderId }),
+      );
     });
   });
 

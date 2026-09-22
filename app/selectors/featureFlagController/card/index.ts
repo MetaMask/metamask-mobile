@@ -8,6 +8,7 @@ import {
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
@@ -24,7 +25,9 @@ export * from './types';
 export {
   CARD_PROVIDER_FLAGS,
   CARD_UK_MIGRATION_COUNTRY_CODE,
+  CARD_UK_MIGRATION_UPDATE_BADGE_WARNING_DAYS,
   FALLBACK_CARD_PROVIDER_ID,
+  getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
@@ -32,9 +35,11 @@ export {
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
+  type CardUkMigrationUpdateBadgeSeverity,
 } from './read';
 
 /**
@@ -190,4 +195,23 @@ export const selectCardUkMigrationPhase = createSelector(
 export const selectIsCardUkMigrationActive = createSelector(
   selectCardUkMigrationState,
   (state) => state.isActive,
+);
+
+export const selectCardUkMigrationSignInRoutingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    readCardUkMigrationSignInRoutingEnabled(
+      remoteFeatureFlags as CardRemoteFeatureFlags,
+    ),
+);
+
+export const selectCardIntercomSupportEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardIntercomSupport as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );

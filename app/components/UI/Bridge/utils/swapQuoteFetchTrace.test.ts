@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
 import {
   endTrace,
   trace,
@@ -37,8 +38,8 @@ describe('swapQuoteFetchTrace', () => {
 
   it('starts a quote trace with request correlation and route data', () => {
     const traceId = swapQuoteFetchTrace.start({
-      sourceToken,
-      destToken: crossChainDestinationToken,
+      srcChainId: sourceToken.chainId,
+      destChainId: crossChainDestinationToken.chainId,
       isRefresh: true,
     });
 
@@ -60,18 +61,59 @@ describe('swapQuoteFetchTrace', () => {
 
   it('ends the active quote trace with an explicit result', () => {
     swapQuoteFetchTrace.start({
-      sourceToken,
-      destToken: sameChainDestinationToken,
+      srcChainId: sourceToken.chainId,
+      destChainId: sameChainDestinationToken.chainId,
       isRefresh: false,
     });
 
-    swapQuoteFetchTrace.finish('no_quotes');
+    swapQuoteFetchTrace.finish(
+      'no_quotes',
+      undefined,
+      QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+    );
 
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
       id: 'quote-trace-id',
       timestamp: expect.any(Number),
-      data: { result: 'no_quotes' },
+      data: { result: 'no_quotes', no_quote_reason: 'AMOUNT_TOO_LOW' },
     });
   });
+
+  it('falls back to a generic reason for quote failures without a reason', () => {
+    swapQuoteFetchTrace.start({
+      srcChainId: sourceToken.chainId,
+      destChainId: sameChainDestinationToken.chainId,
+      isRefresh: false,
+    });
+
+    swapQuoteFetchTrace.finish('error');
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { result: 'error', no_quote_reason: 'generic_error' },
+      }),
+    );
+  });
+
+  it.each(['success', 'cancelled'] as const)(
+    'does not attach a no-quote reason to %s traces',
+    (result) => {
+      swapQuoteFetchTrace.start({
+        srcChainId: sourceToken.chainId,
+        destChainId: sameChainDestinationToken.chainId,
+        isRefresh: false,
+      });
+
+      swapQuoteFetchTrace.finish(
+        result,
+        undefined,
+        QuoteStreamCompleteReason.RETRY,
+      );
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { result } }),
+      );
+    },
+  );
 });

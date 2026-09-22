@@ -19,6 +19,7 @@ import {
   PERPS_ADL_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
+import { DAY } from '../../../../constants/time';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
@@ -108,14 +109,19 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
 const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
-const TWAP_DISCOVERY_INTERVAL_MS = 30_000;
 const TWAP_HISTORY_PAGE_SIZE = 20;
 const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+// Hyperliquid submits one TWAP suborder every 30 seconds, so the suborder count
+// is the runtime divided by this interval:
+// https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
+const TWAP_SUBORDER_INTERVAL_SECONDS = 30;
 
 /**
  * Mobile-only TWAP input and copy configuration derived from the controller's
@@ -126,6 +132,9 @@ const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
+  SecondsPerMinute: SECONDS_PER_MINUTE,
+  MillisecondsPerSecond: MILLISECONDS_PER_SECOND,
+  SuborderIntervalSeconds: TWAP_SUBORDER_INTERVAL_SECONDS,
   MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
   MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
   MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
@@ -149,8 +158,6 @@ export const PERPS_TWAP_UI_CONFIG = {
   },
   /** REST fill reconciliation while the venue schedule stream is active. */
   LiveUpdateIntervalMs: TWAP_LIVE_UPDATE_INTERVAL_MS,
-  /** Low-cadence discovery while rollout is off and the TWAP tab is hidden. */
-  DiscoveryIntervalMs: TWAP_DISCOVERY_INTERVAL_MS,
   /** Maximum schedule cards mounted on one History page. */
   HistoryPageSize: TWAP_HISTORY_PAGE_SIZE,
   /** Maximum fill rows mounted on one Fill History page. */
@@ -254,6 +261,10 @@ export const FAR_FROM_MARKET_WARNING_INTERACTION =
 export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
+
+export const PAGE_WINDOW_MS = 30 * DAY;
+
+export const MAX_LOOKBACK_MS = 365 * DAY;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';

@@ -26,6 +26,7 @@ import { TokenI } from '../../../Tokens/types';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { formatEarnRatePercentage } from '../../../Earn/utils';
 import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnTokenSelectorProps {
@@ -57,7 +58,9 @@ const EarnTokenSelector = ({
   const aprValue = parseFloat(rawApr);
 
   const apr =
-    Number.isFinite(aprValue) && aprValue > 0 ? aprValue.toFixed(1) : undefined;
+    Number.isFinite(aprValue) && aprValue > 0
+      ? formatEarnRatePercentage(aprValue)
+      : undefined;
 
   const handlePress = () => {
     trace({ name: TraceName.EarnTokenList });

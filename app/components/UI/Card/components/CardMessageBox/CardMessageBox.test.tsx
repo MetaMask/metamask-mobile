@@ -223,28 +223,6 @@ describe('CardMessageBox', () => {
     });
   });
 
-  describe('PendingVerification warning', () => {
-    it('renders title, description, and continue CTA', () => {
-      const { getByText, getByTestId } = renderWithProvider(() => (
-        <CardMessageBox
-          messageType={CardMessageBoxType.PendingVerification}
-          onConfirm={mockOnConfirm}
-        />
-      ));
-
-      expect(getByText('Finish setting up your card')).toBeOnTheScreen();
-      expect(
-        getByText(
-          'You have pending verification steps to complete before your card can be enabled.',
-        ),
-      ).toBeOnTheScreen();
-      expect(getByText('Continue verification')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('confirm-button'));
-      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('CashbackFundingRequired warning', () => {
     it('renders title and description', () => {
       const { getByText } = renderWithProvider(() => (

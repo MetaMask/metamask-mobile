@@ -7,43 +7,10 @@ import {
   resolveDeeplinkNavigatedTarget,
 } from '../../Performance/DeeplinkPerformance';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
-
-interface NavigationRoute {
-  name: string;
-  params?: object;
-  state?: {
-    index?: number;
-    routes: NavigationRoute[];
-  };
-}
+import { resetToHomeNav, type NavigationRoute } from './resetToHomeNav';
 
 const createRoute = (name: string, params?: object): NavigationRoute =>
   params ? { name, params } : { name };
-
-const resetToMainFlow = (mainFlowState: {
-  index?: number;
-  routes: NavigationRoute[];
-}) => {
-  // Build the same navigator hierarchy the normal Home reset would create
-  // (HomeNav > MainFlow > MainNavigator), but preselect the deeplink target.
-  // This avoids rendering Wallet first while preserving a valid React
-  // Navigation state tree.
-  NavigationService.navigation.reset({
-    routes: [
-      {
-        name: Routes.ONBOARDING.HOME_NAV,
-        state: {
-          routes: [
-            {
-              name: Routes.MAIN_FLOW,
-              state: mainFlowState,
-            },
-          ],
-        },
-      },
-    ],
-  });
-};
 
 /**
  * `intent.prepare()` is genuinely processing work (it seeds Redux/controller
@@ -119,7 +86,7 @@ export const executeStartupDeeplinkIntent = async (
         ? [targetRoute]
         : [createRoute(Routes.WALLET.HOME), targetRoute];
 
-    resetToMainFlow({
+    resetToHomeNav({
       routes: [
         {
           name: Routes.HOME_TABS,
@@ -144,7 +111,7 @@ export const executeStartupDeeplinkIntent = async (
       ? [createRoute(Routes.WALLET.HOME)]
       : [createRoute(Routes.WALLET.HOME), createRoute(backTabName)];
 
-  resetToMainFlow({
+  resetToHomeNav({
     index: 1,
     routes: [
       {

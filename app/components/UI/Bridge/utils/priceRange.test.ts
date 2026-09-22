@@ -3,7 +3,7 @@ import {
   formatExchangeRate,
   formatPriceRangeLabel,
   formatTokenPrice,
-  isPriceRangeInCurrentCurrency,
+  isInvertedPriceRange,
   isValidPriceRange,
   matchingPricePercent,
   parsePriceInput,
@@ -114,8 +114,49 @@ describe('isValidPriceRange', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when a bound is empty', () => {
+  it('returns true when only min is set', () => {
     const result = isValidPriceRange('1800', '');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true when only max is set', () => {
+    const result = isValidPriceRange('', '2200');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when both bounds are empty', () => {
+    const result = isValidPriceRange('', '');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the populated bound is invalid', () => {
+    const result = isValidPriceRange('.', '');
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('isInvertedPriceRange', () => {
+  it.each([
+    ['2000', '1000'],
+    ['2000', '2000'],
+  ])('returns true when min %s is not less than max %s', (min, max) => {
+    const result = isInvertedPriceRange(min, max);
+
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['1800', '2200'],
+    ['1800', ''],
+    ['', '2200'],
+    ['', ''],
+    ['.', '1000'],
+  ])('returns false for min %s and max %s', (min, max) => {
+    const result = isInvertedPriceRange(min, max);
 
     expect(result).toBe(false);
   });
@@ -135,42 +176,6 @@ describe('matchingPricePercent', () => {
   });
 });
 
-describe('isPriceRangeInCurrentCurrency', () => {
-  const range = {
-    tokenSide: 'dest' as const,
-    currency: 'usd',
-    min: '0.90',
-    max: '1.10',
-  };
-
-  it('returns true when currency codes match ignoring case', () => {
-    const result = isPriceRangeInCurrentCurrency(range, 'USD');
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when currency codes differ', () => {
-    const result = isPriceRangeInCurrentCurrency(range, 'eur');
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the range is undefined', () => {
-    const result = isPriceRangeInCurrentCurrency(undefined, 'USD');
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the stored currency is missing', () => {
-    const result = isPriceRangeInCurrentCurrency(
-      { tokenSide: 'dest', currency: '', min: '1', max: '2' },
-      'USD',
-    );
-
-    expect(result).toBe(false);
-  });
-});
-
 describe('formatPriceRangeLabel', () => {
   it('joins formatted min and max with a dash', () => {
     mockedFormatCurrency.mockImplementation(
@@ -180,6 +185,15 @@ describe('formatPriceRangeLabel', () => {
     const result = formatPriceRangeLabel('1800', '2200', 'USD');
 
     expect(result).toBe('$1800.00 - $2200.00');
+  });
+
+  it('uses inequality symbols for a one-sided range', () => {
+    mockedFormatCurrency.mockImplementation(
+      (amount) => `$${String(amount)}.00`,
+    );
+
+    expect(formatPriceRangeLabel('1800', '', 'USD')).toBe('≥ $1800.00');
+    expect(formatPriceRangeLabel('', '2200', 'USD')).toBe('≤ $2200.00');
   });
 });
 

@@ -11,7 +11,7 @@ import SignUp from './SignUp';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardFlow, CardScreens } from '../../util/metrics';
 
 const mockUseCardPostAuthRedirect = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -179,6 +179,21 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => {
   };
 });
 
+jest.mock('../../hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'soft',
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+    },
+    refresh: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => 'warning'),
+}));
+
 // Mock utility functions
 jest.mock('../../../Ramp/utils/depositUtils');
 jest.mock('../../util/validatePassword');
@@ -187,6 +202,8 @@ jest.mock('../../util/validatePassword');
 const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
 const mockLogout = jest.fn();
+const mockBeginMigration = jest.fn();
+const mockCancelMigration = jest.fn();
 const mockGetUserDetails = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
@@ -200,6 +217,8 @@ jest.mock('../../../../../core/Engine', () => ({
       setSelectedCountry: (...args: unknown[]) =>
         mockSetSelectedCountry(...args),
       logout: (...args: unknown[]) => mockLogout(...args),
+      beginMigration: (...args: unknown[]) => mockBeginMigration(...args),
+      cancelMigration: (...args: unknown[]) => mockCancelMigration(...args),
       getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
@@ -233,11 +252,14 @@ jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: () => 'Account 1',
 }));
 const IMMERSVE_TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
-jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => ({
-    address: IMMERSVE_TEST_ADDRESS,
-  }),
-}));
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => {
+  const selectByScope = () => ({
+    address: '0x1234567890123456789012345678901234567890',
+  });
+  return {
+    selectSelectedInternalAccountByScope: () => selectByScope,
+  };
+});
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -324,6 +346,9 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             return state;
         }
       },
+      settings: () => ({
+        avatarAccountType: 'Maskicon',
+      }),
     },
   });
 };
@@ -869,6 +894,7 @@ describe('SignUp Component', () => {
         getByTestId('signup-immersve-phone-number-input'),
       ).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
+      expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 
@@ -1047,7 +1073,12 @@ describe('SignUp Component', () => {
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
-        { email: 'gb@example.com', countryKey: 'GB' },
+        expect.objectContaining({
+          email: 'gb@example.com',
+          countryKey: 'GB',
+          hasExistingCard: false,
+          fundingAddress: expect.any(String),
+        }),
       );
     });
 
@@ -1079,7 +1110,12 @@ describe('SignUp Component', () => {
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'active' },
-        { email: 'gb@example.com', countryKey: 'GB' },
+        expect.objectContaining({
+          email: 'gb@example.com',
+          countryKey: 'GB',
+          hasExistingCard: false,
+          fundingAddress: expect.any(String),
+        }),
       );
     });
 
@@ -1463,6 +1499,71 @@ describe('SignUp Component', () => {
       );
     });
 
+    it('tracks CARD_VIEWED with migration flow props', async () => {
+      render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          provider: 'immersve',
+          screen: CardScreens.SIGN_UP,
+          flow: CardFlow.MIGRATION,
+          migration_phase: 'grace_window',
+          badge_reasons: ['card_migration'],
+        });
+      });
+    });
+
+    it('tracks SIGN_UP_BUTTON with migration flow and country codes only', async () => {
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockResolvedValue([{ id: 'fs-existing' }]);
+      mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+      mockAddProperties.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'immersve',
+        action: CardActions.SIGN_UP_BUTTON,
+        flow: CardFlow.MIGRATION,
+        migration_phase: 'grace_window',
+        badge_reasons: ['card_migration'],
+        country_of_residence: 'GB',
+        phone_number_country_code: '44',
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: expect.anything(),
+        }),
+      );
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          phone: expect.anything(),
+        }),
+      );
+    });
+
     it('prefills phone region after regions load when user details were pending', async () => {
       const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
 
@@ -1716,7 +1817,7 @@ describe('SignUp Component', () => {
       );
     });
 
-    it('clears Baanx session before Immersve continue on Next', async () => {
+    it('calls beginMigration before Immersve continue on Next', async () => {
       mockImmersveSignIn.mockResolvedValue({ done: true });
       mockGetFundingSources.mockResolvedValue([]);
       mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
@@ -1758,12 +1859,41 @@ describe('SignUp Component', () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });
 
-      expect(mockLogout).toHaveBeenCalledTimes(1);
+      expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockBeginMigration).toHaveBeenCalledTimes(1);
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });
-      expect(mockLogout.mock.invocationCallOrder[0]).toBeLessThan(
+      expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
         mockImmersveSignIn.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls cancelMigration when Immersve continue fails after beginMigration', async () => {
+      mockImmersveSignIn.mockRejectedValue(new Error('user rejected'));
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+        expect(mockCancelMigration).toHaveBeenCalledTimes(1);
+      });
+      expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
+        mockCancelMigration.mock.invocationCallOrder[0],
       );
     });
 

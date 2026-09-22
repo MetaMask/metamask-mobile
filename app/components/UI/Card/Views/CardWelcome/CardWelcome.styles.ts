@@ -1,9 +1,8 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { Platform, StyleSheet } from 'react-native';
-import { colors as importedColors } from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
 
-export const GRADIENT_COLORS = ['#1D002E', '#3D065F'];
+export const GRADIENT_COLORS = ['#1D002E', '#360853'];
 
 // Platform-specific base dimensions
 const BASE_WIDTH = 375;
@@ -26,14 +25,6 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   const { width: screenWidth, height: screenHeight } = dimensions;
 
   const widthScale = screenWidth / BASE_WIDTH;
-  const heightScale = screenHeight / baseHeight;
-
-  // Use more conservative scaling to prevent excessive padding
-  const scale = Math.min(widthScale, heightScale);
-  const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
-
-  const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
-  const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
 
   // For vertical spacing, use percentage of available height instead of pure scaling
   const scaleVertical = (size: number) => {
@@ -47,22 +38,14 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   return {
     screenWidth,
     screenHeight,
-    scaleSize,
-    scaleFont,
     scaleVertical,
     scaleHorizontal,
   };
 };
 
 const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
-  const {
-    screenWidth,
-    screenHeight,
-    scaleSize,
-    scaleFont,
-    scaleVertical,
-    scaleHorizontal,
-  } = createScalingFunctions(dimensions);
+  const { screenWidth, screenHeight, scaleVertical, scaleHorizontal } =
+    createScalingFunctions(dimensions);
 
   return StyleSheet.create({
     pageContainer: {
@@ -145,25 +128,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       paddingHorizontal: scaleHorizontal(30),
       paddingBottom: scaleVertical(2),
       zIndex: 3,
-    },
-    getStartedButton: {
-      borderRadius: scaleSize(12),
-      backgroundColor: importedColors.white,
-    },
-    getStartedButtonText: {
-      color: importedColors.btnBlack,
-      fontWeight: '600',
-      fontSize: scaleFont(16),
-    },
-    notNowButton: {
-      borderRadius: scaleSize(12),
-      backgroundColor: importedColors.transparent,
-      borderWidth: 0,
-    },
-    notNowButtonText: {
-      color: importedColors.white,
-      fontWeight: '500',
-      fontSize: scaleFont(16),
     },
   });
 };

@@ -310,7 +310,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   it('renders the inline back button instead of a cancel button on a treatment arm', async () => {
     const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
       {
-        headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
+        headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
       },
     );
 
@@ -347,7 +347,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
   it('shows the open-tabs count and opens the browser when tabs are open', async () => {
     const { findByTestId, getByText } = renderExploreSearchScreenWithRoutes({
-      headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
+      headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
       overrides: {
         browser: {
           tabs: [

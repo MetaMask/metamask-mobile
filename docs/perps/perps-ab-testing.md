@@ -2,7 +2,114 @@
 
 Perps A/B tests follow the canonical MetaMask Mobile standard. See:
 
+- [A/B Testing Framework](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/400743989262/A+B+Testing+Framework) — shared Mobile/Extension framework
 - [`docs/ab-testing.md`](../ab-testing.md) — SSOT for implementation, LaunchDarkly setup, and analytics rules
-- [`app/components/UI/Perps/abTestConfig.ts`](../../app/components/UI/Perps/abTestConfig.ts) — current Perps test configuration (button color test, TAT-1937)
+- [`app/components/UI/Perps/abTestConfig.ts`](../../app/components/UI/Perps/abTestConfig.ts) — current Perps test configuration
 
 Historical note: this doc previously described a Perps-local `usePerpsABTest` hook. That implementation was migrated to the shared `useABTest` standard in TAT-3308.
+
+## Active tests
+
+| Flag key (Redux / `useABTest`)           | Variants               | Purpose                                                                   |
+| ---------------------------------------- | ---------------------- | ------------------------------------------------------------------------- |
+| `perpsTAT1937AbtestButtonColor`          | `control`, `colors`    | Long/short button color (TAT-1937)                                        |
+| `perpsTAT3938AbtestScreenVsBottomSheet`  | `control`, `treatment` | Shared screen vs bottom-sheet experience                                  |
+| `perpsTAT3597AbtestPerpsSectionPriority` | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597) |
+
+`perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition. See [`docs/perps/perps-feature-flags.md`](./perps-feature-flags.md).
+
+## Screen vs bottom sheet (`perpsTAT3938AbtestScreenVsBottomSheet`)
+
+One experiment governs every Perps flow that is converting from a full page to a bottom sheet (Close Position — TAT-3552 — and later tickets under the same epic). Do **not** define a new experiment per conversion.
+
+The LaunchDarkly / `useABTest` key follows `{team}{TICKET}Abtest{TestName}` from
+[`docs/ab-testing.md`](../ab-testing.md), using TAT-3938 as the setup ticket.
+Later conversion tickets reuse this same key rather than creating their own.
+
+Assignment is **orthogonal to Lite/Pro mode**. Mode is still `selectPerpsProModeEnabledFlag` / `useIsPerpsProModeActive()` in `app/components/UI/Perps/utils/perpsModeSwitch.ts`. A Lite treatment user and a Pro treatment user each get **that mode's** new sheets; control users of either mode keep full-page flows.
+
+### LaunchDarkly
+
+Create a JSON flag named `perpsTAT3938AbtestScreenVsBottomSheet`. Default targeting must serve **0% treatment** until product signs off:
+
+```json
+[
+  {
+    "name": "control",
+    "scope": { "type": "percentage_rollout", "value": 1.0 }
+  },
+  {
+    "name": "treatment",
+    "scope": { "type": "percentage_rollout", "value": 1.0 }
+  }
+]
+```
+
+These values are ordered cumulative thresholds: control occupies the full
+`[0, 1.0]` range, leaving no range for treatment. For a 50/50 split, use `0.5`
+for control and `1.0` for treatment. Missing or invalid flags fall back to
+`control` in `useABTest`.
+
+Create the flag with this safe value, but keep its production targeting rule
+disabled until the first conversion router ships. This prevents conversion
+events from carrying an assignment before any user can be exposed. Before
+enabling the rule, version-gate it to the first app version that contains that
+router so older clients cannot receive an unusable treatment. Keep treatment at
+0% until product signs off.
+
+The feature-flag registry records `'control'` as the safe metadata default and
+keeps `inProd: false` until the flag exists in the production client-config
+response. Once it is added there, sync the registry to the exact production
+array and set `inProd: true`.
+
+### Shared hook
+
+Import `usePerpsScreenVsBottomSheetAbTest` from `app/components/UI/Perps/hooks`. Do not call `useABTest` with this flag from conversion tickets.
+
+```typescript
+const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+```
+
+- `useBottomSheet` is `true` only for treatment.
+- Route only on `useBottomSheet`. An active `control` assignment is still an active experiment assignment; it must continue to render the screen.
+- `useABTest` emits `Experiment Viewed` once per `experiment_id` + `variation_id` per app session.
+- `{ trackExposure: false }` resolves the assignment without exposure, for reads outside the experiment surface (see screen options below).
+
+### Router-swap pattern (conversion tickets)
+
+Keep **one route and the same params**. Swap the presented component from a thin router, the same way `PerpsMarketDetailsRouter` swaps `PerpsProMarketView` vs `PerpsMarketDetailsView` behind a flag without changing navigation.
+
+Worked example: `PerpsClosePositionRouter` (TAT-3552). Branch on Lite/Pro only where a mode owns a different layout — Close Position does not, since both modes share one screen today.
+
+Rules:
+
+- Register the existing route name (`Routes.PERPS.*`) on the router, not on a new treatment-only route.
+- Do not branch on Lite/Pro for _whether_ the experiment applies — only for _which_ sheet/page that mode owns.
+- Control (`useBottomSheet === false`) must keep today's full-page UI in both modes.
+- Screen options live on the navigator, so `PerpsScreenStack` resolves the assignment once with `{ trackExposure: false }` and each converted screen passes it through `getPerpsConversionScreenOptions` (local to `routes/index.tsx`, where every converted screen is registered) to add the transparent presentation. Add one `Stack.Screen` line; do not add another hook call to that navigator. Exposure stays with the router, which only mounts when the flow opens.
+- Keep each flow's non-visual logic in one hook both variants render from (`usePerpsClosePositionForm` for Close Position) so the two cannot drift. It takes a `dismiss` override so the sheet animates closed before the route pops.
+
+### Analytics
+
+`SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING` in `abTestConfig.ts` is registered in `app/util/analytics/abTestAnalyticsRegistry.ts`. Close-position conversion events are emitted from Perps Core via `trackPerpsEvent`, which calls `analytics.trackEvent` and therefore still receives registry enrichment. The wrappers attach `active_ab_tests` to `Perp Position Close Transaction`, the conversion event for the first converted flow.
+
+Do not add broad Perps screen, interaction, or trade events preemptively. When another flow adopts the shared hook, add only that flow's conversion event to the mapping and cover it with an enrichment test.
+
+If a future conversion bypasses the shared analytics wrappers, wire its
+assignment explicitly according to [`docs/ab-testing.md`](../ab-testing.md)
+when that flow is added. Do not add speculative custom-tracker APIs to this
+shared hook, and do not add new `ab_tests` payloads.
+
+## Perps section priority (`perpsTAT3597AbtestPerpsSectionPriority`)
+
+Places the Perps section above Tokens on wallet home for active Perps traders. Config lives in `app/components/Views/Homepage/abTestConfig.ts`, since the experiment is owned by the homepage layout rather than Perps.
+
+### How to read the results
+
+**The primary readout is intent to treat.** `Experiment Viewed` fires for every assigned user on wallet home, including users who are not eligible and users without Perps enabled — all of whom receive the control layout. That is deliberate: eligibility is activity-based and treatment can influence it on later visits, so gating exposure on it would condition the population on an outcome. Do not read the headline numbers as an eligible-user comparison.
+
+**The eligible subgroup is a secondary cut**, taken on `perps_priority_eligible`. That property rides every `section_viewed` event rather than only the Perps section's, because in control the Perps section sits below Tokens and fires only on scroll — recording eligibility there would limit the observable eligible-control group to users who had already scrolled to Perps, which is close to the behaviour being measured.
+
+Eligibility deliberately describes the person, not the selected account: `evaluateIsActivePerpsTrader` falls back to a wallet-wide recent-action timestamp when the selected account holds no positions or resting orders. The subgroup can therefore include a recently active trader whose currently selected account holds nothing. This applies identically in both arms, so it costs the cut some precision without biasing it.
+
+**Eligibility is captured once per visit, before section order is decided** (`useIsActivePerpsTrader` in `Homepage.tsx`, supplied through `PerpsPriorityEligibilityContext`). Capturing at first render stops sections reordering after they are on screen, at the cost that a user whose Perps data has not loaded yet stays in the control layout for that visit and is reported ineligible. This only reduces treatment reach; it does not move users between arms. Quantify how often initial data is unavailable before reading the subgroup cut.

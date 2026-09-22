@@ -6,11 +6,13 @@ import {
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
   selectRecentlyViewedMarkets,
+  selectVisibleCandleCount as selectVisibleCandleCountCore,
   selectPerpsMode as selectPerpsModeCore,
   selectOrderBookPreferences as selectOrderBookPreferencesCore,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
   DEFAULT_ORDER_BOOK_PREFERENCES,
+  VISIBLE_CANDLE_COUNT_CONFIG,
   InitializationState,
   type OrderBookPreferences,
   type PerpsActiveProviderMode,
@@ -120,6 +122,45 @@ const selectPerpsRecentlyViewedMarkets = createSelector(
       );
     } catch {
       return [];
+    }
+  },
+);
+
+/**
+ * Symbol of the market the user viewed most recently (24h TTL).
+ * Falls back to BTC when the recently-viewed list is empty so Pro entry
+ * points have a market to land on (TAT-3706 / TAT-3702).
+ */
+const selectPerpsLastViewedMarketSymbol = createSelector(
+  selectPerpsRecentlyViewedMarkets,
+  (symbols): string => {
+    const lastViewed = symbols[0];
+    return typeof lastViewed === 'string' && lastViewed.length > 0
+      ? lastViewed
+      : 'BTC';
+  },
+);
+
+/**
+ * Number of candles shown in Lite and Pro chart viewports.
+ * Shared across markets and sessions via PerpsController.visibleCandleCount.
+ */
+const selectPerpsVisibleCandleCount = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): number => {
+    try {
+      const raw = perpsControllerState
+        ? selectVisibleCandleCountCore(perpsControllerState)
+        : VISIBLE_CANDLE_COUNT_CONFIG.Default;
+      if (typeof raw !== 'number' || !Number.isFinite(raw)) {
+        return VISIBLE_CANDLE_COUNT_CONFIG.Default;
+      }
+      return Math.min(
+        VISIBLE_CANDLE_COUNT_CONFIG.Max,
+        Math.max(VISIBLE_CANDLE_COUNT_CONFIG.Min, Math.round(raw)),
+      );
+    } catch {
+      return VISIBLE_CANDLE_COUNT_CONFIG.Default;
     }
   },
 );
@@ -348,6 +389,8 @@ export {
   selectIsFirstTimePerpsUser,
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsVisibleCandleCount,
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,

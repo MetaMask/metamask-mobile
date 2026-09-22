@@ -3,6 +3,7 @@ import type { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
+import { usePerpsPriorityEligibility } from '../context/PerpsPriorityEligibilityContext';
 
 export const HomeSectionNames = {
   TOKENS: 'tokens',
@@ -40,6 +41,8 @@ interface UseHomeViewedEventParams {
    * E.g. for Tokens: number of token rows. For NFTs in empty state: 0.
    */
   itemCount: number;
+  /** Optional callback invoked once when this section is recorded as viewed. */
+  onSectionViewed?: () => void;
   /** Optional shared viewport state. When provided, skip this hook's own measurement. */
   isVisible?: boolean;
   /**
@@ -73,9 +76,11 @@ const useHomeViewedEvent = ({
   totalSectionsLoaded,
   isEmpty,
   itemCount,
+  onSectionViewed,
   isVisible,
   fireImmediateWhenNoView = true,
 }: UseHomeViewedEventParams) => {
+  const isActivePerpsTrader = usePerpsPriorityEligibility();
   const {
     subscribeToScroll,
     viewportHeight,
@@ -102,6 +107,7 @@ const useHomeViewedEvent = ({
     // not included in enabledSections. Don't fire the event in that case.
     if (sectionIndex < 0) return;
     hasFiredRef.current = true;
+    onSectionViewed?.();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
@@ -116,6 +122,9 @@ const useHomeViewedEvent = ({
           entry_point: entryPoint,
           app_session_id: appSessionId,
           visit_number: visitId,
+          ...(isActivePerpsTrader === undefined
+            ? {}
+            : { perps_priority_eligible: isActivePerpsTrader }),
         })
         .build(),
     );
@@ -136,6 +145,8 @@ const useHomeViewedEvent = ({
     createEventBuilder,
     notifySectionViewed,
     sectionRef,
+    isActivePerpsTrader,
+    onSectionViewed,
   ]);
 
   // Reset on each homepage visit so the event re-fires.

@@ -1,6 +1,7 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
@@ -17,24 +18,20 @@ import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bri
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import { TokenSelectorType } from '../../types';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
-import { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../useBridgeQuoteRequest';
-import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useLatestBalance } from '../useLatestBalance';
 import { useSourceAmountInput } from '../useSourceAmountInput';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
+import {
+  getDefaultTokenPairForChains,
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
+import { areAddressesEqual } from '../../../../../util/address';
+import { useBridgeSession } from '../useBridgeSession';
 
-interface UseLimitOrderSwapInputsOptions {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-export const useLimitOrderSwapInputs = ({
-  latestSourceBalance,
-}: UseLimitOrderSwapInputsOptions) => {
+export const useLimitOrderSwapInputs = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -60,7 +57,11 @@ export const useLimitOrderSwapInputs = ({
   // flow's allowed chains, so always re-anchor both to this flow's default
   // pair: Ethereum's ETH/mUSD when enabled, otherwise the default pair for the
   // first enabled chain.
+  const didResetTokensRef = useRef(false);
+
   useEffect(() => {
+    didResetTokensRef.current = false;
+
     if (!enabledChainIds) {
       return;
     }
@@ -74,7 +75,38 @@ export const useLimitOrderSwapInputs = ({
     if (defaultPair.destToken) {
       dispatch(setDestToken(defaultPair.destToken));
     }
+    didResetTokensRef.current = true;
   }, [enabledChainIds, dispatch]);
+
+  useEffect(() => {
+    if (didResetTokensRef.current) {
+      // Avoid overwriting the freshly reset dest token with one computed from stale data.
+      didResetTokensRef.current = false;
+      return;
+    }
+
+    if (!sourceToken?.chainId || !destToken?.chainId) {
+      return;
+    }
+    const sourceChainCaip = formatChainIdToCaip(sourceToken.chainId);
+    const destChainCaip = formatChainIdToCaip(destToken.chainId);
+    if (sourceChainCaip === destChainCaip) {
+      return;
+    }
+    // Limit orders don't support cross-chain trades, so a stale
+    // cross-chain dest must always be corrected, even if the user
+    // manually picked it earlier on the previous source chain.
+    const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
+    const nativeToken = getNativeSourceToken(sourceToken.chainId);
+    const nextDestToken =
+      defaultDestToken &&
+      !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+        ? defaultDestToken
+        : nativeToken;
+    dispatch(setDestToken(nextDestToken));
+  }, [sourceToken, destToken, dispatch]);
+
+  const { latestSourceBalance } = useBridgeSession();
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -91,47 +123,11 @@ export const useLimitOrderSwapInputs = ({
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
-  const { destTokenAmount, isLoading } = useBridgeQuoteDataContext();
   const { handleSwitchTokens } = useSwitchTokens();
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const isSourceNetworkGasSponsored = useIsNetworkGasSponsored(
     sourceToken?.chainId,
   );
-
-  // Gas sponsorship only covers trades that stay on a single sponsored chain.
-  const isQuoteSponsored =
-    Boolean(sourceToken?.chainId) &&
-    sourceToken?.chainId === destToken?.chainId &&
-    isSourceNetworkGasSponsored;
-
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
-  // A limit order can't be signed by a hardware wallet on any chain, so no
-  // quote is ever requested for one. The inputs stay interactive and
-  // `HardwareWalletUnsupportedBanner` explains why no quote appears. Gating
-  // here rather than in useBridgeQuoteRequest keeps hardware wallets working
-  // for Market orders, which share that hook but not this one.
-  const isHardwareWallet = useIsHardwareWalletForBridge();
-
-  // Both pickers are restricted to EVM chains, so no destination address is
-  // needed: that is only required for bridges involving a non-EVM chain.
-  const hasValidBridgeInputs =
-    !isHardwareWallet &&
-    sourceAmount !== undefined &&
-    sourceAmount !== '.' &&
-    Boolean(sourceToken?.decimals) &&
-    Boolean(destToken);
-
-  useEffect(() => {
-    if (hasValidBridgeInputs) {
-      updateQuoteParams();
-    }
-    return () => {
-      updateQuoteParams.cancel();
-    };
-  }, [hasValidBridgeInputs, updateQuoteParams]);
 
   const handleSourceMaxPress = useCallback(() => {
     if (!latestSourceBalance?.displayBalance) {
@@ -161,12 +157,15 @@ export const useLimitOrderSwapInputs = ({
     [dispatch, syncFiatAmountToTokenAmount],
   );
 
-  const handleFlipTokensPress = useCallback(() => {
-    resetToTokenMode();
-    handleSwitchTokens(destTokenAmount)().catch((error) => {
-      console.error('Error switching swap tokens:', error);
-    });
-  }, [destTokenAmount, handleSwitchTokens, resetToTokenMode]);
+  const handleFlipTokensPress = useCallback(
+    (destTokenAmount?: string) => {
+      resetToTokenMode();
+      handleSwitchTokens(destTokenAmount)().catch((error) => {
+        console.error('Error switching swap tokens:', error);
+      });
+    },
+    [handleSwitchTokens, resetToTokenMode],
+  );
 
   const handleSourceTokenPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
@@ -179,24 +178,24 @@ export const useLimitOrderSwapInputs = ({
   const handleDestTokenPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
-      enabledChainIds,
+      enabledChainIds: sourceToken?.chainId
+        ? [formatChainIdToCaip(sourceToken.chainId)]
+        : [],
       excludeRwaTokens: true,
     });
-  }, [enabledChainIds, navigation]);
+  }, [navigation, sourceToken?.chainId]);
 
   return {
     enabledChainIds,
     destToken,
-    destTokenAmount,
     handleDestTokenPress,
     handleFlipTokensPress,
     handleSourceMaxPress,
     handleSourcePresetAmountSelect,
     handleSourceTokenPress,
-    isDestAmountLoading: isLoading,
     isFlipDisabled: !sourceToken || !destToken || !isDestNetworkEnabled,
-    isQuoteSponsored,
     sourceAmount,
+    isSourceNetworkGasSponsored,
     sourceAmountInput,
     sourceToken,
   };

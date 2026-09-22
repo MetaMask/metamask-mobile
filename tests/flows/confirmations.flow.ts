@@ -32,6 +32,10 @@ const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
 const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
 const ANDROID_CONFIRM_POLL_MS = 3_000;
+// Transaction flows (gas estimation via Anvil) can take >3s on loaded CI
+// runners — use a longer poll window to avoid false Android retries that fire
+// a duplicate eth_sendTransaction and create a phantom queued confirmation.
+const TRANSACTION_CONFIRM_POLL_MS = 10_000;
 const DAPP_BUTTON_READY_TIMEOUT_MS = 20_000;
 const DAPP_BUTTON_READY_POLL_MS = 500;
 /** Re-run the dapp's contract binding if it is still missing after this long. */
@@ -162,10 +166,11 @@ export {
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
  */
-const tapTestDappButtonAndWaitForConfirm = async (
+export const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
   description: string,
   expectedUrl?: string,
+  confirmPollTimeoutMs: number = ANDROID_CONFIRM_POLL_MS,
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
   const confirmTimeoutMs = 30_000;
@@ -181,12 +186,21 @@ const tapTestDappButtonAndWaitForConfirm = async (
             buttonId,
             expectedUrl,
           );
+          // Do not tap while the contract is still unbound — a "successful"
+          // WebView tap with contractBound:false never opens the sheet.
+          if (!isTestDappButtonReady(lastState)) {
+            throw new Error(
+              `Test dapp #${buttonId} not ready before tap; state=${JSON.stringify(
+                lastState,
+              )}`,
+            );
+          }
           await WebView.tapById(buttonId, {
             pageUrl,
             description,
           });
           try {
-            await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
+            await FooterActions.waitForConfirmButton(confirmPollTimeoutMs);
           } catch (error) {
             if (!dismissedPushSheet) {
               dismissedPushSheet = true;
@@ -208,6 +222,19 @@ const tapTestDappButtonAndWaitForConfirm = async (
     return;
   }
 
+  // Apply the same contract-bound readiness gate as Android — without it,
+  // a tap issued before the dapp binds the contract succeeds silently and
+  // no confirmation sheet opens, causing waitForConfirmButton to time out.
+  const iosState = await waitForTestDappButtonReady(
+    pageUrl,
+    buttonId,
+    expectedUrl,
+  );
+  if (!isTestDappButtonReady(iosState)) {
+    throw new Error(
+      `Test dapp #${buttonId} not ready before tap; state=${JSON.stringify(iosState)}`,
+    );
+  }
   await WebView.tapById(buttonId, {
     pageUrl,
     description,
@@ -232,6 +259,7 @@ export const navigateToContractAndTap = async (
     buttonId,
     description,
     `${getDappUrl(0)}/?${params.toString()}`,
+    TRANSACTION_CONFIRM_POLL_MS,
   );
 };
 

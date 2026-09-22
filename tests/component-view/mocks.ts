@@ -101,6 +101,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       CardController: {
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        getContactDetails: jest.fn().mockResolvedValue({
+          email: 'cardholder@example.com',
+          phone: '+441234567890',
+        }),
+        patchContactDetails: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
         clearRedeemWithdrawal: jest.fn(),
         withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
@@ -119,6 +124,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
           supportsTransactionHistory: false,
+          supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
         }),
       },
@@ -363,7 +369,9 @@ jest.mock('../../app/core/Engine', () => {
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
-      PredictNextController: {},
+      PredictMarketDataService: {},
+      PredictLiveDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -535,6 +543,7 @@ jest.mock('../../app/core/Engine', () => {
         setProLayoutPreferences: jest.fn(),
         setSelectedOrderType: jest.fn(),
         setOrderBookPreferences: jest.fn(),
+        setVisibleCandleCount: jest.fn(),
         saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),

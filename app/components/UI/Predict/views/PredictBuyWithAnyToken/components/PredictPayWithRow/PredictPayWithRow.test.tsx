@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { PredictPayWithRow } from './PredictPayWithRow';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -25,6 +26,7 @@ jest.mock(
 );
 
 let mockTransactionMeta: {
+  id?: string;
   txParams?: { from?: string };
 } | null = null;
 jest.mock(
@@ -63,7 +65,17 @@ jest.mock('../../../../../../../util/address', () => ({
 
 let mockHasTransactionType = true;
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+  },
+  TransactionStatus: {
+    confirmed: 'confirmed',
+    dropped: 'dropped',
+    failed: 'failed',
+  },
+  TransactionType: {
+    predictDepositAndOrder: 'predictDepositAndOrder',
+  },
   hasTransactionType: (transactionMeta: unknown) => {
     if (!transactionMeta) return false;
     return mockHasTransactionType;
@@ -339,6 +351,66 @@ describe('PredictPayWithRow', () => {
     const tree = JSON.stringify(toJSON());
 
     expect(tree).not.toContain('ArrowDown');
+  });
+
+  describe('money account selected', () => {
+    const TRANSACTION_ID_MOCK = 'tx-money-1';
+
+    const MONEY_ACCOUNT_STATE = {
+      engine: {
+        backgroundState: {
+          TransactionPayController: {
+            transactionData: {
+              [TRANSACTION_ID_MOCK]: {
+                paymentOverride: PaymentOverride.MoneyAccount,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const MONEY_ACCOUNT_LABEL =
+      'Pay with confirm.pay_with_bottom_sheet.money_account';
+
+    beforeEach(() => {
+      mockTransactionMeta = {
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0xUserAddress' },
+      };
+    });
+
+    it('renders money account label instead of the underlying mUSD pay token', () => {
+      mockPayToken = { symbol: 'mUSD', address: '0xmusd', chainId: '0x279f' };
+
+      renderWithProvider(<PredictPayWithRow />, { state: MONEY_ACCOUNT_STATE });
+
+      expect(screen.getByText(MONEY_ACCOUNT_LABEL)).toBeOnTheScreen();
+    });
+
+    it('renders money account label even when predict balance is also selected', () => {
+      mockIsPredictBalanceSelected = true;
+
+      renderWithProvider(<PredictPayWithRow />, { state: MONEY_ACCOUNT_STATE });
+
+      expect(screen.getByText(MONEY_ACCOUNT_LABEL)).toBeOnTheScreen();
+    });
+
+    it('renders the money icon instead of a TokenIcon', () => {
+      renderWithProvider(<PredictPayWithRow />, { state: MONEY_ACCOUNT_STATE });
+
+      expect(screen.queryByTestId(/token-icon/)).toBeNull();
+    });
+
+    it('renders money account label in the row variant', () => {
+      renderWithProvider(<PredictPayWithRow variant="row" />, {
+        state: MONEY_ACCOUNT_STATE,
+      });
+
+      expect(
+        screen.getByText('confirm.pay_with_bottom_sheet.money_account'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('variant="row"', () => {

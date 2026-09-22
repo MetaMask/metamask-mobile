@@ -193,7 +193,7 @@ describe('qrSyncTelemetry', () => {
       reportQrSyncFailure(new Error('scan submit failed'), {
         surface: QrSyncSurfaces.SCANNER,
         operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-        source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+        source: QrSyncTelemetrySources.QR_TAB_SWITCHER_ADD_DEVICE_SCAN,
         extras: { qrPayload: TEST_MWP_DEEPLINK },
       });
 

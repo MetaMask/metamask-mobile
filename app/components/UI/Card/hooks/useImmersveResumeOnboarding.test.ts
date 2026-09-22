@@ -129,7 +129,12 @@ describe('useImmersveResumeOnboarding', () => {
     expect(mockGetSpendingPrerequisites).toHaveBeenCalledTimes(2);
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
@@ -147,7 +152,12 @@ describe('useImmersveResumeOnboarding', () => {
     expect(mockPatchContactDetails).not.toHaveBeenCalled();
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'active' },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
@@ -258,11 +268,16 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'active' },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
-  it('routes to `funding` when a smart_contract_write prerequisite is outstanding', async () => {
+  it('routes to `funding` with hasExistingCard false when there is no card', async () => {
     mockGetFundingSources.mockResolvedValue([
       { id: 'fs-existing', fundingChannelId: 'base-channel' },
     ]);
@@ -290,7 +305,50 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'funding', write },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
+    );
+  });
+
+  it('routes to `funding` with hasExistingCard true when the user already has a card', async () => {
+    mockGetResumeCardInfo.mockResolvedValue({
+      cardProgramId: 'program-1',
+      fundingSourceIds: ['fs-existing'],
+    });
+    const write = {
+      abi: [],
+      contractAddress: '0xusdc',
+      method: 'approve',
+      params: { _spender: '0xspender', _value: '1' },
+    };
+    mockGetSpendingPrerequisites.mockResolvedValue({
+      prerequisites: [
+        {
+          stage: 'funding',
+          status: 'action-required',
+          actionType: 'smart_contract_write',
+          params: write,
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockRoute).toHaveBeenCalledWith(
+      { type: 'funding', write },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: true,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
@@ -309,7 +367,12 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'rejected', retryUrl: undefined },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 

@@ -1,4 +1,3 @@
 export interface RecurringRepeatInfoSheetProps {
-  isVisible: boolean;
-  onClose: () => void;
+  goBack: () => void;
 }

@@ -11,11 +11,6 @@ import { PerpsLoaderSelectorsIDs } from '../Perps.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import PerpsRedirect from './PerpsRedirect';
 
-jest.mock('../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: { navigation: { navigate: jest.fn(), setParams: jest.fn() } },
-}));
-
 describe('PerpsRedirect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -27,6 +22,16 @@ describe('PerpsRedirect', () => {
       Routes.PERPS.PERPS_TAB,
       {
         extraRoutes: [{ name: Routes.WALLET.HOME }],
+        connectionValue: {
+          isConnected: false,
+          isConnecting: true,
+          isInitialized: false,
+          error: null,
+          connect: async () => undefined,
+          disconnect: async () => undefined,
+          resetError: () => undefined,
+          reconnectWithNewContext: async () => undefined,
+        },
       },
     );
 
@@ -35,12 +40,22 @@ describe('PerpsRedirect', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows a redirecting message when connected and initialized', async () => {
+  it('shows a redirecting message while waiting for connection', async () => {
     renderPerpsView(
       PerpsRedirect as unknown as React.ComponentType,
       Routes.PERPS.PERPS_TAB,
       {
         extraRoutes: [{ name: Routes.WALLET.HOME }],
+        connectionValue: {
+          isConnected: false,
+          isConnecting: false,
+          isInitialized: true,
+          error: null,
+          connect: async () => undefined,
+          disconnect: async () => undefined,
+          resetError: () => undefined,
+          reconnectWithNewContext: async () => undefined,
+        },
       },
     );
 

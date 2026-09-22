@@ -112,7 +112,7 @@ export const isSDKServiceDeeplink = (
  * Checks if a URL is an internal MetaMask deeplink that should be handled
  * within the app rather than passed to the OS.
  *
- * Matches both custom schemes (metamask:, ethereum:, dapp:) and
+ * Matches both custom schemes (metamask:, ethereum:, dapp:, solana:) and
  * MetaMask universal link hosts (metamask.app.link, link.metamask.io, etc.).
  *
  * @param url - The URL to check
@@ -122,7 +122,7 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
   if (!url) return false;
 
   // Check custom schemes first (more efficient for these cases)
-  const internalSchemes = ['metamask:', 'ethereum:', 'dapp:'];
+  const internalSchemes = ['metamask:', 'ethereum:', 'dapp:', 'solana:'];
   if (internalSchemes.some((scheme) => url.startsWith(scheme))) {
     return true;
   }

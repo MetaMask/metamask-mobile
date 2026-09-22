@@ -6,6 +6,7 @@ import {
   defaultCardFeatureFlag,
 } from './defaults';
 import {
+  getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
@@ -13,6 +14,7 @@ import {
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
 } from './read';
@@ -548,6 +550,114 @@ describe('card feature flag readers', () => {
           regionCode: 'US',
         }),
       ).toBe(false);
+    });
+
+    it('returns false when the user has completed migration', () => {
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'GB',
+          hasCompletedMigration: true,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('readCardUkMigrationSignInRoutingEnabled', () => {
+    const originalEnv =
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+      } else {
+        process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads the version-gated remote flag when present', () => {
+      delete process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+      expect(
+        readCardUkMigrationSignInRoutingEnabled({
+          cardUkMigrationSignInRouting: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(true);
+      expect(
+        readCardUkMigrationSignInRoutingEnabled({
+          cardUkMigrationSignInRouting: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(false);
+    });
+
+    it('falls back to the env override when the remote flag is absent', () => {
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'true';
+      expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(true);
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'false';
+      expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(false);
+    });
+  });
+
+  describe('getCardUkMigrationUpdateBadgeSeverity', () => {
+    const deadline = new Date('2026-09-30T23:59:59.999Z');
+
+    it('returns null when migration is inactive', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity({
+          phase: 'off',
+          isActive: false,
+          deadline,
+        }),
+      ).toBeNull();
+    });
+
+    it('returns info when soft period started more than 7 days before end', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-20T00:00:00.000Z'),
+        ),
+      ).toBe('info');
+    });
+
+    it('returns warning when soft period is within 7 days of end', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-24T00:00:00.000Z'),
+        ),
+      ).toBe('warning');
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-30T12:00:00.000Z'),
+        ),
+      ).toBe('warning');
+    });
+
+    it('returns danger when soft period has ended (forced)', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'forced', isActive: true, deadline },
+          new Date('2026-10-01T00:00:00.000Z'),
+        ),
+      ).toBe('danger');
+    });
+
+    it('returns danger after deadline when cached phase remains soft', () => {
+      const state = { phase: 'soft' as const, isActive: true, deadline };
+
+      const severity = getCardUkMigrationUpdateBadgeSeverity(
+        state,
+        new Date('2026-10-01T00:00:00.000Z'),
+      );
+
+      expect(severity).toBe('danger');
     });
   });
 });

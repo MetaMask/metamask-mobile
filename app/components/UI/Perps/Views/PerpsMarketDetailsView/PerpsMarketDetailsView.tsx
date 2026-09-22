@@ -121,6 +121,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -149,6 +150,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
   PERPS_MARKET_DETAIL_SECTION,
@@ -194,6 +196,7 @@ import {
 } from '../../abTestConfig';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import { refreshLightweightChartViewport } from '../../utils/refreshLightweightChartViewport';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -282,8 +285,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
   // Use centralized navigation hook for all Perps navigation
-  const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
-    usePerpsNavigation();
+  const {
+    navigateToOrder,
+    navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+  } = usePerpsNavigation();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   // Use position management hook for bottom sheet state and handlers
   const {
@@ -523,9 +531,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(
-    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
-  );
+  const { visibleCandleCount, onVisibleCandleCountChange } =
+    usePerpsVisibleCandleCount(market?.symbol);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
@@ -765,7 +772,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             Logger.error(
               ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
               {
-                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'PerpsMarketDetailsView',
+                  action: 'financial_deposit',
+                  operation: 'financial_operations',
+                },
               },
             );
           },
@@ -773,7 +785,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsMarketDetailsView',
+          action: 'financial_deposit',
+          operation: 'financial_operations',
+        },
       });
     }
   }, [
@@ -968,15 +985,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     setRefreshing(true);
 
     try {
-      // Reset chart to default state (like initial navigation)
-      setVisibleCandleCount(45);
-
-      // Reset chart view to default position
+      // Snap the viewport to the latest candles; keep the persisted zoom.
       if (isAdvancedChartEnabled) {
         setEffectiveChartLibrary(configuredChartLibrary);
         setAdvancedChartResetKey((key) => key + 1);
       } else {
-        chartRef.current?.resetToDefault();
+        refreshLightweightChartViewport(chartRef.current, visibleCandleCount);
       }
 
       // WebSocket streaming provides real-time data - no manual refresh needed
@@ -989,7 +1003,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [configuredChartLibrary, isAdvancedChartEnabled]);
+  }, [configuredChartLibrary, isAdvancedChartEnabled, visibleCandleCount]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1187,6 +1201,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           chartLibrary,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
+          ...(useBottomSheet ? { useBottomSheet: true } : {}),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -1205,6 +1220,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       marketData,
       isButtonColorTestEnabled,
       chartLibrary,
+      useBottomSheet,
     ],
   );
 
@@ -1305,9 +1321,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
+      // The bottom sheet treatment carries its own add/remove toggle, so the
+      // separate action-choice sheet is redundant there.
+      if (useBottomSheet) {
+        navigateToAdjustMargin(existingPosition, 'add', {
+          useBottomSheet: true,
+        });
+        return;
+      }
+
       openAdjustMarginSheet();
     });
-  }, [gate, existingPosition, openAdjustMarginSheet, isEligible, track]);
+  }, [
+    gate,
+    existingPosition,
+    openAdjustMarginSheet,
+    isEligible,
+    track,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
@@ -1412,10 +1445,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
-      // Navigate directly to PerpsAdjustMarginView with mode='add'
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
-        position: existingPosition,
-        mode: 'add',
+      navigateToAdjustMargin(existingPosition, 'add', {
+        useBottomSheet,
       });
 
       // Track the interaction - use ADD_MARGIN interaction type for banner clicks
@@ -1427,7 +1458,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
       });
     });
-  }, [gate, existingPosition, navigation, track, isEligible]);
+  }, [
+    gate,
+    existingPosition,
+    track,
+    isEligible,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   // Handler for "Set Stop Loss" from stop loss prompt banner
   const handleSetStopLossFromBanner = useCallback(() => {
@@ -1836,6 +1874,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           setChartDeliveryRevision((revision) => revision + 1)
         }
         onError={handleChartError}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         fallbackCandleData={candleData}
         fallbackDeliveryRevision={priceDeliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -1861,6 +1900,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
       />
     );
@@ -2026,19 +2066,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (
-            perpsInsightsReport ? (
-              <MarketInsightsEntryCard
-                report={perpsInsightsReport}
-                timeAgo={perpsInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                traceId={perpsInsightsEntryTraceId}
-                source="perps"
-                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-              />
-            ) : (
-              <MarketInsightsEntryCardSkeleton />
-            )
+            <Box twClassName="mb-4">
+              {perpsInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={perpsInsightsReport}
+                  timeAgo={perpsInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                  traceId={perpsInsightsEntryTraceId}
+                  source="perps"
+                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
+            </Box>
           ) : null}
 
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
@@ -2236,6 +2278,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           visibleCandleCount={visibleCandleCount}
           onClose={handleFullscreenChartClose}
           onIntervalChange={handleCandlePeriodChange}
+          onVisibleCandleCountChange={onVisibleCandleCountChange}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           symbol={market?.symbol}
           positionSize={existingPosition?.size}
@@ -2259,6 +2302,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
           testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_ACTION_SHEET}
+          useBottomSheet={useBottomSheet}
         />
       )}
 
@@ -2268,6 +2312,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           sheetRef={adjustMarginActionSheetRef}
           position={existingPosition ?? undefined}
           onClose={closeAdjustMarginSheet}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

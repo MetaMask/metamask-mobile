@@ -32,8 +32,52 @@ export interface TopTrader {
   winRatePercent: number | null;
   /** PnL broken down by chain. Used for client-side chain filtering. */
   pnlPerChain: Record<string, number>;
+  /** Followers this trader has, as reported by the leaderboard. */
+  followerCount: number;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
+}
+
+/**
+ * The figure shown under the username on a trader row. Callers that rank by
+ * something other than PnL (e.g. the leaderboard's Sort by control) pass the
+ * ranked value here so the row shows what the list is ordered by.
+ *
+ * Lives here rather than beside a single row component because every trader
+ * row variant renders it and `traderMetric.ts` builds it.
+ */
+export interface TraderRowMetric {
+  /** Pre-formatted value, e.g. `+$45,900.89`, `+43.00%` or `92%`. */
+  label: string;
+  /** Renders the value in success green rather than error red. */
+  isPositive: boolean;
+}
+
+/**
+ * Props shared by every trader row variant, so a list can accept one as an
+ * injected `RowComponent` without knowing which variant it received.
+ */
+export interface TraderRowProps {
+  trader: TopTrader;
+  /** Defaults to the trader's PnL for the loaded window. */
+  metric?: TraderRowMetric;
+  onFollowPress: (traderId: string) => void;
+  onTraderPress?: (
+    traderId: string,
+    traderName: string,
+    /* Used downstream for podium decoration */
+    overallRank: number,
+  ) => void;
+  /** Whether this trader's alerts are paused. Only used when muting is shown. */
+  isMuted?: boolean;
+  /**
+   * When true (and the trader is followed), render the inline mute chip beside
+   * the Follow button. Gated by the caller on push-notification availability.
+   */
+  showMute?: boolean;
+  /** Toggles the muted state for this trader. */
+  onMuteToggle?: (traderId: string) => void;
+  testID?: string;
 }
 
 /**

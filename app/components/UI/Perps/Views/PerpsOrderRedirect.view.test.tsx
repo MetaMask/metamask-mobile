@@ -23,16 +23,18 @@ describe('PerpsOrderRedirect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Restore default implementation so the call-count test works correctly
-    jest.mocked(Engine.context.PerpsController.depositWithOrder).mockResolvedValue({
-      result: Promise.resolve('0xcomponent-view-deposit'),
-    });
+    jest
+      .mocked(Engine.context.PerpsController.depositWithOrder)
+      .mockResolvedValue({
+        result: Promise.resolve('0xcomponent-view-deposit'),
+      });
   });
 
   it('always renders the inline loader', async () => {
     // Prevent depositWithOrder from resolving so the loader stays on screen
-    jest.mocked(Engine.context.PerpsController.depositWithOrder).mockReturnValue(
-      new Promise<never>(() => undefined),
-    );
+    jest
+      .mocked(Engine.context.PerpsController.depositWithOrder)
+      .mockReturnValue(new Promise<never>(() => undefined));
 
     renderPerpsView(
       PerpsOrderRedirect as unknown as React.ComponentType,
@@ -54,9 +56,9 @@ describe('PerpsOrderRedirect', () => {
 
   it('shows Preparing order message in the loader', async () => {
     // Prevent depositWithOrder from resolving so the loader stays on screen
-    jest.mocked(Engine.context.PerpsController.depositWithOrder).mockReturnValue(
-      new Promise<never>(() => undefined),
-    );
+    jest
+      .mocked(Engine.context.PerpsController.depositWithOrder)
+      .mockReturnValue(new Promise<never>(() => undefined));
 
     renderPerpsView(
       PerpsOrderRedirect as unknown as React.ComponentType,
@@ -71,9 +73,7 @@ describe('PerpsOrderRedirect', () => {
       },
     );
 
-    expect(
-      await screen.findByText('Preparing order...'),
-    ).toBeOnTheScreen();
+    expect(await screen.findByText('Preparing order...')).toBeOnTheScreen();
   });
 
   it('calls depositWithOrder once when connected and initialized', async () => {

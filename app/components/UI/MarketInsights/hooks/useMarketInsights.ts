@@ -7,7 +7,12 @@ import {
 } from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
 import { formatRelativeTime } from '../utils/marketInsightsFormatting';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import {
+  getDigestCacheState,
+  isDigestObserverPending,
+  withDigestFetchSpan,
+} from '../../../../util/digestPerformance';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 import {
   getMarketInsightsTraceTags,
   type MarketInsightsCacheState,
@@ -67,7 +72,7 @@ export const useMarketInsights = (
     ]);
     cacheStateRef.current = {
       assetIdentifier: queryAssetIdentifier,
-      state: cachedReport ? 'warm' : 'cold',
+      state: getDigestCacheState(cachedReport),
     };
   }
 
@@ -82,7 +87,7 @@ export const useMarketInsights = (
   const query = useQuery<MarketInsightsReport | null, unknown>({
     queryKey: [MARKET_INSIGHTS_QUERY_KEY, queryAssetIdentifier],
     queryFn: ({ signal }) =>
-      trace(
+      withDigestFetchSpan(
         {
           name: TraceName.MarketInsightsFetch,
           op: TraceOperation.MarketInsightsFetch,
@@ -91,40 +96,11 @@ export const useMarketInsights = (
             cacheState,
           ),
         },
-        async (span) => {
-          let wasCancelled = signal.aborted;
-          const markCancelled = () => {
-            wasCancelled = true;
-            span?.setAttribute('result', 'cancelled');
-            span?.setAttribute('success', false);
-          };
-
-          if (wasCancelled) {
-            markCancelled();
-          } else {
-            signal.addEventListener('abort', markCancelled, { once: true });
-          }
-
-          try {
-            const result =
-              await Engine.context.AiDigestController.fetchMarketInsights(
-                queryAssetIdentifier,
-              );
-            if (!wasCancelled) {
-              span?.setAttribute('result', result ? 'success' : 'empty');
-              span?.setAttribute('success', true);
-            }
-            return result;
-          } catch (error) {
-            if (!wasCancelled) {
-              span?.setAttribute('result', 'error');
-              span?.setAttribute('success', false);
-            }
-            throw error;
-          } finally {
-            signal.removeEventListener('abort', markCancelled);
-          }
-        },
+        signal,
+        () =>
+          Engine.context.AiDigestController.fetchMarketInsights(
+            queryAssetIdentifier,
+          ),
       ),
     enabled: isQueryEnabled,
     retry: false,
@@ -159,7 +135,11 @@ export const useMarketInsights = (
   // until that first fetch settles so TTC does not close at ~0ms. After
   // this observer has fetched, a later focus refetch must not flip loading
   // or the entry-card skeleton returns.
-  const isLoading = isQueryEnabled && !report && !query.isFetchedAfterMount;
+  const isLoading = isDigestObserverPending({
+    enabled: isQueryEnabled,
+    hasContent: Boolean(report),
+    isFetchedAfterMount: query.isFetchedAfterMount,
+  });
 
   const timeAgo = useMemo(
     () => (report ? formatRelativeTime(report.generatedAt) : ''),

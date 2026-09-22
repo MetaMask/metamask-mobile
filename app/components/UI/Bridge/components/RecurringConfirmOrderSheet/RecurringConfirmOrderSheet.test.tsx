@@ -8,30 +8,18 @@ import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
-
-/**
- * CV cannot cover this sheet: Recurring remounts on tab switch and resets
- * the token pair, which clears seeded BridgeController quotes before Preview
- * Order can open it.
- */
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -45,12 +33,12 @@ jest.mock('@metamask/design-system-react-native', () => {
         props: {
           children: unknown;
           testID?: string;
-          onClose?: () => void;
+          goBack?: () => void;
         },
         ref: React.Ref<{ onCloseBottomSheet: () => void }>,
       ) => {
         ReactModule.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: () => props.onClose?.(),
+          onCloseBottomSheet: () => props.goBack?.(),
         }));
 
         return (
@@ -61,23 +49,16 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
-    .fn()
-    .mockImplementation(() => mockUseBridgeQuoteData),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
-
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData: useQuotedData } = jest.requireMock(
-    '../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useQuotedData()),
-  };
-});
 
 jest.mock('../../hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(() => true),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
 }));
 
 function buildState(
@@ -118,23 +99,47 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
-  isVisible = true,
-  onClose = jest.fn(),
+  delegationFee = {
+    status: 'ready',
+    displayFee: '$1.23',
+    preciseNativeFeeInHex: '0x1',
+    retry: jest.fn(),
+  },
+  goBack = jest.fn(),
+  isSubmitting = false,
+  onConfirm = jest.fn(),
+  onEditSlippagePress = jest.fn(),
+  onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
-  isVisible?: boolean;
-  onClose?: () => void;
+  delegationFee?: EIP7702UpgradeFee;
+  goBack?: () => void;
+  isSubmitting?: boolean;
+  onConfirm?: () => void;
+  onEditSlippagePress?: () => void;
+  onDelegationFeeInfoPress?: () => void;
   state?: DeepPartial<RootState>;
   latestSourceBalance?:
     | { displayBalance: string; atomicBalance: BigNumber }
     | undefined;
 } = {}) {
+  jest.mocked(useBridgeSession).mockReturnValue({
+    selectedTab: BridgeTabKey.Recurring,
+    renderedTab: BridgeTabKey.Recurring,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance,
+    quoteParams: {},
+  });
   return renderWithProvider(
     <RecurringConfirmOrderSheet
-      isVisible={isVisible}
-      onClose={onClose}
-      latestSourceBalance={latestSourceBalance}
+      delegationFee={delegationFee}
+      isSubmitting={isSubmitting}
+      onConfirm={onConfirm}
+      onEditSlippagePress={onEditSlippagePress}
+      onDelegationFeeInfoPress={onDelegationFeeInfoPress}
+      goBack={goBack}
     />,
     { state },
   );
@@ -144,7 +149,7 @@ describe('RecurringConfirmOrderSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -154,14 +159,6 @@ describe('RecurringConfirmOrderSheet', () => {
         },
       }));
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
-  });
-
-  it('renders nothing when the sheet is hidden', () => {
-    const { queryByTestId } = renderSheet({ isVisible: false });
-
-    expect(
-      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.SHEET),
-    ).toBeNull();
   });
 
   it('shows per-order source amount and the all-orders total', () => {
@@ -217,7 +214,7 @@ describe('RecurringConfirmOrderSheet', () => {
     const repeat = 10;
 
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount,
@@ -309,7 +306,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows skeletons for quote-dependent values while a quote is loading', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         isLoading: true,
@@ -354,14 +351,12 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('keeps paying, receiving, expiry, and slippage populated while a quote is loading', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: true,
-        destTokenAmount: undefined,
-        formattedQuoteData: undefined,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: true,
+      destTokenAmount: undefined,
+      formattedQuoteData: undefined,
+    }));
 
     const { getByTestId } = renderSheet({
       state: buildState({ slippage: '2' }),
@@ -391,14 +386,12 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('shows placeholders for est receiving and network fee when there is no quote', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: false,
-        destTokenAmount: undefined,
-        formattedQuoteData: undefined,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: false,
+      destTokenAmount: undefined,
+      formattedQuoteData: undefined,
+    }));
 
     const { getByTestId, queryByTestId } = renderSheet();
 
@@ -445,7 +438,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows the discounted fee disclaimer when the quote has a promo discount', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -481,7 +474,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows the no MetaMask fee disclaimer when dest fee is zero', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -514,51 +507,165 @@ describe('RecurringConfirmOrderSheet', () => {
     );
   });
 
-  it('opens the shared slippage sheet from the edit control', () => {
-    const { getByTestId } = renderSheet();
+  it('calls the slippage edit handler from the edit control', () => {
+    const onEditSlippagePress = jest.fn();
+    const { getByTestId } = renderSheet({ onEditSlippagePress });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: '0x1',
-        destChainId: '0xa',
+    expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the estimated one-time delegation fee and native token', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.delegation_fee_one_time')}$1.23`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('includes the delegation fee in the gas balance check', () => {
+    renderSheet({
+      delegationFee: {
+        status: 'ready',
+        displayFee: '$1.23',
+        preciseNativeFeeInHex: '0x123',
+        retry: jest.fn(),
       },
+    });
+
+    expect(useHasSufficientGas).toHaveBeenCalledWith({
+      additionalGasFeeInHex: '0x123',
+      quote: mockUseBridgeQuoteData.activeQuote,
     });
   });
 
-  it('calls onClose when Confirm is pressed', () => {
-    const onClose = jest.fn();
+  it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      delegationFee: { status: 'loading', retry: jest.fn() },
+      onConfirm,
+    });
 
-    const { getByTestId } = renderSheet({ onClose });
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('hides the delegation fee row when an upgrade is not required', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId, queryByTestId } = renderSheet({
+      delegationFee: { status: 'not-required', retry: jest.fn() },
+      onConfirm,
+    });
+
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
+    );
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a placeholder and disables Confirm when estimation fails', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      delegationFee: { status: 'error', retry: jest.fn() },
+      onConfirm,
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
+    );
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('calls the delegation fee info handler from the info control', () => {
+    const onDelegationFeeInfoPress = jest.fn();
+    const { getByTestId } = renderSheet({ onDelegationFeeInfoPress });
+
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO),
+    );
+
+    expect(onDelegationFeeInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls the confirm handler when Confirm is pressed', () => {
+    const onConfirm = jest.fn();
+
+    const { getByTestId } = renderSheet({ onConfirm });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
     );
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when the header close is pressed', () => {
-    const onClose = jest.fn();
+  it('shows loading and disables Confirm while submitting', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      isSubmitting: true,
+      onConfirm,
+    });
 
-    const { getByTestId } = renderSheet({ onClose });
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('goes back when the header close is pressed', () => {
+    const goBack = jest.fn();
+
+    const { getByTestId } = renderSheet({ goBack });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
   it('disables Confirm and shows Insufficient funds when source balance is below the per-order amount', () => {
-    const onClose = jest.fn();
+    const goBack = jest.fn();
     const { getByTestId } = renderSheet({
       latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
-      onClose,
+      goBack,
     });
 
     const confirmButton = getByTestId(
@@ -571,7 +678,7 @@ describe('RecurringConfirmOrderSheet', () => {
       strings('bridge.insufficient_funds'),
     );
     expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
-    expect(onClose).not.toHaveBeenCalled();
+    expect(goBack).not.toHaveBeenCalled();
   });
 
   it('shows Confirm when source balance covers the per-order amount', () => {
@@ -588,17 +695,17 @@ describe('RecurringConfirmOrderSheet', () => {
   });
 
   it('closes from the header when Confirm is disabled for insufficient funds', () => {
-    const onClose = jest.fn();
+    const goBack = jest.fn();
     const { getByTestId } = renderSheet({
       latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
-      onClose,
+      goBack,
     });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
   it('disables Confirm and shows Insufficient gas when native gas is short', () => {

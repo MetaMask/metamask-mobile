@@ -33,6 +33,18 @@ const mockInitialState = {
   },
 };
 
+const eurState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'eur' as const,
+      },
+    },
+  },
+};
+
 const mockPosition: DeFiProtocolPositionGroup = {
   protocolId: 'Aave V3',
   productName: 'Aave V3',
@@ -80,6 +92,15 @@ describe('DeFiPositionsListItemV2', () => {
     // Two icon-group entries render the "two_tokens" string.
     expect(await findByText('USDC +1 other')).toBeOnTheScreen();
     expect(await findByText('$1,234.50')).toBeOnTheScreen();
+  });
+
+  it('renders the market value in the selected fiat currency', async () => {
+    const { findByText } = renderWithProvider(
+      <DeFiPositionsListItemV2 position={mockPosition} privacyMode={false} />,
+      { state: eurState },
+    );
+
+    expect(await findByText('€1,234.50')).toBeOnTheScreen();
   });
 
   it('hides the market value in privacy mode', async () => {

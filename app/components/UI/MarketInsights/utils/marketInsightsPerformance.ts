@@ -1,10 +1,15 @@
 import type { TraceValue } from '../../../../util/trace';
+import {
+  getDigestTraceEndData,
+  type DigestCacheState,
+  type DigestResult,
+} from '../../../../util/digestPerformance';
 
 export type MarketInsightsSource = 'token_details' | 'perps' | 'unknown';
 export type MarketInsightsStage = 'entry_card' | 'full_view';
 export type MarketInsightsAssetType = 'token' | 'perps';
-export type MarketInsightsCacheState = 'warm' | 'cold';
-export type MarketInsightsResult = 'success' | 'empty' | 'error' | 'cancelled';
+export type MarketInsightsCacheState = DigestCacheState;
+export type MarketInsightsResult = DigestResult;
 
 export interface MarketInsightsTelemetryContext {
   source: MarketInsightsSource;
@@ -29,20 +34,4 @@ export const getMarketInsightsTraceTags = (
   cache_state: cacheState,
 });
 
-export const getMarketInsightsTraceEndData = (
-  result: MarketInsightsResult,
-): Record<string, TraceValue> => ({
-  result,
-  success: result === 'success' || result === 'empty',
-  ...(result !== 'cancelled'
-    ? {
-        content_state:
-          result === 'success'
-            ? 'filled'
-            : result === 'empty'
-              ? 'empty'
-              : 'error',
-      }
-    : {}),
-  ...(result === 'cancelled' ? { reason: 'owner_cancelled' } : {}),
-});
+export const getMarketInsightsTraceEndData = getDigestTraceEndData;

@@ -36,6 +36,7 @@ import {
 } from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SPOT_PRICES_SUPPORT_INFO,
   TEST_ANALYTICS_ID,
 } from './constants.ts';
 import {
@@ -51,7 +52,6 @@ import {
   toWeiHex,
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
-import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import type { CaipAssetType } from '@metamask/utils';
 import type {
@@ -1424,6 +1424,7 @@ class FixtureBuilder {
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     });
 
     // Enable basic functionality in settings (required for profile syncing)
@@ -1600,6 +1601,7 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     };
     return this;
   }
@@ -2108,8 +2110,13 @@ class FixtureBuilder {
   private applyUnifiedAssetHolding(holding: TokenHolding, account: string) {
     const engine = this.fixture.state.engine.backgroundState;
     const accountsController = engine.AccountsController;
+    const internalAccounts = accountsController?.internalAccounts?.accounts;
     const accountId =
       accountsController?.accountIdByAddress?.[account.toLowerCase()] ??
+      Object.values(internalAccounts ?? {}).find(
+        (internalAccount) =>
+          internalAccount?.address?.toLowerCase() === account.toLowerCase(),
+      )?.id ??
       accountsController?.internalAccounts?.selectedAccount;
     if (!accountId) {
       return;

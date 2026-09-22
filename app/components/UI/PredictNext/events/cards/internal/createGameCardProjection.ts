@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import type { PredictEvent, PredictGame, PredictTeam } from '../../../types';
 import {
   createGamePresentation,
-  findGameSelectionQuote,
+  findGameTradingQuote,
   type GameSelection,
   type GameSelectionQuote,
   type GameStatusLine,
@@ -40,7 +40,9 @@ const createTeamProjection = (
   abbreviation: string,
   team: PredictTeam,
 ): GameCardTeamProjection => {
-  const quote = findGameSelectionQuote(event, selection);
+  // The Team control's quote trades the Yes side of the selection's winner
+  // Market; the Game Selection tag itself is chart association only.
+  const quote = findGameTradingQuote(event, selection);
   const formattedPrice = formatAskPrice(quote?.outcome.askPrice);
 
   return {

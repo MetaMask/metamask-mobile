@@ -1,6 +1,7 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { render, act } from '@testing-library/react-native';
-import FoxAnimation from './FoxAnimation';
+import FoxAnimation, { getSafeBottomPosition } from './FoxAnimation';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import {
@@ -15,6 +16,107 @@ jest.mock('../../../util/device');
 
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
 const mockedDevice = Device as jest.Mocked<typeof Device>;
+
+const insets = (bottom: number) => ({
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom,
+});
+
+describe('getSafeBottomPosition', () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => originalOS,
+    });
+  });
+
+  const setPlatformOS = (os: typeof Platform.OS) => {
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => os,
+    });
+  };
+
+  it('returns iOS footer offset using bottom inset plus 60', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(true, insets(50))).toBe(110);
+  });
+
+  it('returns minimum 100 for iOS footer when inset is small', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(true, insets(0))).toBe(100);
+  });
+
+  it('returns Android footer offset with large inset', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(true, insets(48))).toBe(108);
+  });
+
+  it('returns Android footer offset with small inset', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(true, insets(10))).toBe(100);
+  });
+
+  it('returns 100 for footer on non-iOS non-Android platforms', () => {
+    setPlatformOS('web');
+
+    expect(getSafeBottomPosition(true, insets(0))).toBe(100);
+  });
+
+  it('returns negative iOS offset when home indicator inset is present', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(false, insets(34))).toBe(-24);
+  });
+
+  it('clamps iOS no-footer offset to -40 for large home indicator', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(false, insets(80))).toBe(-40);
+  });
+
+  it('returns -20 for iOS with no bottom inset', () => {
+    setPlatformOS('ios');
+
+    expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
+  });
+
+  it('tucks Android full-bleed fox into the gesture inset like iOS', () => {
+    setPlatformOS('android');
+
+    expect(
+      getSafeBottomPosition(false, insets(48), { fullBleedBottom: true }),
+    ).toBe(-38);
+  });
+
+  it('uses a small negative Android full-bleed offset when inset is missing', () => {
+    setPlatformOS('android');
+
+    expect(
+      getSafeBottomPosition(false, undefined, { fullBleedBottom: true }),
+    ).toBe(-20);
+  });
+
+  it('returns 0 for Android when parent already applied bottom safe area', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(false, insets(48))).toBe(0);
+  });
+
+  it('returns -20 for no-footer on non-iOS non-Android platforms', () => {
+    setPlatformOS('web');
+
+    expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
+  });
+});
 
 describe('FoxAnimation', () => {
   beforeEach(() => {

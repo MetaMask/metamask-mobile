@@ -18,6 +18,7 @@ import {
 import { Interface } from 'ethers/lib/utils';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { analytics } from '../../../../util/analytics/analytics';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
@@ -25,6 +26,7 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { PolymarketRequestTimeoutError } from '../providers/polymarket/fetchWithTimeout';
 import {
   ActiveOrderState,
   type OrderPreview,
@@ -575,22 +577,22 @@ describe('PredictController', () => {
     it('initializes with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.eligibility).toEqual({ eligible: false });
+        expect(controller.state.eligibility).toEqual({
+          status: 'checking',
+          eligible: false,
+        });
         expect(controller.state.accountMeta).toEqual({});
       });
     });
 
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        eligibility: { eligible: false, country: undefined },
+        lastError: 'custom-error',
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.eligibility).toEqual({
-            eligible: false,
-            country: undefined,
-          });
+          expect(controller.state.lastError).toBe('custom-error');
         },
         { state: customState },
       );
@@ -2761,6 +2763,8 @@ describe('PredictController', () => {
   describe('refreshEligibility', () => {
     it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         mockPolymarketProvider.isEligible.mockResolvedValue({
           isEligible: true,
           country: 'PT',
@@ -2769,8 +2773,9 @@ describe('PredictController', () => {
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility).toEqual({
-          eligible: true,
+          status: 'eligible',
           country: 'PT',
+          eligible: true,
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
@@ -2778,6 +2783,8 @@ describe('PredictController', () => {
 
     it('handle provider.isEligible() throwing error', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         const errorMessage = 'Eligibility check failed';
         mockPolymarketProvider.isEligible.mockRejectedValue(
           new Error(errorMessage),
@@ -2786,22 +2793,25 @@ describe('PredictController', () => {
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
           eligible: false,
-          country: undefined,
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
 
-    it('default to false when provider eligibility check fails', async () => {
+    it('returns unavailable when provider eligibility check fails', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         mockPolymarketProvider.isEligible.mockRejectedValue('Non-error object');
 
-        await controller.refreshEligibility();
+        const result = await controller.refreshEligibility();
 
+        expect(result).toEqual({ status: 'unavailable', eligible: false });
         expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
           eligible: false,
-          country: undefined,
         });
       });
     });
@@ -2809,6 +2819,8 @@ describe('PredictController', () => {
     describe('local geoblocking', () => {
       it('sets eligibility to false when provider returns eligible but country is DE', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'DE',
@@ -2817,8 +2829,9 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'DE',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2826,6 +2839,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to false when provider returns eligible but country is RO', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'RO',
@@ -2834,8 +2849,9 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'RO',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2843,6 +2859,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to true when provider returns eligible and country is US', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'US',
@@ -2851,8 +2869,9 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
+            status: 'eligible',
             country: 'US',
+            eligible: true,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2860,6 +2879,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to false when provider returns ineligible regardless of country', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: false,
             country: 'US',
@@ -2868,32 +2889,37 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'US',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible without country', async () => {
+      it('treats a missing country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: undefined,
-          });
+          } as never);
 
-          await controller.refreshEligibility();
+          const result = await controller.refreshEligibility();
 
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: undefined,
+            status: 'unavailable',
+            eligible: false,
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible with null country', async () => {
+      it('treats a null country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: null as any,
@@ -2902,15 +2928,16 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: null,
+            status: 'unavailable',
+            eligible: false,
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible with empty string country', async () => {
+      it('treats an empty country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: '',
@@ -2919,12 +2946,280 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: '',
+            status: 'unavailable',
+            eligible: false,
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
+    });
+
+    it('does not preserve a previous eligible result after a failed refresh', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'US',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error('Eligibility check failed'),
+        );
+
+        const result = await controller.refreshEligibility();
+
+        expect(result).toEqual({ status: 'unavailable', eligible: false });
+        expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
+          eligible: false,
+        });
+      });
+    });
+
+    it('keeps a confirmed eligible result while a re-check is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'US',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        // A slow re-check must not drop the user into `checking`, which the
+        // action guard treats as a connectivity failure.
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'PT' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+      });
+    });
+
+    it('keeps a confirmed ineligible result while a re-check is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: false,
+          country: 'DE',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'ineligible',
+          country: 'DE',
+          eligible: false,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        expect(controller.state.eligibility).toEqual({
+          status: 'ineligible',
+          country: 'DE',
+          eligible: false,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'US' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+      });
+    });
+
+    it('reports checking while a retry after an unavailable result is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error('Eligibility check failed'),
+        );
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
+          eligible: false,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        expect(controller.state.eligibility).toEqual({
+          status: 'checking',
+          eligible: false,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'US' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+      });
+    });
+
+    it('shares one provider request across concurrent refreshes', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const first = controller.refreshEligibility();
+        const second = controller.refreshEligibility();
+
+        expect(mockPolymarketProvider.isEligible).toHaveBeenCalledTimes(1);
+
+        resolveEligible?.({ isEligible: true, country: 'PT' });
+        await expect(first).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+        await expect(second).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+      });
+    });
+
+    it('returns the resulting eligibility status', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: false,
+          country: 'FR',
+        });
+
+        await expect(controller.refreshEligibility()).resolves.toEqual({
+          status: 'ineligible',
+          country: 'FR',
+          eligible: false,
+        });
+      });
+    });
+
+    it('logs expected geoblock timeouts without reporting them as Sentry errors', async () => {
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      mockPolymarketProvider.isEligible.mockRejectedValue(timeoutError);
+
+      const logSpy = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(() => undefined);
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(logSpy).toHaveBeenCalledWith(
+            'Predict geoblock request ended by expected timeout/cancellation:',
+            timeoutError.message,
+            expect.any(Object),
+          );
+          expect(errorSpy).not.toHaveBeenCalled();
+        });
+      } finally {
+        logSpy.mockRestore();
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('resolves eligible via geoblock bypass even when the endpoint fails', async () => {
+      const previous = process.env.MM_PREDICT_SKIP_GEOBLOCK;
+      process.env.MM_PREDICT_SKIP_GEOBLOCK = 'true';
+      try {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockRejectedValue(
+            new Error('Eligibility check failed'),
+          );
+
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({
+            status: 'eligible',
+            country: 'N/A',
+            eligible: true,
+          });
+          expect(controller.state.eligibility).toEqual({
+            status: 'eligible',
+            country: 'N/A',
+            eligible: true,
+          });
+          expect(mockPolymarketProvider.isEligible).not.toHaveBeenCalled();
+        });
+      } finally {
+        if (previous === undefined) {
+          delete process.env.MM_PREDICT_SKIP_GEOBLOCK;
+        } else {
+          process.env.MM_PREDICT_SKIP_GEOBLOCK = previous;
+        }
+      }
     });
   });
 
@@ -4292,14 +4587,12 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.eligibility = {
-            eligible: false,
-            country: undefined,
+            status: 'unavailable',
           };
           state.lastError = 'Test error';
         });
         expect(controller.state.eligibility).toEqual({
-          eligible: false,
-          country: undefined,
+          status: 'unavailable',
         });
         expect(controller.state.lastError).toBe('Test error');
       });
@@ -4373,6 +4666,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4400,7 +4694,41 @@ describe('PredictController', () => {
             disableHook: true,
             disableSequential: true,
             gasFeeToken: MATIC_CONTRACTS_V2.collateral,
-            skipInitialGasEstimate: true,
+            overwriteUpgrade: true,
+          }),
+        );
+      });
+    });
+
+    it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
+      const mockBatchId = 'claim-batch-deposit-wallet';
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getAccountState.mockResolvedValue({
+          address: '0xDepositWalletAddress' as `0x${string}`,
+          isDeployed: true,
+          walletType: 'deposit-wallet' as const,
+        });
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+
+        await controller.claimWithConfirmation({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: undefined,
           }),
         );
       });
@@ -4415,6 +4743,7 @@ describe('PredictController', () => {
             marketId: 'test-market-1',
             outcomeId: 'test-outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
           {
             marketId: 'test-market-2',
@@ -4467,6 +4796,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4491,6 +4821,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -4522,6 +4853,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -4569,6 +4901,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         const errorMessage = 'Claim preparation failed';
@@ -4587,6 +4920,210 @@ describe('PredictController', () => {
       });
     });
 
+    it('refreshes claimable positions before failing when state is empty', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-refresh';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        expect(controller.state.claimablePositions).toEqual({});
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith(
+          expect.objectContaining({ claimable: true }),
+        );
+        expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions: [expect.objectContaining(wonPosition)],
+          }),
+        );
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
+    it('throws when refreshed positions contain no won or redeemable position', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.LOST,
+          },
+        ]);
+        await controller.getPositions({ claimable: true });
+        mockPolymarketProvider.prepareClaim = jest.fn();
+
+        // Act & Assert
+        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+          'No claimable positions found',
+        );
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledTimes(2);
+        expect(mockPolymarketProvider.prepareClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not overwrite claimable positions while a claim is pending', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-frozen';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+        await controller.claimWithConfirmation({});
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[signerAddress]).toBe(mockBatchId);
+
+        // Act: a concurrent refetch returns an empty page mid-confirmation.
+        mockPolymarketProvider.getPositions.mockResolvedValue([]);
+        await controller.getPositions({ address: signerAddress });
+        await controller.getPositions({
+          address: signerAddress.toUpperCase(),
+          claimable: true,
+        });
+
+        // Assert
+        expect(controller.state.claimablePositions[signerAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[signerAddress.toUpperCase()],
+        ).toBeUndefined();
+      });
+    });
+
+    it('collapses address casings into a single claimable positions entry', async () => {
+      // Arrange: a confirmed-claim refetch keys by lowercased txParams.from,
+      // later fetches key by the checksummed signer address. The address must
+      // contain hex letters so the two casings are actually different strings.
+      await withController(async ({ controller }) => {
+        const checksumAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+        const lowercaseAddress = checksumAddress.toLowerCase();
+        expect(lowercaseAddress).not.toBe(checksumAddress);
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({
+          address: lowercaseAddress,
+          claimable: true,
+        });
+
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+
+        // Act
+        await controller.getPositions({
+          address: checksumAddress,
+          claimable: true,
+        });
+
+        // Assert: one key, holding the latest positions.
+        expect(Object.keys(controller.state.claimablePositions)).toEqual([
+          lowercaseAddress,
+        ]);
+        expect(controller.state.claimablePositions[lowercaseAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[checksumAddress],
+        ).toBeUndefined();
+      });
+    });
+
+    it('claims positions stored under a different casing of the signer address', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-casing';
+      const checksumAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+      const lowercaseAddress = checksumAddress.toLowerCase();
+      expect(lowercaseAddress).not.toBe(checksumAddress);
+      await withController(
+        async ({ controller }) => {
+          const wonPosition = {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          };
+          mockPolymarketProvider.getPositions = jest
+            .fn()
+            .mockResolvedValue([wonPosition]);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue(mockClaim);
+          (addTransactionBatch as jest.Mock).mockResolvedValue({
+            batchId: mockBatchId,
+          });
+          // Stored under the lowercased txParams.from key; the signer is
+          // checksummed, which is the PRED-1321 mismatch.
+          await controller.getPositions({
+            address: lowercaseAddress,
+            claimable: true,
+          });
+          mockPolymarketProvider.getPositions.mockClear();
+
+          // Act
+          const result = await controller.claimWithConfirmation({});
+
+          // Assert: no refetch was needed, the existing entry was found.
+          expect(mockPolymarketProvider.getPositions).not.toHaveBeenCalled();
+          expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+            expect.objectContaining({
+              positions: [expect.objectContaining(wonPosition)],
+            }),
+          );
+          expect(result.batchId).toBe(mockBatchId);
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+              {
+                id: 'mock-account-id',
+                address: checksumAddress,
+                type: 'eip155:eoa',
+                name: 'Test Account',
+                metadata: { lastSelected: 0 },
+              },
+            ]),
+          },
+        },
+      );
+    });
+
     it('throws error when network client not found', async () => {
       // Arrange
       await withController(
@@ -4596,6 +5133,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
 
@@ -4626,6 +5164,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -4656,6 +5195,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -4678,6 +5218,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4699,6 +5240,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -4734,6 +5276,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -4772,6 +5315,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4812,6 +5356,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4866,6 +5411,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4889,6 +5435,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4926,6 +5473,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4953,6 +5501,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockRejectedValue(
@@ -4987,6 +5536,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5334,6 +5884,7 @@ describe('PredictController', () => {
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
+          overwriteUpgrade: true,
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
@@ -8941,6 +9492,7 @@ describe('PredictController', () => {
             networkClientId: expect.any(String),
             disableHook: true,
             disableSequential: true,
+            overwriteUpgrade: true,
             requireApproval: true,
             transactions: [mockWithdrawResponse.transaction],
           }),
@@ -9910,7 +10462,11 @@ describe('PredictController', () => {
             transactionId: 'tx-789',
             amount: 200,
           };
-          state.eligibility = { eligible: true, country: 'PT' };
+          state.eligibility = {
+            status: 'eligible',
+            country: 'PT',
+            eligible: true,
+          };
           state.lastError = 'Some error';
         });
 

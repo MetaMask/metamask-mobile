@@ -17,6 +17,7 @@ import { HeaderStandard } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const SecuritySettings = () => {
   const tw = useTailwind();
@@ -24,6 +25,9 @@ const SecuritySettings = () => {
   const analyticsEnabled = isEnabled();
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectMobileUxBftcConsolidationFlagEnabled,
+  );
 
   const shouldShowSocialLoginFeatures =
     SEEDLESS_ONBOARDING_ENABLED && isSocialLogin;
@@ -41,7 +45,9 @@ const SecuritySettings = () => {
         onBack={() => navigation.goBack()}
       />
       <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
-        <NetworkDetailsCheckSettings />
+        {!isBasicFunctionalityConsolidationEnabled && (
+          <NetworkDetailsCheckSettings />
+        )}
         {shouldShowSocialLoginFeatures && (
           <>
             <MetaMetricsAndDataCollectionSection

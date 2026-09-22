@@ -28,7 +28,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
-import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import AlsoIncludedRow from './components/AlsoIncludedRow';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -36,15 +37,17 @@ interface MembershipBannerProps {
   testID: string;
 }
 
+const formatPercent = (value: number): string => `${value}%`;
+
 const MembershipBanner = ({ testID }: MembershipBannerProps) => (
   <Card
-    twClassName="w-full bg-background-section rounded-xl p-5 border border-border-alternative"
+    twClassName="w-full bg-background-section rounded-xl p-4 border-0"
     testID={testID}
   >
-    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-      {strings('pro_hub.membership_brand')}
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {strings('pro_hub.title')}
     </Text>
-    <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+    <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
       {strings('pro_hub.membership_label')}
     </Text>
   </Card>
@@ -63,14 +66,14 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName="py-4"
+    twClassName="py-1"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-x-3"
+      twClassName="gap-x-2"
     >
-      <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center">
+      <Box twClassName="w-8 h-8 rounded-full bg-background-section items-center justify-center">
         <Icon
           name={iconName}
           size={IconSize.Sm}
@@ -80,7 +83,7 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
+        color={TextColor.TextAlternative}
       >
         {label}
       </Text>
@@ -148,33 +151,39 @@ const ProHub = () => {
           <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
 
           <Box
-            twClassName="gap-y-1"
+            twClassName="gap-y-4"
             testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('pro_hub.lifetime_earnings')}
-            </Text>
-            <Text
-              variant={TextVariant.AmountDisplayLg}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_PRO_HUB_STATS.lifetimeEarnings}
-            </Text>
+            <Box twClassName="gap-y-1">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {strings('pro_hub.lifetime_earnings')}
+              </Text>
+              <Text
+                variant={TextVariant.DisplayLg}
+                color={TextColor.TextDefault}
+              >
+                {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+              </Text>
+            </Box>
 
-            <Box>
+            <Box twClassName="gap-y-4">
               <StatRow
                 iconName={IconName.TrendUp}
-                label={strings('pro_hub.money_balance')}
+                label={strings('pro_hub.money_balance', {
+                  apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
+                })}
                 value={MOCK_PRO_HUB_STATS.moneyBalance}
                 testID={ProHubTestIds.MONEY_BALANCE_ROW}
               />
               <StatRow
                 iconName={IconName.Card}
-                label={strings('pro_hub.musd_back')}
+                label={strings('pro_hub.musd_back', {
+                  rate: formatPercent(MOCK_PRO_HUB_STATS.musdBackRate),
+                })}
                 value={MOCK_PRO_HUB_STATS.musdBack}
                 testID={ProHubTestIds.MUSD_BACK_ROW}
               />
@@ -184,39 +193,49 @@ const ProHub = () => {
 
         <PhysicalCardBanner onPress={handleGetCard} />
 
-        <SectionDivider marginVertical={6} />
+        <SectionDivider marginVertical={5} />
 
         <MemberPricingOnTrades />
 
-        <SectionDivider marginVertical={6} />
+        <SectionDivider marginVertical={5} />
 
-        <Box testID={ProHubTestIds.MEMBERSHIP_SECTION} twClassName="gap-y-4">
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {strings('pro_hub.membership.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={ProHubTestIds.NEXT_PAYMENT_TEXT}
-          >
-            {strings('pro_hub.next_payment', {
-              amount: MOCK_NEXT_PAYMENT.amount,
-              date: MOCK_NEXT_PAYMENT.date,
-            })}
-          </Text>
+        <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
+          <Box twClassName="gap-y-6">
+            <Text
+              variant={TextVariant.HeadingMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {strings('pro_hub.also_included.title')}
+            </Text>
+            <Box twClassName="gap-y-3">
+              {ALSO_INCLUDED_ITEMS.map((item) => (
+                <AlsoIncludedRow
+                  key={item.id}
+                  item={item}
+                  testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
+                />
+              ))}
+            </Box>
+          </Box>
+          <SectionDivider twClassName="mb-8" />
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             onPress={handleManageMembership}
             isFullWidth
             testID={ProHubTestIds.MANAGE_BUTTON}
+            twClassName="mb-8"
           >
-            {strings('pro_hub.manage_plan')}
+            {strings('pro_hub.manage_membership')}
           </Button>
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextMuted}
+            testID={ProHubTestIds.DISCLAIMER_TEXT}
+          >
+            {strings('pro_hub.also_included.disclaimer')}
+          </Text>
         </Box>
       </ScrollView>
     </SafeAreaView>
