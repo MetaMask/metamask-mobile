@@ -18,6 +18,15 @@ type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades'> & {
   /** The API's open/closed verdict; absent on older responses. */
   isOpen?: boolean;
   trades?: TradeWithAction[];
+  authorComment?: {
+    uid: string;
+    text: string;
+    timestamp: number;
+    engagement: {
+      reactions: { emotion: string; count: number; profiles?: unknown[] }[];
+      userReaction: string | null;
+    };
+  } | null;
 };
 
 const buildTrade = (

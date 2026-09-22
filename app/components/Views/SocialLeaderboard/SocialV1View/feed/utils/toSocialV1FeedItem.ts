@@ -17,6 +17,7 @@ import {
   mockMarkPrice,
   mockWinRatePercent,
 } from '../mocks/socialV1Enrichment';
+import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
@@ -149,10 +150,15 @@ export function toSocialV1FeedItem(
   };
   mockedFields.push('winRate');
 
-  const comment = mockComment(item.traderId, core.positionId);
-  if (comment) {
+  const authorComment = readAuthorComment(core);
+  const liveComment = authorComment?.text?.trim();
+  const mockedComment = liveComment
+    ? null
+    : mockComment(item.traderId, core.positionId);
+  if (mockedComment) {
     mockedFields.push('comment');
   }
+  const comment = liveComment || mockedComment;
 
   const base = {
     id: item.id,
@@ -166,7 +172,7 @@ export function toSocialV1FeedItem(
       symbol: item.type === 'perps' ? item.marketSymbol : item.tokenSymbol,
       avatar: item.tokenAvatar,
     },
-    comment: comment ? markMocked(comment) : undefined,
+    comment: mockedComment ? markMocked(mockedComment) : comment || undefined,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     isPnlPositive: item.isPnlPositive,

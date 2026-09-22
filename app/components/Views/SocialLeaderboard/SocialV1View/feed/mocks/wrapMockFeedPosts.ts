@@ -10,7 +10,7 @@ export const wrapMockFeedPosts = (
     authorImageUrl: null,
     winRateLabel: '78% WR',
     timestampMs: nowMs - index * 120_000,
-    likeCount: 0,
-    commentCount: 0,
+    commentId: `mock-comment-${item.id}`,
+    reactions: [],
     item,
   }));

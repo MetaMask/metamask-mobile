@@ -31,8 +31,8 @@ const basePost = (
   authorImageUrl: null,
   winRateLabel: '78% WR',
   timestampMs: Date.now(),
-  likeCount: 12,
-  commentCount: 3,
+  commentId: 'comment-1',
+  reactions: [{ emotion: '🔥', count: 12 }],
   item: mockOpenPerpsFeedItem({ id: 'item-1', comment: 'Amazing position' }),
   ...overrides,
 });
@@ -48,8 +48,10 @@ describe('SocialFeedPostShell', () => {
     expect(screen.getByText('78% WR')).toBeOnTheScreen();
     expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     expect(screen.getByText('Just now')).toBeOnTheScreen();
-    expect(screen.getByText('12')).toBeOnTheScreen();
-    expect(screen.getByText('3')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
+    ).toHaveTextContent('12');
+    expect(screen.getByText('🔥')).toBeOnTheScreen();
     expect(
       screen.getByTestId('social-feed-position-card-item-1'),
     ).toBeOnTheScreen();
@@ -83,5 +85,31 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
     ).toBeOnTheScreen();
+  });
+
+  it('shows an empty heart and no zero when the Call has no reactions', () => {
+    renderWithProvider(
+      <SocialFeedPostShell post={basePost({ reactions: [] })} />,
+    );
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
+    ).toBeNull();
+    expect(screen.queryByText('0')).toBeNull();
+  });
+
+  it('omits the reaction control when the post has no Call id', () => {
+    renderWithProvider(
+      <SocialFeedPostShell post={basePost({ commentId: undefined })} />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
   });
 });

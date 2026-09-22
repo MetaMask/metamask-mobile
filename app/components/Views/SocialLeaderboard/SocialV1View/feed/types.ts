@@ -118,8 +118,14 @@ export interface SocialV1FeedPost {
   authorImageUrl?: string | null;
   winRateLabel?: string;
   timestampMs: number;
-  likeCount: number;
-  commentCount: number;
+  /**
+   * Swap-comment id for the Call this post reacts to. Absent on pending
+   * composer posts and on live rows with no authorComment.
+   */
+  commentId?: string;
+  reactions: { emotion: string; count: number }[];
+  /** Session/API viewer emotion when known. */
+  userReaction?: string | null;
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;

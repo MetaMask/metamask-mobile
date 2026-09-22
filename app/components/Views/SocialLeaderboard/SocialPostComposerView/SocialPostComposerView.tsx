@@ -168,8 +168,7 @@ const SocialPostComposerView: React.FC = () => {
       authorImageUrl: profile?.imageUrl,
       winRateLabel: '78% WR',
       timestampMs: Date.now(),
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       gifUri: gifUri ?? undefined,
       item,
     });
