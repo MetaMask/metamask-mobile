@@ -37,6 +37,8 @@ function refreshOverrideAccountBalances(address: string): void {
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
+  // OGP: membershipSubscription will be added
+  TransactionType.membershipSubscription as unknown as TransactionType,
 ];
 
 function isMoneyAccountTransaction(transaction: TransactionMeta): boolean {

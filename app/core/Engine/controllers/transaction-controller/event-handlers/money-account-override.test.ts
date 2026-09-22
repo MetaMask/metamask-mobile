@@ -10,6 +10,18 @@ import { replaceAccountInNestedTransactions } from '../../../../../components/Vi
 import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './money-account-override';
 
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
+
 jest.mock('../../../../Engine', () => ({
   __esModule: true,
   default: {
@@ -106,6 +118,8 @@ const PRIMARY_MONEY_ACCOUNT_ADDRESS =
   '0xabc1111111111111111111111111111111111111';
 
 describe('money-account-override', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    'membershipSubscription' as TransactionType;
   beforeEach(() => {
     jest.clearAllMocks();
     Engine.context.TransactionPayController.state = { transactionData: {} };
@@ -118,22 +132,35 @@ describe('money-account-override', () => {
   });
 
   describe('handleUnapprovedTransactionAddedForMoneyAccount', () => {
-    it('sets accountOverride and isQuoteRequired for a moneyAccountDeposit transaction', () => {
-      handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])(
+      'sets accountOverride and isQuoteRequired for a %s transaction',
+      (transactionType) => {
+        const transactionMeta = buildTransactionMeta({ type: transactionType });
 
-      expect(setTransactionConfigMock).toHaveBeenCalledWith(
-        TRANSACTION_ID_MOCK,
-        expect.any(Function),
-      );
+        handleUnapprovedTransactionAddedForMoneyAccount(transactionMeta);
 
-      const callback = setTransactionConfigMock.mock.calls[0][1];
-      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
-        {};
-      callback(config as never);
+        expect(setTransactionConfigMock).toHaveBeenCalledWith(
+          TRANSACTION_ID_MOCK,
+          expect.any(Function),
+        );
 
-      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
-      expect(config.isQuoteRequired).toBe(true);
-    });
+        const callback = setTransactionConfigMock.mock.calls[0][1];
+        const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+          {};
+        callback(config as never);
+
+        expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+        expect(config.accountOverride).not.toBe(transactionMeta.txParams.from);
+        expect(config.isQuoteRequired).toBe(true);
+        expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+        expect(loadAssetsForAddressesMock).toHaveBeenCalledWith([
+          EVM_ADDRESS_MOCK,
+        ]);
+      },
+    );
 
     it('sets accountOverride but not isQuoteRequired for a moneyAccountWithdraw transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
@@ -151,13 +178,16 @@ describe('money-account-override', () => {
       expect(config.isQuoteRequired).toBeUndefined();
     });
 
-    it('sets accountOverride for a batch transaction containing a money-account nested tx', () => {
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])('sets accountOverride for a batch containing %s', (type) => {
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({
           type: TransactionType.batch,
           nestedTransactions: [
             { type: TransactionType.tokenMethodApprove },
-            { type: TransactionType.moneyAccountDeposit },
+            { type: type },
           ],
         } as never),
       );
@@ -184,7 +214,10 @@ describe('money-account-override', () => {
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
-    it('does nothing when an accountOverride is already set', () => {
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])('does nothing when an accountOverride is already set for %s', (type) => {
       Engine.context.TransactionPayController.state = {
         transactionData: {
           [TRANSACTION_ID_MOCK]: {
@@ -193,9 +226,13 @@ describe('money-account-override', () => {
         },
       } as never;
 
-      handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({ type }),
+      );
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      expect(loadAssetsForAddressesMock).not.toHaveBeenCalled();
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
 
     it('does nothing when the selected account is non-EVM', () => {
