@@ -68,8 +68,14 @@ test('parseArgs supports weekly and collect-only modes', () => {
   assert.equal(weekly.skipScenarioArtifacts, true);
   assert.equal(weekly.now, '2026-09-21T09:00:00.000Z');
 
-  assert.equal(weekly.maxRunsPerWeek, 6);
+  // Every run in the week is analyzed; only the rebuild time is bounded.
+  assert.equal(weekly.maxRunsPerWeek, null);
+  assert.equal(weekly.maxAnalysisMinutes, 25);
   assert.equal(parseArgs(['--max-runs-per-week', '4']).maxRunsPerWeek, 4);
+  assert.equal(
+    parseArgs(['--max-analysis-minutes', '40']).maxAnalysisMinutes,
+    40,
+  );
 
   const collect = parseArgs(['--collect-only', '--run', '99']);
   assert.equal(collect.collectOnly, true);
@@ -166,7 +172,19 @@ test('sampleRunsAcrossNewestDays round-robins two days instead of draining one',
   );
 });
 
-test('planWeeklyRuns keeps every collected run and samples the rest', () => {
+test('planWeeklyRuns keeps every run when no cap is given', () => {
+  const runs = Array.from({ length: 10 }, (_, index) => ({
+    databaseId: index + 1,
+    createdAt: `2026-09-1${index}T00:00:00Z`,
+  }));
+
+  const plan = planWeeklyRuns(runs, new Map([['2', {}]]));
+
+  assert.equal(plan.selected.length, 10);
+  assert.equal(plan.skipped, 0);
+});
+
+test('planWeeklyRuns keeps every collected run and caps the rest', () => {
   const runs = Array.from({ length: 10 }, (_, index) => ({
     databaseId: index + 1,
   }));
@@ -249,6 +267,44 @@ test('reportsForRuns keeps the week when one run lost its artifacts', async () =
   );
   assert.equal(skipped.length, 1);
   assert.equal(skipped[0].runId, '2');
+});
+
+test('reportsForRuns stops rebuilding runs once the time budget is gone', async () => {
+  const outputDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'weekly-budget-'),
+  );
+  let clockMs = 0;
+  const analyze = async ({ runId }) => {
+    clockMs += 60_000;
+    return { meta: { runId }, scenarios: [] };
+  };
+
+  const { reports, skipped } = await reportsForRuns({
+    args: {},
+    // Newest first, so the budget buys the runs most likely to still exist.
+    runs: [
+      { databaseId: 4 },
+      { databaseId: 3 },
+      { databaseId: 2 },
+      { databaseId: 1 },
+    ],
+    collectedByRunId: new Map([['1', { meta: {}, scenarios: [] }]]),
+    outputDirectory,
+    skillAnalyzerPath: 'analyzer.cjs',
+    label: 'this-week',
+    deadlineMs: 120_000,
+    clock: () => clockMs,
+    analyze,
+  });
+
+  // A collected report costs nothing, so it survives an exhausted budget.
+  assert.deepEqual(
+    reports.map((report) => report.meta.runId),
+    ['4', '3', '1'],
+  );
+  assert.deepEqual(skipped, [
+    { runId: '2', reason: 'analysis time budget exhausted' },
+  ]);
 });
 
 test('reportsForRuns prefers a collected report over re-analysis', async () => {

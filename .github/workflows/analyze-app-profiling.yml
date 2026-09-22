@@ -50,7 +50,12 @@ on:
         type: boolean
         default: false
       max_runs_per_week:
-        description: 'Weekly only: uncollected runs re-analyzed per week (blank = 6)'
+        description: 'Weekly only: cap uncollected runs re-analyzed per week (blank = every run)'
+        required: false
+        type: string
+        default: ''
+      max_analysis_minutes:
+        description: 'Weekly only: wall clock spent rebuilding uncollected runs (blank = 25)'
         required: false
         type: string
         default: ''
@@ -161,6 +166,7 @@ jobs:
           WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
           COLLECT_ONLY: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
+          MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/analyze-app-profiling
@@ -173,6 +179,9 @@ jobs:
             ARGS+=(--weekly --skip-ai --skip-scenario-artifacts)
             if [ -n "${MAX_RUNS_PER_WEEK}" ]; then
               ARGS+=(--max-runs-per-week "${MAX_RUNS_PER_WEEK}")
+            fi
+            if [ -n "${MAX_ANALYSIS_MINUTES}" ]; then
+              ARGS+=(--max-analysis-minutes "${MAX_ANALYSIS_MINUTES}")
             fi
           elif [ -n "${LOOKBACK_HOURS}" ]; then
             ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")

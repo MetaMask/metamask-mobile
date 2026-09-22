@@ -68,12 +68,12 @@ const WINDOW_SCENARIOS_IN_CHAT = 8;
 // A run whose JS work exceeds this multiple of the scenario median is called
 // out separately instead of being averaged into the headline number.
 const SPIKE_RATIO = 1.5;
-// Re-analyzing a run means downloading ~140 MB and symbolicating every
-// scenario, so a full week of 6-hourly runs cannot be rebuilt inside one job.
-// Collected reports are always reused in full; only runs that were never
-// collected are sampled, newest days first so expired early-week artifacts
-// are not preferred over days that still have profiles.
-const DEFAULT_MAX_RUNS_PER_WEEK = 6;
+// Every run in the week is considered. Reusing a collected report is free, so
+// once collection has been running the whole week is analyzed. Rebuilding a
+// run from raw profiles costs ~60-75 s (symbolication, not download), so that
+// part is bounded by wall clock instead of a run count: newest days first,
+// stop when the budget is gone. `--max-runs-per-week` can still cap it.
+const DEFAULT_ANALYSIS_BUDGET_MINUTES = 25;
 const KNOWN_PROJECTS = [
   'android-onboarding-seedless',
   'browserstack-android',
@@ -108,7 +108,8 @@ function parseArgs(argv) {
     collectOnly: false,
     skipScenarioArtifacts: false,
     now: null,
-    maxRunsPerWeek: DEFAULT_MAX_RUNS_PER_WEEK,
+    maxRunsPerWeek: null,
+    maxAnalysisMinutes: DEFAULT_ANALYSIS_BUDGET_MINUTES,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -182,6 +183,10 @@ function parseArgs(argv) {
         args.maxRunsPerWeek = Number(next);
         index += 1;
         break;
+      case '--max-analysis-minutes':
+        args.maxAnalysisMinutes = Number(next);
+        index += 1;
+        break;
       case '--dry-run':
         args.dryRun = true;
         break;
@@ -200,8 +205,17 @@ function parseArgs(argv) {
   ) {
     fail('--lookback-hours and --days must be positive numbers');
   }
-  if (!Number.isFinite(args.maxRunsPerWeek) || args.maxRunsPerWeek <= 0) {
+  if (
+    args.maxRunsPerWeek !== null &&
+    (!Number.isFinite(args.maxRunsPerWeek) || args.maxRunsPerWeek <= 0)
+  ) {
     fail('--max-runs-per-week must be a positive number');
+  }
+  if (
+    !Number.isFinite(args.maxAnalysisMinutes) ||
+    args.maxAnalysisMinutes <= 0
+  ) {
+    fail('--max-analysis-minutes must be a positive number');
   }
   return args;
 }
@@ -215,7 +229,8 @@ Options:
   --lookback-hours <n>   Analyze every run in the window and report medians
   --days <n>             Same window expressed in days
   --weekly               Week-over-week exception report (scheduled main runs)
-  --max-runs-per-week <n>  Uncollected runs re-analyzed per week (default: ${DEFAULT_MAX_RUNS_PER_WEEK})
+  --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
+  --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
   --collect-only         Analyze one run without Slack-sized scenario zips
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --now <iso>            Clock used by --weekly week bounds (tests)
@@ -2503,14 +2518,17 @@ function sampleRunsAcrossNewestDays(runs, limit) {
   return runs.filter((run) => selectedIds.has(String(run.databaseId)));
 }
 
-function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek) {
+function planWeeklyRuns(runs, collectedByRunId, maxRunsPerWeek = null) {
   const collected = runs.filter((run) =>
     collectedByRunId.has(String(run.databaseId)),
   );
   const uncollected = runs.filter(
     (run) => !collectedByRunId.has(String(run.databaseId)),
   );
-  const sampled = sampleRunsAcrossNewestDays(uncollected, maxRunsPerWeek);
+  const sampled =
+    maxRunsPerWeek === null
+      ? uncollected
+      : sampleRunsAcrossNewestDays(uncollected, maxRunsPerWeek);
   const selectedIds = new Set(
     [...collected, ...sampled].map((run) => String(run.databaseId)),
   );
@@ -2527,6 +2545,8 @@ async function reportsForRuns({
   outputDirectory,
   skillAnalyzerPath,
   label,
+  deadlineMs = Infinity,
+  clock = Date.now,
   analyze = analyzeRun,
 }) {
   const reports = [];
@@ -2545,6 +2565,14 @@ async function reportsForRuns({
           createdAt: collected.meta.createdAt || run.createdAt,
         },
       });
+      continue;
+    }
+    // Runs arrive newest first, so an exhausted budget drops the oldest runs,
+    // which are also the ones whose artifacts are closest to expiring.
+    if (clock() >= deadlineMs) {
+      const reason = 'analysis time budget exhausted';
+      console.warn(`⚠️ Skipping ${label} run ${runId}: ${reason}`);
+      skipped.push({ runId, reason });
       continue;
     }
     console.log(`\n▶️ ${label} run ${runId} (${run.createdAt})`);
@@ -2626,9 +2654,16 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   );
   if (thisWeekPlan.skipped > 0) {
     console.log(
-      `ℹ️ Sampling uncollected this-week runs: ${thisWeekPlan.selected.length}/${thisWeekRuns.length}`,
+      `ℹ️ Capping uncollected this-week runs: ${thisWeekPlan.selected.length}/${thisWeekRuns.length}`,
     );
   }
+  // Half the budget is reserved for the previous week, or a week with plenty
+  // of raw runs would leave nothing to compare against.
+  const budgetMs = args.maxAnalysisMinutes * 60 * 1000;
+  const startedAtMs = Date.now();
+  console.log(
+    `⏱️ Rebuilding uncollected runs within ${args.maxAnalysisMinutes} min (half reserved for the previous week)`,
+  );
   const thisWeek = await reportsForRuns({
     args,
     runs: thisWeekPlan.selected,
@@ -2636,6 +2671,7 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     outputDirectory,
     skillAnalyzerPath,
     label: 'this-week',
+    deadlineMs: startedAtMs + budgetMs / 2,
   });
   const thisWeekReports = thisWeek.reports;
   if (thisWeekReports.length === 0) {
@@ -2661,7 +2697,7 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
   );
   if (lastWeekPlan.skipped > 0) {
     console.log(
-      `ℹ️ Sampling uncollected last-week runs: ${lastWeekPlan.selected.length}/${lastWeekComparable.runs.length}`,
+      `ℹ️ Capping uncollected last-week runs: ${lastWeekPlan.selected.length}/${lastWeekComparable.runs.length}`,
     );
   }
   const lastWeek = await reportsForRuns({
@@ -2671,6 +2707,7 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     outputDirectory,
     skillAnalyzerPath,
     label: 'last-week',
+    deadlineMs: startedAtMs + budgetMs,
   });
   const lastWeekReports = lastWeek.reports;
 

@@ -112,6 +112,7 @@ describe('Analyze App Profiling triggers', () => {
     expect(inputs).toHaveProperty('lookback_hours');
     expect(inputs).toHaveProperty('weekly');
     expect(inputs).toHaveProperty('max_runs_per_week');
+    expect(inputs).toHaveProperty('max_analysis_minutes');
     expect(inputs).toHaveProperty('scenario');
     expect(inputs).toHaveProperty('skip_ai');
     expect(inputs).toHaveProperty('post_to_slack');
@@ -132,6 +133,20 @@ describe('Analyze App Profiling triggers', () => {
     expect(command).toContain('ARGS+=(--lookback-hours \"${LOOKBACK_HOURS}\")');
     expect(command).toContain('elif [ -n \"${RUN_ID}\" ]; then');
     expect(command).toContain('ARGS+=(--run \"${RUN_ID}\")');
+  });
+
+  it('bounds the weekly rebuild by time instead of by run count', () => {
+    const workflow = loadWorkflow();
+    const analysisStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Analyze app profiling',
+    );
+
+    expect(analysisStep?.env?.MAX_ANALYSIS_MINUTES).toBe(
+      '${{ inputs.max_analysis_minutes }}',
+    );
+    expect(analysisStep?.run ?? '').toContain(
+      'ARGS+=(--max-analysis-minutes \"${MAX_ANALYSIS_MINUTES}\")',
+    );
   });
 
   it('posts Slack on a chained manual run, an opted-in dispatch, and Monday', () => {
