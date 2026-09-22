@@ -113,6 +113,11 @@ const SOL_ASSET_ID = `${SOLANA_CHAIN_ID}/slip44:501`;
 const USDC_ADDRESS = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const USDC_ASSET_ID = `${SOLANA_CHAIN_ID}/token:${USDC_ADDRESS}`;
 const SOLANA_ADDRESS = '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv';
+const STELLAR_CHAIN_ID = 'stellar:pubnet';
+const XLM_ASSET_ID = `${STELLAR_CHAIN_ID}/slip44:148`;
+const SOL_USDT_ASSET_ID = `${SOLANA_CHAIN_ID}/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`;
+const STELLAR_SRC_TX_ID =
+  'f5b8836860bd8213c81b1883d041436168a02a6da1b9a9067bdb60a4c6d8ea89';
 
 const mockUseSelector = jest.mocked(useSelector);
 
@@ -950,14 +955,17 @@ describe('useTokenTransactions', () => {
   });
 
   describe('non-EVM asset filtering', () => {
-    const setupNonEvmMocks = (transactions: unknown[]) => {
+    const setupNonEvmMocks = (
+      transactions: unknown[],
+      { bridgeHistory = {} as Record<string, unknown> } = {},
+    ) => {
       jest.mocked(isNonEvmChainId).mockReturnValue(true);
       jest
         .mocked(formatChainIdToCaip)
         .mockImplementation((chainId: unknown) => chainId as never);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectTransactions) return [];
-        if (selector === selectBridgeHistoryForAccount) return {};
+        if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
         if (selector === selectTokens) return [];
         if (selector === selectSelectedInternalAccount) {
           return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
@@ -1128,6 +1136,103 @@ describe('useTokenTransactions', () => {
           status: TX_CONFIRMED,
         });
       });
+    });
+
+    it('includes a Stellar native source bridge by copying quote legs onto from/to', async () => {
+      const stellarSourceTx = {
+        id: STELLAR_SRC_TX_ID,
+        chain: STELLAR_CHAIN_ID,
+        status: TX_CONFIRMED,
+        time: 3,
+        from: [],
+        to: [],
+      };
+      setupNonEvmMocks([stellarSourceTx], {
+        bridgeHistory: {
+          [STELLAR_SRC_TX_ID]: {
+            status: { srcChain: { txHash: STELLAR_SRC_TX_ID } },
+            quote: {
+              srcChainId: 20000000000002,
+              destChainId: 1151111081099710,
+              srcTokenAmount: '10',
+              destTokenAmount: '5',
+              srcAsset: { assetId: XLM_ASSET_ID, symbol: 'XLM' },
+              destAsset: { assetId: SOL_USDT_ASSET_ID, symbol: 'USDT' },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          createAsset({
+            chainId: STELLAR_CHAIN_ID,
+            symbol: 'XLM',
+            name: 'Stellar',
+            isETH: false,
+            isNative: true,
+            address: XLM_ASSET_ID,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions.map((tx) => tx.id)).toEqual([
+        STELLAR_SRC_TX_ID,
+      ]);
+      expect(result.current.transactions[0].from[0].asset.type).toBe(
+        XLM_ASSET_ID,
+      );
+    });
+
+    it('excludes a Stellar source bridge whose quote src asset is a different token', async () => {
+      const stellarSourceTxId = `${STELLAR_SRC_TX_ID}-usdc-src`;
+      const stellarSourceTx = {
+        id: stellarSourceTxId,
+        chain: STELLAR_CHAIN_ID,
+        status: TX_CONFIRMED,
+        time: 3,
+        from: [],
+        to: [],
+      };
+      setupNonEvmMocks([stellarSourceTx], {
+        bridgeHistory: {
+          [stellarSourceTxId]: {
+            status: { srcChain: { txHash: stellarSourceTxId } },
+            quote: {
+              srcChainId: 20000000000002,
+              destChainId: 1151111081099710,
+              srcAsset: {
+                assetId: `${STELLAR_CHAIN_ID}/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`,
+                symbol: 'USDC',
+              },
+              destAsset: { assetId: SOL_USDT_ASSET_ID, symbol: 'USDT' },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          createAsset({
+            chainId: STELLAR_CHAIN_ID,
+            symbol: 'XLM',
+            name: 'Stellar',
+            isETH: false,
+            isNative: true,
+            address: XLM_ASSET_ID,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions).toEqual([]);
     });
   });
 });
