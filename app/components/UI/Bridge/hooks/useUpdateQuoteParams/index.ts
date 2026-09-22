@@ -16,7 +16,9 @@ export interface UseDebouncedUpdateParams {
   debounceWait: number;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
-  genericQuoteRequest?: GenericQuoteRequest;
+  genericQuoteRequest?: Partial<GenericQuoteRequest> & {
+    walletAddress: string;
+  };
   isActive: boolean;
   /**
    * The raw source input amount before normalization into {@link GenericQuoteRequest.srcTokenAmount}
@@ -109,11 +111,9 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     const debounced = debounce(
       (requestOptions: UpdateQuoteParamsOptions = {}) => {
         if (
-          !srcTokenAddress ||
-          !destTokenAddress ||
-          srcAmount === undefined ||
-          !destChainId ||
-          !walletAddress
+          !genericQuoteRequest ||
+          // if quoteRequest has no src amount, don't trace
+          !isValidQuoteRequest(genericQuoteRequest, true)
         ) {
           return updateQuoteParams(requestOptions);
         }
@@ -142,12 +142,9 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
       requestOptions: UpdateQuoteParamsOptions = {},
     ) => {
       if (
-        !srcTokenAddress ||
-        !destTokenAddress ||
-        // Checks if the input field has been cleared
-        srcAmount === undefined ||
-        !destChainId ||
-        !walletAddress
+        !genericQuoteRequest ||
+        // if quoteRequest has no src amount, cancel trace
+        !isValidQuoteRequest(genericQuoteRequest, false)
       ) {
         debounced.cancel();
         cancelOwnedTrace();
