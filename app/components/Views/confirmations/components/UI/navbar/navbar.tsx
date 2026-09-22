@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { ViewStyle } from 'react-native';
+import { Platform, ViewStyle } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 
@@ -44,6 +44,8 @@ export function getNavbar({
   mmPayRequestInProgressNavHandler,
   sheetPresentation = false,
 }: NavbarOptions) {
+  const isSheetPresentation = sheetPresentation && Platform.OS === 'ios';
+
   function handleBackPress() {
     if (mmPayRequestInProgressNavHandler?.current) {
       mmPayRequestInProgressNavHandler.current();
@@ -76,14 +78,14 @@ export function getNavbar({
           startAccessory={customLeft}
           endAccessory={customRight}
           style={overrides?.headerStyle}
-          includesTopInset={!sheetPresentation}
+          includesTopInset={!isSheetPresentation}
           twClassName="bg-default"
         >
           {customTitle}
         </HeaderCompactStandard>
       );
 
-      if (!sheetPresentation) {
+      if (!isSheetPresentation) {
         return header;
       }
 

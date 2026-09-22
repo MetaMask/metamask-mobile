@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { getNavbar, NAVBAR_SHEET_HANDLE_TEST_ID } from './navbar';
 
@@ -23,9 +23,15 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 describe('getNavbar', () => {
   const mockOnReject = jest.fn();
+  const originalPlatformOS = Platform.OS;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Platform.OS = 'ios';
+  });
+
+  afterAll(() => {
+    Platform.OS = originalPlatformOS;
   });
 
   describe('default behavior', () => {
@@ -128,6 +134,22 @@ describe('getNavbar', () => {
       fireEvent.press(getByTestId('Test Title-navbar-back-button'));
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the full-window header on Android', () => {
+      Platform.OS = 'android';
+
+      const { queryByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      expect(queryByTestId(NAVBAR_SHEET_HANDLE_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 
