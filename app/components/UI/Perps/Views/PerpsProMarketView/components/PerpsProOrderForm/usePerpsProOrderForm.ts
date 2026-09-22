@@ -247,6 +247,18 @@ const INSUFFICIENT_BALANCE_PREFIX = strings(
   { required: '__REQ__', available: '__AVAIL__' },
 ).split('__REQ__')[0];
 
+/**
+ * Order types that build their own price inputs and therefore throw away any
+ * limit/trigger price already typed. Both the price reset and the
+ * committed-price reset below are derived from this one list so they cannot
+ * drift apart.
+ *
+ * @param type - Order type being switched to.
+ * @returns `true` when switching to this type discards the typed prices.
+ */
+const discardsPriceDrafts = (type: OrderType): boolean =>
+  type === 'twap' || type === 'scale' || type === 'chase';
+
 const TWAP_OWNED_PROTOCOL_ERROR_CODES = [
   PERPS_ERROR_CODES.ORDER_TWAP_DURATION_REQUIRED,
   PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
@@ -2943,13 +2955,12 @@ export const usePerpsProOrderForm = ({
         // limit) carries the prices over untouched, so treating them as
         // freshly typed would silently drop guidance the user has already
         // earned about a price that has not changed.
-        const clearsPriceDrafts =
-          type === 'twap' || type === 'scale' || type === 'chase';
-        if (type !== orderForm.type && clearsPriceDrafts) {
+        const discardsPrices = discardsPriceDrafts(type);
+        if (type !== orderForm.type && discardsPrices) {
           resetPriceInputInteraction();
         }
         setOrderType(type);
-        if (type === 'twap' || type === 'scale' || type === 'chase') {
+        if (discardsPrices) {
           setLimitPrice(undefined);
           setTriggerPrice(undefined);
           setTakeProfitPrice(undefined);

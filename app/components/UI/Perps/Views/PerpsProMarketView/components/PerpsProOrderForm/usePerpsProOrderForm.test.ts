@@ -6151,7 +6151,7 @@ describe('usePerpsProOrderForm', () => {
       },
     ] as const)(
       'warns about $name without blocking it',
-      ({ orderType, direction, triggerPrice, limitPrice }) => {
+      ({ orderType, direction, triggerPrice, limitPrice, message }) => {
         mockOrderForm.type = orderType;
         mockOrderForm.direction = direction;
         mockOrderForm.limitPrice = limitPrice;
@@ -6165,7 +6165,10 @@ describe('usePerpsProOrderForm', () => {
         });
         rerender({});
 
-        expect(result.current.priceCardMessage?.severity).toBe('warning');
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'warning',
+          message,
+        });
         expect(result.current.isPlaceOrderDisabled).toBe(false);
       },
     );
