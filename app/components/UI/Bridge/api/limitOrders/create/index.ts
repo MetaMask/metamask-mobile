@@ -24,18 +24,18 @@ export interface CreateLimitOrderParams {
      * src_price - price limit is set on the source asset USD price
      * dest_price - price limit is set on the dest asset USD price
      * ratio - price limit is set on the token prices (i.e. when ETH is equal 0.04 BTC).
-     * This also includes all the supported stablecoins. 
+     * This also includes all the supported stablecoins.
      */
     kind: 'src_price' | 'dest_price' | 'ratio';
     /**
      * Which side of `price` fills the order.
      */
     threshold: 'above' | 'below';
-    /** 
+    /**
      * The trigger price, as a decimal string.
      * It's either the token value (eg `0.001` for ETH) or the USD equivalent $`2700`.
      * In case of non-USD fiat values like EUR, we need to convert and pass the USD equivalent.
-     * Backend does not support fiat outside of USD. 
+     * Backend does not support fiat outside of USD.
      */
     price: string;
   };
