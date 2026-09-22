@@ -24,6 +24,7 @@ import { decodeTransferData } from '../util/transactions';
 import TransactionTypes from './TransactionTypes';
 import { getNotificationSkipPredicates } from './notificationSkipPredicates';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { FUNGIBLE_ASSET_TYPES } from './Assets/accountGroupAssetLoader';
 
 /**
  * Resolves the real counterparty address a transaction affects, other than
@@ -359,7 +360,9 @@ class NotificationManager {
             const caipChainId = toEvmCaipChainId(transactionMeta.chainId);
             AssetsController.getAssets(uniqueAccountsToRefresh, {
               forceUpdate: true,
+              bypassServerCache: true,
               chainIds: [caipChainId],
+              assetTypes: FUNGIBLE_ASSET_TYPES,
             }).catch((error) => {
               Logger.error(error, 'Failed to refresh assets after transaction');
             });
