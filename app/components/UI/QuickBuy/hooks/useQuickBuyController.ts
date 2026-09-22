@@ -172,6 +172,8 @@ export interface UseQuickBuyControllerResult {
   /** True when neither fiat nor token-balance gates allow slider interaction. */
   isSliderDisabled: boolean;
   formattedExchangeRate: string | undefined;
+  /** Display-only current price of the asset shown in the header. */
+  tokenPrice?: number;
   metamaskFeePercent: number;
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string;
@@ -1071,6 +1073,10 @@ export function useQuickBuyController(
         : formatExchangeRate(sourceToken, destTokenForRate),
     [destToken, destTokenForRate, sourceToken, tradeMode],
   );
+  const tokenPrice =
+    tradeMode === 'sell'
+      ? sourceToken?.currencyExchangeRate
+      : destTokenForRate?.currencyExchangeRate;
 
   const metamaskFeePercent = useMemo(
     () => getMetamaskFeePercent(activeQuote),
@@ -1874,6 +1880,7 @@ export function useQuickBuyController(
     maxSpendFiat,
     isSliderDisabled,
     formattedExchangeRate,
+    tokenPrice,
     metamaskFeePercent,
     estimatedReceiveAmount,
     sourceBalanceFiat,

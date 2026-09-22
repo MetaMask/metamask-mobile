@@ -25,14 +25,12 @@ const baseContext = {
 
 describe('QuickBuyToolbar', () => {
   const setActiveScreen = jest.fn();
-  const onClose = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
-      onClose,
     });
   });
 
@@ -48,7 +46,6 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
-      onClose,
       features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
       hasSellableBalance: false,
     });
@@ -60,7 +57,6 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
-      onClose,
       features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
       hasSellableBalance: true,
     });
@@ -79,7 +75,6 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
-      onClose,
       features: { tradeModes: ['buy'], quickAmountPills: false },
     });
     render(<QuickBuyToolbar />);
@@ -96,7 +91,6 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
-      onClose,
       isQuickAmountPreferencesLoaded: false,
     });
 
@@ -105,11 +99,5 @@ describe('QuickBuyToolbar', () => {
     expect(screen.getByTestId('quick-buy-edit-amounts-button')).toBeDisabled();
     fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
     expect(setActiveScreen).not.toHaveBeenCalled();
-  });
-
-  it('calls onClose when the close button is pressed', () => {
-    render(<QuickBuyToolbar />);
-    fireEvent.press(screen.getByTestId('quick-buy-close-button'));
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
