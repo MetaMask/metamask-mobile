@@ -69,3 +69,6 @@ export const getSwapsLimitOrderExpirationLabel = (
 };
 
 export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;
+
+export const LIMIT_ORDERS_STALE_TIME = 60 * 60 * 1000;
+export const LIMIT_ORDERS_PAGE_LIMIT = 20;

@@ -7,4 +7,5 @@ export const DATA_SERVICES: string[] = [
   'PredictMarketDataService',
   'PredictPortfolioService',
   'RecurringOrdersDataService',
+  'LimitOrdersDataService',
 ];
