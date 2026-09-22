@@ -97,16 +97,19 @@ const RewardsMoneyDashboard: React.FC = () => {
           testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CHART_BUTTON}
         />
       </Box>
-      <ButtonIcon
-        disabled={!subscriptionId}
-        iconName={IconName.Setting}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        accessibilityLabel={strings('rewards.settings.title')}
-        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON}
-      />
+      {/* Rewards settings only exist for a subscription, so an unsubscribed
+      user gets no control rather than a dead one. */}
+      {subscriptionId ? (
+        <ButtonIcon
+          iconName={IconName.Setting}
+          onPress={() =>
+            navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+          }
+          size={ButtonIconSize.Md}
+          accessibilityLabel={strings('rewards.settings.title')}
+          testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON}
+        />
+      ) : null}
     </Box>
   );
 
