@@ -783,12 +783,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
             (legacyFiatOrders as FiatOrder[]).find(
               (o) =>
                 // Sell orders key their on-chain hash under sellTxHash, not txHash.
-                (o.sellTxHash?.toLowerCase() ??
-                  o.txHash?.toLowerCase() ??
-                  o.id?.toLowerCase()) === hash,
+                // Check every candidate because placeholders such as `0x` are
+                // truthy but are rejected by the activity mapper.
+                o.sellTxHash?.toLowerCase() === hash ||
+                o.txHash?.toLowerCase() === hash ||
+                o.id?.toLowerCase() === hash,
             ) ??
             v2RampsOrders.find(
-              (o) => (o.txHash?.toLowerCase() ?? o.id?.toLowerCase()) === hash,
+              (o) =>
+                o.txHash?.toLowerCase() === hash ||
+                o.id?.toLowerCase() === hash,
             );
 
           if (rawOrder) {

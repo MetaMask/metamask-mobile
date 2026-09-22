@@ -259,14 +259,21 @@ export function getTokenApprovalAmountFromData(
 }
 
 export function isSpendingCapUnlimited(
-  value: number | string | undefined,
+  value: number | string | null | undefined,
   decimals = 0,
 ): boolean {
-  if (value === undefined) {
+  if (
+    value === undefined ||
+    value === null ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
     return false;
   }
 
-  return calcTokenAmount(value, decimals).gte(TOKEN_VALUE_UNLIMITED_THRESHOLD);
+  const tokenAmount = calcTokenAmount(value, decimals);
+  return (
+    !tokenAmount.isNaN() && tokenAmount.gte(TOKEN_VALUE_UNLIMITED_THRESHOLD)
+  );
 }
 
 function getTransactionStatusKey(
