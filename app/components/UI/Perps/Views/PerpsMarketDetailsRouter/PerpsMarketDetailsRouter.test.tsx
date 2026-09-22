@@ -31,6 +31,7 @@ jest.mock('react-native-safe-area-context', () => {
   const ActualReact = jest.requireActual('react');
   return {
     ...jest.requireActual('react-native-safe-area-context'),
+    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
     SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) => {
       ActualReact.useEffect(() => mockSafeAreaMount(), []);
       return (
@@ -41,6 +42,20 @@ jest.mock('react-native-safe-area-context', () => {
     },
   };
 });
+
+let mockOutreachCampaign: {
+  id: string;
+  title: string;
+  body: string;
+  imageUrl: string;
+} | null = null;
+
+jest.mock('../../hooks/usePerpsOutreachCampaign', () => ({
+  usePerpsOutreachCampaign: () => ({
+    campaign: mockOutreachCampaign,
+    dismiss: jest.fn(),
+  }),
+}));
 
 jest.mock('../PerpsProMarketView', () => {
   const { View } = jest.requireActual('react-native');
@@ -69,6 +84,7 @@ const mockUsePerpsProModeEnabled = jest.mocked(usePerpsProModeEnabled);
 describe('PerpsMarketDetailsRouter', () => {
   beforeEach(() => {
     mockActiveProvider = 'hyperliquid';
+    mockOutreachCampaign = null;
     mockUseRoute.mockReturnValue({
       params: { market: { symbol: 'ETH' } },
     });
@@ -105,6 +121,24 @@ describe('PerpsMarketDetailsRouter', () => {
 
     expect(getByTestId('safe-area-container')).toHaveProp('edges', [
       'top',
+      'bottom',
+      'left',
+      'right',
+    ]);
+  });
+
+  it('hands the top inset to the outreach banner while it is shown', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(false);
+    mockOutreachCampaign = {
+      id: 'mobile-outreach-2026-09',
+      title: "You're a top perp trader",
+      body: 'Shape what we build next.',
+      imageUrl: 'https://metamask.io/images/mobile-perps-outreach.png',
+    };
+
+    const { getByTestId } = render(<PerpsMarketDetailsRouter />);
+
+    expect(getByTestId('safe-area-container')).toHaveProp('edges', [
       'bottom',
       'left',
       'right',

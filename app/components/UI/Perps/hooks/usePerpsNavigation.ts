@@ -30,6 +30,12 @@ import {
 } from '../constants/perpsConfig';
 import { usePerpsProvider } from './usePerpsProvider';
 import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import {
   navigateToPerpsHomeTarget,
   resetToPerpsHomeTarget,
   useGetPerpsHomeNavigationTarget,
@@ -309,6 +315,15 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           return depositWithOrder();
         };
       }
+      if (useBottomSheet) {
+        trace({
+          name: TraceName.PerpsTradeSheetInteractive,
+          op: TraceOperation.PerpsOperation,
+          data: {
+            source: params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          },
+        });
+      }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         createOrder,
@@ -325,7 +340,15 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             },
           );
         })
-        .catch(handleOrderError);
+        .catch((error: unknown) => {
+          if (useBottomSheet) {
+            endTrace({
+              name: TraceName.PerpsTradeSheetInteractive,
+              data: { success: false, reason: 'transaction_creation_failed' },
+            });
+          }
+          handleOrderError(error);
+        });
     },
     [
       navigation,

@@ -19,6 +19,7 @@ import {
   selectPerpsMode,
   selectPerpsProvider,
 } from '../selectors/perpsController';
+import { trace, endTrace } from '../../../../util/trace';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -52,6 +53,12 @@ jest.mock('./usePerpsToasts', () => ({
 
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 jest.mock(
@@ -412,6 +419,7 @@ describe('usePerpsNavigation', () => {
         direction: 'long' as const,
         asset: 'ETH',
         providerId: 'lighter' as const,
+        useBottomSheet: true,
       };
 
       result.current.navigateToOrder(params);
@@ -425,6 +433,7 @@ describe('usePerpsNavigation', () => {
         );
       });
       expect(mockDepositWithOrder).not.toHaveBeenCalled();
+      expect(trace).not.toHaveBeenCalled();
     });
 
     it('switches a concrete provider before routing an explicit Lighter order', async () => {
@@ -611,6 +620,11 @@ describe('usePerpsNavigation', () => {
           },
         );
       });
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps Trade Sheet Interactive',
+        }),
+      );
     });
 
     it('wraps order creation with transaction active A/B tests when provided', async () => {
@@ -668,7 +682,11 @@ describe('usePerpsNavigation', () => {
       mockDepositWithOrder.mockRejectedValue(depositError);
 
       const { result } = renderHook(() => usePerpsNavigation());
-      const params = { direction: 'long' as const, asset: 'BTC' };
+      const params = {
+        direction: 'long' as const,
+        asset: 'BTC',
+        useBottomSheet: true,
+      };
 
       result.current.navigateToOrder(params);
 
@@ -678,6 +696,10 @@ describe('usePerpsNavigation', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: 'Perps Trade Sheet Interactive',
+        data: { success: false, reason: 'transaction_creation_failed' },
+      });
     });
 
     it('navigates to tutorial without params', () => {

@@ -16,6 +16,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
 import PerpsProMarketView from '../PerpsProMarketView';
+import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
+import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 import type { PerpsStackParamList } from '../../types/navigation';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
@@ -23,6 +25,10 @@ import PerpsLoader from '../../components/PerpsLoader';
 import PerpsConnectionErrorView from '../../components/PerpsConnectionErrorView';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
+// The outreach banner sits above the market header and paints its background up
+// to the top edge of the screen, so it applies the top inset itself and the
+// container must not apply it a second time.
+const SAFE_AREA_EDGES_UNDER_BANNER: Edge[] = ['bottom', 'left', 'right'];
 
 function resolveGenerationTrigger(
   explicitTrigger: 'market_switch' | undefined,
@@ -60,6 +66,7 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   const isProModeEnabled = usePerpsProModeEnabled();
   const isFocused = useIsFocused();
   const { activeProvider, switchProvider } = usePerpsProvider();
+  const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const navigation =
@@ -133,21 +140,29 @@ const PerpsMarketDetailsRouter: React.FC = () => {
   }, [explicitGenerationTrigger, isVenueReady, mode, navigation, symbol]);
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')} edges={SAFE_AREA_EDGES}>
-      {isProModeEnabled && venueSwitch === 'failed' ? (
-        <PerpsConnectionErrorView
-          error="Unable to select the market's trading provider"
-          onRetry={selectVenue}
-          showBackButton
-        />
-      ) : !isVenueReady ? (
-        <PerpsLoader />
-      ) : isProModeEnabled ? (
-        <PerpsProMarketView generationTrigger={generationTrigger} />
-      ) : (
-        <PerpsMarketDetailsView generationTrigger={generationTrigger} />
-      )}
-    </SafeAreaView>
+    <>
+      <PerpsOutreachBanner includesTopInset location="perp_market_details" />
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={
+          outreachCampaign ? SAFE_AREA_EDGES_UNDER_BANNER : SAFE_AREA_EDGES
+        }
+      >
+        {isProModeEnabled && venueSwitch === 'failed' ? (
+          <PerpsConnectionErrorView
+            error="Unable to select the market's trading provider"
+            onRetry={selectVenue}
+            showBackButton
+          />
+        ) : !isVenueReady ? (
+          <PerpsLoader />
+        ) : isProModeEnabled ? (
+          <PerpsProMarketView generationTrigger={generationTrigger} />
+        ) : (
+          <PerpsMarketDetailsView generationTrigger={generationTrigger} />
+        )}
+      </SafeAreaView>
+    </>
   );
 };
 

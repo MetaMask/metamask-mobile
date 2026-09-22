@@ -14,6 +14,7 @@ import {
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
 } from './read';
@@ -549,6 +550,56 @@ describe('card feature flag readers', () => {
           regionCode: 'US',
         }),
       ).toBe(false);
+    });
+
+    it('returns false when the user has completed migration', () => {
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'GB',
+          hasCompletedMigration: true,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('readCardUkMigrationSignInRoutingEnabled', () => {
+    const originalEnv =
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+      } else {
+        process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads the version-gated remote flag when present', () => {
+      delete process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+      expect(
+        readCardUkMigrationSignInRoutingEnabled({
+          cardUkMigrationSignInRouting: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(true);
+      expect(
+        readCardUkMigrationSignInRoutingEnabled({
+          cardUkMigrationSignInRouting: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(false);
+    });
+
+    it('falls back to the env override when the remote flag is absent', () => {
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'true';
+      expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(true);
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'false';
+      expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(false);
     });
   });
 

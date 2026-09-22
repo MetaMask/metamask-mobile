@@ -69,6 +69,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
+  fetchOrderPreview: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -511,5 +512,91 @@ describe('KalshiRemoteAdapter', () => {
     await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
     );
+  });
+
+  describe('trading', () => {
+    const previewPayload = {
+      previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+      venueId: 'kalshi',
+      marketId: 'market-1',
+      side: 'yes',
+      requestedAmount: '20.00',
+      orderAmount: '20.00',
+      estimatedContracts: 43,
+      averagePrice: '0.4651',
+      fee: '0.86',
+      feeBreakdown: [
+        { source: 'venue', amount: '0.43' },
+        { source: 'metamask', amount: '0.43' },
+      ],
+      totalDebit: '20.86',
+      potentialPayout: '43.00',
+      potentialProfit: '22.14',
+      expiresAt: '2026-03-01T12:00:30.000Z',
+    };
+    const previewParams = {
+      marketId,
+      side: 'yes' as const,
+      amount: '20' as never,
+    };
+
+    it('parses a canonical Order Preview for the exact intent', async () => {
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+
+      const result = await adapter.trading.previewOrder(previewParams);
+
+      expect(result.previewId).toBe(previewPayload.previewId);
+      expect(result.requestedAmount).toBe('20.00');
+    });
+
+    it('accepts an amount echo that differs only in trailing zeros', async () => {
+      client.fetchOrderPreview.mockResolvedValue({
+        ...previewPayload,
+        requestedAmount: '20.0000',
+      });
+
+      await expect(
+        adapter.trading.previewOrder(previewParams),
+      ).resolves.toMatchObject({ requestedAmount: '20.0000' });
+    });
+
+    it('rejects an Order Preview bound to a different amount', async () => {
+      client.fetchOrderPreview.mockResolvedValue({
+        ...previewPayload,
+        requestedAmount: '50.00',
+      });
+
+      await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
+
+    it('rejects an Order Preview for another Market or side', async () => {
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+
+      await expect(
+        adapter.trading.previewOrder({ ...previewParams, side: 'no' }),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+      await expect(
+        adapter.trading.previewOrder({
+          ...previewParams,
+          marketId: 'market-2' as PredictEntityId,
+        }),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
+
+    it('maps canonical backend preview codes to client codes', async () => {
+      client.fetchOrderPreview.mockRejectedValue(
+        new PredictHttpError(404, 'market_not_found'),
+      );
+
+      await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.MARKET_NOT_FOUND }),
+      );
+    });
   });
 });

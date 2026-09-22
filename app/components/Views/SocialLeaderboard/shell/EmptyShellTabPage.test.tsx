@@ -23,6 +23,28 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   };
 });
 
+jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
+  };
+});
+
+// See the view suite: the real hook needs keyring state and React Query, and
+// this suite is about the shell.
+jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed', () => ({
+  useSocialV1Feed: jest.requireActual(
+    '../SocialV1View/feed/mocks/mockComposedFeedHook',
+  ).mockUseSocialV1Feed,
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -135,5 +157,65 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
 
     jest.useRealTimers();
+  });
+
+  it('inserts the Popular traders carousel after the first three Trending posts', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('popular-traders-carousel-section'),
+    ).toBeOnTheScreen();
+
+    const walkTestIds = (node: {
+      props?: { testID?: string };
+      children?: unknown[];
+    }): string[] => {
+      const own = node.props?.testID ? [node.props.testID] : [];
+      const children = (node.children ?? []).flatMap((child) =>
+        typeof child === 'object' && child !== null
+          ? walkTestIds(
+              child as { props?: { testID?: string }; children?: unknown[] },
+            )
+          : [],
+      );
+      return own.concat(children);
+    };
+
+    const ids = walkTestIds(
+      screen.UNSAFE_root as {
+        props?: { testID?: string };
+        children?: unknown[];
+      },
+    );
+    const firstThree = MOCK_SOCIAL_V1_FEED_ITEMS.slice(0, 3).map(
+      (item) => `social-v1-feed-card-${item.id}`,
+    );
+    const fourth = `social-v1-feed-card-${MOCK_SOCIAL_V1_FEED_ITEMS[3].id}`;
+    const carouselIndex = ids.indexOf('popular-traders-carousel-section');
+
+    firstThree.forEach((id) => {
+      expect(ids.indexOf(id)).toBeLessThan(carouselIndex);
+    });
+    expect(ids.indexOf(fourth)).toBeGreaterThan(carouselIndex);
+  });
+
+  it('omits the Popular traders carousel on Following', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
   });
 });

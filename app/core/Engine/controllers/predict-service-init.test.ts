@@ -9,6 +9,11 @@ import type {
   PredictLiveDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictLiveDataService';
 import type {
+  PredictOrderPreviewServiceActions,
+  PredictOrderPreviewServiceEvents,
+  PredictOrderPreviewServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictOrderPreviewService';
+import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
   PredictMarketDataServiceMessenger,
@@ -36,6 +41,7 @@ import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
+  predictOrderPreviewServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
 
@@ -96,6 +102,40 @@ describe('Predict service initialization', () => {
     const result = rootMessenger.call(
       'PredictPortfolioService:getBalance',
       'kalshi' as never,
+    );
+
+    await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:getBearerToken',
+    );
+    controller.destroy();
+  });
+
+  it('registers authenticated Order Preview actions on the Engine root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictOrderPreviewServiceActions,
+      PredictOrderPreviewServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictOrderPreviewServiceMessenger =
+      new Messenger({
+        namespace: 'PredictOrderPreviewService',
+        parent: rootMessenger,
+      });
+    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: { call } as never,
+    };
+    const { controller } = predictOrderPreviewServiceInit(request);
+
+    const result = rootMessenger.call(
+      'PredictOrderPreviewService:requestQuote',
+      'kalshi' as never,
+      { marketId: 'KXTEST-26-A', side: 'yes', amount: '20' } as never,
     );
 
     await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });

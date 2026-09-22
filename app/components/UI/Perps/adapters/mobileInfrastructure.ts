@@ -53,8 +53,9 @@ import {
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 import {
+  getTerminalApiUrl as buildTerminalMarketDataUrl,
   getTerminalGlobalSnapshotUrl,
-  resolveTerminalApiUrl,
+  resolveTerminalApiHost,
 } from '../constants/terminalApi';
 import {
   getActivePerpsLoadingSessionTraceData,
@@ -62,7 +63,7 @@ import {
 } from '../utils/perpsLoadingSession';
 
 /**
- * Resolves the Terminal API base URL based on build environment.
+ * Resolves the Terminal market-data URL based on build environment.
  *
  * Mapping:
  * - dev / test / e2e → DEV (takes priority over beta build type)
@@ -71,9 +72,11 @@ import {
  * - all other environments (local, undefined, etc.) → UAT
  */
 export function getTerminalApiUrl(): string {
-  return resolveTerminalApiUrl(
-    process.env.METAMASK_ENVIRONMENT,
-    process.env.METAMASK_BUILD_TYPE,
+  return buildTerminalMarketDataUrl(
+    resolveTerminalApiHost(
+      process.env.METAMASK_ENVIRONMENT,
+      process.env.METAMASK_BUILD_TYPE,
+    ),
   );
 }
 
@@ -285,10 +288,12 @@ export function createMobileClientConfig(): PerpsControllerConfig {
  * Controller access uses messenger pattern (messenger.call()).
  */
 export function createMobileInfrastructure(): PerpsPlatformDependencies {
-  const terminalMarketDataUrl = getTerminalApiUrl();
-  const terminalGlobalSnapshotUrl = getTerminalGlobalSnapshotUrl(
-    terminalMarketDataUrl,
+  const terminalHost = resolveTerminalApiHost(
+    process.env.METAMASK_ENVIRONMENT,
+    process.env.METAMASK_BUILD_TYPE,
   );
+  const terminalMarketDataUrl = buildTerminalMarketDataUrl(terminalHost);
+  const terminalGlobalSnapshotUrl = getTerminalGlobalSnapshotUrl(terminalHost);
   const traceNamesById = new Map<string, TraceName>();
 
   return {

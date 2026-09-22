@@ -11,7 +11,7 @@ import {
   type SwitchProviderResult,
 } from '@metamask/perps-controller';
 
-import { act, screen, waitFor } from '@testing-library/react-native';
+import { act, cleanup, screen, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,7 +20,12 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
+import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  clearPerpsOutreachApiMocks,
+  setupPerpsOutreachApiMock,
+} from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 import PerpsMarketDetailsRouter from './PerpsMarketDetailsRouter';
 
 const defaultMarket = {
@@ -42,6 +47,12 @@ describe('PerpsMarketDetailsRouter', () => {
       .mocked(Engine.context.PerpsController.switchProvider)
       .mockReset()
       .mockResolvedValue({ success: true, providerId: 'hyperliquid' });
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    cleanup();
+    clearPerpsOutreachApiMocks();
   });
 
   it('renders the lite market details layout in the default (non-pro) mode', async () => {
@@ -57,6 +68,9 @@ describe('PerpsMarketDetailsRouter', () => {
     // PerpsMarketDetailsView has a distinct container testId vs PerpsProMarketView
     expect(
       await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
   });
 
@@ -94,6 +108,9 @@ describe('PerpsMarketDetailsRouter', () => {
     // PerpsProMarketView has a distinct container testId vs PerpsMarketDetailsView
     expect(
       await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
   });
   const aggregatedLighterOptions = {
