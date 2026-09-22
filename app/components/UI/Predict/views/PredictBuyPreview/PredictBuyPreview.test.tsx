@@ -1305,6 +1305,18 @@ describe('PredictBuyPreview', () => {
 
       expect(screen.getByText('Learn more.')).toBeOnTheScreen();
     });
+
+    it('centers the disclaimer when it wraps', () => {
+      mockBalance = 10;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(
+        screen.getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toHaveStyle({ textAlign: 'center' });
+    });
   });
 
   describe('outcome color rendering', () => {

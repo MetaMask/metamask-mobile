@@ -171,6 +171,7 @@ interface ActivityListProps {
    * When true (default), Perps trade fills that share a block/second are shown
    * as a single row. Uncheck Aggregated to list each fill.
    */
+  /** Collapse each Perps order's fills into one row. Defaults to on. */
   aggregateFills?: boolean;
   trackScreenViewed?: boolean;
   entryPoint?: ActivityScreenEntryPoint;

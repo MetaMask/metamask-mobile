@@ -54,11 +54,22 @@ export function usePerpsDetailsItem(
     isQueryEnabled,
     aggregateFills,
   );
-  const transaction = useMemo(
-    () =>
-      getPerpsTransaction(transactions, shouldResolve ? identifier : undefined),
-    [identifier, shouldResolve, transactions],
+  // Row ids differ between the two views: an aggregated row is keyed on the order, an
+  // unaggregated one on the individual fill. The list can be in either state when a row is
+  // tapped, so resolve against both. Both calls share one react-query cache entry, so this
+  // costs a second memo rather than a second fetch.
+  const { transactions: unaggregatedTransactions } = usePerpsActivityQuery(
+    shouldResolve ? accountId : undefined,
+    isQueryEnabled,
+    { fillDisplay: 'individual' },
   );
+  const transaction = useMemo(() => {
+    const target = shouldResolve ? identifier : undefined;
+    return (
+      getPerpsTransaction(transactions, target) ??
+      getPerpsTransaction(unaggregatedTransactions, target)
+    );
+  }, [identifier, shouldResolve, transactions, unaggregatedTransactions]);
 
   const item = useMemo(() => {
     if (!transaction) {

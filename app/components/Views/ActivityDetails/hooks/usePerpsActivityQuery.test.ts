@@ -142,6 +142,29 @@ describe('usePerpsActivityQuery', () => {
 
     const { result } = renderHook(
       () => usePerpsActivityQuery('eip155:42161:0xabc', true, false),
+  it('keeps both executions when two fills of one order share timestamp, size and price', async () => {
+    // HyperLiquid does not document orderId + timestamp + size + price as identifying one
+    // execution, so neither the query nor the transform may drop a fill for looking like
+    // another: the row count, size, fee and PnL would all under-report the trade.
+    const twinFill = {
+      orderId: 'order-twin',
+      symbol: 'ETH',
+      side: 'B',
+      size: '1.5',
+      price: '3000',
+      pnl: '0',
+      direction: 'Open Long',
+      fee: '0.1',
+      feeToken: 'USDC',
+      timestamp: 1700000000000,
+    };
+    controller.getOrderFills.mockResolvedValue([twinFill, { ...twinFill }]);
+
+    const { result } = renderHook(
+      () =>
+        usePerpsActivityQuery('eip155:42161:0xabc', true, {
+          fillDisplay: 'individual',
+        }),
       { wrapper },
     );
 
@@ -154,5 +177,9 @@ describe('usePerpsActivityQuery', () => {
         (transaction) => transaction.type === 'trade',
       ),
     ).toHaveLength(2);
+    expect(result.current.transactions).toHaveLength(2);
+    expect(new Set(result.current.transactions.map((tx) => tx.id)).size).toBe(
+      2,
+    );
   });
 });

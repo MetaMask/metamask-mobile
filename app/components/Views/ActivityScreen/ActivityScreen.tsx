@@ -273,6 +273,21 @@ const ActivityScreen = () => {
     ? getPerpsSubFilterKinds(perpsFilter)
     : undefined;
 
+  // Perps fills are the only rows that can be collapsed per order, so the control is offered
+  // on the Trades sub-filter and nowhere else.
+  const [aggregateFills, setAggregateFills] = useState(true);
+  const aggregatedToggle = useMemo(
+    () =>
+      showPerpsFilter && perpsFilter === PerpsActivityFilter.Trades
+        ? {
+            isSelected: aggregateFills,
+            onChange: setAggregateFills,
+            testID: ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX,
+          }
+        : null,
+    [showPerpsFilter, perpsFilter, aggregateFills],
+  );
+
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();

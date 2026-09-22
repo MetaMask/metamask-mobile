@@ -37,6 +37,8 @@ export interface AssetListControlBarProps {
   /**
    * Optional Aggregated checkbox shown on Perps Trades (and pinned with the
    * chips). Omitted when the current type/sub-filter has no fill aggregation.
+   * The Aggregated control, rendered after the chips. Only supplied for Perps trades, where
+   * fills can be collapsed per order; omitted everywhere else.
    */
   aggregatedToggle?: AggregatedToggleDescriptor | null;
   suppressTestIDs?: boolean;

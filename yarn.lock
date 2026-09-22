@@ -4971,13 +4971,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expensify/react-native-wallet@npm:^0.1.15":
-  version: 0.1.15
-  resolution: "@expensify/react-native-wallet@npm:0.1.15"
+"@expensify/react-native-wallet@npm:^0.1.24":
+  version: 0.1.24
+  resolution: "@expensify/react-native-wallet@npm:0.1.24"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/7708a6f73112aec7ec19a9b3fc816dd757a063fe2cdf82d1c3c7be4d5ba2db72d7537596868650a82201e06a24e748fff1e07d09aa381a78dd437a49d394ac28
+  checksum: 10/1107343a6dc3edbbca5d7c44260b2a4d16d351ee575c9a2584aa1f11aef78863734802aef852444659fba4fef4a8c35b50ab6ac470945058f9f53b5281abdf3b
   languageName: node
   linkType: hard
 
@@ -12648,15 +12648,6 @@ __metadata:
   dependencies:
     "@noble/hashes": "npm:1.8.0"
   checksum: 10/f60f00ad86296054566b67be08fd659999bb64b692bfbf11dbe3be1f422ad4d826bf5ebb2015ce2e246538eab2b677707e0a46ffa8323a6fae7a9a30ec1fe318
-  languageName: node
-  linkType: hard
-
-"@noble/curves@npm:1.9.6":
-  version: 1.9.6
-  resolution: "@noble/curves@npm:1.9.6"
-  dependencies:
-    "@noble/hashes": "npm:1.8.0"
-  checksum: 10/74b603bbf95cab1b6eb147d02febe55bc19cf57c324bf2ff04b44ff9be3f88affc1a57da0805c74803e27c25687079251f9c788f93f0e6fd1c5d02163996460c
   languageName: node
   linkType: hard
 
@@ -39215,7 +39206,7 @@ __metadata:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
-    "@expensify/react-native-wallet": "npm:^0.1.15"
+    "@expensify/react-native-wallet": "npm:^0.1.24"
     "@expo/fingerprint": "npm:~0.16.7"
     "@expo/metro-config": "npm:~55.0.23"
     "@expo/repack-app": "npm:^0.2.9"
@@ -39391,7 +39382,7 @@ __metadata:
     "@metamask/wallet": "npm:^12.0.3"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
-    "@noble/curves": "npm:1.9.6"
+    "@noble/curves": "npm:1.9.7"
     "@noble/hashes": "npm:1.8.0"
     "@notifee/react-native": "npm:^9.1.8"
     "@octokit/rest": "npm:^21.0.0"
