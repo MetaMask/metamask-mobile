@@ -661,6 +661,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.POST_COMPOSER,
         Routes.SOCIAL.MY_PROFILE,
         Routes.SOCIAL.FOLLOW_CONNECTIONS,
+        Routes.SOCIAL.PROFILES_TO_FOLLOW,
         Routes.SOCIAL.MANAGE_PROFILE,
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
