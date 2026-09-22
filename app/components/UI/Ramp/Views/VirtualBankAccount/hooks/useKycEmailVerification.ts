@@ -8,9 +8,9 @@ import Logger from '../../../../../../util/Logger';
 import type { RootState } from '../../../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { strings } from '../../../../../../../locales/i18n';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { VBA_KYC_VENDOR } from '../constants';
 import { getVbaTermsOneAcceptance } from '../vbaTermsOneStorage';
-import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -24,11 +24,10 @@ interface UseKycEmailVerificationResult {
 
 /**
  * Starts or resumes the KYC session, records the Terms 1 ids accepted locally,
- * then advances to the session-scoped Terms 2 page.
+ * then navigates to the session-scoped Terms 2 page.
  */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
-  const advanceOnboarding = useAdvanceVbaOnboarding('email');
   const [email, setEmail] = useState(
     () => Engine.context.KycController?.state.email?.trim() ?? '',
   );
@@ -57,16 +56,19 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
       const termsOneAcceptance = walletAddress
         ? await getVbaTermsOneAcceptance(walletAddress)
         : null;
-      if (!termsOneAcceptance?.disclaimerIds.length) {
+      if (termsOneAcceptance?.disclaimerIds.length) {
+        await Engine.context.KycController.recordVendorDisclaimers({
+          disclaimerIds: termsOneAcceptance.disclaimerIds,
+        });
+      } else if (
+        !(await Engine.context.KycController.hasCompletedVendorDisclaimers())
+      ) {
         throw new Error(
           strings('virtual_bank_account.kyc_email.terms_not_loaded_error'),
         );
       }
-      await Engine.context.KycController.recordVendorDisclaimers({
-        disclaimerIds: termsOneAcceptance.disclaimerIds,
-      });
 
-      advanceOnboarding();
+      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -81,7 +83,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, advanceOnboarding, trimmedEmail]);
+  }, [isVerifying, navigation, trimmedEmail]);
 
   const resetKyc = useCallback(async () => {
     try {

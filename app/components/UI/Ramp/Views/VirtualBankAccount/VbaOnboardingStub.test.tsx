@@ -7,7 +7,7 @@ import {
   VbaOnboardingError,
   VbaOnboardingStubSelectorsIDs,
 } from './VbaOnboardingStub';
-import { useResumeVbaOnboarding } from './hooks/useVbaOnboardingRouting';
+import { useOpenVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 
 const mockGoBack = jest.fn();
 
@@ -20,17 +20,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./hooks/useVbaOnboardingRouting', () => ({
-  useResumeVbaOnboarding: jest.fn(),
+  useOpenVbaOnboarding: jest.fn(),
 }));
 
-const mockUseResumeVbaOnboarding = jest.mocked(useResumeVbaOnboarding);
-const mockResumeOnboarding = jest.fn();
+const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
+const mockOpenVbaOnboarding = jest.fn();
 
 describe('VbaOnboardingStub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockResumeOnboarding.mockResolvedValue(undefined);
-    mockUseResumeVbaOnboarding.mockReturnValue(mockResumeOnboarding);
+    mockOpenVbaOnboarding.mockResolvedValue(undefined);
+    mockUseOpenVbaOnboarding.mockReturnValue(mockOpenVbaOnboarding);
   });
 
   it.each([
@@ -56,9 +56,9 @@ describe('VbaOnboardingStub', () => {
 
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockUseResumeVbaOnboarding).toHaveBeenCalledWith('kyc_pending-retry');
+    expect(mockUseOpenVbaOnboarding).toHaveBeenCalledWith('kyc_pending-retry');
     await waitFor(() => {
-      expect(mockResumeOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
     });
   });
 

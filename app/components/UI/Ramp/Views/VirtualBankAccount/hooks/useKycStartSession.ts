@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
@@ -8,7 +9,8 @@ import type {
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
-import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 interface UseKycStartSessionResult {
   isStarting: boolean;
@@ -28,7 +30,7 @@ const toAcceptedDisclaimerKeys = (
  * valid.
  */
 export const useKycStartSession = (): UseKycStartSessionResult => {
-  const advanceOnboarding = useAdvanceVbaOnboarding('providerTerms');
+  const navigation = useNavigation<AppNavigationProp>();
   const [isStarting, setIsStarting] = useState(false);
 
   const startSession = useCallback(async () => {
@@ -64,7 +66,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
         credentialReusabilityConsentGiven: false,
       });
 
-      advanceOnboarding();
+      navigation.navigate(Routes.RAMP.VBA_SUMSUB_KYC);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -78,7 +80,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
     } finally {
       setIsStarting(false);
     }
-  }, [isStarting, advanceOnboarding]);
+  }, [isStarting, navigation]);
 
   return { isStarting, startSession };
 };

@@ -10,7 +10,7 @@ export type VbaKycStatus =
   | 'approved'
   | 'rejected';
 
-export type VbaOnboardingActivation =
+export type VbaAutorampStatus =
   | 'not_ready'
   | 'in_progress'
   | 'ready'
@@ -23,8 +23,7 @@ export interface VbaOnboardingSnapshot {
   vendorDisclaimersComplete: boolean;
   sessionDisclaimersComplete: boolean;
   kycStatus: VbaKycStatus;
-  finalStatus: VbaKycStatus;
-  activation: VbaOnboardingActivation;
+  autorampStatus: VbaAutorampStatus;
 }
 
 export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
@@ -33,11 +32,5 @@ export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
   vendorDisclaimersComplete: false,
   sessionDisclaimersComplete: false,
   kycStatus: 'none',
-  finalStatus: 'none',
-  activation: 'not_ready',
+  autorampStatus: 'not_ready',
 };
-
-export const mergeVbaOnboardingSnapshot = (
-  base: VbaOnboardingSnapshot,
-  patch: Partial<VbaOnboardingSnapshot>,
-): VbaOnboardingSnapshot => ({ ...base, ...patch });

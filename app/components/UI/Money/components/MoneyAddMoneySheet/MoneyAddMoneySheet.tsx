@@ -39,7 +39,7 @@ import { selectHasUnapprovedTransactions } from '../../../../../selectors/transa
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useResumeVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -62,7 +62,7 @@ const log = createProjectLogger('money-add-money-sheet');
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const resumeOnboarding = useResumeVbaOnboarding('money-add-money-sheet');
+  const openVbaOnboarding = useOpenVbaOnboarding();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
@@ -168,12 +168,12 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
-    // Hydrate VBA onboarding from the account and route to whatever stage the
-    // user is at (fresh users land on the email step; returning users resume).
+    // Hydrate VBA onboarding and open the first incomplete screen (fresh
+    // users land on Terms 1; returning users resume).
     sheetRef.current?.onCloseBottomSheet(() => {
-      resumeOnboarding().catch(() => undefined);
+      openVbaOnboarding().catch(() => undefined);
     });
-  }, [resumeOnboarding, trackSurfaceClicked]);
+  }, [openVbaOnboarding, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
     trackSurfaceClicked({

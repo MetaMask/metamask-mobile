@@ -1,15 +1,16 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
-import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useKycStartSession } from './useKycStartSession';
 
-jest.mock('./useVbaOnboardingRouting', () => ({
-  useAdvanceVbaOnboarding: jest.fn(),
-}));
+const mockNavigate = jest.fn();
 
-const mockUseAdvanceVbaOnboarding = jest.mocked(useAdvanceVbaOnboarding);
-const mockAdvanceOnboarding = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 const mockKycControllerState = {
   email: 'user@example.com' as string | null,
@@ -75,8 +76,6 @@ describe('useKycStartSession', () => {
     mockKycController.launchProviderFlow.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
-    mockAdvanceOnboarding.mockReturnValue(undefined);
-    mockUseAdvanceVbaOnboarding.mockReturnValue(mockAdvanceOnboarding);
   });
 
   afterEach(() => {
@@ -97,8 +96,7 @@ describe('useKycStartSession', () => {
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
       credentialReusabilityConsentGiven: false,
     });
-    expect(mockUseAdvanceVbaOnboarding).toHaveBeenCalledWith('providerTerms');
-    expect(mockAdvanceOnboarding).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_SUMSUB_KYC);
     expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
   });
 
@@ -135,7 +133,7 @@ describe('useKycStartSession', () => {
       'Email is missing. Go back and enter your email.',
     );
     expect(mockKycController.recordSessionDisclaimers).not.toHaveBeenCalled();
-    expect(mockAdvanceOnboarding).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('alerts when recording session disclaimers rejects', async () => {
@@ -151,6 +149,6 @@ describe('useKycStartSession', () => {
       'Identity verification',
       'Consent recording failed',
     );
-    expect(mockAdvanceOnboarding).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

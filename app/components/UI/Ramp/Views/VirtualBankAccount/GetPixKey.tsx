@@ -22,9 +22,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import { useAdvanceVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 
 const BenefitRow = ({
   title,
@@ -55,7 +55,6 @@ const BenefitRow = ({
 
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const advanceOnboarding = useAdvanceVbaOnboarding('termsOne');
   const tw = useTailwind();
   const {
     disclaimers,
@@ -76,9 +75,9 @@ const GetPixKey = () => {
     // Persist Terms 1 locally. Email creates the vendor session and flushes
     // these accepted ids to the account before routing to Terms 2.
     if (await acceptDisclaimers()) {
-      advanceOnboarding();
+      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
     }
-  }, [acceptDisclaimers, advanceOnboarding]);
+  }, [acceptDisclaimers, navigation]);
 
   return (
     <SafeAreaView

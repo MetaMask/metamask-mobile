@@ -1,7 +1,6 @@
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
-  mergeVbaOnboardingSnapshot,
   type VbaOnboardingSnapshot,
 } from './vbaOnboardingSnapshot';
 
@@ -15,15 +14,8 @@ export type VbaOnboardingRoute =
   | typeof Routes.RAMP.VBA_ONBOARDING_ERROR
   | typeof Routes.MONEY.HOME;
 
-export type VbaFunnelStepId =
-  | 'termsOne'
-  | 'email'
-  | 'providerTerms'
-  | 'sumsub'
-  | 'pending';
-
 interface VbaFunnelStep {
-  id: VbaFunnelStepId;
+  id: string;
   route: VbaOnboardingRoute;
   isComplete: (snapshot: VbaOnboardingSnapshot) => boolean;
   /**
@@ -31,12 +23,11 @@ interface VbaFunnelStep {
    * available step can run (e.g. vendor T&Cs require a session today).
    */
   isAvailable?: (snapshot: VbaOnboardingSnapshot) => boolean;
-  completionPatch: Partial<VbaOnboardingSnapshot>;
 }
 
 /**
- * Product funnel order. Reorder this array to change screen sequence (subject
- * to each step's `isAvailable` API constraint).
+ * Product funnel order used at entry/retry to pick the first incomplete
+ * screen. After a successful CTA, screens navigate to the next route by name.
  */
 export const VBA_FUNNEL: readonly VbaFunnelStep[] = [
   {
@@ -44,24 +35,17 @@ export const VBA_FUNNEL: readonly VbaFunnelStep[] = [
     route: Routes.RAMP.GET_PIX_KEY,
     isComplete: (snapshot) =>
       snapshot.termsOneAccepted || snapshot.vendorDisclaimersComplete,
-    completionPatch: { termsOneAccepted: true },
   },
   {
     id: 'email',
     route: Routes.RAMP.VBA_KYC_EMAIL,
-    // Email creates/resumes the session and flushes Terms 1 to the account.
     isComplete: (snapshot) =>
       snapshot.sessionExists && snapshot.vendorDisclaimersComplete,
-    completionPatch: {
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-    },
   },
   {
     id: 'providerTerms',
     route: Routes.RAMP.VBA_VERIFY_IDENTITY,
     isComplete: (snapshot) => snapshot.sessionDisclaimersComplete,
-    completionPatch: { sessionDisclaimersComplete: true },
   },
   {
     id: 'sumsub',
@@ -70,50 +54,24 @@ export const VBA_FUNNEL: readonly VbaFunnelStep[] = [
       snapshot.kycStatus !== 'none' &&
       snapshot.kycStatus !== 'new' &&
       snapshot.kycStatus !== 'retry',
-    completionPatch: { kycStatus: 'pending' },
   },
   {
     id: 'pending',
     route: Routes.RAMP.VBA_KYC_PENDING,
     isComplete: (snapshot) =>
-      snapshot.finalStatus === 'approved' && snapshot.activation === 'ready',
-    completionPatch: { finalStatus: 'approved', activation: 'ready' },
+      snapshot.kycStatus === 'approved' && snapshot.autorampStatus === 'ready',
   },
 ];
 
 export const isVbaOnboardingRejected = (
   snapshot: VbaOnboardingSnapshot,
-): boolean =>
-  snapshot.finalStatus === 'rejected' || snapshot.kycStatus === 'rejected';
-
-/**
- * Applies completion patches through `completedStepId` so a CTA can advance
- * without re-hydrating. Prior steps are marked complete so a lone flag (e.g.
- * vendor T&Cs) cannot bounce the user back to email.
- *
- * @param base - Last known snapshot, typically from resume.
- * @param completedStepId - Step the user just finished.
- * @returns Optimistic snapshot used to pick the next route.
- */
-export const completeVbaFunnelStep = (
-  base: VbaOnboardingSnapshot,
-  completedStepId: VbaFunnelStepId,
-): VbaOnboardingSnapshot => {
-  let next = base;
-  for (const step of VBA_FUNNEL) {
-    next = mergeVbaOnboardingSnapshot(next, step.completionPatch);
-    if (step.id === completedStepId) {
-      break;
-    }
-  }
-  return next;
-};
+): boolean => snapshot.kycStatus === 'rejected';
 
 /**
  * Maps a Core facts snapshot onto the Mobile route for the first incomplete,
  * available funnel step. Rejected KYC is a terminal overlay, not a step.
  *
- * @param snapshot - Facts from hydrate or an optimistic advance.
+ * @param snapshot - Facts from hydrate.
  * @returns The route to present, or the recoverable error route.
  */
 export const getVbaRouteForSnapshot = (

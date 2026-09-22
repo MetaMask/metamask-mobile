@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import { useAdvanceVbaOnboarding } from './hooks/useVbaOnboardingRouting';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -17,12 +17,6 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
 }));
-
-jest.mock('./hooks/useVbaOnboardingRouting', () => ({
-  useAdvanceVbaOnboarding: jest.fn(),
-}));
-const mockUseAdvanceVbaOnboarding = jest.mocked(useAdvanceVbaOnboarding);
-const mockAdvanceOnboarding = jest.fn();
 
 jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
@@ -53,8 +47,6 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
     mockAcceptDisclaimers.mockResolvedValue(true);
-    mockAdvanceOnboarding.mockReturnValue(undefined);
-    mockUseAdvanceVbaOnboarding.mockReturnValue(mockAdvanceOnboarding);
   });
 
   it('renders the activation design', () => {
@@ -85,10 +77,9 @@ describe('GetPixKey', () => {
 
     fireEvent.press(button);
 
-    expect(mockUseAdvanceVbaOnboarding).toHaveBeenCalledWith('termsOne');
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockAdvanceOnboarding).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_EMAIL);
     });
   });
 

@@ -15,12 +15,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { useResumeVbaOnboarding } from './hooks/useVbaOnboardingRouting';
+import { useOpenVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 
-export type VbaOnboardingStubVariant =
-  | 'kyc_pending'
-  | 'kyc_rejected'
-  | 'error';
+export type VbaOnboardingStubVariant = 'kyc_pending' | 'kyc_rejected' | 'error';
 
 export const VbaOnboardingStubSelectorsIDs = {
   CONTAINER: 'vba-onboarding-stub-container',
@@ -34,7 +31,7 @@ interface VbaOnboardingStubProps {
 
 const VbaOnboardingStub = ({ variant }: VbaOnboardingStubProps) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const resumeOnboarding = useResumeVbaOnboarding(`${variant}-retry`);
+  const openVbaOnboarding = useOpenVbaOnboarding(`${variant}-retry`);
   const tw = useTailwind();
   const [isContinuing, setIsContinuing] = useState(false);
 
@@ -46,11 +43,11 @@ const VbaOnboardingStub = ({ variant }: VbaOnboardingStubProps) => {
     }
     setIsContinuing(true);
     try {
-      await resumeOnboarding();
+      await openVbaOnboarding();
     } finally {
       setIsContinuing(false);
     }
-  }, [isContinuing, resumeOnboarding]);
+  }, [isContinuing, openVbaOnboarding]);
 
   return (
     <SafeAreaView

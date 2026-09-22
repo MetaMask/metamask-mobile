@@ -1,9 +1,5 @@
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  VBA_FUNNEL,
-  completeVbaFunnelStep,
-  getVbaRouteForSnapshot,
-} from './vbaOnboardingFunnel';
+import { VBA_FUNNEL, getVbaRouteForSnapshot } from './vbaOnboardingFunnel';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
@@ -43,22 +39,19 @@ describe('getVbaRouteForSnapshot', () => {
           vendorDisclaimersComplete: true,
           sessionDisclaimersComplete: true,
           kycStatus: 'pending',
-          finalStatus: 'pending',
         }),
       ],
       [
-        'activation ready',
+        'autoramp ready',
         snapshot({
           sessionExists: true,
           vendorDisclaimersComplete: true,
           sessionDisclaimersComplete: true,
           kycStatus: 'approved',
-          finalStatus: 'approved',
-          activation: 'ready',
+          autorampStatus: 'ready',
         }),
       ],
       ['kyc rejected', snapshot({ kycStatus: 'rejected' })],
-      ['final rejected', snapshot({ finalStatus: 'rejected' })],
     ];
 
     expect(
@@ -67,10 +60,9 @@ describe('getVbaRouteForSnapshot', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        "activation ready": "MoneyHome",
+        "autoramp ready": "MoneyHome",
         "email and vendor terms done": "RampVbaVerifyIdentity",
         "empty": "RampGetPixKey",
-        "final rejected": "RampVbaKycRejected",
         "kyc rejected": "RampVbaKycRejected",
         "provider done": "RampVbaSumSubKyc",
         "sumsub submitted": "RampVbaKycPending",
@@ -94,35 +86,5 @@ describe('getVbaRouteForSnapshot', () => {
       'sumsub',
       'pending',
     ]);
-  });
-});
-
-describe('completeVbaFunnelStep', () => {
-  it('advances Terms 1 completion to email', () => {
-    const next = completeVbaFunnelStep(
-      EMPTY_VBA_ONBOARDING_SNAPSHOT,
-      'termsOne',
-    );
-
-    expect(getVbaRouteForSnapshot(next)).toBe(Routes.RAMP.VBA_KYC_EMAIL);
-  });
-
-  it('advances email and remote vendor terms completion to Terms 2', () => {
-    const next = completeVbaFunnelStep(EMPTY_VBA_ONBOARDING_SNAPSHOT, 'email');
-
-    expect(getVbaRouteForSnapshot(next)).toBe(Routes.RAMP.VBA_VERIFY_IDENTITY);
-  });
-
-  it('advances SumSub completion to the pending screen', () => {
-    const next = completeVbaFunnelStep(
-      snapshot({
-        sessionExists: true,
-        vendorDisclaimersComplete: true,
-        sessionDisclaimersComplete: true,
-      }),
-      'sumsub',
-    );
-
-    expect(getVbaRouteForSnapshot(next)).toBe(Routes.RAMP.VBA_KYC_PENDING);
   });
 });

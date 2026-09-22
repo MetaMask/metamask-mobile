@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
@@ -6,7 +7,8 @@ import type {
 } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -44,7 +46,7 @@ const toAcceptedDisclaimerKeys = (
  * Mobile then shows "More information needed" and offers to continue.
  */
 export const useLaunchSumSub = (): UseLaunchSumSubResult => {
-  const advanceOnboarding = useAdvanceVbaOnboarding('sumsub');
+  const navigation = useNavigation<AppNavigationProp>();
   const [isLaunching, setIsLaunching] = useState(true);
   const [needsMoreInfo, setNeedsMoreInfo] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -89,7 +91,7 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
         if (KycController.state.sessionStatus?.finalStatus === 'pending') {
           // The applicant submitted the SDK flow. The authoritative vendor
           // decision still lags, so advance with an optimistic pending status.
-          advanceOnboarding();
+          navigation.navigate(Routes.RAMP.VBA_KYC_PENDING);
         } else {
           // SumSub resolves when its close button is pressed. The controller
           // deliberately leaves finalStatus unchanged unless the applicant
@@ -110,7 +112,7 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
     };
 
     launch();
-  }, [attempt, advanceOnboarding]);
+  }, [attempt, navigation]);
 
   return { isLaunching, needsMoreInfo, hasError, retry };
 };

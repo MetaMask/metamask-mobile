@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
+import Logger from '../../../../../../util/Logger';
 import type { RootState } from '../../../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { VBA_KYC_VENDOR } from '../constants';
@@ -100,15 +101,19 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
       }
 
       const country = await kycService.getGeoCountry();
-      return Engine.context.KycController.fetchVendorDisclaimers({
-        vendor: VBA_KYC_VENDOR,
+      return {
         country,
-      });
+        loadedDisclaimers:
+          await Engine.context.KycController.fetchVendorDisclaimers({
+            vendor: VBA_KYC_VENDOR,
+            country,
+          }),
+      };
     })();
 
     const loadDisclaimers = async () => {
       try {
-        const loadedDisclaimers = await Promise.race([
+        const { country, loadedDisclaimers } = await Promise.race([
           controllerLoad,
           abortedPromise,
         ]);
@@ -119,6 +124,15 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
 
         // Empty list is not usable success; surface as error so retry is reachable.
         if (!loadedDisclaimers?.length) {
+          // The screen only renders a generic message, so record the geo the
+          // vendor returned nothing for — the usual cause of an empty catalog.
+          Logger.error(new Error('No KYC disclaimers returned'), {
+            tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
+            context: {
+              name: 'useKycDisclaimers',
+              data: { country },
+            },
+          });
           setDisclaimers(null);
           setError('No KYC disclaimers returned');
           return;
@@ -131,6 +145,13 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
           err instanceof Error &&
           (err.name === 'AbortError' || err.name === 'TimeoutError');
         if (isMounted) {
+          // The screen collapses every failure into one generic string, so the
+          // underlying status/URL is only recoverable from here. Unmount aborts
+          // land here too, but leave `isMounted` false and are not worth logging.
+          Logger.error(err as Error, {
+            tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
+            context: { name: 'useKycDisclaimers', data: { isTimeout } },
+          });
           setDisclaimers(null);
           setError(
             isTimeout
