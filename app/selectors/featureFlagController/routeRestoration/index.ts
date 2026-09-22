@@ -7,7 +7,7 @@ import {
 import { selectRemoteFeatureFlags } from '..';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
-const DEFAULT_ROUTE_RESTORATION_ENABLED = false;
+const DEFAULT_ROUTE_RESTORATION_ENABLED = true;
 
 /**
  * Whether unlocking may return the user to the screen they left.
