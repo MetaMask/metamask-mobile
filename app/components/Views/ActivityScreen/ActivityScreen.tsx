@@ -97,7 +97,6 @@ const ActivityScreen = () => {
   const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
     () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
-  const [aggregateFills, setAggregateFills] = useState(true);
 
   const networkOptions = useNetworkFilterOptions();
   const trackFilterClicked = useTrackFilterClicked();
@@ -150,8 +149,6 @@ const ActivityScreen = () => {
   const typeFilterLabel = strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]);
 
   const showPerpsFilter = typeFilter === ActivityTypeFilter.Perps;
-  const showAggregatedToggle =
-    showPerpsFilter && perpsFilter === PerpsActivityFilter.Trades;
   const showNetworkFilter =
     typeFilter !== ActivityTypeFilter.Perps &&
     typeFilter !== ActivityTypeFilter.Predictions;
@@ -232,17 +229,6 @@ const ActivityScreen = () => {
     }),
     [typeFilterLabel, handleOpenTypeSheet],
   );
-
-  const aggregatedToggle = useMemo(() => {
-    if (!showAggregatedToggle) {
-      return null;
-    }
-    return {
-      isSelected: aggregateFills,
-      onChange: setAggregateFills,
-      testID: ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX,
-    };
-  }, [showAggregatedToggle, aggregateFills]);
 
   const secondaryChip = useMemo(() => {
     if (showPerpsFilter) {

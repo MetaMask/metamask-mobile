@@ -13,7 +13,6 @@ export const ActivityScreenSelectorsIDs = {
   AGGREGATED_CHECKBOX: 'activity-screen-aggregated-checkbox',
   PERPS_FILTER_SHEET: 'activity-screen-perps-filter-sheet',
   PERPS_FILTER_OPTION_PREFIX: 'activity-screen-perps-filter-option-',
-  AGGREGATED_CHECKBOX: 'activity-screen-aggregated-checkbox',
   LIST: 'activity-screen-list',
   EMPTY_STATE: 'activity-screen-empty-state',
 };
