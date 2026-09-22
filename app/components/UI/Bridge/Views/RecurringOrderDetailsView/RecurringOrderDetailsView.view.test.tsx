@@ -26,7 +26,9 @@ import {
 } from '../../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
+import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
+import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
 async function openInProgressOrderDetails(
@@ -207,7 +209,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[2],
-        status: strings('bridge.recurring.not_enough_gas'),
+        status: strings('bridge.recurring.insufficient_balance'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
@@ -220,6 +222,12 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[4],
         status: strings('bridge.recurring.failed'),
+        received: '+0 USDC',
+        spent: '-0 ETH',
+      },
+      {
+        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
+        status: strings('bridge.recurring.needs_smart_account'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
@@ -254,6 +262,27 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('opens swap details when a history row is pressed', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+    await openOrderDetails(renderResult);
+
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+        ),
+      ),
+    );
+
+    expect(
+      await renderResult.findByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.SCREEN,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('shows an empty state when the order has no attempted swaps', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER_2,
@@ -266,6 +295,43 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_EMPTY,
       ),
     ).toHaveTextContent(strings('bridge.recurring.history_empty'));
+  });
+
+  it('keeps the price range in USD when EUR is selected', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+      overrides: {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'EUR',
+              currencyRates: {
+                ETH: {
+                  conversionRate: 1800,
+                  usdConversionRate: 2000,
+                },
+              },
+            },
+            AssetsController: {
+              selectedCurrency: 'eur',
+            },
+          },
+        },
+      },
+    });
+
+    await openOrderDetails(renderResult);
+
+    const summary = within(
+      renderResult.getByTestId(RecurringOrderDetailsViewSelectorsIDs.SUMMARY),
+    );
+    expect(
+      summary.getByText(
+        formatRecurringPriceRange({
+          priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('uses failed copy when a skipped swap has no reason', async () => {

@@ -1,26 +1,25 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native';
-import React from 'react';
-import { Provider } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import type { RootState } from '../../../../../../reducers';
-import configureStore from '../../../../../../util/test/configureStore';
-import { useSubscriptionPricing } from './useSubscriptionPricing';
+import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import { useQuery } from '@metamask/react-data-query';
 import {
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
   type PricingResponse,
 } from '@metamask/subscription-controller';
+import Logger from '../../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import {
+  SUBSCRIPTION_PRICING_QUERY_KEY,
+  useSubscriptionPricing,
+} from './useSubscriptionPricing';
+import { PLUS_PRICING_STATUS } from '../utils/mapMoneyAccountPlusPricing';
 
-jest.mock('../../../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      SubscriptionController: {
-        getPricing: jest.fn(),
-      },
-    },
-  },
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -30,76 +29,121 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
-const mockedGetPricing = Engine.context.SubscriptionController
-  .getPricing as jest.Mock;
+jest.mock('@metamask/react-data-query');
+
+const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockedLoggerError = Logger.error as jest.Mock;
 
-const createStoreState = (pricing?: PricingResponse) =>
+const makeQueryResult = (
+  overrides: Partial<ReturnType<typeof useQuery>> = {},
+): ReturnType<typeof useQuery> =>
   ({
-    engine: {
-      backgroundState: {
-        SubscriptionController: {
-          subscriptions: [],
-          trialedProducts: [],
-          pricing,
+    data: undefined,
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+    ...overrides,
+  }) as ReturnType<typeof useQuery>;
+
+const mockPricing: PricingResponse = {
+  products: [
+    {
+      name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      prices: [
+        {
+          interval: RECURRING_INTERVALS.month,
+          unitAmount: 499,
+          unitDecimals: 2,
+          currency: 'usd',
+          trialPeriodDays: 0,
+          minBillingCycles: 1,
+          minBillingCyclesForBalance: 1,
         },
-      },
+      ],
     },
-  }) as unknown as RootState;
-
-const renderUseSubscriptionPricing = (pricing?: PricingResponse) => {
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={configureStore(createStoreState(pricing))}>
-      {children}
-    </Provider>
-  );
-
-  return renderHook(() => useSubscriptionPricing(), { wrapper: Wrapper });
+  ],
+  paymentMethods: [],
 };
 
 describe('useSubscriptionPricing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedGetPricing.mockResolvedValue(undefined);
-  });
-
-  it('calls getPricing on mount', async () => {
-    renderUseSubscriptionPricing();
-
-    await waitFor(() => {
-      expect(mockedGetPricing).toHaveBeenCalledTimes(1);
+    mockUseQuery.mockReturnValue(makeQueryResult());
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) {
+        return true;
+      }
+      return undefined;
     });
   });
 
-  it('starts in a loading state before getPricing resolves', () => {
-    mockedGetPricing.mockReturnValue(new Promise(() => undefined));
+  it('calls useQuery with the SubscriptionService:getPricing key', () => {
+    renderHook(() => useSubscriptionPricing());
 
-    const { result } = renderUseSubscriptionPricing();
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
+        enabled: true,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      }),
+    );
+  });
+
+  it('disables the query when the wallet is locked', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) {
+        return false;
+      }
+      return undefined;
+    });
+
+    renderHook(() => useSubscriptionPricing());
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
+        enabled: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      }),
+    );
+  });
+
+  it('maps Plus pricing from query data', () => {
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: mockPricing }));
+
+    const { result } = renderHook(() => useSubscriptionPricing());
+
+    expect(result.current.plusPricing.status).toBe(PLUS_PRICING_STATUS.ready);
+    expect(result.current.plusPricing.monthly?.amount).toBe(4.99);
+    expect(result.current.hasError).toBe(false);
+  });
+
+  it('returns unavailable pricing when query data is undefined', () => {
+    const { result } = renderHook(() => useSubscriptionPricing());
+
+    expect(result.current.plusPricing.status).toBe(
+      PLUS_PRICING_STATUS.unavailable,
+    );
+  });
+
+  it('exposes isLoading from useQuery', () => {
+    mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
+
+    const { result } = renderHook(() => useSubscriptionPricing());
 
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.hasError).toBe(false);
   });
 
-  it('clears loading after getPricing resolves', async () => {
-    const { result } = renderUseSubscriptionPricing();
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.hasError).toBe(false);
-  });
-
-  it('sets hasError when getPricing rejects', async () => {
+  it('sets hasError and logs when useQuery returns an Error', () => {
     const fetchError = new Error('network down');
-    mockedGetPricing.mockRejectedValue(fetchError);
+    mockUseQuery.mockReturnValue(makeQueryResult({ error: fetchError }));
 
-    const { result } = renderUseSubscriptionPricing();
+    const { result } = renderHook(() => useSubscriptionPricing());
 
-    await waitFor(() => {
-      expect(result.current.hasError).toBe(true);
-    });
-
+    expect(result.current.hasError).toBe(true);
     expect(result.current.isLoading).toBe(false);
     expect(mockedLoggerError).toHaveBeenCalledWith(
       fetchError,
@@ -109,119 +153,36 @@ describe('useSubscriptionPricing', () => {
     );
   });
 
-  it('wraps a non-Error rejection before logging', async () => {
-    mockedGetPricing.mockRejectedValue('boom');
+  it('wraps a non-Error query failure before logging', () => {
+    mockUseQuery.mockReturnValue(makeQueryResult({ error: 'boom' }));
 
-    const { result } = renderUseSubscriptionPricing();
+    const { result } = renderHook(() => useSubscriptionPricing());
 
-    await waitFor(() => {
-      expect(result.current.hasError).toBe(true);
-    });
-
+    expect(result.current.hasError).toBe(true);
     expect(mockedLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'boom' }),
       expect.any(Object),
     );
   });
 
-  it('does not start a second getPricing call while one is in flight', async () => {
-    let resolvePricing: () => void = () => undefined;
-    mockedGetPricing.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolvePricing = resolve;
-      }),
-    );
+  it('does not log when there is no query error', () => {
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: mockPricing }));
 
-    const { result } = renderUseSubscriptionPricing();
+    renderHook(() => useSubscriptionPricing());
 
-    await waitFor(() => {
-      expect(mockedGetPricing).toHaveBeenCalledTimes(1);
-    });
+    expect(mockedLoggerError).not.toHaveBeenCalled();
+  });
+
+  it('delegates retry to query refetch', async () => {
+    const queryRefetch = jest.fn().mockResolvedValue(undefined);
+    mockUseQuery.mockReturnValue(makeQueryResult({ refetch: queryRefetch }));
+
+    const { result } = renderHook(() => useSubscriptionPricing());
 
     await act(async () => {
       result.current.retry();
     });
 
-    expect(mockedGetPricing).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      resolvePricing();
-    });
-  });
-
-  it('retries getPricing after a failed fetch', async () => {
-    mockedGetPricing
-      .mockRejectedValueOnce(new Error('network down'))
-      .mockResolvedValueOnce(undefined);
-
-    const { result } = renderUseSubscriptionPricing();
-
-    await waitFor(() => {
-      expect(result.current.hasError).toBe(true);
-    });
-
-    await act(async () => {
-      result.current.retry();
-    });
-
-    await waitFor(() => {
-      expect(result.current.hasError).toBe(false);
-    });
-
-    expect(mockedGetPricing).toHaveBeenCalledTimes(2);
-    expect(result.current.isLoading).toBe(false);
-  });
-
-  it('does not update state when the fetch fails after unmount', async () => {
-    let rejectPricing: (error: Error) => void = () => undefined;
-    mockedGetPricing.mockReturnValue(
-      new Promise<void>((_resolve, reject) => {
-        rejectPricing = reject;
-      }),
-    );
-
-    const { result, unmount } = renderUseSubscriptionPricing();
-
-    await waitFor(() => {
-      expect(mockedGetPricing).toHaveBeenCalledTimes(1);
-    });
-
-    unmount();
-
-    await act(async () => {
-      rejectPricing(new Error('network down'));
-    });
-
-    expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-    expect(result.current.hasError).toBe(false);
-    expect(result.current.isLoading).toBe(true);
-  });
-
-  it('returns mapped Plus pricing from SubscriptionController state', () => {
-    mockedGetPricing.mockReturnValue(new Promise(() => undefined));
-    const pricing = {
-      products: [
-        {
-          name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-          prices: [
-            {
-              interval: RECURRING_INTERVALS.month,
-              unitAmount: 499,
-              unitDecimals: 2,
-              currency: 'usd' as const,
-              trialPeriodDays: 0,
-              minBillingCycles: 1,
-              minBillingCyclesForBalance: 1,
-            },
-          ],
-        },
-      ],
-      paymentMethods: [],
-    };
-
-    const { result } = renderUseSubscriptionPricing(pricing);
-
-    expect(result.current.plusPricing.status).toBe('ready');
-    expect(result.current.plusPricing.monthly?.amount).toBe(4.99);
+    expect(queryRefetch).toHaveBeenCalledTimes(1);
   });
 });
