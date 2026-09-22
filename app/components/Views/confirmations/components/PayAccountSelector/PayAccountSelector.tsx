@@ -37,6 +37,8 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   ]);
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
+    // OGP: membershipSubscription will be added
+    TransactionType.membershipSubscription as unknown as TransactionType,
   ]);
 
   useEffect(() => {
