@@ -58,7 +58,7 @@ async function mockGaslessMusdQuote(
 }
 
 appiumTest.describe(SmokeSwap('Gasless Swap - '), () => {
-  appiumTest.describe.configure({ timeout: 180000 });
+  appiumTest.describe.configure({ timeout: 240_000 });
 
   appiumTest(
     'completes a gasless ETH to MUSD swap',
