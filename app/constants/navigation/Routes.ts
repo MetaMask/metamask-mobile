@@ -347,6 +347,7 @@ const Routes = {
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
+    RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -379,6 +380,7 @@ const Routes = {
       SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
+      LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
       RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
@@ -435,6 +437,7 @@ const Routes = {
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
+    PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
@@ -617,6 +620,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
   SEND: {

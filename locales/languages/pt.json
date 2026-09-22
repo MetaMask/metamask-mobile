@@ -9672,7 +9672,7 @@
       "view_on_block_explorer": "Ver no explorador de blocos"
     },
     "share_address_qr": {
-      "title": "endereço {{networkName}}",
+      "title": "Endereço {{networkName}}",
       "copy_address": "Copiar endereço",
       "description": "Use este endereço para receber tokens e itens colecionáveis em",
       "description_prefix": "Use esta opção para receber ativos em"

@@ -37,6 +37,11 @@ export interface EmbeddedCheckoutResult {
    * load while the caller still shows Continue as loading.
    */
   renderOverlay: ((props: EmbeddedCheckoutOverlayProps) => ReactElement) | null;
+  /**
+   * Provider's reason the embedded checkout was abandoned before payment
+   * (phase back to `inactive`, Continue restored). Null otherwise.
+   */
+  error: string | null;
 }
 
 /**
@@ -59,6 +64,7 @@ export default function useEmbeddedCheckout(
     isPreparing,
     onCheckoutReady,
     onMessage,
+    checkoutError,
   } = useCrossmintWalletPayOverlay(quote, amount);
 
   let phase: EmbeddedCheckoutPhase = 'inactive';
@@ -71,11 +77,12 @@ export default function useEmbeddedCheckout(
   }
 
   if (!checkoutUrl) {
-    return { phase, renderOverlay: null };
+    return { phase, renderOverlay: null, error: checkoutError };
   }
 
   return {
     phase,
+    error: checkoutError,
     renderOverlay: ({ interactive }) => (
       <WalletPayCheckoutOverlay
         // Remount per checkout URL so a new order starts a fresh WebView.

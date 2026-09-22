@@ -6,6 +6,7 @@ import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import type {
@@ -535,7 +536,7 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('does not navigate when a disabled Outcome is pressed', async () => {
+  it('opens the Order flow when a Home game quote is pressed', async () => {
     const view = renderPredictNext();
     const card = await view.findByTestId(
       PredictHomeTestIds.event('kalshi', 'nfl-1'),
@@ -545,6 +546,8 @@ describe('PredictHome', () => {
       within(card).getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
     );
 
+    // The Order flow opens in place; the Home screen does not navigate.
+    expect(view.getByTestId(PredictOrderFlowTestIds.SHEET)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictEventScreenTestIds.VIEW),

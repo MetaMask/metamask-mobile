@@ -114,6 +114,14 @@ _Avoid_: Active Order; the latter describes the app workflow, not Venue order-bo
 A short-lived, venue-bound price quote showing estimated cost, fees, and potential return before an Order is placed. It has an expiry and cannot be trusted after it expires.
 _Avoid_: Unbound estimate, mutable order payload
 
+**Total Debit**:
+The total settlement-currency amount expected to be charged to a Venue Account for an Order: the Order amount plus the estimated Fee. The entered USD amount caps the Order amount; the Fee is added on top.
+_Avoid_: Order total, total cost, spend
+
+**Fee**:
+The estimated charge for executing an Order, added on top of the Order amount to produce the Total Debit. A Fee is composed of backend-owned components (today venue and MetaMask components) and is reported by the backend; the client never calculates it.
+_Avoid_: Kalshi fee as the total Fee, gas
+
 **Order Receipt**:
 The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable.
 _Avoid_: Order Result, raw venue response
