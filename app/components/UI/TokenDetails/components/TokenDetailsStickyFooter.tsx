@@ -3,6 +3,7 @@ import {
   Button,
   ButtonAnimated,
   ButtonVariant,
+  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -339,7 +340,16 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         handleFooterAction(moneyDepositCta.onPress, moneyDepositCta.label);
       }}
     >
-      {moneyDepositCta?.label}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.SuccessInverse}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        twClassName="text-center"
+      >
+        {moneyDepositCta?.label}
+      </Text>
     </Button>
   ) : null;
 
