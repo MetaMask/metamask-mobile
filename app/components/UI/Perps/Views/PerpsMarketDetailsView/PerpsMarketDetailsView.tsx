@@ -1661,8 +1661,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   const handlePriceAlertsPress = useCallback(() => {
     if (!market) return;
-    // marketId uses the raw symbol (may contain provider prefix like "xyz:BTC") as the backend identifier
-    const marketId = `${market.symbol.toLowerCase()}-${market.providerId ?? 'hyperliquid-mainnet'}`;
+    // Prefer the stable id from the v3 Terminal snapshot; fall back to
+    // deriving it from symbol + provider for HyperLiquid-direct paths.
+    const marketId =
+      market.id ??
+      `${market.symbol.toLowerCase()}-${market.providerId ?? 'hyperliquid-mainnet'}`;
     // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
     const displaySymbol = getPerpsDisplaySymbol(market.symbol);
     navigation.navigate(Routes.PERPS.PRICE_ALERTS, {
