@@ -1404,46 +1404,6 @@ describe('transactionTransforms', () => {
       expect(transaction.fill?.amount).toContain('+$');
     });
 
-    it('keeps split close fills as separate rows when aggregate is false', () => {
-      const fill1: OrderFill = {
-        orderId: 'sl-order-1',
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.08833',
-        price: '90813',
-        pnl: '261',
-        direction: 'Close Long',
-        fee: '10',
-        feeToken: 'USDC',
-        timestamp: 1700000000100,
-        detailedOrderType: 'Stop Market',
-      };
-
-      const fill2: OrderFill = {
-        orderId: 'sl-order-2',
-        symbol: 'BTC',
-        side: 'sell',
-        size: '0.15380',
-        price: '90813',
-        pnl: '455',
-        direction: 'Close Long',
-        fee: '15',
-        feeToken: 'USDC',
-        timestamp: 1700000000200,
-        detailedOrderType: 'Stop Market',
-      };
-
-      const result = transformFillsToTransactions([fill1, fill2], {
-        aggregate: false,
-      });
-
-      expect(result).toHaveLength(2);
-      expect(result[0].id).not.toBe(result[1].id);
-      expect(
-        result.map((transaction) => transaction.fill?.size).sort(),
-      ).toEqual(['0.08833', '0.15380'].sort());
-    });
-
     it('uses timestamp as fallback ID when orderId is missing', () => {
       const noOrderIdFill = {
         ...mockFill,

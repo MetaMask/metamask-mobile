@@ -8,7 +8,6 @@ import type { ActivityDetailsParams } from '../ActivityDetails/ActivityDetails.t
  */
 export function getActivityDetailsRoute(
   item: ActivityListItem,
-  options?: { aggregateFills?: boolean },
 ): ActivityDetailsParams | null {
   const txIdentifier = item.hash;
   if (!txIdentifier) {
@@ -18,8 +17,5 @@ export function getActivityDetailsRoute(
   return {
     chainId: item.chainId,
     txIdentifier,
-    ...(item.type.startsWith('perps') && options?.aggregateFills !== undefined
-      ? { aggregateFills: options.aggregateFills }
-      : {}),
   };
 }

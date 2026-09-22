@@ -7,9 +7,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Checkbox,
-  FontWeight,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -27,10 +24,6 @@ export interface PerpsAggregatedFillsCheckboxProps {
  * This composes design-system primitives instead of using MMDS Checkbox
  * because that component applies its fixed 22px box and 2px border after
  * `checkboxContainerProps`, so those props cannot produce this 16px/1px spec.
- * Pill control that toggles per-order fill aggregation on the Perps trade activity list.
- * Built on the design-system Checkbox so the interactive node carries the checkbox role and
- * checked state assistive technology expects, wrapped in the pill shape and typography of the
- * filter chips it sits beside.
  */
 const PerpsAggregatedFillsCheckbox: React.FC<
   PerpsAggregatedFillsCheckboxProps
@@ -62,14 +55,6 @@ const PerpsAggregatedFillsCheckbox: React.FC<
   >
     {strings('perps.transactions.aggregated')}
   </ButtonBase>
-  <Checkbox
-    isSelected={isSelected}
-    onChange={onChange}
-    label={strings('activity_view.aggregated')}
-    labelProps={{ variant: TextVariant.BodyMd, fontWeight: FontWeight.Medium }}
-    twClassName="h-10 self-start rounded-full bg-muted px-4"
-    testID={testID}
-  />
 );
 
 export default PerpsAggregatedFillsCheckbox;

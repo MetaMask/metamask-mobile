@@ -72,16 +72,9 @@ describe('usePerpsDetailsItem', () => {
   });
 
   it('returns the transaction matching the identifier', () => {
-    const { result } = renderHook(() =>
-      usePerpsDetailsItem('FILL-1', 'eip155:42161', false),
-    );
+    const { result } = renderHook(() => usePerpsDetailsItem('FILL-1'));
 
     expect(result.current.transaction).toBe(trade);
-    expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(
-      expect.anything(),
-      true,
-      false,
-    );
   });
 
   it('matches a deposit by transaction hash', () => {
@@ -123,7 +116,6 @@ describe('usePerpsDetailsItem', () => {
     expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(
       selectedAccountId,
       true,
-      true,
     );
   });
 
@@ -159,11 +151,7 @@ describe('usePerpsDetailsItem', () => {
 
       renderHook(() => usePerpsDetailsItem(identifier, chainId));
 
-      expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(
-        undefined,
-        false,
-        true,
-      );
+      expect(usePerpsActivityQueryMock).toHaveBeenCalledWith(undefined, false);
     },
   );
 

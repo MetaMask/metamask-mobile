@@ -13,6 +13,4 @@ export interface ActivityDetailsParams {
   chainId: CaipChainId;
   /** Transaction identifier — hash, local meta id, or domain id. */
   txIdentifier?: string;
-  /** Whether Perps fills were aggregated in the source list. */
-  aggregateFills?: boolean;
 }

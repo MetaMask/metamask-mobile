@@ -167,10 +167,6 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
-  /**
-   * When true (default), Perps trade fills that share a block/second are shown
-   * as a single row. Uncheck Aggregated to list each fill.
-   */
   /** Collapse each Perps order's fills into one row. Defaults to on. */
   aggregateFills?: boolean;
   trackScreenViewed?: boolean;
@@ -801,12 +797,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        const detailsRoute = getActivityDetailsRoute(item, { aggregateFills });
+        const detailsRoute = getActivityDetailsRoute(item);
         if (detailsRoute) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         }
       },
-      [aggregateFills, goToBuy, navigation],
+      [goToBuy, navigation],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.

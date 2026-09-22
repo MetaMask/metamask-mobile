@@ -1774,12 +1774,7 @@ describe('ActivityList', () => {
       error: null,
     };
 
-    render(
-      <ActivityList
-        typeFilter={ActivityTypeFilter.Perps}
-        aggregateFills={false}
-      />,
-    );
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
     fireEvent.press(screen.getByTestId('row-perps-fill-2'));
 
     // Params stay serializable; details rematch the row.
@@ -1787,14 +1782,9 @@ describe('ActivityList', () => {
       ([route]) => route === Routes.ACTIVITY_DETAILS,
     );
     const params = call?.[1] as
-      | {
-          aggregateFills: boolean;
-          chainId: string;
-          txIdentifier: string;
-        }
+      | { chainId: string; txIdentifier: string }
       | undefined;
     expect(params).toEqual({
-      aggregateFills: false,
       chainId: 'eip155:42161',
       txIdentifier: 'perps-fill-2',
     });

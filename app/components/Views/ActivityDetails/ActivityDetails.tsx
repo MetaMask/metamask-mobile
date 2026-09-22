@@ -47,12 +47,10 @@ function ActivityDetailsProviders({ children }: { children: ReactNode }) {
 }
 
 function ActivityDetailsScreen() {
-  const { aggregateFills, chainId, txIdentifier } =
-    useParams<ActivityDetailsParams>();
+  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
   const { item: perpsItem, isLoading: isPerpsLoading } = usePerpsDetailsItem(
     txIdentifier,
     chainId,
-    aggregateFills,
   );
   const { item: activityItem, isFetching: isActivityFetching } =
     useActivityDetailsItem(txIdentifier, chainId, {

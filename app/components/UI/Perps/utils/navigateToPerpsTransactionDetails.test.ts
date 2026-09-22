@@ -51,17 +51,11 @@ describe('navigateToPerpsTransactionDetails', () => {
   it('opens Activity details for a mapped historic fill when redesign is enabled', () => {
     const navigation = createNavigation();
 
-    navigateToPerpsTransactionDetails(
-      navigation,
-      tradeTransaction,
-      false,
-      false,
-    );
+    navigateToPerpsTransactionDetails(navigation, tradeTransaction, false);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
       expect.objectContaining({
-        aggregateFills: false,
         chainId: 'eip155:42161',
         txIdentifier: 'order-1',
       }),

@@ -384,14 +384,6 @@ export interface DepositRequest {
   depositId?: string;
 }
 
-export type TransformFillsToTransactionsOptions = {
-  /**
-   * When true (default), merge close fills that share an asset, second, and
-   * direction into one row (Hyperliquid same-block aggregation).
-   */
-  aggregate?: boolean;
-};
-
 /**
  * Builds the ids of the rows shown when aggregation is off.
  *
@@ -428,9 +420,6 @@ export interface TransformFillsToTransactionsOptions {
 
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format.
- * When `aggregate` is true (default), the fills of one order are combined first
- * so an open, close or flip that HyperLiquid filled in several pieces shows
- * combined size, PnL and fees instead of partial amounts.
  * When `aggregate` is true the fills of one order are collapsed first, so an open, close or
  * flip that HyperLiquid filled in several pieces shows combined size, PnL and fees instead of
  * partial amounts. When it is false each execution is listed separately, which is what the
@@ -444,11 +433,6 @@ export function transformFillsToTransactions(
   fills: OrderFill[],
   { aggregate = true }: TransformFillsToTransactionsOptions = {},
 ): PerpsTransaction[] {
-  const fillsToTransform = aggregate
-    ? aggregateFillsByOrder(fills)
-    : [...fills].sort((left, right) => right.timestamp - left.timestamp);
-
-  return fillsToTransform.reduce((acc: PerpsTransaction[], fill) => {
   // Collapse each order's fills into the one trade the user placed, unless the viewer asked
   // to see the individual executions.
   const fillsToTransform = aggregate

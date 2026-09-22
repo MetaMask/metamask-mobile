@@ -334,12 +334,7 @@ const PerpsTransactionsView: React.FC = () => {
         .build(),
     );
 
-    navigateToPerpsTransactionDetails(
-      navigation,
-      transaction,
-      isTestnet,
-      aggregateFills,
-    );
+    navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
   };
 
   // Render right content based on transaction type

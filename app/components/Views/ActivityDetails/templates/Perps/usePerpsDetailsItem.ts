@@ -34,7 +34,6 @@ function getPerpsTransaction(
 export function usePerpsDetailsItem(
   identifier: string | undefined,
   chainId: CaipChainId = arbitrumMainnetCaipChainId as CaipChainId,
-  aggregateFills = true,
 ) {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const shouldResolve =
@@ -52,7 +51,6 @@ export function usePerpsDetailsItem(
   const { isFetching, transactions } = usePerpsActivityQuery(
     shouldResolve ? accountId : undefined,
     isQueryEnabled,
-    aggregateFills,
   );
   // Row ids differ between the two views: an aggregated row is keyed on the order, an
   // unaggregated one on the individual fill. The list can be in either state when a row is

@@ -179,22 +179,6 @@ describe('ActivityDetails screen', () => {
     expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
   });
 
-  it('passes the source aggregation mode to Perps details lookup', () => {
-    useParamsMock.mockReturnValue({
-      aggregateFills: false,
-      chainId: 'eip155:42161',
-      txIdentifier: 'fill-1',
-    });
-
-    renderWithProvider(<ActivityDetails />);
-
-    expect(usePerpsDetailsItemMock).toHaveBeenCalledWith(
-      'fill-1',
-      'eip155:42161',
-      false,
-    );
-  });
-
   it('renders a not-found message when the transaction cannot be resolved', () => {
     useActivityDetailsItemMock.mockReturnValue({
       item: undefined,
