@@ -75,7 +75,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  type OrderType,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
@@ -817,7 +816,6 @@ const createBottomSheetMock = (testId: string) => {
 
 // Leverage the stub confirms with when tests press the confirm testID below.
 let mockLeverageConfirmValue = 3;
-let mockOrderTypeOnSelect: ((type: OrderType) => void) | undefined;
 
 // Lightweight stub so tests can confirm a leverage through the real
 // onConfirm wiring (clamp/flush logic) without depending on the real
@@ -850,26 +848,9 @@ jest.mock('../../components/PerpsLeverageBottomSheet', () => {
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () =>
   createBottomSheetMock('limit-price-bottom-sheet'),
 );
-jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
-  const MockReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ({
-      isVisible,
-      onSelect,
-    }: {
-      isVisible: boolean;
-      onSelect: (type: OrderType) => void;
-    }) => {
-      mockOrderTypeOnSelect = onSelect;
-      return isVisible
-        ? MockReact.createElement('View', {
-            testID: 'order-type-bottom-sheet',
-          })
-        : null;
-    },
-  };
-});
+jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
+  createBottomSheetMock('order-type-bottom-sheet'),
+);
 jest.mock('../../components/PerpsBottomSheetTooltip', () =>
   createBottomSheetMock('perps-order-view-bottom-sheet-tooltip'),
 );
@@ -878,6 +859,7 @@ interface MockTradeScreenProps {
   orderType: 'market' | 'limit';
   limitPrice?: string;
   limitPriceWarning?: string;
+  isLimitPriceFocused: boolean;
   autoCloseText: string;
   showAutoClose: boolean;
   margin: string;
@@ -899,6 +881,7 @@ interface MockTradeScreenProps {
     preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
   ) => void;
   onLimitPriceDonePress: () => void;
+  onOrderTypeToggle: () => void;
   onPayWithPress: () => void;
   onMarginInfoPress: () => void;
   showSlippage: boolean;
@@ -1293,7 +1276,6 @@ describe('PerpsOrderView', () => {
     mockPerpsAdvancedChartEnabled = false;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
-    mockOrderTypeOnSelect = undefined;
     mockIsPaySubmitReady = true;
     mockPayTokenAccountBalanceUsd = '0';
     mockProviderEffectiveAvailableBalance = undefined;
@@ -1532,6 +1514,44 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  it('switches a market order to limit and opens the price keypad on toggle', () => {
+    const setOrderType = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      setOrderType,
+    });
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockTradeScreenProps().onOrderTypeToggle());
+
+    expect(setOrderType).toHaveBeenCalledWith('limit');
+    expect(getMockTradeScreenProps().isLimitPriceFocused).toBe(true);
+    expect(screen.queryByTestId('order-type-bottom-sheet')).toBeNull();
+  });
+
+  it('switches a limit order back to market and clears the limit price', () => {
+    const setOrderType = jest.fn();
+    const setLimitPrice = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+        limitPrice: '3000',
+      },
+      setOrderType,
+      setLimitPrice,
+    });
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockTradeScreenProps().onOrderTypeToggle());
+
+    expect(setOrderType).toHaveBeenCalledWith('market');
+    expect(setLimitPrice).toHaveBeenCalledWith(undefined);
+  });
+
   it('clears a stale limit price when the Trade sheet opens as a market order', () => {
     const updateOrderForm = jest.fn();
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
@@ -1638,8 +1658,7 @@ describe('PerpsOrderView', () => {
         value: '2950',
         valueAsNumber: 2950,
       });
-      mockOrderTypeOnSelect?.('market');
-      mockOrderTypeOnSelect?.('limit');
+      getMockTradeScreenProps().onOrderTypeToggle();
     });
     mockCreateEventBuilder.mockClear();
 

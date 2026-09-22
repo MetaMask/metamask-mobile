@@ -93,7 +93,8 @@ interface PerpsTradeScreenProps {
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
-  onOrderTypePress: () => void;
+  /** Swaps between market and limit; the sheet offers no other order types. */
+  onOrderTypeToggle: () => void;
   onLimitPricePress: () => void;
   onLimitPriceKeypadChange: (value: {
     value: string;
@@ -261,7 +262,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onPercentagePress,
   onMaxPress,
   onDonePress,
-  onOrderTypePress,
+  onOrderTypeToggle,
   onLimitPricePress,
   onLimitPriceKeypadChange,
   onLimitPricePresetPress,
@@ -340,27 +341,28 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             )}
           </Box>
         </Box>
-        <Box
-          accessible={false}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <SelectButton
-            testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-            variant={SelectButtonVariant.Primary}
-            size={SelectButtonSize.Md}
-            placeholder={orderTypeLabel}
-            value={orderTypeLabel}
-            accessibilityLabel={strings(
-              'perps.trade_sheet.order_type_accessibility_label',
-              { orderType: orderTypeLabel },
-            )}
-            isDisabled={isOrderTypeDisabled}
-            onPress={onOrderTypePress}
-            endArrowDirection="down"
-          />
-        </Box>
+        <SelectButton
+          testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          size={SelectButtonSize.Md}
+          placeholder={orderTypeLabel}
+          value={orderTypeLabel}
+          accessibilityLabel={strings(
+            'perps.trade_sheet.order_type_accessibility_label',
+            { orderType: orderTypeLabel },
+          )}
+          isDisabled={isOrderTypeDisabled}
+          onPress={onOrderTypeToggle}
+          hideEndArrow
+          twClassName="rounded-lg"
+          endAccessory={
+            <Icon
+              name={IconName.SwapHorizontal}
+              size={IconSize.Sm}
+              color={IconColor.IconDefault}
+            />
+          }
+        />
       </Box>
 
       <PerpsTradeSheetTitleBanner title={title} banner={banner} />

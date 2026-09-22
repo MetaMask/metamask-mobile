@@ -1444,25 +1444,43 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setIsLimitPriceFocused(false);
   }, [orderForm.asset, orderForm.direction, track]);
 
-  const handleTradeSheetOrderTypeSelect = useCallback(
-    (type: OrderType) => {
-      if (type !== 'market' && type !== 'limit') {
-        return;
-      }
+  // The sheet only offers market and limit, so the header control swaps
+  // between them on tap rather than opening a second bottom sheet.
+  const handleTradeSheetOrderTypeToggle = useCallback(() => {
+    const nextType = orderForm.type === 'limit' ? 'market' : 'limit';
 
-      setOrderType(type);
-      setIsOrderTypeVisible(false);
-      if (type === 'market') {
-        setLimitPrice(undefined);
-        setIsLimitPriceFocused(false);
-      } else if (!orderForm.limitPrice) {
-        tradeSheetLimitPriceInputMethodRef.current = null;
-        setIsInputFocused(false);
-        setIsLimitPriceFocused(true);
-      }
-    },
-    [orderForm.limitPrice, setLimitPrice, setOrderType],
-  );
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.DIRECTION]:
+        orderForm.direction === 'long'
+          ? PERPS_EVENT_VALUE.DIRECTION.LONG
+          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+        nextType === 'limit'
+          ? PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT
+          : PERPS_EVENT_VALUE.ORDER_TYPE.MARKET,
+    });
+
+    setOrderType(nextType);
+    if (nextType === 'market') {
+      setLimitPrice(undefined);
+      setIsLimitPriceFocused(false);
+      return;
+    }
+    // Switching to market clears the price, so limit always needs one.
+    tradeSheetLimitPriceInputMethodRef.current = null;
+    setIsInputFocused(false);
+    setIsLimitPriceFocused(true);
+  }, [
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    setLimitPrice,
+    setOrderType,
+    track,
+  ]);
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
@@ -2322,7 +2340,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onPercentagePress={handlePercentagePress}
                 onMaxPress={handleMaxPress}
                 onDonePress={handleDonePress}
-                onOrderTypePress={() => setIsOrderTypeVisible(true)}
+                onOrderTypeToggle={handleTradeSheetOrderTypeToggle}
                 onLimitPricePress={handleTradeSheetLimitPricePress}
                 onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
@@ -2381,15 +2399,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               />
             ),
           }}
-        />
-        <PerpsOrderTypeBottomSheet
-          isVisible={isOrderTypeVisible}
-          onClose={() => setIsOrderTypeVisible(false)}
-          onSelect={handleTradeSheetOrderTypeSelect}
-          currentOrderType={tradeSheetOrderType}
-          availableOrderTypes={['market', 'limit']}
-          asset={orderForm.asset}
-          direction={orderForm.direction}
         />
         {selectedTooltip === 'margin' && (
           <PerpsBottomSheetTooltip
