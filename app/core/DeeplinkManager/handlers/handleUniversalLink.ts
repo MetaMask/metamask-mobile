@@ -182,6 +182,7 @@ const trustedInAppSources = [
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+  AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
 ] as string[];
 
 /**

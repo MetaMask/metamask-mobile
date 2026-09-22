@@ -93,7 +93,7 @@ const PerpsOutreachBannerContent = ({
     });
     SharedDeeplinkManager.getInstance()
       .parse(linkUrl, {
-        origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+        origin: AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
       })
       .catch((error) => {
         DevLogger.log('[PerpsOutreachBanner] deeplink parsing failed:', error);

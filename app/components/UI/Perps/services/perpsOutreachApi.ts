@@ -4,9 +4,11 @@ import {
   defaulted,
   nullable,
   object,
+  refine,
   string,
 } from '@metamask/superstruct';
 import axios from 'axios';
+import { isMetaMaskUniversalLink } from '../../../../core/DeeplinkManager/util/deeplinks';
 
 export interface PerpsOutreachContact {
   email: string;
@@ -45,6 +47,12 @@ export interface PerpsOutreachRequest {
 
 type PerpsOutreachQuery = Omit<PerpsOutreachRequest, 'endpoint' | 'signal'>;
 
+const MetaMaskUniversalLinkSchema = refine(
+  string(),
+  'MetaMaskUniversalLink',
+  isMetaMaskUniversalLink,
+);
+
 const PerpsOutreachBannerSchema = object({
   id: string(),
   title: string(),
@@ -52,7 +60,7 @@ const PerpsOutreachBannerSchema = object({
   imageUrl: string(),
   // Older backend deployments omit `linkUrl` — treat missing as `null` so we
   // never fail validation on a non-breaking backend rollout.
-  linkUrl: defaulted(nullable(string()), null),
+  linkUrl: defaulted(nullable(MetaMaskUniversalLinkSchema), null),
   // Keep the banner compatible with deployments that predate backend-driven
   // contact configuration. The details sheet intentionally has no static
   // fallback when this field is absent.

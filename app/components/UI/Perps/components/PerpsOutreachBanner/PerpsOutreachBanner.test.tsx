@@ -196,7 +196,7 @@ describe('PerpsOutreachBanner', () => {
 
     expect(mockParseDeeplink).toHaveBeenCalledTimes(2);
     expect(mockParseDeeplink).toHaveBeenNthCalledWith(2, BANNER.linkUrl, {
-      origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+      origin: AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
     });
   });
 

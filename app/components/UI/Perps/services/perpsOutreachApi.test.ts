@@ -117,6 +117,26 @@ describe('fetchPerpsOutreachBanner', () => {
     expect(result).toBeNull();
   });
 
+  it('returns null when linkUrl is not a MetaMask universal link', async () => {
+    mockAxiosGet.mockResolvedValue({
+      status: 200,
+      data: {
+        show: true,
+        banner: {
+          ...BANNER,
+          linkUrl: 'https://malicious.example/perps-outreach',
+        },
+      },
+    });
+
+    const result = await fetchPerpsOutreachBanner({
+      endpoint: ENDPOINT,
+      address: '0xabc',
+    });
+
+    expect(result).toBeNull();
+  });
+
   it('defaults linkUrl to null when the backend omits it', async () => {
     const { linkUrl: _dropped, ...bannerWithoutLink } = BANNER;
     mockAxiosGet.mockResolvedValue({
