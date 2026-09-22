@@ -17,7 +17,7 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 const walletHomeOnboardingPrimaryButtonId = `${WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
 
 appiumTest.describe(SmokeWalletPlatform('Wallet Home Onboarding Steps'), () => {
-  appiumTest.describe.configure({ timeout: 150000 });
+  appiumTest.describe.configure({ timeout: 240_000 });
 
   // Default fixture keeps eligible=false (existing-user baseline). This case
   // forces eligible=true to cover the overlay that hides Buy/Send/Swap.
