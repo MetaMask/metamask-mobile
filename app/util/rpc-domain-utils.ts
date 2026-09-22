@@ -8,24 +8,8 @@ import Logger from './Logger';
 let knownDomainsSet: Set<string> | null = null;
 let initPromise: Promise<void> | null = null;
 
-/** Storage key of the persisted safe-chains list (the source data). */
-const SAFE_CHAINS_CACHE_KEY = 'SAFE_CHAINS_CACHE';
-
-/**
- * Storage key of the separate persisted store holding the hostname structure
- * mapped from the safe-chains list, so initialisation can hydrate the
- * known-domain set without re-parsing the full chains cache.
- */
+// Persisted hostnames mapped from the safe chains list
 const RPC_DOMAINS_HOSTNAMES_CACHE_KEY = 'RPC_DOMAINS_HOSTNAMES_CACHE';
-
-const RPC_DOMAINS_HOSTNAMES_CACHE_VERSION = 1;
-
-interface RpcDomainsHostnamesStore {
-  version: number;
-  /** Fingerprint of the safe-chains cache the hostnames were derived from. */
-  chainsCacheFingerprint: string;
-  hostnames: string[];
-}
 
 /**
  * Get module state - encapsulates access to internal state
@@ -44,93 +28,12 @@ export function getModuleState() {
 }
 
 /**
- * Cheap content fingerprint (length + FNV-1a 32-bit hash) of the raw
- * safe-chains cache. Detects when the persisted hostname store no longer
- * matches the chains cache without parsing the full chains list.
- *
- * @param rawChainsCache - Raw cached chains JSON, or null when absent.
- * @returns A fingerprint string identifying the cache content.
- */
-function computeChainsCacheFingerprint(rawChainsCache: string | null): string {
-  if (rawChainsCache === null) {
-    return 'absent';
-  }
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < rawChainsCache.length; i += 1) {
-    hash ^= rawChainsCache.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return `${rawChainsCache.length}:${(hash >>> 0).toString(16)}`;
-}
-
-/**
- * Load the persisted hostname store and hydrate it when it was derived from
- * the given chains-cache fingerprint.
- *
- * @param chainsCacheFingerprint - Fingerprint of the current chains cache.
- * @returns The persisted hostnames, or null when the store is missing, stale
- * or corrupt — callers should re-derive from the chains list instead.
- */
-async function loadPersistedHostnames(
-  chainsCacheFingerprint: string,
-): Promise<Set<string> | null> {
-  try {
-    const rawStore = await StorageWrapper.getItem(
-      RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
-    );
-    if (!rawStore) {
-      return null;
-    }
-    const store = JSON.parse(rawStore) as RpcDomainsHostnamesStore;
-    if (
-      !store ||
-      store.version !== RPC_DOMAINS_HOSTNAMES_CACHE_VERSION ||
-      store.chainsCacheFingerprint !== chainsCacheFingerprint ||
-      !Array.isArray(store.hostnames) ||
-      !store.hostnames.every((hostname) => typeof hostname === 'string')
-    ) {
-      return null;
-    }
-    return new Set(store.hostnames);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Persist the mapped hostname structure for the next startup. Failures are
- * logged and ignored — the in-memory set stays authoritative for the session.
- *
- * @param chainsCacheFingerprint - Fingerprint of the chains cache the
- * hostnames were derived from.
- * @param hostnames - The derived known-domain hostnames.
- */
-async function persistHostnames(
-  chainsCacheFingerprint: string,
-  hostnames: Set<string>,
-): Promise<void> {
-  try {
-    const store: RpcDomainsHostnamesStore = {
-      version: RPC_DOMAINS_HOSTNAMES_CACHE_VERSION,
-      chainsCacheFingerprint,
-      hostnames: [...hostnames],
-    };
-    await StorageWrapper.setItem(
-      RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
-      JSON.stringify(store),
-    );
-  } catch (error) {
-    Logger.log('Error persisting RPC domain hostnames:', error);
-  }
-}
-
-/**
  * Get the list of safe chains from cache only
  * This allows us to use chain data without making network requests
  */
 export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
   try {
-    const cachedData = await StorageWrapper.getItem(SAFE_CHAINS_CACHE_KEY);
+    const cachedData = await StorageWrapper.getItem('SAFE_CHAINS_CACHE');
     if (cachedData) {
       try {
         const parsed = JSON.parse(cachedData);
@@ -156,24 +59,14 @@ export async function initializeRpcProviderDomains(): Promise<void> {
   }
   const promise = (async () => {
     try {
-      const rawChainsCache = await StorageWrapper.getItem(
-        SAFE_CHAINS_CACHE_KEY,
+      const cachedHostnames = await StorageWrapper.getItem(
+        RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
       );
-      const chainsCacheFingerprint =
-        computeChainsCacheFingerprint(rawChainsCache);
-
-      // Fast path: the persisted store holds the hostname structure mapped
-      // from the current chains cache — hydrate without re-parsing the list.
-      const persistedHostnames = await loadPersistedHostnames(
-        chainsCacheFingerprint,
-      );
-      if (persistedHostnames) {
-        state.setKnownDomainsSet(persistedHostnames);
+      if (cachedHostnames) {
+        state.setKnownDomainsSet(new Set<string>(JSON.parse(cachedHostnames)));
         return;
       }
 
-      // Slow path (first run, or the chains cache changed): map the chains
-      // list to hostnames and persist that structure for the next startup.
       const chainsList = await getSafeChainsListFromCacheOnly();
       const newKnownDomainsSet = new Set<string>();
 
@@ -188,7 +81,14 @@ export async function initializeRpcProviderDomains(): Promise<void> {
         }
       }
       state.setKnownDomainsSet(newKnownDomainsSet);
-      await persistHostnames(chainsCacheFingerprint, newKnownDomainsSet);
+      try {
+        await StorageWrapper.setItem(
+          RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
+          JSON.stringify([...newKnownDomainsSet]),
+        );
+      } catch {
+        // the in-memory set stays authoritative for this session
+      }
     } catch (error) {
       state.setKnownDomainsSet(new Set<string>());
     }
