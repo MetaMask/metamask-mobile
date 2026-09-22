@@ -241,13 +241,20 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   // The sheet plays its close animation before the route pops; the screen pops
   // straight away. Both paths must dismiss before `onConfirm` runs — see the
   // Android Fabric note in handleConfirm.
-  const dismiss = useCallback(() => {
-    if (isSheet) {
-      sheetRef.current?.onCloseBottomSheet();
-      return;
-    }
-    navigation.goBack();
-  }, [isSheet, navigation]);
+  const dismiss = useCallback(
+    (afterDismiss?: () => void) => {
+      if (isSheet) {
+        // The sheet pops the route from its close-animation callback, so work
+        // that must not race the transition has to run from there rather than
+        // beside it.
+        sheetRef.current?.onCloseBottomSheet(afterDismiss);
+        return;
+      }
+      navigation.goBack();
+      afterDismiss?.();
+    },
+    [isSheet, navigation],
+  );
 
   // Extract params from navigation route
   const {
@@ -689,7 +696,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     // Dismiss first (same as PerpsClosePositionView). Updating while this
     // screen is still dismissing crashes Android Fabric under nav v7 —
     // optimistic parent re-render races react-native-screens' transition.
-    dismiss();
+    await new Promise<void>((resolve) => dismiss(resolve));
 
     // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
     await onConfirm(
@@ -938,8 +945,10 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       })
     : PERPS_CONSTANTS.FallbackPriceDisplay;
 
+  // Sheet-only: the control arm must keep the plain liquidation price it ships
+  // with today, or the experiment measures two changes at once.
   const liquidationDistanceDisplay = useMemo(() => {
-    if (!hasLiquidationPrice || !currentPrice) {
+    if (!isSheet || !hasLiquidationPrice || !currentPrice) {
       return undefined;
     }
 
@@ -956,7 +965,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     return `${(distance >= 99.9 ? 100 : distance).toFixed(
       LIQUIDATION_DISTANCE_DECIMALS,
     )}%`;
-  }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice]);
+  }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice, isSheet]);
 
   const takeProfitHasError = !isValid && Boolean(takeProfitError);
   const stopLossHasError = !isValid && Boolean(stopLossError);
@@ -1144,6 +1153,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                     alignItems={BoxAlignItems.Center}
                     gap={1}
                     accessible={false}
+                    testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE}
                   >
                     <Text {...valueTextProps}>{liquidationPriceDisplay}</Text>
                     <Icon

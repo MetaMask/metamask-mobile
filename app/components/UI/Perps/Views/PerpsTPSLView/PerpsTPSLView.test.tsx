@@ -1013,6 +1013,27 @@ describe('PerpsTPSLView', () => {
       TP_SL_VIEW_CONFIG.StopLossRoePresets[0],
     );
 
+    // The liquidation distance needs a real liquidation price to derive from.
+    const positionWithLiquidation: Position = {
+      symbol: 'ETH',
+      entryPrice: '2800.00',
+      size: '0.5',
+      positionValue: '1400.00',
+      unrealizedPnl: '100.00',
+      marginUsed: '140.00',
+      leverage: { type: 'isolated', value: 10 },
+      liquidationPrice: '2500.00',
+      maxLeverage: 50,
+      returnOnEquity: '0.71',
+      cumulativeFunding: {
+        allTime: '0.00',
+        sinceOpen: '0.00',
+        sinceChange: '0.00',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
     it('hides the inline RoE presets that the screen shows in its sections', () => {
       renderSheet();
 
@@ -1101,6 +1122,54 @@ describe('PerpsTPSLView', () => {
 
       expect(
         screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeNull();
+    });
+
+    // The sheet pops from its close-animation callback, so Save has to run
+    // from there. If that callback ever stops firing this hangs instead of
+    // racing the transition, which is why it is pinned.
+    it('still confirms after the sheet finishes dismissing', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
+
+      renderSheet({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+        },
+        validation: { ...defaultMockReturn.validation, hasChanges: true },
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    it('shows liquidation distance and a trend icon', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        position: positionWithLiquidation,
+      };
+      renderSheet();
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
+      ).toBeOnTheScreen();
+    });
+
+    it('leaves the control arm liquidation row unchanged', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        position: positionWithLiquidation,
+      };
+      renderView();
+
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
       ).toBeNull();
     });
 
