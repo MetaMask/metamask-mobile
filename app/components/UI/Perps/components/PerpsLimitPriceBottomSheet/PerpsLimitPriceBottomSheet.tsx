@@ -524,7 +524,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           // It is used to override the default decimals for USD with minimal changes
           currency="USD_PERPS"
           onChange={handleKeypadChange}
-          decimals={5}
+          decimals={LIMIT_PRICE_CONFIG.KeypadDecimals}
         />
       </Box>
 

@@ -46,7 +46,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
-import { endTrace, TraceName } from '../../../../../util/trace';
+import { TraceName } from '../../../../../util/trace';
+import {
+  completePerpsTradeSheetInteractiveTrace,
+  failPerpsTradeSheetInteractiveTrace,
+} from '../../utils/perpsTradeSheetInteractiveTrace';
 import Keypad from '../../../../Base/Keypad';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -61,6 +65,7 @@ import {
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
+import { useConfirmationMetricEvents } from '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePayTokenOrMoneyAccountBalance } from '../../../../Views/confirmations/hooks/pay/usePayTokenOrMoneyAccountBalance';
 import { useMoneyAccountDepositAndOrder } from '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder';
@@ -290,6 +295,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   useTransactionPayMetrics();
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const styles = createStyles(colors);
 
@@ -1376,8 +1382,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           ? Number.parseFloat(
               (orderForm.direction === 'long'
                 ? currentTopOfBook?.bestBid
-                : currentTopOfBook?.bestAsk) ??
-                currentPrice?.price ??
+                : currentTopOfBook?.bestAsk) ||
+                currentPrice?.price ||
                 '',
             )
           : marketPrice;
@@ -1926,6 +1932,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isPayWithDisabled) {
       return;
     }
+    setConfirmationMetric({
+      properties: {
+        mm_pay_token_list_opened: true,
+      },
+    });
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
@@ -1933,7 +1944,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tradeSheetPayTokenIdentityRef.current = payTokenIdentity;
     resetPerpsPaymentTokenSelection();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [isPayWithDisabled, navigation, payTokenIdentity, track]);
+  }, [
+    isPayWithDisabled,
+    navigation,
+    payTokenIdentity,
+    setConfirmationMetric,
+    track,
+  ]);
 
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
@@ -2080,17 +2097,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [fromTokenDetails, navigation]);
 
   const handleTradeSheetInteractive = useCallback(() => {
-    endTrace({
-      name: TraceName.PerpsTradeSheetInteractive,
-      data: { success: true },
-    });
+    completePerpsTradeSheetInteractiveTrace();
   }, []);
 
   const handleTradeSheetCancelBeforeInteractive = useCallback(() => {
-    endTrace({
-      name: TraceName.PerpsTradeSheetInteractive,
-      data: { success: false, reason: 'dismissed_before_interactive' },
-    });
+    failPerpsTradeSheetInteractiveTrace('dismissed_before_interactive');
   }, []);
 
   if (useBottomSheet) {

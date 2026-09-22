@@ -44,6 +44,7 @@ import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
+import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -655,7 +656,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               value={limitPrice || ''}
               onChange={onLimitPriceKeypadChange}
               currency="USD_PERPS"
-              decimals={5}
+              decimals={LIMIT_PRICE_CONFIG.KeypadDecimals}
             />
           </Box>
         ) : null}

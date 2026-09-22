@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { PerpsMode } from '@metamask/perps-controller';
+import { PerpsMode, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -11,7 +11,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
-import { trace } from '../../../../util/trace';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -42,10 +45,9 @@ jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../../../util/trace', () => ({
-  ...jest.requireActual('../../../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
+jest.mock('../utils/perpsTradeSheetInteractiveTrace', () => ({
+  startPerpsTradeSheetInteractiveTrace: jest.fn(),
+  failPerpsTradeSheetInteractiveTrace: jest.fn(),
 }));
 
 jest.mock(
@@ -404,10 +406,8 @@ describe('usePerpsNavigation', () => {
           },
         );
       });
-      expect(trace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Perps Trade Sheet Interactive',
-        }),
+      expect(startPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       );
     });
 
@@ -459,6 +459,25 @@ describe('usePerpsNavigation', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledWith({});
       expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('ends the Trade sheet interactive span when bottom-sheet order creation fails', async () => {
+      mockDepositWithOrder.mockRejectedValue(new Error('Deposit failed'));
+
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'BTC',
+        useBottomSheet: true,
+      });
+
+      await waitFor(() => {
+        expect(failPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+          'transaction_creation_failed',
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate when depositWithOrder rejects', async () => {

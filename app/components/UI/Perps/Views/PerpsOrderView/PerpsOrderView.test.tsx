@@ -554,6 +554,16 @@ jest.mock(
   }),
 );
 
+const mockSetConfirmationMetric = jest.fn();
+jest.mock(
+  '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents',
+  () => ({
+    useConfirmationMetricEvents: jest.fn(() => ({
+      setConfirmationMetric: mockSetConfirmationMetric,
+    })),
+  }),
+);
+
 // Controllable pay-quote state for the trade-quote-received coverage tests.
 let mockIsPayQuoteLoading = false;
 let mockPayTotals: unknown;
@@ -890,15 +900,27 @@ interface MockLeverageScreenProps {
   onConfirm: (leverage: number, inputMethod?: string) => void;
 }
 
+interface MockSettingsScreenProps {
+  onSave: (valueBps: number) => void;
+}
+
 let mockTradeScreenProps: MockTradeScreenProps | undefined;
 let mockTradeSheetOnClose: (() => void) | undefined;
 let mockLeverageScreenProps: MockLeverageScreenProps | undefined;
+let mockSettingsScreenProps: MockSettingsScreenProps | undefined;
 
 const getMockTradeScreenProps = (): MockTradeScreenProps => {
   if (!mockTradeScreenProps) {
     throw new Error('Trade screen did not render');
   }
   return mockTradeScreenProps;
+};
+
+const getMockSettingsScreenProps = (): MockSettingsScreenProps => {
+  if (!mockSettingsScreenProps) {
+    throw new Error('Settings screen did not render');
+  }
+  return mockSettingsScreenProps;
 };
 
 const getMockLeverageScreenProps = (): MockLeverageScreenProps => {
@@ -928,6 +950,9 @@ jest.mock(
         ).props;
         mockLeverageScreenProps = (
           screens.leverage as React.ReactElement<MockLeverageScreenProps>
+        ).props;
+        mockSettingsScreenProps = (
+          screens.settings as React.ReactElement<MockSettingsScreenProps>
         ).props;
         return ReactActual.createElement(View, {
           testID: 'perps-trade-sheet',
@@ -1249,6 +1274,7 @@ describe('PerpsOrderView', () => {
     mockTradeScreenProps = undefined;
     mockTradeSheetOnClose = undefined;
     mockLeverageScreenProps = undefined;
+    mockSettingsScreenProps = undefined;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1495,6 +1521,28 @@ describe('PerpsOrderView', () => {
     expect(setLimitPrice).toHaveBeenCalledWith('3000');
   });
 
+  it('falls back to the market price when the order book side is empty', () => {
+    const setLimitPrice = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+      },
+      setLimitPrice,
+    });
+    (usePerpsTopOfBook as jest.Mock).mockReturnValue({
+      bestBid: '',
+      bestAsk: '0',
+    });
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockTradeScreenProps().onLimitPricePresetPress('book'));
+
+    expect(setLimitPrice).toHaveBeenCalledWith('3000');
+  });
+
   it('tracks the completed limit price input method once', () => {
     useTradeSheetRoute();
     render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -1571,6 +1619,9 @@ describe('PerpsOrderView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
     );
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: { mm_pay_token_list_opened: true },
+    });
   });
 
   it('labels the Money Account payment override in the Trade sheet', () => {
@@ -1598,6 +1649,7 @@ describe('PerpsOrderView', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
     );
+    expect(mockSetConfirmationMetric).not.toHaveBeenCalled();
   });
 
   it('opens the margin tooltip from the Trade sheet', () => {
@@ -1628,6 +1680,20 @@ describe('PerpsOrderView', () => {
 
     expect(mockParentGoBack).toHaveBeenCalledTimes(1);
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('saves slippage from the nested Trade settings screen', () => {
+    const setMaxSlippage = jest.fn();
+    (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+      ...mockDefaultUsePerpsMaxSlippage(),
+      setMaxSlippage,
+    });
+    useTradeSheetRoute();
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    act(() => getMockSettingsScreenProps().onSave(150));
+
+    expect(setMaxSlippage).toHaveBeenCalledWith(150);
   });
 
   it('clamps the order amount after reducing leverage in the Trade sheet', () => {
