@@ -191,12 +191,13 @@ test('postSummary threads overflow instead of truncating', async () => {
   assert.equal(calls[0].thread_ts, undefined);
   assert.equal(calls[1].thread_ts, 'ts-1');
   assert.doesNotMatch(calls[0].text, /Truncated for Slack/);
+  // Comparing the whole message keeps CodeQL from reading a URL substring
+  // check as a host check, and asserts the split point at the same time.
+  assert.equal(calls[0].text, 'a'.repeat(30_000));
   assert.equal(
-    calls[1].text.includes('<https://example.com/run|GitHub run>'),
-    true,
+    calls[1].text,
+    `${'b'.repeat(30_000)}\n<https://example.com/run|GitHub run>`,
   );
-  assert.ok(calls[0].text.includes('a'.repeat(30_000)));
-  assert.ok(calls[1].text.includes('b'.repeat(30_000)));
 });
 
 test('postSummary posts weekly scenario cards in the parent thread', async () => {
@@ -219,12 +220,12 @@ test('postSummary posts weekly scenario cards in the parent thread', async () =>
 
   assert.equal(calls.length, 2);
   assert.equal(calls[0].thread_ts, undefined);
-  assert.equal(calls[0].text.includes('https://example.com/run'), false);
+  // The parent keeps the index only; the run link belongs to the last card.
+  assert.equal(calls[0].text, '*weekly index*');
   assert.equal(calls[1].thread_ts, 'ts-1');
-  assert.match(calls[1].text, /Perps add funds/);
   assert.equal(
-    calls[1].text.includes('<https://example.com/run|GitHub run>'),
-    true,
+    calls[1].text,
+    '*Worse than last week* · *Perps add funds*\n<https://example.com/run|GitHub run>',
   );
 });
 
