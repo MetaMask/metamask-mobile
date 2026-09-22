@@ -354,7 +354,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           isDisabled={isOrderTypeDisabled}
           onPress={onOrderTypeToggle}
           hideEndArrow
-          twClassName="rounded-lg"
           endAccessory={
             <Icon
               name={IconName.SwapHorizontal}
@@ -737,7 +736,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isLoading={isSubmitting}
               onPress={onSubmit}
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
-              twClassName="rounded-xl"
             >
               {submitLabel ?? directionLabel}
             </ButtonSemantic>
