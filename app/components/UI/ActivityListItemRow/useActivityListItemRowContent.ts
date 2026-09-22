@@ -1303,13 +1303,12 @@ export function useActivityListItemRowContent(
       ? item.data.sourceToken?.symbol
       : undefined
     : undefined;
-  const predictIconUrl = isPredictTradeKind(item.type)
-    ? 'icon' in item.data
-      ? typeof item.data.icon === 'string'
-        ? item.data.icon
-        : undefined
-      : undefined
-    : undefined;
+  const predictIconUrl =
+    isPredictTradeKind(item.type) &&
+    'icon' in item.data &&
+    typeof item.data.icon === 'string'
+      ? item.data.icon
+      : undefined;
 
   let avatarTokens: TokenAmount[];
   if (isSpendingCap && spendingCapToken) {

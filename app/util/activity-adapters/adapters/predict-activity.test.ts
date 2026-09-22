@@ -12,6 +12,7 @@ const baseBuy: PredictActivity = {
   id: 'activity-1',
   providerId: 'polymarket',
   title: 'Will it rain tomorrow?',
+  icon: 'https://example.com/market-icon.png',
   outcome: 'Yes',
   entry: {
     type: 'buy',
@@ -64,6 +65,7 @@ describe('mapPredictActivity', () => {
       hash: 'activity-1',
       data: {
         eventTitle: 'Will it rain tomorrow?',
+        icon: 'https://example.com/market-icon.png',
         token: {
           amount: '100',
           symbol: 'USDC',
@@ -89,6 +91,7 @@ describe('mapPredictActivity', () => {
       hash: 'activity-2',
       data: {
         eventTitle: 'Will it rain tomorrow?',
+        icon: 'https://example.com/market-icon.png',
         token: {
           amount: '75',
           symbol: 'USDC',
@@ -114,6 +117,7 @@ describe('mapPredictActivity', () => {
       hash: 'activity-3',
       data: {
         eventTitle: 'Will it rain tomorrow?',
+        icon: 'https://example.com/market-icon.png',
         token: {
           amount: '250',
           symbol: 'USDC',

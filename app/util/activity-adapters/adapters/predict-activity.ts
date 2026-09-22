@@ -69,6 +69,7 @@ export function mapPredictActivity({
   // copy. Safe today only because `ActivityTypeFilter.All` is disabled. See the
   // cross-source dedup note in `adapters/dedup.ts` before re-enabling "All".
   const eventTitle = activity.title;
+  const icon = activity.icon;
 
   switch (entry.type) {
     case 'buy':
@@ -81,6 +82,7 @@ export function mapPredictActivity({
         data: {
           token: toFiatToken(entry.amount, 'out', quoteAsset),
           eventTitle,
+          icon,
         },
       };
 
@@ -94,6 +96,7 @@ export function mapPredictActivity({
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
           eventTitle,
+          icon,
         },
       };
 
@@ -107,6 +110,7 @@ export function mapPredictActivity({
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
           eventTitle,
+          icon,
         },
       };
 

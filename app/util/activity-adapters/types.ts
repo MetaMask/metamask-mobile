@@ -55,34 +55,41 @@ export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
   return PERPS_ORDER_KIND_SET.has(kind);
 }
 
-interface MobileFields {
-  isEarliestNonce?: boolean;
-}
-
-type SplitByKind<T> = T extends { type: infer K }
-  ? K extends string
-    ? Omit<T, 'type'> & { type: K }
-    : never
-  : never;
-
 type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
   ? TokenAmount
   : T extends object
     ? { [P in keyof T]: WithMobileTokenAmount<T[P]> }
     : T;
 
-interface MobileDataExtras {
-  /** Semantic trigger type localized by the Activity presentation layer. */
-  perpsTriggerOrderType?: TriggerOrderType;
-  fees?: ActivityFee[];
+type PredictActivityKind =
+  | 'predictionPlaced'
+  | 'predictionCashedOut'
+  | 'predictionClaimWinnings';
+
+interface PredictDataExtras {
   /** Predict market title (e.g. "Will ETH reach $10k?") — predict-only. */
   eventTitle?: string;
+  /** Predict market icon URL used by the activity row avatar. */
+  icon?: string;
 }
 
-type WithMobileDataTokens<T> = T extends { data: infer D }
-  ? Omit<T, 'data'> & { data: WithMobileTokenAmount<D> & MobileDataExtras }
+type ActivityDataExtras<ActivityType> = ActivityType extends PredictActivityKind
+  ? PredictDataExtras
+  : ActivityType extends PerpsOrderKind
+    ? { perpsTriggerOrderType?: TriggerOrderType }
+    : ActivityType extends 'stake' | 'unstake'
+      ? { fees?: ActivityFee[] }
+      : object;
+
+type WithMobileDataTokens<T> = T extends {
+  data: infer D;
+  type: infer ActivityType;
+}
+  ? Omit<T, 'data'> & {
+      data: WithMobileTokenAmount<D> & ActivityDataExtras<ActivityType>;
+    }
   : T;
 
-export type ActivityListItem = SplitByKind<
-  WithMobileDataTokens<ClientUtilsActivityItem & MobileFields>
+export type ActivityListItem = WithMobileDataTokens<
+  ClientUtilsActivityItem & { isEarliestNonce?: boolean }
 >;
