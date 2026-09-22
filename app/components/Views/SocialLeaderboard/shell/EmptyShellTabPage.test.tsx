@@ -218,4 +218,43 @@ describe('EmptyShellTabPage', () => {
 
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
   });
+
+  it('renders full-width dividers between Following feed entries', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-leading-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-leading-2'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-leading-3'),
+    ).toBeOnTheScreen();
+  });
+
+  it('frames the Popular traders rail with block dividers on Trending', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-block-popular-traders'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-block-trailing'),
+    ).toBeOnTheScreen();
+  });
 });

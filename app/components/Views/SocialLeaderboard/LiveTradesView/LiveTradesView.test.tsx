@@ -3,14 +3,25 @@ import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import LiveTradesView from './LiveTradesView';
+import { MOCK_LIVE_TRADES_POSTS } from './mocks/liveTradesFeed.mock';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { id: string } }) => (
+      <View testID={`social-feed-post-shell-${post.id}`} />
+    ),
+  };
+});
+
 describe('LiveTradesView', () => {
-  it('renders a single Live stream toggle above an empty scroll surface', () => {
+  it('renders a single Live stream toggle above the mock feed list', () => {
     renderWithProvider(<LiveTradesView />);
 
     expect(
@@ -27,6 +38,19 @@ describe('LiveTradesView', () => {
     ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders mocked live trade posts in the scroll surface', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    MOCK_LIVE_TRADES_POSTS.forEach((post) => {
+      expect(
+        screen.getByTestId(`social-feed-post-shell-${post.id}`),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-live-trades-1'),
     ).toBeOnTheScreen();
   });
 

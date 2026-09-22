@@ -546,7 +546,7 @@ const SocialV1View: React.FC = () => {
               aligned with the tabs bar. */}
           <PagerView
             ref={pagerRef}
-            style={tw.style('flex-1 mt-4')}
+            style={tw.style('flex-1 mt-6')}
             initialPage={LANDING_INDEX}
             onPageSelected={handlePageSelected}
             testID={SocialV1ViewSelectorsIDs.PAGER}

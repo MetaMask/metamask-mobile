@@ -20,6 +20,9 @@ import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
+import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
+import { MOCK_LIVE_TRADES_POSTS } from './mocks/liveTradesFeed.mock';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 
 type AnimatedScrollHandler = React.ComponentProps<
@@ -107,12 +110,18 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
       <Animated.ScrollView
         ref={scrollRef}
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('flex-grow')}
+        contentContainerStyle={tw.style('flex-grow pb-8 gap-6')}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
         testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
-      />
+      >
+        <SocialV1FeedPostList
+          posts={MOCK_LIVE_TRADES_POSTS}
+          dividerKeyPrefix="live-trades"
+          renderPost={(post) => <SocialFeedPostShell post={post} />}
+        />
+      </Animated.ScrollView>
     </Box>
   );
 };
