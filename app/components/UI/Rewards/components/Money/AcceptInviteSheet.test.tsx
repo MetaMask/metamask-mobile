@@ -787,6 +787,38 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it.each([
+      ['decline', TEST_IDS.DECLINE],
+      ['close', TEST_IDS.CLOSE],
+    ])(
+      'does not relabel a pre-view %s as dismissed when closing completes',
+      async (_action, testId) => {
+        referralMeEntries = {
+          [PROFILE_ID]: { loading: true, error: false, data: null },
+        };
+
+        const { getByTestId, store } = renderSheetSync('KOL1');
+
+        fireEvent.press(getByTestId(testId));
+        expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          store.dispatch(
+            setReferralMe({ profileId: PROFILE_ID, data: buildReferralMe() }),
+          );
+        });
+        getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_VIEWED,
+        );
+        expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        );
+      },
+    );
+
     it('tracks the offer once a pending referral-me load settles as eligible', async () => {
       referralMeEntries = {
         [PROFILE_ID]: { loading: true, error: false, data: null },

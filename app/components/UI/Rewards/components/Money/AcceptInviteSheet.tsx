@@ -358,10 +358,13 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // viewed event, since the sheet can be dismissed while its copy is pending.
   const trackResponded = useCallback(
     (action: 'accepted' | 'declined' | 'dismissed') => {
-      if (!hasTrackedOfferViewedRef.current || hasRespondedRef.current) {
+      if (hasRespondedRef.current) {
         return;
       }
       hasRespondedRef.current = true;
+      if (!hasTrackedOfferViewedRef.current) {
+        return;
+      }
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
