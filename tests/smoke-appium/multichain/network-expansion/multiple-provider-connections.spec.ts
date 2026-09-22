@@ -14,7 +14,10 @@ import {
   loginToAppPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../../flows/wallet.flow.js';
-import { navigateToBrowserView } from '../../../flows/browser.flow.js';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../../flows/browser.flow.js';
 import BrowserView from '../../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
@@ -29,6 +32,10 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await navigateToBrowserView();
   await dismissPushNotificationExistingUserSheet();
   await BrowserView.navigateToTestDApp();
+  // On Android the WebView container and heading text must appear before
+  // requestPermissions fires — window.ethereum may not yet be injected if we
+  // proceed immediately. evaluateInWebView swallows the error silently.
+  await waitForTestDappToLoad();
 }
 
 /**

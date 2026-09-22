@@ -484,6 +484,9 @@ describe('Login', () => {
         <Login />,
       );
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
+      expect(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+      ).toBeOnTheScreen();
       expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
       expect(queryByTestId(LoginViewSelectors.TITLE_ID)).not.toBeOnTheScreen();
       expect(
@@ -1089,14 +1092,11 @@ describe('Login', () => {
 
     it('tracks LOGIN_DOWNLOAD_LOGS and calls downloadStateLogs on long press', () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      const foxAnimationMock = getByTestId('fox-animation-mock');
-      const foxWrapper = foxAnimationMock.parent;
 
-      if (!foxWrapper) {
-        throw new Error('Fox animation wrapper not found');
-      }
-
-      fireEvent(foxWrapper, 'longPress');
+      fireEvent(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+        'longPress',
+      );
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,
@@ -2103,12 +2103,11 @@ describe('Login', () => {
 
     it('tracks LOGIN_DOWNLOAD_LOGS on long press', () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      const foxAnimationMock = getByTestId('fox-animation-mock');
-      const foxWrapper = foxAnimationMock.parent;
-      if (!foxWrapper) {
-        throw new Error('Fox animation wrapper not found');
-      }
-      fireEvent(foxWrapper, 'longPress');
+
+      fireEvent(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+        'longPress',
+      );
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,

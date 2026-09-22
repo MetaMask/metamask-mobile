@@ -165,9 +165,10 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       status: 'not-required',
       retry: jest.fn(),
     });
-    jest
-      .mocked(useAutoUpgradeEIP7702Account)
-      .mockReturnValue(mockAutoUpgradeEIP7702Account);
+    jest.mocked(useAutoUpgradeEIP7702Account).mockReturnValue({
+      autoUpgradeEIP7702Account: mockAutoUpgradeEIP7702Account,
+      getUpgradeStatus: jest.fn(),
+    });
     mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
     jest.mocked(submitRecurringOrder).mockResolvedValue(undefined);
   });

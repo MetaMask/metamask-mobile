@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {
   Box,
+  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -151,7 +152,11 @@ const ClaimPendingPositionRow = ({
       </Box>
 
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+        <Text
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          variant={TextVariant.BodyMd}
+        >
           {positionTitle}
         </Text>
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">

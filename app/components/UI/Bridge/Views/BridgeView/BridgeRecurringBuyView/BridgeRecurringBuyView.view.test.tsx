@@ -1597,6 +1597,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
       );
       expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).not.toBeOnTheScreen();
     });
 
     it.each([
@@ -1629,6 +1632,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
         );
         expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+        expect(
+          renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+        ).not.toBeOnTheScreen();
         fireEvent.press(confirmButton);
 
         await waitFor(() => {
@@ -1676,6 +1682,59 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
       expect(stillDisabledConfirm).toBeDisabled();
       expect(stillDisabledConfirm.props.accessibilityState.disabled).toBe(true);
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).toHaveTextContent(
+        strings('bridge.recurring.price_range.max_must_exceed_min'),
+      );
+    });
+
+    it('shows the inverted range error when min equals max', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+
+      await openPriceRangeKeypad(renderResult, 'min');
+      typePriceRangeDigits(renderResult, '2000');
+      await openPriceRangeKeypad(renderResult, 'max');
+      typePriceRangeDigits(renderResult, '2000');
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState.disabled,
+      ).toBe(true);
+    });
+
+    it('hides the inverted range error when max is cleared', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+
+      await openPriceRangeKeypad(renderResult, 'min');
+      typePriceRangeDigits(renderResult, '2000');
+      await openPriceRangeKeypad(renderResult, 'max');
+      typePriceRangeDigits(renderResult, '1000');
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      );
+
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).not.toBeOnTheScreen();
     });
 
     it('keeps the max field on screen while the keypad is open', async () => {
@@ -1730,6 +1789,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           PriceRangeSheetSelectorsIDs.PERCENT('max', 10),
         ),
       );
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).not.toBeOnTheScreen();
       fireEvent.press(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON),
       );
