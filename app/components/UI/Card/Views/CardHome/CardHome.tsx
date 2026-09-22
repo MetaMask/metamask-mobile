@@ -46,6 +46,7 @@ import {
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
@@ -169,6 +170,7 @@ const CardHome = () => {
   const { state: ukMigrationState, refresh: refreshUkMigrationState } =
     useCardUkMigrationState();
   const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const hasCompletedMigration = useSelector(selectHasCompletedCardMigration);
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -176,6 +178,7 @@ const CardHome = () => {
   const isUkMigrationEligible = isCardUkMigrationEligible(ukMigrationState, {
     providerId: activeProviderId,
     regionCode: migrationRegionCode,
+    hasCompletedMigration,
   });
   const isUkMigrationForced =
     isUkMigrationEligible && ukMigrationState.phase === 'forced';
