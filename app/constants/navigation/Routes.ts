@@ -347,6 +347,7 @@ const Routes = {
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
+    RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -619,6 +620,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
   SEND: {

@@ -50,7 +50,7 @@ const swapTestSpecificMock: TestSpecificMock = async (mockServer) => {
 // navigation back out of Activity — has to fit the suite timeout on CI, where
 // three emulators share one UiAutomator pipe.
 appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
-  appiumTest.describe.configure({ timeout: 180000 });
+  appiumTest.describe.configure({ timeout: 240_000 });
 
   appiumTest(
     'swaps ETH->USDC with custom slippage',

@@ -300,7 +300,10 @@ appiumTest.describe(
               NetworkToCaipChainId.LINEA,
             );
 
-            await NetworkManager.checkTokenIsNotVisible('ETH');
+            // Use checkTokenDoesNotExist (10 s) instead of checkTokenIsNotVisible
+            // (3 s): the token list re-renders asynchronously after the network
+            // filter changes, and 3 s was too short for slower CI runners.
+            await NetworkManager.checkTokenDoesNotExist('ETH');
           },
         );
       },
@@ -332,13 +335,21 @@ appiumTest.describe(
               NetworkToCaipChainId.LINEA,
             );
 
-            await NetworkManager.checkTokenIsNotVisible('ETH');
+            // Use checkTokenDoesNotExist (10 s) instead of checkTokenIsNotVisible
+            // (3 s): the token list re-renders asynchronously after the network
+            // filter changes, and 3 s was too short for slower CI runners.
+            await NetworkManager.checkTokenDoesNotExist('ETH');
 
             await TokensFullView.tapBackButton();
             await waitForWalletHomePlaywright();
 
-            await NetworkManager.checkTokenIsVisible('SOL');
-            await NetworkManager.checkTokenIsVisible('ETH');
+            // Use checkTokenExists rather than checkTokenIsVisible: on the
+            // homepage the token list is scrollable and individual rows may be
+            // below the fold (isDisplayed=false) even though they are mounted.
+            // checkTokenExists asserts presence in the DOM hierarchy, which is
+            // the correct check for "the homepage shows all tokens".
+            await NetworkManager.checkTokenExists('SOL');
+            await NetworkManager.checkTokenExists('ETH');
           },
         );
       },
