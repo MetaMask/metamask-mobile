@@ -17,6 +17,7 @@ const tradeSheetConfig = {
   screenDepth: {
     trade: 0,
     leverage: 1,
+    tpsl: 1,
     settings: 1,
   },
 };
@@ -137,6 +138,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -160,6 +162,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -182,6 +185,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -214,6 +218,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <CloseTestScreen />,
           leverage: null,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -236,6 +241,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <CloseTestScreen />,
           leverage: null,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -260,6 +266,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: null,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -287,6 +294,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TradeTestScreen />,
           leverage: null,
+          tpsl: null,
           settings: null,
         }}
       />,
@@ -308,6 +316,7 @@ describe('PerpsTradeBottomSheet', () => {
         screens={{
           trade: <TitleBannerScreen />,
           leverage: null,
+          tpsl: null,
           settings: null,
         }}
       />,

@@ -25,7 +25,7 @@ import Animated, {
 import { AnimationDuration } from '@metamask/design-tokens';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
-export type PerpsTradeSheetScreen = 'trade' | 'leverage' | 'settings';
+export type PerpsTradeSheetScreen = 'trade' | 'leverage' | 'tpsl' | 'settings';
 
 type ScreenDirection = 1 | -1;
 const SCREEN_SLIDE_OFFSET = 24;

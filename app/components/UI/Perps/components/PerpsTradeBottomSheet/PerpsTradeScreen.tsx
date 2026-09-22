@@ -4,10 +4,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonBase,
   ButtonBaseSize,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonSize,
@@ -17,6 +14,9 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
   Skeleton,
   Tag,
   TagSeverity,
@@ -57,6 +57,7 @@ interface PerpsTradeScreenProps {
   limitPrice?: string;
   limitPriceWarning?: string;
   autoCloseText: string;
+  showAutoClose: boolean;
   margin: string;
   amount: string;
   tokenAmount?: string;
@@ -102,9 +103,12 @@ interface PerpsTradeScreenProps {
     preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
   ) => void;
   onLimitPriceDonePress: () => void;
-  onAutoClosePress: () => void;
   onPayWithPress: () => void;
   onMarginInfoPress: () => void;
+  showSlippage: boolean;
+  slippageText: string;
+  exceedsMaxSlippage: boolean;
+  onSlippagePress: () => void;
   onSubmit: () => void;
 }
 
@@ -221,6 +225,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   limitPrice,
   limitPriceWarning,
   autoCloseText,
+  showAutoClose,
   margin,
   amount,
   tokenAmount,
@@ -261,9 +266,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onLimitPriceKeypadChange,
   onLimitPricePresetPress,
   onLimitPriceDonePress,
-  onAutoClosePress,
   onPayWithPress,
   onMarginInfoPress,
+  showSlippage,
+  slippageText,
+  exceedsMaxSlippage,
+  onSlippagePress,
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
@@ -338,27 +346,19 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <ButtonBase
+          <SelectButton
             testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-            size={ButtonBaseSize.Md}
+            variant={SelectButtonVariant.Primary}
+            size={SelectButtonSize.Md}
+            placeholder={orderTypeLabel}
+            value={orderTypeLabel}
             accessibilityLabel={strings(
               'perps.trade_sheet.order_type_accessibility_label',
               { orderType: orderTypeLabel },
             )}
             isDisabled={isOrderTypeDisabled}
             onPress={onOrderTypePress}
-            endIconName={IconName.SwapHorizontal}
-            endIconProps={{ size: IconSize.Sm }}
-            twClassName="h-10 rounded-xl bg-muted px-3"
-          >
-            {orderTypeLabel}
-          </ButtonBase>
-          <ButtonIcon
-            testID={PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON}
-            size={ButtonIconSize.Md}
-            iconName={IconName.Setting}
-            accessibilityLabel={strings('perps.trade_sheet.settings')}
-            onPress={() => navigateTo('settings')}
+            endArrowDirection="down"
           />
         </Box>
       </Box>
@@ -509,22 +509,24 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             ) : null}
             {!isLimitPriceFocused ? (
               <>
-                <ActionRow
-                  testID={PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW}
-                  label={strings('perps.auto_close.title')}
-                  accessibilityLabel={`${strings(
-                    'perps.auto_close.title',
-                  )}, ${autoCloseText}`}
-                  value={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {autoCloseText}
-                    </Text>
-                  }
-                  onPress={onAutoClosePress}
-                />
+                {showAutoClose ? (
+                  <ActionRow
+                    testID={PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW}
+                    label={strings('perps.auto_close.title')}
+                    accessibilityLabel={`${strings(
+                      'perps.auto_close.title',
+                    )}, ${autoCloseText}`}
+                    value={
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {autoCloseText}
+                      </Text>
+                    }
+                    onPress={() => navigateTo('tpsl')}
+                  />
+                ) : null}
                 {showPayWith ? (
                   <ActionRow
                     testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
@@ -556,6 +558,32 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                     }
                     isDisabled={isPayWithDisabled}
                     onPress={onPayWithPress}
+                  />
+                ) : null}
+                {showSlippage ? (
+                  <ActionRow
+                    testID={PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW}
+                    label={strings('perps.slippage.slippage')}
+                    accessibilityLabel={`${strings(
+                      'perps.slippage.slippage',
+                    )}, ${slippageText}`}
+                    value={
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                        color={
+                          exceedsMaxSlippage
+                            ? TextColor.ErrorDefault
+                            : TextColor.TextDefault
+                        }
+                      >
+                        {slippageText}
+                      </Text>
+                    }
+                    onPress={() => {
+                      onSlippagePress();
+                      navigateTo('settings');
+                    }}
                   />
                 ) : null}
                 <ActionRow

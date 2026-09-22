@@ -1020,7 +1020,6 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
-  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
   HEADER_PRICE: 'perps-trade-sheet-header-price',
   HEADER_CHANGE: 'perps-trade-sheet-header-change',
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',
@@ -1034,6 +1033,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
   PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
   MARGIN_ROW: 'perps-trade-sheet-margin-row',
+  SLIPPAGE_ROW: 'perps-trade-sheet-slippage-row',
   LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
   LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
   LIMIT_PRICE_PRESET_PERCENTAGE_1:
@@ -1110,6 +1110,34 @@ export const PerpsClosePositionViewSelectorsIDs = {
   MARGIN_VALUE: 'close-position-margin-value',
   FEES_VALUE: 'close-position-fees-value',
   RECEIVE_VALUE: 'close-position-receive-value',
+};
+
+export const PerpsClosePositionBottomSheetSelectorsIDs = {
+  CONTAINER: 'close-position-bottom-sheet',
+  HEADER_TITLE: 'close-position-bottom-sheet-header-title',
+  AMOUNT_DISPLAY_TOGGLE: 'close-position-bottom-sheet-amount-display-toggle',
+  ORDER_TYPE_CONTROL: 'close-position-bottom-sheet-order-type',
+  ORDER_TYPE_MARKET: 'close-position-bottom-sheet-order-type-market',
+  ORDER_TYPE_LIMIT: 'close-position-bottom-sheet-order-type-limit',
+  LIMIT_PRICE_INPUT: 'close-position-bottom-sheet-limit-price-input',
+  LIMIT_PRICE_ROW: 'close-position-bottom-sheet-limit-price-row',
+  LIMIT_PRICE_CURSOR: 'close-position-bottom-sheet-limit-price-cursor',
+  LIMIT_PRESET_MID: 'close-position-bottom-sheet-limit-preset-mid',
+  LIMIT_PRESET_TOP_OF_BOOK:
+    'close-position-bottom-sheet-limit-preset-top-of-book',
+  LIMIT_PRESET_PERCENT: 'close-position-bottom-sheet-limit-preset-percent-',
+  HEADER_LEVERAGE: 'close-position-bottom-sheet-header-leverage',
+  HEADER_PRICE: 'close-position-bottom-sheet-header-price',
+  HEADER_CHANGE: 'close-position-bottom-sheet-header-change',
+  ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
+  MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
+  MARGIN_MODE_TAG: 'close-position-bottom-sheet-margin-mode-tag',
+  MARGIN_TOOLTIP_BUTTON: 'close-position-bottom-sheet-margin-tooltip-button',
+  TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
+  TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
+  TOTAL_TOOLTIP_BUTTON: 'close-position-bottom-sheet-total-tooltip-button',
+  CONFIRM_BUTTON: 'close-position-bottom-sheet-confirm-button',
+  FEE_DISCLAIMER: 'close-position-bottom-sheet-fee-disclaimer',
 };
 
 // ========================================

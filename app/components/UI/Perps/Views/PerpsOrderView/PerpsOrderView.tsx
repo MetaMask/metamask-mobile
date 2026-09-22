@@ -96,6 +96,7 @@ import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeS
 import {
   PerpsTradeLeverageScreen,
   PerpsTradeSettingsScreen,
+  PerpsTradeTPSLScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -238,6 +239,7 @@ interface PerpsOrderViewContentProps {
 const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   leverage: 1,
+  tpsl: 1,
   settings: 1,
 };
 
@@ -1442,19 +1444,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setIsLimitPriceFocused(false);
   }, [orderForm.asset, orderForm.direction, track]);
 
-  const handleTradeSheetOrderTypeToggle = useCallback(() => {
-    const nextOrderType = orderForm.type === 'limit' ? 'market' : 'limit';
+  const handleTradeSheetOrderTypeSelect = useCallback(
+    (type: OrderType) => {
+      if (type !== 'market' && type !== 'limit') {
+        return;
+      }
 
-    setOrderType(nextOrderType);
-    if (nextOrderType === 'market') {
-      setLimitPrice(undefined);
-      setIsLimitPriceFocused(false);
-    } else if (!orderForm.limitPrice) {
-      tradeSheetLimitPriceInputMethodRef.current = null;
-      setIsInputFocused(false);
-      setIsLimitPriceFocused(true);
-    }
-  }, [orderForm.limitPrice, orderForm.type, setLimitPrice, setOrderType]);
+      setOrderType(type);
+      setIsOrderTypeVisible(false);
+      if (type === 'market') {
+        setLimitPrice(undefined);
+        setIsLimitPriceFocused(false);
+      } else if (!orderForm.limitPrice) {
+        tradeSheetLimitPriceInputMethodRef.current = null;
+        setIsInputFocused(false);
+        setIsLimitPriceFocused(true);
+      }
+    },
+    [orderForm.limitPrice, setLimitPrice, setOrderType],
+  );
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
   // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
@@ -1917,8 +1925,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleSlippageEditPress = useCallback(() => {
-    setIsSlippageVisible(true);
+  const trackSlippageConfigOpened = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
@@ -1927,6 +1934,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
+
+  const handleSlippageEditPress = useCallback(() => {
+    setIsSlippageVisible(true);
+    trackSlippageConfigOpened();
+  }, [trackSlippageConfigOpened]);
 
   const handlePayWithPress = useCallback(() => {
     if (isPayWithDisabled) {
@@ -1967,6 +1979,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       });
     },
     [orderForm.asset, setMaxSlippage, track],
+  );
+
+  const handleTradeTPSLSave = useCallback(
+    (takeProfitPrice?: string, stopLossPrice?: string) => {
+      setTakeProfitPrice(takeProfitPrice);
+      setStopLossPrice(stopLossPrice);
+    },
+    [setStopLossPrice, setTakeProfitPrice],
   );
 
   useInitPerpsPaymentToken(orderForm.asset ?? '');
@@ -2260,6 +2280,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 limitPrice={orderForm.limitPrice}
                 limitPriceWarning={limitPriceWarning}
                 autoCloseText={tpSlDisplayText}
+                showAutoClose={!hideTPSL}
                 margin={marginDisplay}
                 amount={displayAmount}
                 tokenAmount={livePositionSize}
@@ -2301,14 +2322,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onPercentagePress={handlePercentagePress}
                 onMaxPress={handleMaxPress}
                 onDonePress={handleDonePress}
-                onOrderTypePress={handleTradeSheetOrderTypeToggle}
+                onOrderTypePress={() => setIsOrderTypeVisible(true)}
                 onLimitPricePress={handleTradeSheetLimitPricePress}
                 onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
                 onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
-                onAutoClosePress={handleTPSLPress}
                 onPayWithPress={handlePayWithPress}
                 onMarginInfoPress={() => handleTooltipPress('margin')}
+                showSlippage={isMarketOrder}
+                slippageText={
+                  estimatedSlippagePctDisplay === null
+                    ? strings('perps.slippage.row_format_pending', {
+                        value: bpsToPercent(maxSlippageBps),
+                      })
+                    : strings('perps.slippage.row_format', {
+                        est: estimatedSlippagePctDisplay,
+                        value: bpsToPercent(maxSlippageBps),
+                      })
+                }
+                exceedsMaxSlippage={exceedsMaxSlippage}
+                onSlippagePress={trackSlippageConfigOpened}
                 onSubmit={() => handlePlaceOrder()}
               />
             ),
@@ -2325,6 +2358,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 orderType={orderForm.type}
               />
             ),
+            tpsl: (
+              <PerpsTradeTPSLScreen
+                asset={orderForm.asset}
+                amount={orderForm.amount}
+                currentPrice={assetData.price}
+                direction={orderForm.direction}
+                initialTakeProfitPrice={orderForm.takeProfitPrice}
+                initialStopLossPrice={orderForm.stopLossPrice}
+                leverage={orderForm.leverage}
+                limitPrice={orderForm.limitPrice}
+                liquidationPrice={liquidationPrice}
+                orderType={tradeSheetOrderType}
+                szDecimals={szDecimals ?? undefined}
+                onSave={handleTradeTPSLSave}
+              />
+            ),
             settings: (
               <PerpsTradeSettingsScreen
                 currentValueBps={maxSlippageBps}
@@ -2332,6 +2381,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               />
             ),
           }}
+        />
+        <PerpsOrderTypeBottomSheet
+          isVisible={isOrderTypeVisible}
+          onClose={() => setIsOrderTypeVisible(false)}
+          onSelect={handleTradeSheetOrderTypeSelect}
+          currentOrderType={tradeSheetOrderType}
+          availableOrderTypes={['market', 'limit']}
+          asset={orderForm.asset}
+          direction={orderForm.direction}
         />
         {selectedTooltip === 'margin' && (
           <PerpsBottomSheetTooltip
