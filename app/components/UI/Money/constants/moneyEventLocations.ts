@@ -68,7 +68,7 @@ export enum COMPONENT_NAMES {
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
 
   // — Activity —
-  MONEY_ACTIVITY_SECTION = 'money_activity_section',
+  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
   MONEY_ACTIVITY_LIST_ITEM = 'money_activity_list_item',
 
   // — Activity Filter Buttons —

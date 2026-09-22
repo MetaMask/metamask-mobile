@@ -758,22 +758,19 @@ const MoneyHomeView = () => {
         redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
       });
 
-      navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+      navigation.navigate(Routes.MONEY.HOW_IT_WORKS);
     },
     [navigation, trackSurfaceClicked],
   );
 
-  const handleViewAllActivityPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
-      label_key: 'money.activity.view_all',
+  const handleActivityHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
-    navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation, trackButtonClicked]);
+    navigation.navigate(Routes.MONEY.ACTIVITY);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleActivityItemPress = useCallback(
     (transaction: TransactionMeta) => {
@@ -832,7 +829,6 @@ const MoneyHomeView = () => {
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
             showMetalCard={hasMetalCard}
-            isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
             privacyMode={privacyMode}
@@ -899,7 +895,7 @@ const MoneyHomeView = () => {
           items={activityItems}
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
-          onViewAllPress={handleViewAllActivityPress}
+          onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
           cardEnrichmentByHash={cardEnrichmentByHash}

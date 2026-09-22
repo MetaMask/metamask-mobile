@@ -1,10 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import MoneySectionHeader from '../MoneySectionHeader';
@@ -21,7 +17,7 @@ interface MoneyActivityListProps {
   moneyAddress?: string;
   /** Whether more activity exists beyond what's fetched (paginated upstream). */
   hasMore?: boolean;
-  onViewAllPress?: () => void;
+  onHeaderPress?: () => void;
   onItemPress?: (transaction: TransactionMeta) => void;
   /** Whether the crypto/fiat amounts should be masked. */
   privacyMode?: boolean;
@@ -32,7 +28,7 @@ const MoneyActivityList = ({
   items,
   moneyAddress,
   hasMore = false,
-  onViewAllPress,
+  onHeaderPress,
   onItemPress,
   privacyMode = false,
   cardEnrichmentByHash,
@@ -50,8 +46,11 @@ const MoneyActivityList = ({
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
-      <Box twClassName="px-4 pt-3 pb-1">
-        <MoneySectionHeader title={strings('money.activity.title')} />
+      <Box twClassName="px-4 pt-3 pb-3">
+        <MoneySectionHeader
+          title={strings('money.activity.title')}
+          onPress={hasMoreItems && onHeaderPress ? onHeaderPress : undefined}
+        />
       </Box>
       {previewItems.map((item) => (
         <MoneyActivityRow
@@ -63,18 +62,6 @@ const MoneyActivityList = ({
           cardEnrichmentByHash={cardEnrichmentByHash}
         />
       ))}
-      {hasMoreItems && onViewAllPress && (
-        <Box twClassName="px-4 my-3">
-          <Button
-            variant={ButtonVariant.Secondary}
-            isFullWidth
-            onPress={onViewAllPress}
-            testID={MoneyActivityListTestIds.VIEW_ALL_BUTTON}
-          >
-            {strings('money.activity.view_all')}
-          </Button>
-        </Box>
-      )}
     </Box>
   );
 };
