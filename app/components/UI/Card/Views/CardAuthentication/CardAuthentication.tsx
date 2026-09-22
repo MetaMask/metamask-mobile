@@ -78,6 +78,7 @@ import SignInResumeProgress from './components/SignInResumeProgress';
 import SignInBanner from './components/SignInBanner';
 import SignInOtpFields, { CODE_LENGTH } from './components/SignInOtpFields';
 import { useResetOnResolvedKind } from './useResetOnResolvedKind';
+import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
@@ -92,6 +93,7 @@ type CardAuthenticationParams = {
 const CardAuthentication = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
@@ -751,6 +753,7 @@ const CardAuthentication = () => {
           otpError={otpError}
           resendCooldown={resendCooldown}
           otpLoading={otpLoading}
+          isScreenTransitionComplete={isScreenTransitionComplete}
           onChangeCode={handleOtpValueChange}
           onResend={handleResendOtp}
         />
