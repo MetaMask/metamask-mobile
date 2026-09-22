@@ -43,6 +43,15 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
+jest.mock('../Bridge/providers/BridgeSessionProvider', () => ({
+  BridgeSessionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../Bridge/providers/SwapQuotesProvider', () => ({
+  SwapQuotesProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
@@ -216,9 +225,7 @@ const buildHookResult = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {

@@ -43,6 +43,10 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
+import { BridgeSessionProvider } from '../Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../Bridge/providers/SwapQuotesProvider';
+import { FeatureId } from '@metamask/bridge-controller';
+import { QUICK_BUY_SOURCE_TO_FEATURE_ID } from './analytics/quickBuyEvents';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -252,14 +256,24 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   }
 
   return (
-    <QuickBuyRootInner
-      target={target}
-      onClose={onClose}
-      features={features}
-      analyticsContext={analyticsContext}
+    <BridgeSessionProvider
+      featureId={
+        (analyticsContext?.source &&
+          QUICK_BUY_SOURCE_TO_FEATURE_ID[analyticsContext?.source]) ??
+        FeatureId.QUICK_BUY_TOKEN_DETAILS
+      }
     >
-      {children}
-    </QuickBuyRootInner>
+      <SwapQuotesProvider>
+        <QuickBuyRootInner
+          target={target}
+          onClose={onClose}
+          features={features}
+          analyticsContext={analyticsContext}
+        >
+          {children}
+        </QuickBuyRootInner>
+      </SwapQuotesProvider>
+    </BridgeSessionProvider>
   );
 };
 

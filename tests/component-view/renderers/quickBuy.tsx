@@ -10,7 +10,17 @@ import type {
   QuickBuyTarget,
 } from '../../../app/components/UI/QuickBuy/types';
 import { USDC_DEST } from '../../../app/components/UI/Bridge/_mocks_/bridgeViewTestConstants';
+import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../../../app/components/UI/Bridge/providers/SwapQuotesProvider';
 import { initialStateQuickBuy } from '../presets/quickBuy';
+import { wireQuickBuySwapQuotePolling } from '../api-mocking/quickBuy';
+import { FeatureId } from '@metamask/bridge-controller';
+
+const QuickBuySessionTree = ({ children }: { children: React.ReactNode }) => (
+  <BridgeSessionProvider featureId={FeatureId.QUICK_BUY_EXPLORE}>
+    <SwapQuotesProvider>{children}</SwapQuotesProvider>
+  </BridgeSessionProvider>
+);
 
 export const QUICK_BUY_SHEET_ROUTE = 'QuickBuySheet';
 
@@ -31,13 +41,15 @@ function QuickBuySheetHarness({
   analyticsContext?: QuickBuyAnalyticsContext;
 }) {
   return (
-    <QuickBuyRoot
-      isVisible
-      target={target}
-      onClose={onClose}
-      features={TOP_TRADERS_QUICK_BUY_FEATURES}
-      analyticsContext={analyticsContext}
-    />
+    <QuickBuySessionTree>
+      <QuickBuyRoot
+        isVisible
+        target={target}
+        onClose={onClose}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        analyticsContext={analyticsContext}
+      />
+    </QuickBuySessionTree>
   );
 }
 
@@ -68,18 +80,19 @@ export const renderQuickBuySheet = ({
     />
   );
 
-  if (extraRoutes?.length) {
-    return renderScreenWithRoutes(
-      Screen as unknown as React.ComponentType,
-      { name: QUICK_BUY_SHEET_ROUTE },
-      extraRoutes,
-      { state },
-    );
-  }
+  const screen = extraRoutes?.length
+    ? renderScreenWithRoutes(
+        Screen as unknown as React.ComponentType,
+        { name: QUICK_BUY_SHEET_ROUTE },
+        extraRoutes,
+        { state },
+      )
+    : renderComponentViewScreen(
+        Screen as unknown as React.ComponentType,
+        { name: QUICK_BUY_SHEET_ROUTE },
+        { state },
+      );
 
-  return renderComponentViewScreen(
-    Screen as unknown as React.ComponentType,
-    { name: QUICK_BUY_SHEET_ROUTE },
-    { state },
-  );
+  wireQuickBuySwapQuotePolling(screen.store);
+  return screen;
 };

@@ -114,6 +114,7 @@ import {
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -207,9 +208,7 @@ export interface UseQuickBuyControllerResult {
   >;
   handleSelectQuote: (requestId: string) => void;
   quotesLastFetchedAt: number | null;
-  refreshCount: number;
   quoteRefreshRateMs: number;
-  maxRefreshCount: number;
   refetchQuotes: () => void;
   // warnings (banner-level; can stack)
   isHardwareSolanaBlocked: boolean;
@@ -797,6 +796,36 @@ export function useQuickBuyController(
     ? undefined
     : sourceTokenAmount;
 
+  const maybeSwapQuotes = useSwapQuotes();
+  const isBridgeControllerActive = Boolean(maybeSwapQuotes);
+  const quickBuyQuotes = useQuickBuyQuotes({
+    sourceToken,
+    destToken,
+    sourceTokenAmount: quotesSourceTokenAmount,
+    analyticsContext: quotesAnalyticsContext,
+    selectedQuoteRequestId,
+    immediateFetchToken,
+  });
+
+  const quotesToUse = maybeSwapQuotes
+    ? {
+        activeQuote: maybeSwapQuotes.activeQuote ?? undefined,
+        sortedQuotes: maybeSwapQuotes.validQuotes ?? [],
+        destTokenAmount: maybeSwapQuotes.destTokenAmount,
+        isQuoteLoading: Boolean(maybeSwapQuotes.isLoading),
+        isNoQuotesAvailable: Boolean(maybeSwapQuotes.isNoQuotesAvailable),
+        quoteFetchError: maybeSwapQuotes.quoteFetchError ?? null,
+        isActiveQuoteForCurrentTokenPair: Boolean(
+          maybeSwapQuotes.isActiveQuoteForCurrentTokenPair,
+        ),
+        isQuoteRequestStale: Boolean(maybeSwapQuotes.needsNewQuote),
+        quoteCount: maybeSwapQuotes.validQuotes?.length ?? 0,
+        quotesLastFetchedAt: maybeSwapQuotes.quotesLastFetched,
+        quoteRefreshRateMs: maybeSwapQuotes.refreshRate,
+        refetchQuotes: maybeSwapQuotes.refreshQuotes,
+      }
+    : quickBuyQuotes;
+
   const {
     activeQuote,
     sortedQuotes,
@@ -807,18 +836,9 @@ export function useQuickBuyController(
     isActiveQuoteForCurrentTokenPair,
     isQuoteRequestStale,
     quotesLastFetchedAt,
-    refreshCount,
     quoteRefreshRateMs,
-    maxRefreshCount,
     refetchQuotes,
-  } = useQuickBuyQuotes({
-    sourceToken,
-    destToken,
-    sourceTokenAmount: quotesSourceTokenAmount,
-    analyticsContext: quotesAnalyticsContext,
-    selectedQuoteRequestId,
-    immediateFetchToken,
-  });
+  } = quotesToUse;
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
   useEffect(() => {
@@ -929,23 +949,33 @@ export function useQuickBuyController(
   }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
+    const swapPriceImpact = maybeSwapQuotes?.formattedQuoteData?.priceImpact;
+    if (swapPriceImpact != null) {
+      return swapPriceImpact;
+    }
     const priceImpact = activeQuote?.quote?.priceData?.priceImpact?.amount;
     if (!priceImpact) return '-';
     return `${(Number(priceImpact) * 100).toFixed(2)}%`;
-  }, [activeQuote]);
+  }, [activeQuote, maybeSwapQuotes?.formattedQuoteData?.priceImpact]);
 
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote?.priceData?.priceImpact?.amount,
   );
 
-  const isPriceImpactError = useMemo(
-    () =>
-      exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      ),
-    [activeQuote, bridgeFeatureFlags],
-  );
+  const isPriceImpactError = useMemo(() => {
+    if (isBridgeControllerActive) {
+      return Boolean(maybeSwapQuotes?.shouldShowPriceImpactError);
+    }
+    return exceedsPriceImpactErrorThreshold(
+      parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
+      bridgeFeatureFlags?.priceImpactThreshold?.error,
+    );
+  }, [
+    activeQuote,
+    bridgeFeatureFlags,
+    maybeSwapQuotes?.shouldShowPriceImpactError,
+    isBridgeControllerActive,
+  ]);
 
   const totalAmountFiat = useMemo(() => {
     const inputNum = parseFloat(fiatAmount);
@@ -1895,9 +1925,7 @@ export function useQuickBuyController(
     setSelectedQuoteRequestId,
     handleSelectQuote,
     quotesLastFetchedAt,
-    refreshCount,
     quoteRefreshRateMs,
-    maxRefreshCount,
     refetchQuotes,
     isHardwareSolanaBlocked,
     priceImpactViewData,

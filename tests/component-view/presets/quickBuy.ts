@@ -161,6 +161,26 @@ export const initialStateQuickBuy = (options?: InitialStateQuickBuyOptions) =>
     .withOverrides({
       engine: {
         backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              bridgeConfig: {
+                priceImpactThreshold: {
+                  gasless: 0.2,
+                  normal: 0.05,
+                  warning: 0.05,
+                  error: 0.25,
+                },
+              },
+              bridgeConfigV2: {
+                priceImpactThreshold: {
+                  gasless: 0.2,
+                  normal: 0.05,
+                  warning: 0.05,
+                  error: 0.25,
+                },
+              },
+            },
+          },
           AccountTrackerController: {
             accountsByChainId: {
               '0x1': {

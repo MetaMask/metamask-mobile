@@ -75,6 +75,18 @@ jest.mock('../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
+const mockUseSwapQuotes = jest.fn().mockReturnValue(null);
+jest.mock('../../Bridge/hooks/useSwapQuotes', () => ({
+  useSwapQuotes: () => mockUseSwapQuotes(),
+}));
+
+const mockSetQuoteParams = jest.fn();
+jest.mock('../../Bridge/hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(() => ({
+    setQuoteParams: (...args: unknown[]) => mockSetQuoteParams(...args),
+  })),
+}));
+
 jest.mock('../utils/streamQuickBuyQuotes', () => ({
   isQuoteStreamingEnabled: jest.fn(() => false),
   streamQuickBuyQuotes: jest.fn(),
@@ -228,6 +240,7 @@ describe('useQuickBuyQuotes', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     setupSelectors();
+    mockUseSwapQuotes.mockReturnValue(null);
     // `isQuoteStreamingEnabled` (bridge SSE) is the stream switch: default to
     // the one-shot path; the streaming suite opts in explicitly.
     isQuoteStreamingEnabledMock.mockReturnValue(false);
@@ -239,6 +252,43 @@ describe('useQuickBuyQuotes', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('sets quote params and skips fetchQuotes when useSwapQuotes returns a result', () => {
+    const sourceToken = createSourceToken();
+    const destToken = createDestToken();
+
+    mockUseSwapQuotes.mockReturnValue({ refreshQuotes: jest.fn() });
+
+    const { result } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken,
+          destToken,
+          sourceTokenAmount: '0.001',
+          immediateFetchToken: 1,
+        }),
+      ),
+    );
+
+    expect(mockSetQuoteParams).toHaveBeenCalledWith({
+      srcToken: sourceToken,
+      destToken,
+      srcAmount: '0.001',
+      slippage: '0.5',
+      walletAddress: '0xWALLET',
+      destWalletAddress: null,
+      gasIncluded: false,
+      gasIncluded7702: false,
+    });
+
+    act(() => {
+      result.current.refetchQuotes();
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    expect(fetchQuotesMock).not.toHaveBeenCalled();
+    expect(streamQuickBuyQuotesMock).not.toHaveBeenCalled();
   });
 
   it('returns idle state when any required input is missing', () => {

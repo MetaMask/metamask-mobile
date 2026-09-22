@@ -5,6 +5,8 @@
  * (see `SOCIAL_QUICK_BUY_*`) as the single source of truth.
  */
 
+import { FeatureId } from '@metamask/bridge-controller';
+
 /** Property-key constants for Quick Buy analytics property bags. */
 export const QuickBuyEventProperties = {
   AMOUNT_SELECTION_METHOD: 'amount_selection_method',
@@ -90,3 +92,22 @@ export type QuickBuyOriginalEntryPoint =
   | 'deep_link'
   | 'home_carousel'
   | 'trader_feed';
+
+export const QUICK_BUY_SOURCE_TO_FEATURE_ID: Record<
+  QuickBuySheetSource,
+  FeatureId
+> = {
+  notification: FeatureId.QUICK_BUY_FOLLOW_TRADING,
+  profile_position: FeatureId.QUICK_BUY_FOLLOW_TRADING,
+  leaderboard: FeatureId.QUICK_BUY_FOLLOW_TRADING,
+  trader_feed: FeatureId.QUICK_BUY_FOLLOW_TRADING,
+  asset_details: FeatureId.QUICK_BUY_TOKEN_DETAILS,
+  market_insights: FeatureId.QUICK_BUY_TOKEN_DETAILS,
+  security_trust: FeatureId.QUICK_BUY_TOKEN_DETAILS,
+  explore_search: FeatureId.QUICK_BUY_EXPLORE,
+  explore_crypto: FeatureId.QUICK_BUY_EXPLORE,
+  explore_now: FeatureId.QUICK_BUY_EXPLORE,
+  explore_rwas: FeatureId.QUICK_BUY_EXPLORE,
+  explore_trending: FeatureId.QUICK_BUY_EXPLORE,
+  explore_stocks: FeatureId.QUICK_BUY_EXPLORE,
+} as const;
