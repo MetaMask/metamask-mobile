@@ -30,6 +30,18 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { ApprovalType } from '@metamask/controller-utils';
 
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => ({})),
 }));
@@ -43,6 +55,8 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
 }));
 
 describe('Confirm Title', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    'membershipSubscription' as TransactionType;
   const typedSignRequestId = 'fb2029e1-b0ab-11ef-9227-05a11087c334';
   const daiPermitAllowedStringFalseData = JSON.stringify({
     types: {
@@ -95,51 +109,57 @@ describe('Confirm Title', () => {
   });
 
   describe('Money Account Deposit', () => {
-    it('renders the deposit title and hides the two-transaction badge', () => {
-      const moneyAccountState = merge({}, generateContractInteractionState, {
-        engine: {
-          backgroundState: {
-            ApprovalController: {
-              pendingApprovals: {
-                [mockTxId]: {
-                  id: mockTxId,
-                  type: ApprovalType.TransactionBatch,
-                  requestData: { txId: mockTxId },
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])(
+      'renders the deposit title and hides the two-transaction badge for %s',
+      (transactionType) => {
+        const moneyAccountState = merge({}, generateContractInteractionState, {
+          engine: {
+            backgroundState: {
+              ApprovalController: {
+                pendingApprovals: {
+                  [mockTxId]: {
+                    id: mockTxId,
+                    type: ApprovalType.TransactionBatch,
+                    requestData: { txId: mockTxId },
+                  },
                 },
               },
-            },
-            TransactionController: {
-              transactions: [
-                {
-                  id: mockTxId,
-                  type: TransactionType.batch,
-                  chainId: '0x1',
-                  nestedTransactions: [
-                    { type: TransactionType.tokenMethodApprove },
-                    { type: TransactionType.moneyAccountDeposit },
-                  ],
-                },
-              ],
+              TransactionController: {
+                transactions: [
+                  {
+                    id: mockTxId,
+                    type: TransactionType.batch,
+                    chainId: '0x1',
+                    nestedTransactions: [
+                      { type: TransactionType.tokenMethodApprove },
+                      { type: transactionType },
+                    ],
+                  },
+                ],
+              },
             },
           },
-        },
-      });
+        });
 
-      const { getByText, queryByText } = renderWithProvider(<Title />, {
-        state: moneyAccountState,
-      });
+        const { getByText, queryByText } = renderWithProvider(<Title />, {
+          state: moneyAccountState,
+        });
 
-      expect(
-        getByText(strings('confirm.title.money_account_add_money')),
-      ).toBeOnTheScreen();
-      expect(
-        queryByText(
-          strings('confirm.7702_functionality.includes_transaction', {
-            transactionCount: 2,
-          }),
-        ),
-      ).toBeNull();
-    });
+        expect(
+          getByText(strings('confirm.title.money_account_add_money')),
+        ).toBeOnTheScreen();
+        expect(
+          queryByText(
+            strings('confirm.7702_functionality.includes_transaction', {
+              transactionCount: 2,
+            }),
+          ),
+        ).toBeNull();
+      },
+    );
   });
 
   describe('Perps', () => {

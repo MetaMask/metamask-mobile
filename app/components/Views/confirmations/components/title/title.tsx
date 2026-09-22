@@ -102,6 +102,8 @@ const getTitleAndSubTitle = (
     !isUpgradeOnly &&
     hasTransactionType(transactionMetadata, [
       TransactionType.moneyAccountDeposit,
+      // OGP: membershipSubscription will be added
+      TransactionType.membershipSubscription as unknown as TransactionType,
     ])
   ) {
     return {
@@ -290,6 +292,8 @@ const Title = () => {
       )}
       {!hasTransactionType(transactionMetadata, [
         TransactionType.moneyAccountDeposit,
+        // OGP: membershipSubscription will be added
+        TransactionType.membershipSubscription as unknown as TransactionType,
       ]) && <BatchedTransactionTag />}
     </View>
   );
