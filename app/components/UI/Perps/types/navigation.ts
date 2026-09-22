@@ -11,6 +11,10 @@ import {
   type MarketTypeFilter,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import type {
+  PriceAlertRouteParams,
+  CreatePriceAlertRouteParams,
+} from '../../Assets/PriceAlerts/constants';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -386,6 +390,10 @@ export type PerpsStackParamList = {
   PerpsSelectProvider: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
+
+  // Price alert routes (perps variants of the shared alert UI)
+  PerpsPriceAlerts: PriceAlertRouteParams;
+  PerpsCreatePriceAlert: CreatePriceAlertRouteParams;
 };
 
 /** Screens inside the Perps stack plus the root `Perps` entry for cross-stack navigation. */

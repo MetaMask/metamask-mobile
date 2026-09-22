@@ -325,11 +325,9 @@ const PerpsProChartPanel = ({
   }, []);
 
   const handlePriceAlertsPress = useCallback(() => {
-    // Prefer the stable id from the v3 Terminal snapshot; fall back to
-    // deriving it from symbol + provider for HyperLiquid-direct paths.
-    const marketId =
-      marketData?.id ??
-      `${symbol.toLowerCase()}-${marketData?.providerId ?? 'hyperliquid-mainnet'}`;
+    // Prefer the stable backend-issued id once @metamask/perps-controller ≥17.4.0
+    // is installed (marketData.id typed there). Until then, derive from symbol + provider.
+    const marketId = `${symbol.toLowerCase()}-${marketData?.providerId ?? 'hyperliquid-mainnet'}`;
     // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
     const displaySymbol = getPerpsDisplaySymbol(symbol);
     navigation.navigate(Routes.PERPS.PRICE_ALERTS, {
@@ -341,13 +339,7 @@ const PerpsProChartPanel = ({
       mode: 'perps',
       marketId,
     });
-  }, [
-    symbol,
-    marketData?.id,
-    marketData?.providerId,
-    currentPrice,
-    navigation,
-  ]);
+  }, [symbol, marketData?.providerId, currentPrice, navigation]);
 
   let chartContent: React.ReactNode = (
     <Skeleton
