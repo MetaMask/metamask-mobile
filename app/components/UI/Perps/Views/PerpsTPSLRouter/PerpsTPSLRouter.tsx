@@ -5,10 +5,9 @@ import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsB
 import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 /**
- * Reading the experiment records exposure, so it is isolated in its own
- * component and only mounted for the converted entry points. Otherwise the
- * order flow — which keeps the full screen either way — would be counted as
- * exposed without ever being treated.
+ * Reading the experiment records exposure, so it is isolated here and mounted
+ * only for the converted entry points. Otherwise the order flow, which keeps
+ * the full screen either way, would count as exposed without being treated.
  */
 const PerpsTPSLPositionRouter: React.FC = () => {
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
@@ -19,12 +18,10 @@ const PerpsTPSLPositionRouter: React.FC = () => {
 /**
  * Chooses the TP/SL presentation for `Routes.PERPS.TPSL`.
  *
- * TAT-3747 converts the position-edit entry points only (market details and
- * the Pro positions panel). The order-placement entry points reach the same
- * route while the trade flow is itself a bottom sheet under treatment, so
- * converting them would stack a sheet on a sheet — they stay full screen.
- * Those two callers are distinguishable because only a position edit passes a
- * `position` param.
+ * Only the position-edit entry points convert. The order-placement callers
+ * reach this same route while the trade flow is itself a bottom sheet under
+ * treatment, so converting them would stack a sheet on a sheet. The two are
+ * distinguishable because only a position edit passes a `position` param.
  */
 const PerpsTPSLRouter: React.FC = () => {
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();

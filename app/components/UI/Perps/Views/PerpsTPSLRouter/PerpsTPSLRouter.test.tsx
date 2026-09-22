@@ -13,8 +13,7 @@ jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: jest.fn(),
 }));
 
-// The view is heavy and covered by its own suite; this asserts the variant the
-// router picks, which is the router's only job.
+// Stubbed down to the variant prop, which is all the router decides.
 jest.mock('../PerpsTPSLView/PerpsTPSLView', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');

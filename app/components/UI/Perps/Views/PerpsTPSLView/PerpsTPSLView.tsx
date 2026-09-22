@@ -86,7 +86,6 @@ import {
 /** ButtonBase resolves `textClassName` per press state, so it takes a function. */
 const getClearTextClassName = () => 'text-primary-default';
 
-/** Numeric stand-ins the sheet shows in place of descriptive placeholders. */
 const SHEET_PRICE_PLACEHOLDER = '0.00';
 const SHEET_PERCENTAGE_PLACEHOLDER = '0';
 
@@ -100,7 +99,6 @@ const priceValueTextProps = {
   color: TextColor.TextDefault,
 } as const;
 
-/** Figma: keys are Body/Sm/Medium, values Body/Md/Medium. */
 const sheetPriceKeyTextProps = {
   variant: TextVariant.BodySm,
   fontWeight: FontWeight.Medium,
@@ -124,7 +122,6 @@ const RoeSignBadge: React.FC<{
   testID: string;
   accessibilityLabel: string;
   isDisabled: boolean;
-  /** The sheet renders the sign neutrally; the screen keeps its semantic colors. */
   isNeutral?: boolean;
 }> = ({
   sign,
@@ -134,9 +131,6 @@ const RoeSignBadge: React.FC<{
   isDisabled,
   isNeutral = false,
 }) => {
-  // Figma draws this as a ButtonIcon with the add/minus glyph rather than a
-  // typed "+"/"-", which is what keeps it optically centred in the 24px
-  // circle. The screen keeps the typed sign and its semantic colours.
   if (isNeutral) {
     return (
       <ButtonIcon
@@ -181,9 +175,8 @@ const SectionHelpText: React.FC<{
   expectedMessage?: string;
   errorTestID?: string;
   /**
-   * The sheet is short on vertical space and Figma leaves no gap under a
-   * section with nothing to say, so it drops the sizer when both messages
-   * are absent and accepts the shift when one appears.
+   * Drops the sizer while both messages are absent, trading a shift when one
+   * appears for the vertical space the sheet does not have.
    */
   reserveWhenEmpty?: boolean;
 }> = ({
@@ -228,8 +221,8 @@ const SectionHelpText: React.FC<{
 
 export interface PerpsTPSLViewProps {
   /**
-   * `sheet` renders the TAT-3747 bottom-sheet treatment. `screen` is the
-   * control and must stay byte-for-byte the experience that shipped.
+   * `screen` is the experiment control and must stay byte-for-byte the
+   * experience that shipped.
    */
   variant?: 'screen' | 'sheet';
 }
@@ -816,9 +809,11 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     ],
   );
 
-  // Wrapper handlers to dismiss keyboard before clearing
+  // The screen's dismissal is load-bearing: its Clear went unresponsive while
+  // the keypad was up. The sheet's Clear responds on the first tap, so it
+  // keeps the keypad open and closes only via Done.
   const handleTakeProfitClear = useCallback(() => {
-    if (focusedInput) {
+    if (focusedInput && !isSheet) {
       dismissKeypad();
     }
     if (enableHaptics) {
@@ -827,6 +822,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     handleTakeProfitOff();
   }, [
     focusedInput,
+    isSheet,
     dismissKeypad,
     enableHaptics,
     handleTakeProfitOff,
@@ -834,7 +830,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   ]);
 
   const handleStopLossClear = useCallback(() => {
-    if (focusedInput) {
+    if (focusedInput && !isSheet) {
       dismissKeypad();
     }
     if (enableHaptics) {
@@ -843,6 +839,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     handleStopLossOff();
   }, [
     focusedInput,
+    isSheet,
     dismissKeypad,
     enableHaptics,
     handleStopLossOff,
@@ -854,8 +851,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       children: strings('perps.tpsl.cancel'),
       onPress: handleBack,
       size: ButtonSize.Lg,
-      // Figma gives Cancel the input fields' 12px radius and surface, keeping
-      // the pill shape for Save alone.
       ...(isSheet ? { twClassName: 'rounded-xl bg-muted' } : {}),
       testID: PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON,
     }),
@@ -864,7 +859,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
   const setButtonProps = useMemo(
     () => ({
-      // Figma labels the sheet's confirm action Save; the screen keeps Set.
       children: isSheet
         ? strings('perps.order.tpsl_modal.save')
         : strings('perps.tpsl.set'),
@@ -887,8 +881,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     [dismissKeypad],
   );
 
-  // The sheet moves the RoE presets out of the sections and into a row above
-  // the keypad, so they follow whichever field is being edited.
   const keypadPresets = useMemo(() => {
     if (!focusedInput) {
       return [];
@@ -946,8 +938,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       })
     : PERPS_CONSTANTS.FallbackPriceDisplay;
 
-  // How far price can move before liquidation, same calculation the leverage
-  // sheet shows next to its liquidation price.
   const liquidationDistanceDisplay = useMemo(() => {
     if (!hasLiquidationPrice || !currentPrice) {
       return undefined;
@@ -996,8 +986,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     ? { textClassName: getClearTextClassName }
     : {};
 
-  // Figma: section titles are Body/Sm/Medium in grey. Spread rather than pass
-  // `undefined`, which would wipe out Label's own BodyMd default.
+  // Spread rather than pass `undefined`, which would wipe out Label's own
+  // BodyMd default instead of falling back to it.
   const sectionLabelProps = isSheet
     ? {
         color: TextColor.TextAlternative,
@@ -1011,8 +1001,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     ? sheetPriceValueTextProps
     : priceValueTextProps;
 
-  // The sheet shows numeric zeros rather than the screen's descriptive
-  // placeholders, so each field reads as an amount waiting to be typed.
   const pricePlaceholder = isSheet
     ? SHEET_PRICE_PLACEHOLDER
     : strings('perps.tpsl.trigger_price_placeholder');
@@ -1059,7 +1047,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
   let footerContent: React.ReactNode = reviewFooter;
   if (focusedInput && isSheet) {
-    // Figma keeps Cancel and Save in place and moves Done into the preset row.
     footerContent = (
       <>
         {reviewFooter}
@@ -1068,8 +1055,10 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             <Button
               key={preset.key}
               variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              twClassName="flex-1"
+              size={ButtonSize.Sm}
+              // ButtonBase hardcodes px-4, which clips these labels once five
+              // buttons share the row. Trim the padding so the text governs.
+              twClassName="flex-1 px-2"
               onPress={preset.onPress}
               testID={preset.testID}
               isDisabled={inputsDisabled}
@@ -1079,7 +1068,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
           ))}
           <Button
             variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
+            size={ButtonSize.Sm}
+            twClassName="px-3"
             onPress={dismissKeypad}
             testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
           >
@@ -1182,9 +1172,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             />
           </Box>
 
-          {/* Full bleed, with the spacing carried entirely by the divider so
-              it sits the same distance from the liquidation row above and the
-              Take profit label below. */}
+          {/* Spacing lives on the divider so it sits equidistant from the
+              rows either side of it. */}
           {isSheet ? <SectionDivider twClassName="my-4" /> : null}
 
           {/* Take Profit Section */}
@@ -1215,8 +1204,6 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 )}
               </Box>
 
-              {/* The sheet shows these above the keypad instead, scoped to the
-                  focused field. */}
               {isSheet ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
@@ -1494,8 +1481,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       <BottomSheet
         ref={sheetRef}
         goBack={navigation.goBack}
-        // The dialog surface defaults to `bg-elevated1`; Figma puts this sheet
-        // on the pure black `background.default`.
+        // The dialog surface defaults to `bg-elevated1`; this sheet sits on
+        // `background.default`.
         twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >

@@ -1072,6 +1072,38 @@ describe('PerpsTPSLView', () => {
       ).toHaveTextContent('perps.tpsl.set');
     });
 
+    it('keeps the keypad open when a section is cleared', () => {
+      renderSheet();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+      fireEvent.press(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    // The screen only offers Clear once a value exists, so seed one.
+    it('still dismisses the keypad on clear for the screen variant', () => {
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3150',
+        },
+      });
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+      fireEvent.press(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON),
+      );
+
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeNull();
+    });
+
     it('replaces the footer with Done on the screen variant instead', () => {
       renderView();
 
