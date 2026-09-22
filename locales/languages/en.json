@@ -2820,6 +2820,31 @@
     "feedback": {
       "title": "Give us feedback"
     },
+    "outreach_details": {
+      "title": "You're one of our top perp traders",
+      "subtitle": "Your volume earned you a seat at the table. Tell the Perps team what to build next and unlock VIP status.",
+      "features": {
+        "vip": {
+          "title": "VIP access, built for pros",
+          "subtitle": "Perks, status, and first access to new features"
+        },
+        "support": {
+          "title": "24/7 priority support",
+          "subtitle": "Real humans, no bots, no tickets"
+        },
+        "roadmap": {
+          "title": "Your calls shape the roadmap",
+          "subtitle": "What you ask for gets built"
+        },
+        "trip": {
+          "title": "Meet the team IRL",
+          "subtitle": "A sponsored trip with MetaMask, on us"
+        }
+      },
+      "contact": "Reach out on Telegram {{telegramHandle}}, or email {{email}}",
+      "telegram_button": "Chat on Telegram",
+      "schedule_button": "Schedule call"
+    },
     "close_all_modal": {
       "title": "Close all positions",
       "title_filtered": "Close positions",
