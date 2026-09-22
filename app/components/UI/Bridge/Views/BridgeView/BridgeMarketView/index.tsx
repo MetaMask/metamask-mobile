@@ -118,6 +118,7 @@ import {
 } from '../../../components/SwapsBanners';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError/index.ts';
+import { isArcTokenUSDC } from '../../../../../../enablement/assets/arc';
 import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable/index.ts';
 import {
   hidePostTradeNotificationSurface,
@@ -401,6 +402,11 @@ const BridgeMarketViewContent = () => {
   const hasInsufficientNativeReserveError = Boolean(
     insufficientNativeReserveError,
   );
+  const hasArcInsufficientNativeReserveError = Boolean(
+    hasInsufficientNativeReserveError &&
+      sourceToken &&
+      isArcTokenUSDC(sourceToken),
+  );
 
   const isSubmitDisabled =
     (isLoading && !activeQuote) ||
@@ -420,9 +426,12 @@ const BridgeMarketViewContent = () => {
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
-    hasInsufficientNativeReserveError,
+    hasInsufficientNativeReserveError:
+      hasInsufficientNativeReserveError &&
+      !hasArcInsufficientNativeReserveError,
     hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas,
+    hasInsufficientGas:
+      hasInsufficientGas || hasArcInsufficientNativeReserveError,
     hasTxAlert: Boolean(blockaidError),
     isNetworkFeeUnavailable,
     isSubmitDisabled,

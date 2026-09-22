@@ -42,19 +42,14 @@ export const InsufficientNativeReserveBanner = () => {
     activeQuote,
   });
 
-  if (!insufficientNativeReserveError || hasInsufficientBalance) {
+  const isArcUSDC = sourceToken ? isArcTokenUSDC(sourceToken) : false;
+
+  if (!insufficientNativeReserveError || hasInsufficientBalance || isArcUSDC) {
     return null;
   }
 
   const { maxSwappableNativeBalance, minimumNativeBalanceToBeKeptInAccount } =
     insufficientNativeReserveError;
-  const isArcUSDC = sourceToken ? isArcTokenUSDC(sourceToken) : false;
-  const titleKey = isArcUSDC
-    ? 'bridge.insufficient_native_reserve_title_arc'
-    : 'bridge.insufficient_native_reserve_title';
-  const messageKey = isArcUSDC
-    ? 'bridge.insufficient_native_reserve_message_arc'
-    : 'bridge.insufficient_native_reserve_message';
 
   return (
     <BannerBase
@@ -67,10 +62,10 @@ export const InsufficientNativeReserveBanner = () => {
           size={IconSize.Lg}
         />
       }
-      title={strings(titleKey, {
+      title={strings('bridge.insufficient_native_reserve_title', {
         ticker: sourceToken?.symbol,
       })}
-      description={strings(messageKey, {
+      description={strings('bridge.insufficient_native_reserve_message', {
         ticker: sourceToken?.symbol,
         minimumReserve: minimumNativeBalanceToBeKeptInAccount,
         maxSwappable: maxSwappableNativeBalance,

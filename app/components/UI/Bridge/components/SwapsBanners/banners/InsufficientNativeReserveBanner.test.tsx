@@ -73,29 +73,19 @@ describe('InsufficientNativeReserveBanner', () => {
     expect(onAdjustSourceAmount).toHaveBeenCalledWith('5');
   });
 
-  it('uses the Arc-specific reserve message for Arc USDC', () => {
-    const { getByText } = renderBanner(<InsufficientNativeReserveBanner />, {
-      state: createBannerState({
-        sourceToken: ARC_USDC_BRIDGE_TOKEN,
-      }),
-    });
+  it('renders nothing for Arc USDC reserve errors', () => {
+    const { queryByTestId } = renderBanner(
+      <InsufficientNativeReserveBanner />,
+      {
+        state: createBannerState({
+          sourceToken: ARC_USDC_BRIDGE_TOKEN,
+        }),
+      },
+    );
 
     expect(
-      getByText(
-        strings('bridge.insufficient_native_reserve_title_arc', {
-          ticker: 'USDC',
-        }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('bridge.insufficient_native_reserve_message_arc', {
-          ticker: 'USDC',
-          minimumReserve: '10',
-          maxSwappable: '5',
-        }),
-      ),
-    ).toBeOnTheScreen();
+      queryByTestId(SwapsBannersSelectorsIDs.INSUFFICIENT_NATIVE_RESERVE),
+    ).toBeNull();
   });
 
   it('gives way to the insufficient balance state', () => {
