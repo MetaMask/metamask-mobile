@@ -309,10 +309,21 @@ describe('PerpsPositionCard', () => {
         leverage: { type: 'cross' as const, value: 3 },
         liquidationPrice,
       };
+      const onMarginPress = jest.fn();
 
-      render(<PerpsPositionCard position={cross} onMarginPress={jest.fn()} />);
+      render(
+        <PerpsPositionCard
+          position={cross}
+          onMarginPress={onMarginPress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+      );
 
       expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(onMarginPress).not.toHaveBeenCalled();
       expect(
         screen.getByTestId('cross-liquidation-info-lite-ETH'),
       ).toBeOnTheScreen();
@@ -344,7 +355,7 @@ describe('PerpsPositionCard', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
     );
 
     expect(onMarginPress).toHaveBeenCalledTimes(1);

@@ -410,6 +410,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           {/* Size/Margin Row */}
           <Box flexDirection={BoxFlexDirection.Row} gap={2} twClassName="mb-2">
             <Card
+              isInteractive
               onPress={handleSizeToggle}
               twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
@@ -445,10 +446,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Card>
 
             <Card
+              isInteractive
               onPress={marginPress}
+              disabled={!marginPress}
               twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
-              touchableOpacityProps={{ disabled: !marginPress }}
             >
               <Box twClassName="flex-1 gap-1">
                 <Text
@@ -487,13 +489,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           {/* Auto Close Section */}
           <Card
+            isInteractive
             onPress={handleAutoCloseButtonPress}
+            disabled={!onAutoClosePress}
             twClassName="flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 mb-3"
             testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
-            touchableOpacityProps={{
-              activeOpacity: 0.7,
-              disabled: !onAutoClosePress,
-            }}
           >
             <Box twClassName="flex-1 gap-1">
               <Text

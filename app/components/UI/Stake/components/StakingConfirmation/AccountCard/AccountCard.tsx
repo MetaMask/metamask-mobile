@@ -45,7 +45,12 @@ const AccountCard = ({
 
   return (
     <View>
-      <Card accessible testID="account-card" style={styles.cardGroupTop}>
+      <Card
+        accessible
+        testID="account-card"
+        twClassName="bg-default"
+        style={styles.cardGroupTop}
+      >
         {selectedAccount && (
           <KeyValueRow
             twClassName={KEY_VALUE_ROW_CLASSNAME}
@@ -73,7 +78,11 @@ const AccountCard = ({
           }
         />
       </Card>
-      <Card accessible style={styles.cardGroupBottom}>
+      <Card
+        accessible
+        twClassName="bg-default"
+        style={styles.cardGroupBottom}
+      >
         <KeyValueRow
           twClassName={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('asset_details.network')}
