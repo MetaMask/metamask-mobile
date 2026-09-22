@@ -811,6 +811,69 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('1');
   });
 
+  it.each([
+    [
+      'top-level membership',
+      undefined,
+      { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+    ],
+    [
+      'nested membership batch',
+      undefined,
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+        ],
+      },
+    ],
+    [
+      'top-level membership',
+      0,
+      { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+    ],
+    [
+      'nested membership batch',
+      0,
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+        ],
+      },
+    ],
+    [
+      'top-level membership',
+      0.5,
+      { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+    ],
+    [
+      'nested membership batch',
+      0.5,
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+        ],
+      },
+    ],
+  ] as [string, number | undefined, Partial<TransactionMeta>][])(
+    'commits fixed membership amount for %s when token fiat rate is %s',
+    async (_transactionKind, tokenFiatRate, transactionMeta) => {
+      useParamsMock.mockReturnValue({ amount: '12.34' });
+      useTokenFiatRateMock.mockReturnValue(tokenFiatRate);
+      const { result } = runHook({ transactionMeta });
+
+      expect(result.current.amountHuman).toBe('12.34');
+
+      await act(async () => {
+        await result.current.updateTokenAmount();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('12.34');
+    },
+  );
+
   it('preserves an explicit money account deposit amount when balance prefill is enabled', async () => {
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
       prefilledAmount: {

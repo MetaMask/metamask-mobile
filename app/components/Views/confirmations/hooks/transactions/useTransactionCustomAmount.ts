@@ -38,6 +38,7 @@ import {
   DepositPrefillStatus,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -58,9 +59,10 @@ export function useTransactionCustomAmount({
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { chainId, id: transactionId } = transactionMeta;
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const isAddMusdFlow =
     isMoneyAccountDeposit &&
     getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
