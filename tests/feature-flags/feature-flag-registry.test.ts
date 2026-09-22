@@ -18,7 +18,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
       });
     });
@@ -61,7 +61,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -153,7 +153,7 @@ describe('Feature Flag Registry', () => {
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
         enabled: false,
-        minimumVersion: '8.10.0',
+        minimumVersion: '8.13.0',
       });
     });
 
