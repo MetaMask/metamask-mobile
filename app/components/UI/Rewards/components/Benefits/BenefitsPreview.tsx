@@ -25,10 +25,10 @@ import {
   selectBenefitsLoading,
 } from '../../../../../reducers/rewards/selectors.ts';
 import { useBenefits } from '../../hooks/useBenefits.ts';
-import BenefitPreviewCard, {
+import BenefitCard, {
   BENEFIT_PREVIEW_CARD_HEIGHT,
   BENEFIT_PREVIEW_CARD_WIDTH,
-} from './BenefitPreviewCard.tsx';
+} from './BenefitCard.tsx';
 import Routes from '../../../../../constants/navigation/Routes.ts';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -106,7 +106,7 @@ const BenefitsPreview = () => {
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
     >
       {topBenefits.map((benefit) => (
-        <BenefitPreviewCard key={benefit.id} benefit={benefit} />
+        <BenefitCard key={benefit.id} benefit={benefit} variant="preview" />
       ))}
     </ScrollView>
   ) : (
