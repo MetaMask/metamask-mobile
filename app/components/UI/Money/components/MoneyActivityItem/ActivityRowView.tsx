@@ -69,7 +69,7 @@ const ActivityRowView = ({
       testID={`${MoneyActivityItemTestIds.ROW}-${id}`}
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center gap-4 px-4 py-3',
+          'w-full flex-row items-center gap-4 px-4 py-4',
           pressed && onPress !== undefined && 'bg-pressed',
         )
       }
@@ -136,30 +136,17 @@ const ActivityRowView = ({
           </Text>
         ) : null}
       </Box>
-      <Box alignItems={BoxAlignItems.End} twClassName="shrink-0 gap-0.5">
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={amountColor}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          twClassName="text-right"
-          testID={MoneyActivityItemTestIds.PRIMARY_AMOUNT}
-        >
-          {display.primaryAmount}
-        </SensitiveText>
-        <SensitiveText
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-          twClassName="text-right"
-          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
-        >
-          {display.fiatAmount}
-        </SensitiveText>
-      </Box>
+      <SensitiveText
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={amountColor}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Short}
+        twClassName="text-right"
+        testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
+      >
+        {display.fiatAmount}
+      </SensitiveText>
     </Pressable>
   );
 };
