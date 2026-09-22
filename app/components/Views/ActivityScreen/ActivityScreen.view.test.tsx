@@ -617,10 +617,15 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       })
       .build();
 
-    const { getByTestId, getAllByText, findByTestId, findByText, queryByTestId } =
-      renderActivityScreenView({
-        state,
-      });
+    const {
+      getByTestId,
+      getAllByText,
+      findByTestId,
+      findByText,
+      queryByTestId,
+    } = renderActivityScreenView({
+      state,
+    });
 
     fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
     fireEvent.press(
