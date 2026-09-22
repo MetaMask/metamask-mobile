@@ -39,6 +39,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Checkbox from '../../../component-library/components/Checkbox';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -449,6 +450,7 @@ const OptinMetrics = () => {
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
             twClassName="mt-2"
+            style={oswaldOnboardingTitleStyle}
             testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
           >
             {strings('privacy_policy.description_title')}

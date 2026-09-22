@@ -19,6 +19,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import { InterestSelectionIndicator } from './InterestSelectionIndicator';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
@@ -242,6 +243,7 @@ const OnboardingInterestQuestionnaire = () => {
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Bold}
+          style={oswaldOnboardingTitleStyle}
         >
           {strings('onboarding_interest_questionnaire.title')}
         </Text>

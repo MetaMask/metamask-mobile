@@ -46,6 +46,7 @@ import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -165,6 +166,7 @@ const AccountBackupStep1B = (props) => {
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
               twClassName="my-4"
+              style={oswaldOnboardingTitleStyle}
             >
               {strings('account_backup_step_1B.title')}
             </Text>

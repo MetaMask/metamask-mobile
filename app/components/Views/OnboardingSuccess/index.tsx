@@ -30,7 +30,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useOswaldProfileTitleStyle } from '../../../styles/oswaldDisplay';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
@@ -70,7 +70,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const tw = useTailwind();
-  const profileTitleStyle = useOswaldProfileTitleStyle();
 
   useScreenPerformance({
     screenId: OnboardingScreenIds.ONBOARDING_SUCCESS,
@@ -129,7 +128,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <Text
         variant={TextVariant.DisplayMd}
         fontWeight={FontWeight.Regular}
-        style={tw.style('mt-6 mb-4 mx-4 text-center', profileTitleStyle)}
+        style={tw.style(
+          'mt-6 mb-4 mx-4 text-center',
+          oswaldOnboardingTitleStyle,
+        )}
       >
         {getTitleString()}
       </Text>

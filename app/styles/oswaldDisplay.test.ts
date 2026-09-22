@@ -6,6 +6,7 @@ import {
   oswaldLinkCardHeadingStyle,
   oswaldMediumStyle,
   oswaldMoneyBalanceStyle,
+  oswaldOnboardingTitleStyle,
   oswaldSemiBoldStyle,
   oswaldTokenPriceStyle,
 } from './oswaldDisplay';
@@ -33,6 +34,14 @@ describe('oswaldDisplay', () => {
       fontFamily: 'Oswald-Medium',
       fontSize: 28,
       lineHeight: 32,
+    });
+  });
+
+  it('keeps onboarding headers at a fixed 32/40 SemiBold', () => {
+    expect(oswaldOnboardingTitleStyle).toMatchObject({
+      fontFamily: 'Oswald-SemiBold',
+      fontSize: 32,
+      lineHeight: 40,
     });
   });
 

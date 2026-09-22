@@ -26,6 +26,7 @@ import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { oswaldOnboardingTitleStyle } from '../../../styles/oswaldDisplay';
 import Routes from '../../../constants/navigation/Routes';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
@@ -161,6 +162,7 @@ const AccountBackupStep1 = (props) => {
               variant={TextVariant.DisplayMd}
               color={TextColor.TextDefault}
               twClassName="text-left self-start mb-4"
+              style={oswaldOnboardingTitleStyle}
             >
               {strings('account_backup_step_1.title')}
             </Text>

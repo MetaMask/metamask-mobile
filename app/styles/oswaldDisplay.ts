@@ -57,6 +57,13 @@ export const oswaldTokenPriceStyle: TextStyle = {
   lineHeight: 50,
 };
 
+/** New-user onboarding screen headers — fixed 32/40 at every width */
+export const oswaldOnboardingTitleStyle: TextStyle = {
+  ...oswaldSemiBoldStyle,
+  fontSize: 32,
+  lineHeight: 40,
+};
+
 /** Profile entry / onboarding titles — sDisplayMD 32/40, lDisplayMD 48/56 */
 export const oswaldProfileTitleStyleSmall: TextStyle = {
   ...oswaldSemiBoldStyle,
