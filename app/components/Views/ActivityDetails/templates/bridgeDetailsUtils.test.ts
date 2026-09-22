@@ -1,4 +1,5 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import type { Transaction } from '@metamask/keyring-api';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
@@ -48,31 +49,21 @@ describe('bridgeDetailsUtils', () => {
     it('hands the sheet the looked-up local transaction', () => {
       const transactionMeta = { id: 'initial' } as TransactionMeta;
 
-      expect(
-        getBridgeExplorerSheetTx(bridgeItem(undefined), transactionMeta),
-      ).toEqual({ evmTxMeta: transactionMeta });
+      expect(getBridgeExplorerSheetTx(transactionMeta)).toEqual({
+        evmTxMeta: transactionMeta,
+      });
     });
 
     it('hands the sheet a non-EVM transaction as multiChainTx', () => {
-      const data = { id: 'solana-tx' };
+      const data = { id: 'solana-tx' } as Transaction;
 
-      expect(
-        getBridgeExplorerSheetTx(
-          bridgeItem({
-            type: 'keyringTransaction',
-            data,
-          } as ActivityListItem['raw']),
-        ),
-      ).toEqual({ multiChainTx: data });
+      expect(getBridgeExplorerSheetTx(undefined, data)).toEqual({
+        multiChainTx: data,
+      });
     });
 
-    it.each([
-      ['an indexer-only row', { type: 'apiEvmTransaction', data: {} }],
-      ['a row with no raw transaction', undefined],
-    ])('returns nothing for %s', (_name, raw) => {
-      expect(
-        getBridgeExplorerSheetTx(bridgeItem(raw as ActivityListItem['raw'])),
-      ).toEqual({});
+    it('returns nothing when neither local nor keyring transaction is present', () => {
+      expect(getBridgeExplorerSheetTx()).toEqual({});
     });
   });
 });

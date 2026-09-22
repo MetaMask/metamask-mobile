@@ -15,6 +15,7 @@ export const TokenAmountValue = ({
   amount,
   token,
   withNetworkBadge,
+  error,
 }: TokenAmountValueProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -28,7 +29,7 @@ export const TokenAmountValue = ({
     ) : null}
     <Text
       variant={TextVariant.BodyMd}
-      color={TextColor.TextDefault}
+      color={error ? TextColor.ErrorDefault : TextColor.TextDefault}
       twClassName="text-right"
       testID={TokenAmountValueSelectorsIDs.AMOUNT}
     >

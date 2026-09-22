@@ -775,7 +775,9 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
-    "redeemWithdrawal": null
+    "redeemWithdrawal": null,
+    "signInLink": null,
+    "accountLookupCache": {}
   },
   "UiSlotsController": {
     "enabled": false,
@@ -795,10 +797,10 @@
   },
   "ComplianceController": {},
   "KycController": {
-    "phase": "idle",
-    "statusMessage": "",
-    "error": null,
     "email": null,
+    "vendor": null,
+    "geoCountry": null,
+    "sessionStatus": null,
     "vendorDisclaimersAccepted": {
       "moonpay": null,
       "iron": null
@@ -807,28 +809,7 @@
       "sumsub": null
     },
     "idosDisclaimersAccepted": null,
-    "credentialReusabilityConsentGiven": null,
-    "vendorDisclaimers": [],
-    "vendorError": null,
-    "sessionDisclaimers": null,
-    "geoCountry": null,
-    "moonpaySessionToken": null,
-    "moonpayAccessToken": null,
-    "moonpayCustomerId": null,
-    "activeVendor": "moonpay",
-    "activeProduct": null,
-    "kycRequiredByProduct": {},
-    "lastCheckedAt": null,
-    "userStatus": null,
-    "userStatusSumsubSessionId": null,
-    "userStatusErrorCode": null,
-    "sumsub": {
-      "status": "idle",
-      "result": null,
-      "sessionId": null,
-      "applicantAccessToken": null,
-      "sessionStatus": null
-    }
+    "credentialReusabilityConsentGiven": null
   },
   "ConnectivityController": {
     "connectivityStatus": "online"

@@ -19,6 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import MyProfileStats from './MyProfileStats';
 
 const RANKING_TAG_DISPLAY: Record<
   ProfileRankingTag,
@@ -31,9 +32,17 @@ const RANKING_TAG_DISPLAY: Record<
 
 interface MyProfileHeaderProps {
   profile: MySocialProfile;
+  followingCount: number;
+  onFollowersPress: () => void;
+  onFollowingPress: () => void;
 }
 
-const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({ profile }) => {
+const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
+  profile,
+  followingCount,
+  onFollowersPress,
+  onFollowingPress,
+}) => {
   const tw = useTailwind();
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
@@ -127,28 +136,68 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({ profile }) => {
         gap={2}
         paddingTop={6}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          testID={MyProfileViewSelectorsIDs.FOLLOWERS_COUNT}
+        <Pressable
+          onPress={onFollowersPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings(
+            'social_leaderboard.my_profile.followers_tab',
+            { count: profile.followerCount ?? 0 },
+          )}
+          testID={MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON}
         >
-          {profile.followerCount ?? 0}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.my_profile.followers')}
-        </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              testID={MyProfileViewSelectorsIDs.FOLLOWERS_COUNT}
+            >
+              {profile.followerCount ?? 0}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('social_leaderboard.my_profile.followers')}
+            </Text>
+          </Box>
+        </Pressable>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           ·
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          testID={MyProfileViewSelectorsIDs.FOLLOWING_COUNT}
+        <Pressable
+          onPress={onFollowingPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings(
+            'social_leaderboard.my_profile.following_tab',
+            { count: followingCount },
+          )}
+          testID={MyProfileViewSelectorsIDs.FOLLOWING_BUTTON}
         >
-          {profile.followingCount ?? 0}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.my_profile.following')}
-        </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              testID={MyProfileViewSelectorsIDs.FOLLOWING_COUNT}
+            >
+              {followingCount}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('social_leaderboard.my_profile.following')}
+            </Text>
+          </Box>
+        </Pressable>
       </Box>
+
+      <MyProfileStats profile={profile} />
     </Box>
   );
 };

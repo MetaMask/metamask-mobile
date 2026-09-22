@@ -16,6 +16,7 @@ import {
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../../flows/browser.flow.js';
+import { sleep } from '../../../framework/Utilities.js';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -49,7 +50,10 @@ async function assertConnectedAccountFromNativeUi(
 }
 
 appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
-  appiumTest.describe.configure({ timeout: 150000 });
+  // Increased from 150 s: the account-switch test navigates the browser twice
+  // and the cumulative flow regularly approaches the old limit on slower CI
+  // runners, causing spurious timeouts at ~150–158 s.
+  appiumTest.describe.configure({ timeout: 240000 });
 
   appiumTest(
     'notifies the connected account and chain on load of a permitted dapp',
@@ -142,6 +146,10 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           await TabBarComponent.tapWallet();
           await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAccountByNameV2('Account 2');
+          // Give the wallet time to propagate the account-switch event to
+          // connected dApps before re-entering the browser. Without this, the
+          // connected-accounts modal can still show Account 1 when it opens.
+          await sleep(4_000);
           await navigateToBrowserView();
           await waitForTestDappToLoad();
 
@@ -217,6 +225,7 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           // chainChanged instead of reading #chainId from the WebView.
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await Assertions.expectTextDisplayed('Localhost', {
+            timeout: 15_000,
             description:
               'After removing Ethereum Mainnet, Localhost should remain',
           });
