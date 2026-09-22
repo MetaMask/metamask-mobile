@@ -246,7 +246,7 @@ function conclusionLine(status, current, previous) {
   if (status === STATUS.NEW_FRAME) {
     return `Top symbolicated frame changed from \`${topContributor(previous).name}\` to \`${currentTop.name}\`.`;
   }
-  return `One run reached ${current.spikeRatio}× this week's median; the rest of the week sits on the median.`;
+  return `One run reached ${current.spikeRatio}× this week's median JS work; the rest of the week sits on the median.`;
 }
 
 export function classifyScenario(current, previous) {
@@ -409,12 +409,12 @@ export function buildWeeklyScenarioCard(card) {
   const mention = slackTeamMention(displayName(card.scenario));
   const lines = [
     `*${statusLabel}* · *${displayName(card.scenario)}* ${mention}`,
-    `_This week:_ ${current.runsObserved}/${current.runsTotal} runs · median JS ${formatDuration(current.medianJsWorkMs)} (${formatDuration(current.minJsWorkMs)} – ${formatDuration(current.maxJsWorkMs)}) · duty ${current.medianJsDutyPct.toFixed(1)}%`,
+    `_This week:_ ${current.runsObserved}/${current.runsTotal} runs · median JS work ${formatDuration(current.medianJsWorkMs)} (${formatDuration(current.minJsWorkMs)} – ${formatDuration(current.maxJsWorkMs)}) · JS duty ${current.medianJsDutyPct.toFixed(1)}%`,
   ];
   if (previous && previous.medianJsWorkMs > 0) {
     const ratio = (current.medianJsWorkMs / previous.medianJsWorkMs).toFixed(2);
     lines.push(
-      `_vs last week:_ median ${formatDuration(previous.medianJsWorkMs)} → ${formatDuration(current.medianJsWorkMs)} (${ratio}×)`,
+      `_vs last week:_ median JS work ${formatDuration(previous.medianJsWorkMs)} → ${formatDuration(current.medianJsWorkMs)} (${ratio}×)`,
     );
   } else {
     lines.push(
@@ -429,7 +429,7 @@ export function buildWeeklyScenarioCard(card) {
   }
   if (current.peakRunUrl && current.spikeRatio >= SPIKE_RATIO) {
     lines.push(
-      `_Peak:_ <${current.peakRunUrl}|${current.peakRunId}> at ${formatDuration(current.maxJsWorkMs)} (${current.spikeRatio}× this week's median)`,
+      `_Peak:_ <${current.peakRunUrl}|${current.peakRunId}> at JS work ${formatDuration(current.maxJsWorkMs)} (${current.spikeRatio}× this week's median JS work)`,
     );
   }
   lines.push(`_Conclusion:_ ${conclusion}`);
@@ -440,11 +440,11 @@ export function buildSharedSpikeCard(sharedSpike) {
   const lines = [
     `*Slow run* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
     `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. Owners are named for context; no team is notified.`,
-    '_Scenarios and how far that run sat above their weekly median:_',
+    '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
   for (const scenario of sharedSpike.scenarios) {
     lines.push(
-      `  *${displayName(scenario.scenario)}* — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×) · owner ${scenarioOwner(scenario.scenario)}`,
+      `  *${displayName(scenario.scenario)}* — JS work ${formatDuration(scenario.maxJsWorkMs)} in that run vs ${formatDuration(scenario.medianJsWorkMs)} weekly median (${scenario.spikeRatio}×) · owner ${scenarioOwner(scenario.scenario)}`,
     );
   }
   lines.push(
@@ -494,7 +494,7 @@ export function buildWeeklyParentSlack(report) {
     }
     for (const sharedSpike of sharedSpikes) {
       lines.push(
-        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their medians), reported once instead of per scenario.`,
+        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their weekly median JS work), reported once instead of per scenario.`,
       );
     }
     lines.push(
@@ -504,6 +504,7 @@ export function buildWeeklyParentSlack(report) {
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
+    '_"JS work":_ JS self time attributed from those samples (GC, idle and native waits excluded) — not the wall-clock duration of the test.',
   );
   if (!report.meta.comparable) {
     lines.push(
@@ -541,12 +542,12 @@ export function buildWeeklyMarkdown(report) {
     lines.push(
       `## Slow run — [${sharedSpike.runId}](${sharedSpike.runUrl}) peaked in ${sharedSpike.scenarios.length} scenarios`,
       '',
-      'One run-level anomaly, not one regression per scenario.',
+      'One run-level anomaly, not one regression per scenario. Numbers are Hermes JS work (sampled JS self time), not test duration.',
       '',
     );
     for (const scenario of sharedSpike.scenarios) {
       lines.push(
-        `- ${displayName(scenario.scenario)} — ${formatDuration(scenario.maxJsWorkMs)} vs median ${formatDuration(scenario.medianJsWorkMs)} (${scenario.spikeRatio}×), owner ${scenarioOwner(scenario.scenario)}`,
+        `- ${displayName(scenario.scenario)} — JS work ${formatDuration(scenario.maxJsWorkMs)} in that run vs ${formatDuration(scenario.medianJsWorkMs)} weekly median (${scenario.spikeRatio}×), owner ${scenarioOwner(scenario.scenario)}`,
       );
     }
     lines.push('');
@@ -555,11 +556,11 @@ export function buildWeeklyMarkdown(report) {
     lines.push(`## ${card.statusLabel} — ${displayName(card.scenario)}`);
     lines.push('');
     lines.push(
-      `This week: ${card.current.runsObserved}/${card.current.runsTotal} runs, median JS ${formatDuration(card.current.medianJsWorkMs)} (range ${formatDuration(card.current.minJsWorkMs)} – ${formatDuration(card.current.maxJsWorkMs)}), duty ${card.current.medianJsDutyPct.toFixed(1)}%.`,
+      `This week: ${card.current.runsObserved}/${card.current.runsTotal} runs, median JS work ${formatDuration(card.current.medianJsWorkMs)} (range ${formatDuration(card.current.minJsWorkMs)} – ${formatDuration(card.current.maxJsWorkMs)}), JS duty ${card.current.medianJsDutyPct.toFixed(1)}%.`,
     );
     if (card.previous) {
       lines.push(
-        `Last week median: ${formatDuration(card.previous.medianJsWorkMs)}.`,
+        `Last week median JS work: ${formatDuration(card.previous.medianJsWorkMs)}.`,
       );
     }
     lines.push(`Conclusion: ${card.conclusion}`);
