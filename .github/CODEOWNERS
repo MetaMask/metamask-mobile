@@ -263,6 +263,7 @@ app/components/UI/PredictNext/                                @MetaMask/predict
 app/core/Engine/controllers/predict-controller                @MetaMask/predict
 app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
 app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts   @MetaMask/predict
+app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                 @MetaMask/predict
 **/predict/**                                                 @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
