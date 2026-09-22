@@ -99,11 +99,6 @@ export enum ConfirmationLaunchSource {
    * the landing returns to it instead of stacking a second copy on top.
    */
   RewardsMoneyHome = 'rewards-money-home',
-  /**
-   * Membership payment top-up. Shows payment coverage information instead of
-   * the Money account balance projection.
-   */
-  MembershipTopUp = 'membership-top-up',
 }
 
 export interface ConfirmationParams {

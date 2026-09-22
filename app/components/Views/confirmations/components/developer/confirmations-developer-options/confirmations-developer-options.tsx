@@ -20,10 +20,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { StyleSheet, Switch, View } from 'react-native';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  ConfirmationLoader,
-  ConfirmationLaunchSource,
-} from '../../confirm/confirm-component';
+import { ConfirmationLoader } from '../../confirm/confirm-component';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { selectDefaultEndpointByChainId } from '../../../../../../selectors/networkController';
 import { generateTransferData } from '../../../../../../util/transactions';
@@ -84,7 +81,12 @@ export function ConfirmationsDeveloperOptions() {
           }
         />
       )}
-      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
+      {isMoneyAccountDepositEnabled && (
+        <>
+          <MoneyAccountDeposit />
+          <MembershipSubscription />
+        </>
+      )}
       {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
   );
@@ -263,16 +265,6 @@ function MoneyAccountDeposit() {
     });
   }, [initiateDeposit]);
 
-  const handleMembershipTopUp = useCallback(() => {
-    initiateDeposit({
-      forceBottomSheet: true,
-      amount: '5',
-      launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
-    }).catch((error) => {
-      Logger.error(error as Error, 'Developer Options: Money deposit failed');
-    });
-  }, [initiateDeposit]);
-
   return (
     <>
       <DeveloperButton
@@ -308,19 +300,38 @@ function MoneyAccountDeposit() {
       >
         Deposit 5$
       </Button>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={handleMembershipTopUp}
-        testID={
-          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON
-        }
-        isFullWidth
-        style={styles.accessory}
-      >
-        Deposit 5$ - membership top-up
-      </Button>
     </>
+  );
+}
+
+function MembershipSubscription() {
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const handleMembershipSubscription = useCallback(() => {
+    initiateDeposit({
+      forceBottomSheet: true,
+      amount: '1',
+      // OGP: membershipSubscription will be added
+      transactionType:
+        TransactionType.membershipSubscription as unknown as TransactionType,
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        'Developer Options: Membership subscription failed',
+      );
+    });
+  }, [initiateDeposit]);
+
+  return (
+    <DeveloperButton
+      title="Membership Subscription"
+      description="Trigger a Membership Subscription confirmation."
+      buttonLabel="Top-up 1$"
+      onPress={handleMembershipSubscription}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON
+      }
+    />
   );
 }
 

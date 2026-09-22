@@ -13,10 +13,7 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
-import {
-  ConfirmationLoader,
-  ConfirmationLaunchSource,
-} from '../../confirm/confirm-component';
+import { ConfirmationLoader } from '../../confirm/confirm-component';
 import { useMoneyAccountDeposit } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
 import Logger from '../../../../../../util/Logger';
@@ -27,6 +24,20 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
+
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  'membershipSubscription' as unknown as TransactionType;
+
+jest.mock('@metamask/transaction-controller', () => {
+  const actual = jest.requireActual('@metamask/transaction-controller');
+  return {
+    ...actual,
+    TransactionType: {
+      ...actual.TransactionType,
+      membershipSubscription: 'membershipSubscription',
+    },
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -512,7 +523,7 @@ describe('ConfirmationsDeveloperOptions', () => {
       });
     });
 
-    it('opens the membership top-up with its own button and launch source', async () => {
+    it('opens the membership subscription with its own button and transaction type', async () => {
       mockSelectMoneyAccountDepositEnabledFlag.mockReturnValue(true);
       const { getByTestId } = render(<ConfirmationsDeveloperOptions />);
 
@@ -526,8 +537,8 @@ describe('ConfirmationsDeveloperOptions', () => {
 
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         forceBottomSheet: true,
-        amount: '5',
-        launchedFrom: ConfirmationLaunchSource.MembershipTopUp,
+        amount: '1',
+        transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
       });
     });
 
