@@ -9,6 +9,7 @@ import {
   classifyScenario,
   classifyWeeklyScenarios,
   collapseSharedSpikes,
+  formatDurationsAlike,
   weeklySlackCards,
   isIsolatedSpike,
   isNewHotFrame,
@@ -307,6 +308,32 @@ test('one slow run is reported once, not as a regression per scenario', () => {
   );
   assert.match(cards[0], /not test duration/);
   assert.match(parent, /JS self time attributed from those samples/);
+});
+
+test('a comparison is not printed in two different units', () => {
+  const [card] = classifyWeeklyScenarios(
+    {
+      scenarios: [
+        scenarioFixture('Warm Start', {
+          medianJsWorkMs: 3782,
+          minJsWorkMs: 3000,
+          maxJsWorkMs: 15_600,
+          spikeRatio: 4.13,
+        }),
+      ],
+    },
+    { scenarios: [] },
+  );
+
+  const rendered = buildWeeklyScenarioCard(card);
+
+  assert.match(rendered, /median JS work 3\.8 s \(3\.0 s – 15\.6 s\)/);
+  assert.doesNotMatch(rendered, / ms.* s[ )]/);
+  assert.deepEqual(formatDurationsAlike([15_600, 3782]), [
+    '15.6 s',
+    '3.8 s',
+  ]);
+  assert.deepEqual(formatDurationsAlike([400, 120]), ['400.0 ms', '120.0 ms']);
 });
 
 test('two scenarios peaking on the same run are one slow run', () => {

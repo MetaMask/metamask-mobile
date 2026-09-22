@@ -162,6 +162,18 @@ function formatDuration(value) {
   return ms >= 10_000 ? `${(ms / 1000).toFixed(1)} s` : formatMs(ms);
 }
 
+/**
+ * Durations that are compared to each other, scaled alike. `15.6 s vs
+ * 3782.0 ms` makes the reader do the conversion before seeing the ratio.
+ */
+export function formatDurationsAlike(values) {
+  const numbers = values.map((value) => Number(value || 0));
+  const seconds = Math.max(...numbers) >= 10_000;
+  return numbers.map((ms) =>
+    seconds ? `${(ms / 1000).toFixed(1)} s` : formatMs(ms),
+  );
+}
+
 function scenarioKey(scenario) {
   return `${scenario.projectName}|${scenario.scenario}`;
 }
@@ -407,14 +419,23 @@ function contributorSlackLine(contributor, scenario) {
 export function buildWeeklyScenarioCard(card) {
   const { current, previous, statusLabel, conclusion } = card;
   const mention = slackTeamMention(displayName(card.scenario));
+  const [median, min, max] = formatDurationsAlike([
+    current.medianJsWorkMs,
+    current.minJsWorkMs,
+    current.maxJsWorkMs,
+  ]);
   const lines = [
     `*${statusLabel}* · *${displayName(card.scenario)}* ${mention}`,
-    `_This week:_ ${current.runsObserved}/${current.runsTotal} runs · median JS work ${formatDuration(current.medianJsWorkMs)} (${formatDuration(current.minJsWorkMs)} – ${formatDuration(current.maxJsWorkMs)}) · JS duty ${current.medianJsDutyPct.toFixed(1)}%`,
+    `_This week:_ ${current.runsObserved}/${current.runsTotal} runs · median JS work ${median} (${min} – ${max}) · JS duty ${current.medianJsDutyPct.toFixed(1)}%`,
   ];
   if (previous && previous.medianJsWorkMs > 0) {
     const ratio = (current.medianJsWorkMs / previous.medianJsWorkMs).toFixed(2);
+    const [previousMedian, currentMedian] = formatDurationsAlike([
+      previous.medianJsWorkMs,
+      current.medianJsWorkMs,
+    ]);
     lines.push(
-      `_vs last week:_ median JS work ${formatDuration(previous.medianJsWorkMs)} → ${formatDuration(current.medianJsWorkMs)} (${ratio}×)`,
+      `_vs last week:_ median JS work ${previousMedian} → ${currentMedian} (${ratio}×)`,
     );
   } else {
     lines.push(
@@ -443,8 +464,12 @@ export function buildSharedSpikeCard(sharedSpike) {
     '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
   for (const scenario of sharedSpike.scenarios) {
+    const [peak, weekly] = formatDurationsAlike([
+      scenario.maxJsWorkMs,
+      scenario.medianJsWorkMs,
+    ]);
     lines.push(
-      `  *${displayName(scenario.scenario)}* — JS work ${formatDuration(scenario.maxJsWorkMs)} in that run vs ${formatDuration(scenario.medianJsWorkMs)} weekly median (${scenario.spikeRatio}×) · owner ${scenarioOwner(scenario.scenario)}`,
+      `  *${displayName(scenario.scenario)}* — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×) · owner ${scenarioOwner(scenario.scenario)}`,
     );
   }
   lines.push(
@@ -546,17 +571,26 @@ export function buildWeeklyMarkdown(report) {
       '',
     );
     for (const scenario of sharedSpike.scenarios) {
+      const [peak, weekly] = formatDurationsAlike([
+        scenario.maxJsWorkMs,
+        scenario.medianJsWorkMs,
+      ]);
       lines.push(
-        `- ${displayName(scenario.scenario)} — JS work ${formatDuration(scenario.maxJsWorkMs)} in that run vs ${formatDuration(scenario.medianJsWorkMs)} weekly median (${scenario.spikeRatio}×), owner ${scenarioOwner(scenario.scenario)}`,
+        `- ${displayName(scenario.scenario)} — JS work ${peak} in that run vs ${weekly} weekly median (${scenario.spikeRatio}×), owner ${scenarioOwner(scenario.scenario)}`,
       );
     }
     lines.push('');
   }
   for (const card of report.cards) {
+    const [median, min, max] = formatDurationsAlike([
+      card.current.medianJsWorkMs,
+      card.current.minJsWorkMs,
+      card.current.maxJsWorkMs,
+    ]);
     lines.push(`## ${card.statusLabel} — ${displayName(card.scenario)}`);
     lines.push('');
     lines.push(
-      `This week: ${card.current.runsObserved}/${card.current.runsTotal} runs, median JS work ${formatDuration(card.current.medianJsWorkMs)} (range ${formatDuration(card.current.minJsWorkMs)} – ${formatDuration(card.current.maxJsWorkMs)}), JS duty ${card.current.medianJsDutyPct.toFixed(1)}%.`,
+      `This week: ${card.current.runsObserved}/${card.current.runsTotal} runs, median JS work ${median} (range ${min} – ${max}), JS duty ${card.current.medianJsDutyPct.toFixed(1)}%.`,
     );
     if (card.previous) {
       lines.push(

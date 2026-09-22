@@ -1434,8 +1434,11 @@ test('window Slack digest separates the median from the spikiest run', () => {
   const [, disclaimer] = slack.split('\n');
   assert.match(disclaimer, /testing experiment, not a production alert/);
   assert.match(slack, /last 24h/);
-  assert.match(slack, /median JS 120\.0 ms \(range 100\.0 ms – 400\.0 ms\)/);
-  assert.match(slack, /Spikiest run <[^|]+\|3> at 400\.0 ms \(3\.33× the median\)/);
+  assert.match(slack, /median JS work 120\.0 ms \(range 100\.0 ms – 400\.0 ms\)/);
+  assert.match(
+    slack,
+    /Spikiest run <[^|]+\|3> at JS work 400\.0 ms \(3\.33× the median\)/,
+  );
   assert.match(
     slack,
     /`formatDate` 48\.0 ms median self, 40\.0% of JS work, hot in 3\/3 runs/,

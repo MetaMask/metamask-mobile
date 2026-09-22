@@ -41,6 +41,7 @@ import {
   buildWeeklyMarkdown,
   buildWeeklyParentSlack,
   buildWeeklyReport,
+  formatDurationsAlike,
   inHalfOpenRange,
   lastWeekRunsMatchingThisWeekDays,
   runsOnUtcDates,
@@ -1845,7 +1846,7 @@ function buildWindowMarkdown(window) {
     lines.push(
       `| Runs observed | ${scenario.runsObserved}/${scenario.runsTotal} |`,
       `| Median JS work per run | ${formatDuration(scenario.medianJsWorkMs)} |`,
-      `| Range across runs | ${formatDuration(scenario.minJsWorkMs)} – ${formatDuration(scenario.maxJsWorkMs)} |`,
+      `| Range across runs | ${formatDurationsAlike([scenario.minJsWorkMs, scenario.maxJsWorkMs]).join(' – ')} |`,
       `| Median JS duty cycle | ${scenario.medianJsDutyPct.toFixed(1)}% |`,
       `| Peak run | ${
         scenario.peakRunId
@@ -1917,8 +1918,13 @@ function buildWindowSlack(window) {
     );
   }
   for (const scenario of scenarios) {
+    const [median, min, max] = formatDurationsAlike([
+      scenario.medianJsWorkMs,
+      scenario.minJsWorkMs,
+      scenario.maxJsWorkMs,
+    ]);
     lines.push(
-      `• *${displayName(scenario.scenario)}* — median JS ${formatDuration(scenario.medianJsWorkMs)} (range ${formatDuration(scenario.minJsWorkMs)} – ${formatDuration(scenario.maxJsWorkMs)}), duty ${scenario.medianJsDutyPct.toFixed(1)}%${windowCoverageNote(scenario)}`,
+      `• *${displayName(scenario.scenario)}* — median JS work ${median} (range ${min} – ${max}), JS duty ${scenario.medianJsDutyPct.toFixed(1)}%${windowCoverageNote(scenario)}`,
     );
     if (scenario.contributors.length === 0) {
       lines.push(
@@ -1935,8 +1941,12 @@ function buildWindowSlack(window) {
       }
     }
     if (scenario.spikeRatio >= SPIKE_RATIO && scenario.peakRunUrl) {
+      const [peak] = formatDurationsAlike([
+        scenario.maxJsWorkMs,
+        scenario.medianJsWorkMs,
+      ]);
       lines.push(
-        `  Spikiest run <${scenario.peakRunUrl}|${scenario.peakRunId}> at ${formatDuration(scenario.maxJsWorkMs)} (${scenario.spikeRatio}× the median).`,
+        `  Spikiest run <${scenario.peakRunUrl}|${scenario.peakRunId}> at JS work ${peak} (${scenario.spikeRatio}× the median).`,
       );
     }
   }
