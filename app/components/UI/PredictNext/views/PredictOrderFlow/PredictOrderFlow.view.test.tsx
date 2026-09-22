@@ -90,13 +90,29 @@ const makeReceipt = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+/** An unresolved receipt: the venue has not reported fills yet, so every
+ * fill and spend field arrives as an explicit null. */
+const makeUnresolvedReceipt = (status: string) =>
+  makeReceipt({
+    status,
+    venueOrderId: null,
+    filledContracts: null,
+    actualSpend: null,
+    averageFillPrice: null,
+    fee: null,
+    payoutExposure: null,
+  });
+
 const pressKeypadKey = (key: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)));
 };
 
 const stubFetch = (
   reply: (url: string, init?: RequestInit) => FetchReply,
-  { commitDelayMs = 0 }: { commitDelayMs?: number } = {},
+  {
+    commitDelayMs = 0,
+    commit,
+  }: { commitDelayMs?: number; commit?: () => FetchReply } = {},
 ) => {
   fetchMock.mockImplementation(async (url, init) => {
     // The commit route returns the canonical Order Receipt; previews are
@@ -106,7 +122,7 @@ const stubFetch = (
       await new Promise((resolve) => setTimeout(resolve, commitDelayMs));
     }
     const { status = 200, body } = isCommit
-      ? { status: 200, body: makeReceipt() }
+      ? (commit?.() ?? { status: 200, body: makeReceipt() })
       : reply(String(url), init);
     return {
       ok: status >= 200 && status < 300,
@@ -115,6 +131,14 @@ const stubFetch = (
     } as Response;
   });
 };
+
+const commitCalls = (): { url: string; body: unknown }[] =>
+  fetchMock.mock.calls
+    .filter(([url]) => String(url).endsWith('/orders/commit'))
+    .map(([url, init]) => ({
+      url: String(url),
+      body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
+    }));
 
 const previewCalls = (): { url: string; body: unknown }[] =>
   fetchMock.mock.calls
@@ -239,6 +263,29 @@ describe('PredictOrderFlow', () => {
   const flushDebounce = () =>
     act(() => new Promise((resolve) => setTimeout(resolve, 600)));
 
+  /** Drives the flow to the approval step: type the amount, wait for the
+   * quote, and open the review. */
+  const reviewOrder = async () => {
+    openSheet();
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).toBeOnTheScreen(),
+    );
+  };
+
+  /** Drives the flow through approval into the commit. */
+  const approveOrder = async () => {
+    await reviewOrder();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+  };
+
   it('renders the event snapshot with the outcome priced in cents', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
@@ -279,7 +326,7 @@ describe('PredictOrderFlow', () => {
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
@@ -305,7 +352,7 @@ describe('PredictOrderFlow', () => {
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
     const calls = previewCalls();
@@ -317,17 +364,17 @@ describe('PredictOrderFlow', () => {
     });
   });
 
-  it('keeps the Confirm control disabled until a live quote arrives', async () => {
+  it('keeps the Review control disabled until a live quote arrives', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     openSheet();
     typeAmount('20');
 
-    expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
 
     await flushDebounce();
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
   });
 
@@ -354,22 +401,22 @@ describe('PredictOrderFlow', () => {
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
   });
 
-  it('keeps Confirm disabled while a fresh quote loads for the changed amount', async () => {
+  it('keeps Review disabled while a fresh quote loads for the changed amount', async () => {
     stubEchoingPreview();
 
     openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
     replaceAmount('20', '50');
-    expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
 
     await flushDebounce();
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
     expect(previewCalls()).toHaveLength(2);
   });
@@ -400,7 +447,7 @@ describe('PredictOrderFlow', () => {
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
       '$0.50',
     );
-    expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeDisabled();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
     expect(screen.getByText(/Enter at least \$1/)).toBeOnTheScreen();
   });
 
@@ -412,7 +459,7 @@ describe('PredictOrderFlow', () => {
     await flushDebounce();
 
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
     expect(previewCalls()[0]?.body).toEqual({
       marketId: 'KXTEST-26-A',
@@ -496,7 +543,7 @@ describe('PredictOrderFlow', () => {
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
     await waitFor(() =>
@@ -507,7 +554,7 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
-    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
     await flushDebounce();
@@ -536,26 +583,284 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('commits the approved preview: submitting state, then success, then dismiss', async () => {
+  it('presents the exact quoted values for approval before committing', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
-    typeAmount('20');
-    await flushDebounce();
-    await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.APPROVE)).toBeEnabled(),
-    );
+    await reviewOrder();
 
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
+      screen.getByTestId(PredictOrderFlowTestIds.ESTIMATED_CONTRACTS),
+    ).toHaveTextContent('43');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
+    ).toHaveTextContent('$20.86');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.EXPIRY),
     ).toBeOnTheScreen();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.BACK));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+    ).toHaveTextContent('$20');
+  }, 30000);
+
+  it('degrades an expired preview in the approval step to a re-quote affordance', async () => {
+    stubFetch(() => ({
+      body: makePreview({
+        expiresAt: new Date(Date.now() + 1200).toISOString(),
+      }),
+    }));
+
+    await reviewOrder();
+
+    await waitFor(
+      () =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
+        ).toBeOnTheScreen(),
+      { timeout: 3000 },
+    );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
+    await flushDebounce();
+    await waitFor(() => expect(previewCalls()).toHaveLength(2));
+  }, 30000);
+
+  it('degrades a venue-expired preview at commit time to a re-quote affordance', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({
+        status: 410,
+        body: {
+          code: 'preview_expired',
+          message: 'Order Preview has expired; request a fresh quote.',
+        },
+      }),
+    });
+
+    await approveOrder();
 
     await waitFor(() =>
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.SUCCESS),
+        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
       ).toBeOnTheScreen(),
     );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
+    ).toBeOnTheScreen();
+    expect(commitCalls()).toHaveLength(1);
+  }, 30000);
+
+  it('commits only the previewId and renders the full Fill receipt with the reported execution values', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await approveOrder();
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
+    ).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
+      ).toBeOnTheScreen(),
+    );
+    expect(commitCalls()).toEqual([
+      {
+        url: expect.stringContaining('/orders/commit'),
+        body: { previewId: 'b3c2a1d0-1111-4222-8333-444455556666' },
+      },
+    ]);
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.FILLED_CONTRACTS),
+    ).toHaveTextContent('43');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.ACTUAL_SPEND),
+    ).toHaveTextContent('$20.86');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AVERAGE_FILL_PRICE),
+    ).toHaveTextContent('46.5¢');
+    expect(screen.getByTestId(PredictOrderFlowTestIds.FEE)).toHaveTextContent(
+      '$0.86',
+    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.PAYOUT_EXPOSURE),
+    ).toHaveTextContent('$43.00');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.POSITION_CONTEXT),
+    ).toHaveTextContent('You now own 43 Buffalo Bills contracts');
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.DONE));
+    await waitFor(() =>
+      expect(screen.queryByTestId(PredictOrderFlowTestIds.SHEET)).toBeNull(),
+    );
+  }, 30000);
+
+  it('locks the submit while committing: repeated taps do nothing', async () => {
+    stubFetch(() => ({ body: makePreview() }), { commitDelayMs: 150 });
+
+    await approveOrder();
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.SUBMITTING),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
+      ).toBeOnTheScreen(),
+    );
+    expect(commitCalls()).toHaveLength(1);
+  }, 30000);
+
+  it('renders a partial Fill as success with the filled quantity and canceled remainder', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({
+        body: makeReceipt({
+          status: 'partially_filled',
+          filledContracts: '12.00',
+          actualSpend: '5.83',
+          averageFillPrice: '0.4855',
+          fee: '0.23',
+          payoutExposure: '12.00',
+        }),
+      }),
+    });
+
+    await approveOrder();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_PARTIALLY_FILLED),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.REMAINDER),
+    ).toHaveTextContent(/12 of 43 contracts filled/);
+    expect(screen.getByText(/remaining 31 were canceled/)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.ACTUAL_SPEND),
+    ).toHaveTextContent('$5.83');
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.PAYOUT_EXPOSURE),
+    ).toHaveTextContent('$12.00');
+  }, 30000);
+
+  it('renders a zero Fill with the Order-not-filled treatment and a re-quote', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({ body: makeUnresolvedReceipt('not_filled') }),
+    });
+
+    await approveOrder();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_NOT_FILLED),
+      ).toBeOnTheScreen(),
+    );
+    expect(screen.getByText(/couldn't buy at 46.5¢/)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.REQUOTE),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REQUOTE));
+    await flushDebounce();
+    await waitFor(() => expect(previewCalls()).toHaveLength(2));
+  }, 30000);
+
+  it('renders a rejection honestly: nothing filled, balance untouched, re-quote offered', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({ body: makeUnresolvedReceipt('rejected') }),
+    });
+
+    await approveOrder();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_REJECTED),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText(/Nothing was filled and your balance is untouched/),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.REQUOTE),
+    ).toBeOnTheScreen();
+  }, 30000);
+
+  it('keeps checking a reconciliation-required receipt by re-committing until it resolves', async () => {
+    let commits = 0;
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => {
+        commits += 1;
+        return commits === 1
+          ? { body: makeUnresolvedReceipt('reconciliation_required') }
+          : { body: makeReceipt() };
+      },
+    });
+
+    await approveOrder();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_RECONCILING),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      within(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_RECONCILING),
+      ).getByText(/still confirming what happened/i),
+    ).toBeOnTheScreen();
+    expect(commitCalls()).toHaveLength(1);
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
+      ).toBeOnTheScreen(),
+    );
+    expect(commitCalls()).toHaveLength(2);
+  }, 30000);
+
+  it('renders a failed commit on the approval step with re-approval that re-POSTs the same previewId', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({
+        status: 500,
+        body: { code: 'venue_unavailable', message: 'Venue unavailable.' },
+      }),
+    });
+
+    await approveOrder();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.ERROR),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByText('Unable to reach the prediction service.'),
+    ).toBeOnTheScreen();
+    // The quoted values stay approved: re-approving re-POSTs the same
+    // idempotent Preview reference instead of placing another Order.
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.BACK)).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+    await waitFor(() => expect(commitCalls()).toHaveLength(2));
+    expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
   }, 30000);
 
   it('links the backend-owned terms URL when the venue publishes one', async () => {
@@ -598,7 +903,7 @@ describe('PredictOrderFlow', () => {
     fireEvent.press(screen.getByText('Learn more'));
 
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+      screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
     ).toBeOnTheScreen();
   });
 });

@@ -31,6 +31,7 @@ const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
   market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
   market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
+  preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
   balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
   insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
   insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,

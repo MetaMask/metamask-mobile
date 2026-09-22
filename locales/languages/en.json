@@ -3249,17 +3249,40 @@
       "predict_balance": "Predict balance",
       "total": "Total",
       "price_details": "Price details",
-      "confirm": "Confirm",
       "terms": "By continuing, you accept the platform terms.",
       "learn_more": "Learn more",
       "submitting": "Submitting your order…",
-      "success_title": "Order submitted",
       "done": "Done",
       "close": "Close",
       "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
-      "retry": "Try again"
+      "retry": "Try again",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Review your order",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order filled",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Filled",
+      "average_fill_price": "Avg. fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Try again"
     }
   },
   "predict": {
