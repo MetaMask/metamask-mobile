@@ -37,6 +37,7 @@ import {
 } from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
   MM_PAY_TRANSACTION_TYPES,
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
@@ -53,9 +54,7 @@ import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWall
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
-  TransactionType.moneyAccountDeposit,
-  // OGP: membershipSubscription will be added
-  TransactionType.membershipSubscription as unknown as TransactionType,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,

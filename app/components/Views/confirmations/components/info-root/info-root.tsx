@@ -33,6 +33,7 @@ import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -123,11 +124,7 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [
-      TransactionType.moneyAccountDeposit,
-      // OGP: membershipSubscription will be added
-      TransactionType.membershipSubscription as unknown as TransactionType,
-    ])
+    hasTransactionType(transactionMetadata, MONEY_ACCOUNT_DEPOSIT_TYPES)
   ) {
     return <MoneyAccountDepositInfo />;
   }
