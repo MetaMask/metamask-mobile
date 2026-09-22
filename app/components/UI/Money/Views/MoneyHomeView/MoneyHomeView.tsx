@@ -716,19 +716,16 @@ const MoneyHomeView = () => {
     [initiateDeposit, trackTokenSurfaceClicked],
   );
 
-  const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
-      label_key: 'money.potential_earnings.view_all',
+  const handleMoneyPotentialEarningsHeaderPressed = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
     navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS, {
       overrideToUsd: true,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
@@ -915,7 +912,7 @@ const MoneyHomeView = () => {
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
-          onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
+          onHeaderPress={handleMoneyPotentialEarningsHeaderPressed}
           onProjectedAmountPress={handleEarnCryptoProjectedAmountPressed}
           privacyMode={privacyMode}
         />

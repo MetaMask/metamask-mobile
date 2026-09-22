@@ -3,5 +3,4 @@ export const MoneyPotentialEarningsTestIds = {
   TEXT: 'money-potential-earnings-text',
   TOTAL: 'money-potential-earnings-total',
   PROJECTED: 'money-potential-earnings-projected',
-  VIEW_ALL_BUTTON: 'money-potential-earnings-view-all-button',
 } as const;

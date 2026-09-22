@@ -64,6 +64,7 @@ export enum COMPONENT_NAMES {
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
+  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
 

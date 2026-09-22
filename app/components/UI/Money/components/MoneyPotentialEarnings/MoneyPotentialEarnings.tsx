@@ -3,9 +3,6 @@ import { BigNumber } from 'bignumber.js';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   BoxFlexDirection,
   BoxFlexWrap,
   FontWeight,
@@ -28,7 +25,6 @@ import DottedUnderline from '../../../../../component-library/components-temp/Do
 import InlineTextFlow from '../../../../../component-library/components-temp/InlineTextFlow';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
 
 const VISIBLE_TOKENS_COUNT = 5;
 
@@ -57,7 +53,7 @@ interface MoneyPotentialEarningsProps {
     index: number,
     tokensCount: number,
   ) => void;
-  onViewAllPress?: () => void;
+  onHeaderPress?: () => void;
   /** Whether each token's balance/projected values should be masked. */
   privacyMode?: boolean;
 }
@@ -69,12 +65,11 @@ const MoneyPotentialEarnings = ({
   isNoFeeToken = () => false,
   onTokenCardPress,
   onTokenButtonPress,
-  onViewAllPress,
+  onHeaderPress,
   privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
-  const { navigate } = useNavigation();
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
@@ -108,7 +103,10 @@ const MoneyPotentialEarnings = ({
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
-        <MoneySectionHeader title={strings('money.potential_earnings.title')} />
+        <MoneySectionHeader
+          title={strings('money.potential_earnings.title')}
+          onPress={hasMoreTokens && onHeaderPress ? onHeaderPress : undefined}
+        />
 
         {isPositiveNumber(projectedAmount) &&
         isPositiveNumber(totalAssetsFiat) ? (
@@ -189,34 +187,17 @@ const MoneyPotentialEarnings = ({
           </Text>
         )}
       </Box>
-
-      <>
-        {visibleTokens.map((token, index) => (
-          <PotentialEarningsTokenRow
-            key={`${token.address}-${token.chainId}`}
-            token={token}
-            hasSubsidizedFee={isNoFeeToken(token)}
-            apyDecimal={apyDecimal}
-            onCardPress={handleTokenCardPress(token, index)}
-            onButtonPress={handleTokenButtonPress(token, index)}
-            privacyMode={privacyMode}
-          />
-        ))}
-
-        {hasMoreTokens && (
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={onViewAllPress}
-              testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
-            >
-              {strings('money.potential_earnings.view_all')}
-            </Button>
-          </Box>
-        )}
-      </>
+      {visibleTokens.map((token, index) => (
+        <PotentialEarningsTokenRow
+          key={`${token.address}-${token.chainId}`}
+          token={token}
+          hasSubsidizedFee={isNoFeeToken(token)}
+          apyDecimal={apyDecimal}
+          onCardPress={handleTokenCardPress(token, index)}
+          onButtonPress={handleTokenButtonPress(token, index)}
+          privacyMode={privacyMode}
+        />
+      ))}
     </Box>
   );
 };
