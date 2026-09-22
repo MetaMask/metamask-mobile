@@ -33,6 +33,7 @@ import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -93,11 +94,10 @@ export function useDepositPrefillAmount({
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-    // OGP: membershipSubscription will be added
-    TransactionType.membershipSubscription as unknown as TransactionType,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 
   const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
