@@ -25,6 +25,7 @@ import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
 import {
   getPerpsProChaseRowSelector,
+  getPerpsProChaseTerminateSelector,
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProActivityViewSelector,
   getPerpsProOrderRowSelector,
@@ -1796,6 +1797,7 @@ describe('PerpsProPositionsPanel', () => {
       { symbol: 'ETH' },
       PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     );
+    expect(screen.getByLabelText('Switch to the ETH market')).toBeOnTheScreen();
   });
 
   it('switches to the full market data of a tapped Chase row', () => {
@@ -1833,6 +1835,41 @@ describe('PerpsProPositionsPanel', () => {
       ethMarket,
       PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     );
+  });
+
+  it('keeps Chase cancel scoped to its own handler when the row is pressable', async () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    // Terminating settles asynchronously, so let its state update flush here
+    // instead of leaking an un-acted update into the next test.
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          getPerpsProChaseTerminateSelector(
+            chaseOrder.status,
+            'ETH',
+            chaseOrder.handle,
+            true,
+          ),
+        ),
+      );
+    });
+
+    // Assert
+    expect(onSelectMarket).not.toHaveBeenCalled();
   });
 
   it('leaves the Chase row non-interactive when no market switch handler is provided', () => {
