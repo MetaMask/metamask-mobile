@@ -80,29 +80,111 @@ class MultichainTestDApp {
     ).catch(() => undefined);
   }
 
+  /**
+   * True when `#auto-connect-postmessage-button` exists and is DOM-enabled.
+   */
+  private async isAutoConnectButtonEnabled(): Promise<boolean> {
+    const ready = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+      getMultichainTestDappBaseUrl(),
+      `(() => {
+        const el = document.getElementById(${JSON.stringify(
+          SELECTORS.AUTO_CONNECT_BUTTON,
+        )});
+        if (!el) return false;
+        if ('disabled' in el && Boolean(el.disabled)) return false;
+        if (el.getAttribute('aria-disabled') === 'true') return false;
+        return true;
+      })()`,
+    );
+    return ready === true;
+  }
+
+  private async waitForAutoConnectButtonEnabled(): Promise<boolean> {
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      if (await this.isAutoConnectButtonEnabled()) {
+        return true;
+      }
+      await wait(POLL_INTERVAL_MS);
+    }
+    return false;
+  }
+
+  private async reloadMultichainDapp(): Promise<void> {
+    await ChromeCdpHelpers.evaluateInWebView(
+      getMultichainTestDappBaseUrl(),
+      '(() => { location.reload(); return true; })()',
+    );
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+
+    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      const loaded = await ChromeCdpHelpers.evaluateInWebView<boolean>(
+        getMultichainTestDappBaseUrl(),
+        `(() => {
+          const navigation = performance.getEntriesByType('navigation')[0];
+          return document.readyState === 'complete' &&
+            navigation?.type === 'reload' &&
+            Boolean(document.getElementById(${JSON.stringify(
+              SELECTORS.AUTO_CONNECT_BUTTON,
+            )}));
+        })()`,
+      );
+      if (loaded) {
+        return;
+      }
+      await wait(POLL_INTERVAL_MS);
+    }
+
+    throw new Error(
+      `Multichain test dapp did not finish reloading within ${CONNECT_TIMEOUT_MS}ms`,
+    );
+  }
+
+  /**
+   * Click `#auto-connect-postmessage-button` once the postMessage handshake
+   * enables it. On Android CI the provider can register after the first enable
+   * wait — reload once and retry (same recovery shape as BitcoinTestDapp).
+   */
   async useAutoConnectButton(): Promise<boolean> {
     if (this.connected) return true;
-    // On freshly-booted CI devices the MetaMask WebView can take several
-    // seconds to appear in `mobile: getContexts`. Retry the CDP click for the
-    // full CONNECT_TIMEOUT_MS budget so a transient "WebView not found" failure
-    // does not surface as a test failure (mirrors invokeMethodOnChain's loop).
-    const deadline = Date.now() + CONNECT_TIMEOUT_MS;
-    let clicked = false;
-    while (!clicked && Date.now() < deadline) {
-      clicked = await ChromeCdpHelpers.clickByIdInWebView(
+
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        logger.warn(
+          `auto-connect attempt ${attempt}/${maxAttempts}: reloading dapp after enable/connect miss`,
+        );
+        await this.reloadMultichainDapp();
+      }
+
+      const enabled = await this.waitForAutoConnectButtonEnabled();
+      if (!enabled) {
+        logger.warn(
+          `#${SELECTORS.AUTO_CONNECT_BUTTON} not enabled within ${CONNECT_TIMEOUT_MS}ms (attempt ${attempt})`,
+        );
+        continue;
+      }
+
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
         getMultichainTestDappBaseUrl(),
         SELECTORS.AUTO_CONNECT_BUTTON,
+        5_000,
       );
-      if (!clicked) await wait(POLL_INTERVAL_MS);
+      if (!clicked) {
+        logger.warn(
+          `could not click #${SELECTORS.AUTO_CONNECT_BUTTON} (attempt ${attempt})`,
+        );
+        continue;
+      }
+
+      this.connected = await this.waitForDappConnected();
+      if (this.connected) {
+        return true;
+      }
     }
-    if (!clicked) {
-      logger.warn(
-        `could not click #${SELECTORS.AUTO_CONNECT_BUTTON} within ${CONNECT_TIMEOUT_MS}ms`,
-      );
-      return false;
-    }
-    this.connected = await this.waitForDappConnected();
-    return this.connected;
+
+    return false;
   }
 
   async createSessionWithNetworks(chainIds: string[]): Promise<void> {
