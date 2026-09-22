@@ -3,6 +3,7 @@ import React from 'react';
 import PerpsLeverageBottomSheet from '../PerpsLeverageBottomSheet';
 import PerpsSlippageBottomSheet from '../PerpsSlippageBottomSheet';
 import { usePerpsTradeSheet } from './PerpsTradeBottomSheet';
+export { default as PerpsTradeTPSLScreen } from './PerpsTradeTPSLScreen';
 
 interface PerpsTradeLeverageScreenProps {
   onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
