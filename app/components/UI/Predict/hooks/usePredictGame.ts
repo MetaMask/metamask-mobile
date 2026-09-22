@@ -18,6 +18,15 @@ export interface UsePredictGameResult {
 
 const liveGameUpdateTimes = new Map<string, number>();
 
+/**
+ * How long a received WebSocket update stays trusted over newer REST data.
+ * The sports WS pushes updates every few seconds for live games, so a healthy
+ * socket keeps entries fresh. If the socket dies, an unbounded preference for
+ * the cached live state would mask newer REST snapshots until the app was
+ * fully restarted (PRED-1334), so stale entries yield to REST instead.
+ */
+const LIVE_GAME_CACHE_TTL_MS = 60_000;
+
 export const __resetPredictGameCacheForTest = () => {
   liveGameUpdateTimes.clear();
 };
@@ -43,7 +52,12 @@ const mergeCachedGame = (
     return incomingGame;
   }
 
-  if (!liveGameUpdateTimes.has(incomingGame.id)) {
+  // Only trust the cached live state while the last WebSocket update is
+  // fresh; once it ages past the TTL (e.g. the sports socket died), the
+  // incoming REST snapshot wins so the scoreboard recovers on the next
+  // market refetch instead of freezing forever.
+  const lastLiveUpdate = liveGameUpdateTimes.get(incomingGame.id);
+  if (!lastLiveUpdate || Date.now() - lastLiveUpdate > LIVE_GAME_CACHE_TTL_MS) {
     return incomingGame;
   }
 
