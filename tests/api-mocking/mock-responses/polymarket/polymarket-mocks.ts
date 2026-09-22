@@ -1607,8 +1607,13 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
           };
         }
 
-        const transactions = body?.params?.[0]?.transactions || [];
-        const firstTx = transactions[0] || {};
+        const requestedTransactions = body?.params?.[0]?.transactions;
+        const txList =
+          Array.isArray(requestedTransactions) &&
+          requestedTransactions.length > 0
+            ? requestedTransactions
+            : [{}];
+        const firstTx = txList[0] || {};
         const fromAddress =
           firstTx.from?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
 
@@ -1616,7 +1621,21 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
         // The response includes gas estimates and state diffs
         return {
           statusCode: 200,
-          json: createTransactionSentinelResponse(fromAddress),
+          json: {
+            jsonrpc: '2.0',
+            result: {
+              transactions: txList.map(
+                (tx: Record<string, unknown>) =>
+                  createTransactionSentinelResponse(
+                    ((tx.from as string) || fromAddress) as string,
+                    ((tx.data as string) || '0x') as string,
+                  ).result.transactions[0],
+              ),
+              blockNumber: '0x4a9637e',
+              id: 'd1574ab9-ecba-4e33-bf48-b04388a25589',
+            },
+            id: '7',
+          },
         };
       } catch (error) {
         // Return a basic success response if parsing fails

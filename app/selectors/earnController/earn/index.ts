@@ -4,6 +4,7 @@ import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
@@ -14,6 +15,7 @@ import { TokenI } from '../../../components/UI/Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { RootState } from '../../../reducers';
 import { getDecimalChainId } from '../../../util/networks';
+import { buildEvmCaip19AssetId } from '../../../util/multichain/buildEvmCaip19AssetId';
 import {
   hexToBN,
   renderFiat,
@@ -84,6 +86,24 @@ const selectSelectedEvmAddress = (state: RootState) =>
 const selectAllLendingMarkets = createSelector(
   selectEarnControllerState,
   (earnControllerState) => selectLendingMarkets(earnControllerState),
+);
+
+const selectAssetId = (_state: RootState, assetId?: string) => assetId;
+
+export const selectIsAaveOutputToken = createSelector(
+  [selectAllLendingMarkets, selectAssetId],
+  (markets, assetId) =>
+    Boolean(
+      assetId &&
+        markets.some(
+          ({ protocol, outputToken }) =>
+            protocol === 'aave' &&
+            buildEvmCaip19AssetId(
+              outputToken.address,
+              toHex(outputToken.chainId) as Hex,
+            ).toLowerCase() === assetId.toLowerCase(),
+        ),
+    ),
 );
 
 const selectEarnTokenBaseData = createSelector(
@@ -386,7 +406,7 @@ const selectEarnTokens = createDeepEqualSelector(
           for (const market of lendingMarketsForToken) {
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              apr: String(market.netSupplyRate.toFixed(1)),
+              apr: String(market.netSupplyRate),
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,
@@ -697,6 +717,7 @@ export const earnSelectors = {
   selectAllLendingMarkets,
   selectEarnTokens,
   selectEarnAssetCatalogueInputs,
+  selectIsAaveOutputToken,
   selectEarnToken,
   selectEarnOutputToken,
   selectEarnTokenPair,

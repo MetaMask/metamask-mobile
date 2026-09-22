@@ -67,6 +67,7 @@ describe('babel.config.js path matching', () => {
       '/node_modules/@metamask/notification-services-controller/dist/index.js',
       '/node_modules/@metamask/bridge-controller/dist/index.js',
       '/node_modules/@nktkas/hyperliquid/dist/index.js',
+      '/node_modules/@metamask/perps-controller/dist/index.js',
       '/node_modules/@noble/secp256k1/index.js',
       '/node_modules/@metamask/rpc-errors/dist/index.js',
       '/app/lib/snaps/SnapsExecutionWebView.tsx',

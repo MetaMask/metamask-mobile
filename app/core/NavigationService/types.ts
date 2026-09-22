@@ -28,7 +28,6 @@ import type {
   MainStackParamList,
   SettingsStackParamList,
   SetPasswordFlowParamList,
-  TrendingViewStackParamList,
   WalletTabHomeParamList,
   WalletTabStackParamList,
   WebviewStackParamList,
@@ -101,6 +100,7 @@ import type { AgenticCliDashboardWebviewParams } from '../../components/Views/Ag
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
+import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -611,8 +611,7 @@ export type RootStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
-  TrendingFeed: TrendingViewStackParamList['TrendingFeed'];
+  TrendingView: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
@@ -1001,6 +1000,15 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  SocialPostComposerView: undefined;
+  MyProfileView: undefined;
+  FollowConnectionsView: { initialTab: 'followers' | 'following' };
+  ManageProfileView: undefined;
+  ManageProfileTextEditorView: {
+    field: 'displayName' | 'handle' | 'bio' | 'socials';
+  };
+  ManageProfileTradingActivityView: undefined;
+  ManageProfileLinkedAccountView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
@@ -1125,6 +1133,7 @@ export type RootStackParamList = {
   CardTransactionHistory: CardScreensStackParamList['CardTransactionHistory'];
   CardTransactionDetails: CardScreensStackParamList['CardTransactionDetails'];
   CardReportTransaction: CardScreensStackParamList['CardReportTransaction'];
+  CardContactDetails: CardScreensStackParamList['CardContactDetails'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
@@ -1159,6 +1168,8 @@ export type RootStackParamList = {
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
+  CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
+  CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes
   Recipient: SendStackParamList['Recipient'];

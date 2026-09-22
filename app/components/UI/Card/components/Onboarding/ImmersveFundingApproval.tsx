@@ -32,11 +32,17 @@ import { useTheme } from '../../../../../util/theme';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import type { RootState } from '../../../../../reducers';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { areAddressesEqual } from '../../../../../util/address';
+import Engine from '../../../../../core/Engine';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
@@ -44,6 +50,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { resolveCardFundingAddress } from '../../util/resolveCardFundingAddress';
 import {
   KYC_REDIRECT_URL,
   BAANX_MAX_LIMIT,
@@ -52,6 +59,8 @@ import {
 } from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+
+type FundingApprovalMode = 'onboarding' | 'reapprove';
 
 const BASE_CAIP_CHAIN_ID = cardNetworkInfos.base.caipChainId;
 const BASE_NETWORK_IMAGE = getNetworkImageSource({
@@ -140,18 +149,32 @@ const ReadOnlyTokenRow = () => (
 );
 
 /**
- * Approves the Immersve `funding` prerequisite (an on-chain smart-contract
- * write, e.g. an ERC-20 approve on Base USDC) and, once settled, creates the
- * card. Reached only via useImmersveOnboardingRouter's `funding` case.
- * Mirrors SpendingLimit.tsx's onboarding layout (header copy + read-only
- * settings card + footer button).
+ * Approves Immersve funding (an on-chain ERC-20 approve on Base USDC).
+ *
+ * Two modes share this screen:
+ * - `onboarding` (default): derives the write from spending prerequisites,
+ * settles via poll, then creates the card. Reached via the `funding`
+ * next-action from useImmersveOnboardingRouter.
+ * - `reapprove`: builds the approve locally (prerequisites still report
+ * everything ok after a revoke) and returns to Card Home. No createCard.
  */
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const theme = useTheme();
-  const headerHandlers = useCardHeaderHandlers('close-direct');
-  const { countryKey } = useParams<{ countryKey?: string }>();
+  const {
+    countryKey,
+    mode = 'onboarding',
+    fundingAddress,
+  } = useParams<{
+    countryKey?: string;
+    mode?: FundingApprovalMode;
+    fundingAddress?: string;
+  }>();
+  const isReapprove = mode === 'reapprove';
+  const headerHandlers = useCardHeaderHandlers(
+    isReapprove ? 'back' : 'close-direct',
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const route = useImmersveOnboardingRouter();
@@ -162,8 +185,30 @@ const ImmersveFundingApproval = () => {
     selectSelectedInternalAccountByScope,
   );
   const selectedAccount = selectAccountByScope('eip155:0');
+  const cardHomeData = useSelector(selectCardHomeData);
+  const resolvedFundingAddress = resolveCardFundingAddress({
+    preferredAddress: fundingAddress,
+    primaryFundingWalletAddress:
+      cardHomeData?.primaryFundingAsset?.walletAddress,
+    selectedEvmAddress: selectedAccount?.address,
+  });
+  const fundingAccount = useSelector((state: RootState) =>
+    resolvedFundingAddress
+      ? getMemoizedInternalAccountByAddress(state, resolvedFundingAddress)
+      : undefined,
+  );
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+  const displayAccount = fundingAccount ?? selectedAccount ?? null;
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  const accountGroupName = useAccountGroupName();
+  const selectedGroupName = useAccountGroupName();
+  const accountGroupName =
+    displayAccount &&
+    selectedAccount &&
+    areAddressesEqual(displayAccount.address, selectedAccount.address)
+      ? selectedGroupName
+      : ((displayAccount
+          ? accountToGroupMap[displayAccount.id]?.metadata.name
+          : null) ?? null);
 
   const { nextAction, error, isLoading, refresh } =
     useImmersveSpendingPrerequisites({
@@ -174,9 +219,10 @@ const ImmersveFundingApproval = () => {
   const {
     executeFunding,
     createCard,
+    buildApproveWrite,
     isLoading: fundingIsLoading,
     error: fundingError,
-  } = useImmersveFunding();
+  } = useImmersveFunding({ fundingAddress: resolvedFundingAddress });
 
   useEffect(() => {
     trackEvent(
@@ -184,32 +230,45 @@ const ImmersveFundingApproval = () => {
         .addProperties(
           withCardProvider(CardProviderIds.Immersve, {
             screen: CardScreens.FUNDING_APPROVAL,
+            mode,
           }),
         )
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, mode]);
 
   useEffect(() => {
+    if (isReapprove) {
+      return;
+    }
     refresh().catch(() => undefined);
-  }, [refresh]);
+  }, [refresh, isReapprove]);
 
   // Local settlement poll: only runs after the user submits the approve tx,
   // while Immersve hasn't yet observed it on-chain. Never fires before that —
   // sitting on the confirm screen doing nothing shouldn't trigger background
   // polling (that was the source of the button/spinner flicker).
+  // Reapprove skips this: the card already exists, so there is nothing for
+  // Immersve to observe before we can return to Card Home.
   useEffect(() => {
-    if (!isSettling) {
+    if (isReapprove || !isSettling) {
       return undefined;
     }
     const id = setInterval(() => {
       refresh().catch(() => undefined);
     }, 5000);
     return () => clearInterval(id);
-  }, [isSettling, refresh]);
+  }, [isSettling, refresh, isReapprove]);
 
   const handleCreateCard = useCallback(async () => {
     if (!fundingSourceId) {
+      return;
+    }
+    if (cardHomeData?.card) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
       return;
     }
     hasCreatedCard.current = true;
@@ -222,9 +281,30 @@ const ImmersveFundingApproval = () => {
     } catch {
       hasCreatedCard.current = false;
     }
-  }, [createCard, fundingSourceId, navigation]);
+  }, [cardHomeData?.card, createCard, fundingSourceId, navigation]);
 
   const runApprove = useCallback(() => {
+    if (isReapprove) {
+      try {
+        const write = buildApproveWrite(BAANX_MAX_LIMIT);
+        setIsSettling(true);
+        executeFunding(write, BAANX_MAX_LIMIT)
+          .then(async () => {
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            }).catch(() => undefined);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: Routes.CARD.HOME }],
+            });
+          })
+          .catch(() => setIsSettling(false));
+      } catch {
+        return;
+      }
+      return;
+    }
+
     if (!nextAction || nextAction.type !== 'funding') {
       return;
     }
@@ -233,7 +313,14 @@ const ImmersveFundingApproval = () => {
     executeFunding(nextAction.write, BAANX_MAX_LIMIT)
       .then(() => refresh())
       .catch(() => setIsSettling(false));
-  }, [nextAction, executeFunding, refresh]);
+  }, [
+    isReapprove,
+    buildApproveWrite,
+    nextAction,
+    executeFunding,
+    refresh,
+    navigation,
+  ]);
 
   const handleApprove = useCallback(() => {
     trackEvent(
@@ -241,15 +328,16 @@ const ImmersveFundingApproval = () => {
         .addProperties(
           withCardProvider(CardProviderIds.Immersve, {
             action: CardActions.FUNDING_APPROVAL_CONFIRM,
+            mode,
           }),
         )
         .build(),
     );
     runApprove();
-  }, [runApprove, trackEvent, createEventBuilder]);
+  }, [runApprove, trackEvent, createEventBuilder, mode]);
 
   useEffect(() => {
-    if (!nextAction) {
+    if (isReapprove || !nextAction) {
       return;
     }
     if (nextAction.type === 'active') {
@@ -263,7 +351,7 @@ const ImmersveFundingApproval = () => {
       setIsSettling(false);
       route(nextAction, { countryKey });
     }
-  }, [nextAction, handleCreateCard, route, countryKey]);
+  }, [nextAction, handleCreateCard, route, countryKey, isReapprove]);
 
   // Only a real executeFunding/createCard failure surfaces as a blocking error
   // here — a transient poll-only error during the settlement background poll
@@ -276,11 +364,12 @@ const ImmersveFundingApproval = () => {
           withCardProvider(CardProviderIds.Immersve, {
             action: CardActions.FUNDING_APPROVAL_RETRY,
             next_action: nextAction?.type,
+            mode,
           }),
         )
         .build(),
     );
-    if (nextAction?.type === 'active') {
+    if (!isReapprove && nextAction?.type === 'active') {
       handleCreateCard();
     } else {
       runApprove();
@@ -291,12 +380,24 @@ const ImmersveFundingApproval = () => {
     runApprove,
     trackEvent,
     createEventBuilder,
+    isReapprove,
+    mode,
   ]);
 
   const busy = fundingIsLoading || isSettling;
   const displayError = fundingError;
 
-  if (!nextAction && isLoading) {
+  const titleKey = isReapprove
+    ? 'card.card_onboarding.immersve_funding_approval.reapprove.title'
+    : 'card.card_onboarding.immersve_funding_approval.title';
+  const descriptionKey = isReapprove
+    ? 'card.card_onboarding.immersve_funding_approval.reapprove.description'
+    : 'card.card_onboarding.immersve_funding_approval.description';
+  const confirmButtonKey = isReapprove
+    ? 'card.card_onboarding.immersve_funding_approval.reapprove.confirm_button'
+    : 'card.card_onboarding.immersve_funding_approval.confirm_button';
+
+  if (!isReapprove && !nextAction && isLoading) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -326,7 +427,7 @@ const ImmersveFundingApproval = () => {
     );
   }
 
-  if (!nextAction && error) {
+  if (!isReapprove && !nextAction && error) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -389,21 +490,19 @@ const ImmersveFundingApproval = () => {
             variant={TextVariant.HeadingLg}
             twClassName="text-text-default py-4"
           >
-            {strings('card.card_onboarding.immersve_funding_approval.title')}
+            {strings(titleKey)}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             twClassName="text-text-alternative"
           >
-            {strings(
-              'card.card_onboarding.immersve_funding_approval.description',
-            )}
+            {strings(descriptionKey)}
           </Text>
         </Box>
 
         <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
           <ReadOnlyAccountRow
-            selectedAccount={selectedAccount ?? null}
+            selectedAccount={displayAccount}
             avatarAccountType={avatarAccountType}
             accountGroupName={accountGroupName}
           />
@@ -439,7 +538,7 @@ const ImmersveFundingApproval = () => {
             {strings(
               displayError
                 ? 'card.card_onboarding.immersve_funding_approval.retry_button'
-                : 'card.card_onboarding.immersve_funding_approval.confirm_button',
+                : confirmButtonKey,
             )}
           </Button>
         </Box>

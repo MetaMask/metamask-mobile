@@ -4537,6 +4537,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  nativeTabBarEnabled: {
+    name: 'nativeTabBarEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
   nonZeroUnusedApprovals: {
     name: 'nonZeroUnusedApprovals',
     type: FeatureFlagType.Remote,
@@ -5377,6 +5385,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.57.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  /**
+   * Gates RewardsMoneyController consumer reads. Remote flag exists in
+   * LaunchDarkly; default remains off until rollout enables it.
+   */
+  rewardsMoneyControllerEnabled: {
+    name: 'rewardsMoneyControllerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

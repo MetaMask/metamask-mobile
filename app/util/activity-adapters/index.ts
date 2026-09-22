@@ -18,6 +18,8 @@ export {
 } from './adapters/helpers';
 export {
   enrichLocalActivity,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
 export {

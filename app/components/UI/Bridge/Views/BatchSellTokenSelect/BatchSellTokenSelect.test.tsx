@@ -886,9 +886,7 @@ describe('BatchSellTokenSelect', () => {
       getByTestId(BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
   it('clears selected tokens when changing networks', () => {

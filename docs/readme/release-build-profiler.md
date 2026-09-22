@@ -122,6 +122,18 @@ yarn react-native-release-profiler --local /path/to/profile.cpuprofile --sourcem
 You can find the sourcemaps in the artifacts of the build that produced the APK/IPA:
 
 - **GitHub Actions**: artifacts uploaded by the `build` workflow, under the name `android-sourcemaps-<build-name>` (Android) or `ios-sourcemaps-<build-name>` (iOS). Download and unzip the artifact.
+- **Performance E2E Android**: the performance run retains
+  `android-sourcemaps-<build-name>` beside the Hermes profiles for both APK
+  variants. A fresh Gradle build uploads its generated maps, a JS repack
+  uploads the replacement bundle's maps, and an as-is APK reuse copies the
+  donor build's maps. The as-is lookup requires both donor maps; if either is
+  unavailable, it falls back to a fresh build rather than pairing a profile
+  with an unverified map.
+
+For performance runs, use `main-e2e-bs-with-srp` for imported-wallet scenarios
+and `main-e2e-bs-without-srp` for onboarding scenarios. Perps scenarios use the
+without-SRP APK. A map from the other variant or from a different APK can
+produce plausible but incorrect file and line attribution.
 
 Then open Chrome and load the generated JSON:
 

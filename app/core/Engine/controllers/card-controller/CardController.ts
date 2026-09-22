@@ -1596,6 +1596,18 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
   }
 
+  async getContactDetails(): Promise<CardContactDetails> {
+    const provider = this.getActiveProvider();
+    const getContactDetails = provider.getContactDetails?.bind(provider);
+    if (!getContactDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Contact details retrieval not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getContactDetails(tokens));
+  }
+
   async patchContactDetails(details: CardContactDetails): Promise<void> {
     const provider = this.getActiveProvider();
     const patchContactDetails = provider.patchContactDetails?.bind(provider);

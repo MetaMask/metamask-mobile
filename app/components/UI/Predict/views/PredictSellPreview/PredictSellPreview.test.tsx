@@ -598,7 +598,7 @@ describe('PredictSellPreview', () => {
       expect(cashOutTexts.length).toBe(1);
     });
 
-    it('renders value section with HeadingLg variant in sheet mode', () => {
+    it('renders the cash-out amount as a large static value in sheet mode', () => {
       renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
         state: initialState,
       });

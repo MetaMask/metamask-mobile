@@ -1,9 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -17,6 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import { RootState } from '../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
@@ -28,6 +32,7 @@ import {
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
 import useApprovalRequest from '../../useApprovalRequest';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 export const PAY_WITH_PREDICT_SECTION_TEST_ID =
   PayWithBottomSheetIDs.PREDICT_SECTION;
@@ -42,6 +47,13 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const { data: predictBalance = 0 } = usePredictBalance();
   const { resetSelectedPaymentToken, isPredictBalanceSelected } =
     usePredictPaymentToken();
+  const transactionId = transactionMeta?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
+  const clearPaymentOverride = useClearPaymentOverride();
 
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
@@ -54,8 +66,9 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
 
   const handleSelect = useCallback(() => {
     resetSelectedPaymentToken();
+    clearPaymentOverride();
     navigation.goBack();
-  }, [navigation, resetSelectedPaymentToken]);
+  }, [clearPaymentOverride, navigation, resetSelectedPaymentToken]);
 
   const handleAdd = useCallback(() => {
     onReject();
@@ -82,7 +95,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),
-      isSelected: isPredictBalanceSelected,
+      isSelected: isPredictBalanceSelected && !isMoneyAccountSelected,
       trailingElement: (
         <Button
           variant={ButtonVariant.Secondary}
@@ -106,6 +119,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
     balance,
     handleAdd,
     handleSelect,
+    isMoneyAccountSelected,
     isPredictBalanceSelected,
     isPredictDepositAndOrder,
   ]);

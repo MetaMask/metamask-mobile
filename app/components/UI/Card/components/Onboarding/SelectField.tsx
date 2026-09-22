@@ -18,6 +18,8 @@ interface SelectFieldProps {
   isDisabled?: boolean;
   /** Whether to hide the arrow-down icon. Defaults to false. */
   hideIcon?: boolean;
+  /** Optional content displayed before the selected value. */
+  startAccessory?: React.ReactNode;
   /** Test ID for the touchable element */
   testID?: string;
 }
@@ -32,6 +34,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   onPress,
   isDisabled = false,
   hideIcon = false,
+  startAccessory,
   testID,
 }) => {
   const isReadOnly = !onPress;
@@ -41,12 +44,16 @@ const SelectField: React.FC<SelectFieldProps> = ({
     <Box
       twClassName={`flex-row items-center justify-between h-12 rounded-xl border border-solid border-border-muted bg-background-muted px-4 ${isDisabled ? 'opacity-50' : ''}`}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName={isReadOnly ? 'text-text-alternative' : undefined}
-      >
-        {value}
-      </Text>
+      <Box twClassName="flex-row items-center gap-2 flex-1 min-w-0">
+        {startAccessory}
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName={isReadOnly ? 'shrink text-text-alternative' : 'shrink'}
+          numberOfLines={1}
+        >
+          {value}
+        </Text>
+      </Box>
       {showIcon && <Icon name={IconName.ArrowDown} size={IconSize.Sm} />}
     </Box>
   );

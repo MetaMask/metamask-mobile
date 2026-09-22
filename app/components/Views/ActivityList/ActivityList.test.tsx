@@ -11,6 +11,7 @@ import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
+import { usePredictActivityItems } from './hooks/usePredictActivityItems';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -68,6 +69,7 @@ jest.mock('../../../selectors/multichainNetworkController', () => ({
 jest.mock('../../../selectors/transactionController', () => ({
   selectRelatedChainIdsByTransactionId: jest.fn((state) => state.related),
   selectSwapsTransactions: jest.fn(),
+  selectLocalTransactions: jest.fn((state) => state.localTransactions ?? []),
 }));
 
 jest.mock('../../../selectors/tokenRatesController', () => ({
@@ -475,14 +477,6 @@ jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(() => 'Configured'),
 }));
 
-jest.mock('./helpers/adapters', () => ({
-  normalizeTransaction: jest.fn(() => ({
-    chainId: '0x1',
-    id: 'normalized',
-    txParams: { from: '0xevm', to: '0xto' },
-  })),
-}));
-
 jest.mock('./helpers/transformations', () => {
   const actual = jest.requireActual('./helpers/transformations');
   return {
@@ -522,18 +516,6 @@ let mockPerpsSourceState: {
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
 
-jest.mock('./hooks/usePerpsActivityItems', () => ({
-  usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
-}));
-
-const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
-
-const mockUseActivityScreenViewed = jest.fn();
-jest.mock('../ActivityScreen/hooks/useActivityScreenViewed', () => ({
-  useActivityScreenViewed: (params: unknown) =>
-    mockUseActivityScreenViewed(params),
-}));
-
 let mockPredictSourceState: {
   items: unknown[];
   isLoading: boolean;
@@ -543,37 +525,23 @@ let mockPredictSourceState: {
   hasMore?: boolean;
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
-let mockDeferPredictSourceReport = false;
-let mockPredictSourceOnChange:
-  | ((state: typeof mockPredictSourceState) => void)
-  | undefined;
 
-jest.mock('./hooks/PredictActivitySource', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    INITIAL_PREDICT_ACTIVITY_SOURCE_STATE: {
-      items: [],
-      isLoading: false,
-      error: null,
-    },
-    PredictActivitySource: ({
-      onChange,
-    }: {
-      onChange: (state: unknown) => void;
-    }) => {
-      mockPredictSourceOnChange = onChange;
-      ReactActual.useEffect(() => {
-        if (!mockDeferPredictSourceReport) {
-          onChange(mockPredictSourceState);
-        }
-      }, [onChange]);
-      return ReactActual.createElement(View, {
-        testID: 'predict-source-mounted',
-      });
-    },
-  };
-});
+jest.mock('./hooks/usePerpsActivityItems', () => ({
+  usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
+}));
+
+jest.mock('./hooks/usePredictActivityItems', () => ({
+  usePredictActivityItems: jest.fn(() => mockPredictSourceState),
+}));
+
+const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
+const usePredictActivityItemsMock = jest.mocked(usePredictActivityItems);
+
+const mockUseActivityScreenViewed = jest.fn();
+jest.mock('../ActivityScreen/hooks/useActivityScreenViewed', () => ({
+  useActivityScreenViewed: (params: unknown) =>
+    mockUseActivityScreenViewed(params),
+}));
 
 const mockNavigate = jest.fn();
 const mockFetchNextPage = jest.fn();
@@ -599,6 +567,7 @@ const selectorValues = {
   related: new Map(),
   selectedAccount: { address: '0xselected' },
   selectedGroupAccounts: [{ address: '0xevm', type: 'eip155:eoa' }],
+  localTransactions: [] as unknown[],
 };
 
 const confirmedItem = {
@@ -665,10 +634,9 @@ describe('ActivityList', () => {
     selectorValues.nonEvmState = { transactions: [] };
     selectorValues.perpsEnabled = false;
     selectorValues.predictEnabled = false;
+    selectorValues.localTransactions = [];
     mockPerpsSourceState = { items: [], isLoading: false, error: null };
     mockPredictSourceState = { items: [], isLoading: false, error: null };
-    mockDeferPredictSourceReport = false;
-    mockPredictSourceOnChange = undefined;
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
@@ -856,47 +824,50 @@ describe('ActivityList', () => {
       originalType?: TransactionType;
       initialTransactionType?: TransactionType;
     } = {},
-  ) => ({
-    type: 'contractInteraction' as const,
-    chainId: 'eip155:1',
-    status: 'pending' as const,
-    timestamp: 9,
-    hash: '0xperpsdep',
-    data: { from: '0xevm', to: '0xusdc' },
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: {
+  ) => {
+    const primaryTransaction = {
+      chainId: '0x1',
+      hash: '0xperpsdep',
+      id: 'perps-dep-id',
+      type: txType,
+      ...(options.originalType ? { originalType: options.originalType } : {}),
+      ...(options.nestedTxTypes
+        ? {
+            nestedTransactions: options.nestedTxTypes.map((type) => ({
+              type,
+            })),
+          }
+        : {}),
+      txParams: { from: '0xevm', nonce: '0x1' },
+    };
+    const initialTransaction = options.initialTransactionType
+      ? {
           chainId: '0x1',
-          hash: '0xperpsdep',
-          id: 'perps-dep-id',
-          type: txType,
-          ...(options.originalType
-            ? { originalType: options.originalType }
-            : {}),
-          ...(options.nestedTxTypes
-            ? {
-                nestedTransactions: options.nestedTxTypes.map((type) => ({
-                  type,
-                })),
-              }
-            : {}),
+          hash: '0xperpsdep-initial',
+          id: 'perps-dep-id-initial',
+          type: options.initialTransactionType,
           txParams: { from: '0xevm', nonce: '0x1' },
+        }
+      : undefined;
+    selectorValues.localTransactions = initialTransaction
+      ? [primaryTransaction, initialTransaction]
+      : [primaryTransaction];
+    return {
+      type: 'contractInteraction' as const,
+      chainId: 'eip155:1',
+      status: 'pending' as const,
+      timestamp: 9,
+      hash: '0xperpsdep',
+      data: { from: '0xevm', to: '0xusdc' },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction,
+          ...(initialTransaction ? { initialTransaction } : {}),
         },
-        ...(options.initialTransactionType
-          ? {
-              initialTransaction: {
-                chainId: '0x1',
-                hash: '0xperpsdep-initial',
-                id: 'perps-dep-id-initial',
-                type: options.initialTransactionType,
-                txParams: { from: '0xevm', nonce: '0x1' },
-              },
-            }
-          : {}),
       },
-    },
-  });
+    };
+  };
 
   it.each([
     ['perpsDeposit', TransactionType.perpsDeposit],
@@ -1287,10 +1258,10 @@ describe('ActivityList', () => {
     render(<ActivityList header={<></>} />);
 
     expect(
-      screen.getByTestId('mock-key-eip155:1-send-123-1'),
+      screen.getByTestId('mock-key-eip155:1:123:send:1'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId('mock-key-eip155:137-send-123-2'),
+      screen.getByTestId('mock-key-eip155:137:123:send:2'),
     ).toBeOnTheScreen();
   });
 
@@ -1525,18 +1496,21 @@ describe('ActivityList', () => {
     ).toBeNull();
   });
 
-  it('keeps All loading until every enabled domain source reports', () => {
+  it('keeps All loading while predict is loading', () => {
     selectorValues.perpsEnabled = true;
     selectorValues.predictEnabled = true;
-    mockDeferPredictSourceReport = true;
-    render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
+    mockPredictSourceState = { items: [], isLoading: true, error: null };
+    const { rerender } = render(
+      <ActivityList typeFilter={ActivityTypeFilter.All} />,
+    );
 
     expect(
       screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('row-0xconfirmed')).not.toBeOnTheScreen();
 
-    act(() => mockPredictSourceOnChange?.(mockPredictSourceState));
+    mockPredictSourceState = { items: [], isLoading: false, error: null };
+    rerender(<ActivityList typeFilter={ActivityTypeFilter.All} />);
 
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
     expect(
@@ -1544,15 +1518,16 @@ describe('ActivityList', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('does not auto-scroll when All settles after initial domain reports', async () => {
+  it('does not auto-scroll when All settles after predict loading', async () => {
     selectorValues.perpsEnabled = true;
     selectorValues.predictEnabled = true;
-    mockDeferPredictSourceReport = true;
-    render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
+    mockPredictSourceState = { items: [], isLoading: true, error: null };
+    const { rerender } = render(
+      <ActivityList typeFilter={ActivityTypeFilter.All} />,
+    );
 
-    act(() => {
-      mockPredictSourceOnChange?.(mockPredictSourceState);
-    });
+    mockPredictSourceState = { items: [], isLoading: false, error: null };
+    rerender(<ActivityList typeFilter={ActivityTypeFilter.All} />);
     await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
 
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
@@ -1717,15 +1692,17 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
 
     expect(screen.getByTestId('row-predict-1')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-source-mounted')).toBeOnTheScreen();
+    expect(usePredictActivityItemsMock).toHaveBeenCalledWith({ enabled: true });
   });
 
-  it('does NOT mount the predict source on the default Transactions tab', () => {
+  it('does not enable the predict query on the Transactions tab', () => {
     selectorValues.predictEnabled = true;
 
     render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
 
-    expect(screen.queryByTestId('predict-source-mounted')).toBeNull();
+    expect(usePredictActivityItemsMock).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('does not enable the perps query on the Transactions tab', () => {

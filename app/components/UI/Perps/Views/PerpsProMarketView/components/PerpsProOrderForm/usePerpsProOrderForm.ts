@@ -89,6 +89,7 @@ import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
   formatPerpsFiat,
+  formatPerpsPrice,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -3887,7 +3888,7 @@ export const usePerpsProOrderForm = ({
     onChaseMaxDistanceUnitChange,
     chaseReferencePrice:
       assetData.price > 0
-        ? formatPerpsFiat(assetData.price)
+        ? formatPerpsPrice(assetData.price, { szDecimals })
         : PERPS_CONSTANTS.FallbackPriceDisplay,
     onChaseMaxDistanceChange,
     onLimitPriceChange,

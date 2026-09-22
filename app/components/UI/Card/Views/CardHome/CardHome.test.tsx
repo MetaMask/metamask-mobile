@@ -92,7 +92,10 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
-import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectMetalCardCheckoutFeatureFlag,
+  selectCardIntercomSupportEnabled,
+} from '../../../../../selectors/featureFlagController/card';
 import {
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -101,6 +104,7 @@ import {
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardProviderUserId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -312,14 +316,18 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
   })),
 }));
 
-const mockResumePendingAction = jest.fn();
-let mockImmersvePendingAction: { type: string } | null = null;
-jest.mock('./hooks/useImmersveCardProvisioning', () => ({
-  useImmersveCardProvisioning: () => ({
-    isProvisioning: false,
-    isReconciling: false,
-    pendingAction: mockImmersvePendingAction,
-    resumePendingAction: mockResumePendingAction,
+const mockEnableCard = jest.fn();
+let mockCanEnableCard = false;
+let mockProvisioningView:
+  | 'reconciling'
+  | 'hidden'
+  | 'kyc_under_review'
+  | 'provisioning' = 'provisioning';
+jest.mock('./hooks/useCardEnableCard', () => ({
+  useCardEnableCard: () => ({
+    canEnableCard: mockCanEnableCard,
+    enableCard: mockCanEnableCard ? mockEnableCard : null,
+    provisioningView: mockProvisioningView,
   }),
 }));
 
@@ -466,6 +474,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 // Mock navigation helper functions
+jest.mock('../../hooks/useFundingAccountName', () => ({
+  useFundingAccountName: () => 'Account 1',
+}));
+
 jest.mock('../../components/AddFundsBottomSheet/AddFundsBottomSheet', () => ({
   createAddFundsModalNavigationDetails: jest.fn((params) => [
     'CardModals',
@@ -663,6 +675,7 @@ const BAANX_CAPABILITIES = {
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
   supportsTransactionHistory: true,
+  supportsContactDetails: false,
   supportsMoneyAccountLinking: true,
 };
 
@@ -753,6 +766,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Unlink Money account',
       'card.card_home.manage_card_options.unlink_money_account_description':
         'Change your Card funding source',
+      'card.card_home.manage_card_options.unlink_funding_account':
+        'Unlink card',
+      'card.card_home.manage_card_options.unlink_funding_account_description':
+        'Prevent future purchases from {{accountName}}',
       'money.metamask_card.unlink_card_sheet_another_money_account':
         'another Money account',
       'money.metamask_card.link_title': 'Link card',
@@ -761,7 +778,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Spend your balance and earn on purchases.',
     };
     const value = strings[key];
-    if (value) return value;
+    if (value) {
+      if (
+        key ===
+          'card.card_home.manage_card_options.unlink_funding_account_description' &&
+        params &&
+        typeof params === 'object' &&
+        'accountName' in params
+      ) {
+        return value.replace(
+          '{{accountName}}',
+          String((params as { accountName?: string }).accountName ?? ''),
+        );
+      }
+      return value;
+    }
     if (key === 'money.metamask_card.link_subtitle') {
       return 'Spend your balance and earn on purchases.';
     }
@@ -783,6 +814,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     return key;
   },
+}));
+
+jest.mock('../../../../../util/support/betaSupportUrl', () => ({
+  getBetaSupportUrl: jest.fn(() => ''),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -837,6 +872,8 @@ function setupMockSelectors(
       decimals: number;
     } | null;
     activeProviderId: string;
+    isCardIntercomSupportEnabled: boolean;
+    providerUserId: string | null;
   }>,
 ) {
   const defaults = {
@@ -859,6 +896,8 @@ function setupMockSelectors(
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
     activeProviderId: 'baanx',
+    isCardIntercomSupportEnabled: false,
+    providerUserId: 'cardholder-1',
   };
 
   const config = { ...defaults, ...overrides };
@@ -883,6 +922,9 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    if (selector === selectCardIntercomSupportEnabled)
+      return config.isCardIntercomSupportEnabled;
+    if (selector === selectCardProviderUserId) return config.providerUserId;
 
     if (selector === selectSelectedInternalAccountByScope)
       return () => config.selectedAccount;
@@ -1204,8 +1246,9 @@ function render() {
 
 describe('CardHome Component', () => {
   beforeEach(() => {
-    mockImmersvePendingAction = null;
-    mockResumePendingAction.mockClear();
+    mockCanEnableCard = false;
+    mockProvisioningView = 'provisioning';
+    mockEnableCard.mockClear();
     jest.clearAllMocks();
 
     // Mock Alert.alert
@@ -1907,6 +1950,31 @@ describe('CardHome Component', () => {
     });
   });
 
+  it('opens an Intercom support conversation instead of an email draft when the flag is on', async () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      isCardIntercomSupportEnabled: true,
+      activeProviderId: 'immersve',
+      providerUserId: 'cardholder-1',
+    });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+    mockNavigate.mockClear();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
+        }),
+      );
+    });
+    expect(Linking.openURL).not.toHaveBeenCalled();
+  });
+
   it('uses the Immersve terms URL for the Immersve provider', () => {
     setupMockSelectors({ activeProviderId: 'immersve' });
 
@@ -1933,8 +2001,84 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('shows the pending verification warning and continues from the CTA', () => {
-    mockImmersvePendingAction = { type: 'kyc' };
+  describe('digital wallet instructions', () => {
+    beforeEach(() => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'immersve',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    it('hides the instructions while push eligibility is loading', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: true,
+        canAddToWallet: false,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the instructions when push provisioning is available', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('shows the Enable card button for provider pending actions and resumes from it', () => {
+    mockCanEnableCard = true;
+    mockProvisioningView = 'hidden';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
+    expect(mockEnableCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the KYC under review banner without Enable card when KYC is pending', () => {
+    mockCanEnableCard = false;
+    mockProvisioningView = 'kyc_under_review';
     setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
     setupLoadCardDataMock({
       isAuthenticated: true,
@@ -1946,8 +2090,28 @@ describe('CardHome Component', () => {
     render();
 
     expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId('confirm-button'));
-    expect(mockResumePendingAction).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the Enable card button for allowance_revoked with no banner', () => {
+    mockCanEnableCard = true;
+    mockProvisioningView = 'hidden';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      alerts: [{ type: 'allowance_revoked', dismissable: false }],
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
+    expect(mockEnableCard).toHaveBeenCalledTimes(1);
   });
 
   it('displays correct priority token information', async () => {

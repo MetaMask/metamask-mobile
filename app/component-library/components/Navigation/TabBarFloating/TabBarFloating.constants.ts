@@ -41,15 +41,27 @@ export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
 /** Matches Apple's iOS 26 tab bar; also the diameter of the search circle. */
 export const TAB_BAR_FLOATING_HEIGHT = 62;
 
-/** Gap between the pill and the search circle. */
-export const TAB_BAR_FLOATING_GAP = 14;
+/** Gap between the pill and the search circle; matches UIKit's iOS 26 bar. */
+export const TAB_BAR_FLOATING_GAP = 9;
 
-/** Smallest design-system body variant is 12/20, which overruns the bar. */
-export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 11;
-export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 14;
+/** Space between the bar and the screen edges; matches UIKit's iOS 26 bar. */
+export const TAB_BAR_FLOATING_HORIZONTAL_INSET = 22;
+
+/** UIKit's iOS 26 label size; the smallest design-system variant (12/20) overruns the bar. */
+export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 12;
+export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 15;
 
 /** Shared with the trade tray so every blurred surface reads as one material. */
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
+
+/** Surface colour over the glass trade tray: 0 is pure glass, 1 is opaque. */
+export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.75;
+
+/** Alpha of the hairline drawn around the glass tray. */
+export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;
+
+/** Corner radius of the glass tray, matching `rounded-3xl`. */
+export const TRADE_TRAY_GLASS_RADIUS = 24;
 
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',

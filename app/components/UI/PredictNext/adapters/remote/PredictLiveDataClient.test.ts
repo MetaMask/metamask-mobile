@@ -7,11 +7,25 @@ import {
   PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS,
   PREDICT_LIVE_DATA_RECONNECT_BASE_MS,
   PREDICT_LIVE_DATA_RECONNECT_MAX_MS,
+  PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE,
   PredictLiveDataClient,
 } from './PredictLiveDataClient';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'KXTEST-EVENT' as PredictEntityId;
+const marketId = 'KXTEST-EVENT-A' as PredictEntityId;
+
+const quoteFrame = {
+  venueId,
+  marketId,
+  outcomes: [
+    { id: `${marketId}:yes`, side: 'yes', bidPrice: '0.45', askPrice: '0.53' },
+    { id: `${marketId}:no`, side: 'no', bidPrice: '0.47', askPrice: '0.55' },
+  ],
+  lastPrice: '0.50',
+  volume: '100.00',
+  updatedAt: '2026-09-08T13:00:00.000Z',
+};
 
 // Mirrors the fields the gateway actually sends, not just the ones mobile reads.
 const welcomeFrame = {
@@ -31,7 +45,7 @@ class MockWebSocket {
   readonly url: string;
   readyState = 0;
   onmessage: ((event: MessageEvent) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((event?: { code?: number }) => void) | null = null;
   onerror: (() => void) | null = null;
   send = jest.fn();
   close = jest.fn(() => {
@@ -68,13 +82,28 @@ const createAppState = () => {
   };
 };
 
-const createClient = (onGameUpdate = jest.fn(), appState = createAppState()) =>
+const createClient = (
+  onGameUpdate = jest.fn(),
+  appState = createAppState(),
+  getBearerToken: () => Promise<string | undefined> = async () => 'test-token',
+  onQuoteUpdate = jest.fn(),
+) =>
   new PredictLiveDataClient({
     baseUrl: 'http://localhost:3333',
+    getBearerToken,
     WebSocket: MockWebSocket as unknown as typeof WebSocket,
     AppState: appState,
     onGameUpdate,
+    onQuoteUpdate,
   });
+
+// Connecting resolves a bearer token before opening the socket. Fake timers
+// leave the microtask queue live, so a few awaits settle the token chain.
+const flushConnect = async (): Promise<void> => {
+  for (let tick = 0; tick < 5; tick += 1) {
+    await Promise.resolve();
+  }
+};
 
 const openAndWelcome = (socket = MockWebSocket.instances[0]): MockWebSocket => {
   socket.open();
@@ -93,13 +122,16 @@ describe('PredictLiveDataClient', () => {
     jest.restoreAllMocks();
   });
 
-  it('subscribes to game updates after the welcome frame', () => {
+  it('connects with the bearer token as a token query parameter', async () => {
     const client = createClient();
 
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
 
-    expect(socket.url).toBe('ws://localhost:3333/v1/stream/live-data');
+    expect(socket.url).toBe(
+      'ws://localhost:3333/v1/stream/live-data?token=test-token',
+    );
     expect(socket.send).toHaveBeenCalledWith(
       JSON.stringify({
         type: 'subscribe',
@@ -110,25 +142,188 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('forwards game and game_snapshot frames and disconnects after the linger', () => {
+  it('does not connect without a token, then connects once one is available', async () => {
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+    const getBearerToken = jest
+      .fn<Promise<string | undefined>, []>()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValue('late-token');
+    const client = createClient(jest.fn(), createAppState(), getBearerToken);
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: no bearer token available for stream',
+    );
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(MockWebSocket.instances[0].url).toBe(
+      'ws://localhost:3333/v1/stream/live-data?token=late-token',
+    );
+  });
+
+  it('treats a rejecting token provider as a missing token', async () => {
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+    const client = createClient(jest.fn(), createAppState(), async () => {
+      throw new Error('wallet is locked');
+    });
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: no bearer token available for stream',
+    );
+  });
+
+  it('fetches a fresh token for every connection attempt', async () => {
+    const getBearerToken = jest
+      .fn<Promise<string | undefined>, []>()
+      .mockResolvedValueOnce('first-token')
+      .mockResolvedValue('second-token');
+    const client = createClient(jest.fn(), createAppState(), getBearerToken);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+    openAndWelcome();
+
+    MockWebSocket.instances[0].onclose?.();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
+
+    expect(getBearerToken).toHaveBeenCalledTimes(2);
+    expect(MockWebSocket.instances[1].url).toBe(
+      'ws://localhost:3333/v1/stream/live-data?token=second-token',
+    );
+  });
+
+  it('does not open a socket when disconnect happens while the token resolves', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    client.disconnect();
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+  });
+
+  it('does not open a socket when the app backgrounds while the token resolves', async () => {
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState);
+
+    client.subscribe('game', venueId, [eventId]);
+    appState.change('background');
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+  });
+
+  it('connects on foreground after backgrounding during an in-flight token fetch', async () => {
+    let resolveFirstToken: (value: string | undefined) => void = () =>
+      undefined;
+    const getBearerToken = jest
+      .fn<Promise<string | undefined>, []>()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstToken = resolve;
+          }),
+      )
+      .mockResolvedValue('fresh-token');
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState, getBearerToken);
+
+    client.subscribe('game', venueId, [eventId]);
+    appState.change('background');
+    appState.change('active');
+    await flushConnect();
+    resolveFirstToken('stale-token');
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(MockWebSocket.instances[0].url).toBe(
+      'ws://localhost:3333/v1/stream/live-data?token=fresh-token',
+    );
+  });
+
+  it('opens a socket when subscribe follows disconnect during an in-flight token fetch', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    client.disconnect();
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('logs an unauthorized close and reconnects with a fresh token', async () => {
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+    const client = createClient();
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+    openAndWelcome();
+
+    MockWebSocket.instances[0].onclose?.({
+      code: PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE,
+    });
+
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: connection closed as unauthorized; a fresh token is fetched on reconnect',
+    );
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+  });
+
+  it('subscribes to game updates after the welcome frame', async () => {
+    const client = createClient();
+
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
+    const socket = openAndWelcome();
+
+    expect(socket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
+    );
+  });
+
+  it('forwards game and game_snapshot frames and disconnects after the linger', async () => {
     const onGameUpdate = jest.fn();
     const client = new PredictLiveDataClient({
       baseUrl: 'https://predict.example',
+      getBearerToken: async () => 'test-token',
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
       onGameUpdate,
+      onQuoteUpdate: jest.fn(),
     });
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
     const game = {
       venueId,
       eventId,
       type: 'football_game',
-      details: { home_points: 7 },
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      observedAt: '2026-09-08T13:00:00.000Z',
     };
 
     socket.message({ type: 'game', game });
     socket.message({ type: 'game_snapshot', game });
-    client.unsubscribe(venueId, [eventId]);
+    client.unsubscribe('game', venueId, [eventId]);
 
     expect(onGameUpdate).toHaveBeenNthCalledWith(1, game);
     expect(onGameUpdate).toHaveBeenNthCalledWith(2, game);
@@ -147,19 +342,22 @@ describe('PredictLiveDataClient', () => {
     expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
-  it('does not forward game frames after the last watcher releases the Event', () => {
+  it('does not forward game frames after the last watcher releases the Event', async () => {
     const onGameUpdate = jest.fn();
     const client = createClient(onGameUpdate);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
     const game = {
       venueId,
       eventId,
       type: 'football_game',
-      details: { home_points: 7 },
+      status: 'in_progress',
+      score: { home: '7', away: '0' },
+      observedAt: '2026-09-08T13:00:00.000Z',
     };
 
-    client.unsubscribe(venueId, [eventId]);
+    client.unsubscribe('game', venueId, [eventId]);
     onGameUpdate.mockClear();
     socket.message({ type: 'game', game });
     socket.message({ type: 'game_snapshot', game });
@@ -167,20 +365,21 @@ describe('PredictLiveDataClient', () => {
     expect(onGameUpdate).not.toHaveBeenCalled();
   });
 
-  it('keeps an Event subscribed while another watcher still holds it', () => {
+  it('keeps an Event subscribed while another watcher still holds it', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
     socket.send.mockClear();
 
-    client.subscribe(venueId, [eventId]);
-    const released = client.unsubscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    const released = client.unsubscribe('game', venueId, [eventId]);
 
     expect(released).toEqual([]);
     expect(socket.send).not.toHaveBeenCalled();
     expect(socket.close).not.toHaveBeenCalled();
 
-    expect(client.unsubscribe(venueId, [eventId])).toEqual([eventId]);
+    expect(client.unsubscribe('game', venueId, [eventId])).toEqual([eventId]);
     expect(socket.send).toHaveBeenCalledWith(
       JSON.stringify({
         type: 'unsubscribe',
@@ -196,15 +395,17 @@ describe('PredictLiveDataClient', () => {
     expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the socket open when a new subscribe arrives during the linger', () => {
+  it('keeps the socket open when a new subscribe arrives during the linger', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
-    client.unsubscribe(venueId, [eventId]);
+    client.unsubscribe('game', venueId, [eventId]);
     socket.send.mockClear();
 
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+    await flushConnect();
 
     expect(socket.close).not.toHaveBeenCalled();
     expect(socket.send).toHaveBeenCalledWith(
@@ -218,9 +419,10 @@ describe('PredictLiveDataClient', () => {
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
-  it('reconnects with backoff and resubscribes after the socket closes while Events are still watched', () => {
+  it('reconnects with backoff and resubscribes after the socket closes while Events are still watched', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
 
     socket.onclose?.();
@@ -228,10 +430,12 @@ describe('PredictLiveDataClient', () => {
     expect(MockWebSocket.instances).toHaveLength(1);
 
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS - 1);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(1);
 
     jest.advanceTimersByTime(1);
+    await flushConnect();
     const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
 
     expect(MockWebSocket.instances).toHaveLength(2);
@@ -245,48 +449,57 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('doubles the reconnect delay after a second close', () => {
+  it('doubles the reconnect delay after a second close', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     openAndWelcome();
 
     MockWebSocket.instances[0].onclose?.();
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
     MockWebSocket.instances[1].onclose?.();
 
     expect(MockWebSocket.instances).toHaveLength(2);
 
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 - 1);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(2);
 
     jest.advanceTimersByTime(1);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(3);
   });
 
-  it('resets reconnect backoff after a welcome frame', () => {
+  it('resets reconnect backoff after a welcome frame', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     openAndWelcome();
     MockWebSocket.instances[0].onclose?.();
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
     openAndWelcome(MockWebSocket.instances[1]);
     MockWebSocket.instances[1].onclose?.();
 
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS - 1);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(2);
 
     jest.advanceTimersByTime(1);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(3);
   });
 
-  it('keeps reconnecting at the max delay after the attempt cap', () => {
+  it('keeps reconnecting at the max delay after the attempt cap', async () => {
     const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     for (
       let attempt = 0;
@@ -300,17 +513,21 @@ describe('PredictLiveDataClient', () => {
           PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 ** attempt,
         ),
       );
+      await flushConnect();
     }
 
     const socketsAfterCap = MockWebSocket.instances.length;
     MockWebSocket.instances[socketsAfterCap - 1].onclose?.();
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS - 1);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(socketsAfterCap);
 
     jest.advanceTimersByTime(1);
+    await flushConnect();
     MockWebSocket.instances[socketsAfterCap].onclose?.();
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(socketsAfterCap + 2);
     expect(log).toHaveBeenCalledTimes(1);
@@ -319,9 +536,10 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('opens a new socket immediately when subscribe is called after the reconnect cap', () => {
+  it('opens a new socket immediately when subscribe is called after the reconnect cap', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     for (
       let attempt = 0;
@@ -335,10 +553,12 @@ describe('PredictLiveDataClient', () => {
           PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 ** attempt,
         ),
       );
+      await flushConnect();
     }
 
     MockWebSocket.instances[MockWebSocket.instances.length - 1].onclose?.();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const nextSocket = openAndWelcome(
       MockWebSocket.instances[MockWebSocket.instances.length - 1],
     );
@@ -356,25 +576,29 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('cancels a pending reconnect when disconnect is called', () => {
+  it('cancels a pending reconnect when disconnect is called', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     openAndWelcome();
     MockWebSocket.instances[0].onclose?.();
 
     client.disconnect();
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
-  it('opens a new socket when subscribe is called for already-watched Events after the socket is closed', () => {
+  it('opens a new socket when subscribe is called for already-watched Events after the socket is closed', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
     socket.readyState = 3;
 
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
 
     expect(MockWebSocket.instances).toHaveLength(2);
@@ -388,56 +612,69 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('preserves a path prefix on the API base URL', () => {
+  it('preserves a path prefix on the API base URL', async () => {
     const client = new PredictLiveDataClient({
       baseUrl: 'https://predict.example/predict',
+      getBearerToken: async () => 'test-token',
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
       onGameUpdate: jest.fn(),
+      onQuoteUpdate: jest.fn(),
     });
 
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     expect(MockWebSocket.instances[0].url).toBe(
-      'wss://predict.example/predict/v1/stream/live-data',
+      'wss://predict.example/predict/v1/stream/live-data?token=test-token',
     );
   });
 
-  it('does not open a socket when the API URL is not configured', () => {
+  it('does not open a socket when the API URL is not configured', async () => {
     const client = new PredictLiveDataClient({
+      getBearerToken: async () => 'test-token',
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
       onGameUpdate: jest.fn(),
+      onQuoteUpdate: jest.fn(),
     });
 
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(0);
   });
 
-  it('does not open a socket when the API URL is malformed', () => {
+  it('does not open a socket when the API URL is malformed', async () => {
     const client = new PredictLiveDataClient({
       baseUrl: 'not a URL',
+      getBearerToken: async () => 'test-token',
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
       onGameUpdate: jest.fn(),
+      onQuoteUpdate: jest.fn(),
     });
 
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(0);
   });
 
-  it('does not open a new socket after disconnect', () => {
+  it('does not open a new socket after disconnect', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     client.disconnect();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
-  it('ignores malformed frames', () => {
+  it('ignores malformed frames', async () => {
     const onGameUpdate = jest.fn();
     const client = createClient(onGameUpdate);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
 
     socket.message({ type: 'game', game: { eventId } });
@@ -445,13 +682,14 @@ describe('PredictLiveDataClient', () => {
     expect(onGameUpdate).not.toHaveBeenCalled();
   });
 
-  it('returns no released ids when unsubscribing an Event that was never watched', () => {
+  it('returns no released ids when unsubscribing an Event that was never watched', async () => {
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
     socket.send.mockClear();
 
-    const released = client.unsubscribe(venueId, [
+    const released = client.unsubscribe('game', venueId, [
       'KXOTHER' as PredictEntityId,
     ]);
 
@@ -460,11 +698,12 @@ describe('PredictLiveDataClient', () => {
     expect(socket.close).not.toHaveBeenCalled();
   });
 
-  it('logs server error frames without forwarding a Game update', () => {
+  it('logs server error frames without forwarding a Game update', async () => {
     const onGameUpdate = jest.fn();
     const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient(onGameUpdate);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
 
     socket.message({
@@ -481,16 +720,18 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('stops connecting after a protocol version mismatch', () => {
+  it('stops connecting after a protocol version mismatch', async () => {
     const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient();
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = MockWebSocket.instances[0];
     socket.open();
 
     socket.message({ type: 'welcome', protocol: 2 });
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    await flushConnect();
 
     expect(socket.close).toHaveBeenCalledTimes(1);
     expect(MockWebSocket.instances).toHaveLength(1);
@@ -500,15 +741,18 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('logs once when the stream URL is not configured', () => {
+  it('logs once when the stream URL is not configured', async () => {
     const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = new PredictLiveDataClient({
+      getBearerToken: async () => 'test-token',
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
       onGameUpdate: jest.fn(),
+      onQuoteUpdate: jest.fn(),
     });
 
-    client.subscribe(venueId, [eventId]);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
 
     expect(log).toHaveBeenCalledTimes(1);
     expect(log).toHaveBeenCalledWith(
@@ -516,14 +760,15 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('caps game subscribes at the welcome maxPerConnection and fills freed slots', () => {
+  it('caps game subscribes at the welcome maxPerConnection and fills freed slots', async () => {
     const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const eventIds = Array.from(
       { length: PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION + 1 },
       (_, index) => `KX-${index}` as PredictEntityId,
     );
     const client = createClient();
-    client.subscribe(venueId, eventIds);
+    client.subscribe('game', venueId, eventIds);
+    await flushConnect();
     const socket = openAndWelcome();
 
     expect(
@@ -537,7 +782,7 @@ describe('PredictLiveDataClient', () => {
     );
 
     socket.send.mockClear();
-    client.unsubscribe(venueId, [eventIds[0]]);
+    client.unsubscribe('game', venueId, [eventIds[0]]);
 
     expect(socket.send).toHaveBeenNthCalledWith(
       1,
@@ -559,13 +804,14 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('chunks subscribe messages using the welcome maxPerMessage', () => {
+  it('chunks subscribe messages using the welcome maxPerMessage', async () => {
     const client = createClient();
-    client.subscribe(venueId, [
+    client.subscribe('game', venueId, [
       'KX-1' as PredictEntityId,
       'KX-2' as PredictEntityId,
       'KX-3' as PredictEntityId,
     ]);
+    await flushConnect();
     const socket = MockWebSocket.instances[0];
     socket.open();
 
@@ -597,19 +843,22 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('closes the socket on background and does not reconnect until foreground', () => {
+  it('closes the socket on background and does not reconnect until foreground', async () => {
     const appState = createAppState();
     const client = createClient(jest.fn(), appState);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
 
     appState.change('background');
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS);
+    await flushConnect();
 
     expect(socket.close).toHaveBeenCalledTimes(1);
     expect(MockWebSocket.instances).toHaveLength(1);
 
     appState.change('active');
+    await flushConnect();
     const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
 
     expect(MockWebSocket.instances).toHaveLength(2);
@@ -623,23 +872,26 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('does not reconnect on foreground when no Events are watched', () => {
+  it('does not reconnect on foreground when no Events are watched', async () => {
     const appState = createAppState();
     const client = createClient(jest.fn(), appState);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     openAndWelcome();
-    client.unsubscribe(venueId, [eventId]);
+    client.unsubscribe('game', venueId, [eventId]);
 
     appState.change('background');
     appState.change('active');
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
-  it('does not close the socket on inactive', () => {
+  it('does not close the socket on inactive', async () => {
     const appState = createAppState();
     const client = createClient(jest.fn(), appState);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     const socket = openAndWelcome();
 
     appState.change('inactive');
@@ -648,23 +900,158 @@ describe('PredictLiveDataClient', () => {
     expect(MockWebSocket.instances).toHaveLength(1);
   });
 
-  it('does not open a socket on subscribe while backgrounded', () => {
+  it('does not open a socket on subscribe while backgrounded', async () => {
     const appState = createAppState();
     const client = createClient(jest.fn(), appState);
-    client.subscribe(venueId, [eventId]);
+    client.subscribe('game', venueId, [eventId]);
+    await flushConnect();
     openAndWelcome();
     appState.change('background');
 
-    client.subscribe(venueId, ['KX-NEXT' as PredictEntityId]);
+    client.subscribe('game', venueId, ['KX-NEXT' as PredictEntityId]);
+    await flushConnect();
 
     expect(MockWebSocket.instances).toHaveLength(1);
 
     appState.change('active');
+    await flushConnect();
     const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
 
     expect(
       JSON.parse(nextSocket.send.mock.calls[0][0] as string).events,
     ).toEqual([eventId, 'KX-NEXT']);
+  });
+
+  describe('market topic', () => {
+    it('subscribes with market ids under the markets key', async () => {
+      const client = createClient();
+      client.subscribe('market', venueId, [marketId]);
+      await flushConnect();
+      const socket = openAndWelcome();
+
+      expect(socket.send).toHaveBeenCalledTimes(1);
+      expect(socket.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'subscribe',
+          topic: 'market',
+          venueId,
+          markets: [marketId],
+        }),
+      );
+    });
+
+    it('forwards quote and quote_snapshot frames only for watched markets', async () => {
+      const onGameUpdate = jest.fn();
+      const onQuoteUpdate = jest.fn();
+      const client = createClient(
+        onGameUpdate,
+        createAppState(),
+        async () => 'test-token',
+        onQuoteUpdate,
+      );
+      client.subscribe('market', venueId, [marketId]);
+      await flushConnect();
+      const socket = openAndWelcome();
+
+      socket.message({ type: 'quote_snapshot', quote: quoteFrame });
+      socket.message({ type: 'quote', quote: quoteFrame });
+      socket.message({
+        type: 'quote',
+        quote: { ...quoteFrame, marketId: 'KX-OTHER' },
+      });
+
+      expect(onQuoteUpdate).toHaveBeenCalledTimes(2);
+      expect(onQuoteUpdate).toHaveBeenNthCalledWith(1, quoteFrame);
+      expect(onGameUpdate).not.toHaveBeenCalled();
+    });
+
+    it('ignores a quote whose prices fail the decimal refinement', async () => {
+      const onQuoteUpdate = jest.fn();
+      const client = createClient(
+        jest.fn(),
+        createAppState(),
+        async () => 'test-token',
+        onQuoteUpdate,
+      );
+      client.subscribe('market', venueId, [marketId]);
+      await flushConnect();
+      const socket = openAndWelcome();
+
+      socket.message({
+        type: 'quote',
+        quote: {
+          ...quoteFrame,
+          outcomes: [
+            { ...quoteFrame.outcomes[0], askPrice: '1.4' },
+            quoteFrame.outcomes[1],
+          ],
+        },
+      });
+
+      expect(onQuoteUpdate).not.toHaveBeenCalled();
+    });
+
+    it('holds game and market watches on one socket and lingers only when both are empty', async () => {
+      const client = createClient();
+      client.subscribe('game', venueId, [eventId]);
+      client.subscribe('market', venueId, [marketId]);
+      await flushConnect();
+      const socket = openAndWelcome();
+
+      expect(MockWebSocket.instances).toHaveLength(1);
+      expect(socket.send).toHaveBeenCalledTimes(2);
+      expect(JSON.parse(socket.send.mock.calls[0][0] as string)).toMatchObject({
+        topic: 'game',
+        events: [eventId],
+      });
+      expect(JSON.parse(socket.send.mock.calls[1][0] as string)).toMatchObject({
+        topic: 'market',
+        markets: [marketId],
+      });
+
+      client.unsubscribe('game', venueId, [eventId]);
+      jest.advanceTimersByTime(PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+      expect(socket.close).not.toHaveBeenCalled();
+
+      client.unsubscribe('market', venueId, [marketId]);
+      jest.advanceTimersByTime(PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+      expect(socket.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies the market limits from welcome independently of game limits', async () => {
+      const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+      const client = createClient();
+      client.subscribe('market', venueId, [
+        'KX-1' as PredictEntityId,
+        'KX-2' as PredictEntityId,
+        'KX-3' as PredictEntityId,
+      ]);
+      await flushConnect();
+      const socket = MockWebSocket.instances[0];
+      socket.open();
+
+      socket.message({
+        ...welcomeFrame,
+        limits: {
+          ...welcomeFrame.limits,
+          market: { maxPerConnection: 2, maxPerMessage: 1 },
+        },
+      });
+
+      expect(socket.send).toHaveBeenCalledTimes(2);
+      expect(
+        JSON.parse(socket.send.mock.calls[0][0] as string).markets,
+      ).toEqual(['KX-1']);
+      expect(
+        JSON.parse(socket.send.mock.calls[1][0] as string).markets,
+      ).toEqual(['KX-2']);
+      expect(log).toHaveBeenCalledWith(
+        'PredictLiveDataClient: truncating market subscribe to connection limit',
+        3,
+        2,
+        2,
+      );
+    });
   });
 
   it('removes the AppState listener on destroy', () => {

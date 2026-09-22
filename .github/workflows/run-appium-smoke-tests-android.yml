@@ -104,9 +104,12 @@ jobs:
           # Full suite list — one entry per shard: {tag, slug, split, total_splits}.
           # Suites with N shards appear N times with split: 1..N.
           SUITES='[
-            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":1},
-            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":2},
-            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":2},
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":2},
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":2,"total_splits":2},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":4},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":4},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":3,"total_splits":4},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":4,"total_splits":4},
             {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":1},
             {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":1},
             {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":3},

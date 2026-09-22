@@ -1,5 +1,10 @@
 import { PayWithBottomSheetIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { Gestures, Matchers, type AppiumElement } from '../../framework';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  type AppiumElement,
+} from '../../framework';
 
 /**
  * Page object for the "pay with" bottom sheet opened from the transaction pay
@@ -27,6 +32,10 @@ class PayWithModal {
 
   get moneyAccountRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.MONEY_ACCOUNT_ROW);
+  }
+
+  get moneyAccountSection(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PayWithBottomSheetIDs.MONEY_ACCOUNT_SECTION);
   }
 
   get perpsBalanceRow(): Promise<AppiumElement> {
@@ -70,6 +79,20 @@ class PayWithModal {
   async tapPredictBalance(): Promise<void> {
     await Gestures.waitAndTap(this.predictBalanceRow, {
       elemDescription: 'Predict balance row',
+    });
+  }
+
+  async verifyMoneyAccountRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.moneyAccountRow, {
+      description: 'Money account row should be visible in pay-with modal',
+      timeout: 15000,
+    });
+  }
+
+  async verifyMoneyAccountSectionVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.moneyAccountSection, {
+      description: 'Money account section should be visible in pay-with modal',
+      timeout: 15000,
     });
   }
 }

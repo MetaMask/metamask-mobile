@@ -16,6 +16,8 @@ import { portfolioQueries } from '../queries/portfolioQueries';
 import {
   KALSHI_VENUE_ID,
   type PredictAmount,
+  type PredictEntityId,
+  type PredictTimestamp,
   type PredictVenueId,
 } from '../types';
 import {
@@ -26,12 +28,18 @@ import {
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
-  TraceName: { PredictNextGetBalance: 'PredictNext Get Balance' },
+  TraceName: {
+    PredictNextGetBalance: 'PredictNext Get Balance',
+    PredictNextGetPositions: 'PredictNext Get Positions',
+    PredictNextGetActivity: 'PredictNext Get Activity',
+  },
   TraceOperation: { PredictDataFetch: 'predict.data_fetch' },
 }));
 
 const createPortfolio = (): jest.Mocked<VenuePortfolioAdapter> => ({
   fetchBalance: jest.fn(),
+  fetchPositions: jest.fn(),
+  fetchActivity: jest.fn(),
 });
 
 const createService = (portfolio: VenuePortfolioAdapter) => {
@@ -79,6 +87,15 @@ describe('PredictPortfolioService', () => {
       'This prediction venue is not supported.',
     );
     expect(portfolio.fetchBalance).not.toHaveBeenCalled();
+
+    await expect(
+      service.getPositions('other' as PredictVenueId, { limit: 20 }),
+    ).rejects.toThrow('This prediction venue is not supported.');
+    await expect(
+      service.getActivity('other' as PredictVenueId, { limit: 20 }),
+    ).rejects.toThrow('This prediction venue is not supported.');
+    expect(portfolio.fetchPositions).not.toHaveBeenCalled();
+    expect(portfolio.fetchActivity).not.toHaveBeenCalled();
   });
 
   it('uses the Venue-qualified Balance descriptor', () => {
@@ -88,6 +105,30 @@ describe('PredictPortfolioService', () => {
       queryKey: ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID],
       family: ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID],
       staleTime: 60_000,
+      scope: 'venue',
+    });
+    expect(
+      portfolioQueries.getPositions(KALSHI_VENUE_ID, { limit: 20 }),
+    ).toEqual({
+      queryKey: [
+        'PredictPortfolioService:getPositions',
+        KALSHI_VENUE_ID,
+        { limit: 20 },
+      ],
+      family: ['PredictPortfolioService:getPositions', KALSHI_VENUE_ID],
+      staleTime: 30_000,
+      scope: 'venue',
+    });
+    expect(
+      portfolioQueries.getActivity(KALSHI_VENUE_ID, { limit: 20 }),
+    ).toEqual({
+      queryKey: [
+        'PredictPortfolioService:getActivity',
+        KALSHI_VENUE_ID,
+        { limit: 20 },
+      ],
+      family: ['PredictPortfolioService:getActivity', KALSHI_VENUE_ID],
+      staleTime: 30_000,
       scope: 'venue',
     });
   });
@@ -165,6 +206,97 @@ describe('PredictPortfolioService', () => {
     });
     expect(JSON.stringify(jest.mocked(endTrace).mock.calls)).not.toContain(
       '123.45',
+    );
+  });
+
+  it('fetches Positions through the adapter and forwards the cursor', async () => {
+    const portfolio = createPortfolio();
+    const page = {
+      venueId: KALSHI_VENUE_ID,
+      positions: [],
+      nextCursor: 'next-page',
+    };
+    portfolio.fetchPositions.mockResolvedValue(page);
+    const service = buildService(portfolio);
+
+    const result = await service.getPositions(
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+      'opaque-cursor',
+    );
+
+    expect(result).toEqual(page);
+    expect(portfolio.fetchPositions).toHaveBeenCalledWith(
+      { limit: 20, cursor: 'opaque-cursor' },
+      expect.objectContaining({ signal: expect.anything() }),
+    );
+  });
+
+  it('fetches Activity through the adapter and forwards the cursor', async () => {
+    const portfolio = createPortfolio();
+    const page = {
+      venueId: KALSHI_VENUE_ID,
+      activity: [],
+    };
+    portfolio.fetchActivity.mockResolvedValue(page);
+    const service = buildService(portfolio);
+
+    const result = await service.getActivity(KALSHI_VENUE_ID, { limit: 20 });
+
+    expect(result).toEqual(page);
+    expect(portfolio.fetchActivity).toHaveBeenCalledWith(
+      { limit: 20, cursor: undefined },
+      expect.objectContaining({ signal: expect.anything() }),
+    );
+  });
+
+  it('traces Positions and Activity with counts only, never amounts', async () => {
+    const portfolio = createPortfolio();
+    portfolio.fetchPositions.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      positions: [
+        {
+          venueId: KALSHI_VENUE_ID,
+          marketId: 'market-1' as PredictEntityId,
+          side: 'yes' as const,
+          shares: '75.00' as PredictAmount,
+          marketExposure: '41.25' as PredictAmount,
+        },
+      ],
+    });
+    portfolio.fetchActivity.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      activity: [
+        {
+          type: 'settlement' as const,
+          id: 'market-1:2026-09-01T00:00:00.000Z' as PredictEntityId,
+          venueId: KALSHI_VENUE_ID,
+          marketId: 'market-1' as PredictEntityId,
+          result: 'yes' as const,
+          proceeds: '41.50' as PredictAmount,
+          timestamp: '2026-09-01T00:00:00.000Z' as PredictTimestamp,
+        },
+      ],
+    });
+    const service = buildService(portfolio);
+
+    await service.getPositions(KALSHI_VENUE_ID, { limit: 20 });
+    await service.getActivity(KALSHI_VENUE_ID, { limit: 20 });
+
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({ name: TraceName.PredictNextGetPositions }),
+    );
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({ name: TraceName.PredictNextGetActivity }),
+    );
+    const traced = JSON.stringify(jest.mocked(trace).mock.calls);
+    expect(traced).not.toContain('41.25');
+    expect(traced).not.toContain('41.50');
+    expect(JSON.stringify(jest.mocked(endTrace).mock.calls)).toContain(
+      'positionCount',
+    );
+    expect(JSON.stringify(jest.mocked(endTrace).mock.calls)).toContain(
+      'entryCount',
     );
   });
 });

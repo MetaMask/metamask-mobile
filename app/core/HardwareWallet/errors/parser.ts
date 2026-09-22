@@ -290,6 +290,19 @@ export const LOCAL_MESSAGE_PATTERNS: {
     patterns: ['disconnected', 'disconnect', 'connection lost'],
     code: ErrorCode.DeviceDisconnected,
   },
+  {
+    // Legacy BLE adapter: TransportBLE.open returned null — the Ledger is not
+    // currently connectable (locked, screen off, out of range, cold BLE cache
+    // after app restart).
+    patterns: ['failed to open transport'],
+    code: ErrorCode.BluetoothConnectionFailed,
+  },
+  {
+    // DMK adapter: direct connect attempted with a stored deviceId but no
+    // device-discovery session has run this app launch.
+    patterns: ['no cached discovereddevice'],
+    code: ErrorCode.DeviceDisconnected,
+  },
   { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
   {
     patterns: ['locked', 'unlock'],

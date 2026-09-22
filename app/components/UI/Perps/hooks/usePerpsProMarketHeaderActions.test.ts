@@ -10,6 +10,7 @@ import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToHome = jest.fn();
+const mockResetToHome = jest.fn();
 const mockNavigateToMarketList = jest.fn();
 const mockNavigateToMarketListFromHeader = jest.fn();
 let mockCanGoBack = true;
@@ -19,6 +20,7 @@ jest.mock('./usePerpsNavigation', () => ({
     navigateBack: mockNavigateBack,
     navigateToWallet: mockNavigateToWallet,
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockResetToHome,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     get canGoBack() {
@@ -54,13 +56,40 @@ jest.mock('./usePerpsWatchlistActions', () => ({
 
 const mockDropPerpsHomeFromStackHistory = jest.fn();
 jest.mock('../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../utils/perpsModeSwitch'),
   useDropPerpsHomeFromStackHistory: () => mockDropPerpsHomeFromStackHistory,
 }));
 
 const mockNavigate = jest.fn();
+interface BeforeRemoveEvent {
+  preventDefault: () => void;
+  data: { action: { type: string } };
+}
+const mockAddListener = jest.fn(
+  (_event: string, _listener?: (event: BeforeRemoveEvent) => void) => jest.fn(),
+);
+// Index within the Perps stack itself: 0 means this screen is the only entry,
+// so there is nothing to pop without leaving Perps.
+let mockPerpsStackIndex = 1;
+let mockHomeDroppedFromHistory = false;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    addListener: mockAddListener,
+    getState: () => ({
+      index: mockPerpsStackIndex,
+      routes: [
+        {
+          name: 'PerpsMarketDetails',
+          key: 'market-1',
+          params: mockHomeDroppedFromHistory
+            ? { homeDroppedFromHistory: true }
+            : {},
+        },
+      ],
+    }),
+  }),
 }));
 
 const mockOpenPerpsModeSelectionIfNeeded = jest.fn(() =>
@@ -78,9 +107,23 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('usePerpsProMarketHeaderActions', () => {
+  const fireBeforeRemove = (type: string) => {
+    const listener = mockAddListener.mock.calls.find(
+      (call) => call[0] === 'beforeRemove',
+    )?.[1];
+    const event: BeforeRemoveEvent = {
+      preventDefault: jest.fn(),
+      data: { action: { type } },
+    };
+    listener?.(event);
+    return event;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack = true;
+    mockPerpsStackIndex = 1;
+    mockHomeDroppedFromHistory = false;
     mockIsWatchlist = false;
     mockPerpsModeValue = PerpsMode.Pro;
     mockOpenPerpsModeSelectionIfNeeded.mockResolvedValue(false);
@@ -99,6 +142,75 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockNavigateToWallet).not.toHaveBeenCalled();
   });
 
+  it('pops the parent stack when Perps was opened as a single entry from outside Perps', () => {
+    // Arrange - Explore (and homepage/activity) push PERPS.ROOT onto a
+    // market page with no Perps Home beneath it. Parent canGoBack is true
+    // and Home was never dropped, so back must return to that screen.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    expect(mockNavigateBack).toHaveBeenCalledTimes(1);
+    expect(mockResetToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('returns to Perps Home when Home was dropped from history and the fallback is home', () => {
+    // Arrange - the Lite -> Pro switch dropped Perps Home, so this market page
+    // is the only Perps route left, while a parent navigator still reports it
+    // can go back (TAT-3786). The dropped-Home stamp is what stops us from
+    // treating this like an Explore entry and popping out to wallet.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockResetToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('leaves Perps when Home was dropped from history and the fallback is wallet', () => {
+    // Arrange - Pro's stack root is itself a market page after Home was
+    // dropped, so falling back to Perps Home would be a no-op.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
+  });
+
   it('falls back to leaving Perps when the stack cannot go back', () => {
     mockCanGoBack = false;
     const { result } = renderHook(() =>
@@ -111,7 +223,7 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
     expect(mockNavigateBack).not.toHaveBeenCalled();
-    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
   });
 
   it('falls back to Perps Home when backFallback is home and the stack cannot go back', () => {
@@ -127,11 +239,71 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handleBackPress();
     });
 
-    expect(mockNavigateToHome).toHaveBeenCalledWith(
+    expect(mockResetToHome).toHaveBeenCalledWith(
       PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     );
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
     expect(mockNavigateToWallet).not.toHaveBeenCalled();
     expect(mockNavigateBack).not.toHaveBeenCalled();
+  });
+
+  it('intercepts GO_BACK after Home was dropped and uses the home fallback', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('GO_BACK');
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(mockResetToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+  });
+
+  it('lets a parent-aware POP through when Home was not dropped', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = false;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('POP');
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('does not intercept NAVIGATE when Home was dropped', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('NAVIGATE');
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
   });
 
   it('opens the market list and tracks the identity press', () => {

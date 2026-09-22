@@ -1,13 +1,16 @@
 import { strings } from '../../../../../../../locales/i18n';
 import {
   ANNUAL_SAVINGS_COPY,
+  PLAN_IDS,
   PLANS,
   type PlanId,
   type PlanOption,
 } from '../Benefits.constants';
 import { formatSubscriptionFiat } from '../../../../../../util/subscription/formatSubscriptionFiat';
-import type { MoneyAccountPlusPricingView } from './mapMoneyAccountPlusPricing';
-
+import {
+  PLUS_PRICING_STATUS,
+  type MoneyAccountPlusPricingView,
+} from './mapMoneyAccountPlusPricing';
 export interface PlanSelectorCardCopy {
   price: string;
   subPrice?: string;
@@ -34,9 +37,10 @@ export const resolveSelectedPlanId = (
   selectedPlan: string,
   plusPricing: MoneyAccountPlusPricingView,
 ): PlanId => {
-  const candidate: PlanId = selectedPlan === 'monthly' ? 'monthly' : 'annual';
+  const candidate: PlanId =
+    selectedPlan === PLAN_IDS.monthly ? PLAN_IDS.monthly : PLAN_IDS.annual;
 
-  if (plusPricing.status !== 'ready') {
+  if (plusPricing.status !== PLUS_PRICING_STATUS.ready) {
     return candidate;
   }
 
@@ -45,11 +49,11 @@ export const resolveSelectedPlanId = (
   }
 
   if (plusPricing.annual !== undefined) {
-    return 'annual';
+    return PLAN_IDS.annual;
   }
 
   if (plusPricing.monthly !== undefined) {
-    return 'monthly';
+    return PLAN_IDS.monthly;
   }
 
   return candidate;
@@ -64,7 +68,7 @@ export const resolveSelectedPlanId = (
 export const getBenefitsPriceLine = (
   plusPricing: MoneyAccountPlusPricingView,
 ): string | undefined => {
-  if (plusPricing.status !== 'ready') {
+  if (plusPricing.status !== PLUS_PRICING_STATUS.ready) {
     return undefined;
   }
 
@@ -112,7 +116,7 @@ export const getPlanSelectorCardCopy = (
   planId: PlanId,
   plusPricing: MoneyAccountPlusPricingView,
 ): PlanSelectorCardCopy | undefined => {
-  if (plusPricing.status !== 'ready') {
+  if (plusPricing.status !== PLUS_PRICING_STATUS.ready) {
     return undefined;
   }
 
@@ -130,7 +134,7 @@ export const getPlanSelectorCardCopy = (
     price: strings(plan.price, { price: formattedPrice }),
   };
 
-  if (planId === 'annual' && plusPricing.savings !== undefined) {
+  if (planId === PLAN_IDS.annual && plusPricing.savings !== undefined) {
     copy.subPrice = strings(ANNUAL_SAVINGS_COPY.subPrice, {
       price: formatSubscriptionFiat(
         plusPricing.savings.equivalentMonthly,
