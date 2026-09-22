@@ -277,6 +277,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON));
 
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
   });

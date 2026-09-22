@@ -259,6 +259,9 @@ const mockNavigateToHome = jest.fn();
 const mockNavigateToActivity = jest.fn();
 const mockNavigateToOrder = jest.fn();
 const mockNavigateToTutorial = jest.fn();
+const mockNavigateToAdjustMargin = jest.fn();
+const mockOpenAdjustMarginSheet = jest.fn();
+const mockScreenVsBottomSheetAbTest = { useBottomSheet: false };
 const mockNavigateToMarketList = jest.fn();
 const mockNavigateToMarketListFromHeader = jest.fn();
 const mockNavigateBack = jest.fn();
@@ -662,6 +665,7 @@ jest.mock('../../hooks', () => ({
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
+    navigateToAdjustMargin: mockNavigateToAdjustMargin,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     navigateBack: mockNavigateBack,
@@ -676,7 +680,7 @@ jest.mock('../../hooks', () => ({
     reversePositionSheetRef: { current: null },
     openModifySheet: jest.fn(),
     closeModifySheet: jest.fn(),
-    openAdjustMarginSheet: jest.fn(),
+    openAdjustMarginSheet: mockOpenAdjustMarginSheet,
     closeAdjustMarginSheet: jest.fn(),
     openReversePositionSheet: jest.fn(),
     closeReversePositionSheet: jest.fn(),
@@ -700,6 +704,7 @@ jest.mock('../../hooks/usePerpsNavigation', () => ({
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
+    navigateToAdjustMargin: mockNavigateToAdjustMargin,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     navigateBack: mockNavigateBack,
@@ -712,6 +717,10 @@ jest.mock('../../hooks/usePerpsMode', () => ({
     mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
+}));
+
+jest.mock('../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => mockScreenVsBottomSheetAbTest,
 }));
 
 // Mock useABTest to return default (control/white) variant
@@ -1031,6 +1040,7 @@ describe('PerpsMarketDetailsView', () => {
       volume: '$1.23B',
       maxLeverage: '40x',
     };
+    mockScreenVsBottomSheetAbTest.useBottomSheet = false;
     mockRouteParams.transactionActiveAbTests = undefined;
     mockRouteParams.source = undefined;
     mockRouteParams.source_section = undefined;
@@ -3451,6 +3461,17 @@ describe('PerpsMarketDetailsView', () => {
       );
     });
 
+    const marginTestPosition = {
+      symbol: 'BTC',
+      size: '0.5',
+      entryPrice: '50000',
+      leverage: { value: 10, type: 'isolated' },
+      marginUsed: '5000',
+      unrealizedPnl: '100',
+      returnOnEquity: '0.02',
+      liquidationPrice: '45000',
+    };
+
     it('shows geo block modal when margin button is pressed and user is not eligible', () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
@@ -3496,6 +3517,77 @@ describe('PerpsMarketDetailsView', () => {
       fireEvent.press(marginButton);
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
+    });
+
+    it('opens the action-choice sheet from the margin button for control', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === mockSelectPerpsEligibility ? true : undefined,
+      );
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: marginTestPosition,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('perps-position-card-margin-button'));
+
+      await waitFor(() => {
+        expect(mockOpenAdjustMarginSheet).toHaveBeenCalled();
+      });
+      expect(mockNavigateToAdjustMargin).not.toHaveBeenCalled();
+    });
+
+    it('skips the action-choice sheet and opens the margin bottom sheet for treatment', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === mockSelectPerpsEligibility ? true : undefined,
+      );
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: marginTestPosition,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('perps-position-card-margin-button'));
+
+      await waitFor(() => {
+        expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
+          marginTestPosition,
+          'add',
+          { useBottomSheet: true },
+        );
+      });
+      expect(mockOpenAdjustMarginSheet).not.toHaveBeenCalled();
     });
 
     it('shows geo block modal when add margin from banner is pressed and user is not eligible', () => {

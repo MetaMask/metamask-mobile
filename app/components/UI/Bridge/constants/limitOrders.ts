@@ -67,3 +67,5 @@ export const getSwapsLimitOrderExpirationLabel = (
   const { key, count } = SWAPS_LIMIT_ORDER_EXPIRATION_LABEL[minutes];
   return strings(key, { count });
 };
+
+export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;

@@ -5,7 +5,6 @@ import {
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
-import type { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   Box,
   BoxAlignItems,

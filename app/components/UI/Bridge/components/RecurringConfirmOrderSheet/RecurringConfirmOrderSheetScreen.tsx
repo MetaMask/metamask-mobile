@@ -7,14 +7,12 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
-  selectBridgeBalanceRefreshKey,
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
-import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
@@ -27,18 +25,14 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const autoUpgradeEIP7702Account = useAutoUpgradeEIP7702Account();
+  const sourceWalletAddress = useSelector(selectSourceWalletAddress);
+  const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
+    address: sourceWalletAddress,
+    chainId: sourceToken?.chainId,
+  });
   const delegationFee = useEIP7702UpgradeFee();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
 
   const handleConfirm = useCallback(async () => {
     if (isSubmittingRef.current) {
@@ -81,18 +75,13 @@ export const RecurringConfirmOrderSheetScreen = () => {
   }, [navigation]);
 
   return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <RecurringConfirmOrderSheet
-        delegationFee={delegationFee}
-        isSubmitting={isSubmitting}
-        latestSourceBalance={latestSourceBalance}
-        onConfirm={handleConfirm}
-        onEditSlippagePress={handleEditSlippagePress}
-        onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
-        goBack={navigation.goBack}
-      />
-    </BridgeQuoteDataProvider>
+    <RecurringConfirmOrderSheet
+      delegationFee={delegationFee}
+      isSubmitting={isSubmitting}
+      onConfirm={handleConfirm}
+      onEditSlippagePress={handleEditSlippagePress}
+      onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
+      goBack={navigation.goBack}
+    />
   );
 };

@@ -104,6 +104,56 @@ export type CardProviderId =
 
 export type CardAuthMethod = 'email_password' | 'siwe';
 
+export type CardAccountLookupResult = 'found' | 'not_found' | 'unknown';
+
+export interface CardSignInOption {
+  providerId: CardProviderId;
+  method: CardAuthMethod;
+}
+
+export type CardSignInLinkStatus = 'started' | 'completed' | 'linked';
+
+export type CardSignInLinkStage = 'identity' | 'spending';
+
+export interface CardSignInLink {
+  providerId: CardProviderId;
+  status: CardSignInLinkStatus;
+  address: string;
+  providerUserId?: string;
+  stage?: CardSignInLinkStage;
+  updatedAt: number;
+}
+
+export type CardSignInResolution =
+  | {
+      kind: 'wallet';
+      option: CardSignInOption;
+      address: string;
+      source: 'record' | 'lookup';
+    }
+  | {
+      kind: 'wallet_account_missing';
+      option: CardSignInOption;
+      address: string;
+    }
+  | {
+      kind: 'resume';
+      option: CardSignInOption;
+      address: string;
+      stage: CardSignInLinkStage | null;
+    }
+  | { kind: 'email'; option: CardSignInOption }
+  | {
+      kind: 'unresolved';
+      options: CardSignInOption[];
+      reason: 'no_match' | 'check_failed';
+    };
+
+export interface CardInitiateAuthOptions {
+  address?: string;
+  autoSignup?: boolean;
+}
+
 // -- Auth Tokens --
 
 export interface CardAuthTokens {
@@ -177,6 +227,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
 }
 
@@ -263,6 +314,8 @@ export interface CardAccountStatus {
 export type CardAlertType =
   | 'kyc_pending'
   | 'card_provisioning'
+  /** Cardholder zeroed their on-chain allowance; the card needs re-approval. */
+  | 'allowance_revoked'
   | 'close_to_spending_limit'
   | 'limited_allowance';
 
@@ -571,8 +624,9 @@ export interface ICardProvider {
 
   initiateAuth(
     country: string,
-    options?: { address?: string },
+    options?: CardInitiateAuthOptions,
   ): Promise<CardAuthSession>;
+  lookupAccount?(address: string): Promise<CardAccountLookupResult>;
   submitCredentials(
     session: CardAuthSession,
     credentials: CardCredentials,
@@ -665,14 +719,11 @@ export interface ICardProvider {
   getFundingSources?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult[]>;
+  getContactDetails?(tokens: CardAuthTokens): Promise<CardContactDetails>;
   patchContactDetails?(
     details: CardContactDetails,
     tokens: CardAuthTokens,
   ): Promise<void>;
-  /**
-   * Authenticated Baanx profile (`GET /v1/user`). Used for contact prefill
-   * (e.g. UK migration SignUp) while a Baanx session is still active.
-   */
   getUserDetails?(tokens: CardAuthTokens): Promise<UserResponse>;
   getSpendingPrerequisites?(
     fundingSourceId: string,

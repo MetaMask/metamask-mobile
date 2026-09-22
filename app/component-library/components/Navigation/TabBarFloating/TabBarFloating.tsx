@@ -29,10 +29,10 @@ import {
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_GAP,
   TAB_BAR_FLOATING_HEIGHT,
-  TAB_BAR_FLOATING_INSET_REDUCTION,
-  TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
+  TAB_BAR_FLOATING_HORIZONTAL_INSET,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
+import { getTabBarFloatingBottomPadding } from './TabBarFloating.utils';
 
 /** What the circular button beside the pill does. */
 export type TabBarFloatingTrailingAction = 'search' | 'trade';
@@ -73,13 +73,7 @@ const TabBarFloating = ({
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
 
-  // Tightens the gap against iOS's generous home-indicator inset, but Android
-  // reports much smaller insets (0 on some emulators), where subtracting alone
-  // left the pill flush against the system navigation bar.
-  const bottomPadding = Math.max(
-    bottomInset - TAB_BAR_FLOATING_INSET_REDUCTION,
-    TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
-  );
+  const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
   const { navigateToMoneyHome } = useMoneyNavigation();
 
   const lastReportedHeight = useRef<number>(0);
@@ -99,6 +93,7 @@ const TabBarFloating = ({
   const { isBlurAvailable, colorScheme } = useBlurMaterial();
 
   const handleSearchPress = useCallback(() => {
+    playImpact(ImpactMoment.TabChange);
     trackExploreSearchOpened('nav_bar');
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
@@ -188,8 +183,11 @@ const TabBarFloating = ({
   return (
     <View
       style={[
-        tw.style('absolute bottom-0 left-0 right-0 px-4'),
-        { paddingBottom: bottomPadding },
+        tw.style('absolute bottom-0 left-0 right-0'),
+        {
+          paddingBottom: bottomPadding,
+          paddingHorizontal: TAB_BAR_FLOATING_HORIZONTAL_INSET,
+        },
       ]}
       testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
       onLayout={handleLayout}

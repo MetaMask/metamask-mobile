@@ -30,10 +30,11 @@ const toLinks = (
  * Loads idOS + SumSub (KYC-provider) legal documents for the VBA Verify Identity
  * screen via {@link Engine.context.KycController.fetchSessionDisclaimers}.
  *
- * Passing `country` loads the pre-session global catalog
+ * Passing no country argument loads the catalog for the user's geo country
+ * from {@link Engine.context.KycService.getGeoCountry}
  * (`GET /disclaimers?country=`). Session-scoped consents are posted later by
- * {@link Engine.context.KycController.acceptTermsAndStartSession}. Vendor T&Cs
- * stay on {@link Engine.context.KycController.loadDisclaimers} (Get Pix Key).
+ * {@link Engine.context.KycController.recordSessionDisclaimers}. Vendor T&Cs
+ * stay on {@link Engine.context.KycController.fetchVendorDisclaimers} (Get Pix Key).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
@@ -41,12 +42,9 @@ const toLinks = (
  * is reported as an `error` so the retry affordance is reachable. There's
  * intentionally no static fallback copy.
  *
- * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
  * @returns The flattened catalog links, loading state, error, and a `retry` function.
  */
-export const useKycSessionDisclaimers = (
-  country: string,
-): UseKycSessionDisclaimersResult => {
+export const useKycSessionDisclaimers = (): UseKycSessionDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<
     KycCatalogDisclaimerLink[] | null
   >(null);
@@ -85,7 +83,15 @@ export const useKycSessionDisclaimers = (
         }
 
         const catalog = await Promise.race([
-          kycController.fetchSessionDisclaimers({ country }),
+          (async () => {
+            const kycService = Engine.context.KycService;
+            if (!kycService) {
+              throw new Error('KYC service is unavailable');
+            }
+
+            const country = await kycService.getGeoCountry();
+            return kycController.fetchSessionDisclaimers({ country });
+          })(),
           abortedPromise,
         ]);
 
@@ -135,7 +141,7 @@ export const useKycSessionDisclaimers = (
       clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [country, retryCount]);
+  }, [retryCount]);
 
   return { disclaimers, isLoading, error, retry };
 };

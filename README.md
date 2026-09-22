@@ -285,17 +285,20 @@ This project uses [Husky](https://typicode.github.io/husky/) to run pre-commit h
 - **Prettier** - Code formatting for `*.{js,jsx,ts,tsx,json,feature}` files
 - **ESLint** - Linting and auto-fixing for `*.{js,jsx,ts,tsx}` files
 
-#### Disabling Husky Locally
+Git hooks are **opt-in**. `yarn setup` does not install them.
 
-If you need to disable Husky pre-commit hooks temporarily (e.g., for emergency commits or debugging), you have several options:
+```bash
+yarn git:hooks:install     # enable pre-commit lint/format
+yarn git:hooks:uninstall   # remove git hooks from this clone
+```
 
-##### Option 1: Skip hooks for a single commit
+#### Skipping hooks for a single commit
 
 ```bash
 git commit --no-verify -m "your commit message"
 ```
 
-##### Option 2: Bypass hooks with environment variable
+#### Bypass hooks with an environment variable
 
 ```bash
 # Disable for current session
@@ -306,4 +309,4 @@ git commit -m "your commit message"
 HUSKY=0 git commit -m "your commit message"
 ```
 
-**Note:** While these methods allow you to bypass the pre-commit hooks, remember that the CI/CD pipeline will still run linting checks. It's recommended to fix linting issues before pushing your changes to avoid build failures.
+**Note:** The CI/CD pipeline still runs linting checks. It's recommended to fix linting issues before pushing your changes to avoid build failures.

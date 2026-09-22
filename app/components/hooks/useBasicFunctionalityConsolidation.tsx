@@ -27,6 +27,7 @@ import { selectIsUnlocked } from '../../selectors/keyringController';
 import {
   selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldRepairSocialLoginBasicFunctionality,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -85,6 +86,9 @@ export function useBasicFunctionalityConsolidation(): void {
   const isExistingSocialWalletRestore = useSelector(
     selectIsExistingSocialWalletRestore,
   );
+  const shouldRepairSocialLoginBasicFunctionality = useSelector(
+    selectShouldRepairSocialLoginBasicFunctionality,
+  );
   const shouldShowBottomSheet = useSelector(
     selectShouldShowBasicFunctionalityMigrationBottomSheet,
   );
@@ -109,13 +113,18 @@ export function useBasicFunctionalityConsolidation(): void {
     isOnboardingSession.current = true;
   }
 
+  // The onboarding-session latch only guards wallets onboarding has not yet
+  // enrolled. A social repair targets an already-enrolled wallet, so it runs in
+  // the session that finds Basic Functionality off rather than the next launch.
+  const shouldRunConsolidation =
+    (isFlagEnabled && !isConsolidated && !isOnboardingSession.current) ||
+    shouldRepairSocialLoginBasicFunctionality;
+
   useEffect(() => {
     if (
-      !isFlagEnabled ||
-      isConsolidated ||
+      !shouldRunConsolidation ||
       !isUnlocked ||
       !completedOnboarding ||
-      isOnboardingSession.current ||
       isRunning.current
     ) {
       return;
@@ -132,16 +141,13 @@ export function useBasicFunctionalityConsolidation(): void {
       .finally(() => {
         isRunning.current = false;
       });
-  }, [
-    completedOnboarding,
-    dispatch,
-    isConsolidated,
-    isFlagEnabled,
-    isUnlocked,
-  ]);
+  }, [completedOnboarding, dispatch, isUnlocked, shouldRunConsolidation]);
 
-  // Gating on `isUnlocked` keeps the notice off the lock screen. Clearing the
-  // presented ref while locked lets it present once the wallet is unlocked.
+  // `isUnlocked` is not enough on its own to keep the notice off the lock
+  // screen, since the keyring unlocks before Login hands the session over.
+  // Mounting on the wallet stack is what guarantees the handoff has happened;
+  // `isUnlocked` covers LockScreen, which covers the wallet without
+  // unmounting it. Clearing the ref while locked lets it present on unlock.
   useEffect(() => {
     if (!shouldShowBottomSheet || !isUnlocked) {
       hasPresentedBottomSheet.current = false;

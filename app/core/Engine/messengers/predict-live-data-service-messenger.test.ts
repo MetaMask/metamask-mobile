@@ -10,6 +10,7 @@ import type {
 import {
   KALSHI_VENUE_ID,
   type PredictEntityId,
+  type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
@@ -35,6 +36,7 @@ describe('getPredictLiveDataServiceMessenger', () => {
       venueId: KALSHI_VENUE_ID,
       eventId: 'event-1' as PredictEntityId,
       type: 'football_game',
+      observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
       details: { status: 'live' },
     };
     rootMessenger.subscribe('PredictLiveDataService:gameLiveUpdated', listener);
