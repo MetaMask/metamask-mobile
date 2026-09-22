@@ -13,7 +13,24 @@ const newPlugins = baseConfig.plugins.filter((plugin) => {
 });
 
 const newOverrides = [
-  ...baseConfig.overrides,
+  ...baseConfig.overrides.map((override) => {
+    if (
+      !override.test(
+        '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+      )
+    ) {
+      return override;
+    }
+    // Keep the 10 MB native signer asset out of each Jest VM and its coverage
+    // data. Jest maps the import to a stub; HTML behavior has separate tests.
+    return {
+      ...override,
+      plugins: override.plugins.filter((plugin) => {
+        const name = Array.isArray(plugin) ? plugin[0] : plugin;
+        return name !== 'babel-plugin-inline-import';
+      }),
+    };
+  }),
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
