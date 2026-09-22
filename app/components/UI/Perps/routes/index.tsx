@@ -126,6 +126,18 @@ export const shouldRenderPerpsConfirmationLoader = (
   approvalRequest: unknown,
 ) => Boolean(useBottomSheet && !approvalRequest);
 
+/**
+ * Back from a Lite market replaces the stack with Perps home
+ * (`resetToPerpsHomeTarget`) because the Lite -> Pro switch dropped Home from
+ * history. Native stack replaces screens with a push animation by default, so
+ * Back slid the market page left as if the user moved forward.
+ */
+export const getPerpsHomeScreenOptions = (): NativeStackNavigationOptions => ({
+  title: strings('perps.markets.title'),
+  headerShown: false,
+  animationTypeForReplace: 'pop',
+});
+
 export const getAdjustMarginOptions = (
   useBottomSheet: boolean | undefined,
 ): NativeStackNavigationOptions =>
@@ -384,10 +396,7 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.PERPS_HOME}
                 component={PerpsHomeView}
-                options={{
-                  title: strings('perps.markets.title'),
-                  headerShown: false,
-                }}
+                options={getPerpsHomeScreenOptions}
               />
 
               <Stack.Screen
