@@ -187,7 +187,7 @@
           },
           "etag": null,
           "lastFetched": null,
-          "version": null
+          "version": "0.0.0"
         },
         "CronJobController": {
           "events": {},
