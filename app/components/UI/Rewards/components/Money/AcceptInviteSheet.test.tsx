@@ -771,6 +771,22 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it('tracks no response when the sheet is dismissed before the offer is viewed', () => {
+      referralMeEntries = {
+        [PROFILE_ID]: { loading: true, error: false, data: null },
+      };
+
+      const { getByTestId } = renderSheetSync('KOL1');
+
+      getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
     it('tracks the offer once a pending referral-me load settles as eligible', async () => {
       referralMeEntries = {
         [PROFILE_ID]: { loading: true, error: false, data: null },
@@ -845,6 +861,44 @@ describe('AcceptInviteSheet', () => {
         action: 'accepted',
       });
     });
+
+    it.each([
+      ['the header close button', TEST_IDS.CLOSE],
+      ['the decline button', TEST_IDS.DECLINE],
+    ])(
+      'keeps accepted as the answer when %s is pressed before the hook reports loading',
+      async (_name, testId) => {
+        let resolveAccept: (didAccept: boolean) => void = () => undefined;
+        mockAcceptReferralCode.mockImplementation(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveAccept = resolve;
+            }),
+        );
+
+        const { getByTestId } = await renderSheet('KOL1');
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+
+        // Two taps can reach the handlers before React commits the hook's
+        // loading state, and the second one must not answer for the first.
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+        fireEvent.press(getByTestId(testId));
+
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+
+        await act(async () => {
+          resolveAccept(true);
+        });
+
+        const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: 'KOL1',
+          action: 'accepted',
+        });
+      },
+    );
 
     it.each([
       ['declined', TEST_IDS.DECLINE],

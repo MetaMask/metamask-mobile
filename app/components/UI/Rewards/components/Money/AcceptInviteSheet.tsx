@@ -354,10 +354,11 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   // One answer per sheet, and the first one recorded is the answer: a close
   // that follows Accept or Decline is the sheet acting on that press, not a
-  // second response to the invite.
+  // second response to the invite. A response also requires the matching
+  // viewed event, since the sheet can be dismissed while its copy is pending.
   const trackResponded = useCallback(
     (action: 'accepted' | 'declined' | 'dismissed') => {
-      if (hasRespondedRef.current) {
+      if (!hasTrackedOfferViewedRef.current || hasRespondedRef.current) {
         return;
       }
       hasRespondedRef.current = true;
