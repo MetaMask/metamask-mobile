@@ -26,3 +26,8 @@ the result. Supported chain IDs are checked and key storage is chain-scoped.
 The protocol's EIP-191 plaintext contains no chain ID; its L2 transaction
 signature carries the chain binding. This is not a claim of chain-domain
 separation in the L1 plaintext itself.
+
+The HTML content security policy permits only the four embedded scripts by
+SHA-256 hash and allows WASM compilation. It does not permit arbitrary inline
+scripts. `scripts/lighter-wasm-wrapper.test.ts` checks these hashes against the
+actual script contents; update the hashes whenever an embedded script changes.

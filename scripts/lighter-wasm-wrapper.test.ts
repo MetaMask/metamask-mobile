@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createHash } from 'node:crypto';
 
 const html = fs.readFileSync(
   path.join(__dirname, '../app/components/UI/Perps/Lighter/wasm-wrapper.standalone.html'),
@@ -91,6 +92,26 @@ function createPage(
 }
 
 describe('Lighter WASM page', () => {
+  it('allows only the exact embedded scripts in its content security policy', () => {
+    const policy = html.match(
+      /http-equiv="Content-Security-Policy" content="([^"]+)"/u,
+    )?.[1];
+    const scriptPolicy = policy
+      ?.split(';')
+      .map((directive) => directive.trim())
+      .find((directive) => directive.startsWith('script-src '));
+    const hashes = scripts.map(
+      (script) => `'sha256-${createHash('sha256').update(script).digest('base64')}'`,
+    );
+
+    expect(scripts).toHaveLength(4);
+    expect(scriptPolicy?.split(/\s+/u)).toStrictEqual([
+      'script-src',
+      ...hashes,
+      "'wasm-unsafe-eval'",
+    ]);
+  });
+
   it.each([
     'fetch',
     'XMLHttpRequest',
