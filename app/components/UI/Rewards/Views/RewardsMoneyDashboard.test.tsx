@@ -433,13 +433,12 @@ describe('RewardsMoneyDashboard', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('disables settings when there is no subscription', () => {
-    const { getByTestId } = renderDashboard({ subscriptionId: null });
+  it('hides settings when there is no subscription', () => {
+    const { queryByTestId } = renderDashboard({ subscriptionId: null });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens Rewards settings from the header when subscribed', () => {
