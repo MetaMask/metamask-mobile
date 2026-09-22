@@ -17,6 +17,7 @@ export enum MONEY_BUTTON_INTENTS {
   CARD_FEES = 'card_fees',
   GET_PRO = 'get_pro',
   OPEN_PRO_HUB = 'open_pro_hub',
+  VIEW_PROJECTED_EARNINGS = 'view_projected_earnings',
   VIEW_APY_TOOLTIP = 'view_apy_tooltip',
 }
 

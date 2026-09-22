@@ -619,17 +619,19 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackTooltipClicked]);
 
-  const handleEarnCryptoInfoPress = useCallback(() => {
-    trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
-      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+  const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_PROJECTED_EARNINGS,
       component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
+      omit_label: 'privacy-sensitive',
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
-  }, [navigation, trackTooltipClicked]);
+  }, [navigation, trackButtonClicked]);
 
   const handleMusdRowPress = useCallback(
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
@@ -917,7 +919,7 @@ const MoneyHomeView = () => {
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
-          onInfoPress={handleEarnCryptoInfoPress}
+          onProjectedAmountPress={handleEarnCryptoProjectedAmountPressed}
           privacyMode={privacyMode}
         />
       ),
