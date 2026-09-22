@@ -70,7 +70,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('./BenefitPreviewCard', () => {
+jest.mock('./BenefitCard', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return {
