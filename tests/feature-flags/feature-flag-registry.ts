@@ -6112,14 +6112,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  brazeBannerHome: {
-    name: 'brazeBannerHome',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   confirmationsCONF1775AbtestMoneyAccountDepositPrefill: {
     name: 'confirmationsCONF1775AbtestMoneyAccountDepositPrefill',
     type: FeatureFlagType.Remote,
