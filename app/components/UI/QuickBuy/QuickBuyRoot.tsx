@@ -46,6 +46,10 @@ import type {
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
 import { setTokenSelectorNetworkFilter } from '../../../core/redux/slices/bridge';
+import { BridgeSessionProvider } from '../Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../Bridge/providers/SwapQuotesProvider';
+import { FeatureId } from '@metamask/bridge-controller';
+import { QUICK_BUY_SOURCE_TO_FEATURE_ID } from './analytics/quickBuyEvents';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -239,16 +243,26 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   }
 
   return (
-    <QuickBuyRootInner
-      target={target}
-      onClose={onClose}
-      features={features}
-      initialTradeMode={initialTradeMode}
-      analyticsContext={analyticsContext}
-      postSwapShare={postSwapShare}
+    <BridgeSessionProvider
+      featureId={
+        (analyticsContext?.source &&
+          QUICK_BUY_SOURCE_TO_FEATURE_ID[analyticsContext?.source]) ??
+        FeatureId.QUICK_BUY_TOKEN_DETAILS
+      }
     >
-      {children}
-    </QuickBuyRootInner>
+      <SwapQuotesProvider>
+        <QuickBuyRootInner
+          target={target}
+          onClose={onClose}
+          features={features}
+          initialTradeMode={initialTradeMode}
+          analyticsContext={analyticsContext}
+          postSwapShare={postSwapShare}
+        >
+          {children}
+        </QuickBuyRootInner>
+      </SwapQuotesProvider>
+    </BridgeSessionProvider>
   );
 };
 
