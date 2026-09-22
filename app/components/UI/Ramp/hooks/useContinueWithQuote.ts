@@ -19,6 +19,7 @@ import {
   buildQuoteWithRedirectUrl,
   getCheckoutContext,
   getWidgetRedirectConfig,
+  shouldUseSystemOpen,
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
@@ -372,8 +373,12 @@ export function useContinueWithQuote(
           const isAndroid = Device.isAndroid();
           const inAppBrowserAvailable =
             !isAndroid && (await InAppBrowser.isAvailable());
+          // EXTERNAL_OS_BROWSER must system-open so partner universal links fire
+          // (ASWebAuthenticationSession loads the URL like a typed address).
+          const useSystemOpen =
+            isAndroid || !inAppBrowserAvailable || shouldUseSystemOpen(quote);
 
-          if (isAndroid || !inAppBrowserAvailable) {
+          if (useSystemOpen) {
             await Linking.openURL(buyWidget.url);
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
             return;

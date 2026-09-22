@@ -9,7 +9,9 @@ jest.mock('./getRampCallbackBaseUrl', () => ({
   getRampCallbackBaseUrl: () => 'https://callback.example/base',
 }));
 
-const makeQuote = (browser?: 'APP_BROWSER' | 'IN_APP_OS_BROWSER'): Quote =>
+const makeQuote = (
+  browser?: 'APP_BROWSER' | 'IN_APP_OS_BROWSER' | 'EXTERNAL_OS_BROWSER',
+): Quote =>
   ({
     quote: browser ? { buyWidget: { browser } } : {},
   }) as unknown as Quote;
@@ -68,6 +70,16 @@ describe('getAggregatorRedirectConfig (Phase 1 in-app vs external predicate)', (
 
     expect(result.useExternalBrowser).toBe(true);
     expect(result.redirectUrl).toBe('metamask://on-ramp/providers/coinbase');
+  });
+
+  it('classifies EXTERNAL_OS_BROWSER as external (provider deeplink)', () => {
+    const result = getAggregatorRedirectConfig(
+      makeQuote('EXTERNAL_OS_BROWSER'),
+      'revolut',
+    );
+
+    expect(result.useExternalBrowser).toBe(true);
+    expect(result.redirectUrl).toBe('metamask://on-ramp/providers/revolut');
   });
 });
 
