@@ -638,7 +638,18 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      }
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
@@ -768,7 +779,11 @@ export const runQuoteRequestCases = ({
           await result.current.flush?.();
         });
 
-        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        if (isCombinedQuoteHook && !omitWallet) {
+          expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        } else {
+          expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        }
       },
     );
 
@@ -782,14 +797,19 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(mockTrace).toHaveBeenCalled();
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapQuoteFetch,
-        id: expect.any(String),
-        timestamp: expect.any(Number),
-        data: { result: 'cancelled' },
-      });
+      if (isCombinedQuoteHook) {
+        expect(mockTrace).not.toHaveBeenCalled();
+        expect(mockEndTrace).not.toHaveBeenCalled();
+      } else {
+        expect(mockTrace).toHaveBeenCalled();
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.SwapQuoteFetch,
+          id: expect.any(String),
+          timestamp: expect.any(Number),
+          data: { result: 'cancelled' },
+        });
+      }
     });
 
     it('converts source amount to wei with 18 decimals', async () => {

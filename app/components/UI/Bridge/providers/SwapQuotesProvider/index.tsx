@@ -85,25 +85,24 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   );
 
   const genericQuoteRequest = useMemo(
-    (): GenericQuoteRequest | undefined =>
+    ():
+      | (Partial<GenericQuoteRequest> & { walletAddress: string })
+      | undefined =>
       buildGenericQuoteRequest({
-        quoteParams,
-        gasIncluded,
-        gasIncluded7702,
+        quoteParams: {
+          ...quoteParams,
+          gasIncluded,
+          gasIncluded7702,
+        },
         insufficientBalance,
         insufficientNativeReserveError: Boolean(insufficientNativeReserveError),
       }),
     [
-      srcAmount,
-      srcToken,
-      destToken,
-      walletAddress,
-      destWalletAddress,
-      slippage,
-      gasIncluded,
-      gasIncluded7702,
       insufficientBalance,
       insufficientNativeReserveError,
+      quoteParams,
+      gasIncluded,
+      gasIncluded7702,
     ],
   );
 
