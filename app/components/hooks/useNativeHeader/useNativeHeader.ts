@@ -7,6 +7,7 @@ import type {
 } from '@react-navigation/native-stack';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 
 import { selectNativeHeaderEnabled } from '../../../selectors/featureFlagController/nativeHeader';
@@ -21,6 +22,8 @@ export interface NativeHeaderConfig {
   searchBarOptions?: NativeStackNavigationOptions['headerSearchBarOptions'];
   isLargeTitle?: boolean;
   isBackButtonHidden?: boolean;
+  /** False when the component is embedded in another screen rather than routed. */
+  isEnabled?: boolean;
 }
 
 /**
@@ -28,14 +31,34 @@ export interface NativeHeaderConfig {
  * with Liquid Glass; everywhere else screens keep their JS header.
  */
 export const useIsNativeHeader = (): boolean => {
-  const isEnabled = useSelector(selectNativeHeaderEnabled);
   const [isSupported] = useState(isLiquidGlassAvailable);
 
-  return isEnabled && isSupported;
+  // The flag is only read where the OS can draw glass, so unsupported
+  // platforms (and minimal test stores) never touch remote-flag state.
+  const isFlagEnabled = useSelector(
+    (state: Parameters<typeof selectNativeHeaderEnabled>[0]) =>
+      isSupported && selectNativeHeaderEnabled(state),
+  );
+
+  return isSupported && isFlagEnabled === true;
 };
 
 const HIDDEN_HEADER_OPTIONS: NativeStackNavigationOptions = {
   headerShown: false,
+};
+
+/** Compact UINavigationBar height; a large-title bar is taller. */
+const NATIVE_HEADER_BAR_HEIGHT = 44;
+
+/**
+ * Top padding for a screen whose root is not a `ScrollView`. Scroll views inset
+ * themselves under the transparent bar via `contentInsetAdjustmentBehavior`.
+ */
+export const useNativeHeaderInset = (): number => {
+  const isNativeHeader = useIsNativeHeader();
+  const insets = useSafeAreaInsets();
+
+  return isNativeHeader ? insets.top + NATIVE_HEADER_BAR_HEIGHT : 0;
 };
 
 /**
@@ -85,8 +108,9 @@ export const useNativeHeader = ({
   searchBarOptions,
   isLargeTitle = false,
   isBackButtonHidden = false,
+  isEnabled = true,
 }: NativeHeaderConfig = {}): boolean => {
-  const isNativeHeader = useIsNativeHeader();
+  const isNativeHeader = useIsNativeHeader() && isEnabled;
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
   useLayoutEffect(() => {

@@ -41,6 +41,13 @@ jest.mock('react-native-share', () => ({
   open: jest.fn(),
 }));
 
+// The screen navigates through its `navigation` prop; the hook-level
+// navigation is only used to set native header options.
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ setOptions: jest.fn() }),
+}));
+
 jest.mock('react-native-device-info', () => ({
   getApplicationName: jest.fn(),
   getVersion: jest.fn(),

@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react-native';
 import {
   useIsNativeHeader,
   useNativeHeader,
+  useNativeHeaderInset,
   useNativeHeaderScreenOptions,
 } from './useNativeHeader';
 import { selectNativeHeaderEnabled } from '../../../selectors/featureFlagController/nativeHeader';
@@ -12,15 +13,22 @@ jest.mock('expo-glass-effect', () => ({
   isLiquidGlassAvailable: () => mockIsLiquidGlassAvailable(),
 }));
 
-const mockSelectorValues = new Map<unknown, unknown>();
 jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockSelectorValues.get(selector),
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
+jest.mock('../../../selectors/featureFlagController/nativeHeader', () => ({
+  selectNativeHeaderEnabled: jest.fn(),
 }));
 
 const mockSetOptions = jest.fn();
 const mockNavigation = { setOptions: mockSetOptions };
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 59, bottom: 34, left: 0, right: 0 }),
 }));
 
 jest.mock('../../../util/theme', () => {
@@ -34,7 +42,7 @@ describe('useNativeHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsLiquidGlassAvailable.mockReturnValue(true);
-    mockSelectorValues.set(selectNativeHeaderEnabled, true);
+    jest.mocked(selectNativeHeaderEnabled).mockReturnValue(true);
   });
 
   describe('useIsNativeHeader', () => {
@@ -53,11 +61,19 @@ describe('useNativeHeader', () => {
     });
 
     it('is off when the remote flag kills it', () => {
-      mockSelectorValues.set(selectNativeHeaderEnabled, false);
+      jest.mocked(selectNativeHeaderEnabled).mockReturnValue(false);
 
       const { result } = renderHook(() => useIsNativeHeader());
 
       expect(result.current).toBe(false);
+    });
+
+    it('never reads the flag where the OS cannot draw Liquid Glass', () => {
+      mockIsLiquidGlassAvailable.mockReturnValue(false);
+
+      renderHook(() => useIsNativeHeader());
+
+      expect(selectNativeHeaderEnabled).not.toHaveBeenCalled();
     });
   });
 
@@ -99,6 +115,22 @@ describe('useNativeHeader', () => {
     });
   });
 
+  describe('useNativeHeaderInset', () => {
+    it('is zero when the native header is off', () => {
+      mockIsLiquidGlassAvailable.mockReturnValue(false);
+
+      const { result } = renderHook(() => useNativeHeaderInset());
+
+      expect(result.current).toBe(0);
+    });
+
+    it('covers the status bar and the compact bar when the native header is on', () => {
+      const { result } = renderHook(() => useNativeHeaderInset());
+
+      expect(result.current).toBe(59 + 44);
+    });
+  });
+
   describe('useNativeHeader', () => {
     it('does not touch navigation options when the native header is off', () => {
       mockIsLiquidGlassAvailable.mockReturnValue(false);
@@ -127,6 +159,15 @@ describe('useNativeHeader', () => {
         headerLargeTitle: false,
         headerBackVisible: true,
       });
+    });
+
+    it('stays on the JS header when the caller disables it', () => {
+      const { result } = renderHook(() =>
+        useNativeHeader({ title: 'Embedded', isEnabled: false }),
+      );
+
+      expect(result.current).toBe(false);
+      expect(mockSetOptions).not.toHaveBeenCalled();
     });
 
     it('sets an empty title so the route name is not printed', () => {

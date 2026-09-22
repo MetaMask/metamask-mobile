@@ -4,6 +4,10 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../../../hooks/useNativeHeader';
 
 import { useRampSDK, withRampSDK } from '../../sdk';
 import useRampsController from '../../../hooks/useRampsController';
@@ -52,14 +56,24 @@ function Settings() {
     navigation.navigate(Routes.RAMP.HEADLESS_PLAYGROUND);
   }, [navigation]);
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.fiat_on_ramp.title'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
-    <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderStandard
-        testID={RAMP_SETTINGS_HEADER_TEST_ID}
-        title={strings('app_settings.fiat_on_ramp.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: RAMP_SETTINGS_BACK_BUTTON_TEST_ID }}
-      />
+    <SafeAreaView
+      edges={isNativeHeader ? [] : ['top']}
+      style={[style.container, { paddingTop: nativeHeaderInset }]}
+    >
+      {!isNativeHeader && (
+        <HeaderStandard
+          testID={RAMP_SETTINGS_HEADER_TEST_ID}
+          title={strings('app_settings.fiat_on_ramp.title')}
+          onBack={handleBack}
+          backButtonProps={{ testID: RAMP_SETTINGS_BACK_BUTTON_TEST_ID }}
+        />
+      )}
       <KeyboardAvoidingView
         style={style.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

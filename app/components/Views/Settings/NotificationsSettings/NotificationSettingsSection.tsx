@@ -7,6 +7,10 @@ import {
 import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../hooks/useNativeHeader';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
@@ -48,14 +52,24 @@ const NotificationSettingsSection = ({
     }
   }, [isMetamaskNotificationsEnabled, navigation]);
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.notifications_title'),
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+
   if (!isMetamaskNotificationsEnabled) return null;
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard
-        title={strings('app_settings.notifications_title')}
-        onBack={() => navigation.goBack()}
-      />
+    <SafeAreaView
+      edges={isNativeHeader ? [] : ['top']}
+      style={[styles.safeArea, { paddingTop: nativeHeaderInset }]}
+    >
+      {!isNativeHeader && (
+        <HeaderCompactStandard
+          title={strings('app_settings.notifications_title')}
+          onBack={() => navigation.goBack()}
+        />
+      )}
       <NotificationSettingsSectionContent
         type={type}
         title={title}

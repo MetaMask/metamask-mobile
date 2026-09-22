@@ -7,9 +7,11 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -258,58 +260,81 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
+  const canRemoveNetwork =
+    !formHook.form.addMode && canDeleteNetwork(formHook.form.chainId ?? '');
+  const nativeHeaderRightItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('app_settings.remove_network'),
+        icon: { type: 'sfSymbol', name: 'trash' },
+        onPress: handleDelete,
+      },
+    ],
+    [handleDelete],
+  );
+  // A native title is text only, so the network avatar is dropped from it.
+  const isNativeHeader = useNativeHeader({
+    title: headerTitle,
+    rightItems: canRemoveNetwork ? nativeHeaderRightItems : undefined,
+  });
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['top', 'bottom']}
+      edges={isNativeHeader ? ['bottom'] : ['top', 'bottom']}
       testID={NetworkDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        endAccessory={
-          !formHook.form.addMode &&
-          canDeleteNetwork(formHook.form.chainId ?? '') ? (
-            <Pressable
-              onPress={handleDelete}
-              testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
-              style={({ pressed }) =>
-                tw.style(
-                  'w-9 h-9 mr-2 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-            >
-              <Icon
-                name={IconName.Trash}
-                size={IconSize.Md}
-                color={IconColor.Default}
-              />
-            </Pressable>
-          ) : undefined
-        }
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
+      {!isNativeHeader && (
+        <HeaderStandard
+          onBack={handleBack}
+          endAccessory={
+            canRemoveNetwork ? (
+              <Pressable
+                onPress={handleDelete}
+                testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-9 h-9 mr-2 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
+                }
+              >
+                <Icon
+                  name={IconName.Trash}
+                  size={IconSize.Md}
+                  color={IconColor.Default}
+                />
+              </Pressable>
+            ) : undefined
+          }
         >
-          {!formHook.form.addMode && (
-            <AvatarNetwork
-              size={AvatarSize.Xs}
-              name={formHook.form.nickname}
-              imageSource={networkImageSource}
-            />
-          )}
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            {headerTitle}
-          </Text>
-        </Box>
-      </HeaderStandard>
+            {!formHook.form.addMode && (
+              <AvatarNetwork
+                size={AvatarSize.Xs}
+                name={formHook.form.nickname}
+                imageSource={networkImageSource}
+              />
+            )}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={1}
+            >
+              {headerTitle}
+            </Text>
+          </Box>
+        </HeaderStandard>
+      )}
       <KeyboardAwareScrollView
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

@@ -8,6 +8,10 @@ import React, {
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -65,6 +69,8 @@ const ManualBackupStep2 = ({
   const settingsBackup = route?.params?.settingsBackup;
 
   const tw = useTailwind();
+  const isNativeHeader = useNativeHeader();
+  const nativeHeaderInset = useNativeHeaderInset();
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -403,15 +409,18 @@ const ManualBackupStep2 = ({
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
-        includesTopInset
-        onBack={() => navigation.goBack()}
-        backButtonProps={{
-          testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
-        }}
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+          backButtonProps={{
+            testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+          }}
+        />
+      )}
       <Box
         twClassName="flex-1 px-4 gap-4"
+        style={tw.style({ paddingTop: nativeHeaderInset })}
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <TitleStandard

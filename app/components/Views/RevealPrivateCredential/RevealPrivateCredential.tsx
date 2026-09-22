@@ -13,6 +13,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -27,6 +28,10 @@ import {
 } from '@metamask/design-system-react-native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
@@ -384,21 +389,45 @@ const RevealPrivateCredential = ({
     return renderActionView();
   };
 
+  // Back tracks an event before leaving, so the system back button is replaced.
+  const nativeHeaderLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('navigation.back'),
+        icon: { type: 'sfSymbol', name: 'chevron.backward' },
+        onPress: headerNavigationBack,
+      },
+    ],
+    [headerNavigationBack],
+  );
+  const isNativeHeader = useNativeHeader({
+    title: strings('reveal_credential.seed_phrase_title'),
+    leftItems: nativeHeaderLeftItems,
+    isBackButtonHidden: true,
+    // Also rendered inline by the error boundary, which owns no navigation bar.
+    isEnabled: hasNavigation,
+  });
+  const nativeHeaderInset = useNativeHeaderInset();
+  const topSpacing = isNativeHeader ? nativeHeaderInset : 0;
+
   return (
     <Box
       twClassName="flex-1 h-full bg-default"
-      style={{ paddingBottom: bottomSpacing }}
+      style={{ paddingBottom: bottomSpacing, paddingTop: topSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderStandard
-        title={strings('reveal_credential.seed_phrase_title')}
-        titleProps={HEADER_TITLE_PROPS}
-        onBack={headerNavigationBack}
-        backButtonProps={{
-          testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
-        }}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('reveal_credential.seed_phrase_title')}
+          titleProps={HEADER_TITLE_PROPS}
+          onBack={headerNavigationBack}
+          backButtonProps={{
+            testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,
+          }}
+          includesTopInset
+        />
+      )}
       {renderContent()}
       <ScreenshotDeterrent
         enabled

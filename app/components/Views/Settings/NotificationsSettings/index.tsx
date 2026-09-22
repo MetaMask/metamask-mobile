@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 
@@ -125,10 +126,18 @@ const NotificationsSettings = ({ navigation }: Props) => {
     });
   };
 
+  // The title is the large in-content heading, so the bar carries none.
+  const isNativeHeader = useNativeHeader();
+
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard onBack={navigation.goBack} />
-      <ScrollView style={styles.container}>
+    <SafeAreaView edges={isNativeHeader ? [] : ['top']} style={styles.safeArea}>
+      {!isNativeHeader && <HeaderCompactStandard onBack={navigation.goBack} />}
+      <ScrollView
+        style={styles.container}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
           {strings('app_settings.notifications_title')}
         </Text>

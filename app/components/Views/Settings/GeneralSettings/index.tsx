@@ -35,6 +35,7 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { enablePushNotifications } from '../../../../actions/notification/helpers';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
@@ -221,15 +222,26 @@ const Settings = ({
     updateUserTraitsWithCurrencyType(selectedPrimaryCurrency);
   };
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.general_title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.general_title')}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
-      <ScrollView style={styles.content}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.general_title')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
+      <ScrollView
+        style={styles.content}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <View style={styles.inner}>
           <View style={[styles.setting, styles.firstSetting]}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
