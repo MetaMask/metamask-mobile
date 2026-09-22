@@ -35,6 +35,7 @@ import { useTheme } from '../../../../util/theme';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
 import PopularTradersCarousel from '../SocialV1View/feed/components/PopularTradersCarousel';
 import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
+import SocialFeedPostSkeleton from '../SocialV1View/feed/components/SocialFeedPostSkeleton';
 import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
@@ -53,6 +54,13 @@ export const SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID =
   'social-v1-feed-footer-loading';
 export const SOCIAL_V1_FEED_ERROR_TEST_ID = 'social-v1-feed-error';
 export const SOCIAL_V1_FEED_RETRY_TEST_ID = 'social-v1-feed-retry';
+
+/** Placeholder rows while the first feed page loads (matches V0 feed). */
+const INITIAL_FEED_SKELETON_COUNT = 4;
+const INITIAL_FEED_SKELETON_KEYS = Array.from(
+  { length: INITIAL_FEED_SKELETON_COUNT },
+  (_, index) => `social-v1-feed-skeleton-${index}`,
+);
 
 /**
  * Hold the refresh spinner for a beat so a fast refetch does not flicker.
@@ -103,6 +111,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     posts,
     pendingPost,
     pendingStartedAtMs,
+    isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
@@ -237,6 +246,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [seenPostIds],
   );
 
+  const showInitialFeedSkeletons = isLoading && posts.length === 0;
+
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
       <Animated.ScrollView
@@ -275,26 +286,47 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 />
               </Box>
             ) : null}
-            {feedBlocks.map((block, blockIndex) => (
-              <Fragment key={block.key}>
-                {blockIndex > 0 ? (
-                  <SectionDivider
-                    testID={getSocialV1FeedEntryDividerTestId(
-                      `block-${block.key}`,
-                    )}
-                  />
-                ) : null}
-                {block.kind === 'posts' ? (
-                  <SocialV1FeedPostList
-                    posts={block.posts}
-                    dividerKeyPrefix={block.key}
-                    renderPost={renderPost}
-                  />
-                ) : (
-                  <PopularTradersCarousel />
-                )}
-              </Fragment>
-            ))}
+            {showInitialFeedSkeletons ? (
+              <>
+                {INITIAL_FEED_SKELETON_KEYS.map((key, index) => (
+                  <Fragment key={key}>
+                    {index > 0 ? (
+                      <SectionDivider
+                        marginVertical={1}
+                        testID={getSocialV1FeedEntryDividerTestId(
+                          `loading-${index}`,
+                        )}
+                      />
+                    ) : null}
+                    <Box twClassName="px-4">
+                      <SocialFeedPostSkeleton index={index} />
+                    </Box>
+                  </Fragment>
+                ))}
+              </>
+            ) : (
+              feedBlocks.map((block, blockIndex) => (
+                <Fragment key={block.key}>
+                  {blockIndex > 0 ? (
+                    <SectionDivider
+                      marginVertical={1}
+                      testID={getSocialV1FeedEntryDividerTestId(
+                        `block-${block.key}`,
+                      )}
+                    />
+                  ) : null}
+                  {block.kind === 'posts' ? (
+                    <SocialV1FeedPostList
+                      posts={block.posts}
+                      dividerKeyPrefix={block.key}
+                      renderPost={renderPost}
+                    />
+                  ) : (
+                    <PopularTradersCarousel />
+                  )}
+                </Fragment>
+              ))
+            )}
             {isFetchingNextPage ? (
               <Box
                 alignItems={BoxAlignItems.Center}

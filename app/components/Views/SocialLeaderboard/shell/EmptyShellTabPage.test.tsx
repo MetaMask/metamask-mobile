@@ -12,6 +12,12 @@ import {
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
+import {
+  mockUseSocialV1Feed,
+  mockUseSocialV1FeedLoading,
+} from '../SocialV1View/feed/mocks/mockComposedFeedHook';
+import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
+import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -40,9 +46,10 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
 // See the view suite: the real hook needs keyring state and React Query, and
 // this suite is about the shell.
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed', () => ({
-  useSocialV1Feed: jest.requireActual(
-    '../SocialV1View/feed/mocks/mockComposedFeedHook',
-  ).mockUseSocialV1Feed,
+  useSocialV1Feed: jest.fn(
+    jest.requireActual('../SocialV1View/feed/mocks/mockComposedFeedHook')
+      .mockUseSocialV1Feed,
+  ),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -51,6 +58,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
+    jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
     resetSocialV1ComposedFeedStore();
   });
 
@@ -256,5 +264,23 @@ describe('EmptyShellTabPage', () => {
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-block-trailing'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows feed post skeletons and hides Popular traders during initial load', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1FeedLoading);
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
   });
 });

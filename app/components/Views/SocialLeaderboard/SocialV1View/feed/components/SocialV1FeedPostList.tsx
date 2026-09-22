@@ -23,6 +23,7 @@ const SocialV1FeedPostList: React.FC<SocialV1FeedPostListProps> = ({
       <Fragment key={post.id}>
         {index > 0 ? (
           <SectionDivider
+            marginVertical={1}
             testID={getSocialV1FeedEntryDividerTestId(
               `${dividerKeyPrefix}-${index}`,
             )}
