@@ -85,6 +85,16 @@ jest.mock('../Braze', () => ({
   clearBrazeUser: () => mockClearBrazeUser(),
 }));
 
+jest.mock('../Braze/resetInProgress', () => {
+  let value = false;
+  return {
+    setBrazeResetInProgress: jest.fn((next: boolean) => {
+      value = next;
+    }),
+    isBrazeResetInProgress: () => value,
+  };
+});
+
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: (...args: unknown[]) =>
@@ -308,6 +318,7 @@ jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
     trackEvent: jest.fn(),
+    identify: jest.fn(),
   },
 }));
 
@@ -4533,7 +4544,7 @@ describe('Authentication', () => {
 
       // Assert
       expect(clearVaultSpy).toHaveBeenCalledTimes(1);
-      expect(clearAuthStateSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setExistingUser(false),
@@ -4588,6 +4599,32 @@ describe('Authentication', () => {
 
     afterEach(() => {
       EngineClass.disableAutomaticVaultBackup = false;
+    });
+
+    it('clears auth state before the throwaway vault and again after lock', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+      const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(lockAppSpy).toHaveBeenCalledWith({ navigateToLogin: false });
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(clearAuthStateSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        lockAppSpy.mock.invocationCallOrder[0],
+      );
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledWith({
+        canonical_profile_id: null,
+      });
     });
 
     it('calls vault backup clear before creating temporary wallet', async () => {
@@ -4649,6 +4686,38 @@ describe('Authentication', () => {
       ).toHaveBeenLastCalledWith(false);
     });
 
+    it('holds the Braze reset flag until the app is locked', async () => {
+      // Arrange
+      const { setBrazeResetInProgress } = jest.requireMock(
+        '../Braze/resetInProgress',
+      ) as {
+        setBrazeResetInProgress: jest.Mock;
+      };
+      const newWalletSpy = jest.spyOn(Authentication, 'newWalletAndKeychain');
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert - flag is set before the temp vault is created, and cleared
+      // only after lockApp so the deferred useAutoSignIn effect is covered.
+      const setTrueOrder =
+        setBrazeResetInProgress.mock.invocationCallOrder[
+          setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === true)
+        ];
+      const setFalseOrder =
+        setBrazeResetInProgress.mock.invocationCallOrder[
+          setBrazeResetInProgress.mock.calls.findIndex(([v]) => v === false)
+        ];
+      expect(setTrueOrder).toBeLessThan(
+        newWalletSpy.mock.invocationCallOrder[0],
+      );
+      expect(setFalseOrder).toBeGreaterThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
     it('calls all required methods to reset wallet state', async () => {
       // Arrange
       const newWalletAndKeychain = jest.spyOn(
@@ -4676,9 +4745,12 @@ describe('Authentication', () => {
       expect(newWalletAndKeychain).toHaveBeenCalledWith(expect.any(String), {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      expect(clearAuthStateSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
       expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
         newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
+      expect(clearAuthStateSpy.mock.invocationCallOrder[1]).toBeGreaterThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
       );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
@@ -4699,6 +4771,23 @@ describe('Authentication', () => {
       expect(Authentication.lockApp).toHaveBeenCalledWith({
         navigateToLogin: false,
       });
+    });
+
+    it('clears auth state after a later reset step throws', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('lock failed'));
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
     });
 
     it('logs error when resetWalletState fails', async () => {

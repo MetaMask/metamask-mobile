@@ -100,6 +100,12 @@ describe('local activity call-site mapping', () => {
     );
 
     expect(item.type).toBe('stake');
+    expect(item.data).toEqual(
+      expect.objectContaining({
+        from,
+        to,
+      }),
+    );
   });
 
   it('classifies nested predict deposits after client-utils mapping', () => {
@@ -118,6 +124,8 @@ describe('local activity call-site mapping', () => {
 
     expect(item.type).toBe('predictionsAddFunds');
     expect(item.data).toMatchObject({
+      from,
+      to,
       token: {
         direction: 'in',
         amount: '1',

@@ -1,9 +1,19 @@
-import AppConstants from '../../../../core/AppConstants';
 import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
 
 export enum LimitOrderExecutionType {
   BUY = 'buy',
   SELL = 'sell',
+}
+
+/**
+ * Which way the trigger-price copy reads, e.g. "Buy when 1 LINK is at or
+ * below". A buy above market ("buy the pump") and a sell below market (stop
+ * loss) read the opposite way from their side's default.
+ */
+export enum LimitOrderPriceComparisonDirection {
+  AT_OR_ABOVE = 'atOrAbove',
+  AT_OR_BELOW = 'atOrBelow',
 }
 
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
@@ -23,6 +33,12 @@ export const LIMIT_ORDER_NEAR_MARKET_PERCENT = 1;
 export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
   AppConstants.SWAPS.DEFAULT_SLIPPAGE,
 );
+
+/**
+ * Cost tolerance in % that limit orders start with until the user picks
+ * another value.
+ */
+export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '2';
 
 export const SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES = [
   10, 60, 1440, 4320, 10080, 43200,
@@ -51,3 +67,5 @@ export const getSwapsLimitOrderExpirationLabel = (
   const { key, count } = SWAPS_LIMIT_ORDER_EXPIRATION_LABEL[minutes];
   return strings(key, { count });
 };
+
+export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;

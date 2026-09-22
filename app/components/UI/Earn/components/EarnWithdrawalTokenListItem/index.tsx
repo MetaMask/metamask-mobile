@@ -15,6 +15,7 @@ import {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { formatEarnRatePercentage } from '../../utils';
 
 export interface EarnWithdrawalTokenListItemProps {
   earnToken: EarnTokenDetails;
@@ -62,9 +63,9 @@ const EarnWithdrawalTokenListItem = ({
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
-            >{`${strings('earn.earning')} ${parseFloat(
+            >{`${strings('earn.earning')} ${formatEarnRatePercentage(
               earnToken?.experience?.apr ?? '0',
-            ).toFixed(1)}%`}</Text>
+            )}%`}</Text>
           </View>
         </View>
         <View style={styles.right}>

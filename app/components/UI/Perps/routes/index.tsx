@@ -2,7 +2,7 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type {
   PerpsNavigationParamList,
@@ -25,7 +25,7 @@ import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsClosePositionView from '../Views/PerpsClosePositionView';
+import PerpsClosePositionRouter from '../Views/PerpsClosePositionRouter';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
@@ -34,6 +34,7 @@ import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsAdjustMarginBottomSheet from '../components/PerpsAdjustMarginBottomSheet';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
@@ -46,6 +47,7 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
+import PerpsOutreachDetailsView from '../Views/PerpsOutreachDetailsView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -55,6 +57,7 @@ import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -64,6 +67,13 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
+import { ConfirmationContextProvider } from '../../../Views/confirmations/context/confirmation-context';
+import { AlertsContextProvider } from '../../../Views/confirmations/context/alert-system-context';
+import { QRHardwareContextProvider } from '../../../Views/confirmations/context/qr-hardware-context';
+import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/components/confirmation-asset-polling-provider/confirmation-asset-polling-provider';
+import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
@@ -74,9 +84,25 @@ const styles = StyleSheet.create({
   },
 });
 
+const getPerpsConversionScreenOptions = (
+  isBottomSheet: boolean,
+  baseOptions: NativeStackNavigationOptions,
+): NativeStackNavigationOptions =>
+  isBottomSheet
+    ? { ...baseOptions, ...transparentModalScreenOptions }
+    : baseOptions;
+
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
 ): NativeStackNavigationOptions {
+  if (params?.useBottomSheet) {
+    return {
+      ...transparentModalScreenOptions,
+      ...clearNativeStackNavigatorOptions,
+      title: '',
+      headerBackVisible: false,
+    };
+  }
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
@@ -93,13 +119,71 @@ export function getRedesignedConfirmationsHeaderOptions(
   };
 }
 
+const PerpsConfirmationAlerts = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
+  );
+};
+
+export const shouldRenderPerpsConfirmationLoader = (
+  useBottomSheet: boolean | undefined,
+  approvalRequest: unknown,
+) => Boolean(useBottomSheet && !approvalRequest);
+
+export const getAdjustMarginOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: '',
+      }
+    : {
+        title: strings('perps.adjust_margin.title'),
+        headerShown: false,
+      };
+
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
+  const { approvalRequest } = useApprovalRequest();
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
+
+  useEffect(() => {
+    if (params?.useBottomSheet) {
+      navigation.setOptions({ gestureEnabled: Boolean(approvalRequest) });
+    }
+  }, [approvalRequest, navigation, params?.useBottomSheet]);
+
+  if (
+    shouldRenderPerpsConfirmationLoader(params?.useBottomSheet, approvalRequest)
+  ) {
+    return <Confirm />;
+  }
+
+  if (params?.useBottomSheet) {
+    return (
+      <ConfirmationContextProvider>
+        <ConfirmationAssetPollingProvider>
+          <PerpsConfirmationAlerts>
+            <QRHardwareContextProvider>
+              <ConfirmationInfo />
+            </QRHardwareContextProvider>
+          </PerpsConfirmationAlerts>
+        </ConfirmationAssetPollingProvider>
+      </ConfirmationContextProvider>
+    );
+  }
 
   // When showPerpsHeader is false (deposit-and-trade / long-short flow), Confirm internally
   // calls navigation.setOptions({ headerShown: true }) for full-screen confirmations, which
@@ -126,6 +210,23 @@ const PerpsConfirmScreen = () => {
       <Confirm disableSafeArea />
     </NavigationContext.Provider>
   );
+};
+
+export const PerpsAdjustMarginRouter = () => {
+  const { params } =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsAdjustMargin'>>();
+
+  if (params?.useBottomSheet && params.position && params.mode) {
+    return (
+      <PerpsAdjustMarginBottomSheet
+        position={params.position}
+        initialMode={params.mode}
+        enableHaptics={params.enableHaptics}
+      />
+    );
+  }
+
+  return <PerpsAdjustMarginView />;
 };
 
 const PerpsModalStack = () => {
@@ -196,6 +297,13 @@ const PerpsModalStack = () => {
               title: strings('perps.mode.selection_title'),
             }}
           />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.OUTREACH_DETAILS}
+            component={PerpsOutreachDetailsView}
+            options={{
+              title: strings('perps.outreach_details.title'),
+            }}
+          />
           {/* Action Selection Modals */}
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_MODIFY_ACTION}
@@ -257,6 +365,9 @@ const PerpsScreenStack = () => {
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
+  // Shared by every screen-to-bottom-sheet conversion in this navigator.
+  const { useBottomSheet: isPerpsBottomSheet } =
+    usePerpsScreenVsBottomSheetAbTest({ trackExposure: false });
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
@@ -351,11 +462,11 @@ const PerpsScreenStack = () => {
 
               <Stack.Screen
                 name={Routes.PERPS.CLOSE_POSITION}
-                component={PerpsClosePositionView}
-                options={{
+                component={PerpsClosePositionRouter}
+                options={getPerpsConversionScreenOptions(isPerpsBottomSheet, {
                   title: strings('perps.close_position.title'),
                   headerShown: false,
-                }}
+                })}
               />
 
               {/* Debug tools - only available in development builds */}
@@ -384,11 +495,10 @@ const PerpsScreenStack = () => {
               {/* Adjust Margin View */}
               <Stack.Screen
                 name={Routes.PERPS.ADJUST_MARGIN}
-                component={PerpsAdjustMarginView}
-                options={{
-                  title: strings('perps.adjust_margin.title'),
-                  headerShown: false,
-                }}
+                component={PerpsAdjustMarginRouter}
+                options={({ route }) =>
+                  getAdjustMarginOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Order Details View */}

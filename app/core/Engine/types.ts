@@ -152,11 +152,12 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
-  NeoBankServiceActions,
-  NeoBankServiceEvents,
   TransakService,
   TransakServiceActions,
   TransakServiceEvents,
+  NeoBankService,
+  NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -359,6 +360,16 @@ import type {
   RewardsControllerEvents,
   RewardsControllerActions,
 } from './controllers/rewards-controller/types';
+import { RewardsMoneyController } from './controllers/rewards-money-controller/RewardsMoneyController';
+import {
+  RewardsMoneyDataService,
+  RewardsMoneyDataServiceActions,
+} from './controllers/rewards-money-controller/services/rewards-money-data-service';
+import type {
+  RewardsMoneyControllerState,
+  RewardsMoneyControllerEvents,
+  RewardsMoneyControllerActions,
+} from './controllers/rewards-money-controller/types';
 import {
   PredictController,
   PredictControllerState,
@@ -372,6 +383,11 @@ import type {
   UiSlotsControllerEvents,
   UiSlotsControllerState,
 } from './controllers/ui-slots-controller/types';
+import type {
+  PredictLiveDataService,
+  PredictLiveDataServiceActions,
+  PredictLiveDataServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictLiveDataService';
 import {
   PredictMarketDataService,
   type PredictMarketDataServiceActions,
@@ -382,6 +398,16 @@ import {
   type PredictPortfolioServiceActions,
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictOrderPreviewService,
+  type PredictOrderPreviewServiceActions,
+  type PredictOrderPreviewServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderPreviewService';
+import {
+  RecurringOrdersDataService,
+  type RecurringOrdersDataServiceActions,
+  type RecurringOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/RecurringOrdersDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -583,6 +609,7 @@ type RequiredControllers = Omit<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'RewardsMoneyDataService'
   | 'StorageService'
   | 'SubscriptionService'
   | 'ShieldApiService'
@@ -600,6 +627,7 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'RewardsMoneyDataService'
   | 'StorageService'
   | 'SubscriptionService'
   | 'ShieldApiService'
@@ -696,7 +724,10 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | PredictMarketDataServiceActions
+  | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
+  | PredictOrderPreviewServiceActions
+  | RecurringOrdersDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -704,6 +735,8 @@ export type GlobalActions =
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
+  | RewardsMoneyControllerActions
+  | RewardsMoneyDataServiceActions
   | AppMetadataControllerActions
   | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
@@ -723,7 +756,6 @@ export type GlobalActions =
   | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
-  | NeoBankServiceActions
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
@@ -733,6 +765,7 @@ export type GlobalActions =
   | KycControllerActions
   | KycServiceActions
   | TransakServiceActions
+  | NeoBankServiceActions
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
@@ -815,12 +848,16 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
+  | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
+  | PredictOrderPreviewServiceEvents
+  | RecurringOrdersDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
+  | RewardsMoneyControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -833,7 +870,6 @@ export type GlobalEvents =
   | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
-  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -843,6 +879,7 @@ export type GlobalEvents =
   | KycControllerEvents
   | KycServiceEvents
   | TransakServiceEvents
+  | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
   | SentinelApiServiceEvents;
@@ -974,7 +1011,10 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   PredictMarketDataService: PredictMarketDataService;
+  PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
+  PredictOrderPreviewService: PredictOrderPreviewService;
+  RecurringOrdersDataService: RecurringOrdersDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -982,6 +1022,8 @@ export type MessengerClients = {
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
+  RewardsMoneyController: RewardsMoneyController;
+  RewardsMoneyDataService: RewardsMoneyDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
@@ -998,6 +1040,7 @@ export type MessengerClients = {
   KycService: KycService;
   KycController: KycController;
   TransakService: TransakService;
+  NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };
@@ -1081,6 +1124,7 @@ export type EngineState = {
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
+  RewardsMoneyController: RewardsMoneyControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesControllerState;
@@ -1182,7 +1226,10 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'PredictMarketDataService'
+  | 'PredictLiveDataService'
   | 'PredictPortfolioService'
+  | 'PredictOrderPreviewService'
+  | 'RecurringOrdersDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
@@ -1194,9 +1241,12 @@ export type MessengerClientsToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
+  | 'RewardsMoneyController'
+  | 'RewardsMoneyDataService'
   | 'RampsController'
   | 'RampsService'
   | 'TransakService'
+  | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'

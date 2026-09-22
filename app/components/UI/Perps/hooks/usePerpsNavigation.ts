@@ -24,7 +24,14 @@ import {
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import {
   navigateToPerpsHomeTarget,
+  resetToPerpsHomeTarget,
   useGetPerpsHomeNavigationTarget,
 } from '../utils/perpsModeSwitch';
 
@@ -46,6 +53,12 @@ export interface PerpsNavigationHandlers {
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
   ) => void;
   navigateToHome: (source?: string) => void;
+  /**
+   * Replace the Perps stack with Home. Use after Home was dropped so Back
+   * from Home cannot return to the market that `navigateToHome` would leave
+   * underneath.
+   */
+  resetToHome: (source?: string) => void;
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
@@ -59,7 +72,7 @@ export interface PerpsNavigationHandlers {
   navigateToAdjustMargin: (
     position: Position,
     mode: 'add' | 'remove',
-    options?: { enableHaptics?: boolean },
+    options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
   ) => void;
   navigateToClosePosition: (
     position: Position,
@@ -172,6 +185,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation, getPerpsHomeNavigationTarget],
   );
 
+  const resetToHome = useCallback(
+    (source?: string) => {
+      const target = getPerpsHomeNavigationTarget({ source });
+      resetToPerpsHomeTarget(navigation, target);
+    },
+    [navigation, getPerpsHomeNavigationTarget],
+  );
+
   const navigateToMarketList = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
       // Inside the Perps stack, push rather than navigate. `navigate()` reuses
@@ -223,6 +244,16 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
+      const useBottomSheet = Boolean(params.useBottomSheet);
+      if (useBottomSheet) {
+        trace({
+          name: TraceName.PerpsTradeSheetInteractive,
+          op: TraceOperation.PerpsOperation,
+          data: {
+            source: params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          },
+        });
+      }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         depositWithOrder,
@@ -232,12 +263,20 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              showPerpsHeader: useBottomSheet
+                ? false
+                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           );
         })
         .catch((error: unknown) => {
+          if (useBottomSheet) {
+            endTrace({
+              name: TraceName.PerpsTradeSheetInteractive,
+              data: { success: false, reason: 'transaction_creation_failed' },
+            });
+          }
           const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
           Logger.error(err, {
             tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -277,12 +316,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       mode: 'add' | 'remove',
-      options?: { enableHaptics?: boolean },
+      options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
     ) => {
       navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
         position,
         mode,
         enableHaptics: options?.enableHaptics,
+        ...(options?.useBottomSheet ? { useBottomSheet: true } : {}),
       });
     },
     [navigation],
@@ -336,6 +376,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     // Perps-specific navigation
     navigateToMarketDetails,
     navigateToHome,
+    resetToHome,
     navigateToMarketList,
     navigateToMarketListFromHeader,
     navigateToOrder,

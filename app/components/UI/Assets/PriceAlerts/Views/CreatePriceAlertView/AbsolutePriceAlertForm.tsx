@@ -153,7 +153,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
           variant={ButtonVariant.Secondary}
           onPress={() => handleQuickPercentagePress(percentage)}
           testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
-          twClassName="flex-1"
+          twClassName="flex-1 rounded-xl"
         >
           {strings('price_alerts.quick_percentage', {
             percentage: percentage > 0 ? `+${percentage}` : percentage,

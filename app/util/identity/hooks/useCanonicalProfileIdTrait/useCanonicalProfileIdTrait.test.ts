@@ -43,6 +43,19 @@ const createState = ({
               }
             : {}),
         },
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: Boolean(canonicalProfileId),
+          keyrings: canonicalProfileId
+            ? [
+                {
+                  type: 'HD Key Tree',
+                  accounts: [],
+                  metadata: { id: 'entropySourceId1', name: '' },
+                },
+              ]
+            : [],
+        },
       },
     },
   }) as unknown as Record<string, unknown>;

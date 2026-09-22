@@ -28,6 +28,7 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectPendingDeeplink,
+  selectCampaignsFetching,
 } from '../../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
@@ -50,7 +51,6 @@ import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
-import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
 import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
@@ -92,18 +92,25 @@ const RewardsDashboard: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
-  const isMoneyCampaignDeeplink = pendingDeeplink?.campaign === 'money';
   const {
     campaigns,
     hasLoaded: campaignsHasLoaded,
     hasError: campaignsHasError,
     isLoading: isCampaignsLoading,
   } = useRewardCampaigns();
+  const isCampaignsFetching = useSelector(selectCampaignsFetching);
+  // `campaignsFetching` is dispatched by the focus effect, so it only becomes
+  // readable one render later — on the first commit after a (re)mount the
+  // deeplink effect below always sees `false`, even though a fetch is already
+  // under way. Waiting until a fetch has actually been *observed* closes that
+  // window without depending on the order the two effects happen to run in.
+  const hasObservedCampaignsFetchRef = useRef(false);
+  useEffect(() => {
+    if (isCampaignsFetching) {
+      hasObservedCampaignsFetchRef.current = true;
+    }
+  }, [isCampaignsFetching]);
   const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
-  const {
-    optedInAny: moneyAccountOptedInAny,
-    isLoading: isMoneyAccountParticipationLoading,
-  } = useMoneyAccountSweepstakesParticipation(isMoneyCampaignDeeplink);
 
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
@@ -145,10 +152,23 @@ const RewardsDashboard: React.FC = () => {
       );
     } else if (pendingDeeplink.campaign === 'perps-comp') {
       // The deeplink carries no campaign id, so it has to be resolved against
-      // the campaign list. Failed and in-flight fetches also flip
-      // campaignsHasLoaded, so an empty list is only trustworthy once a
-      // successful fetch has settled.
+      // the campaign list — and resolving against a list that is not yet
+      // authoritative would drop the deeplink for good, because a null result
+      // still counts as handled. The list is only authoritative once every one
+      // of these is false:
+      //  - no subscription yet: fetchCampaigns short-circuits to an empty list
+      //    and still marks it loaded, so "no campaigns" means "not signed in",
+      //    not "no campaigns exist".
+      //  - no fetch observed yet this mount: the list in Redux survives the
+      //    tab unmounting, so it can be a previous fetch's result that the
+      //    in-flight refresh has not replaced yet.
+      //  - a fetch is in flight: campaignsLoading is suppressed once campaigns
+      //    exist, so only campaignsFetching catches a refresh over a stale list.
+      //  - never loaded, or failed/in-flight with nothing cached.
       const waitingForCampaigns =
+        !subscriptionId ||
+        !hasObservedCampaignsFetchRef.current ||
+        isCampaignsFetching ||
         !campaignsHasLoaded ||
         (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
 
@@ -176,11 +196,6 @@ const RewardsDashboard: React.FC = () => {
         Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
       );
     } else if (pendingDeeplink.campaign === 'money') {
-      // Only an active series can route to the tour, so that is the one case
-      // where the decision has to wait on opt-in status.
-      const waitingForParticipation =
-        moneyAccountSeries.seriesStatus === 'active' &&
-        isMoneyAccountParticipationLoading;
       // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
       // series is only trustworthy once a successful fetch has settled.
       const waitingForCampaigns =
@@ -188,23 +203,14 @@ const RewardsDashboard: React.FC = () => {
         (moneyAccountSeries.campaigns.length === 0 &&
           (campaignsHasError || isCampaignsLoading));
 
-      if (waitingForCampaigns || waitingForParticipation) {
+      if (waitingForCampaigns) {
         handled = false;
       } else {
         const entry = resolveMoneyAccountSweepstakesEntryRoute({
           series: moneyAccountSeries,
-          optedInAny: moneyAccountOptedInAny,
         });
 
-        if (entry.kind === 'tour') {
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_CAMPAIGN_TOUR_STEP,
-            {
-              campaignId: entry.campaignId,
-            },
-          );
-        } else if (entry.kind === 'details') {
+        if (entry.kind === 'details') {
           navigateToRewardsRoute(
             navigation,
             Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
@@ -231,13 +237,13 @@ const RewardsDashboard: React.FC = () => {
     navigation,
     dispatch,
     pendingDeeplink,
+    subscriptionId,
     campaigns,
     campaignsHasLoaded,
     campaignsHasError,
     isCampaignsLoading,
+    isCampaignsFetching,
     moneyAccountSeries,
-    moneyAccountOptedInAny,
-    isMoneyAccountParticipationLoading,
   ]);
 
   const hideUnlinkedAccountsBanner = useSelector(

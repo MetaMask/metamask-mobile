@@ -30,6 +30,7 @@ export const LimitOrderPriceAdjustCard = ({
   onAmountTypeTogglePress,
   marketComparison,
   isTriggerPriceNearMarket = false,
+  priceComparisonDirection,
   pricePresets,
   isCustomPercentActive,
   customPercent,
@@ -66,6 +67,7 @@ export const LimitOrderPriceAdjustCard = ({
         onQuoteUnitPress={onQuoteUnitPress}
         onDismissKeypad={onDismissKeypad}
         marketComparison={marketComparison}
+        priceComparisonDirection={priceComparisonDirection}
       />
       <ButtonPricePresetsSection
         ref={customPercentInputRef}

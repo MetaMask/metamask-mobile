@@ -9,9 +9,27 @@ export const PredictPortfolioScreenTestIds = {
   BALANCE_RETRY: 'predict-next-portfolio-balance-retry',
   TABS: 'predict-next-portfolio-tabs',
   POSITIONS_TAB: 'predict-next-portfolio-positions-tab',
-  HISTORY_TAB: 'predict-next-portfolio-history-tab',
+  ACTIVITY_TAB: 'predict-next-portfolio-activity-tab',
   POSITIONS_CONTENT: 'predict-next-portfolio-positions-content',
-  HISTORY_CONTENT: 'predict-next-portfolio-history-content',
+  ACTIVITY_CONTENT: 'predict-next-portfolio-activity-content',
+  POSITIONS_LIST: 'predict-next-portfolio-positions-list',
+  ACTIVITY_LIST: 'predict-next-portfolio-activity-list',
+  POSITIONS_NEXT_PAGE_LOADING:
+    'predict-next-portfolio-positions-next-page-loading',
+  ACTIVITY_NEXT_PAGE_LOADING:
+    'predict-next-portfolio-activity-next-page-loading',
+  POSITION_ROW: 'predict-next-portfolio-position-row',
+  ACTIVITY_ROW: 'predict-next-portfolio-activity-row',
+  POSITION_ROW_FALLBACK_ICON:
+    'predict-next-portfolio-position-row-fallback-icon',
+  ACTIVITY_ROW_FALLBACK_ICON:
+    'predict-next-portfolio-activity-row-fallback-icon',
+  POSITIONS_LOADING: 'predict-next-portfolio-positions-loading',
+  ACTIVITY_LOADING: 'predict-next-portfolio-activity-loading',
+  POSITIONS_ERROR: 'predict-next-portfolio-positions-error',
+  ACTIVITY_ERROR: 'predict-next-portfolio-activity-error',
+  POSITIONS_RETRY: 'predict-next-portfolio-positions-retry',
+  ACTIVITY_RETRY: 'predict-next-portfolio-activity-retry',
   EMPTY_STATE: 'predict-next-portfolio-empty-state',
   BROWSE_MARKETS: 'predict-next-portfolio-browse-markets',
 } as const;

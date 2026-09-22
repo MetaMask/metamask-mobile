@@ -1,5 +1,5 @@
 export { default as TraderRow } from './TraderRow';
-export type { TraderRowProps } from './TraderRow';
+export type { TraderRowProps } from '../types';
 
 export { default as TraderRowSkeleton } from './TraderRowSkeleton';
 

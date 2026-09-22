@@ -1,5 +1,7 @@
 import type {
   FetchFeedParams,
+  FetchOrderPreviewParams,
+  FetchPortfolioPageParams,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -14,6 +16,16 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
   fetchBalance(
     venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchFeed(
@@ -33,6 +45,11 @@ export interface PredictApiReadTransport {
     range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchOrderPreview(
+    venueId: PredictVenueId,
+    params: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
 type PredictApiReadQueryParams = FetchFeedParams & {
@@ -43,7 +60,7 @@ export interface PredictApiReadClientOptions {
   baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
-  getBearerToken?: () => Promise<string | undefined>;
+  getBearerToken: () => Promise<string | undefined>;
 }
 
 const parseBaseUrl = (baseUrl?: string): URL | undefined => {
@@ -59,11 +76,14 @@ const parseBaseUrl = (baseUrl?: string): URL | undefined => {
 
 export class PredictHttpError extends Error {
   readonly status: number;
+  /** Canonical error code from the response body, when the backend sends one. */
+  readonly bodyCode?: string;
 
-  constructor(status: number) {
+  constructor(status: number, bodyCode?: string) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
+    this.bodyCode = bodyCode;
   }
 }
 
@@ -71,7 +91,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   readonly #baseUrl?: URL;
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
-  readonly #getBearerToken?: () => Promise<string | undefined>;
+  readonly #getBearerToken: () => Promise<string | undefined>;
 
   constructor({
     baseUrl,
@@ -96,10 +116,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#getAuthenticated(
-      ['v1', 'venues', venueId, 'balance'],
-      options,
-    );
+    return this.#get(['v1', 'venues', venueId, 'balance'], undefined, options);
+  }
+
+  fetchPositions(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'positions'], params, options);
+  }
+
+  fetchActivity(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'activity'], params, options);
   }
 
   fetchFeed(
@@ -140,25 +173,39 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
-  async #getAuthenticated(
-    segments: readonly string[],
+  fetchOrderPreview(
+    venueId: PredictVenueId,
+    params: FetchOrderPreviewParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
+   * Every predict-api route requires a bearer token, so one is resolved for
+   * each request rather than per endpoint.
+   */
+  async #resolveBearerToken(): Promise<string> {
     // A missing or failing token provider is an authentication failure, not a
     // malformed response. Never let the provider's error text escape.
-    const token = await this.#getBearerToken?.().catch(() => undefined);
+    const token = await this.#getBearerToken().catch(() => undefined);
     if (!token?.trim()) {
       throw new PredictHttpError(401);
     }
-    return this.#get(segments, undefined, options, token);
+    return token;
   }
 
   async #get(
     segments: readonly string[],
     params?: PredictApiReadQueryParams,
     options?: PredictReadOptions,
-    bearerToken?: string,
   ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
@@ -176,7 +223,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         Accept: 'application/json',
         'x-metamask-clientproduct': 'metamask-mobile',
         'x-metamask-clientversion': this.#clientVersion,
-        ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+        Authorization: `Bearer ${bearerToken}`,
       },
       signal: options?.signal,
     });
@@ -192,6 +239,64 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         throw error;
       }
       throw new PredictHttpError(response.status);
+    }
+  }
+
+  async #postAuthenticated(
+    segments: readonly string[],
+    body: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+    return this.#post(segments, body, bearerToken, options);
+  }
+
+  async #post(
+    segments: readonly string[],
+    body: FetchOrderPreviewParams,
+    bearerToken: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const url = new URL(
+      segments.map(encodeURIComponent).join('/'),
+      this.#baseUrlWithTrailingSlash(),
+    );
+
+    const response = await this.#fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'x-metamask-clientproduct': 'metamask-mobile',
+        'x-metamask-clientversion': this.#clientVersion,
+        Authorization: `Bearer ${bearerToken}`,
+      },
+      body: JSON.stringify(body),
+      signal: options?.signal,
+    });
+
+    if (!response.ok) {
+      const bodyCode = await this.#extractErrorCode(response);
+      throw new PredictHttpError(response.status, bodyCode);
+    }
+
+    try {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      throw new PredictHttpError(response.status);
+    }
+  }
+
+  /** Reads the canonical error code from an error response body, if any. */
+  async #extractErrorCode(response: Response): Promise<string | undefined> {
+    try {
+      const body = (await response.json()) as { code?: unknown };
+      return typeof body.code === 'string' ? body.code : undefined;
+    } catch {
+      return undefined;
     }
   }
 

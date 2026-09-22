@@ -136,6 +136,7 @@ describe('buildReportTransactionUrl', () => {
     expect(url).toBeDefined();
     const parsed = new URL(url as string);
     expect(parsed.searchParams.get('ticket_form_id')).toBe('22905679582745');
+    expect(IMMERSVE_REPORT_TRANSACTION_ID_PARAM).toBe('tf_22954572650393');
     expect(parsed.searchParams.get(IMMERSVE_REPORT_TRANSACTION_ID_PARAM)).toBe(
       'tx-123',
     );
