@@ -7,12 +7,22 @@ import {
 } from './flaky-build-history-index';
 import { INDEX_VERSION, emptyIndex, mergeDayHits } from './flaky-history-index';
 
-jest.mock('@actions/core', () => ({
-  info: jest.fn(),
-  warning: jest.fn(),
-  setFailed: jest.fn(),
-  setOutput: jest.fn(),
-}));
+// Virtual because @actions/* is installed under .github/scripts, which the
+// repo-wide jest run does not have on its resolution path.
+jest.mock(
+  '@actions/core',
+  () => ({
+    info: jest.fn(),
+    warning: jest.fn(),
+    setFailed: jest.fn(),
+    setOutput: jest.fn(),
+  }),
+  { virtual: true },
+);
+
+jest.mock('@actions/github', () => ({ getOctokit: jest.fn() }), {
+  virtual: true,
+});
 
 const FILE = 'app/core/createAsyncBatcher.test.ts';
 

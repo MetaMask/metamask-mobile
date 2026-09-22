@@ -5,6 +5,23 @@ import {
 import { describeCoverageWindow } from './flaky-history-analysis';
 import type { CoverageWindow } from './flaky-types';
 
+// Virtual because @actions/* is installed under .github/scripts, which the
+// repo-wide jest run does not have on its resolution path.
+jest.mock(
+  '@actions/core',
+  () => ({
+    info: jest.fn(),
+    warning: jest.fn(),
+    setFailed: jest.fn(),
+    setOutput: jest.fn(),
+  }),
+  { virtual: true },
+);
+
+jest.mock('@actions/github', () => ({ getOctokit: jest.fn() }), {
+  virtual: true,
+});
+
 const apiRun = (
   id: number,
   overrides: Partial<WorkflowRunListItem> = {},
