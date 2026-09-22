@@ -45,6 +45,13 @@ export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
  */
 export const TAB_BAR_FLOATING_SYSTEM_BAR_GAP = 16;
 
+/**
+ * Smallest bottom inset that means an opaque navigation bar rather than a
+ * gesture strip. Android reports 48dp for three-button navigation and about
+ * 24dp for gesture, whose inset is mostly empty and already reads as clearance.
+ */
+export const TAB_BAR_FLOATING_OPAQUE_NAV_BAR_INSET = 40;
+
 /** Matches Apple's iOS 26 tab bar; also the diameter of the search circle. */
 export const TAB_BAR_FLOATING_HEIGHT = 62;
 

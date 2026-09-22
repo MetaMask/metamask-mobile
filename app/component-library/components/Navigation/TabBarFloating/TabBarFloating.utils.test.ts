@@ -53,9 +53,11 @@ describe('getTabBarFloatingBottomPadding', () => {
       );
     });
 
-    it('leaves the same gap above a gesture navigation hint bar', () => {
+    // A gesture inset is mostly empty strip, so adding the gap on top of it
+    // floated the bar far higher than the equivalent iOS spacing.
+    it('adds no gap above a gesture navigation hint bar', () => {
       expect(getTabBarFloatingBottomPadding(ANDROID_GESTURE_INSET)).toBe(
-        ANDROID_GESTURE_INSET + TAB_BAR_FLOATING_SYSTEM_BAR_GAP,
+        ANDROID_GESTURE_INSET,
       );
     });
 
