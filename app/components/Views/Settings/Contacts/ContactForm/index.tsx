@@ -2,11 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   Button,
   ButtonSize,
   ButtonVariant,
   Label,
   HeaderStandard,
+  type BottomSheetRef as DesignSystemBottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
@@ -18,7 +22,6 @@ import {
 } from '../../../../../util/address';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
-import ActionSheet from '@metamask/react-native-actionsheet';
 import { useTheme } from '../../../../../util/theme';
 import {
   CONTACT_ALREADY_SAVED,
@@ -51,7 +54,7 @@ import type {
 } from '@react-navigation/native';
 import type { RootState } from '../../../../../reducers';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
-import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import type { BottomSheetRef as NetworkBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { createStyles } from './ContactForm.styles';
 import { ContactNetworkSelector } from './ContactNetworkSelector';
 import { ContactFormFields } from './ContactFormFields';
@@ -198,10 +201,10 @@ const ContactForm = ({
     }),
   );
   const stateRef = useRef(state);
-  const actionSheet = useRef<typeof ActionSheet>(null);
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = useRef<NetworkBottomSheetRef>(null);
+  const deleteSheetRef = useRef<DesignSystemBottomSheetRef>(null);
   const contactAddressToRemove = useRef<string | null>(null);
 
   const updateState = (updates: Partial<ContactFormState>) => {
@@ -239,7 +242,11 @@ const ContactForm = ({
 
   const onDelete = () => {
     contactAddressToRemove.current = state.address;
-    actionSheet.current?.show();
+    deleteSheetRef.current?.onOpenBottomSheet();
+  };
+
+  const closeDeleteSheet = () => {
+    deleteSheetRef.current?.onCloseBottomSheet();
   };
 
   const onChangeName = (name: string) => {
@@ -339,6 +346,10 @@ const ContactForm = ({
     AddressBookController.delete(originalContactChainId, addressToRemove);
     route.params?.onDelete?.();
     navigation.pop();
+  };
+
+  const confirmDelete = () => {
+    deleteSheetRef.current?.onCloseBottomSheet(deleteContact);
   };
 
   const onScan = () => {
@@ -502,19 +513,29 @@ const ContactForm = ({
           )}
         </View>
       )}
-      <ActionSheet
-        ref={actionSheet}
-        title={strings('address_book.delete_contact')}
-        options={[
-          strings('address_book.delete'),
-          strings('address_book.cancel'),
-        ]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        // eslint-disable-next-line react/jsx-no-bind
-        onPress={(index: number) => (index === 0 ? deleteContact() : null)}
-        theme={themeAppearance}
-      />
+      <BottomSheet
+        ref={deleteSheetRef}
+        testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}
+      >
+        <BottomSheetHeader onClose={closeDeleteSheet}>
+          {`${strings('address_book.delete_contact')}: ${name ?? ''}`}
+        </BottomSheetHeader>
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('address_book.cancel'),
+            onPress: closeDeleteSheet,
+            size: ButtonSize.Lg,
+            testID: AddContactViewSelectorsIDs.DELETE_CANCEL_BUTTON,
+          }}
+          primaryButtonProps={{
+            children: strings('address_book.delete'),
+            isDanger: true,
+            onPress: confirmDelete,
+            size: ButtonSize.Lg,
+            testID: AddContactViewSelectorsIDs.DELETE_CONFIRM_BUTTON,
+          }}
+        />
+      </BottomSheet>
       {state.openNetworkSelector ? (
         <NetworkListBottomSheet
           selectedNetwork={state.contactChainId || null}

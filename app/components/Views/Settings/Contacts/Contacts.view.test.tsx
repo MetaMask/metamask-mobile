@@ -238,7 +238,7 @@ describeForPlatforms('Contacts component views', () => {
     );
     const onDeleteCallback = jest.fn();
 
-    const { findByTestId, getByTestId } = renderContactForm({
+    const { findByTestId, getByTestId, getByText } = renderContactForm({
       stateOptions: {
         addressBook: syncedContactAddressBook,
       },
@@ -261,18 +261,19 @@ describeForPlatforms('Contacts component views', () => {
 
     fireEvent.press(deleteButton);
 
-    // Delete opens a confirmation action sheet before calling the controller.
+    // Delete opens a confirmation bottom sheet before calling the controller.
     await waitFor(() => {
       expect(
-        getByTestId(
-          AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
+        getByTestId(AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `${strings('address_book.delete_contact')}: ${SYNCED_CONTACT.name}`,
         ),
       ).toBeOnTheScreen();
     });
     fireEvent.press(
-      getByTestId(
-        AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
-      ),
+      getByTestId(AddContactViewSelectorsIDs.DELETE_CONFIRM_BUTTON),
     );
 
     await waitFor(() => {
