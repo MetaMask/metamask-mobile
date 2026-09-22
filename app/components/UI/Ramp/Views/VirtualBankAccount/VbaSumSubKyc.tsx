@@ -19,6 +19,8 @@ import { useLaunchSumSub } from './hooks/useLaunchSumSub';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
+  MORE_INFO_NEEDED: 'vba-sumsub-kyc-more-info-needed',
+  CONTINUE_BUTTON: 'vba-sumsub-kyc-continue-button',
   ERROR: 'vba-sumsub-kyc-error',
   RETRY_BUTTON: 'vba-sumsub-kyc-retry-button',
 } as const;
@@ -32,7 +34,7 @@ export const VbaSumSubKycSelectorsIDs = {
  */
 const VbaSumSubKyc = () => {
   const tw = useTailwind();
-  const { hasError, retry } = useLaunchSumSub();
+  const { needsMoreInfo, hasError, retry } = useLaunchSumSub();
 
   return (
     <SafeAreaView
@@ -40,7 +42,36 @@ const VbaSumSubKyc = () => {
       style={tw.style('flex-1 bg-default')}
       testID={VbaSumSubKycSelectorsIDs.CONTAINER}
     >
-      {hasError ? (
+      {needsMoreInfo ? (
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1 px-6 gap-3"
+          testID={VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED}
+        >
+          <Text variant={TextVariant.HeadingMd} twClassName="text-center">
+            {strings('virtual_bank_account.sumsub_kyc.more_info_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('virtual_bank_account.sumsub_kyc.more_info_description')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={retry}
+            testID={VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON}
+            twClassName="mt-2"
+          >
+            {strings('virtual_bank_account.sumsub_kyc.more_info_button')}
+          </Button>
+        </Box>
+      ) : hasError ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}

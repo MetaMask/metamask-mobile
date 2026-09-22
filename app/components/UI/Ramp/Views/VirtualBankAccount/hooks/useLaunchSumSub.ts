@@ -11,6 +11,8 @@ import { useAdvanceVbaOnboarding } from './useVbaOnboardingRouting';
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
   isLaunching: boolean;
+  /** True when the applicant closed SumSub before submitting. */
+  needsMoreInfo: boolean;
   /** True when the launch failed and the user can retry. */
   hasError: boolean;
   /** Re-attempts the launch. */
@@ -37,15 +39,14 @@ const toAcceptedDisclaimerKeys = (
  *
  * `launchProviderFlow` fails closed (it never throws) and records the outcome
  * on `sessionStatus.finalStatus`:
- * - a completed run advances `finalStatus` off `new` (e.g. to `pending`) →
- *   hydrate and navigate onward;
- * - an unchanged status means the applicant abandoned the SDK or the journey
- *   failed. The controller doesn't distinguish the two, so we surface a
- *   retryable error and keep the user here rather than silently bouncing back.
+ * - A completed run advances `finalStatus` to `pending` and navigates onward.
+ * - An unchanged status means the applicant closed the SDK before submitting.
+ * Mobile then shows "More information needed" and offers to continue.
  */
 export const useLaunchSumSub = (): UseLaunchSumSubResult => {
   const advanceOnboarding = useAdvanceVbaOnboarding('sumsub');
   const [isLaunching, setIsLaunching] = useState(true);
+  const [needsMoreInfo, setNeedsMoreInfo] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   // Guards against React 18 strict-mode double-invoke and re-renders launching
@@ -54,6 +55,7 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
 
   const retry = useCallback(() => {
     setHasError(false);
+    setNeedsMoreInfo(false);
     setIsLaunching(true);
     setAttempt((count) => count + 1);
   }, []);
@@ -72,7 +74,9 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
         }
 
         const country = await KycService.getGeoCountry();
-        const catalog = await KycController.fetchSessionDisclaimers({ country });
+        const catalog = await KycController.fetchSessionDisclaimers({
+          country,
+        });
         await KycController.recordSessionDisclaimers({
           providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
             catalog.kycProvider,
@@ -82,9 +86,18 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
         });
 
         await KycController.launchProviderFlow({});
-        // Applicant finished the SDK; vendor status still lags, so advance
-        // the funnel with an optimistic pending kycStatus instead of hydrating.
-        advanceOnboarding();
+        if (KycController.state.sessionStatus?.finalStatus === 'pending') {
+          // The applicant submitted the SDK flow. The authoritative vendor
+          // decision still lags, so advance with an optimistic pending status.
+          advanceOnboarding();
+        } else {
+          // SumSub resolves when its close button is pressed. The controller
+          // deliberately leaves finalStatus unchanged unless the applicant
+          // submitted, so keep verification retryable instead of showing the
+          // pending-review screen.
+          setNeedsMoreInfo(true);
+          setIsLaunching(false);
+        }
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -99,5 +112,5 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
     launch();
   }, [attempt, advanceOnboarding]);
 
-  return { isLaunching, hasError, retry };
+  return { isLaunching, needsMoreInfo, hasError, retry };
 };

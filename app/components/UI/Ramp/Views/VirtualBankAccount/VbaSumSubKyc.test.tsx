@@ -18,6 +18,9 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockKycControllerState = {
   email: 'a@b.co' as string | null,
+  sessionStatus: {
+    finalStatus: 'new',
+  },
 };
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -62,10 +65,13 @@ describe('VbaSumSubKyc', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycControllerState.email = 'a@b.co';
+    mockKycControllerState.sessionStatus.finalStatus = 'new';
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
-    mockKycController.launchProviderFlow.mockResolvedValue(undefined);
+    mockKycController.launchProviderFlow.mockImplementation(async () => {
+      mockKycControllerState.sessionStatus.finalStatus = 'pending';
+    });
   });
 
   it('renders the container', () => {
@@ -87,6 +93,22 @@ describe('VbaSumSubKyc', () => {
       credentialReusabilityConsentGiven: false,
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_PENDING);
+  });
+
+  it('shows more information needed when SumSub is closed before submission', async () => {
+    mockKycController.launchProviderFlow.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithProvider(<VbaSumSubKyc />);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      getByTestId(VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('shows a retryable error (and does not navigate) when the launch throws', async () => {
@@ -118,8 +140,8 @@ describe('VbaSumSubKyc', () => {
       ).toBeOnTheScreen();
     });
 
-    const callsBeforeRetry = mockKycController.launchProviderFlow.mock.calls
-      .length;
+    const callsBeforeRetry =
+      mockKycController.launchProviderFlow.mock.calls.length;
     fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON));
 
     await waitFor(() => {
