@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
@@ -7,8 +6,7 @@ import type {
 } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../constants/navigation/Routes';
+import type { VbaIdentityVerificationCompletion } from '../modules/types';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -28,25 +26,27 @@ const toAcceptedDisclaimerKeys = (
 
 /**
  * On mount, records the session-scoped idOS / SumSub consents and opens the
- * SumSub document-verification journey back-to-back, then advances the funnel
- * with an optimistic pending KYC status (backend applicant status lags).
+ * SumSub document-verification journey back-to-back, then reports submission
+ * to the VBA coordinator.
  *
- * The UKYC session was created at the email step (`startSession`) and its
- * consents were already accepted on Verify Identity, but they are re-recorded
- * here so the idOS applicant is created immediately before the journey — the
- * relay only keeps the applicant valid when the session consents and the
- * journey happen back-to-back, so splitting them across screens yields a
- * "Failed to get applicant" error. `recordSessionDisclaimers` is idempotent
- * (a 409 for already-accepted consents is swallowed).
+ * The UKYC session was created at the email step (`startSession`). The
+ * identity module displays the session terms first, but records consent only
+ * here so idOS applicant creation and provider launch remain back-to-back.
+ * Splitting those operations across screens yields a "Failed to get
+ * applicant" error. `recordSessionDisclaimers` is idempotent (a 409 for
+ * already-accepted consents is swallowed).
  *
  * `launchProviderFlow` fails closed (it never throws) and records the outcome
  * on `sessionStatus.finalStatus`:
- * - A completed run advances `finalStatus` to `pending` and navigates onward.
+ * - A completed run advances `finalStatus` to `pending` and reports success.
  * - An unchanged status means the applicant closed the SDK before submitting.
  * Mobile then shows "More information needed" and offers to continue.
  */
-export const useLaunchSumSub = (): UseLaunchSumSubResult => {
-  const navigation = useNavigation<AppNavigationProp>();
+export const useLaunchSumSub = (
+  onSubmitted: (
+    result: VbaIdentityVerificationCompletion,
+  ) => void | Promise<void>,
+): UseLaunchSumSubResult => {
   const [isLaunching, setIsLaunching] = useState(true);
   const [needsMoreInfo, setNeedsMoreInfo] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -89,9 +89,7 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
 
         await KycController.launchProviderFlow({});
         if (KycController.state.sessionStatus?.finalStatus === 'pending') {
-          // The applicant submitted the SDK flow. The authoritative vendor
-          // decision still lags, so advance with an optimistic pending status.
-          navigation.navigate(Routes.RAMP.VBA_KYC_PENDING);
+          await onSubmitted({ status: 'submitted' });
         } else {
           // SumSub resolves when its close button is pressed. The controller
           // deliberately leaves finalStatus unchanged unless the applicant
@@ -112,7 +110,7 @@ export const useLaunchSumSub = (): UseLaunchSumSubResult => {
     };
 
     launch();
-  }, [attempt, navigation]);
+  }, [attempt, onSubmitted]);
 
   return { isLaunching, needsMoreInfo, hasError, retry };
 };

@@ -16,6 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from './hooks/useLaunchSumSub';
+import type { VbaIdentityVerificationCompletion } from './modules/types';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
@@ -27,14 +28,20 @@ export const VbaSumSubKycSelectorsIDs = {
 
 /**
  * Host screen for the `KycRequired` stage. It opens the SumSub SDK on mount
- * (via {@link useLaunchSumSub}) and routes onward from the KYC outcome. While
+ * (via {@link useLaunchSumSub}) and reports the KYC outcome. While
  * launching it shows a spinner (the SDK presents itself over this screen); if
  * the launch fails it surfaces a retryable error instead of bouncing back to
  * the previous screen. Provider terms are accepted earlier, on Verify Identity.
  */
-const VbaSumSubKyc = () => {
+interface VbaSumSubKycProps {
+  onSubmitted: (
+    result: VbaIdentityVerificationCompletion,
+  ) => void | Promise<void>;
+}
+
+const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
   const tw = useTailwind();
-  const { needsMoreInfo, hasError, retry } = useLaunchSumSub();
+  const { needsMoreInfo, hasError, retry } = useLaunchSumSub(onSubmitted);
 
   return (
     <SafeAreaView

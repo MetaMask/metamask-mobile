@@ -6,15 +6,18 @@ import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
-import { useKycStartSession } from './hooks/useKycStartSession';
+import { useContinueIdentityVerification } from './hooks/useContinueIdentityVerification';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
-const mockStartSession = jest.fn();
+const mockContinueToProvider = jest.fn();
+const mockOnSuccess = jest.fn();
 
-jest.mock('./hooks/useKycStartSession');
-const mockUseKycStartSession = jest.mocked(useKycStartSession);
+jest.mock('./hooks/useContinueIdentityVerification');
+const mockUseContinueIdentityVerification = jest.mocked(
+  useContinueIdentityVerification,
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -53,9 +56,9 @@ describe('VbaVerifyIdentity', () => {
       error: null,
       retry: mockRetry,
     });
-    mockUseKycStartSession.mockReturnValue({
-      isStarting: false,
-      startSession: mockStartSession,
+    mockUseContinueIdentityVerification.mockReturnValue({
+      isContinuing: false,
+      continueToProvider: mockContinueToProvider,
     });
   });
 
@@ -66,7 +69,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('renders the title, steps, and continue button', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     expect(getByText('Verify your identity')).toBeOnTheScreen();
@@ -79,7 +82,9 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
 
@@ -88,7 +93,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('shows the legal links regardless of the data and privacy toggle state', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     expect(
@@ -107,7 +112,9 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('keeps the data and privacy sub-topics collapsed by default', () => {
-    const { queryByText } = renderWithProvider(<VbaVerifyIdentity />);
+    const { queryByText } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     expect(queryByText('What we collect')).not.toBeOnTheScreen();
     expect(queryByText('How we store data')).not.toBeOnTheScreen();
@@ -116,7 +123,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('shows sub-topic titles but keeps their body copy folded once data and privacy opens', () => {
     const { getByText, queryByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(
@@ -136,7 +143,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('expands an individual sub-topic without affecting the others', () => {
     const { getByTestId, getByText, queryByText } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(
@@ -164,7 +171,7 @@ describe('VbaVerifyIdentity', () => {
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
     const { getByTestId, getByText } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(
@@ -192,7 +199,9 @@ describe('VbaVerifyIdentity', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_LOADING),
@@ -211,7 +220,7 @@ describe('VbaVerifyIdentity', () => {
     });
 
     const { getByTestId, getByText } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     expect(
@@ -226,11 +235,13 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('starts the KYC session when continue is pressed', () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockStartSession).toHaveBeenCalled();
+    expect(mockContinueToProvider).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

@@ -3,18 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
 import Engine from '../../../../../core/Engine';
-import Routes from '../../../../../constants/navigation/Routes';
-
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-}));
+const mockOnSubmitted = jest.fn();
 
 const mockKycControllerState = {
   email: 'a@b.co' as string | null,
@@ -75,13 +64,15 @@ describe('VbaSumSubKyc', () => {
   });
 
   it('renders the container', () => {
-    const { getByTestId } = renderWithProvider(<VbaSumSubKyc />);
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
 
     expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('launches SumSub on mount then navigates to the pending screen', async () => {
-    renderWithProvider(<VbaSumSubKyc />);
+  it('launches SumSub on mount then reports submission', async () => {
+    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
@@ -92,13 +83,15 @@ describe('VbaSumSubKyc', () => {
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
       credentialReusabilityConsentGiven: false,
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_PENDING);
+    expect(mockOnSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
   });
 
   it('shows more information needed when SumSub is closed before submission', async () => {
     mockKycController.launchProviderFlow.mockResolvedValue(undefined);
 
-    const { getByTestId } = renderWithProvider(<VbaSumSubKyc />);
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
 
     await waitFor(() => {
       expect(
@@ -108,15 +101,17 @@ describe('VbaSumSubKyc', () => {
     expect(
       getByTestId(VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
-  it('shows a retryable error (and does not navigate) when the launch throws', async () => {
+  it('shows a retryable error without completing when the launch throws', async () => {
     mockKycController.launchProviderFlow.mockRejectedValue(
       new Error('sdk down'),
     );
 
-    const { getByTestId } = renderWithProvider(<VbaSumSubKyc />);
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
 
     await waitFor(() => {
       expect(getByTestId(VbaSumSubKycSelectorsIDs.ERROR)).toBeOnTheScreen();
@@ -124,7 +119,7 @@ describe('VbaSumSubKyc', () => {
     expect(
       getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON),
     ).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
   it('re-launches SumSub when the retry button is pressed', async () => {
@@ -132,7 +127,9 @@ describe('VbaSumSubKyc', () => {
       new Error('sdk down'),
     );
 
-    const { getByTestId } = renderWithProvider(<VbaSumSubKyc />);
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
 
     await waitFor(() => {
       expect(
@@ -148,7 +145,7 @@ describe('VbaSumSubKyc', () => {
       expect(
         mockKycController.launchProviderFlow.mock.calls.length,
       ).toBeGreaterThan(callsBeforeRetry);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_PENDING);
+      expect(mockOnSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
     });
   });
 });

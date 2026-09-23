@@ -34,7 +34,7 @@ import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
-import { useKycStartSession } from './hooks/useKycStartSession';
+import { useContinueIdentityVerification } from './hooks/useContinueIdentityVerification';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -120,11 +120,16 @@ const AccordionRow = ({
   );
 };
 
-const VbaVerifyIdentity = () => {
+interface VbaVerifyIdentityProps {
+  onSuccess: () => void | Promise<void>;
+}
+
+const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
-  const { isStarting, startSession } = useKycStartSession();
+  const { isContinuing, continueToProvider } =
+    useContinueIdentityVerification(onSuccess);
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
   const chevronRotation = useSharedValue(0);
@@ -139,8 +144,8 @@ const VbaVerifyIdentity = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleContinue = useCallback(() => {
-    startSession();
-  }, [startSession]);
+    continueToProvider();
+  }, [continueToProvider]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -340,8 +345,8 @@ const VbaVerifyIdentity = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isLoading={isStarting}
-          isDisabled={!canContinue || isStarting}
+          isLoading={isContinuing}
+          isDisabled={!canContinue || isContinuing}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
