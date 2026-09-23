@@ -91,6 +91,11 @@ jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
   useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
 }));
 
+jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
+  useGeoRewardsMetadata: jest.fn(() => ({
+    fetchGeoRewardsMetadata: jest.fn(),
+  })),
+}));
 const LOCALIZED_TEXT = {
   inviteTitle: 'Claim your invite',
   inviteMessageBody: 'Your friend sent you a code that earns you cashback.',
@@ -117,6 +122,7 @@ const buildReferralMe = (
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -133,9 +139,17 @@ const advanceDebounce = async () => {
   });
 };
 
-const renderSheetSync = (referralCode?: string) => {
+const renderSheetSync = (
+  referralCode?: string,
+  {
+    geoLocation = null,
+  }: {
+    geoLocation?: string | null;
+  } = {},
+) => {
   const store = configureStore({
     rewardsMoney: { referralMe: referralMeEntries },
+    rewards: { geoLocation },
   });
   const view = render(
     <Provider store={store}>
@@ -146,8 +160,13 @@ const renderSheetSync = (referralCode?: string) => {
 };
 
 /** Renders and lets the prefilled code finish its debounced validation. */
-const renderSheet = async (referralCode?: string) => {
-  const view = renderSheetSync(referralCode);
+const renderSheet = async (
+  referralCode?: string,
+  options?: {
+    geoLocation?: string | null;
+  },
+) => {
+  const view = renderSheetSync(referralCode, options);
   await advanceDebounce();
   return view;
 };
@@ -488,6 +507,73 @@ describe('AcceptInviteSheet', () => {
 
     expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
       { disabled: true, busy: true },
+    );
+  });
+
+  it('disables Accept and shows the region error when the device country is excluded', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({ excluded_regions: ['GB'] }),
+      },
+    };
+
+    const { getByTestId } = await renderSheet('KOL1', { geoLocation: 'GB' });
+
+    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
+      strings('rewards.onboarding.not_supported_region_description'),
+    );
+    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
+      { disabled: true },
+    );
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+    expect(mockAcceptReferralCode).not.toHaveBeenCalled();
+  });
+
+  it('still allows Accept when geo is unknown even if exclusions are set', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({ excluded_regions: ['GB'] }),
+      },
+    };
+
+    const { getByTestId, queryByTestId } = await renderSheet('KOL1', {
+      geoLocation: null,
+    });
+
+    expect(queryByTestId(TEST_IDS.CODE_ERROR)).toBeNull();
+    expect(
+      getByTestId(TEST_IDS.ACCEPT).props.accessibilityState?.disabled,
+    ).toBeFalsy();
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+  });
+
+  it('treats a country-region geo string as its country prefix for exclusion', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({ excluded_regions: ['US'] }),
+      },
+    };
+
+    const { getByTestId } = await renderSheet('KOL1', {
+      geoLocation: 'US-CA',
+    });
+
+    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
+      strings('rewards.onboarding.not_supported_region_description'),
+    );
+    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
+      { disabled: true },
     );
   });
 
