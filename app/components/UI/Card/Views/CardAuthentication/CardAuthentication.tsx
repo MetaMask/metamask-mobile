@@ -68,6 +68,7 @@ import {
   resolveAuthView,
   resolveDisplayedWalletAddress,
   type AuthBanner,
+  type AuthView,
   type UkManualMode,
 } from './resolveAuthView';
 import SignInCountryField from './components/SignInCountryField';
@@ -90,6 +91,56 @@ type CardAuthenticationParams = {
       }
     | undefined;
 };
+
+function resolveSignInAccountPresentation({
+  view,
+  selectedAddress,
+  seenLinkedAddress,
+  accountsByAddress,
+  accountToGroupMap,
+  fallbackAccountName,
+}: {
+  view: AuthView;
+  selectedAddress: string | undefined;
+  seenLinkedAddress: string | null;
+  accountsByAddress: ReturnType<typeof selectInternalAccountByAddresses>;
+  accountToGroupMap: ReturnType<typeof selectAccountToGroupMap>;
+  fallbackAccountName: string | null;
+}) {
+  const pinnedDisplayAddress =
+    view.mode === 'wallet' && view.address ? view.address : null;
+  const linkedPinnedKey =
+    view.mode === 'wallet' && view.origin === 'linked' && view.address
+      ? view.address.toLowerCase()
+      : null;
+  const nextSeenLinkedAddress =
+    linkedPinnedKey && selectedAddress?.toLowerCase() === linkedPinnedKey
+      ? linkedPinnedKey
+      : seenLinkedAddress;
+  const displayAccountAddress = resolveDisplayedWalletAddress({
+    origin: view.mode === 'wallet' ? view.origin : null,
+    pinnedAddress: pinnedDisplayAddress,
+    selectedAddress,
+    hasShownPinnedSelection:
+      linkedPinnedKey !== null && nextSeenLinkedAddress === linkedPinnedKey,
+  });
+  const displayAccount = displayAccountAddress
+    ? accountsByAddress([displayAccountAddress])[0]
+    : undefined;
+  const displayAccountLabel =
+    (displayAccount
+      ? accountToGroupMap[displayAccount.id]?.metadata?.name ||
+        displayAccount.metadata?.name
+      : undefined) ||
+    fallbackAccountName ||
+    undefined;
+
+  return {
+    displayAccountAddress,
+    displayAccountLabel,
+    nextSeenLinkedAddress,
+  };
+}
 
 const CardAuthentication = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -218,33 +269,16 @@ const CardAuthentication = () => {
     return undefined;
   }, [resolution, countryKey]);
 
-  const pinnedDisplayAddress =
-    view.mode === 'wallet' && view.address ? view.address : null;
-  const linkedPinnedKey =
-    view.mode === 'wallet' && view.origin === 'linked' && view.address
-      ? view.address.toLowerCase()
-      : null;
-  if (linkedPinnedKey && selectedAddress?.toLowerCase() === linkedPinnedKey) {
-    seenLinkedAddressRef.current = linkedPinnedKey;
-  }
-  const displayAccountAddress = resolveDisplayedWalletAddress({
-    origin: view.mode === 'wallet' ? view.origin : null,
-    pinnedAddress: pinnedDisplayAddress,
-    selectedAddress,
-    hasShownPinnedSelection:
-      linkedPinnedKey !== null &&
-      seenLinkedAddressRef.current === linkedPinnedKey,
-  });
-  const displayAccount = displayAccountAddress
-    ? accountsByAddress([displayAccountAddress])[0]
-    : undefined;
-  const displayAccountLabel =
-    (displayAccount
-      ? accountToGroupMap[displayAccount.id]?.metadata?.name ||
-        displayAccount.metadata?.name
-      : undefined) ||
-    accountName ||
-    undefined;
+  const { displayAccountAddress, displayAccountLabel, nextSeenLinkedAddress } =
+    resolveSignInAccountPresentation({
+      view,
+      selectedAddress,
+      seenLinkedAddress: seenLinkedAddressRef.current,
+      accountsByAddress,
+      accountToGroupMap,
+      fallbackAccountName: accountName,
+    });
+  seenLinkedAddressRef.current = nextSeenLinkedAddress;
 
   useEffect(() => {
     if (!allRegions.length || hasAutoSelectedCountry.current) {

@@ -92,7 +92,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
     () =>
       deviceAddresses
         .map((address) => address.toLowerCase())
-        .sort()
+        .sort((left, right) => left.localeCompare(right))
         .join('\n'),
     [deviceAddresses],
   );

@@ -144,8 +144,9 @@ let mockSelectedAccount: { address: string; id: string } = {
   address: '0x1234567890123456789012345678901234567890',
   id: 'acct-selected',
 };
+const mockSelectAccountByScope = () => mockSelectedAccount;
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => mockSelectedAccount,
+  selectSelectedInternalAccountByScope: () => mockSelectAccountByScope,
 }));
 
 jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
