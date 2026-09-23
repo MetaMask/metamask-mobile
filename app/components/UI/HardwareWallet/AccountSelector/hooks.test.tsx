@@ -1,17 +1,16 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { query } from '@metamask/controller-utils';
 import { IAccount, useAccountsBalance } from './hooks';
 
-jest.mock('@metamask/controller-utils', () => ({
-  ...jest.requireActual('@metamask/controller-utils'),
-  query: jest.fn(),
-}));
+const mockProviderRequest = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       state: { selectedNetworkClientId: 'mainnet' },
       getNetworkClientById: jest.fn(() => ({ provider: {} })),
+      getSelectedNetworkClient: jest.fn(() => ({
+        provider: { request: mockProviderRequest },
+      })),
     },
   },
 }));
@@ -19,8 +18,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
-
-const mockedQuery = jest.mocked(query);
 
 describe('useAccountsBalance', () => {
   const mockAccounts: IAccount[] = [
@@ -31,7 +28,7 @@ describe('useAccountsBalance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedQuery.mockImplementation(async (_ethQuery, _method, params) => {
+    mockProviderRequest.mockImplementation(async ({ params }) => {
       const address = (params as string[])[0];
       const balances: Record<string, string> = {
         '0x123': '100',
@@ -61,15 +58,18 @@ describe('useAccountsBalance', () => {
       });
     });
 
-    expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
-      '0x123',
-    ]);
-    expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
-      '0x456',
-    ]);
-    expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
-      '0x789',
-    ]);
+    expect(mockProviderRequest).toHaveBeenCalledWith({
+      method: 'eth_getBalance',
+      params: ['0x123'],
+    });
+    expect(mockProviderRequest).toHaveBeenCalledWith({
+      method: 'eth_getBalance',
+      params: ['0x456'],
+    });
+    expect(mockProviderRequest).toHaveBeenCalledWith({
+      method: 'eth_getBalance',
+      params: ['0x789'],
+    });
   });
 
   it('keeps successful balances when one account balance request fails', async () => {
@@ -82,6 +82,6 @@ describe('useAccountsBalance', () => {
       });
     });
 
-    expect(mockedQuery).toHaveBeenCalledTimes(3);
+    expect(mockProviderRequest).toHaveBeenCalledTimes(3);
   });
 });

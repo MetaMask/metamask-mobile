@@ -1,6 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import EthQuery from '@metamask/eth-query';
-import { query } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
@@ -27,12 +25,13 @@ export interface AccountBalances {
 export const useAccountsBalance = (accounts: IAccount[]) => {
   const [trackedAccounts, setTrackedAccounts] = useState<AccountBalances>({});
 
-  const ethQuery = useMemo(() => {
+  const provider = useMemo(() => {
     const { NetworkController } = Engine.context;
-    const networkClientId = NetworkController.state.selectedNetworkClientId;
-    const { provider } =
-      NetworkController.getNetworkClientById(networkClientId);
-    return new EthQuery(provider);
+    const networkClient = NetworkController.getSelectedNetworkClient();
+    if (!networkClient) {
+      throw new Error('No network client available');
+    }
+    return networkClient.provider;
   }, []);
 
   useEffect(
@@ -49,9 +48,10 @@ export const useAccountsBalance = (accounts: IAccount[]) => {
         // this batch from showing their balance.
         Promise.allSettled(
           unTrackedAccounts.map(async (address) => {
-            const balance = (await query(ethQuery, 'getBalance', [
-              address,
-            ])) as string;
+            const balance = await provider.request<[string], string>({
+              method: 'eth_getBalance',
+              params: [address],
+            });
             return [address, balance] as const;
           }),
         ).then((results) => {
@@ -75,7 +75,7 @@ export const useAccountsBalance = (accounts: IAccount[]) => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ethQuery, accounts],
+    [provider, accounts],
   );
 
   return trackedAccounts;
