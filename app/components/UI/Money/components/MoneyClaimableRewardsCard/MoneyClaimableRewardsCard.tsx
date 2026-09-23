@@ -206,6 +206,9 @@ const MoneyClaimableRewardsCard = ({
                 {formatUsd(available)}
               </SensitiveText>
             </Animated.View>
+            <ClaimExpiryNotice
+              testID={MoneyClaimableRewardsCardTestIds.EXPIRY_NOTICE}
+            />
           </Box>
           {/* Button applies `self-start` unless it is full width, which would
               override the row's centering, so it is wrapped to stay centered. */}
@@ -220,11 +223,6 @@ const MoneyClaimableRewardsCard = ({
               {strings('rewards.kol.claim')}
             </Button>
           </Box>
-        </Box>
-        <Box twClassName="mt-1.5">
-          <ClaimExpiryNotice
-            testID={MoneyClaimableRewardsCardTestIds.EXPIRY_NOTICE}
-          />
         </Box>
       </Box>
     </Box>

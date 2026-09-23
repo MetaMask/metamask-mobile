@@ -63,6 +63,7 @@ export const KOL_DASHBOARD_SELECTORS = {
   INVITE_DECLINE: 'rewards-kol-invite-decline',
   INVITE_ACCEPT: 'rewards-kol-invite-accept',
   INVITED_HERO: 'rewards-kol-invited-hero',
+  INVITED_BENEFIT_OFFER_ENDS: 'rewards-kol-invited-benefit-offer-ends',
   INVITED_TRADING_COMMISSIONS: 'rewards-kol-invited-trading-commissions',
   INVITED_TRADING_REBATES: 'rewards-kol-invited-trading-rebates',
   INVITED_OPT_IN_SECTION: 'rewards-kol-invited-opt-in-section',

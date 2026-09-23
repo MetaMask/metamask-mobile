@@ -28,6 +28,16 @@ describe('InvitedBenefitCard', () => {
     expect(getByText('AB12CD')).toBeOnTheScreen();
   });
 
+  it('renders the offer-end copy under the rebate title', () => {
+    const { getByTestId } = render(
+      <InvitedBenefitCard referralCode="AB12CD" onViewEarnings={jest.fn()} />,
+    );
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.INVITED_BENEFIT_OFFER_ENDS),
+    ).toHaveTextContent('rewards.kol.invited_benefit_offer_ends');
+  });
+
   it('shows the trading commissions and trading rebates totals', () => {
     const { getByTestId } = render(
       <InvitedBenefitCard referralCode="AB12CD" onViewEarnings={jest.fn()} />,

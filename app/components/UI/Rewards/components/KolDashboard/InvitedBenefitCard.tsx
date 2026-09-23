@@ -38,6 +38,13 @@ const InvitedBenefitCard: React.FC<InvitedBenefitCardProps> = ({
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
           {strings('rewards.kol.invited_benefit_title')}
         </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={KOL_DASHBOARD_SELECTORS.INVITED_BENEFIT_OFFER_ENDS}
+        >
+          {strings('rewards.kol.invited_benefit_offer_ends')}
+        </Text>
       </Box>
       <Box twClassName="h-px bg-border-muted" />
       <Box twClassName="mt-4 px-4">

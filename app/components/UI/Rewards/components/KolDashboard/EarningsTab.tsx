@@ -249,9 +249,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="px-4 pt-4 pb-2"
+            twClassName="p-4"
           >
-            <Box twClassName="flex-1">
+            <Box twClassName="flex-1 pr-4">
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
@@ -266,6 +266,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                   {formatUsd(available)}
                 </Text>
               </Animated.View>
+              <ClaimExpiryNotice
+                testID={KOL_DASHBOARD_SELECTORS.CLAIM_EXPIRY_NOTICE}
+              />
             </Box>
             {/* Button applies `self-start` unless it is full width, which would
                 override the row's centering, so it is wrapped to stay centered. */}
@@ -282,11 +285,6 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 )}
               </Button>
             </Box>
-          </Box>
-          <Box twClassName="px-4 pb-4">
-            <ClaimExpiryNotice
-              testID={KOL_DASHBOARD_SELECTORS.CLAIM_EXPIRY_NOTICE}
-            />
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
