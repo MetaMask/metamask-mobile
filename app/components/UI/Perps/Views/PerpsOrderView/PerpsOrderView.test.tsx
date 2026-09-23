@@ -2623,7 +2623,7 @@ describe('PerpsOrderView', () => {
     (usePerpsOrderExecution as jest.Mock).mockReturnValue({
       placeOrder: jest.fn(),
       isPlacing: false,
-      error: 'Order execution failed',
+      error: { error: 'Order execution failed' },
     });
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
       ...defaultMockHooks.usePerpsOrderContext,

@@ -17,7 +17,6 @@ import {
 } from '@metamask/perps-controller';
 import { ButtonSize } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TraceName } from '../../../../util/trace';
@@ -53,14 +52,12 @@ import {
 } from '../utils/assetAmountInput';
 import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
-import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import {
   calculateCloseAmountFromPercentage,
   calculatePercentageFromTokenAmount,
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
-import type { MaxSlippageSource } from '../constants/slippageConfig';
 
 /**
  * The keypad reports an unchanged value when deleting the digit after a
@@ -128,10 +125,6 @@ function readAssetKeypadCommit(params: {
 export interface UsePerpsClosePositionFormOptions {
   /** Overrides `navigation.goBack()` so a sheet can animate closed first. */
   dismiss?: () => void;
-  /** Opens the close-flow slippage editor from a failure toast. */
-  onAdjustSlippage?: () => void;
-  /** Reopens the close flow with fresh price data after a local price move. */
-  onReviewPrice?: () => void;
   /** Applied to the confirm CTA this hook builds for the caller's footer. */
   confirmButtonTestID?: string;
   /**
@@ -170,10 +163,6 @@ export interface UsePerpsClosePositionFormResult {
   szDecimals: number | undefined;
   isLoadingMarketData: boolean;
   isPositionGone: boolean;
-  shouldOpenSlippage: boolean;
-  maxSlippageBps: number;
-  maxSlippageSource: MaxSlippageSource;
-  setMaxSlippage: (bps: number) => void;
 
   isClosePositionLimitOrderEnabled: boolean;
   orderType: OrdinaryOrderType;
@@ -236,7 +225,6 @@ export function usePerpsClosePositionForm(
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
     enableHaptics = false,
-    openSlippage = false,
   } = route.params;
   const { playImpact: playHapticImpact } = useHaptics();
 
@@ -253,8 +241,6 @@ export function usePerpsClosePositionForm(
   const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
-    usePerpsMaxSlippage();
 
   // Get market data for szDecimals with automatic error toast handling
   const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
@@ -315,28 +301,7 @@ export function usePerpsClosePositionForm(
   const effectiveMaxSlippageBps =
     effectiveOrderType === 'limit'
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : maxSlippageBps;
-  const effectiveMaxSlippageSource =
-    effectiveOrderType === 'limit'
-      ? PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT
-      : maxSlippageSource;
-  const reopenClosePosition = useCallback(
-    (openSlippageNext: boolean) => {
-      navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
-        ...route.params,
-        openSlippage: openSlippageNext,
-      });
-    },
-    [navigation, route.params],
-  );
-  const reopenWithSlippage = useCallback(
-    () => reopenClosePosition(true),
-    [reopenClosePosition],
-  );
-  const reopenWithFreshPrice = useCallback(
-    () => reopenClosePosition(false),
-    [reopenClosePosition],
-  );
+      : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -832,7 +797,7 @@ export function usePerpsClosePositionForm(
         ...(effectiveOrderType === 'market'
           ? {
               maxSlippageBps: effectiveMaxSlippageBps,
-              maxSlippageSource: effectiveMaxSlippageSource,
+              maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
             }
           : {}),
       },
@@ -844,8 +809,6 @@ export function usePerpsClosePositionForm(
         priceAtCalculation: effectivePrice,
         maxSlippageBps: effectiveMaxSlippageBps,
       },
-      onAdjustSlippage: options?.onAdjustSlippage ?? reopenWithSlippage,
-      onReviewPrice: options?.onReviewPrice ?? reopenWithFreshPrice,
     });
   }, [
     closePercentage,
@@ -870,11 +833,6 @@ export function usePerpsClosePositionForm(
     routeSource,
     vipTier,
     effectiveMaxSlippageBps,
-    effectiveMaxSlippageSource,
-    options?.onAdjustSlippage,
-    options?.onReviewPrice,
-    reopenWithFreshPrice,
-    reopenWithSlippage,
     priceData,
     position.symbol,
     closingValueString,
@@ -1083,10 +1041,6 @@ export function usePerpsClosePositionForm(
     szDecimals: marketData?.szDecimals,
     isLoadingMarketData,
     isPositionGone,
-    shouldOpenSlippage: openSlippage,
-    maxSlippageBps: effectiveMaxSlippageBps,
-    maxSlippageSource: effectiveMaxSlippageSource,
-    setMaxSlippage,
 
     isClosePositionLimitOrderEnabled,
     orderType,

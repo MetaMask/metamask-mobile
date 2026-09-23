@@ -102,7 +102,6 @@ import {
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
-  PERPS_ERROR_CODES,
   calculatePositionSize,
   getPerpsDisplaySymbol,
   type InputMethod,
@@ -155,7 +154,10 @@ import {
   PERPS_MIN_BALANCE_THRESHOLD,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
-import { translatePerpsError } from '../../utils/translatePerpsError';
+import {
+  handlePerpsError,
+  translatePerpsError,
+} from '../../utils/translatePerpsError';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
@@ -211,7 +213,6 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
-import { handlePerpsError } from '../../utils/translatePerpsError';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
