@@ -1,5 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   MetaMetricsSwapsEventSource,

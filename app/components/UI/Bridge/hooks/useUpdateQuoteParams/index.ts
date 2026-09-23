@@ -90,22 +90,10 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         throw error;
       }
     },
-    [
-      metricsContext,
-      quoteRequestIndex,
-      quoteRequestCount,
-      genericQuoteRequest,
-      featureId,
-    ],
+    [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
   );
 
-  const {
-    srcChainId,
-    destChainId,
-    srcTokenAddress,
-    destTokenAddress,
-    walletAddress,
-  } = genericQuoteRequest ?? {};
+  const { srcChainId, destChainId } = genericQuoteRequest ?? {};
 
   const debouncedUpdateQuoteParams = useMemo(() => {
     const debounced = debounce(
@@ -143,7 +131,6 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     ) => {
       if (
         !genericQuoteRequest ||
-        // if quoteRequest has no src amount, cancel trace
         !isValidQuoteRequest(genericQuoteRequest, false)
       ) {
         debounced.cancel();
@@ -164,11 +151,8 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     cancelOwnedTrace,
     destChainId,
     srcChainId,
-    destTokenAddress,
-    srcTokenAddress,
     srcAmount,
     updateQuoteParams,
-    walletAddress,
     debounceWait,
     genericQuoteRequest,
   ]);
