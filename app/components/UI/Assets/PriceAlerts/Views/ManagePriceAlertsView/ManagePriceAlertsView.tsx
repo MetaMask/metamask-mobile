@@ -157,27 +157,18 @@ const ManagePriceAlertsView: React.FC = () => {
       });
       navigation.goBack();
     } else if (alerts.length === 0) {
-      if (isPerpsMode) {
-        navigation.replace(Routes.PERPS.CREATE_PRICE_ALERT, {
-          symbol,
-          ticker,
-          currentPrice,
-          currentCurrency,
-          assetId,
-          mode,
-          marketId,
-        });
-      } else {
-        navigation.replace(Routes.CREATE_PRICE_ALERT, {
-          symbol,
-          ticker,
-          currentPrice,
-          currentCurrency,
-          assetId,
-          mode,
-          marketId,
-        });
-      }
+      const route = isPerpsMode
+        ? Routes.PERPS.CREATE_PRICE_ALERT
+        : Routes.CREATE_PRICE_ALERT;
+      navigation.replace(route, {
+        symbol,
+        ticker,
+        currentPrice,
+        currentCurrency,
+        assetId,
+        mode,
+        marketId,
+      });
     }
   }, [
     isLoading,

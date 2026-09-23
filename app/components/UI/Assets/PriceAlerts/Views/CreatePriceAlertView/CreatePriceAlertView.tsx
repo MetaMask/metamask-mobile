@@ -89,7 +89,7 @@ const CreatePriceAlertView: React.FC = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties({
-          asset_id: isPerpsMode ? (marketId ?? assetId) : assetId,
+          asset_id: isPerpsMode ? marketId : assetId,
           token_symbol: displayTicker,
           alert_market_type: isPerpsMode
             ? PriceAlertAnalytics.MARKET_TYPE.PERPS
