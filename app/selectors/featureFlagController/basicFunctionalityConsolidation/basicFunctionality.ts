@@ -196,8 +196,26 @@ export const selectShouldShowBasicFunctionalityMigrationToast = createSelector(
 );
 
 /**
+ * True when this wallet is known locally to be social, from onboarding
+ * metadata or SeedlessOnboardingController state, without consulting the
+ * linked-profile signal that only arrives after sign-in.
+ */
+export const selectIsLocallyKnownSocialLoginUser = createSelector(
+  selectOnboardingAccountType,
+  selectSeedlessAuthConnection,
+  selectHasSeedlessVault,
+  (accountType, authConnection, hasSeedlessVault) =>
+    isBasicFunctionalitySocialLoginUser({
+      accountType,
+      authConnection,
+      hasSeedlessVault,
+    }),
+);
+
+/**
  * True when this wallet reached consolidation through a social login, from
- * either onboarding metadata or SeedlessOnboardingController state.
+ * onboarding metadata, SeedlessOnboardingController state, or a social profile
+ * linked to its SRP.
  */
 export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
   selectOnboardingAccountType,
@@ -236,14 +254,20 @@ export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
 );
 
 /**
- * True when an already-consolidated social-login wallet needs repair:
- * Basic Functionality is off, or a linked-social profile was detected after
- * migration and its one-time notice was never scheduled.
+ * True when an already-consolidated social-login wallet needs repair: Basic
+ * Functionality is off, or the wallet only turned out to be social once its
+ * SRP was linked to a profile, so its one-time notice was never scheduled.
+ *
+ * The missing-notice repair excludes wallets already known locally to be
+ * social. Onboarding enrols those without a notice by design, so treating
+ * their later profile signal as a missed migration would show the
+ * existing-wallet sheet to a brand new social wallet.
  */
 export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
   selectIsBasicFunctionalityConsolidatedEnabled,
   selectBasicFunctionalityEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
+  selectIsLocallyKnownSocialLoginUser,
   selectHasLinkedSocialLoginProfile,
   selectBasicFunctionalityMigrationNotification,
   selectIsBasicFunctionalityMigrationNotificationDismissed,
@@ -251,6 +275,7 @@ export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
     isPersistedConsolidated,
     isBasicFunctionalityEnabled,
     isSocialLoginUser,
+    isLocallyKnownSocialLoginUser,
     hasLinkedSocialLoginProfile,
     migrationNotification,
     isMigrationNotificationDismissed,
@@ -258,6 +283,7 @@ export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
     isPersistedConsolidated &&
     ((!isBasicFunctionalityEnabled && isSocialLoginUser) ||
       (hasLinkedSocialLoginProfile === true &&
+        !isLocallyKnownSocialLoginUser &&
         !isMigrationNotificationDismissed &&
         migrationNotification === null)),
 );
