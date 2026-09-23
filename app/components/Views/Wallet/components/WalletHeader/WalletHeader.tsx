@@ -52,7 +52,11 @@ export interface WalletHeaderProps {
   displayName: string;
   navigation: unknown;
   isMoneyAccountVisible: boolean;
-  handleSearchPress: (initialQuery?: string, origin?: SearchOrigin) => void;
+  handleSearchPress: (
+    initialQuery?: string,
+    origin?: SearchOrigin,
+    pastePillVisible?: boolean,
+  ) => void;
   useSearchHeaderLayout: boolean;
   showSearchPastePill: boolean;
   handleSearchPastePress: (origin?: SearchOrigin) => void;
@@ -183,7 +187,9 @@ const WalletHeader = ({
   );
 
   const handleHeaderSearchPress = () => {
-    startSearchTransition((origin) => handleSearchPress(undefined, origin));
+    startSearchTransition((origin) =>
+      handleSearchPress(undefined, origin, showSearchPastePill),
+    );
   };
   const handleHeaderPastePress = () => {
     startSearchTransition(handleSearchPastePress);
