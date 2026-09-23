@@ -554,12 +554,14 @@ describe('handlePerpsUrl', () => {
   });
 
   describe('price alert notification tracking', () => {
-    it('fires PRICE_ALERT_NOTIFICATION_OPENED when source=price_alert_notification and screen=asset (warm path)', async () => {
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED exactly once when source=price_alert_notification and screen=asset (warm path)', async () => {
       const perpsPath =
         'perps?screen=asset&symbol=xyz%3AXYZ100&source=price_alert_notification&alert_type=threshold&price_at_trigger=150.25&triggered_at=1758624000000';
 
       await handlePerpsUrl({ perpsPath });
 
+      // Must fire exactly once — createPerpsDeeplinkIntent owns tracking for all paths.
+      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({

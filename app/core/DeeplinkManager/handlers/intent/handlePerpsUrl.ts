@@ -273,9 +273,9 @@ const resolvePerpsTarget = ({
  * Fires `PRICE_ALERT_NOTIFICATION_OPENED` when a perps deeplink originates from
  * a price-alert push notification (`source=price_alert_notification`, `screen=asset`).
  *
- * Called from BOTH `createPerpsDeeplinkIntent` (cold/startup path — locked or killed
- * app) AND `handlePerpsUrl` (warm path — app already running) so the event is fired
- * regardless of how the app was opened.
+ * Called exclusively via `createPerpsDeeplinkIntent`, which is on the execution path
+ * for both cold-start (locked/killed app — called directly from handleUniversalLink)
+ * and warm (app already running — called from handlePerpsUrl → executeDeeplinkIntent).
  */
 const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
   try {
@@ -317,8 +317,9 @@ const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
 export const createPerpsDeeplinkIntent = ({
   perpsPath,
 }: HandlePerpsUrlParams): DeeplinkIntent => {
-  // Track notification-opened for cold-start (locked/killed app) path. The
-  // warm path (handlePerpsUrl) also calls this helper so both paths are covered.
+  // Track notification-opened on every entry path:
+  //  - Cold/startup path: called directly from handleUniversalLink (locked/killed app)
+  //  - Warm path: called via handlePerpsUrl → executeDeeplinkIntent (app already running)
   trackPriceAlertNotificationIfApplicable(perpsPath);
   return {
     target: resolvePerpsTarget({ perpsPath }),
@@ -343,10 +344,9 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     );
   }
 
-  // Track notification-opened for warm (app already open) path.
-  trackPriceAlertNotificationIfApplicable(perpsPath);
-
   try {
+    // createPerpsDeeplinkIntent calls trackPriceAlertNotificationIfApplicable
+    // internally, covering both warm (here) and cold/startup paths consistently.
     await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
