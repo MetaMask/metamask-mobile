@@ -30,6 +30,18 @@ describe('accountSupports7702', () => {
     expect(controller.getKeyringForAccount).not.toHaveBeenCalled();
   });
 
+  it('returns the configured fallback when address is missing', async () => {
+    const controller = createMockKeyringController({
+      type: ExtendedKeyringTypes.hd,
+    });
+
+    await expect(
+      accountSupports7702(undefined, controller, false),
+    ).resolves.toBe(false);
+
+    expect(controller.getKeyringForAccount).not.toHaveBeenCalled();
+  });
+
   it('returns true for HD Key Tree keyring', async () => {
     const controller = createMockKeyringController({
       type: ExtendedKeyringTypes.hd,
@@ -108,6 +120,16 @@ describe('accountSupports7702', () => {
     await expect(accountSupports7702(SAMPLE_ADDRESS, controller)).resolves.toBe(
       true,
     );
+  });
+
+  it('returns the configured fallback when getKeyringForAccount throws', async () => {
+    const controller = {
+      getKeyringForAccount: jest.fn().mockRejectedValue(new Error('not found')),
+    };
+
+    await expect(
+      accountSupports7702(SAMPLE_ADDRESS, controller, false),
+    ).resolves.toBe(false);
   });
 
   it('resolves the controller from a getter when a function is passed', async () => {
