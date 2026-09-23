@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -36,6 +36,7 @@ import {
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 import { MoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -262,12 +263,6 @@ const ManageContent = ({
   </Box>
 );
 
-const moneyMetaMaskCardStyles = StyleSheet.create({
-  contentContainer: {
-    gap: 12,
-  },
-});
-
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
@@ -291,6 +286,8 @@ const MoneyMetaMaskCard = ({
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedViewRef = useRef(false);
   const cardType = showMetalCard ? 'metal' : 'virtual';
+
+  const tw = useTailwind();
 
   const buildAnalyticsProperties = useCallback(
     (action?: CardActions) =>
@@ -480,6 +477,7 @@ const MoneyMetaMaskCard = ({
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
       <MoneySectionHeader
+        testID={MoneyMetaMaskCardTestIds.HEADER}
         title={strings(headerTitleKey)}
         onPress={
           mode === 'verifying' || mode === 'loading' || isLinkDisabled
@@ -488,7 +486,8 @@ const MoneyMetaMaskCard = ({
         }
       />
       <Pressable
-        style={moneyMetaMaskCardStyles.contentContainer}
+        testID={MoneyMetaMaskCardTestIds.CONTENT}
+        style={tw.style('gap-3')}
         onPress={
           mode === 'verifying' || mode === 'loading' || isLinkDisabled
             ? undefined

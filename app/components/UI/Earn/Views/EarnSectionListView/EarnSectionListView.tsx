@@ -188,6 +188,9 @@ const MoneyProjection = ({
             leadingSpace
           />
           <Pressable
+            testID={
+              EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED_BUTTON
+            }
             style={({ pressed }) => tw.style(pressed && 'opacity-50')}
             onPress={onProjectionPress}
           >

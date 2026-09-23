@@ -48,6 +48,7 @@ const MoneyActivityList = ({
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
       <Box twClassName="px-4 pt-3 pb-3">
         <MoneySectionHeader
+          testID={MoneyActivityListTestIds.HEADER}
           title={strings('money.activity.title')}
           onPress={hasMoreItems && onHeaderPress ? onHeaderPress : undefined}
         />

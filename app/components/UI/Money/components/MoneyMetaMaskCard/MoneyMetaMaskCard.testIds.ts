@@ -1,5 +1,7 @@
 export const MoneyMetaMaskCardTestIds = {
   CONTAINER: 'money-metamask-card-container',
+  HEADER: 'money-metamask-card-header',
+  CONTENT: 'money-metamask-card-content',
   VIRTUAL_CARD_ROW: 'money-metamask-card-virtual-card-row',
   LINK_CONTAINER: 'money-metamask-card-link-container',
   LINK_SUBTITLE: 'money-metamask-card-link-subtitle',

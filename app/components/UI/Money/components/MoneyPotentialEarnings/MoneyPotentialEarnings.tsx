@@ -25,6 +25,7 @@ import DottedUnderline from '../../../../../component-library/components-temp/Do
 import InlineTextFlow from '../../../../../component-library/components-temp/InlineTextFlow';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 
 const VISIBLE_TOKENS_COUNT = 5;
 
@@ -104,6 +105,7 @@ const MoneyPotentialEarnings = ({
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
         <MoneySectionHeader
+          testID={MoneyPotentialEarningsTestIds.HEADER}
           title={strings('money.potential_earnings.title')}
           onPress={hasMoreTokens && onHeaderPress ? onHeaderPress : undefined}
         />
@@ -147,6 +149,7 @@ const MoneyPotentialEarnings = ({
               leadingSpace
             />
             <Pressable
+              testID={MoneyPotentialEarningsTestIds.PROJECTED_BUTTON}
               style={({ pressed }) => tw.style(pressed && 'opacity-50')}
               onPress={onProjectedAmountPress}
             >
@@ -195,6 +198,7 @@ const MoneyPotentialEarnings = ({
           apyDecimal={apyDecimal}
           onCardPress={handleTokenCardPress(token, index)}
           onButtonPress={handleTokenButtonPress(token, index)}
+          testID={PotentialEarningsTokenRowTestIds.ROW(token.symbol)}
           privacyMode={privacyMode}
         />
       ))}

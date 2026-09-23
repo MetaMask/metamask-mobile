@@ -86,6 +86,7 @@ const ActivityRowView = ({
                   typeof BadgeNetwork
                 >['src']
               }
+              testID={MoneyActivityItemTestIds.NETWORK_BADGE}
             />
           }
         >
@@ -93,6 +94,7 @@ const ActivityRowView = ({
             iconName={display.icon}
             severity={AvatarIconSeverity.Neutral}
             size={AvatarIconSize.Lg}
+            accessibilityLabel={display.icon}
             testID={MoneyActivityItemTestIds.ICON}
           />
         </BadgeWrapper>
@@ -102,6 +104,7 @@ const ActivityRowView = ({
             iconName={display.icon}
             severity={AvatarIconSeverity.Neutral}
             size={AvatarIconSize.Lg}
+            accessibilityLabel={display.icon}
             testID={MoneyActivityItemTestIds.ICON}
           />
         </Box>
@@ -117,6 +120,7 @@ const ActivityRowView = ({
             fontWeight={FontWeight.Medium}
             color={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
             numberOfLines={1}
+            testID={MoneyActivityItemTestIds.LABEL}
             twClassName="shrink"
           >
             {display.label}
@@ -131,6 +135,7 @@ const ActivityRowView = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
             numberOfLines={1}
+            testID={MoneyActivityItemTestIds.DESCRIPTION}
           >
             {display.description}
           </Text>

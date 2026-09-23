@@ -4,12 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
   FontWeight,
-  IconColor,
-  IconName,
-  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -78,6 +73,7 @@ const MoneyBalanceSummary = ({
       <Pressable
         onPress={onApyInfoPress}
         style={({ pressed }) => pressed && tw.style('opacity-50')}
+        testID={MoneyBalanceSummaryTestIds.APY_PRESSABLE}
       >
         <DottedUnderline color={colors.success.default}>
           <TextShimmer>
