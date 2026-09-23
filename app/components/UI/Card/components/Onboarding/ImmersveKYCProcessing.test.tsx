@@ -6,7 +6,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { KYC_REDIRECT_URL } from '../../constants';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
-import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
+import {
+  deriveNextImmersveAction,
+  type ImmersveNextAction,
+} from '../../util/immersvePrerequisites';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -205,6 +208,40 @@ describe('ImmersveKYCProcessing', () => {
     render(<ImmersveKYCProcessing />);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
+    expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('holds a pending KYC on this screen instead of funding, then times out to KYC_PENDING', () => {
+    const nextAction = deriveNextImmersveAction([
+      {
+        stage: 'funding',
+        status: 'action-required',
+        actionType: 'smart_contract_write',
+        params: {
+          abi: [],
+          contractAddress: '0xusdc',
+          method: 'approve',
+          params: {},
+        },
+      },
+      { stage: 'kyc', status: 'pending' },
+    ]);
+    setNextAction(nextAction);
+    render(<ImmersveKYCProcessing />);
+
+    expect(nextAction.type).toBe('pending');
+    expect(mockRoute).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
+      expect.anything(),
+    );
+
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+    });
     expect(mockRoute).not.toHaveBeenCalled();
   });
 

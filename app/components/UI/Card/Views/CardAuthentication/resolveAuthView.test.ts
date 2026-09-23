@@ -3,11 +3,7 @@ import {
   type CardSignInOption,
   type CardSignInResolution,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import {
-  isCountryLocked,
-  resolveActiveBanner,
-  resolveAuthView,
-} from './resolveAuthView';
+import { resolveActiveBanner, resolveAuthView } from './resolveAuthView';
 
 const walletOption: CardSignInOption = {
   providerId: CardProviderIds.Immersve,
@@ -195,109 +191,6 @@ describe('resolveAuthView', () => {
         reason: 'check_failed',
       });
     });
-  });
-});
-
-describe('isCountryLocked', () => {
-  it('locks resolving and account_missing', () => {
-    expect(
-      isCountryLocked(
-        { mode: 'resolving' },
-        { countryKey: 'US', migrationPhase: 'soft' },
-      ),
-    ).toBe(true);
-    expect(
-      isCountryLocked(
-        {
-          mode: 'account_missing',
-          option: walletOption,
-          address: ADDR,
-        },
-        { countryKey: 'US', migrationPhase: 'soft' },
-      ),
-    ).toBe(true);
-  });
-
-  it('locks linked and resume wallet, not manual', () => {
-    expect(
-      isCountryLocked(
-        {
-          mode: 'wallet',
-          option: walletOption,
-          address: ADDR,
-          origin: 'linked',
-        },
-        { countryKey: 'GB', migrationPhase: 'soft' },
-      ),
-    ).toBe(true);
-    expect(
-      isCountryLocked(
-        {
-          mode: 'wallet',
-          option: walletOption,
-          address: ADDR,
-          origin: 'resume',
-        },
-        { countryKey: 'GB', migrationPhase: 'soft' },
-      ),
-    ).toBe(true);
-    expect(
-      isCountryLocked(
-        {
-          mode: 'wallet',
-          option: walletOption,
-          address: null,
-          origin: 'manual',
-        },
-        { countryKey: 'GB', migrationPhase: 'soft' },
-      ),
-    ).toBe(false);
-  });
-
-  it('locks email resume always and email only when GB forced', () => {
-    expect(
-      isCountryLocked(
-        { mode: 'email', origin: 'resume' },
-        { countryKey: 'US', migrationPhase: 'soft' },
-      ),
-    ).toBe(true);
-    expect(
-      isCountryLocked(
-        { mode: 'email', origin: 'only' },
-        { countryKey: 'GB', migrationPhase: 'forced' },
-      ),
-    ).toBe(true);
-    expect(
-      isCountryLocked(
-        { mode: 'email', origin: 'only' },
-        { countryKey: 'GB', migrationPhase: 'soft' },
-      ),
-    ).toBe(false);
-    expect(
-      isCountryLocked(
-        { mode: 'email', origin: 'fork' },
-        { countryKey: 'GB', migrationPhase: 'forced' },
-      ),
-    ).toBe(false);
-  });
-
-  it('does not lock fork or awaiting_country', () => {
-    expect(
-      isCountryLocked(
-        {
-          mode: 'fork',
-          options: [walletOption, emailOption],
-          reason: 'no_match',
-        },
-        { countryKey: 'GB', migrationPhase: 'forced' },
-      ),
-    ).toBe(false);
-    expect(
-      isCountryLocked(
-        { mode: 'awaiting_country' },
-        { countryKey: null, migrationPhase: null },
-      ),
-    ).toBe(false);
   });
 });
 

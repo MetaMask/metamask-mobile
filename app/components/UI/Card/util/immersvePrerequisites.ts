@@ -48,14 +48,9 @@ export function deriveNextImmersveAction(
     return { type: 'expected_spend' };
   }
 
-  const funding = findActionRequired(prerequisites, 'smart_contract_write');
-  if (funding) {
-    return {
-      type: 'funding',
-      write: funding.params as unknown as CardSmartContractWriteParams,
-    };
-  }
-
+  // A rejected or still-pending identity check must hold the user even when
+  // Immersve already returned the USDC approval write. Approving first would
+  // leave an active allowance if KYC is later rejected.
   const rejected = prerequisites.find(
     (p) => p.status === 'blocked' || p.status === 'kyc_check_failed',
   );
@@ -63,6 +58,21 @@ export function deriveNextImmersveAction(
     const retryUrl = (rejected.params as { kycUrl?: string } | undefined)
       ?.kycUrl;
     return { type: 'rejected', retryUrl };
+  }
+
+  const identityPending = prerequisites.some(
+    (p) => (p.stage === 'kyc' || p.stage === 'aml') && p.status !== 'ok',
+  );
+  if (identityPending) {
+    return { type: 'pending' };
+  }
+
+  const funding = findActionRequired(prerequisites, 'smart_contract_write');
+  if (funding) {
+    return {
+      type: 'funding',
+      write: funding.params as unknown as CardSmartContractWriteParams,
+    };
   }
 
   const anyOutstanding = prerequisites.some((p) => p.status !== 'ok');

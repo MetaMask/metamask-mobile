@@ -111,33 +111,6 @@ export function resolveAuthView({
   }
 }
 
-export function isCountryLocked(
-  view: AuthView,
-  {
-    countryKey,
-    migrationPhase,
-  }: {
-    countryKey: string | null;
-    migrationPhase: string | null | undefined;
-  },
-): boolean {
-  switch (view.mode) {
-    case 'resolving':
-    case 'account_missing':
-      return true;
-    case 'wallet':
-      return view.origin === 'linked' || view.origin === 'resume';
-    case 'email':
-      if (view.origin === 'resume') return true;
-      if (view.origin === 'only') {
-        return countryKey === 'GB' && migrationPhase === 'forced';
-      }
-      return false;
-    default:
-      return false;
-  }
-}
-
 export function resolveActiveBanner({
   banner,
   view,

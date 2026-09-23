@@ -6,6 +6,7 @@ import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { SCREEN_TRANSITION_FALLBACK_MS } from '../../../../hooks/useScreenTransitionComplete';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { useCardSignIn } from '../../hooks/useCardSignIn';
@@ -29,10 +30,15 @@ const mockGetSignInOptions = jest.fn().mockReturnValue([
 ]);
 const mockGetSignInLink = jest.fn().mockReturnValue(null);
 const mockLogout = jest.fn().mockResolvedValue(undefined);
+const mockSetSelectedAccountGroup = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
+      AccountTreeController: {
+        setSelectedAccountGroup: (...args: unknown[]) =>
+          mockSetSelectedAccountGroup(...args),
+      },
       CardController: {
         setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
         setSelectedCountry: (...args: unknown[]) =>
@@ -92,10 +98,11 @@ jest.mock('../../hooks/useRegions', () => ({
   }),
 }));
 
+let mockUkMigrationPhase: 'soft' | 'forced' = 'soft';
 jest.mock('../../hooks/useCardUkMigrationState', () => ({
   useCardUkMigrationState: () => ({
     state: {
-      phase: 'soft',
+      phase: mockUkMigrationPhase,
       isActive: true,
       deadline: new Date('2026-09-30T23:59:59.999Z'),
     },
@@ -132,10 +139,12 @@ jest.mock('../../components/Onboarding/RegionSelectorModal', () => {
   };
 });
 
+let mockSelectedAccount: { address: string; id: string } = {
+  address: '0x1234567890123456789012345678901234567890',
+  id: 'acct-selected',
+};
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => ({
-    address: '0x1234567890123456789012345678901234567890',
-  }),
+  selectSelectedInternalAccountByScope: () => () => mockSelectedAccount,
 }));
 
 jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
@@ -180,6 +189,56 @@ const emailOption = {
   method: 'email_password' as const,
 };
 const ADDR = '0x1234567890123456789012345678901234567890';
+const OTHER_ADDR = '0x2222222222222222222222222222222222222222';
+
+function cardAccountState(
+  accounts: {
+    id: string;
+    address: string;
+    name: string;
+    groupId: string;
+    groupName: string;
+  }[],
+) {
+  return {
+    AccountsController: {
+      internalAccounts: {
+        accounts: Object.fromEntries(
+          accounts.map((account) => [
+            account.id,
+            {
+              id: account.id,
+              address: account.address,
+              type: 'eip155:eoa',
+              metadata: { name: account.name },
+            },
+          ]),
+        ),
+        selectedAccount: accounts[0]?.id ?? '',
+      },
+    },
+    AccountTreeController: {
+      accountTree: {
+        wallets: {
+          'wallet-1': {
+            id: 'wallet-1',
+            metadata: { name: 'Wallet' },
+            groups: Object.fromEntries(
+              accounts.map((account) => [
+                account.groupId,
+                {
+                  id: account.groupId,
+                  accounts: [account.id],
+                  metadata: { name: account.groupName },
+                },
+              ]),
+            ),
+          },
+        },
+      },
+    },
+  };
+}
 
 function makeAuthReturn() {
   return {
@@ -222,7 +281,7 @@ function setResolution(
   });
 }
 
-function render() {
+function render(controllerState?: Record<string, unknown>) {
   return renderScreen(
     CardAuthentication,
     { name: Routes.CARD.AUTHENTICATION },
@@ -231,6 +290,7 @@ function render() {
         engine: {
           backgroundState: {
             ...backgroundState,
+            ...controllerState,
             CardController: {
               ...backgroundState.CardController,
               providerData: { baanx: { location: 'international' } },
@@ -249,6 +309,8 @@ describe('CardAuthentication', () => {
     jest.clearAllMocks();
     mockGeoLocation = 'GB';
     mockOnRegionChange = null;
+    mockUkMigrationPhase = 'soft';
+    mockSelectedAccount = { address: ADDR, id: 'acct-selected' };
     mockUseCardAuth.mockReturnValue(makeAuthReturn());
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -289,6 +351,97 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
+      expect(screen.queryByText(/isn't the account your card/i)).toBeNull();
+      expect(
+        screen.queryByText(/this is the account you set your card up with/i),
+      ).toBeNull();
+    });
+
+    it('shows the account group name when the account name is empty', () => {
+      mockSelectedAccount = { address: ADDR, id: 'acct-card' };
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render(
+        cardAccountState([
+          {
+            id: 'acct-card',
+            address: ADDR,
+            name: '',
+            groupId: 'group-card',
+            groupName: 'Holiday fund',
+          },
+        ]),
+      );
+
+      expect(screen.getByText('Holiday fund')).toBeOnTheScreen();
+    });
+
+    it('switches to the linked account group when another account is selected', () => {
+      mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render(
+        cardAccountState([
+          {
+            id: 'acct-card',
+            address: ADDR,
+            name: '',
+            groupId: 'group-card',
+            groupName: 'Holiday fund',
+          },
+        ]),
+      );
+
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith('group-card');
+    });
+
+    it('checks a different selected account once and does not switch again', async () => {
+      mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
+      mockVerifyAccount.mockResolvedValue('not_found');
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render(
+        cardAccountState([
+          {
+            id: 'acct-card',
+            address: ADDR,
+            name: '',
+            groupId: 'group-card',
+            groupName: 'Holiday fund',
+          },
+        ]),
+      );
+
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith('group-card');
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockVerifyAccount).toHaveBeenCalledWith(
+          OTHER_ADDR,
+          walletOption,
+        );
+      });
+      expect(screen.getByText(/couldn.t find your card/i)).toBeOnTheScreen();
+      expect(mockSignInWithWallet).not.toHaveBeenCalled();
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
     });
 
     it('verifies the wallet account once when Sign in is pressed twice', async () => {
@@ -395,6 +548,72 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the pinned account when another account is selected', () => {
+      mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
+      setResolution({
+        kind: 'resume',
+        option: walletOption,
+        address: ADDR,
+        stage: 'identity',
+      });
+      render(
+        cardAccountState([
+          {
+            id: 'acct-card',
+            address: ADDR,
+            name: '',
+            groupId: 'group-card',
+            groupName: 'Holiday fund',
+          },
+          {
+            id: 'acct-other',
+            address: OTHER_ADDR,
+            name: 'Everyday',
+            groupId: 'group-other',
+            groupName: 'Everyday',
+          },
+        ]),
+      );
+
+      expect(screen.getByText('Holiday fund')).toBeOnTheScreen();
+      expect(screen.queryByText('Everyday')).toBeNull();
+    });
+
+    it('verifies and signs the pinned account', async () => {
+      mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
+      mockVerifyAccount.mockResolvedValue('found');
+      setResolution({
+        kind: 'resume',
+        option: walletOption,
+        address: ADDR,
+        stage: 'identity',
+      });
+      render(
+        cardAccountState([
+          {
+            id: 'acct-card',
+            address: ADDR,
+            name: '',
+            groupId: 'group-card',
+            groupName: 'Holiday fund',
+          },
+        ]),
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockVerifyAccount).toHaveBeenCalledWith(ADDR, walletOption);
+      });
+      expect(mockSignInWithWallet).toHaveBeenCalledWith(
+        expect.objectContaining({ address: ADDR }),
+      );
     });
   });
 
@@ -860,6 +1079,56 @@ describe('CardAuthentication', () => {
   });
 
   describe('country field', () => {
+    it.each([
+      [
+        'linked wallet',
+        {
+          kind: 'wallet' as const,
+          option: walletOption,
+          address: ADDR,
+          source: 'record' as const,
+        },
+      ],
+      [
+        'resume wallet',
+        {
+          kind: 'resume' as const,
+          option: walletOption,
+          address: ADDR,
+          stage: 'identity' as const,
+        },
+      ],
+      [
+        'missing account',
+        {
+          kind: 'wallet_account_missing' as const,
+          option: walletOption,
+          address: ADDR,
+        },
+      ],
+    ])('stays pressable for a %s resolution', (_label, resolution) => {
+      setResolution(resolution);
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+
+      expect(navigateWithDetails).toHaveBeenCalled();
+    });
+
+    it('stays pressable for GB email sign-in during forced migration', () => {
+      mockUkMigrationPhase = 'forced';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+
+      expect(navigateWithDetails).toHaveBeenCalled();
+    });
+
     it('renders the country select', () => {
       setResolution({ kind: 'email', option: emailOption });
       render();
