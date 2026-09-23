@@ -22,6 +22,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  type EntryOrExitLayoutType,
 } from 'react-native-reanimated';
 import { useTheme } from '../../../util/theme';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -61,6 +62,7 @@ import {
 } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 import { useABTest } from '../../../hooks/useABTest';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog. */
 import {
@@ -98,6 +100,12 @@ import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
+import {
+  SPRINGBOARD_FADE_IN,
+  SPRINGBOARD_FADE_OUT,
+  springboardEnter,
+  springboardExit,
+} from './TradeWalletActions.animations';
 
 const bottomMaskHeight = 35;
 // The trade-focused sheet sits on a blur with its own edge, so its page is not dimmed.
@@ -158,6 +166,9 @@ function TradeWalletActions() {
   );
   const isTradeFocusedArm =
     headerNavBarVariant.trailingNavBarAction === 'trade';
+  const isNativeTabBarEnabled = useSelector(selectNativeTabBarEnabled);
+  // The refreshed bar's menu pops from its button; the control tray slides.
+  const isSpringboardMenu = isTradeFocusedArm && isNativeTabBarEnabled;
   const { isBlurAvailable, tint } = useBlurMaterial();
   const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
   // Glass needs one rounded surface; the notched edge is an SVG shape that
@@ -190,7 +201,7 @@ function TradeWalletActions() {
     opacity: backdropOpacity.value,
   }));
 
-  const sheetProgress = useSharedValue(0);
+  const sheetProgress = useSharedValue(isSpringboardMenu ? 1 : 0);
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
     opacity: isGlassSheet ? 1 : sheetProgress.value,
     transform: [{ translateY: (1 - sheetProgress.value) * 50 }],
@@ -199,10 +210,25 @@ function TradeWalletActions() {
   useEffect(() => {
     backdropOpacity.value = withTiming(
       isTradeFocusedArm ? TRADE_FOCUSED_BACKDROP_OPACITY : 1,
-      { duration: animationDuration, easing: Easing.linear },
+      isSpringboardMenu
+        ? SPRINGBOARD_FADE_IN
+        : { duration: animationDuration, easing: Easing.linear },
     );
-    sheetProgress.value = withTiming(1, { duration: animationDuration });
-  }, [backdropOpacity, isTradeFocusedArm, sheetProgress]);
+    if (!isSpringboardMenu) {
+      sheetProgress.value = withTiming(1, { duration: animationDuration });
+    }
+  }, [backdropOpacity, isSpringboardMenu, isTradeFocusedArm, sheetProgress]);
+
+  const springboardAnchorStyle = useMemo<ViewStyle>(
+    () => ({
+      transformOrigin: buttonLayout
+        ? [buttonLayout.x + buttonLayout.width / 2, '100%', 0]
+        : anchorsToTabBar
+          ? 'right bottom'
+          : 'center bottom',
+    }),
+    [anchorsToTabBar, buttonLayout],
+  );
 
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -242,8 +268,11 @@ function TradeWalletActions() {
 
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
+    if (isSpringboardMenu) {
+      backdropOpacity.value = withTiming(0, SPRINGBOARD_FADE_OUT);
+    }
     setIsVisible(false);
-  }, [onDismiss]);
+  }, [backdropOpacity, isSpringboardMenu, onDismiss]);
 
   const onActionSelected = useCallback(
     (callback: () => void | Promise<void>) => {
@@ -330,32 +359,40 @@ function TradeWalletActions() {
     }, [handleNavigateBack]),
   );
 
-  const exitingAnimationWithCallback = useCallback(
-    (callback: () => void) =>
-      FadeOutDown.duration(animationDuration).withCallback(
-        (finished) => finished && runOnJS(callback)(),
-      ),
-    [],
-  );
+  const handleExitComplete = useCallback(() => {
+    const callback = postCallback.current;
+    postCallback.current = undefined;
 
-  const exitingWithNavigateBack = useMemo(
-    () =>
-      exitingAnimationWithCallback(() => {
-        const callback = postCallback.current;
-        postCallback.current = undefined;
+    dismissRootModalFlow();
 
-        dismissRootModalFlow();
+    if (callback) {
+      // Defer navigation until RootModalFlow is fully dismissed so screens
+      // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+      requestAnimationFrame(() => {
+        callback();
+      });
+    }
+  }, [dismissRootModalFlow]);
 
-        if (callback) {
-          // Defer navigation until RootModalFlow is fully dismissed so screens
-          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
-          requestAnimationFrame(() => {
-            callback();
-          });
-        }
-      }),
-    [dismissRootModalFlow, exitingAnimationWithCallback],
-  );
+  const exitingWithNavigateBack = useMemo<EntryOrExitLayoutType>(() => {
+    if (!isSpringboardMenu) {
+      return FadeOutDown.duration(animationDuration).withCallback(
+        (finished) => finished && runOnJS(handleExitComplete)(),
+      );
+    }
+    return () => {
+      'worklet';
+
+      return {
+        ...springboardExit(),
+        callback: (finished: boolean) => {
+          if (finished) {
+            runOnJS(handleExitComplete)();
+          }
+        },
+      };
+    };
+  }, [handleExitComplete, isSpringboardMenu]);
 
   // Svg fill/stroke take color strings, not classes, so resolve the surface
   // class to its color value.
@@ -548,7 +585,12 @@ function TradeWalletActions() {
       </Animated.View>
 
       {visible && (
-        <Animated.View exiting={exitingWithNavigateBack}>
+        <Animated.View
+          collapsable={false}
+          entering={isSpringboardMenu ? springboardEnter : undefined}
+          exiting={exitingWithNavigateBack}
+          style={isSpringboardMenu ? springboardAnchorStyle : undefined}
+        >
           {sheetContent}
         </Animated.View>
       )}

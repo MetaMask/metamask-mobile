@@ -75,7 +75,7 @@ export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 15;
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
 
 /** Surface colour over the glass trade tray: 0 is pure glass, 1 is opaque. */
-export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.75;
+export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.5;
 
 /** Alpha of the hairline drawn around the glass tray. */
 export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;

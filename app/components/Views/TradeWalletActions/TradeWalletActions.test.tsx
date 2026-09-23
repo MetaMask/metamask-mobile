@@ -33,9 +33,11 @@ import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
 } from './TradeWalletActions';
+import { springboardEnter } from './TradeWalletActions.animations';
 import {
   TRADE_TRAY_GLASS_FILL_OPACITY,
   TRADE_TRAY_GLASS_RADIUS,
@@ -58,25 +60,40 @@ jest.mock('react-native-gesture-handler', () => {
 const mockWithTiming = jest.fn<number, [value: number, config?: unknown]>(
   (value) => value,
 );
+const mockWithSpring = jest.fn<number, [value: number, config?: unknown]>(
+  (value) => value,
+);
+const mockAnimatedView = jest.fn();
 jest.mock('react-native-reanimated', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
 
+  // Runs a function-shaped entering animation on mount and a function-shaped
+  // or builder-shaped exiting animation on unmount, as Reanimated would.
   const AnimatedView = ({
+    entering,
     exiting,
     children,
     ...rest
   }: {
-    exiting?: { __invokeExit?: () => void };
+    entering?: () => unknown;
+    exiting?:
+      | (() => { callback?: (finished: boolean) => void })
+      | { __invokeExit?: () => void };
     children?: React.ReactNode;
   }) => {
-    React.useLayoutEffect(
-      () => () => {
-        exiting?.__invokeExit?.();
-      },
-      [exiting],
-    );
+    mockAnimatedView({ entering, exiting, ...rest });
+    React.useLayoutEffect(() => {
+      entering?.();
+      return () => {
+        if (typeof exiting === 'function') {
+          exiting().callback?.(true);
+        } else {
+          exiting?.__invokeExit?.();
+        }
+      };
+    }, [entering, exiting]);
 
     return React.createElement(View, rest, children);
   };
@@ -102,6 +119,8 @@ jest.mock('react-native-reanimated', () => {
       }),
     },
     runOnJS: (fn: () => void) => fn,
+    withSpring: (value: number, config?: unknown) =>
+      mockWithSpring(value, config),
     withTiming: (value: number, config?: unknown) =>
       mockWithTiming(value, config),
   };
@@ -371,6 +390,10 @@ jest.mock('../../../core/AppConstants', () => {
   };
 });
 
+jest.mock('../../../selectors/featureFlagController/nativeTabBar', () => ({
+  selectNativeTabBarEnabled: jest.fn(),
+}));
+
 jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
   selectBatchSellEnabled: jest.fn().mockReturnValue(true),
 }));
@@ -531,6 +554,7 @@ describe('TradeWalletActions', () => {
     });
 
     jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+    jest.mocked(selectNativeTabBarEnabled).mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -821,6 +845,113 @@ describe('TradeWalletActions', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('SpringBoard menu', () => {
+    const renderTray = () =>
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+    beforeEach(() => {
+      mockIsTradeFocusedArm = true;
+      mockAnimatedView.mockClear();
+      mockWithSpring.mockClear();
+      mockWithTiming.mockClear();
+    });
+
+    afterEach(() => {
+      mockIsTradeFocusedArm = false;
+    });
+
+    it('pops the menu out from the measured tab-bar button', () => {
+      renderTray();
+
+      expect(mockAnimatedView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entering: springboardEnter,
+          style: { transformOrigin: [704, '100%', 0] },
+        }),
+      );
+      expect(mockWithSpring).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ stiffness: 322, damping: 26 }),
+      );
+      expect(mockWithTiming).not.toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ duration: 150 }),
+      );
+    });
+
+    it('pops the menu out from the trailing edge when the native bar cannot be measured', () => {
+      mockUseParams.mockReturnValue({
+        onDismiss: mockOnDismiss,
+        hasBottomNotch: false,
+        anchorsToTabBar: true,
+      });
+
+      renderTray();
+
+      expect(mockAnimatedView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entering: springboardEnter,
+          style: { transformOrigin: 'right bottom' },
+        }),
+      );
+    });
+
+    it('shrinks the menu back and dismisses once the pop-out finishes', async () => {
+      const { getByTestId } = renderTray();
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+      );
+
+      expect(mockOnDismiss).toHaveBeenCalled();
+      expect(mockWithTiming).toHaveBeenCalledWith(
+        0,
+        expect.objectContaining({ duration: 110 }),
+      );
+      expect(mockWithTiming).toHaveBeenCalledWith(
+        0.9,
+        expect.objectContaining({ duration: 120 }),
+      );
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockGoToSwaps).toHaveBeenCalled();
+    });
+
+    it('keeps the sliding tray when the native bar is switched off', () => {
+      jest.mocked(selectNativeTabBarEnabled).mockReturnValue(false);
+
+      renderTray();
+
+      expect(mockWithSpring).not.toHaveBeenCalled();
+      expect(mockAnimatedView).not.toHaveBeenCalledWith(
+        expect.objectContaining({ entering: springboardEnter }),
+      );
+      expect(mockWithTiming).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ duration: 150 }),
+      );
+    });
+
+    it('keeps the sliding tray outside the trade-focused arm', () => {
+      mockIsTradeFocusedArm = false;
+
+      renderTray();
+
+      expect(mockWithSpring).not.toHaveBeenCalled();
+      expect(mockAnimatedView).not.toHaveBeenCalledWith(
+        expect.objectContaining({ entering: springboardEnter }),
+      );
+      expect(mockWithTiming).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ duration: 150 }),
+      );
     });
   });
 
