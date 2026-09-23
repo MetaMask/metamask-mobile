@@ -2258,8 +2258,6 @@
       "twap_duration_minute": "{{count}} minute",
       "twap_duration_minutes": "{{count}} minutes",
       "order_failed": "Order failed",
-      "adjust_slippage": "Adjust slippage",
-      "review_updated_price": "Review updated price",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
       "pay_with_token_required": "Token selection required",

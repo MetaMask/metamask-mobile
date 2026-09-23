@@ -101,7 +101,6 @@ import {
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
-  PERPS_ERROR_CODES,
   calculatePositionSize,
   getPerpsDisplaySymbol,
   type InputMethod,
@@ -197,10 +196,7 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
-import {
-  handlePerpsError,
-  isPerpsErrorCode,
-} from '../../utils/translatePerpsError';
+import { handlePerpsError } from '../../utils/translatePerpsError';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
@@ -1152,17 +1148,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
     onError: (error) => {
       // No need to capture again here to avoid duplicate Sentry reports
-      const onAdjustSlippage =
-        isPerpsErrorCode(error, PERPS_ERROR_CODES.IOC_CANCEL) ||
-        isPerpsErrorCode(error, PERPS_ERROR_CODES.PRICE_MOVED) ||
-        isPerpsErrorCode(error, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED)
-          ? () => setIsSlippageVisible(true)
-          : undefined;
       const creationFailed =
         PerpsToastOptions.orderManagement[
           getOrderManagementToastKey(orderForm.type)
         ].creationFailed;
-      showToast(creationFailed(error, onAdjustSlippage));
+      showToast(creationFailed(error));
     },
   });
 

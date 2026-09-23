@@ -41,7 +41,6 @@ import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   PERPS_EVENT_VALUE,
-  PERPS_ERROR_CODES,
   OrderDirection,
   getPerpsDisplaySymbol,
   type Position,
@@ -49,7 +48,6 @@ import {
 import { formatPerpsFiat } from '../utils/formatUtils';
 import {
   handlePerpsError,
-  isPerpsErrorCode,
   type PerpsErrorInput,
 } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
@@ -64,7 +62,6 @@ export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
 };
 
 type PerpsErrorValue = PerpsErrorInput | string;
-type SlippageRecoveryAction = () => void;
 
 export interface PerpsToastOptionsConfig {
   accountManagement: {
@@ -104,10 +101,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (
-        error?: PerpsErrorValue,
-        onAdjustSlippage?: SlippageRecoveryAction,
-      ) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
     };
     shared: {
       submitting: () => PerpsToastOptions;
@@ -143,10 +137,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (
-        error?: PerpsErrorValue,
-        onAdjustSlippage?: SlippageRecoveryAction,
-      ) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
       editSubmitting: () => PerpsToastOptions;
       editConfirmed: (
         direction: OrderDirection,
@@ -166,10 +157,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (
-        error?: PerpsErrorValue,
-        onAdjustSlippage?: SlippageRecoveryAction,
-      ) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
     };
     twap: {
       submitted: (
@@ -184,10 +172,7 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
         durationMinutes: number,
       ) => PerpsToastOptions;
-      creationFailed: (
-        error?: PerpsErrorValue,
-        onAdjustSlippage?: SlippageRecoveryAction,
-      ) => PerpsToastOptions;
+      creationFailed: (error?: PerpsErrorValue) => PerpsToastOptions;
     };
   };
   positionManagement: {
@@ -325,7 +310,6 @@ const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
 
 const usePerpsToasts = (): {
   showToast: (config: PerpsToastOptions) => void;
-  closeToast: () => void;
   PerpsToastOptions: PerpsToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -377,40 +361,19 @@ const usePerpsToasts = (): {
   );
 
   const createOrderFailureToast = useCallback(
-    (
-      error?: PerpsErrorValue,
-      onAdjustSlippage?: SlippageRecoveryAction,
-    ): PerpsToastOptions => {
-      const isSlippageRecoveryError =
-        onAdjustSlippage !== undefined &&
-        (isPerpsErrorCode(error, PERPS_ERROR_CODES.IOC_CANCEL) ||
-          isPerpsErrorCode(error, PERPS_ERROR_CODES.PRICE_MOVED) ||
-          isPerpsErrorCode(error, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED));
-
-      return {
-        ...perpsBaseToastOptions.error,
-        ...(isSlippageRecoveryError && {
-          hasNoTimeout: true,
-          linkButtonOptions: {
-            label: strings('perps.order.adjust_slippage'),
-            onPress: () => {
-              toastRef?.current?.closeToast();
-              onAdjustSlippage?.();
-            },
-          },
+    (error?: PerpsErrorValue): PerpsToastOptions => ({
+      ...perpsBaseToastOptions.error,
+      labelOptions: getPerpsToastLabels(
+        strings('perps.order.order_failed'),
+        handlePerpsError({
+          error,
+          fallbackMessage: strings(
+            'perps.order.your_funds_have_been_returned_to_you',
+          ),
         }),
-        labelOptions: getPerpsToastLabels(
-          strings('perps.order.order_failed'),
-          handlePerpsError({
-            error,
-            fallbackMessage: strings(
-              'perps.order.your_funds_have_been_returned_to_you',
-            ),
-          }),
-        ),
-      };
-    },
-    [perpsBaseToastOptions.error, toastRef],
+      ),
+    }),
+    [perpsBaseToastOptions.error],
   );
 
   const navigationHandlers = useMemo(
@@ -481,11 +444,6 @@ const usePerpsToasts = (): {
     },
     [toastRef],
   );
-  const closeToast = useCallback(
-    () => toastRef?.current?.closeToast(),
-    [toastRef],
-  );
-
   // Centralized toast options for Perp
   const PerpsToastOptions: PerpsToastOptionsConfig = useMemo(
     () => ({
@@ -676,8 +634,7 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error, onAdjustSlippage) =>
-            createOrderFailureToast(error, onAdjustSlippage),
+          creationFailed: createOrderFailureToast,
         },
         limit: {
           submitted: (
@@ -711,8 +668,7 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error, onAdjustSlippage) =>
-            createOrderFailureToast(error, onAdjustSlippage),
+          creationFailed: createOrderFailureToast,
           editSubmitting: () => ({
             ...perpsBaseToastOptions.inProgress,
             hasNoTimeout: true,
@@ -779,8 +735,7 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error, onAdjustSlippage) =>
-            createOrderFailureToast(error, onAdjustSlippage),
+          creationFailed: createOrderFailureToast,
         },
         twap: {
           submitted: (
@@ -817,8 +772,7 @@ const usePerpsToasts = (): {
               ),
             ),
           }),
-          creationFailed: (error, onAdjustSlippage) =>
-            createOrderFailureToast(error, onAdjustSlippage),
+          creationFailed: createOrderFailureToast,
         },
         // Used for both market and limit orders.
         shared: {
@@ -1338,7 +1292,7 @@ const usePerpsToasts = (): {
     ],
   );
 
-  return { showToast, closeToast, PerpsToastOptions };
+  return { showToast, PerpsToastOptions };
 };
 
 export default usePerpsToasts;

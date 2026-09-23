@@ -209,7 +209,6 @@ export type PerpsStackParamList = {
     buttonClicked?: string;
     buttonLocation?: string;
     enableHaptics?: boolean;
-    openSlippage?: boolean;
   };
 
   PerpsAdjustMargin: {

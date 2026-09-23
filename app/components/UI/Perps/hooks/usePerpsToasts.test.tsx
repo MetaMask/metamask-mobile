@@ -467,6 +467,8 @@ describe('usePerpsToasts', () => {
           label: 'Network error',
           isBold: false,
         });
+        expect(config.linkButtonOptions).toBeUndefined();
+        expect(config.hasNoTimeout).toBe(false);
       });
 
       it('strips hip3 prefix from asset symbol in market order submitted', () => {

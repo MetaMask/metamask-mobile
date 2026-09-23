@@ -1936,23 +1936,11 @@ export const usePerpsProOrderForm = ({
       ) {
         trackChaseConcurrencyLimitHit();
       }
-      const onAdjustSlippage =
-        isPerpsErrorCode(error, PERPS_ERROR_CODES.IOC_CANCEL) ||
-        isPerpsErrorCode(error, PERPS_ERROR_CODES.PRICE_MOVED) ||
-        isPerpsErrorCode(error, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED)
-          ? () => setIsSlippageVisible(true)
-          : undefined;
       const toast = isTwapOrder
-        ? PerpsToastOptions.orderManagement.twap.creationFailed(
-            error,
-            onAdjustSlippage,
-          )
+        ? PerpsToastOptions.orderManagement.twap.creationFailed(error)
         : isChaseExecutionRef.current
-          ? PerpsToastOptions.orderManagement.chase.creationFailed(
-              error,
-              onAdjustSlippage,
-            )
-          : standardOrderToastOptions.creationFailed(error, onAdjustSlippage);
+          ? PerpsToastOptions.orderManagement.chase.creationFailed(error)
+          : standardOrderToastOptions.creationFailed(error);
       showToast(toast);
     },
   });
