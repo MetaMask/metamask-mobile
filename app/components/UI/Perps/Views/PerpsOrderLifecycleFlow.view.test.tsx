@@ -65,7 +65,7 @@ describe('Order Lifecycle & Funds Flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.METAMASK_ENVIRONMENT = 'dev';
-    delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
   });
 
   afterEach(() => {

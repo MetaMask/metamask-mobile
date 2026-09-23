@@ -2,12 +2,15 @@ import { isLighterProviderEnabled } from './lighterFeatureFlags';
 
 describe('lighterFeatureFlags', () => {
   describe('isLighterProviderEnabled', () => {
-    it('enables Lighter by default in the development environment', () => {
-      const environment = { METAMASK_ENVIRONMENT: 'dev' };
+    it('keeps Lighter disabled in development without an opt-in', () => {
+      const environment = {
+        METAMASK_ENVIRONMENT: 'dev',
+        MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'false',
+      };
 
       const result = isLighterProviderEnabled(environment);
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
     it('enables Lighter through the explicit override outside development', () => {

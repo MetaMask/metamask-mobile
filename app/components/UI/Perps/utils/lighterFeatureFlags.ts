@@ -4,8 +4,8 @@ interface LighterFeatureEnvironment {
 }
 
 /**
- * Enables the Lighter controller infrastructure automatically in local
- * development builds, while retaining an explicit opt-in for other builds.
+ * Enables the experimental Lighter infrastructure only with an explicit
+ * build-time opt-in, matching the Metro fence around the embedded signer.
  */
 export function isLighterProviderEnabled(
   environment: LighterFeatureEnvironment = {
@@ -14,8 +14,5 @@ export function isLighterProviderEnabled(
       process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED,
   },
 ): boolean {
-  return (
-    environment.METAMASK_ENVIRONMENT === 'dev' ||
-    environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
-  );
+  return environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true';
 }

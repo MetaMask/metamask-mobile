@@ -16,7 +16,7 @@ describe('PerpsSelectProviderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.METAMASK_ENVIRONMENT = 'dev';
-    delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
   });
 
   afterEach(() => {
@@ -58,17 +58,21 @@ describe('PerpsSelectProviderView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not expose the selector in production', async () => {
-    process.env.METAMASK_ENVIRONMENT = 'production';
+  it.each(['production', 'dev'])(
+    'does not expose the selector in %s without the build opt-in',
+    async (environment) => {
+      process.env.METAMASK_ENVIRONMENT = environment;
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
 
-    renderPerpsSelectProviderView();
+      renderPerpsSelectProviderView();
 
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId(PerpsSelectProviderViewSelectorsIDs.SHEET),
-      ).not.toBeOnTheScreen();
-    });
-  });
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsSelectProviderViewSelectorsIDs.SHEET),
+        ).not.toBeOnTheScreen();
+      });
+    },
+  );
 
   it('exposes the selector in an explicit Lighter production build', async () => {
     process.env.METAMASK_ENVIRONMENT = 'production';

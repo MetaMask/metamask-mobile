@@ -541,7 +541,7 @@ describe('createMobileClientConfig', () => {
     });
   });
 
-  it('enables Lighter with its signer bridge by default in development', () => {
+  it('enables Lighter with its signer bridge when explicitly enabled', () => {
     mockIsLighterProviderEnabled.mockReturnValue(true);
 
     const config = createMobileClientConfig();
