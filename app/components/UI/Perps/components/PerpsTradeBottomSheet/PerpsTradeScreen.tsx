@@ -14,9 +14,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  SelectButton,
-  SelectButtonSize,
-  SelectButtonVariant,
   Skeleton,
   Tag,
   TagSeverity,
@@ -31,6 +28,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
@@ -303,10 +301,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       ? strings('perps.order.button.long', { asset })
       : strings('perps.order.button.short', { asset });
   const payWithLabel = `${payWithName} (${payWithBalance})`;
-  const orderTypeLabel =
-    orderType === 'market'
-      ? strings('perps.order.market')
-      : strings('perps.order.limit');
   const isEditing = isInputFocused || isLimitPriceFocused;
   const limitPriceDisplay = limitPrice
     ? isLimitPriceFocused
@@ -375,20 +369,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             )}
           </Box>
         </Box>
-        <SelectButton
+        <PerpsMarketLimitToggle
           testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-          variant={SelectButtonVariant.Primary}
-          size={SelectButtonSize.Md}
-          placeholder={orderTypeLabel}
-          value={orderTypeLabel}
-          accessibilityLabel={strings(
-            'perps.trade_sheet.order_type_accessibility_label',
-            { orderType: orderTypeLabel },
-          )}
+          orderType={orderType}
           isDisabled={isOrderTypeDisabled}
           onPress={onOrderTypeToggle}
-          hideEndArrow
-          endAccessory={<PerpsSwapIcon direction="horizontal" />}
         />
       </Box>
 

@@ -390,6 +390,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON,
         ),
       ).toBeOnTheScreen();
+      expect(getByTestId('perps-swap-icon')).toBeOnTheScreen();
     });
   });
 

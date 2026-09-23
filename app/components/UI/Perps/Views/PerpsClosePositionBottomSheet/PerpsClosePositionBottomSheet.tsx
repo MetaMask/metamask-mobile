@@ -191,11 +191,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         isLong={isLong}
         leverage={livePosition.leverage?.value}
         currentPrice={currentPrice}
-        orderTypeLabel={
-          effectiveOrderType === 'market'
-            ? strings('perps.order.market')
-            : strings('perps.order.limit')
-        }
+        orderType={effectiveOrderType === 'market' ? 'market' : 'limit'}
         isOrderTypeToggleVisible={isClosePositionLimitOrderEnabled}
         isOrderTypeToggleDisabled={isClosing}
         onOrderTypeToggle={handleOrderTypeToggle}
