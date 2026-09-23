@@ -11,6 +11,9 @@
 const { NativeModules } = require('react-native');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
+const { installTimerLeakGuard } = require('./timerLeakGuard');
+
+installTimerLeakGuard();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>
