@@ -36,4 +36,13 @@ module.exports = {
   testTimeout: 30000,
   forceExit: true,
   maxWorkers: 1,
+  // With `maxWorkers: 1` and no memory limit, Jest schedules every suite in
+  // band (see @jest/core `shouldRunInBand`), so all ~100 view files share one
+  // process that is never recycled. A view suite needs 1-2 GB for React
+  // Native, Engine and the controllers, and whatever each one fails to
+  // release accumulates until the run dies with "Ineffective mark-compacts
+  // near heap limit". Setting a limit moves the suites into a worker that
+  // Jest restarts once it grows past it, which caps the peak instead of
+  // letting it climb for the whole shard.
+  workerIdleMemoryLimit: '2GB',
 };
