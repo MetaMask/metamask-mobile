@@ -4,6 +4,7 @@ export const KOL_DASHBOARD_SELECTORS = {
   TAB_WAYS_TO_EARN: 'rewards-kol-tab-ways-to-earn',
   TAB_EARNINGS: 'rewards-kol-tab-earnings',
   TAB_EARNINGS_DOT: 'rewards-kol-tab-earnings-indicator-dot',
+  TAB_PERFORMANCE: 'rewards-kol-tab-performance',
   REFERRAL_HERO: 'rewards-kol-referral-hero',
   REFERRAL_CODE: 'rewards-kol-referral-code',
   SHARE_BUTTON: 'rewards-kol-share-button',

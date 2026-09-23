@@ -1,1 +1,1 @@
-export type RewardsDashboardTab = 'waysToEarn' | 'earnings';
+export type RewardsDashboardTab = 'waysToEarn' | 'earnings' | 'performance';

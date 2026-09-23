@@ -8,6 +8,10 @@ import {
   formatUsd,
   KOL_EARNINGS_HISTORY_PREVIEW_COUNT,
 } from './rewardsUiFixtures';
+import {
+  getClaimableRewards,
+  resetClaimableRewards,
+} from './rewardsClaimStore';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -35,12 +39,14 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('./ClaimMoneyFallOverlay', () => () => null);
 
 const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
 const mockSuccessToast = jest.fn((title: string) => ({ title }));
 
 jest.mock('../../hooks/useRewardsToast', () => ({
   __esModule: true,
   default: () => ({
     showToast: mockShowToast,
+    closeToast: mockCloseToast,
     RewardsToastOptions: {
       success: mockSuccessToast,
     },
@@ -55,7 +61,11 @@ const openPrototype = (
 
 describe('EarningsTab', () => {
   beforeEach(() => {
+    // The claim balance is shared with the Money tab card, so it has to start
+    // each test at the fixture amount.
+    resetClaimableRewards();
     mockShowToast.mockClear();
+    mockCloseToast.mockClear();
     mockSuccessToast.mockClear();
     mockNavigate.mockClear();
     jest
@@ -111,10 +121,7 @@ describe('EarningsTab', () => {
   });
 
   it('runs the claim animation from US - approved with reduce motion', async () => {
-    const onClaimableChange = jest.fn();
-    const { getByTestId, getByText } = render(
-      <EarningsTab onClaimableChange={onClaimableChange} />,
-    );
+    const { getByTestId, getByText } = render(<EarningsTab />);
 
     openPrototype(getByTestId);
     fireEvent.press(
@@ -128,10 +135,41 @@ describe('EarningsTab', () => {
         getByTestId(KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM),
       ).toHaveTextContent(formatUsd(0));
     });
-    expect(onClaimableChange).toHaveBeenCalledWith(false);
+    expect(getClaimableRewards()).toBe(0);
     expect(mockSuccessToast).toHaveBeenCalledWith(
       'rewards.kol.claim_success_toast',
     );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'rewards.kol.claim_success_toast',
+        timeoutMs: 4000,
+        linkButtonOptions: expect.objectContaining({
+          label: 'rewards.kol.claim_success_view_account',
+        }),
+      }),
+    );
+
+    mockShowToast.mock.calls[0][0].linkButtonOptions.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  });
+
+  it('dismisses the toast when View account redirects to the Money tab', async () => {
+    const { getByTestId } = render(<EarningsTab />);
+
+    openPrototype(getByTestId);
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_APPROVED),
+    );
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+    mockShowToast.mock.calls[0][0].linkButtonOptions.onPress();
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
   });
 
   it('opens the location sheet from Elsewhere', () => {
@@ -229,25 +267,14 @@ describe('EarningsTab', () => {
     });
   });
 
-  it('opens the performance view from the breakdown header', () => {
-    const { getByTestId } = render(<EarningsTab />);
+  it('opens the performance tab from the breakdown header', () => {
+    const onViewPerformance = jest.fn();
+    const { getByTestId } = render(
+      <EarningsTab onViewPerformance={onViewPerformance} />,
+    );
 
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.BREAKDOWN_HEADER));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_PERFORMANCE_VIEW,
-      params: undefined,
-    });
-  });
-
-  it('opens the invited performance view without referrals', () => {
-    const { getByTestId } = render(<EarningsTab hideReferrals />);
-
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.BREAKDOWN_HEADER));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_PERFORMANCE_VIEW,
-      params: { hideReferrals: true },
-    });
+    expect(onViewPerformance).toHaveBeenCalledTimes(1);
   });
 });

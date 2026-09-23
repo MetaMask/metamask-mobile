@@ -34,6 +34,7 @@ import {
   KOL_EARNINGS_HISTORY_PREVIEW_COUNT,
   type KolEarningsHistoryKind,
 } from './rewardsUiFixtures';
+import { claimAllRewards, useClaimableRewards } from './rewardsClaimStore';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
@@ -68,9 +69,9 @@ const BREAKDOWN_ROWS: {
 ];
 
 interface EarningsTabProps {
-  onClaimableChange?: (hasClaimable: boolean) => void;
   /** Invited users don't earn from referrals they send. */
   hideReferrals?: boolean;
+  onViewPerformance?: () => void;
 }
 
 type ClaimSheet =
@@ -83,22 +84,26 @@ type ClaimSheet =
 
 const COUNTDOWN_DURATION_MS = 700;
 const OPACITY_DURATION_MS = 350;
+const CLAIM_SUCCESS_TOAST_TIMEOUT_MS = 4000;
 // The bills keep falling after the amount settles: the last one starts at
 // BILL_COUNT * stagger and takes its own fall duration to clear the screen.
 const MONEY_FALL_DURATION_MS = 1540;
 
 const EarningsTab: React.FC<EarningsTabProps> = ({
-  onClaimableChange,
   hideReferrals = false,
+  onViewPerformance,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { showToast, RewardsToastOptions } = useRewardsToast();
-  const [available, setAvailable] = useState(
-    KOL_EARNINGS_FIXTURE.availableToClaim,
-  );
+  const { showToast, closeToast, RewardsToastOptions } = useRewardsToast();
+  const claimableRewards = useClaimableRewards();
   const [isFalling, setIsFalling] = useState(false);
-  const [isClaimed, setIsClaimed] = useState(false);
+  // The store drops to zero the moment a claim starts, so the rolling digits
+  // read from local state until they land on the same value.
+  const [countdownAmount, setCountdownAmount] = useState(claimableRewards);
+  const [isCountingDown, setIsCountingDown] = useState(false);
   const [claimSheet, setClaimSheet] = useState<ClaimSheet>('hidden');
+  const available = isCountingDown ? countdownAmount : claimableRewards;
+  const isClaimed = claimableRewards <= 0;
   const amountOpacity = useRef(new Animated.Value(1)).current;
   const animationFrameRef = useRef<number | undefined>(undefined);
   const moneyFallTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -148,11 +153,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
         1,
       );
       if (progress >= 1) {
-        setAvailable(0);
+        setCountdownAmount(0);
+        setIsCountingDown(false);
         return;
       }
       // Ease-out, so the digits roll fast up front and settle softly.
-      setAvailable(startAmount * (1 - (1 - (1 - progress) ** 3)));
+      setCountdownAmount(startAmount * (1 - (1 - (1 - progress) ** 3)));
       animationFrameRef.current = requestAnimationFrame(tick);
     };
     animationFrameRef.current = requestAnimationFrame(tick);
@@ -184,44 +190,63 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   );
 
   const completeClaim = useCallback(() => {
-    if (available <= 0 || isClaimed) {
+    if (claimableRewards <= 0) {
       return;
     }
+    const startAmount = claimableRewards;
     setClaimSheet('hidden');
+    // Hold the pre-claim amount on screen so the digits roll down from it
+    // rather than snapping to the zeroed store value.
+    setCountdownAmount(startAmount);
+    setIsCountingDown(true);
     // The button settles into its claimed state right away rather than waiting
     // for the count-down to finish.
-    setIsClaimed(true);
-    onClaimableChange?.(false);
-    showToast(
-      RewardsToastOptions.success(strings('rewards.kol.claim_success_toast')),
-    );
+    claimAllRewards();
+    showToast({
+      ...RewardsToastOptions.success(
+        strings('rewards.kol.claim_success_toast'),
+      ),
+      timeoutMs: CLAIM_SUCCESS_TOAST_TIMEOUT_MS,
+      linkButtonOptions: {
+        label: strings('rewards.kol.claim_success_view_account'),
+        onPress: () => {
+          // The toast host outlives the navigation, so it would otherwise
+          // follow the user onto the Money tab they just asked to see.
+          closeToast();
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
+        },
+      },
+    });
     AccessibilityInfo.isReduceMotionEnabled()
       .then((reduceMotion) => {
         if (reduceMotion) {
-          setAvailable(0);
+          setIsCountingDown(false);
           setIsFalling(false);
           return;
         }
-        runClaimAnimation(available);
+        runClaimAnimation(startAmount);
       })
       .catch(() => {
-        runClaimAnimation(available);
+        runClaimAnimation(startAmount);
       });
   }, [
-    available,
-    isClaimed,
-    onClaimableChange,
+    claimableRewards,
+    closeToast,
+    navigation,
     runClaimAnimation,
     showToast,
     RewardsToastOptions,
   ]);
 
   const handleClaim = useCallback(() => {
-    if (available <= 0 || isClaimed) {
+    if (claimableRewards <= 0) {
       return;
     }
     setClaimSheet('prototype');
-  }, [available, isClaimed]);
+  }, [claimableRewards]);
 
   const handleCloseClaimSheet = useCallback(() => {
     setClaimSheet('hidden');
@@ -361,13 +386,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       <SectionHeader
         title={strings('rewards.kol.breakdown')}
         isInteractive
-        onPress={() =>
-          navigateToRewardsRoute(
-            navigation,
-            Routes.REWARDS_PERFORMANCE_VIEW,
-            hideReferrals ? { hideReferrals: true } : undefined,
-          )
-        }
+        onPress={onViewPerformance}
         twClassName="pt-0 pb-4"
         testID={KOL_DASHBOARD_SELECTORS.BREAKDOWN_HEADER}
       />

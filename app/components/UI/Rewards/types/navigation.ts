@@ -174,10 +174,6 @@ export interface RewardsEarningsHistoryParams {
   hideReferrals?: boolean;
 }
 
-export interface RewardsPerformanceParams {
-  hideReferrals?: boolean;
-}
-
 /**
  * Param list for screens registered in `RewardsNavigator`.
  */
@@ -186,7 +182,6 @@ export interface RewardsPerformanceParams {
 export type RewardsStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
-  RewardsPerformanceView: RewardsPerformanceParams | undefined;
   RewardsTradingCommissionsView: undefined;
   RewardsTradingRebatesView: undefined;
   RewardsEarningsHistoryView: RewardsEarningsHistoryParams | undefined;

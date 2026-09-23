@@ -117,7 +117,6 @@ const Routes = {
   REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
-  REWARDS_PERFORMANCE_VIEW: 'RewardsPerformanceView',
   REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
   REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
   REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',

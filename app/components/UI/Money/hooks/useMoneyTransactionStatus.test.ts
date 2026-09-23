@@ -264,6 +264,7 @@ describe('useMoneyTransactionStatus', () => {
       success: sendSuccessFn,
       failed: sendFailedFn,
     },
+    claimSuccess: jest.fn(),
   };
 
   beforeEach(() => {

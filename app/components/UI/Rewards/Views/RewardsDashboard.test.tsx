@@ -347,6 +347,17 @@ jest.mock('../components/KolDashboard/EarningsTab', () => ({
   },
 }));
 
+const mockPerformanceTabProps = jest.fn();
+jest.mock('../components/KolDashboard/PerformanceTab', () => ({
+  __esModule: true,
+  default: function MockPerformanceTab(props: Record<string, unknown>) {
+    mockPerformanceTabProps(props);
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, { testID: 'performance-tab' });
+  },
+}));
+
 // Mock hooks
 jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -620,10 +631,10 @@ describe('RewardsDashboard', () => {
   describe('rendering', () => {
     it('renders main title', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getByTestId } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByText('Rewards')).toBeTruthy();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
     });
 
     it('mounts campaign outcome toast hooks on render', () => {
@@ -682,10 +693,11 @@ describe('RewardsDashboard', () => {
 
     it('renders the standard header with title Rewards', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getByTestId, getAllByText } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByText('Rewards')).toBeOnTheScreen();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      expect(getAllByText('Rewards').length).toBeGreaterThan(0);
     });
 
     it('renders no back button as a tab, even though canGoBack is true', () => {
@@ -724,9 +736,6 @@ describe('RewardsDashboard', () => {
 
         expect(
           getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON),
         ).toBeOnTheScreen();
         expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
       });
@@ -767,14 +776,18 @@ describe('RewardsDashboard', () => {
       });
     });
 
-    it('navigates to performance view when the chart button is pressed', () => {
-      const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON));
+    it('shows the performance tab when that tab is selected', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_PERFORMANCE_VIEW,
-        params: undefined,
+      act(() => {
+        onChangeTab('performance');
       });
+
+      expect(getByTestId('performance-tab')).toBeOnTheScreen();
+      expect(queryByTestId('earnings-tab')).toBeNull();
     });
 
     it('does not render the VIP button when VIP is disabled', () => {
@@ -1471,8 +1484,8 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('performance button', () => {
-    it('renders the performance button when the user is not opted in', () => {
+  describe('performance tab', () => {
+    it('can open the performance tab when the user is not opted in', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
@@ -1488,10 +1501,15 @@ describe('RewardsDashboard', () => {
       });
 
       const { getByTestId } = render(<RewardsDashboard />);
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
 
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON),
-      ).toBeOnTheScreen();
+      act(() => {
+        onChangeTab('performance');
+      });
+
+      expect(getByTestId('performance-tab')).toBeOnTheScreen();
     });
   });
 
@@ -2369,32 +2387,34 @@ describe('RewardsDashboard', () => {
       );
     });
 
-    it('keeps performance reporting for a referred user', () => {
-      // Arrange
+    it('keeps the performance tab for a referred user', () => {
       const { getByTestId } = render(<RewardsDashboard />);
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON),
-      ).toBeOnTheScreen();
-
-      // Act
       acceptInvite(getByTestId);
 
-      // Assert
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON),
-      ).toBeOnTheScreen();
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
+      act(() => {
+        onChangeTab('performance');
+      });
+
+      expect(getByTestId('performance-tab')).toBeOnTheScreen();
     });
 
     it('opens performance without referrals for a referred user', () => {
       const { getByTestId } = render(<RewardsDashboard />);
       acceptInvite(getByTestId);
 
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.PERFORMANCE_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_PERFORMANCE_VIEW,
-        params: { hideReferrals: true },
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
+      act(() => {
+        onChangeTab('performance');
       });
+
+      expect(mockPerformanceTabProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ hideReferrals: true }),
+      );
     });
 
     it('keeps both tabs for a referred user', () => {

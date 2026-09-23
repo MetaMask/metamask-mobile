@@ -24,6 +24,22 @@ describe('RewardsDashboardTabs', () => {
     expect(onChangeTab).toHaveBeenCalledWith('earnings');
   });
 
+  it('calls onChangeTab with performance when the performance tab is pressed', () => {
+    const onChangeTab = jest.fn();
+
+    const { getByTestId } = render(
+      <RewardsDashboardTabs
+        activeTab="waysToEarn"
+        showEarningsDot={false}
+        onChangeTab={onChangeTab}
+      />,
+    );
+
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAB_PERFORMANCE));
+
+    expect(onChangeTab).toHaveBeenCalledWith('performance');
+  });
+
   it('marks the earnings tab with a dot while funds are claimable', () => {
     const { getByTestId } = render(
       <RewardsDashboardTabs

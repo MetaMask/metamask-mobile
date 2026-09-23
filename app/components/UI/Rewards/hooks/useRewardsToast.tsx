@@ -71,6 +71,7 @@ const REWARDS_TOASTS_DEFAULT_OPTIONS: Partial<RewardsToastOptions> = {
 
 const useRewardsToast = (): {
   showToast: (config: RewardsToastOptions) => void;
+  closeToast: () => void;
   RewardsToastOptions: RewardsToastConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -84,6 +85,10 @@ const useRewardsToast = (): {
     },
     [toastRef],
   );
+
+  const closeToast = useCallback(() => {
+    toastRef?.current?.closeToast();
+  }, [toastRef]);
 
   const RewardsToastOptions: RewardsToastConfig = useMemo(
     () => ({
@@ -276,6 +281,7 @@ const useRewardsToast = (): {
 
   return {
     showToast,
+    closeToast,
     RewardsToastOptions,
   };
 };

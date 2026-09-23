@@ -14,7 +14,11 @@ interface RewardsDashboardTabsProps {
   onChangeTab: (tab: RewardsDashboardTab) => void;
 }
 
-const TAB_ORDER: RewardsDashboardTab[] = ['waysToEarn', 'earnings'];
+const TAB_ORDER: RewardsDashboardTab[] = [
+  'waysToEarn',
+  'earnings',
+  'performance',
+];
 
 const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
   activeTab,
@@ -38,18 +42,20 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
         testID: KOL_DASHBOARD_SELECTORS.TAB_EARNINGS,
         showsIndicatorDot: showEarningsDot,
       },
+      {
+        key: 'performance',
+        label: strings('rewards.kol.performance_title'),
+        content: null,
+        testID: KOL_DASHBOARD_SELECTORS.TAB_PERFORMANCE,
+      },
     ],
     [showEarningsDot],
   );
 
   return (
-    <Box
-      twClassName="border-b border-muted"
-      testID={KOL_DASHBOARD_SELECTORS.TABS}
-    >
+    <Box testID={KOL_DASHBOARD_SELECTORS.TABS}>
       <TabsBar
         tabs={tabs}
-        isFullWidth
         activeIndex={TAB_ORDER.indexOf(activeTab)}
         onTabPress={(index) => onChangeTab(TAB_ORDER[index])}
         testID={KOL_DASHBOARD_SELECTORS.TABS_BAR}

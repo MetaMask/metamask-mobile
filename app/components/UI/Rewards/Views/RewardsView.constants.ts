@@ -7,7 +7,6 @@ export const REWARDS_VIEW_SELECTORS = {
   TITLE: 'rewards-view-title',
   BACK_BUTTON: 'rewards-view-back-button',
   REFERRAL_BUTTON: 'rewards-view-referral-button',
-  PERFORMANCE_BUTTON: 'rewards-view-performance-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
   VIP_BUTTON: 'rewards-view-vip-button',
   VIP_REFEREE_BUTTON: 'rewards-view-vip-referee-button',

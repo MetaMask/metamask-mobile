@@ -8265,6 +8265,10 @@
         "earnings_tooltip_accessibility_label": "Learn about projected earnings"
       }
     },
+    "claimable_rewards": {
+      "title": "Claimable rewards",
+      "success_toast": "Earnings successfully claimed and deposited in Money account."
+    },
     "earnings": {
       "title": "Earnings",
       "estimated_monthly": "Monthly",
@@ -10577,12 +10581,13 @@
       "your_referral_code": "Your referral code",
       "share": "Share",
       "referrals": "Referrals",
-      "trade_commissions": "Trade commissions",
+      "trade_commissions": "Creator rewards",
       "recorded_earnings": "recorded claims",
       "available_to_claim": "Available to claim",
       "claim": "Claim",
       "claimed": "Claimed",
-      "claim_success_toast": "Successfully redeemed claims",
+      "claim_success_toast": "Earnings successfully claimed and deposited in Money account.",
+      "claim_success_view_account": "View account",
       "tax_form_title": "Tax form required to claim",
       "tax_form_description": "US law requires a tax form before you can claim these rewards. Complete it on our partner's site to continue.",
       "tax_form_remind_later": "Not now",
@@ -10627,7 +10632,7 @@
       "funnel_active_description": "Referred friends with activity in this period",
       "funnel_fee_generating": "Fee-generating referrals",
       "funnel_fee_generating_description": "Referred friends whose activity generated eligible fees",
-      "trading_commissions_section": "Trading commissions",
+      "trading_commissions_section": "Creator rewards",
       "copied_once": "Copied 1 time",
       "copied_times": "Copied {{count}} times",
       "rebate_perps_volume": "Perps volume",
