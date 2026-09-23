@@ -9952,9 +9952,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.49.1":
-  version: 0.49.1
-  resolution: "@metamask/design-system-react-native@npm:0.49.1"
+"@metamask/design-system-react-native@npm:^0.50.0":
+  version: 0.50.0
+  resolution: "@metamask/design-system-react-native@npm:0.50.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.39.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -9970,7 +9970,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/24e2c42fbd5588c661b407373804d7017a9b8079ca75447e3f779e61775a5c9af8369d55eb1181fa7a6b6c6e3c856e31b6f2e924bb87b9607f49eafddd30a73d
+  checksum: 10/e9500a7b8dfc590ce648c92619507c3327bd4a07651c0be1b2c2c4d35ca7dd7783e1be490d968b8ced40e3d48d6c6097319775e041d5234b9b41cbbe5d9f6c77
   languageName: node
   linkType: hard
 
@@ -11320,9 +11320,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^17.3.0":
-  version: 17.3.0
-  resolution: "@metamask/perps-controller@npm:17.3.0"
+"@metamask/perps-controller@npm:^17.4.0":
+  version: 17.4.0
+  resolution: "@metamask/perps-controller@npm:17.4.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -11334,7 +11334,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
-  checksum: 10/cffe29b9913582424ee4861100051cbdd8059170e49eacb414de88c15ff72f7be701d0f9dfa430251afdd0cbfe19dfdf2024533c562b30ccaccf5d1ae7390bd4
+  checksum: 10/8f65c1531beadd1b95eb7337a955a99ec03195b01f951d42f905cb2a0bd79cb461d02c3bc637f9fe93a996d481f0b143627a6e28238e3d01b2006b48bbabaf41
   languageName: node
   linkType: hard
 
@@ -39375,7 +39375,7 @@ __metadata:
     "@metamask/core-backend": "npm:^11.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
-    "@metamask/design-system-react-native": "npm:^0.49.1"
+    "@metamask/design-system-react-native": "npm:^0.50.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.12.0"
     "@metamask/design-tokens": "npm:^11.1.0"
     "@metamask/device-mcp": "npm:^0.4.2"
@@ -39438,7 +39438,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^17.3.0"
+    "@metamask/perps-controller": "npm:^17.4.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"

@@ -27,7 +27,7 @@ const RewardsCard = ({
   const tooltipProps = useKeyValueRowTooltip();
 
   return (
-    <Card accessible style={styles.card}>
+    <Card accessible twClassName="bg-default" style={styles.card}>
       <KeyValueRow
         twClassName={KEY_VALUE_ROW_CLASSNAME}
         keyLabel={strings('tooltip_modal.reward_rate.title')}

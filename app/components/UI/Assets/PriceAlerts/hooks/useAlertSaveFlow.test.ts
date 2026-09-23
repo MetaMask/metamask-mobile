@@ -59,6 +59,7 @@ const baseAnalyticsProperties = {
   alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
   alert_value: 1500,
   alert_recurring: true,
+  alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
 };
 
 const renderSaveFlow = (
@@ -338,6 +339,7 @@ describe('useAlertSaveFlow', () => {
       alert_value: 1500,
       alert_recurring: true,
       alert_active: true,
+      alert_market_type: 'spot',
     });
   });
 
@@ -373,6 +375,7 @@ describe('useAlertSaveFlow', () => {
       prev_alert_value: 1500,
       prev_alert_recurring: true,
       prev_alert_active: true,
+      alert_market_type: 'spot',
     });
   });
 
@@ -389,6 +392,7 @@ describe('useAlertSaveFlow', () => {
           alert_recurring: true,
           alert_period: '24h',
           alert_direction: 'up',
+          alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
         },
       });
     });

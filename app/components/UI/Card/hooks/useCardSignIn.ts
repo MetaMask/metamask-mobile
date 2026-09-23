@@ -84,6 +84,18 @@ export interface UseCardSignInResult {
 
 export function useCardSignIn(country: string | null): UseCardSignInResult {
   const { candidateAddresses, deviceAddresses } = useCandidateAddresses();
+  const candidateAddressesRef = useRef(candidateAddresses);
+  const deviceAddressesRef = useRef(deviceAddresses);
+  candidateAddressesRef.current = candidateAddresses;
+  deviceAddressesRef.current = deviceAddresses;
+  const deviceAddressKey = useMemo(
+    () =>
+      deviceAddresses
+        .map((address) => address.toLowerCase())
+        .sort((left, right) => left.localeCompare(right))
+        .join('\n'),
+    [deviceAddresses],
+  );
   const [resolution, setResolution] = useState<CardSignInResolution | null>(
     null,
   );
@@ -110,8 +122,8 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
     const startedAt = Date.now();
     Engine.context.CardController.resolveSignIn({
       country,
-      candidateAddresses,
-      deviceAddresses,
+      candidateAddresses: candidateAddressesRef.current,
+      deviceAddresses: deviceAddressesRef.current,
     })
       .then((result) => {
         if (cancelled) return;
@@ -127,7 +139,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
                 source: result.kind === 'wallet' ? result.source : undefined,
                 reason:
                   result.kind === 'unresolved' ? result.reason : undefined,
-                addresses_checked: candidateAddresses.length,
+                addresses_checked: candidateAddressesRef.current.length,
                 duration_ms: Date.now() - startedAt,
               })
               .build(),
@@ -152,14 +164,7 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
     return () => {
       cancelled = true;
     };
-  }, [
-    country,
-    candidateAddresses,
-    deviceAddresses,
-    retryEpoch,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [country, deviceAddressKey, retryEpoch, trackEvent, createEventBuilder]);
 
   const verifyAccount = useCallback(
     async (address: string, option: CardSignInOption) =>

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  Label,
-  Icon,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { Box, Label } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import SelectField from '../../../components/Onboarding/SelectField';
 import { countryCodeToFlag } from '../../../util/countryCodeToFlag';
@@ -14,14 +8,12 @@ import { CardAuthenticationSelectors } from '../CardAuthentication.testIds';
 
 interface SignInCountryFieldProps {
   selectedCountry: Region | null;
-  isLocked: boolean;
   isLoading: boolean;
   onPress: () => void;
 }
 
 const SignInCountryField = ({
   selectedCountry,
-  isLocked,
   isLoading,
   onPress,
 }: SignInCountryFieldProps) => (
@@ -34,17 +26,8 @@ const SignInCountryField = ({
           : undefined
       }
       onPress={onPress}
-      isDisabled={isLocked || isLoading}
+      isDisabled={isLoading}
       testID={CardAuthenticationSelectors.COUNTRY_SELECT}
-      endAccessory={
-        isLocked ? (
-          <Icon
-            name={IconName.Lock}
-            size={IconSize.Sm}
-            twClassName="text-icon-muted"
-          />
-        ) : undefined
-      }
     />
   </Box>
 );

@@ -963,6 +963,8 @@ export type RootStackParamList = {
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
+  PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
+  PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
   // Predict routes — `Predict` is a nested stack navigator.
   Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
