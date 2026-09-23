@@ -1589,8 +1589,14 @@ export const usePerpsProOrderForm = ({
       orderForm.asset,
     ],
   );
-  const { liquidationPrice, isCalculating: isLiquidationCalculating } =
-    usePerpsLiquidationPrice(liquidationPriceParams);
+  const {
+    liquidationPrice: isolatedLiquidationPrice,
+    isCalculating: isLiquidationCalculating,
+  } = usePerpsLiquidationPrice(liquidationPriceParams);
+  // The estimate uses the isolated formula; a Cross order's liquidation depends
+  // on the whole account, so treat it as unknown instead of showing a wrong price.
+  const liquidationPrice =
+    marginMode === 'cross' ? '' : isolatedLiquidationPrice;
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -3294,9 +3300,10 @@ export const usePerpsProOrderForm = ({
       effectiveMarginRequired !== undefined && effectiveMarginRequired !== null
         ? formatMargin(effectiveMarginRequired)
         : PERPS_CONSTANTS.FallbackDataDisplay;
-    const orderLiquidationDisplay = hasValidAmount
-      ? formatLiquidation(liquidationPrice)
-      : PERPS_CONSTANTS.FallbackDataDisplay;
+    const orderLiquidationDisplay =
+      hasValidAmount && liquidationPrice
+        ? formatLiquidation(liquidationPrice)
+        : PERPS_CONSTANTS.FallbackDataDisplay;
 
     let margin = orderMarginDisplay;
     let liquidationPriceDisplay = orderLiquidationDisplay;

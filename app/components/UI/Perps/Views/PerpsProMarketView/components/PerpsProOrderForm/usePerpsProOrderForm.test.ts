@@ -3656,6 +3656,35 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('shows no liquidation estimate for a Cross order', () => {
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('keeps the liquidation estimate for an isolated order when Cross is available', () => {
+      const { result } = renderWithCrossMargin();
+
+      expect(result.current.summary.liquidationPrice).toMatch(/\$/);
+    });
+
+    it('does not flag the stop loss against the isolated liquidation estimate for a Cross order', () => {
+      mockOrderForm.stopLossPrice = '79000';
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'sl-liq-risk'),
+      ).toBeUndefined();
+    });
+
     describe('existing cross position', () => {
       beforeEach(() => {
         mockExistingPosition = { leverage: { type: 'cross', value: 5 } };

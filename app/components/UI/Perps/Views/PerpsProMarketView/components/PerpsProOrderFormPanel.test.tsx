@@ -801,55 +801,59 @@ describe('PerpsProOrderFormPanel', () => {
   });
 
   describe('cross margin availability', () => {
-    it('enables Cross on a Hyperliquid main-DEX market when the flag is on', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+    const pickCrossFromMarginSheet = () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      );
+    };
 
+    it('selects Cross on a Hyperliquid main-DEX market when the flag is on', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
       renderPanel();
 
-      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ isCrossMarginAvailable: true }),
-      );
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
     });
 
-    it('keeps Cross unavailable when the flag is off', () => {
+    it('keeps Cross unselectable when the flag is off', () => {
       selectorValues.set(selectPerpsCrossMarginEnabledFlag, false);
-
       renderPanel();
 
-      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ isCrossMarginAvailable: false }),
-      );
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
     });
 
-    it('keeps Cross unavailable on HIP-3 markets', () => {
+    it('keeps Cross unselectable on HIP-3 markets', () => {
       selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-
       renderPanel({ market: { ...market, marketSource: 'xyz' } });
 
-      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ isCrossMarginAvailable: false }),
-      );
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
     });
 
-    it('keeps Cross unavailable on non-Hyperliquid providers', () => {
+    it('keeps Cross unselectable on non-Hyperliquid providers', () => {
       selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-
       renderPanel({ market: { ...market, providerId: 'lighter' } });
 
-      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ isCrossMarginAvailable: false }),
-      );
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
     });
 
-    it('keeps Cross unavailable when Pro mode is inactive', () => {
+    it('keeps Cross unselectable when Pro mode is inactive', () => {
       selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
       mockUseIsPerpsProModeActive.mockReturnValue(false);
-
       renderPanel();
 
-      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
-        expect.objectContaining({ isCrossMarginAvailable: false }),
-      );
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
     });
 
     it('labels the margin control with the active cross margin mode', () => {
@@ -860,20 +864,6 @@ describe('PerpsProOrderFormPanel', () => {
       expect(
         screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
       ).toHaveTextContent('Cross');
-    });
-
-    it('selects Cross margin from the margin mode sheet', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-      renderPanel();
-
-      fireEvent.press(
-        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
-      );
-      fireEvent.press(
-        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
-      );
-
-      expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
     });
   });
 });
