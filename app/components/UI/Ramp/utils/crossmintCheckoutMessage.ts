@@ -1,7 +1,7 @@
 /**
  * Best-effort parsing of Crossmint embedded checkout `postMessage` events.
  *
- * With `enableApplePay` set on the WebView, iOS disables the usual
+ * On iOS 15 the WebView sets `enableApplePay`, which drops the usual
  * `ReactNativeWebView.postMessage` polyfill, so these events may never
  * arrive; order state is authoritatively tracked by polling the on-ramp
  * API through the precreated-order processor.
@@ -71,16 +71,31 @@ export function isCrossmintPaymentInProgress(
 export function getCrossmintFailureMessage(
   message: CrossmintCheckoutMessage,
 ): string | null {
+  const unpurchasable = getCrossmintUnpurchasableMessage(message);
+  if (unpurchasable) {
+    return unpurchasable;
+  }
+
+  return message.data?.order?.payment?.failureReason?.message ?? null;
+}
+
+/**
+ * Failure reported before any payment could start: the order never got a
+ * quote (creation failed, or the line item is unavailable, e.g. "This item is
+ * not available for purchase with Crossmint at this moment"). Crossmint still
+ * renders and reports its payment button ready for such an order, but it
+ * cannot be paid, so the caller must not offer that button. Distinct from a
+ * payment decline, where the button is a valid retry.
+ */
+export function getCrossmintUnpurchasableMessage(
+  message: CrossmintCheckoutMessage,
+): string | null {
   if (message.event === 'order:creation-failed') {
     return message.data?.message ?? 'Order creation failed';
   }
 
-  const failure = message.data?.order?.payment?.failureReason?.message;
-  if (failure) {
-    return failure;
-  }
-
-  const quoteFailure =
-    message.data?.order?.lineItems?.[0]?.quote?.unavailabilityReason?.message;
-  return quoteFailure ?? null;
+  return (
+    message.data?.order?.lineItems?.[0]?.quote?.unavailabilityReason?.message ??
+    null
+  );
 }

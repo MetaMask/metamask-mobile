@@ -187,12 +187,38 @@ const NATIVE_PROVIDER_QUOTE = {
   providerInfo: { type: 'native' as const, name: 'Transak', id: 'transak' },
 } as const;
 
+const HEADLESS_NATIVE_PROVIDER_QUOTE = {
+  ...NATIVE_PROVIDER_QUOTE,
+  outputCurrency: {
+    symbol: 'mUSD',
+    assetId: 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
+  quote: {
+    amountIn: 15,
+    amountOut: 14.3,
+    paymentMethod: '/payments/debit-credit-card',
+    providerFee: 0.5,
+    networkFee: 0.2,
+  },
+} as const;
+
 const MOCK_TRANSAK_QUOTE = {
   id: 'transak-quote-1',
-  fiatAmount: 100,
+  quoteId: 'transak-quote-1',
+  fiatAmount: 15,
   fiatCurrency: 'USD',
-  cryptoAmount: '0.05',
-  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  cryptoAmount: 14.3,
+  cryptoCurrency: 'MUSD',
+  network: 'monad',
+  paymentMethod: 'credit_debit_card',
+  totalFee: 0.7,
+  feeBreakdown: [
+    { id: 'transak_fee', name: 'Transak fee', value: 0.5 },
+    { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+  ],
+  requestedAssetId:
+    'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  requestedChainId: 'eip155:143',
 };
 
 const CTX = { amount: 100, assetId: 'eip155:1/slip44:60' };
@@ -631,14 +657,15 @@ describe('useContinueWithQuote', () => {
     // continues to omit overrides and falls back to controller selections —
     // see the suites above.
     const HEADLESS_CTX = {
-      amount: 250,
-      assetId: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      chainId: 'eip155:59144' as const,
+      amount: 15,
+      assetId: 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      chainId: 'eip155:143' as const,
       walletAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       currency: 'EUR',
       cryptoSymbol: 'mUSD',
-      paymentMethodId: '/payments/sepa-bank-transfer',
+      paymentMethodId: '/payments/debit-credit-card',
       providerName: 'Headless Provider',
+      headlessSessionId: 'session-1',
     };
 
     it('routes native quote using only ctx overrides when controller has no selections', async () => {
@@ -656,17 +683,66 @@ describe('useContinueWithQuote', () => {
 
       const { result } = renderHook(() => useContinueWithQuote());
 
-      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE, HEADLESS_CTX);
+      const caught = await invoke(
+        result,
+        HEADLESS_NATIVE_PROVIDER_QUOTE,
+        HEADLESS_CTX,
+      );
 
       expect(caught).toBeUndefined();
       expect(mockGetBuyQuote).toHaveBeenCalledWith(
         'EUR',
         HEADLESS_CTX.assetId,
-        'eip155:59144',
-        '/payments/sepa-bank-transfer',
-        '250',
+        'eip155:143',
+        '/payments/debit-credit-card',
+        '15',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 250);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 15);
+    });
+
+    it('logs but continues routing when the native fee changes', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue({
+        ...MOCK_TRANSAK_QUOTE,
+        totalFee: 0.71,
+        feeBreakdown: [
+          { id: 'transak_fee', name: 'Transak fee', value: 0.51 },
+          { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+        ],
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(
+        result,
+        HEADLESS_NATIVE_PROVIDER_QUOTE,
+        HEADLESS_CTX,
+      );
+
+      expect(caught).toBeUndefined();
+      expect(mockRouteAfterAuth).toHaveBeenCalled();
+    });
+
+    it('retains fee exclusion for a non-mUSD headless native quote', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
+      const relayContext = {
+        ...HEADLESS_CTX,
+        assetId: 'eip155:1/slip44:60',
+        chainId: 'eip155:1' as const,
+      };
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      await invoke(result, NATIVE_PROVIDER_QUOTE, relayContext);
+
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'EUR',
+        'eip155:1/slip44:60',
+        'eip155:1',
+        '/payments/debit-credit-card',
+        '15',
+      );
     });
 
     it('navigates EnterEmail with override currency when controller userRegion is missing', async () => {
@@ -691,14 +767,14 @@ describe('useContinueWithQuote', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.RAMP.ENTER_EMAIL,
         expect.objectContaining({
-          amount: '250',
+          amount: '15',
           currency: 'EUR',
           assetId: HEADLESS_CTX.assetId,
         }),
       );
     });
 
-    it('routes widget quote using ctx overrides for currency, walletAddress, providerName and chainId', async () => {
+    it('consumes the accepted aggregator buyURL for the requested $15', async () => {
       mockUseRampsController.mockReturnValue(
         buildController({
           selectedToken: null,
@@ -713,10 +789,37 @@ describe('useContinueWithQuote', () => {
       });
 
       const { result } = renderHook(() => useContinueWithQuote());
+      const aggregatorQuote = {
+        ...IN_APP_CHECKOUT_QUOTE,
+        provider: '/providers/transak',
+        quote: {
+          ...IN_APP_CHECKOUT_QUOTE.quote,
+          amountIn: 15,
+          providerFee: 0.8,
+        },
+      };
 
-      const caught = await invoke(result, IN_APP_CHECKOUT_QUOTE, HEADLESS_CTX);
+      const caught = await invoke(result, aggregatorQuote, HEADLESS_CTX);
 
       expect(caught).toBeUndefined();
+      expect(HEADLESS_CTX.amount).toBe(15);
+      const consumedAggregatorQuote = mockGetBuyWidgetData.mock.calls[0][0];
+      expect(consumedAggregatorQuote.quote).toEqual(
+        expect.objectContaining({
+          amountIn: 15,
+        }),
+      );
+      expect(
+        consumedAggregatorQuote.quote.buyURL.startsWith(
+          IN_APP_CHECKOUT_QUOTE.quote.buyURL,
+        ),
+      ).toBe(true);
+      expect(consumedAggregatorQuote.quote.buyURL).not.toContain(
+        'isFeeExcludedFromFiat',
+      );
+      expect(consumedAggregatorQuote).not.toHaveProperty(
+        'quote.isFeeExcludedFromFiat',
+      );
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       const [, navigateParams] = mockNavigate.mock.calls[0];
       expect(navigateParams).toEqual(
@@ -727,7 +830,33 @@ describe('useContinueWithQuote', () => {
           cryptocurrency: 'mUSD',
           walletAddress: HEADLESS_CTX.walletAddress,
           // network is the part after the colon in chainId.
-          network: '59144',
+          network: '143',
+        }),
+      );
+    });
+
+    it('logs but consumes buyURL when aggregator amount changed', async () => {
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/headless',
+        orderId: 'ord-headless-changed',
+      });
+      const changedQuote = {
+        ...IN_APP_CHECKOUT_QUOTE,
+        provider: '/providers/transak',
+        quote: {
+          ...IN_APP_CHECKOUT_QUOTE.quote,
+          amountIn: 14.99,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+      };
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, changedQuote, HEADLESS_CTX);
+
+      expect(caught).toBeUndefined();
+      expect(mockGetBuyWidgetData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          quote: expect.objectContaining({ amountIn: 14.99 }),
         }),
       );
     });

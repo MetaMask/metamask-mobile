@@ -6537,35 +6537,7 @@
     "swap_completed": "Realizado swap de {{from}} por {{to}}",
     "swap": "Trocado",
     "sent": "Enviou para {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "Realizado swap de {{symbolIn}} por {{symbolOut}}",
-      "erc20_sent": "Enviou para {{address}}",
-      "erc20_received": "Recebido de {{address}}",
-      "eth_sent": "Enviou para {{address}}",
-      "eth_received": "Recebido de {{address}}",
-      "erc721_sent": "Enviou NFT para {{address}}",
-      "erc1155_sent": "Enviou NFT para {{address}}",
-      "erc721_received": "Recebeu NFT de {{address}}",
-      "erc1155_received": "Recebeu NFT de {{address}}",
-      "rocketpool_stake_completed": "Em staking",
-      "rocketpool_unstake_completed": "Retirada de staking concluída",
-      "lido_stake_completed": "Em staking",
-      "lido_withdrawal_requested": "Retirada de staking solicitada",
-      "lido_withdrawal_completed": "Retirada de staking concluída",
-      "lido_stake_ready_to_be_withdrawn": "Saque solicitado"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Sua solicitação para retirar {{amount}} {{symbol}} do staking foi enviada",
-      "lido_stake_ready_to_be_withdrawn": "Você já pode sacar seu {{symbol}} fora do staking"
-    },
     "modal": {
-      "title_sent": "{{symbol}} enviados",
-      "title_received": "{{symbol}} recebidos",
-      "title_unstake_requested": "Retirada de staking solicitada",
-      "title_untake_ready": "Saque pronto",
-      "title_stake": "Colocou {{symbol}} em staking",
-      "title_unstake_completed": "Retirada de staking concluída",
-      "title_swapped": "Trocou {{symbolIn}} por {{symbolOut}}",
       "label_address_to": "Para",
       "label_address_from": "De",
       "label_address_to_you": "Para (você)",
@@ -9700,7 +9672,7 @@
       "view_on_block_explorer": "Ver no explorador de blocos"
     },
     "share_address_qr": {
-      "title": "endereço {{networkName}}",
+      "title": "Endereço {{networkName}}",
       "copy_address": "Copiar endereço",
       "description": "Use este endereço para receber tokens e itens colecionáveis em",
       "description_prefix": "Use esta opção para receber ativos em"

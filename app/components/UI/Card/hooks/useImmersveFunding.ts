@@ -8,8 +8,12 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { selectCardHomeData } from '../../../../selectors/cardController';
 import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
-import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  safeToChecksumAddress,
+} from '../../../../util/address';
 import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
@@ -23,12 +27,15 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
+  buildImmersveApproveWrite,
   encodeSmartContractWrite,
   immersveNetworkToCaipChainId,
+  immersveNetworkToFundingToken,
   withApproveAmount,
 } from '../util/immersveFunding';
 import { getCardProviderErrorMessage } from '../util/getCardProviderErrorMessage';
 import { withCardProvider } from '../util/metrics';
+import { resolveCardFundingAddress } from '../util/resolveCardFundingAddress';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { UserCancelledError } from './useCardDelegation';
 
@@ -58,18 +65,65 @@ function getImmersveFundingErrorContext(
   };
 }
 
-export const useImmersveFunding = () => {
+function isUserCancelledError(errorMessage: string): boolean {
+  return (
+    errorMessage.includes('User denied') ||
+    errorMessage.includes('User rejected') ||
+    errorMessage.includes('User cancelled') ||
+    errorMessage.includes('User canceled')
+  );
+}
+
+interface UseImmersveFundingOptions {
+  /** SIWE / route-param funding wallet; wins over Card Home and selection. */
+  fundingAddress?: string | null;
+}
+
+export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
   const { TransactionController } = Engine.context;
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const cardHomeData = useSelector(selectCardHomeData);
   const immersveConfig = useSelector(selectCardImmersveConfig);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [state, setState] = useState<FundingState>({
     isLoading: false,
     error: null,
   });
+
+  const resolveFundingFromAddress = useCallback((): string => {
+    const selected = selectAccountByScope('eip155:0');
+    const resolved = resolveCardFundingAddress({
+      preferredAddress: options.fundingAddress,
+      primaryFundingWalletAddress:
+        cardHomeData?.primaryFundingAsset?.walletAddress,
+      selectedEvmAddress: selected?.address,
+    });
+    const address = safeToChecksumAddress(resolved);
+    if (!address) {
+      throw new Error('No account found for funding');
+    }
+
+    const ownedAccount =
+      Engine.context.AccountsController.getAccountByAddress(address);
+    if (!ownedAccount) {
+      throw new Error('Funding account is not available in this wallet');
+    }
+
+    // Match Add funds: confirmation UI and subsequent selection must use the
+    // card funding wallet, not whichever EVM account happens to be active.
+    if (!areAddressesEqual(address, selected?.address ?? '')) {
+      Engine.setSelectedAddress(address);
+    }
+
+    return address;
+  }, [
+    options.fundingAddress,
+    cardHomeData?.primaryFundingAsset?.walletAddress,
+    selectAccountByScope,
+  ]);
 
   const createFundingSource =
     useCallback(async (): Promise<CardFundingSourceResult> => {
@@ -85,14 +139,24 @@ export const useImmersveFunding = () => {
       }
     }, []);
 
-  const executeFunding = useCallback(
-    async (
-      write: CardSmartContractWriteParams,
-      approveAmountBaseUnits?: string,
-    ): Promise<string> => {
+  const submitApprove = useCallback(
+    async ({
+      write,
+      approveAmountBaseUnits,
+      step,
+      method,
+      extraMetrics,
+    }: {
+      write: CardSmartContractWriteParams;
+      approveAmountBaseUnits?: string;
+      step: string;
+      method: string;
+      extraMetrics?: Record<string, unknown>;
+    }): Promise<string> => {
       setState({ isLoading: true, error: null });
       const metricsProps = withCardProvider(CardProviderIds.Immersve, {
-        step: 'approve',
+        step,
+        ...extraMetrics,
       });
       const network = immersveConfig?.network;
       let caipChainId: string | undefined;
@@ -104,11 +168,7 @@ export const useImmersveFunding = () => {
             .build(),
         );
 
-        const account = selectAccountByScope('eip155:0');
-        const address = safeToChecksumAddress(account?.address);
-        if (!address) {
-          throw new Error('No account found for funding');
-        }
+        const address = resolveFundingFromAddress();
 
         const networkClientId = await ensureNetworkExists(caipChainId);
         const writeToEncode = approveAmountBaseUnits
@@ -147,13 +207,8 @@ export const useImmersveFunding = () => {
         return txHash;
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : String(e);
-        const isUserCancelled =
-          errorMessage.includes('User denied') ||
-          errorMessage.includes('User rejected') ||
-          errorMessage.includes('User cancelled') ||
-          errorMessage.includes('User canceled');
 
-        if (isUserCancelled) {
+        if (isUserCancelledError(errorMessage)) {
           trackEvent(
             createEventBuilder(
               MetaMetricsEvents.CARD_FUNDING_PROCESS_USER_CANCELED,
@@ -172,8 +227,8 @@ export const useImmersveFunding = () => {
         );
         Logger.error(
           e as Error,
-          getImmersveFundingErrorContext('executeFunding', {
-            step: 'approve',
+          getImmersveFundingErrorContext(method, {
+            step,
             network,
             chainId: caipChainId,
             contractMethod: write.method,
@@ -184,13 +239,61 @@ export const useImmersveFunding = () => {
       }
     },
     [
-      selectAccountByScope,
+      resolveFundingFromAddress,
       immersveConfig?.network,
       ensureNetworkExists,
       TransactionController,
       trackEvent,
       createEventBuilder,
     ],
+  );
+
+  const executeFunding = useCallback(
+    async (
+      write: CardSmartContractWriteParams,
+      approveAmountBaseUnits?: string,
+    ): Promise<string> =>
+      submitApprove({
+        write,
+        approveAmountBaseUnits,
+        step: 'approve',
+        method: 'executeFunding',
+      }),
+    [submitApprove],
+  );
+
+  /**
+   * Builds a local ERC-20 approve write from Immersve config. Used when
+   * Immersve's spending prerequisites do not supply a `smart_contract_write`
+   * (revoke and post-revoke re-approval).
+   */
+  const buildApproveWrite = useCallback(
+    (amountBaseUnits: string): CardSmartContractWriteParams => {
+      const spenderAddress = immersveConfig?.spenderAddress;
+      if (!spenderAddress) {
+        throw new Error('Immersve spender address is not configured');
+      }
+      const { tokenAddress } = immersveNetworkToFundingToken(
+        immersveConfig?.network,
+      );
+      return buildImmersveApproveWrite({
+        tokenAddress,
+        spenderAddress,
+        amountBaseUnits,
+      });
+    },
+    [immersveConfig?.network, immersveConfig?.spenderAddress],
+  );
+
+  const revokeFunding = useCallback(
+    async (): Promise<string> =>
+      submitApprove({
+        write: buildApproveWrite('0'),
+        step: 'revoke',
+        method: 'revokeFunding',
+        extraMetrics: { is_revoke: true },
+      }),
+    [buildApproveWrite, submitApprove],
   );
 
   const createCard = useCallback(
@@ -223,6 +326,8 @@ export const useImmersveFunding = () => {
     ...state,
     createFundingSource,
     executeFunding,
+    revokeFunding,
+    buildApproveWrite,
     createCard,
   };
 };
