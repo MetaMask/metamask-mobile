@@ -6,6 +6,7 @@ import {
   screen,
   within,
 } from '@testing-library/react-native';
+import { typography } from '@metamask/design-tokens';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
@@ -376,6 +377,20 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
     ).toBeOnTheScreen();
+  });
+
+  // The header centres its text column and the fee line sits at the bottom of
+  // a bottom-anchored sheet, so either placeholder being shorter than the text
+  // it replaces makes the title (or the whole sheet) jump when the value loads.
+  it('sizes the header price and fee skeletons to the text lines they replace', () => {
+    render(<PerpsTradeScreen {...defaultProps} isHeaderLoading isFeeLoading />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+    ).toHaveStyle({ height: typography.sBodySM.lineHeight });
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
+    ).toHaveStyle({ height: typography.sBodyXS.lineHeight });
   });
 
   it('shows the limit price row for a limit order', () => {

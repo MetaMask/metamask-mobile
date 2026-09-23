@@ -37,6 +37,7 @@ import PerpsSlider from '../PerpsSlider';
 import PerpsSwapIcon from '../PerpsSwapIcon';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import { typography } from '@metamask/design-tokens';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -128,6 +129,16 @@ export interface PerpsTradeError {
  * horizontal padding is tightened.
  */
 const LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME = 'flex-1 px-1';
+
+/**
+ * Skeletons that stand in for a single line of text take that text's line
+ * height. A shorter placeholder makes the layout jump when the value arrives:
+ * the header centres its text column, so a shorter price line moved the title,
+ * and the fee line sits at the bottom of a bottom-anchored sheet, so a shorter
+ * placeholder moved the whole sheet.
+ */
+const HEADER_PRICE_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
+const FEE_SKELETON_HEIGHT = typography.sBodyXS.lineHeight;
 
 interface ActionRowProps {
   label: string;
@@ -351,7 +362,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.HEADER_SKELETON}
                 width={112}
-                height={18}
+                height={HEADER_PRICE_SKELETON_HEIGHT}
               />
             ) : (
               <LivePriceHeader
@@ -801,7 +812,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
                 width={112}
-                height={16}
+                height={FEE_SKELETON_HEIGHT}
                 twClassName="self-center"
               />
             ) : feePercentage ? (
