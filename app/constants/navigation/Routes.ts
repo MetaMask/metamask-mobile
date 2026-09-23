@@ -450,6 +450,7 @@ const Routes = {
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
+    PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
