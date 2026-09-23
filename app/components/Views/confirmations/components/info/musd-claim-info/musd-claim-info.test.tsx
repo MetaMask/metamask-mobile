@@ -22,10 +22,6 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   controllerMessenger: {

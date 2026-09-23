@@ -11,7 +11,7 @@ import { BalancesByAssetId } from './useBalancesByAssetId';
 import {
   ARC_NATIVE_ASSET_ID,
   ARC_USDC_ASSET_ID,
-} from '../../../hooks/useArcDefaultTokens';
+} from '../../../../enablement/assets/arc';
 
 describe('useTokensWithBalances', () => {
   beforeEach(() => {

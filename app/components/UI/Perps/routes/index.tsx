@@ -67,7 +67,6 @@ import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/na
 import { ConfirmationContextProvider } from '../../../Views/confirmations/context/confirmation-context';
 import { AlertsContextProvider } from '../../../Views/confirmations/context/alert-system-context';
 import { QRHardwareContextProvider } from '../../../Views/confirmations/context/qr-hardware-context';
-import { ConfirmationAssetPollingProvider } from '../../../Views/confirmations/components/confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import useConfirmationAlerts from '../../../Views/confirmations/hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import ConfirmationInfo from '../../../Views/confirmations/components/info-root';
@@ -149,13 +148,11 @@ const PerpsConfirmScreen = () => {
   if (params?.useBottomSheet) {
     return (
       <ConfirmationContextProvider>
-        <ConfirmationAssetPollingProvider>
-          <PerpsConfirmationAlerts>
-            <QRHardwareContextProvider>
-              <ConfirmationInfo />
-            </QRHardwareContextProvider>
-          </PerpsConfirmationAlerts>
-        </ConfirmationAssetPollingProvider>
+        <PerpsConfirmationAlerts>
+          <QRHardwareContextProvider>
+            <ConfirmationInfo />
+          </QRHardwareContextProvider>
+        </PerpsConfirmationAlerts>
       </ConfirmationContextProvider>
     );
   }

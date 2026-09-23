@@ -152,7 +152,7 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
     [accountId],
   );
 
-  const handleHideToken = useCallback(() => {
+  const handleHideToken = useCallback(async () => {
     if (!assetId || !accountId) return;
 
     const { AssetsController, MultichainAssetsController } = Engine.context;
@@ -163,11 +163,11 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         // sets assetPreferences.hidden without removing the assetsBalance entry.
         // Without this order a hidden token with a balance would be re-hidden
         // instead of unhidden.
-        AssetsController.unhideAsset(assetId);
+        await AssetsController.unhideAsset(assetId);
         // For non-EVM tokens the hidden state also lives in
         // MultichainAssetsController.allIgnoredAssets; addAssets restores it.
         if (allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
-          MultichainAssetsController.addAssets([assetId], accountId);
+          await MultichainAssetsController.addAssets([assetId], accountId);
         }
       } else {
         // Custom-added tokens typically also have an assetsBalance entry once

@@ -17,11 +17,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-// Mock AssetPollingProvider to avoid Engine/controller polling setup
-jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     PreferencesController: {

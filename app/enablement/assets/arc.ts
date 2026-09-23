@@ -1,12 +1,22 @@
 import { type AssetsControllerState } from '@metamask/assets-controller';
 import { BridgeToken } from '../../components/UI/Bridge/types';
-import { Hex } from '@metamask/utils';
+import { type CaipAssetType, Hex } from '@metamask/utils';
 import { STABLE_USDT0_ERC20_ADDRESS } from './networks-customization';
 
 export const ARC_HEX_CHAIN_ID: Hex = '0x13b2';
 export const ARC_CAIP_CHAIN_ID = 'eip155:5042';
 export const ARC_USDC_ERC20_ADDRESS =
   '0x3600000000000000000000000000000000000000';
+
+export const ARC_USDC_ASSET_ID: CaipAssetType =
+  `${ARC_CAIP_CHAIN_ID}/erc20:${ARC_USDC_ERC20_ADDRESS}`;
+
+export const ARC_NATIVE_ASSET_ID: CaipAssetType = `${ARC_CAIP_CHAIN_ID}/slip44:5042`;
+
+// Pre-slip44 placeholder some accounts may still have cached; keep filtering
+// it out alongside ARC_NATIVE_ASSET_ID so upgraded users don't see a duplicate.
+export const ARC_NATIVE_ASSET_ID_LEGACY: CaipAssetType =
+  `${ARC_CAIP_CHAIN_ID}/erc20:0x0000000000000000000000000000000000000000`;
 
 export const ARC_USDC_BRIDGE_TOKEN = {
   symbol: 'USDC',
@@ -23,7 +33,7 @@ export const ARC_USDC_BRIDGE_TOKEN = {
  * and is included here until enablement is split further.
  */
 const EXCLUDED_UNIFIED_BALANCE_ASSET_IDS = new Set([
-  `${ARC_CAIP_CHAIN_ID}/erc20:${ARC_USDC_ERC20_ADDRESS.toLowerCase()}`,
+  ARC_USDC_ASSET_ID.toLowerCase(),
   `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS.toLowerCase()}`,
 ]);
 

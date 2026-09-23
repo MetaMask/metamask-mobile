@@ -46,10 +46,6 @@ jest.mock('../../../../../components/hooks/useEditNonce', () => ({
   useEditNonce: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/alerts/useConfirmationAlerts');

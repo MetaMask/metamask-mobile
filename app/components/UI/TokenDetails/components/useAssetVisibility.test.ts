@@ -17,13 +17,13 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AssetsController: {
-      addCustomAsset: jest.fn(),
+      addCustomAsset: jest.fn().mockResolvedValue(undefined),
       hideAsset: jest.fn(),
-      unhideAsset: jest.fn(),
+      unhideAsset: jest.fn().mockResolvedValue(undefined),
       removeCustomAsset: jest.fn(),
     },
     MultichainAssetsController: {
-      addAssets: jest.fn(),
+      addAssets: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -325,25 +325,29 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
     });
 
-    it('calls unhideAsset when the EVM token is hidden via assetPreferences', () => {
+    it('calls unhideAsset when the EVM token is hidden via assetPreferences', async () => {
       setupSelectors({
         assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
       });
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
+      await act(async () => {
+        await result.current.handleHideToken();
+      });
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         EVM_ASSET_ID,
       );
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
     });
 
-    it('calls unhideAsset AND MultichainAssetsController.addAssets when non-EVM token is in allIgnoredNonEvmAssets', () => {
+    it('calls unhideAsset AND MultichainAssetsController.addAssets when non-EVM token is in allIgnoredNonEvmAssets', async () => {
       setupSelectors({
         // Solana ignored assets are keyed by the Solana account ID
         allIgnoredNonEvmAssets: { [SOL_ACCOUNT_ID]: [SOL_ASSET_ID] },
       });
       const { result } = renderHook(() => useAssetVisibility(solToken()));
-      act(() => result.current.handleHideToken());
+      await act(async () => {
+        await result.current.handleHideToken();
+      });
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         SOL_ASSET_ID,
       );
@@ -353,13 +357,15 @@ describe('useAssetVisibility', () => {
       ).toHaveBeenCalledWith([SOL_ASSET_ID], SOL_ACCOUNT_ID);
     });
 
-    it('calls unhideAsset but NOT addAssets when unhiding an EVM token (not in non-EVM ignored list)', () => {
+    it('calls unhideAsset but NOT addAssets when unhiding an EVM token (not in non-EVM ignored list)', async () => {
       setupSelectors({
         assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
         allIgnoredNonEvmAssets: {},
       });
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
+      await act(async () => {
+        await result.current.handleHideToken();
+      });
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         EVM_ASSET_ID,
       );
@@ -413,7 +419,7 @@ describe('useAssetVisibility', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('prefers unhideAsset over hideAsset when token is both hidden and has a balance', () => {
+    it('prefers unhideAsset over hideAsset when token is both hidden and has a balance', async () => {
       setupSelectors({
         assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
         assetsBalance: {
@@ -421,20 +427,24 @@ describe('useAssetVisibility', () => {
         },
       });
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
+      await act(async () => {
+        await result.current.handleHideToken();
+      });
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         EVM_ASSET_ID,
       );
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
     });
 
-    it('prefers unhideAsset over removeCustomAsset when token is both hidden and custom', () => {
+    it('prefers unhideAsset over removeCustomAsset when token is both hidden and custom', async () => {
       setupSelectors({
         assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
         customAssets: { [ACCOUNT_ID]: [EVM_ASSET_ID] },
       });
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
+      await act(async () => {
+        await result.current.handleHideToken();
+      });
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         EVM_ASSET_ID,
       );

@@ -23,7 +23,6 @@ import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
-import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
@@ -130,30 +129,28 @@ const ConfirmWrapped = ({
 
   return (
     <ConfirmationContextProvider>
-      <ConfirmationAssetPollingProvider>
-        <ConfirmationAlerts>
-          <QRHardwareContextProvider>
-            <Title />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollViewContent}
-              nestedScrollEnabled
-              scrollEnabled={!isScrollDisabled}
-            >
-              <TouchableWithoutFeedback>
-                <>
-                  <AlertBanner
-                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                  />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-            <MmPayDebugFloatingButton />
-          </QRHardwareContextProvider>
-        </ConfirmationAlerts>
-      </ConfirmationAssetPollingProvider>
+      <ConfirmationAlerts>
+        <QRHardwareContextProvider>
+          <Title />
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            nestedScrollEnabled
+            scrollEnabled={!isScrollDisabled}
+          >
+            <TouchableWithoutFeedback>
+              <>
+                <AlertBanner
+                  ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                />
+                <Info route={route} />
+              </>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+          <Footer />
+          <MmPayDebugFloatingButton />
+        </QRHardwareContextProvider>
+      </ConfirmationAlerts>
     </ConfirmationContextProvider>
   );
 };

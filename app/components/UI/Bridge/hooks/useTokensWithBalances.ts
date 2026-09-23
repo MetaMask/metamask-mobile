@@ -7,7 +7,7 @@ import { assetIdsMatch } from '@metamask/bridge-controller';
 import {
   ARC_NATIVE_ASSET_ID,
   ARC_NATIVE_ASSET_ID_LEGACY,
-} from '../../../hooks/useArcDefaultTokens';
+} from '../../../../enablement/assets/arc';
 
 /**
  * Merges API tokens with balance data from the selector

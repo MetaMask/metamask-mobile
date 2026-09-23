@@ -24,7 +24,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
+import { ARC_NATIVE_ASSET_ID } from '../../../../../enablement/assets/arc';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
