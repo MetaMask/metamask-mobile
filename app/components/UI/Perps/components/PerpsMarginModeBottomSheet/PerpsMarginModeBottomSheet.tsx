@@ -7,9 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import { useSelector } from 'react-redux';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 
 interface PerpsMarginModeBottomSheetProps {
   isVisible?: boolean;
@@ -38,15 +35,6 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   const handleIsolatedPress = useCallback(() => {
     handleClose();
   }, [handleClose]);
-
-  const isCrossMarginFlagEnabled = useSelector(
-    selectPerpsCrossMarginEnabledFlag,
-  );
-  if (isVisible && isCrossMarginFlagEnabled) {
-    DevLogger.log(
-      '[PR-TAT-3524] BUG_MARKER: cross margin flag on but Cross option rendered disabled',
-    );
-  }
 
   if (!isVisible) {
     return null;
