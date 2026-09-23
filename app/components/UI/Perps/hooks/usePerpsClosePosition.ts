@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -14,9 +14,10 @@ import {
 import {
   handlePerpsError,
   isNoPositionFoundError,
-  isReduceOnlyWouldIncreaseError,
 } from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS } from '../constants/perpsConfig';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
@@ -67,6 +68,88 @@ interface ClosePositionParams {
 // Closes in flight per account, provider, network and symbol. Module scope: the
 // close screen dismisses before the request settles, so screen state can't guard it.
 const closesInFlight = new Set<string>();
+const closeLockListeners = new Set<() => void>();
+let closeLockVersion = 0;
+
+const getCloseKey = (
+  accountAddress: string | undefined,
+  provider: string,
+  network: string,
+  symbol: string,
+) => [accountAddress, provider, network, symbol].join(':');
+
+function setCloseLock(key: string, locked: boolean) {
+  if (locked) {
+    closesInFlight.add(key);
+  } else {
+    closesInFlight.delete(key);
+  }
+  closeLockVersion += 1;
+  closeLockListeners.forEach((listener) => listener());
+}
+
+function subscribeCloseLocks(listener: () => void) {
+  closeLockListeners.add(listener);
+  return () => {
+    closeLockListeners.delete(listener);
+  };
+}
+
+const getCloseLockVersion = () => closeLockVersion;
+
+// A filled market close stays locked until the positions stream shows it, so a
+// form reopened on the stale position cannot send a second reduce-only close.
+function releaseCloseLockOnPositionChange(
+  stream: ReturnType<typeof usePerpsStream>,
+  key: string,
+  position: Position,
+) {
+  // The subscription can deliver cached data before `subscribe` returns.
+  const handles: {
+    timeout?: ReturnType<typeof setTimeout>;
+    unsubscribe?: () => void;
+  } = {};
+  let released = false;
+  const release = () => {
+    if (released) {
+      return;
+    }
+    released = true;
+    clearTimeout(handles.timeout);
+    handles.unsubscribe?.();
+    setCloseLock(key, false);
+  };
+  handles.timeout = setTimeout(release, PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS);
+  handles.unsubscribe = stream.positions.subscribe({
+    callback: (positions) => {
+      const livePosition = positions.find(
+        (item) => item.symbol === position.symbol,
+      );
+      if (livePosition?.size !== position.size) {
+        release();
+      }
+    },
+  });
+  if (released) {
+    handles.unsubscribe();
+  }
+}
+
+export const resetPerpsCloseLocksForTests = () => {
+  closesInFlight.clear();
+  closeLockVersion = 0;
+};
+
+/** True while a close for this market is in flight or awaiting its stream update. */
+export const usePerpsCloseInFlight = (symbol: string): boolean => {
+  const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const provider = useSelector(selectPerpsProvider);
+  const network = useSelector(selectPerpsNetwork);
+  useSyncExternalStore(subscribeCloseLocks, getCloseLockVersion);
+  return closesInFlight.has(
+    getCloseKey(accountAddress, provider, network, symbol),
+  );
+};
 
 export const usePerpsClosePosition = (
   options?: UsePerpsClosePositionOptions,
@@ -75,6 +158,7 @@ export const usePerpsClosePosition = (
   const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const provider = useSelector(selectPerpsProvider);
   const network = useSelector(selectPerpsNetwork);
+  const stream = usePerpsStream();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -90,12 +174,12 @@ export const usePerpsClosePosition = (
         marketPrice,
         slippage,
       } = params;
-      const closeKey = [
+      const closeKey = getCloseKey(
         accountAddress,
         provider,
         network,
         position.symbol,
-      ].join(':');
+      );
       if (closesInFlight.has(closeKey)) {
         DevLogger.log('usePerpsClosePosition: Close already in flight', {
           symbol: position.symbol,
@@ -107,11 +191,6 @@ export const usePerpsClosePosition = (
         return undefined;
       }
       const isFullClose = size === undefined || size === '';
-      // A full close rejected as "would increase position" found the position
-      // flat: an earlier close or a TP/SL fill got there first.
-      const isAlreadyClosedError = (closeError: unknown) =>
-        isNoPositionFoundError(closeError) ||
-        (isFullClose && isReduceOnlyWouldIncreaseError(closeError));
 
       // Failure toast varies by order type and full/partial close. Shared so
       // both the { success: false } branch and the rejected-promise catch
@@ -188,7 +267,8 @@ export const usePerpsClosePosition = (
         PerpsCacheInvalidator.invalidate('accountState');
       };
 
-      closesInFlight.add(closeKey);
+      setCloseLock(closeKey, true);
+      let holdUntilPositionUpdates = false;
       try {
         setIsClosing(true);
         setError(null);
@@ -278,16 +358,17 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
-        if (result.success || isAlreadyClosedError(result.error)) {
+        if (result.success || isNoPositionFoundError(result.error)) {
           recordPerpsAction();
         }
 
-        if (!result.success && isAlreadyClosedError(result.error)) {
+        if (!result.success && isNoPositionFoundError(result.error)) {
           reconcileAlreadyClosed();
           return result;
         }
 
         if (result.success) {
+          holdUntilPositionUpdates = orderType === 'market';
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
           // the request was in flight, that render instant was recorded and the
@@ -346,7 +427,7 @@ export const usePerpsClosePosition = (
 
         return result;
       } catch (err) {
-        if (isAlreadyClosedError(err)) {
+        if (isNoPositionFoundError(err)) {
           reconcileAlreadyClosed();
           return {
             success: false,
@@ -418,7 +499,11 @@ export const usePerpsClosePosition = (
 
         throw closeError;
       } finally {
-        closesInFlight.delete(closeKey);
+        if (holdUntilPositionUpdates) {
+          releaseCloseLockOnPositionChange(stream, closeKey, position);
+        } else {
+          setCloseLock(closeKey, false);
+        }
         setIsClosing(false);
       }
     },
@@ -430,6 +515,7 @@ export const usePerpsClosePosition = (
       options,
       provider,
       showToast,
+      stream,
     ],
   );
 

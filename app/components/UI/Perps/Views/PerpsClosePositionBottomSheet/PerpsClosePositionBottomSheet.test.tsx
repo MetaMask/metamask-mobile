@@ -54,6 +54,10 @@ jest.mock('../../hooks', () => ({
   usePerpsRewards: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsClosePosition', () => ({
+  usePerpsCloseInFlight: jest.fn(() => false),
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsLivePrices: jest.fn(),

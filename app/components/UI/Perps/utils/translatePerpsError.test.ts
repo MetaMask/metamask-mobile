@@ -49,7 +49,6 @@ import {
   translatePerpsError,
   isPerpsErrorCode,
   isNoPositionFoundError,
-  isReduceOnlyWouldIncreaseError,
   handlePerpsError,
 } from './translatePerpsError';
 
@@ -322,22 +321,6 @@ describe('isPerpsErrorCode', () => {
       ),
     ).toBe(false);
   });
-});
-
-describe('isReduceOnlyWouldIncreaseError', () => {
-  it.each([
-    'order 0: Reduce only order would increase position. asset=0',
-    new Error('Order 0: reduce only order would increase position. asset=1'),
-  ])('returns true for %p', (error) => {
-    expect(isReduceOnlyWouldIncreaseError(error)).toBe(true);
-  });
-
-  it.each(['Reduce only order is not allowed', 'No position found', null])(
-    'returns false for %p',
-    (error) => {
-      expect(isReduceOnlyWouldIncreaseError(error)).toBe(false);
-    },
-  );
 });
 
 describe('isNoPositionFoundError', () => {

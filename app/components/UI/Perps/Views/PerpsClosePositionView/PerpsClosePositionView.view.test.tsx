@@ -14,6 +14,7 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { resetPerpsCloseLocksForTests } from '../../hooks/usePerpsClosePosition';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
@@ -29,6 +30,9 @@ const TIMEOUT_MS = 5000;
 describe('PerpsClosePositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // A filled close stays locked until the stream updates, which these
+    // fixtures never do; reset so each test starts unlocked.
+    resetPerpsCloseLocksForTests();
   });
 
   it('submits a market close for a long position with custom take profit', async () => {

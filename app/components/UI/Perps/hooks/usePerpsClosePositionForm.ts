@@ -38,6 +38,7 @@ import {
   usePerpsTopOfBook,
 } from './stream';
 import { usePerpsAbandonOrderTracking } from './usePerpsAbandonOrderTracking';
+import { usePerpsCloseInFlight } from './usePerpsClosePosition';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
@@ -251,6 +252,9 @@ export function usePerpsClosePositionForm(
   // Keep the route snapshot only for layout until we dismiss a gone position.
   const livePosition = matchingLivePosition ?? position;
   const isPositionGone = !isPositionsLoading && !matchingLivePosition;
+  // Another close for this market is still settling (e.g. this form was
+  // reopened before the positions stream caught up).
+  const isCloseInFlight = usePerpsCloseInFlight(livePosition.symbol);
   const isScreenFocused = useIsFocused();
 
   useEffect(() => {
@@ -635,7 +639,12 @@ export function usePerpsClosePositionForm(
   const handleConfirm = useCallback(async () => {
     // The ref is synchronous: a second tap in the same tick still sees the
     // stale `isClosing` and would dismiss (goBack) a second time.
-    if (hasConfirmedCloseRef.current || isClosing || isPositionGone) {
+    if (
+      hasConfirmedCloseRef.current ||
+      isClosing ||
+      isCloseInFlight ||
+      isPositionGone
+    ) {
       return;
     }
 
@@ -708,6 +717,7 @@ export function usePerpsClosePositionForm(
     closeAmount,
     effectiveOrderType,
     enableHaptics,
+    isCloseInFlight,
     isClosing,
     isPositionGone,
     limitPrice,
@@ -867,6 +877,7 @@ export function usePerpsClosePositionForm(
 
   const isConfirmDisabled =
     isClosing ||
+    isCloseInFlight ||
     isPositionGone ||
     (effectiveOrderType === 'limit' &&
       (!limitPrice || Number.parseFloat(limitPrice) <= 0)) ||
@@ -876,16 +887,23 @@ export function usePerpsClosePositionForm(
   const confirmButtonTestID = options?.confirmButtonTestID;
   const confirmButtonProps = useMemo(
     () => ({
-      children: isClosing
-        ? strings('perps.close_position.closing')
-        : strings('perps.close_position.button'),
+      children:
+        isClosing || isCloseInFlight
+          ? strings('perps.close_position.closing')
+          : strings('perps.close_position.button'),
       onPress: handleConfirm,
       size: ButtonSize.Lg,
       isDisabled: isConfirmDisabled,
-      isLoading: isClosing,
+      isLoading: isClosing || isCloseInFlight,
       testID: confirmButtonTestID,
     }),
-    [confirmButtonTestID, handleConfirm, isClosing, isConfirmDisabled],
+    [
+      confirmButtonTestID,
+      handleConfirm,
+      isCloseInFlight,
+      isClosing,
+      isConfirmDisabled,
+    ],
   );
 
   return {
