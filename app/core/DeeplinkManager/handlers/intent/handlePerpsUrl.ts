@@ -269,31 +269,15 @@ const resolvePerpsTarget = ({
   }
 };
 
-export const createPerpsDeeplinkIntent = ({
-  perpsPath,
-}: HandlePerpsUrlParams): DeeplinkIntent => ({
-  target: resolvePerpsTarget({ perpsPath }),
-});
-
-export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
-  DevLogger.log(
-    '[handlePerpsUrl] Starting perps deeplink handling with path:',
-    perpsPath,
-  );
-
-  // Propagate UTM params into controller attribution context.
-  try {
-    setPerpsUtmAttribution(parsePerpsUtmFromPath(perpsPath));
-    // Attribution is best-effort: Engine/controller may be unavailable during
-    // early deeplink handling; never block navigation if UTM write fails.
-  } catch (attributionError) {
-    DevLogger.log(
-      '[handlePerpsUrl] Failed to set attribution context:',
-      attributionError,
-    );
-  }
-
-  // Track notification-opened event when the deeplink comes from a price alert.
+/**
+ * Fires `PRICE_ALERT_NOTIFICATION_OPENED` when a perps deeplink originates from
+ * a price-alert push notification (`source=price_alert_notification`, `screen=asset`).
+ *
+ * Called from BOTH `createPerpsDeeplinkIntent` (cold/startup path — locked or killed
+ * app) AND `handlePerpsUrl` (warm path — app already running) so the event is fired
+ * regardless of how the app was opened.
+ */
+const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
   try {
     const urlParams = new URLSearchParams(
       perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
@@ -328,6 +312,39 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   } catch {
     // Analytics must never block notification navigation.
   }
+};
+
+export const createPerpsDeeplinkIntent = ({
+  perpsPath,
+}: HandlePerpsUrlParams): DeeplinkIntent => {
+  // Track notification-opened for cold-start (locked/killed app) path. The
+  // warm path (handlePerpsUrl) also calls this helper so both paths are covered.
+  trackPriceAlertNotificationIfApplicable(perpsPath);
+  return {
+    target: resolvePerpsTarget({ perpsPath }),
+  };
+};
+
+export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
+  DevLogger.log(
+    '[handlePerpsUrl] Starting perps deeplink handling with path:',
+    perpsPath,
+  );
+
+  // Propagate UTM params into controller attribution context.
+  try {
+    setPerpsUtmAttribution(parsePerpsUtmFromPath(perpsPath));
+    // Attribution is best-effort: Engine/controller may be unavailable during
+    // early deeplink handling; never block navigation if UTM write fails.
+  } catch (attributionError) {
+    DevLogger.log(
+      '[handlePerpsUrl] Failed to set attribution context:',
+      attributionError,
+    );
+  }
+
+  // Track notification-opened for warm (app already open) path.
+  trackPriceAlertNotificationIfApplicable(perpsPath);
 
   try {
     await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));

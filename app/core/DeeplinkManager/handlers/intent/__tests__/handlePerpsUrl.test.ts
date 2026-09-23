@@ -1,4 +1,4 @@
-import { handlePerpsUrl } from '../handlePerpsUrl';
+import { handlePerpsUrl, createPerpsDeeplinkIntent } from '../handlePerpsUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
@@ -554,7 +554,7 @@ describe('handlePerpsUrl', () => {
   });
 
   describe('price alert notification tracking', () => {
-    it('fires PRICE_ALERT_NOTIFICATION_OPENED when source=price_alert_notification and screen=asset', async () => {
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED when source=price_alert_notification and screen=asset (warm path)', async () => {
       const perpsPath =
         'perps?screen=asset&symbol=xyz%3AXYZ100&source=price_alert_notification&alert_type=threshold&price_at_trigger=150.25&triggered_at=1758624000000';
 
@@ -566,6 +566,24 @@ describe('handlePerpsUrl', () => {
             alert_type: 'threshold',
             price_at_trigger: 150.25,
             token_symbol: 'XYZ100',
+          }),
+        }),
+      );
+    });
+
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED via createPerpsDeeplinkIntent (cold/startup path)', () => {
+      const perpsPath =
+        'perps?screen=asset&symbol=BTC&source=price_alert_notification&alert_type=threshold&price_at_trigger=95000&triggered_at=1758624000000';
+
+      createPerpsDeeplinkIntent({ perpsPath });
+
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            alert_type: 'threshold',
+            price_at_trigger: 95000,
+            token_symbol: 'BTC',
+            asset_id: 'BTC',
           }),
         }),
       );
