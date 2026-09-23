@@ -796,15 +796,13 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName={`overflow-hidden bg-muted ${
-              orderType === 'market' ? 'rounded-full' : 'rounded-xl'
-            }`}
+            twClassName="overflow-hidden rounded-xl bg-muted"
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
               isDisabled={isScaleFormLocked}
-              twClassName="h-[54px] w-full rounded-full bg-transparent px-3"
+              twClassName="h-[54px] w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
