@@ -46,6 +46,7 @@ import {
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSelectedCountry,
   selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
@@ -184,17 +185,19 @@ const CardHome = () => {
     isUkMigrationEligible && ukMigrationState.phase === 'forced';
   const isUkMigrationSoft =
     isUkMigrationEligible && ukMigrationState.phase === 'soft';
+  const selectedCountry = useSelector(selectCardSelectedCountry);
+  const immersveLegalRegionCode = data?.card?.regionCode ?? selectedCountry;
   const {
     permanentDocuments: immersveLegalDocuments,
     isLoading: isImmersveLegalDocsLoading,
     error: immersveLegalDocsError,
     refetch: refetchImmersveLegalDocs,
-  } = useImmersveSupportedRegions(data?.card?.regionCode, {
-    enabled: isImmersve && Boolean(data?.card?.regionCode),
+  } = useImmersveSupportedRegions(immersveLegalRegionCode, {
+    enabled: isImmersve && Boolean(immersveLegalRegionCode),
   });
   const immersveLegalDocsUnavailable = Boolean(
     isImmersve &&
-      Boolean(data?.card?.regionCode) &&
+      Boolean(immersveLegalRegionCode) &&
       !isImmersveLegalDocsLoading &&
       (immersveLegalDocsError || immersveLegalDocuments.length === 0),
   );

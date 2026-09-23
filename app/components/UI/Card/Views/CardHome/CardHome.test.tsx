@@ -105,6 +105,7 @@ import {
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
   selectCardProviderUserId,
+  selectCardSelectedCountry,
   selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
@@ -112,6 +113,7 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
 
@@ -873,6 +875,7 @@ function setupMockSelectors(
       decimals: number;
     } | null;
     activeProviderId: string;
+    selectedCountry: string | null;
     isCardIntercomSupportEnabled: boolean;
     providerUserId: string | null;
     hasCompletedMigration: boolean;
@@ -898,6 +901,7 @@ function setupMockSelectors(
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
     activeProviderId: 'baanx',
+    selectedCountry: null,
     isCardIntercomSupportEnabled: false,
     providerUserId: 'cardholder-1',
     hasCompletedMigration: false,
@@ -918,6 +922,7 @@ function setupMockSelectors(
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectCardActiveProviderId) return config.activeProviderId;
+    if (selector === selectCardSelectedCountry) return config.selectedCountry;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
     if (selector === selectPrimaryMoneyAccount)
       return config.primaryMoneyAccount;
@@ -1404,6 +1409,15 @@ describe('CardHome Component', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
     (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
+
+    jest.mocked(useImmersveSupportedRegions).mockReturnValue({
+      region: null,
+      onboardingDocuments: [],
+      permanentDocuments: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
 
     // Setup default selectors
     setupMockSelectors();
@@ -2098,6 +2112,65 @@ describe('CardHome Component', () => {
     expect(
       screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows the Immersve privacy policy and contact support before a card exists', () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      activeProviderId: 'immersve',
+      selectedCountry: 'GB',
+    });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: null,
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+    });
+    jest.mocked(useImmersveSupportedRegions).mockReturnValue({
+      region: null,
+      onboardingDocuments: [],
+      permanentDocuments: [
+        {
+          id: 'privacyPolicy',
+          title: 'Privacy policy',
+          url: 'https://example.com/privacy',
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render();
+
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('GB', {
+      enabled: true,
+    });
+    expect(
+      screen.getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-privacyPolicy`),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Privacy policy')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
+  });
+
+  it('uses the issued card region for legal documents when a card exists', () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      activeProviderId: 'immersve',
+      selectedCountry: 'GB',
+    });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: { type: CardType.VIRTUAL, regionCode: 'NZ' },
+    });
+
+    render();
+
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('NZ', {
+      enabled: true,
+    });
   });
 
   it('shows the Enable card button for allowance_revoked with no banner', () => {

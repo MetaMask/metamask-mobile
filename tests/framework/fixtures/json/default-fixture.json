@@ -988,6 +988,7 @@
       "basicFunctionalityMigrationNotification": null,
       "basicFunctionalityMigrationNotificationDismissed": false,
       "isBasicFunctionalityConsolidatedEnabled": false,
+      "hasLinkedSocialLoginProfile": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,

@@ -26,8 +26,15 @@ const tradeSheetConfig = {
     trade: 0,
     leverage: 1,
     tpsl: 1,
-    settings: 1,
+    marginInfo: 1,
+    liquidationInfo: 1,
   },
+};
+const emptyNestedScreens = {
+  leverage: null,
+  tpsl: null,
+  marginInfo: null,
+  liquidationInfo: null,
 };
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -145,9 +152,8 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
           leverage: <LeverageTestScreen />,
-          tpsl: null,
-          settings: null,
         }}
       />,
     );
@@ -169,9 +175,8 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
           leverage: <LeverageTestScreen />,
-          tpsl: null,
-          settings: null,
         }}
       />,
     );
@@ -192,9 +197,8 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
           leverage: <LeverageTestScreen />,
-          tpsl: null,
-          settings: null,
         }}
       />,
     );
@@ -214,6 +218,48 @@ describe('PerpsTradeBottomSheet', () => {
     ).toMatchObject({ height: expect.any(Number) });
   });
 
+  it('lets content-sized nested screens grow to their own height', () => {
+    const InfoTestScreen = () => {
+      const { navigateTo } = usePerpsTradeSheet();
+      return (
+        <Pressable
+          testID="open-margin-info"
+          onPress={() => navigateTo('marginInfo')}
+        >
+          <Text>Trade</Text>
+        </Pressable>
+      );
+    };
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        contentSizedScreens={['marginInfo']}
+        screens={{
+          trade: <InfoTestScreen />,
+          ...emptyNestedScreens,
+          marginInfo: <Text>Margin info</Text>,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+    fireEvent.press(screen.getByTestId('open-margin-info'));
+
+    expect(screen.getByText('Margin info')).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT).props.style,
+      ),
+    ).not.toHaveProperty('height');
+  });
+
   it('closes the dialog through the nested screen API', () => {
     const onClose = jest.fn();
     const onCancelBeforeInteractive = jest.fn();
@@ -225,9 +271,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -248,9 +292,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -273,9 +315,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -301,9 +341,7 @@ describe('PerpsTradeBottomSheet', () => {
         {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );
@@ -323,9 +361,7 @@ describe('PerpsTradeBottomSheet', () => {
         banner={<Text>Risk warning</Text>}
         screens={{
           trade: <TitleBannerScreen />,
-          leverage: null,
-          tpsl: null,
-          settings: null,
+          ...emptyNestedScreens,
         }}
       />,
     );

@@ -1589,7 +1589,10 @@
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
-      "show_fiat_value": "Show fiat value"
+      "show_fiat_value": "Show fiat value",
+      "max_leverage_accessibility_label": "Up to {{maxLeverage}}x leverage",
+      "margin_info_accessibility_label": "About margin",
+      "liquidation_price_info_accessibility_label": "About liquidation price"
     },
     "mode": {
       "lite": "Lite",
@@ -2121,7 +2124,8 @@
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "price_unavailable": "Price information unavailable"
+        "price_unavailable": "Price information unavailable",
+        "description": "If the price hits liquidation, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
       },
       "type": {
         "title": "Order type",
@@ -2279,7 +2283,8 @@
       "increment_label": "Increase slippage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "slippage": "Slippage",
-      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size."
+      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size.",
+      "exceeds_max_reduce_size": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Reduce the order size."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
@@ -10659,9 +10664,7 @@
       "signup_button": "Sign up",
       "forgot_password_button": "Forgot password?",
       "account_label": "Account",
-      "account_helper_linked": "This is the account you set your card up with.",
       "account_helper_pick": "Choose the account you set your card up with. We'll check it before asking you to sign.",
-      "account_mismatch": "This isn't the account your card is linked to.",
       "fork_title": "How do you usually sign in?",
       "fork_body": "We didn't find a card on the accounts you use most. Pick how you set yours up.",
       "fork_body_api_error": "We couldn't check how your card was set up. Try again, or tell us how you sign in.",

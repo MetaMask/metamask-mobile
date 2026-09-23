@@ -9919,9 +9919,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.49.1":
-  version: 0.49.1
-  resolution: "@metamask/design-system-react-native@npm:0.49.1"
+"@metamask/design-system-react-native@npm:^0.50.0":
+  version: 0.50.0
+  resolution: "@metamask/design-system-react-native@npm:0.50.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.39.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -9937,7 +9937,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/24e2c42fbd5588c661b407373804d7017a9b8079ca75447e3f779e61775a5c9af8369d55eb1181fa7a6b6c6e3c856e31b6f2e924bb87b9607f49eafddd30a73d
+  checksum: 10/e9500a7b8dfc590ce648c92619507c3327bd4a07651c0be1b2c2c4d35ca7dd7783e1be490d968b8ced40e3d48d6c6097319775e041d5234b9b41cbbe5d9f6c77
   languageName: node
   linkType: hard
 
@@ -39284,7 +39284,7 @@ __metadata:
     "@metamask/core-backend": "npm:^11.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
-    "@metamask/design-system-react-native": "npm:^0.49.1"
+    "@metamask/design-system-react-native": "npm:^0.50.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.12.0"
     "@metamask/design-tokens": "npm:^11.1.0"
     "@metamask/device-mcp": "npm:^0.4.2"
