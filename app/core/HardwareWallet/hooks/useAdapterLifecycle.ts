@@ -101,6 +101,7 @@ export const useAdapterLifecycle = ({
     (adapter: HardwareWalletAdapter): void => {
       transportCleanupRef.current?.();
       transportCleanupRef.current = null;
+      previousTransportAvailableRef.current = null;
 
       adapterRef.current = adapter;
 
@@ -114,8 +115,7 @@ export const useAdapterLifecycle = ({
         },
       );
     },
-    // Stable ref (adapterRef) — not needed as a dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- adapterRef is a stable ref
     [],
   );
 

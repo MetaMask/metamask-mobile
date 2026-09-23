@@ -49,8 +49,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const pendingOperationCountRef = useRef(0);
   const [pendingOperationCount, setPendingOperationCount] = useState(0);
 
+  // Pending signing ops win over an intentional Add-HW target; the target
+  // still wins over the currently selected account (LedgerSelectAccount /
+  // ConnectQRHardware set target then call ensureDeviceReady immediately).
   const effectiveWalletType =
-    targetWalletType ?? pendingOperationWalletType ?? walletType;
+    pendingOperationWalletType ?? targetWalletType ?? walletType;
 
   // While an operation is pinned, follow the pending type (or freeze the
   // current adapter if the type lookup blipped to null). Selected account

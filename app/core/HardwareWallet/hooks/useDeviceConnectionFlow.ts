@@ -228,9 +228,11 @@ export const useDeviceConnectionFlow = ({
         }
       }
 
+      // Prefer the sync target ref over the walletType prop: Add-HW flows set
+      // target then call ensureDeviceReady before React re-renders effective type.
       const targetType =
-        refs.targetWalletTypeRef.current ??
         refs.pendingOperationWalletTypeRef.current ??
+        refs.targetWalletTypeRef.current ??
         walletType;
 
       if (!targetType) {
