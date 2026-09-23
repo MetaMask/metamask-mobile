@@ -173,9 +173,7 @@ describe('useValidateReferralCode', () => {
 
     await act(async () => {
       const tooShortError = await result.current.validateCode('AB');
-      expect(tooShortError).toBe(
-        'Invalid referral code. Check and try again.',
-      );
+      expect(tooShortError).toBe('Invalid referral code. Check and try again.');
 
       const badCharacterError = await result.current.validateCode('ABC_123');
       expect(badCharacterError).toBe(
