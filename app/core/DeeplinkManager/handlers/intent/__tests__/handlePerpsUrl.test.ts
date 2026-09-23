@@ -9,7 +9,8 @@ import {
 } from '../../../../../components/UI/Perps/selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../../../../components/UI/Perps/selectors/featureFlags';
 import { PerpsMode } from '@metamask/perps-controller';
-
+import { analytics } from '../../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../Analytics';
 // Mock dependencies
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -38,7 +39,9 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
-
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: { trackEvent: jest.fn() },
+}));
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;
   let mockSetParams: jest.Mock;
@@ -547,6 +550,39 @@ describe('handlePerpsUrl', () => {
 
       expect(market.symbol).toBe('BTC');
       expect(market.marketSource).toBeUndefined();
+    });
+  });
+
+  describe('price alert notification tracking', () => {
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED when source=price_alert_notification and screen=asset', async () => {
+      const perpsPath =
+        'perps?screen=asset&symbol=xyz%3AXYZ100&source=price_alert_notification&alert_type=threshold&price_at_trigger=150.25&triggered_at=1758624000000';
+
+      await handlePerpsUrl({ perpsPath });
+
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            alert_type: 'threshold',
+            price_at_trigger: 150.25,
+            token_symbol: 'XYZ100',
+          }),
+        }),
+      );
+    });
+
+    it('does not fire PRICE_ALERT_NOTIFICATION_OPENED for non-notification deeplinks', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
+
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not fire PRICE_ALERT_NOTIFICATION_OPENED when screen is not asset', async () => {
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=home&source=price_alert_notification',
+      });
+
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
   });
 });

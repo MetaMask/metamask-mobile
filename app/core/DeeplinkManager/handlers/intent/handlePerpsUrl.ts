@@ -14,6 +14,11 @@ import {
 import { getPerpsHomeNavigationTarget } from '../../../../components/UI/Perps/utils/perpsModeSwitch';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { parseTimeToOpenSeconds } from '../legacy/handleAssetUrl';
+import { TokenDetailsSource } from '../../../../components/UI/TokenDetails/constants/constants';
 
 interface HandlePerpsUrlParams {
   perpsPath: string;
@@ -286,6 +291,42 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       '[handlePerpsUrl] Failed to set attribution context:',
       attributionError,
     );
+  }
+
+  // Track notification-opened event when the deeplink comes from a price alert.
+  try {
+    const urlParams = new URLSearchParams(
+      perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
+    );
+    const source = urlParams.get('source');
+    const screen = urlParams.get('screen');
+    if (
+      source === TokenDetailsSource.PriceAlertNotification &&
+      screen === 'asset'
+    ) {
+      const rawSymbol = urlParams.get('symbol') ?? '';
+      // Strip any dex prefix (e.g. "xyz:XYZ100" → "XYZ100") for the display symbol.
+      const displaySymbol = rawSymbol.includes(':')
+        ? rawSymbol.split(':')[1]
+        : rawSymbol;
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PRICE_ALERT_NOTIFICATION_OPENED,
+        )
+          .addProperties({
+            asset_id: rawSymbol,
+            token_symbol: displaySymbol.toUpperCase(),
+            alert_type: urlParams.get('alert_type'),
+            price_at_trigger: Number.parseFloat(
+              urlParams.get('price_at_trigger') as string,
+            ),
+            time_to_open: parseTimeToOpenSeconds(urlParams.get('triggered_at')),
+          })
+          .build(),
+      );
+    }
+  } catch {
+    // Analytics must never block notification navigation.
   }
 
   try {
