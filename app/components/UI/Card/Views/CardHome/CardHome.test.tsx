@@ -62,7 +62,7 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -121,6 +121,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockNavigationDispatch = jest.fn();
+let mockIsFocused = true;
 
 import {
   useFocusEffect,
@@ -133,6 +134,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useFocusEffect: jest.fn(),
+    useIsFocused: () => mockIsFocused,
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -1254,8 +1256,50 @@ function render() {
   );
 }
 
+const authTransitionListeners = new Set<() => void>();
+
+const CardHomeAuthTransitionProbe = () => {
+  const [, setTick] = React.useState(1);
+  React.useEffect(() => {
+    const listener = () => setTick((tick) => tick + 1);
+    authTransitionListeners.add(listener);
+    return () => {
+      authTransitionListeners.delete(listener);
+    };
+  }, []);
+  return (
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <CardHome />
+    </ToastContext.Provider>
+  );
+};
+
+function renderAuthTransition() {
+  const view = renderScreen(
+    withCardSDK(CardHomeAuthTransitionProbe),
+    { name: Routes.CARD.HOME },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+  return {
+    ...view,
+    update() {
+      act(() => {
+        authTransitionListeners.forEach((listener) => listener());
+      });
+    },
+  };
+}
+
 describe('CardHome Component', () => {
   beforeEach(() => {
+    authTransitionListeners.clear();
+    mockIsFocused = true;
     mockCanEnableCard = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
@@ -1489,6 +1533,69 @@ describe('CardHome Component', () => {
       }),
     );
     expect(mockClearLastUnauthenticatedReason).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces with authentication when the user logs out while Card Home is focused', () => {
+    mockIsFocused = true;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+    );
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'REPLACE',
+      routeName: Routes.CARD.AUTHENTICATION,
+    });
+  });
+
+  it('waits until Card Home is focused before replacing with authentication', () => {
+    mockIsFocused = false;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+
+    setupMockSelectors({ isAuthenticated: false });
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+    view.update();
+
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
+
+    mockIsFocused = true;
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+    );
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'REPLACE',
+      routeName: Routes.CARD.AUTHENTICATION,
+    });
+  });
+
+  it('does not replace with authentication when auth returns before Card Home refocuses', () => {
+    mockIsFocused = false;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    setupMockSelectors({ isAuthenticated: true });
+    view.update();
+
+    mockIsFocused = true;
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+    view.update();
+
+    expect(StackActions.replace).not.toHaveBeenCalled();
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
