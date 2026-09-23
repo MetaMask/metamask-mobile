@@ -1,6 +1,7 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../core/Engine';
 import type { RootState } from '../../reducers';
 import configureStore from '../../util/test/configureStore';
@@ -9,55 +10,50 @@ import useSubscriptionPolling from './useSubscriptionPolling';
 jest.mock('../../core/Engine', () => ({
   context: {
     SubscriptionController: {
-      startPolling: jest.fn(() => 'subscription-poll-token'),
-      stopPollingByPollingToken: jest.fn(),
+      getSubscriptions: jest.fn(),
     },
   },
 }));
 
 const mockedSubscriptionController = Engine.context
   .SubscriptionController as unknown as {
-  startPolling: jest.Mock;
-  stopPollingByPollingToken: jest.Mock;
+  getSubscriptions: jest.Mock;
 };
 
 const createBackgroundState = ({
   isSignedIn = true,
   isUnlocked = true,
-  isUiOpen = true,
 }: {
   isSignedIn?: boolean;
   isUnlocked?: boolean;
-  isUiOpen?: boolean;
 } = {}) => ({
   AuthenticationController: { isSignedIn },
   KeyringController: { isUnlocked, keyrings: [] },
-  ClientController: { isUiOpen },
 });
 
 const renderUseSubscriptionPolling = ({
   enabled,
   isSignedIn = true,
   isUnlocked = true,
-  isUiOpen = true,
 }: {
   enabled: boolean;
   isSignedIn?: boolean;
   isUnlocked?: boolean;
-  isUiOpen?: boolean;
 }) => {
   const state = {
     engine: {
-      backgroundState: createBackgroundState({
-        isSignedIn,
-        isUnlocked,
-        isUiOpen,
-      }),
+      backgroundState: createBackgroundState({ isSignedIn, isUnlocked }),
     },
   } as unknown as RootState;
 
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={configureStore(state)}>{children}</Provider>
+    <Provider store={configureStore(state)}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </Provider>
   );
 
   return renderHook(() => useSubscriptionPolling({ enabled }), {
@@ -68,95 +64,58 @@ const renderUseSubscriptionPolling = ({
 describe('useSubscriptionPolling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSubscriptionController.startPolling.mockReturnValue(
-      'subscription-poll-token',
-    );
+    mockedSubscriptionController.getSubscriptions.mockResolvedValue([]);
   });
 
-  it('does not poll when disabled', () => {
+  it('does not fetch when disabled', () => {
     renderUseSubscriptionPolling({ enabled: false });
 
-    expect(mockedSubscriptionController.startPolling).not.toHaveBeenCalled();
+    expect(
+      mockedSubscriptionController.getSubscriptions,
+    ).not.toHaveBeenCalled();
   });
 
-  it('does not poll when the user is signed out', () => {
+  it('does not fetch when the user is signed out', () => {
     renderUseSubscriptionPolling({ enabled: true, isSignedIn: false });
 
-    expect(mockedSubscriptionController.startPolling).not.toHaveBeenCalled();
+    expect(
+      mockedSubscriptionController.getSubscriptions,
+    ).not.toHaveBeenCalled();
   });
 
-  it('does not poll when the keyring is locked', () => {
+  it('does not fetch when the keyring is locked', () => {
     renderUseSubscriptionPolling({ enabled: true, isUnlocked: false });
 
-    expect(mockedSubscriptionController.startPolling).not.toHaveBeenCalled();
-  });
-
-  it('does not poll when the UI is backgrounded', () => {
-    renderUseSubscriptionPolling({ enabled: true, isUiOpen: false });
-
-    expect(mockedSubscriptionController.startPolling).not.toHaveBeenCalled();
-  });
-
-  it('starts exactly one poll when every gate is true', () => {
-    renderUseSubscriptionPolling({ enabled: true });
-
-    expect(mockedSubscriptionController.startPolling).toHaveBeenCalledTimes(1);
-  });
-
-  it('stops and restarts polling from the same input when gates change', () => {
-    const gates = {
-      enabled: true,
-      isSignedIn: true,
-      isUnlocked: true,
-      isUiOpen: true,
-    };
-
-    const Wrapper = ({ children }: { children: React.ReactNode }) => {
-      const state = {
-        engine: {
-          backgroundState: createBackgroundState({
-            isSignedIn: gates.isSignedIn,
-            isUnlocked: gates.isUnlocked,
-            isUiOpen: gates.isUiOpen,
-          }),
-        },
-      } as unknown as RootState;
-
-      return <Provider store={configureStore(state)}>{children}</Provider>;
-    };
-
-    const { rerender } = renderHook(
-      () => useSubscriptionPolling({ enabled: gates.enabled }),
-      { wrapper: Wrapper },
-    );
-
-    const firstInput =
-      mockedSubscriptionController.startPolling.mock.calls[0][0];
-
-    gates.isUiOpen = false;
-    rerender(undefined);
-
     expect(
-      mockedSubscriptionController.stopPollingByPollingToken,
-    ).toHaveBeenCalledWith('subscription-poll-token');
-    expect(mockedSubscriptionController.startPolling).toHaveBeenCalledTimes(1);
+      mockedSubscriptionController.getSubscriptions,
+    ).not.toHaveBeenCalled();
+  });
 
-    gates.isUiOpen = true;
-    rerender(undefined);
+  it('fetches through the controller when every gate is true', async () => {
+    const { result } = renderUseSubscriptionPolling({ enabled: true });
 
-    expect(mockedSubscriptionController.startPolling).toHaveBeenCalledTimes(2);
-    expect(mockedSubscriptionController.startPolling.mock.calls[1][0]).toBe(
-      firstInput,
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(mockedSubscriptionController.getSubscriptions).toHaveBeenCalledTimes(
+      1,
     );
   });
 
-  it('stops the active token on unmount', () => {
-    const { unmount } = renderUseSubscriptionPolling({ enabled: true });
+  it('reports the in-flight fetch so callers can tell unknown from empty', async () => {
+    const { result } = renderUseSubscriptionPolling({ enabled: true });
 
-    unmount();
+    expect(result.current.isPending).toBe(true);
 
-    expect(
-      mockedSubscriptionController.stopPollingByPollingToken,
-    ).toHaveBeenCalledWith('subscription-poll-token');
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+  });
+
+  it('surfaces a failed fetch as an error instead of empty state', async () => {
+    const error = new Error('request failed');
+    mockedSubscriptionController.getSubscriptions.mockRejectedValue(error);
+
+    const { result } = renderUseSubscriptionPolling({ enabled: true });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBe(error);
   });
 });

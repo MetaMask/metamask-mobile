@@ -1,46 +1,53 @@
 import { useSelector } from 'react-redux';
-import type { Json } from '@metamask/utils';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import type { Subscription } from '@metamask/subscription-controller';
 import Engine from '../../core/Engine';
-import { RootState } from '../../reducers';
 import { selectIsSignedIn } from '../../selectors/identity';
 import { selectIsUnlocked } from '../../selectors/keyringController';
-import usePolling from './usePolling';
+
+export const SUBSCRIPTIONS_QUERY_KEY = [
+  'SubscriptionController:getSubscriptions',
+] as const;
+
+/** Matches the controller's own `DEFAULT_POLLING_INTERVAL`. */
+export const SUBSCRIPTIONS_REFETCH_INTERVAL = 5 * 60 * 1000;
 
 /**
- * Stable polling-controller input. The polling interval key is derived from
- * this value, so it must stay referentially and structurally constant.
- */
-const SUBSCRIPTION_POLLING_INPUT: Json = Object.freeze({});
-
-const selectIsUiOpen = (state: RootState): boolean =>
-  state.engine?.backgroundState?.ClientController?.isUiOpen === true;
-
-/**
- * Starts exactly one SubscriptionController poll while the caller enables it
- * and the user is signed in, unlocked, and in the foreground.
+ * Keeps SubscriptionController state fresh while the caller enables it and the
+ * user is signed in and unlocked.
+ *
+ * The query fetches through the controller rather than SubscriptionService so
+ * Redux stays the source of truth for Plus gating, and so the controller's
+ * change side effects (access-token refresh, benefits refresh) still run.
  *
  * Mounted by the Money home view so Plus entitlements stay current while the
  * user is on a surface that reacts to them.
  *
- * @param options - Polling options.
- * @param options.enabled - Caller gate for starting subscription polling.
+ * @param options - Query options.
+ * @param options.enabled - Caller gate for fetching subscriptions.
+ * @returns The subscriptions query, for callers that need fetch state.
  */
-const useSubscriptionPolling = ({ enabled }: { enabled: boolean }): void => {
+const useSubscriptionPolling = ({
+  enabled,
+}: {
+  enabled: boolean;
+}): UseQueryResult<Subscription[]> => {
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
-  const isUiOpen = useSelector(selectIsUiOpen);
-  const { SubscriptionController } = Engine.context;
-  const shouldPoll = enabled && isSignedIn && isUnlocked && isUiOpen;
 
-  usePolling({
-    startPolling: SubscriptionController.startPolling.bind(
-      SubscriptionController,
-    ),
-    stopPollingByPollingToken:
-      SubscriptionController.stopPollingByPollingToken.bind(
-        SubscriptionController,
-      ),
-    input: shouldPoll ? [SUBSCRIPTION_POLLING_INPUT] : [],
+  // Backgrounding pauses the interval on its own: ReactQueryService wires
+  // AppState into focusManager and `refetchIntervalInBackground` is false.
+  // Focus and reconnect refetches stay off because they can run queryFn —
+  // and so reach AuthenticationController getBearerToken — before React
+  // commits enabled:false after a background auto-lock.
+  return useQuery({
+    queryKey: SUBSCRIPTIONS_QUERY_KEY,
+    queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
+    enabled: enabled && isSignedIn && isUnlocked,
+    refetchInterval: SUBSCRIPTIONS_REFETCH_INTERVAL,
+    staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 };
 
