@@ -2710,7 +2710,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'forces USD sizing when Scale ladder prices differ from the market',
+    'keeps asset sizing available when Scale ladder prices differ from the market',
     async () => {
       renderProMarketWithScaleFlag(true);
       const sizeInput = await findSizeInput();
@@ -2731,11 +2731,20 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
       await waitFor(() => {
+        expect(sizeInput).toHaveProp('value', '0.04');
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (ETH)',
+        );
+        expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeEnabled();
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+      await waitFor(() => {
         expect(sizeInput).toHaveProp('value', '100');
         expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
           'Size (USD)',
         );
-        expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
       });
     },
   );
