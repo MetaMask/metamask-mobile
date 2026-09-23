@@ -520,6 +520,58 @@ describe('useQuickBuyQuotes', () => {
     expect(fetchQuotesMock).not.toHaveBeenCalled();
   });
 
+  it('skips fetching when the source amount cannot be converted', () => {
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken({
+            decimals: {
+              valueOf() {
+                throw new Error('bad decimals');
+              },
+            } as unknown as number,
+          }),
+          destToken: createDestToken(),
+          sourceTokenAmount: '1',
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    expect(fetchQuotesMock).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the recommended quote when selectedQuoteRequestId matches nothing', async () => {
+    const fetched = createFetchedQuote();
+    const enriched = toQuoteResponseV2(fetched);
+
+    fetchQuotesMock.mockResolvedValue([fetched]);
+    mockSelectBridgeQuotesBase.mockReturnValue({
+      sortedQuotes: [enriched],
+      recommendedQuote: enriched,
+    });
+
+    const { result } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          selectedQuoteRequestId: 'missing-id',
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(result.current.activeQuote).toBe(enriched));
+  });
+
   it('skips fetching when sourceToken.decimals is undefined', () => {
     renderHook(() =>
       useQuickBuyQuotes(
@@ -869,6 +921,64 @@ describe('useQuickBuyQuotes', () => {
       expect(result.current.isQuoteLoading).toBe(false);
       expect(result.current.isNoQuotesAvailable).toBe(false);
       expect(result.current.refreshCount).toBe(1);
+    });
+
+    it('ignores streamed quotes after the request is aborted', async () => {
+      let emit: (quote: unknown) => void = () => undefined;
+      let closeStream: () => void = () => undefined;
+      const controllers: AbortController[] = [];
+      const RealAbortController = global.AbortController;
+      const abortControllerSpy = jest
+        .spyOn(global, 'AbortController')
+        .mockImplementation(() => {
+          const controller = new RealAbortController();
+          controllers.push(controller);
+          return controller;
+        });
+
+      streamQuickBuyQuotesMock.mockImplementationOnce(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: AbortSignal,
+          { onQuote }: StreamHandlers,
+        ) => {
+          emit = onQuote;
+          onQuote(streamedQuote('kept'));
+          await new Promise<void>((resolve) => {
+            closeStream = resolve;
+          });
+        },
+      );
+
+      const stableParams = quotesParams({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      });
+      const { result } = renderHook(() => useQuickBuyQuotes(stableParams));
+
+      try {
+        await act(async () => {
+          jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+        });
+        await waitFor(() =>
+          expect(result.current.activeQuote?.quote.requestId).toBe('kept'),
+        );
+
+        await act(async () => {
+          controllers.at(-1)?.abort();
+          emit(streamedQuote('late'));
+          closeStream();
+          await Promise.resolve();
+        });
+
+        expect(result.current.sortedQuotes).toHaveLength(1);
+        expect(result.current.activeQuote?.quote.requestId).toBe('kept');
+        expect(result.current.refreshCount).toBe(0);
+      } finally {
+        abortControllerSpy.mockRestore();
+      }
     });
 
     it('dedupes streamed quotes by requestId', async () => {
