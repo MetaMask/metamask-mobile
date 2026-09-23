@@ -18,6 +18,7 @@ import {
   type OrderType,
   type PerpsMarketData,
   type PerpsProviderType,
+  type MarginMode,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -97,6 +98,7 @@ import {
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
+  resolvePerpsOrderMarginMode,
 } from '../../../../utils/orderParams';
 import {
   deriveOrderSizing,
@@ -139,6 +141,7 @@ import {
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsPositionModifyPreviewEnabledFlag,
 } from '../../../../selectors/featureFlags';
 import type {
@@ -521,6 +524,11 @@ export interface UsePerpsProOrderFormResult {
   twap: PerpsProTwapModel;
   isTPSLConfigured: boolean;
   onTPSLPress: () => void;
+  // Margin mode sheet
+  marginMode: MarginMode;
+  isIsolatedMarginAvailable: boolean;
+  isCrossMarginAvailable: boolean;
+  onMarginModeSelect: (mode: MarginMode) => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
   scaleOrder: PerpsProScaleOrderModel;
@@ -606,6 +614,9 @@ export const usePerpsProOrderForm = ({
   const isPositionModifyPreviewEnabled = useSelector(
     selectPerpsPositionModifyPreviewEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
+  const [selectedMarginMode, setSelectedMarginMode] =
+    useState<MarginMode>('isolated');
   const chartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
 
   const { isInitialized } = usePerpsConnection();
@@ -870,6 +881,23 @@ export const usePerpsProOrderForm = ({
     loadOnMount: true,
   });
   const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
+
+  // An open position fixes the venue mode for this market; Cross is also
+  // unavailable on HIP-3 markets (the controller rejects it there).
+  const positionMarginMode = currentMarketPosition?.leverage?.type;
+  const marginMode =
+    resolvePerpsOrderMarginMode({
+      isCrossMarginEnabled,
+      position: currentMarketPosition,
+      selectedMarginMode,
+    }) ?? 'isolated';
+  const isIsolatedMarginAvailable =
+    !isCrossMarginEnabled || positionMarginMode !== 'cross';
+  const isCrossMarginAvailable =
+    isCrossMarginEnabled &&
+    !market.isHip3 &&
+    !symbol.includes(':') &&
+    positionMarginMode !== 'isolated';
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -1956,7 +1984,7 @@ export const usePerpsProOrderForm = ({
       : PERPS_EVENT_VALUE.DIRECTION.SHORT;
   const rejectCrossMarginPosition = useCallback(
     (position?: Position | null) => {
-      if (position?.leverage?.type !== 'cross') {
+      if (isCrossMarginEnabled || position?.leverage?.type !== 'cross') {
         return false;
       }
 
@@ -1974,7 +2002,7 @@ export const usePerpsProOrderForm = ({
       });
       return true;
     },
-    [navigation, track],
+    [isCrossMarginEnabled, navigation, track],
   );
 
   const handlePlaceOrder = async (
@@ -2453,6 +2481,11 @@ export const usePerpsProOrderForm = ({
             maxSlippageBps: resolvedMaxSlippageBps,
             reduceOnly: latestScale.reduceOnly,
             providerId: expectedProviderId,
+            marginMode: resolvePerpsOrderMarginMode({
+              isCrossMarginEnabled,
+              position: latestScale.currentMarketPosition,
+              selectedMarginMode,
+            }),
             isFullClose: latestScale.reduceOnly
               ? latestScale.reduceOnlyValidation.isFullClose ||
                 latestScale.isExactFullClose
@@ -2652,6 +2685,11 @@ export const usePerpsProOrderForm = ({
             : isTwapOrder
               ? resolvedTwapProviderIdRef.current
               : orderProviderId,
+        marginMode: resolvePerpsOrderMarginMode({
+          isCrossMarginEnabled,
+          position: placementCurrentMarketPosition,
+          selectedMarginMode,
+        }),
         triggerPrice: finalizedTriggerPrice,
         takeProfitPrice:
           isTriggerOrderType(placementOrderForm.type) ||
@@ -3965,6 +4003,10 @@ export const usePerpsProOrderForm = ({
       orderForm.takeProfitPrice || orderForm.stopLossPrice,
     ),
     onTPSLPress,
+    marginMode,
+    isIsolatedMarginAvailable,
+    isCrossMarginAvailable,
+    onMarginModeSelect: setSelectedMarginMode,
     notices,
     summary,
     scaleOrder,

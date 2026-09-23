@@ -402,4 +402,30 @@ describe('PerpsProPositionCard', () => {
     expect(screen.queryByText('$2,900')).toBeNull();
     expect(screen.getAllByText(DOTS_SHORT).length).toBeGreaterThanOrEqual(3);
   });
+  it('disables Reverse for a Cross position', () => {
+    const onReverse = jest.fn();
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, leverage: { type: 'cross', value: 3 } }}
+        onReverse={onReverse}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_REVERSE),
+    );
+
+    expect(onReverse).not.toHaveBeenCalled();
+  });
+
+  it('reverses an Isolated position', () => {
+    const onReverse = jest.fn();
+    render(<PerpsProPositionCard position={position} onReverse={onReverse} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_REVERSE),
+    );
+
+    expect(onReverse).toHaveBeenCalledWith(position);
+  });
 });

@@ -525,10 +525,13 @@ export const PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY =
   'perpsCrossMarginEnabled' as const;
 
 /**
- * Selector for Cross margin support on existing positions.
+ * Selector for Cross margin support.
  * When enabled: Cross positions show the Cross badge, the shared-collateral
- * liquidation explanation and a non-editable "Position margin used" label.
- * When disabled: Cross positions fall back to the isolated presentation.
+ * liquidation explanation and a non-editable "Position margin used" label;
+ * the Pro form can place Cross orders, and Lite trades an open Cross
+ * position in Cross instead of showing the unsupported-mode warning.
+ * When disabled: Cross positions fall back to the isolated presentation and
+ * every order keeps the controller's isolated default.
  * Defaults to false so Cross margin can be rolled out and rolled back
  * independently of Pro mode.
  *

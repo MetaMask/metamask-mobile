@@ -34,6 +34,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.margin_mode.cross_title': 'Cross',
       'perps.margin_mode.cross_description':
         'Your full account balance is shared across all positions.',
+      'perps.margin_mode.cross_description_enabled':
+        'Cross margin is available.',
     };
     return translations[key] || key;
   },
@@ -113,6 +115,73 @@ describe('PerpsMarginModeBottomSheet', () => {
 
     expect(selectedOption).toHaveStyle({ backgroundColor: 'muted' });
     expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
+  });
+
+  it('selects Cross when it is available', () => {
+    const onSelect = jest.fn();
+    render(
+      <PerpsMarginModeBottomSheet
+        {...defaultProps}
+        isCrossAvailable
+        onSelect={onSelect}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+    );
+
+    expect(onSelect).toHaveBeenCalledWith('cross');
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('highlights Cross when it is the selected mode', () => {
+    render(
+      <PerpsMarginModeBottomSheet
+        {...defaultProps}
+        isCrossAvailable
+        selectedMode="cross"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+    ).toHaveStyle({ backgroundColor: 'muted' });
+    expect(
+      screen.getByTestId(
+        PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+      ),
+    ).not.toHaveStyle({ backgroundColor: 'muted' });
+  });
+
+  it('ignores Isolated when a Cross position fixes the mode', () => {
+    const onSelect = jest.fn();
+    render(
+      <PerpsMarginModeBottomSheet
+        {...defaultProps}
+        selectedMode="cross"
+        isCrossAvailable
+        isIsolatedAvailable={false}
+        onSelect={onSelect}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+      ),
+    );
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+  });
+
+  it('drops the coming-soon copy once cross margin is enabled', () => {
+    render(
+      <PerpsMarginModeBottomSheet {...defaultProps} isCrossMarginEnabled />,
+    );
+
+    expect(screen.getByText('Cross margin is available.')).toBeOnTheScreen();
   });
 
   it('calls onClose when the header close button is pressed', () => {

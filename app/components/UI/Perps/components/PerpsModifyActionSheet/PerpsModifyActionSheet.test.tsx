@@ -245,4 +245,16 @@ describe('PerpsModifyActionSheet', () => {
 
     expect(screen.getByTestId('modify-sheet')).toBeOnTheScreen();
   });
+  it('omits Flip Position for a Cross position', () => {
+    render(
+      <PerpsModifyActionSheet
+        onClose={mockOnClose}
+        onActionSelect={mockOnActionSelect}
+        position={{ ...mockPosition, leverage: { value: 10, type: 'cross' } }}
+      />,
+    );
+
+    expect(screen.queryByText('Flip Position')).not.toBeOnTheScreen();
+    expect(screen.getByText('Add to Position')).toBeOnTheScreen();
+  });
 });

@@ -18,6 +18,7 @@ import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomS
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -79,6 +80,7 @@ const PerpsProOrderFormPanel = ({
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const isScaleFlagEnabled = useSelector(selectPerpsMobileScaleEnabledFlag);
   const isChaseFlagEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const activeProvider = useSelector(selectPerpsProvider);
   const selectedProviderId =
     market.providerId ??
@@ -198,6 +200,10 @@ const PerpsProOrderFormPanel = ({
     twap,
     isTPSLConfigured,
     onTPSLPress,
+    marginMode,
+    isIsolatedMarginAvailable,
+    isCrossMarginAvailable,
+    onMarginModeSelect,
     notices,
     summary,
     scaleOrder,
@@ -337,7 +343,11 @@ const PerpsProOrderFormPanel = ({
         onDirectionChange={onDirectionChange}
         isOrderBookCollapsed={isOrderBookCollapsed}
         onExpandOrderBook={onExpandOrderBook}
-        marginModeLabel={strings('perps.pro_order_form.isolated')}
+        marginModeLabel={strings(
+          marginMode === 'cross'
+            ? 'perps.pro_order_form.cross'
+            : 'perps.pro_order_form.isolated',
+        )}
         onMarginModePress={openMarginMode}
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
@@ -499,7 +509,15 @@ const PerpsProOrderFormPanel = ({
           animationType="fade"
           onRequestClose={closeMarginMode}
         >
-          <PerpsMarginModeBottomSheet isVisible onClose={closeMarginMode} />
+          <PerpsMarginModeBottomSheet
+            isVisible
+            onClose={closeMarginMode}
+            selectedMode={marginMode}
+            isCrossMarginEnabled={isCrossMarginEnabled}
+            isIsolatedAvailable={isIsolatedMarginAvailable}
+            isCrossAvailable={isCrossMarginAvailable}
+            onSelect={onMarginModeSelect}
+          />
         </PerpsProModalPortal>
       )}
     </Box>

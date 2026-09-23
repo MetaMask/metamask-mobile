@@ -15,6 +15,7 @@ import type {
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
+  PerpsMarginModeBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
@@ -130,6 +131,10 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   },
   isTPSLConfigured: false,
   onTPSLPress: jest.fn(),
+  marginMode: 'isolated' as 'isolated' | 'cross',
+  isIsolatedMarginAvailable: true,
+  isCrossMarginAvailable: false,
+  onMarginModeSelect: jest.fn(),
   notices: [] as { id: string; variant: string; message?: string }[],
   summary: { margin: '$20.00', liquidationPrice: '$80,000', slippage: '1%' },
   isPlaceOrderDisabled: false,
@@ -552,6 +557,30 @@ describe('PerpsProOrderFormPanel', () => {
     slider.props.onDragEnd(20);
 
     expect(mockHookResult.sizeSlider.onDragEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it('labels the margin mode button with the current mode', () => {
+    mockHookResult.marginMode = 'cross';
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+    ).toHaveTextContent('Cross');
+  });
+
+  it('wires a Cross pick in the margin mode sheet to the hook', () => {
+    mockHookResult.isCrossMarginAvailable = true;
+    renderPanel();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+    );
+
+    expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
   });
 
   it('wires the TP/SL row to the hook', () => {
