@@ -35,5 +35,6 @@ module.exports = {
   testMatch: ['**/*.view.test.ts?(x)'],
   testTimeout: 30000,
   forceExit: true,
-  maxWorkers: 1,
+  maxWorkers: 2,
+  workerIdleMemoryLimit: '3GB',
 };
