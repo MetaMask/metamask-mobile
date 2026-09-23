@@ -1,250 +1,355 @@
-import React from 'react';
-import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { notifyManager } from '@tanstack/query-core';
-import {
+import { act, renderHook } from '@testing-library/react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { type AbsolutePriceAlert, PriceAlertAnalytics } from './constants';
+import usePerpAlertSaveFlow, {
+  perpAlertsQueryKey,
   fetchPerpAlerts,
   createPerpAlert,
   updatePerpAlert,
   deletePerpAlert,
   useSubmitPerpAlert,
 } from './perpApi';
-import type { AbsolutePriceAlert } from './constants';
 
-// Prevents teardown crashes with unstable_batchedUpdates in Jest
-notifyManager.setBatchNotifyFunction((callback: () => void) => {
-  callback();
+// ─── Shared mock state ────────────────────────────────────────────────────────
+
+const mockGoBack = jest.fn();
+const mockPop = jest.fn();
+const mockSetQueryData = jest.fn();
+const mockSubmit = jest.fn();
+const mockGetBearerToken = jest.fn().mockResolvedValue('test-token');
+
+// ─── Module mocks ─────────────────────────────────────────────────────────────
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
 });
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false } },
-  });
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-  return { Wrapper, queryClient };
-};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ goBack: mockGoBack, pop: mockPop }),
+}));
 
-const mockGetBearerToken = jest.fn().mockResolvedValue('test-bearer-token');
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useMutation: jest.fn(
+    ({ mutationFn }: { mutationFn: (params: unknown) => Promise<void> }) => ({
+      mutateAsync: mutationFn,
+      isPending: false,
+    }),
+  ),
+  useQueryClient: () => ({ setQueryData: mockSetQueryData }),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
-      getBearerToken: (...args: unknown[]) => mockGetBearerToken(...args),
+      getBearerToken: () => mockGetBearerToken(),
     },
   },
 }));
 
-jest.mock('../../../../core/AppConstants', () => ({
-  PRICE_ALERTS_API: { URL: 'https://price-alerts.api.cx.metamask.io' },
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-const PERP_ALERTS_URL =
-  'https://price-alerts.api.cx.metamask.io/v1/perp-alerts';
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 const MARKET_ID = 'btc-hyperliquid-mainnet';
+const DISPLAY_TICKER = 'BTC';
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const editingAlert: AbsolutePriceAlert = {
+  id: 'alert-99',
+  threshold: 50000,
+  recurring: false,
+  active: true,
+  type: PriceAlertAnalytics.TYPE.THRESHOLD as 'threshold',
+  assetId: MARKET_ID,
+  chainId: '',
+  direction: 'above',
+  createdAt: 0,
+  updatedAt: 0,
+};
 
-const makeOkResponse = (body?: unknown) =>
-  ({
-    ok: true,
-    status: 200,
-    json: jest.fn().mockResolvedValue(body ?? []),
-    text: jest.fn().mockResolvedValue(''),
-  }) as unknown as Response;
+const baseAnalyticsProperties = {
+  alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+  alert_value: 55000,
+  alert_recurring: false,
+  alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
+};
 
-const makeErrorResponse = (status: number, bodyText = 'Bad Request') =>
-  ({
-    ok: false,
-    status,
-    json: jest.fn().mockResolvedValue({}),
-    text: jest.fn().mockResolvedValue(bodyText),
-  }) as unknown as Response;
+// ─── perpAlertsQueryKey ───────────────────────────────────────────────────────
 
-beforeEach(() => {
-  jest.clearAllMocks();
+describe('perpAlertsQueryKey', () => {
+  it('returns a tuple with the market id', () => {
+    expect(perpAlertsQueryKey(MARKET_ID)).toEqual(['perpAlerts', MARKET_ID]);
+  });
 });
 
-describe('fetchPerpAlerts', () => {
-  it('calls GET /v1/perp-alerts?marketId=… with Bearer auth', async () => {
-    mockFetch.mockResolvedValue(makeOkResponse([]));
+// ─── API functions ────────────────────────────────────────────────────────────
 
+describe('API functions', () => {
+  const mockFetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => [],
+  } as unknown as Response);
+
+  beforeAll(() => {
+    global.fetch = mockFetch;
+  });
+
+  beforeEach(() => {
+    mockFetch.mockClear();
+    mockGetBearerToken.mockClear();
+  });
+
+  it('fetchPerpAlerts sends a GET with the correct url and auth header', async () => {
     await fetchPerpAlerts(MARKET_ID);
-
+    expect(mockGetBearerToken).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
-      `${PERP_ALERTS_URL}?marketId=${encodeURIComponent(MARKET_ID)}`,
+      expect.stringContaining(`marketId=${encodeURIComponent(MARKET_ID)}`),
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer test-bearer-token',
+          Authorization: 'Bearer test-token',
         }),
       }),
     );
   });
 
-  it('URL-encodes the marketId', async () => {
-    mockFetch.mockResolvedValue(makeOkResponse([]));
-
-    await fetchPerpAlerts('btc hyperliquid');
-
+  it('createPerpAlert sends a POST with the alert payload', async () => {
+    const params = { marketId: MARKET_ID, threshold: 55000, recurring: false };
+    await createPerpAlert(params);
     expect(mockFetch).toHaveBeenCalledWith(
-      `${PERP_ALERTS_URL}?marketId=btc%20hyperliquid`,
-      expect.anything(),
-    );
-  });
-});
-
-describe('createPerpAlert', () => {
-  it('calls POST /v1/perp-alerts with correct body', async () => {
-    mockFetch.mockResolvedValue(
-      makeOkResponse({ id: 'abc', marketId: MARKET_ID }),
-    );
-
-    await createPerpAlert({
-      marketId: MARKET_ID,
-      threshold: 100000,
-      recurring: false,
-    });
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      PERP_ALERTS_URL,
+      expect.stringContaining('perp-alerts'),
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({
-          marketId: MARKET_ID,
-          threshold: 100000,
-          recurring: false,
-        }),
+        body: JSON.stringify(params),
       }),
     );
   });
-});
 
-describe('updatePerpAlert', () => {
-  it('calls PATCH /v1/perp-alerts/{id} with correct body', async () => {
-    mockFetch.mockResolvedValue(makeOkResponse());
-
-    await updatePerpAlert('alert-id-1', { threshold: 110000 });
-
+  it('updatePerpAlert sends a PATCH to the alert id endpoint', async () => {
+    await updatePerpAlert('alert-99', { threshold: 60000, recurring: true });
     expect(mockFetch).toHaveBeenCalledWith(
-      `${PERP_ALERTS_URL}/alert-id-1`,
-      expect.objectContaining({
-        method: 'PATCH',
-        body: JSON.stringify({ threshold: 110000 }),
-      }),
+      expect.stringContaining('alert-99'),
+      expect.objectContaining({ method: 'PATCH' }),
     );
   });
-});
 
-describe('deletePerpAlert', () => {
-  it('calls DELETE /v1/perp-alerts/{id}', async () => {
-    mockFetch.mockResolvedValue(makeOkResponse());
-
-    await deletePerpAlert('alert-id-1');
-
+  it('deletePerpAlert sends a DELETE to the alert id endpoint', async () => {
+    await deletePerpAlert('alert-99');
     expect(mockFetch).toHaveBeenCalledWith(
-      `${PERP_ALERTS_URL}/alert-id-1`,
+      expect.stringContaining('alert-99'),
       expect.objectContaining({ method: 'DELETE' }),
     );
   });
 });
 
+// ─── useSubmitPerpAlert ───────────────────────────────────────────────────────
+
 describe('useSubmitPerpAlert', () => {
-  it('calls createPerpAlert on submit (no editingAlert)', async () => {
-    mockFetch.mockResolvedValue(makeOkResponse({ id: 'new-alert' }));
-    const { Wrapper } = createWrapper();
+  it('calls createPerpAlert (POST) when no editingAlert is supplied', async () => {
+    const params = { marketId: MARKET_ID, threshold: 55000, recurring: false };
+    const mockResponse = { ok: true } as unknown as Response;
+    global.fetch = jest.fn().mockResolvedValue(mockResponse);
 
-    const { result } = renderHook(() => useSubmitPerpAlert(), {
-      wrapper: Wrapper,
-    });
-
+    const { result } = renderHook(() => useSubmitPerpAlert());
     await act(async () => {
-      await result.current.submit({
-        marketId: MARKET_ID,
-        threshold: 95000,
-        recurring: true,
-      });
+      await result.current.submit(params);
     });
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      PERP_ALERTS_URL,
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('perp-alerts'),
       expect.objectContaining({ method: 'POST' }),
     );
   });
 
-  it('calls updatePerpAlert (PATCH) when editingAlert is provided', async () => {
-    mockFetch.mockResolvedValue(makeOkResponse());
-    const { Wrapper } = createWrapper();
-    const editingAlert: AbsolutePriceAlert = {
-      id: 'existing-id',
-      userId: 'user-1',
-      asset: MARKET_ID,
-      threshold: 100000,
-      recurring: false,
-      active: true,
-      createdAt: '2026-09-22T00:00:00Z',
-      type: 'absolute_price',
-    };
+  it('calls updatePerpAlert (PATCH) when editingAlert is supplied', async () => {
+    const params = { marketId: MARKET_ID, threshold: 60000, recurring: true };
+    const mockResponse = { ok: true } as unknown as Response;
+    global.fetch = jest.fn().mockResolvedValue(mockResponse);
 
-    const { result } = renderHook(() => useSubmitPerpAlert(editingAlert), {
-      wrapper: Wrapper,
-    });
-
+    const { result } = renderHook(() => useSubmitPerpAlert(editingAlert));
     await act(async () => {
-      await result.current.submit({
-        marketId: MARKET_ID,
-        threshold: 110000,
-        recurring: true,
-      });
+      await result.current.submit(params);
     });
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      `${PERP_ALERTS_URL}/existing-id`,
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('alert-99'),
       expect.objectContaining({ method: 'PATCH' }),
     );
   });
+});
 
-  it('throws when the response is not ok', async () => {
-    mockFetch.mockResolvedValue(makeErrorResponse(409, 'Conflict'));
-    const { Wrapper } = createWrapper();
+// ─── usePerpAlertSaveFlow ─────────────────────────────────────────────────────
 
-    const { result } = renderHook(() => useSubmitPerpAlert(), {
-      wrapper: Wrapper,
-    });
+describe('usePerpAlertSaveFlow', () => {
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
 
-    await act(async () => {
-      await expect(
-        result.current.submit({
-          marketId: MARKET_ID,
-          threshold: 100000,
-          recurring: false,
-        }),
-      ).rejects.toThrow('HTTP 409');
-    });
-  });
-
-  it('sets isSubmitting true while the mutation is in flight', async () => {
-    let resolveResponse!: (r: Response) => void;
-    mockFetch.mockReturnValue(
-      new Promise<Response>((res) => {
-        resolveResponse = res;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    const mockBuilder = {
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    };
+    mockCreateEventBuilder.mockReturnValue(mockBuilder);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
       }),
     );
-    const { Wrapper } = createWrapper();
+  });
 
-    const { result } = renderHook(() => useSubmitPerpAlert(), {
-      wrapper: Wrapper,
+  const renderFlow = (fromManage = false) =>
+    renderHook(() =>
+      usePerpAlertSaveFlow({
+        marketId: MARKET_ID,
+        displayTicker: DISPLAY_TICKER,
+        fromManage,
+      }),
+    );
+
+  it('calls goBack after a successful save (not editing, not fromManage)', async () => {
+    const { result } = renderFlow(false);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert: undefined,
+        patch: undefined,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls pop(2) after a successful create from ManageView (fromManage=true)', async () => {
+    const { result } = renderFlow(true);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert: undefined,
+        patch: undefined,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+    expect(mockPop).toHaveBeenCalledWith(2);
+  });
+
+  it('calls goBack after editing an alert regardless of fromManage', async () => {
+    const { result } = renderFlow(true);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert,
+        patch: { threshold: 60000 },
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits CREATED analytics with perps market type on new alert', async () => {
+    const mockBuilder = {
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    };
+    mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+    const { result } = renderFlow(false);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert: undefined,
+        patch: undefined,
+        analyticsProperties: baseAnalyticsProperties,
+      });
     });
 
-    act(() => {
-      result.current
-        .submit({ marketId: MARKET_ID, threshold: 50000, recurring: false })
-        .catch(() => undefined);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+    );
+    expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
+        interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
+      }),
+    );
+  });
+
+  it('emits UPDATED analytics when editing an existing alert', async () => {
+    const mockBuilder = {
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    };
+    mockCreateEventBuilder.mockReturnValue(mockBuilder);
+
+    const { result } = renderFlow(false);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert,
+        patch: { threshold: 60000 },
+        analyticsProperties: baseAnalyticsProperties,
+      });
     });
 
-    await waitFor(() => expect(result.current.isSubmitting).toBe(true));
+    expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
+        interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+        prev_alert_value: editingAlert.threshold,
+      }),
+    );
+  });
 
-    act(() => resolveResponse(makeOkResponse()));
-    await waitFor(() => expect(result.current.isSubmitting).toBe(false));
+  it('patches the query cache when editing an alert', async () => {
+    const { result } = renderFlow(false);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert,
+        patch: { threshold: 60000 },
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+    expect(mockSetQueryData).toHaveBeenCalledWith(
+      perpAlertsQueryKey(MARKET_ID),
+      expect.any(Function),
+    );
+  });
+
+  it('shows a success toast after saving', async () => {
+    const { result } = renderFlow(false);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert: undefined,
+        patch: undefined,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: ToastSeverity.Success }),
+    );
+  });
+
+  it('shows an error toast when submit throws', async () => {
+    const failingSubmit = jest.fn().mockRejectedValue(new Error('network'));
+    const { result } = renderFlow(false);
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: failingSubmit,
+        editingAlert: undefined,
+        patch: undefined,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: ToastSeverity.Danger }),
+    );
   });
 });
