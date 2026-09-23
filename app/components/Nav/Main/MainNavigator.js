@@ -1237,6 +1237,14 @@ const MainNavigator = () => {
             name={Routes.PERPS.FUNDING_TRANSACTION}
             component={PerpsFundingTransactionView}
           />
+          <NativeStack.Screen
+            name={Routes.PERPS.PRICE_ALERTS}
+            component={ManagePriceAlertsView}
+          />
+          <NativeStack.Screen
+            name={Routes.PERPS.CREATE_PRICE_ALERT}
+            component={CreatePriceAlertView}
+          />
         </>
       )}
       {isPredictEnabled && (

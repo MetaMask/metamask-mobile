@@ -28,6 +28,7 @@ import {
   PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsPositionModifyPreviewEnabledFlag,
+  selectPerpsPriceAlertsEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -3281,6 +3282,50 @@ describe('Perps Feature Flag Selectors', () => {
         }),
       );
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectPerpsPriceAlertsEnabledFlag', () => {
+    const stateWithFlag = (flag?: Json): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: flag ? { perpsPriceAlertsEnabled: flag } : {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults off when the remote flag is absent', () => {
+      expect(selectPerpsPriceAlertsEnabledFlag(stateWithFlag())).toBe(false);
+    });
+
+    it('returns true for an enabled flag at the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false below the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const state = stateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsEnabledFlag(state)).toBe(false);
     });
   });
 });
