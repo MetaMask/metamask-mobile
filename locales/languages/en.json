@@ -12014,6 +12014,85 @@
     "title": "Earn more with Pro",
     "description": "$4.99/mo ($49.99 for annual membership)",
     "join_pro": "Join Pro",
+    "v2": {
+      "title": "v2 (Earn more with Pro)",
+      "description": "v2 ($4.99/mo ($49.99 for annual membership))",
+      "join_pro": "v2 (Join Pro)",
+      "benefits": {
+        "apy": {
+          "title": "v2 (Up to 7% APY on Money account)",
+          "subtitle": "v2 (Paid in mUSD, no lockups)"
+        },
+        "cashback": {
+          "title": "v2 (3% mUSD back on card purchases)",
+          "subtitle": "v2 (Up to $12,000/yr, worldwide)",
+          "subtitle_monthly": "v2 (Up to $1,000/mo, worldwide)"
+        },
+        "member_pricing": {
+          "title": "v2 (Member pricing on trades)",
+          "subtitle": "v2 (Including swaps, perps, and predictions)"
+        },
+        "atm_fees": {
+          "title": "v2 (No added ATM or FX fees)",
+          "subtitle": "v2 (Physical card included)",
+          "subtitle_monthly": "v2 (Physical card available separately)"
+        },
+        "protection": {
+          "title": "v2 (Up to $10,000 in protection)",
+          "subtitle": "v2 (On eligible extension transactions)"
+        },
+        "support": {
+          "title": "v2 (Real human support, around the clock)",
+          "subtitle": "v2 (Response in minutes)"
+        },
+        "placeholder_extra": {
+          "title": "v2 (Additional Pro benefit)",
+          "subtitle": "v2 (Placeholder copy pending UX)"
+        }
+      },
+      "benefits_description": {
+        "apy": {
+          "description": "v2 (As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.)",
+          "description2": "v2 (APY is variable and not guaranteed.)"
+        },
+        "cashback": {
+          "description": "v2 (Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning up to ~7% APY.)",
+          "points": [
+            "v2 (Monthly members: 3% back on up to $1,000 in purchases every month)",
+            "v2 (Annual members: 3% back on up to $12,000 in purchases every year)"
+          ]
+        },
+        "member_pricing": {
+          "description": "v2 (Pay no MetaMask fees on:)",
+          "points": [
+            "v2 ($500/mo in swaps)",
+            "v2 ($1,000/mo in perps)",
+            "v2 (Up to 1 prediction/mo)"
+          ]
+        },
+        "atm_fees": {
+          "description": "v2 (MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask.)",
+          "description_monthly": "v2 (MetaMask Card is available separately for monthly members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask.)"
+        },
+        "protection": {
+          "description": "v2 (Get protection on up to 100 MetaMask extension transactions per month, up to $10,000. Members receive clear in-app alerts when a transaction is covered.)",
+          "sub_description": "v2 (Protection includes:)",
+          "points": [
+            "v2 (DeFi swaps)",
+            "v2 (NFT mints)",
+            "v2 (Airdrop claims)"
+          ],
+          "learn_more": "v2 (Learn more)",
+          "notes": "v2 (Note: Transaction protection does not protect against losses that occur before or after a transaction.)"
+        },
+        "support": {
+          "description": "v2 (Get priority customer support from a real human—anytime, any day.)"
+        },
+        "placeholder_extra": {
+          "description": "v2 (Placeholder benefit details pending final UX copy.)"
+        }
+      }
+    },
     "benefits": {
       "apy": {
         "title": "Up to 7% APY on Money account",

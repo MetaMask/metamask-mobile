@@ -446,6 +446,7 @@ describe('Feature Flag Registry', () => {
         'assetsASSETS3205AbtestAmbientPriceColor',
         'assetsASSETS3380AbtestExploreQuickBuy',
         'subSUB990AbtestProSubscriptionFlow',
+        'subSUB1059AbtestJoinProPaywallCopy',
       ];
 
       for (const flagName of abTestFlags) {

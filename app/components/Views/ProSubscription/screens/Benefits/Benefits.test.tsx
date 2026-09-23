@@ -6,14 +6,25 @@ import { BenefitsTestIds } from './Benefits.testIds';
 import {
   BENEFITS,
   BENEFIT_DETAILS,
+  BENEFITS_CONTENT_BY_VERSION,
   PLANS,
   type PlanId,
 } from './Benefits.constants';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  JOIN_PRO_PAYWALL_AB_TEST_EXPOSURE_OPTIONS,
+  JOIN_PRO_PAYWALL_AB_TEST_KEY,
+  JOIN_PRO_PAYWALL_VARIANTS,
+} from '../../abTestConfig';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+const mockUseABTest = jest.fn();
+
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+}));
 
 const renderBenefits = (initialPlan?: PlanId) =>
   render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
@@ -23,6 +34,11 @@ const renderBenefits = (initialPlan?: PlanId) =>
 describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockReturnValue({
+      variant: JOIN_PRO_PAYWALL_VARIANTS.control,
+      variantName: 'control',
+      isActive: true,
+    });
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -77,6 +93,88 @@ describe('Benefits', () => {
     it('renders the CTA button', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Paywall content experiment', () => {
+    it('reads the SUB-1059 assignment through useABTest', () => {
+      renderBenefits();
+
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        JOIN_PRO_PAYWALL_AB_TEST_KEY,
+        JOIN_PRO_PAYWALL_VARIANTS,
+        JOIN_PRO_PAYWALL_AB_TEST_EXPOSURE_OPTIONS,
+      );
+    });
+
+    it('renders V2 copy, reversed benefit order, and the extra row', () => {
+      mockUseABTest.mockReturnValue({
+        variant: JOIN_PRO_PAYWALL_VARIANTS.v2,
+        variantName: 'v2',
+        isActive: true,
+      });
+
+      const { getByTestId, getAllByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.TITLE)).toHaveTextContent(
+        strings('pro_subscription.v2.title'),
+      );
+      expect(getByTestId(BenefitsTestIds.PRICE_LINE)).toHaveTextContent(
+        strings('pro_subscription.v2.description'),
+      );
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.v2.join_pro'),
+      );
+      expect(
+        getAllByTestId(/^benefits-benefit-row-/).map((row) => row.props.testID),
+      ).toEqual([
+        BenefitsTestIds.BENEFIT_ROW('support'),
+        BenefitsTestIds.BENEFIT_ROW('atm_fees'),
+        BenefitsTestIds.BENEFIT_ROW('protection'),
+        BenefitsTestIds.BENEFIT_ROW('member_pricing'),
+        BenefitsTestIds.BENEFIT_ROW('cashback'),
+        BenefitsTestIds.BENEFIT_ROW('apy'),
+        BenefitsTestIds.BENEFIT_ROW('placeholder_extra'),
+      ]);
+    });
+
+    it('renders the V2 detail copy for the extra row', () => {
+      mockUseABTest.mockReturnValue({
+        variant: JOIN_PRO_PAYWALL_VARIANTS.v2,
+        variantName: 'v2',
+        isActive: true,
+      });
+
+      const { getByTestId, getByText } = renderBenefits();
+
+      fireEvent.press(
+        getByTestId(BenefitsTestIds.BENEFIT_ROW('placeholder_extra')),
+      );
+
+      expect(
+        getByText(
+          strings(
+            'pro_subscription.v2.benefits_description.placeholder_extra.description',
+          ),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses control content for an inactive or unresolved assignment', () => {
+      mockUseABTest.mockReturnValue({
+        variant: JOIN_PRO_PAYWALL_VARIANTS.control,
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.TITLE)).toHaveTextContent(
+        strings(BENEFITS_CONTENT_BY_VERSION.control.title),
+      );
+      expect(
+        queryByTestId(BenefitsTestIds.BENEFIT_ROW('placeholder_extra')),
+      ).not.toBeOnTheScreen();
     });
   });
 

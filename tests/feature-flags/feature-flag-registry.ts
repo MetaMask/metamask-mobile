@@ -7797,6 +7797,30 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     ],
     status: FeatureFlagStatus.Active,
   },
+
+  subSUB1059AbtestJoinProPaywallCopy: {
+    name: 'subSUB1059AbtestJoinProPaywallCopy',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'v2',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   coreMCU589AbtestHubPageDiscoveryTabs: {
     name: 'coreMCU589AbtestHubPageDiscoveryTabs',
     type: FeatureFlagType.Remote,
