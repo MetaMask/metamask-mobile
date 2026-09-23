@@ -218,9 +218,14 @@ export function findProposalSkill(repoRoot = process.cwd()) {
   return null;
 }
 
+/**
+ * Strips the frontmatter and the installer's "DO NOT EDIT" banner so the
+ * model receives the skill body and nothing about how it got there.
+ */
 export function skillMarkdownToSystemPrompt(raw) {
   return String(raw || '')
     .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
+    .replace(/^\s*(<!--[\s\S]*?-->\s*)+/, '')
     .trim();
 }
 
