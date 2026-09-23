@@ -82,6 +82,20 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
+/**
+ * Ensures every alert returned by the perp-alerts API carries
+ * `type: 'absolute_price'`. The API only supports absolute-price alerts and
+ * may omit the discriminator field; without it the duplicate-threshold filter
+ * in `AbsolutePriceAlertForm` silently skips all perp alerts.
+ *
+ * Applied consistently in the query `queryFn` AND in the delete-failure
+ * refetch path so the cache always contains normalised data.
+ */
+function normalisePerpAlerts(data: Alert[], isPerps: boolean): Alert[] {
+  if (!isPerps) return data;
+  return data.map((a) => ({ ...a, type: 'absolute_price' as const }));
+}
+
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
@@ -136,7 +150,8 @@ const ManagePriceAlertsView: React.FC = () => {
         ? await fetchPerpAlerts(marketId ?? '')
         : await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return (await response.json()) as Alert[];
+      const data = (await response.json()) as Alert[];
+      return normalisePerpAlerts(data, isPerpsMode);
     },
     retry: false,
     staleTime: 0,
@@ -157,10 +172,10 @@ const ManagePriceAlertsView: React.FC = () => {
       });
       navigation.goBack();
     } else if (alerts.length === 0) {
-      const route = isPerpsMode
+      const createRoute = isPerpsMode
         ? Routes.PERPS.CREATE_PRICE_ALERT
         : Routes.CREATE_PRICE_ALERT;
-      navigation.replace(route, {
+      navigation.replace(createRoute, {
         symbol,
         ticker,
         currentPrice,
@@ -285,7 +300,10 @@ const ManagePriceAlertsView: React.FC = () => {
         const response = await refetchFn().catch(() => null);
         if (response?.ok) {
           const body = (await response.json().catch(() => [])) as Alert[];
-          queryClient.setQueryData(queryKey, body);
+          queryClient.setQueryData(
+            queryKey,
+            normalisePerpAlerts(body, isPerpsMode),
+          );
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
