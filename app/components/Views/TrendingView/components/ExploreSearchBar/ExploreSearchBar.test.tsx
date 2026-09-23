@@ -32,7 +32,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      expect(getByTestId('explore-view-search-button')).toBeDefined();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      ).toBeDefined();
       expect(getByText('Search')).toBeDefined();
     });
 
@@ -43,7 +45,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByTestId('explore-view-search-button'));
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      );
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });

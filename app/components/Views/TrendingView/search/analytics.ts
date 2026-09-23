@@ -203,11 +203,13 @@ export const trackExploreSearchOpened = (
  */
 export const useInstrumentedSearchEffect = ({
   searchQuery,
+  redactSearchQuery = false,
   isLoading,
   getPill,
   getSections,
 }: {
   searchQuery: string;
+  redactSearchQuery?: boolean;
   isLoading: boolean;
   getPill: () => SearchFeedPill;
   getSections: () => SearchFeedSection[];
@@ -227,12 +229,12 @@ export const useInstrumentedSearchEffect = ({
 
     trackExploreSearchEvent({
       interaction_type: 'searched',
-      search_query: searchQuery,
+      search_query: redactSearchQuery ? '' : searchQuery,
       tab_name: pill,
       result_count: resultCount,
     });
     instrumentedQueryRef.current = searchQuery;
-  }, [searchQuery, isLoading, getPill, getSections]);
+  }, [searchQuery, redactSearchQuery, isLoading, getPill, getSections]);
 };
 
 /**

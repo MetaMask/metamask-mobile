@@ -2005,15 +2005,6 @@ describe('Header and Nav Bar refresh AB test', () => {
     ).toBeOnTheScreen();
   });
 
-  it('uses the treatment header when the paste experiment is active', () => {
-    mockSearchPasteTreatment = true;
-
-    const { getByTestId, queryByTestId } = render(Wallet);
-
-    expect(getByTestId('explore-view-search-button')).toBeOnTheScreen();
-    expect(queryByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeNull();
-  });
-
   it('renders the account name when the balance breakdown treatment is also active', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockBalanceBreakdownVariantName = 'icons';

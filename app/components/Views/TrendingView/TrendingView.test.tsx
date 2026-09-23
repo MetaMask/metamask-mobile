@@ -390,7 +390,9 @@ describe('TrendingView', () => {
   it('renders search bar button', () => {
     const { getByTestId } = renderTrendingView();
 
-    const searchButton = getByTestId('explore-view-search-button');
+    const searchButton = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON,
+    );
 
     expect(searchButton).toBeOnTheScreen();
   });
@@ -398,7 +400,9 @@ describe('TrendingView', () => {
   it('navigates to ExploreSearch route when search bar is pressed', () => {
     const { getByTestId } = renderTrendingView();
 
-    const searchButton = getByTestId('explore-view-search-button');
+    const searchButton = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON,
+    );
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
@@ -407,7 +411,9 @@ describe('TrendingView', () => {
   it('tracks the search opened event with the explore entry point', () => {
     const { getByTestId } = renderTrendingView();
 
-    fireEvent.press(getByTestId('explore-view-search-button'));
+    fireEvent.press(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+    );
 
     const openedEvent = (
       analytics.trackEvent as jest.MockedFunction<typeof analytics.trackEvent>

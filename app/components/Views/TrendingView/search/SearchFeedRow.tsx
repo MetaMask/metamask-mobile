@@ -22,6 +22,7 @@ interface SearchFeedRowProps {
   item: unknown;
   index: number;
   searchQuery: string;
+  analyticsSearchQuery?: string;
   tabName: SearchFeedPill;
   resultCount?: number;
   onQuickTrade?: (token: TrendingAsset) => void;
@@ -52,19 +53,20 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   item,
   index,
   searchQuery,
+  analyticsSearchQuery = searchQuery,
   tabName,
   resultCount,
   onQuickTrade,
 }) => {
-  const searchQueryRef = useRef(searchQuery);
-  searchQueryRef.current = searchQuery;
+  const analyticsSearchQueryRef = useRef(analyticsSearchQuery);
+  analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
   resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
       interaction_type: 'result_clicked',
-      search_query: searchQueryRef.current,
+      search_query: analyticsSearchQueryRef.current,
       ...(tabName === 'all' ? { section_name: feedId } : {}),
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),

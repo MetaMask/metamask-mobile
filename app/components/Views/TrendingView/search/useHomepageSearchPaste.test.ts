@@ -125,7 +125,7 @@ describe('useHomepageSearchPaste', () => {
     });
 
     expect(onPaste).toHaveBeenCalledWith('0xabc', undefined);
-    expect(trackHomepageSearchPaste).toHaveBeenCalledWith('0xabc');
+    expect(trackHomepageSearchPaste).toHaveBeenCalledWith();
     expect(result.current.showPastePill).toBe(false);
   });
 
