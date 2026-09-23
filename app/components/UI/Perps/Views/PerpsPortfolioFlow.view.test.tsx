@@ -19,11 +19,11 @@ import {
   renderPerpsSelectAdjustMarginActionView,
   defaultPositionForViews,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { PerpsPositionsViewSelectorsIDs } from '../Perps.testIds';
 import {
   clearPerpsOutreachApiMocks,
   setupPerpsOutreachApiMock,
 } from '../../../../../tests/component-view/api-mocking/perpsOutreach';
-import { PerpsPositionsViewSelectorsIDs } from '../Perps.testIds';
 
 const TIMEOUT_MS = 3000;
 
@@ -42,12 +42,12 @@ describe('Portfolio & Account Flow', () => {
     REDUCE_MARGIN = strings('perps.adjust_margin.reduce_margin');
   });
 
+  // The home view fetches the Terminal outreach banner on mount.
   beforeEach(() => {
-    setupPerpsOutreachApiMock(null);
+    setupPerpsOutreachApiMock();
   });
 
   afterEach(() => {
-    cleanup();
     clearPerpsOutreachApiMocks();
   });
 
