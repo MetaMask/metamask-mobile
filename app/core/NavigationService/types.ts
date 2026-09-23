@@ -963,6 +963,8 @@ export type RootStackParamList = {
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
+  PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
+  PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
   // Predict routes — `Predict` is a nested stack navigator.
   Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
@@ -1006,6 +1008,7 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: undefined;
+  SocialProfileOnboardingView: undefined;
   MyProfileView: undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;
