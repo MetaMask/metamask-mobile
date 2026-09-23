@@ -42,18 +42,33 @@ const mergeExperiences = (
   return [...experiencesById.values()];
 };
 
-const selectCanonicalAsset = (
+/**
+ * Selects tracked wallet data when available for a duplicate asset identity.
+ *
+ * @param current - Asset already selected for the identity.
+ * @param incoming - Later asset candidate for the same identity.
+ * @returns Tracked candidate when current is untracked; otherwise current.
+ */
+const selectTrackedAssetWhenAvailable = (
   current: EarnAsset,
   incoming: EarnAsset,
-): EarnAsset =>
-  current.kind === 'held' || incoming.kind === 'discovery' ? current : incoming;
+): EarnAsset => {
+  if (
+    current.wallet.status === 'untracked' &&
+    incoming.wallet.status === 'tracked'
+  ) {
+    return incoming;
+  }
+
+  return current;
+};
 
 /**
  * Builds one asset per CAIP-19 identity.
  *
- * Wallet assets always own asset data when a discovery candidate has the same
+ * Wallet assets always own asset data when an untracked candidate has the same
  * identity. Experiences are merged by stable experience ID and ordered by
- * strategy priority.
+ * strategy priority. Metadata authority is independent of candidate order.
  *
  * @param candidates - Asset candidates contributed by Earn data sources.
  * @returns Deduplicated Earn assets in first-seen candidate order.
@@ -75,7 +90,7 @@ export const buildEarnAssets = (
         }
 
         assetsById.set(identity, {
-          ...selectCanonicalAsset(current, candidate),
+          ...selectTrackedAssetWhenAvailable(current, candidate),
           experiences: orderExperiencesByRank(
             mergeExperiences(current.experiences, candidate.experiences),
           ),

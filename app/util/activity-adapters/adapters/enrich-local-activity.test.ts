@@ -48,19 +48,16 @@ const mapLocalActivity = (
 ): ActivityListItem => {
   const prepared = prepareLocalTransactionGroup(transactionGroup);
 
-  return {
-    ...enrichLocalActivity(
-      mapLocalTransaction(
-        prepared as Parameters<typeof mapLocalTransaction>[0],
-      ) as ActivityListItem,
-      prepared,
-    ),
-    raw: { type: 'localTransaction' as const, data: transactionGroup },
-  };
+  return enrichLocalActivity(
+    mapLocalTransaction(
+      prepared as Parameters<typeof mapLocalTransaction>[0],
+    ) as ActivityListItem,
+    prepared,
+  );
 };
 
 describe('local activity call-site mapping', () => {
-  it('maps a simple send via client-utils and attaches mobile raw', () => {
+  it('maps a simple send via client-utils', () => {
     const transactionGroup = buildGroup();
     const item = mapLocalActivity(transactionGroup);
 
@@ -69,7 +66,6 @@ describe('local activity call-site mapping', () => {
       chainId: 'eip155:1',
       status: 'success',
       data: { from, to },
-      raw: { type: 'localTransaction', data: transactionGroup },
     });
   });
 
@@ -100,6 +96,12 @@ describe('local activity call-site mapping', () => {
     );
 
     expect(item.type).toBe('stake');
+    expect(item.data).toEqual(
+      expect.objectContaining({
+        from,
+        to,
+      }),
+    );
   });
 
   it('classifies nested predict deposits after client-utils mapping', () => {
@@ -118,6 +120,8 @@ describe('local activity call-site mapping', () => {
 
     expect(item.type).toBe('predictionsAddFunds');
     expect(item.data).toMatchObject({
+      from,
+      to,
       token: {
         direction: 'in',
         amount: '1',

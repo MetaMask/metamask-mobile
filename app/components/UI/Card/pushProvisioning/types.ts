@@ -125,7 +125,6 @@ export interface WalletEligibility {
 /** Card activation event from wallet */
 export interface CardActivationEvent {
   tokenId?: string;
-  serialNumber?: string;
   status: 'activated' | 'canceled' | 'failed';
 }
 

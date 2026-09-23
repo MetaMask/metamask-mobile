@@ -6,7 +6,7 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import {
   type MoneyDepositAsset,
-  selectMoneyDepositEligibleAssets,
+  selectMoneyDepositAssetsMeetingMinimumBalance,
 } from '../selectors/depositTokens';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 
@@ -46,7 +46,7 @@ const toUsdToken = (
  * Returns Money-account deposit assets, with their optional USD balances and
  * no-fee-route predicate.
  *
- * `selectMoneyDepositEligibleAssets` is the eligibility source of truth. It
+ * `selectMoneyDepositAssetsMeetingMinimumBalance` is the eligibility source of truth. It
  * selects assets from the chosen account group, excludes zero-balance,
  * non-EVM, MM Pay-blocked, and below-minimum-fiat-balance assets, then sorts
  * the remaining assets by fiat balance descending.
@@ -61,7 +61,9 @@ export const useMoneyDepositTokens = ({
   overrideToUsd = false,
 }: { overrideToUsd?: boolean } = {}) => {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
-  const eligibleAssets = useSelector(selectMoneyDepositEligibleAssets);
+  const eligibleAssets = useSelector(
+    selectMoneyDepositAssetsMeetingMinimumBalance,
+  );
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,

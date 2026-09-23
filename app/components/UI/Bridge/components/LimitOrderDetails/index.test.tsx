@@ -1,15 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import {
-  createBridgeTestState,
-  createMockTokenWithBalance,
-} from '../../testUtils';
+import { createBridgeTestState } from '../../testUtils';
 import LimitOrderDetails from './index';
 import { LimitOrderDetailsSelectorsIDs } from './testIds';
 import { ExpirationRowSelectorsIDs } from './ExpirationRow/testIds';
-import { NetworkFeeRowSelectorsIDs } from './NetworkFeeRow/testIds';
-import { PriceRowSelectorsIDs } from './PriceRow/testIds';
+import { CostToleranceRowSelectorsIDs } from './CostToleranceRow/testIds';
 import type { LimitOrderDetailsProps } from './types';
 
 /**
@@ -18,18 +14,11 @@ import type { LimitOrderDetailsProps } from './types';
  * Redux state.
  */
 
-const mockFeeToken = createMockTokenWithBalance({
-  symbol: 'ETH',
-  name: 'Ether',
-});
-
 const defaultProps: LimitOrderDetailsProps = {
   expiration: '1 hour',
   onExpirationPress: jest.fn(),
-  slippage: '2%',
-  onPricePress: jest.fn(),
-  networkFee: '$1.69',
-  feeToken: mockFeeToken,
+  costTolerance: '2%',
+  onCostTolerancePress: jest.fn(),
 };
 
 function renderLimitOrderDetails(
@@ -53,15 +42,16 @@ describe('LimitOrderDetails', () => {
     jest.clearAllMocks();
   });
 
-  it('renders expiration, slippage, and network fee rows when an amount is entered', () => {
+  it('renders expiration and cost tolerance rows when an amount is entered', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
     expect(
       getByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByTestId(ExpirationRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(PriceRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(NetworkFeeRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(
+      getByTestId(CostToleranceRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('applies a custom testID when provided', () => {
@@ -106,20 +96,11 @@ describe('LimitOrderDetails', () => {
     expect(defaultProps.onExpirationPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onPricePress when the slippage row is pressed', () => {
+  it('calls onCostTolerancePress when the cost tolerance row is pressed', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
-    fireEvent.press(getByTestId(PriceRowSelectorsIDs.CONTAINER));
+    fireEvent.press(getByTestId(CostToleranceRowSelectorsIDs.CONTAINER));
 
-    expect(defaultProps.onPricePress).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onNetworkFeePress when the network fee row is pressed', () => {
-    const onNetworkFeePress = jest.fn();
-    const { getByTestId } = renderLimitOrderDetails({}, { onNetworkFeePress });
-
-    fireEvent.press(getByTestId(NetworkFeeRowSelectorsIDs.CONTAINER));
-
-    expect(onNetworkFeePress).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onCostTolerancePress).toHaveBeenCalledTimes(1);
   });
 });

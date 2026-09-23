@@ -38,6 +38,17 @@ const PredictFeedCarouselCompositionSchema = union([
   literal('live-now'),
 ]);
 
+const NonNegativeIntegerSchema = refine(
+  number(),
+  'non-negative integer',
+  (value) => Number.isInteger(value) && value >= 0,
+);
+
+const PredictFeedCarouselPrioritySlotSchema = type({
+  seriesId: string(),
+  index: NonNegativeIntegerSchema,
+});
+
 const SemanticVersionSchema = refine(
   string(),
   'semantic version',
@@ -64,6 +75,10 @@ export const PredictFeedCarouselSchema = defaulted(
     priorityOrder: defaulted(
       array(string()),
       () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.priorityOrder,
+    ),
+    prioritySlots: defaulted(
+      array(PredictFeedCarouselPrioritySlotSchema),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.prioritySlots,
     ),
     contentSource: defaulted(
       type({

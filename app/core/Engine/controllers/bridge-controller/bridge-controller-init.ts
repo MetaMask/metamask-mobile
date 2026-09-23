@@ -22,11 +22,6 @@ import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import packageJSON from '../../../../../package.json';
-import {
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-  isAssetsUnifyStateFeatureEnabled,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 
 const { version: clientVersion } = packageJSON;
 
@@ -87,24 +82,10 @@ export const bridgeControllerInit: MessengerClientInitFunction<
       },
       traceFn: trace as TraceCallback,
 
-      getUseAssetsControllerForRates: () => {
-        try {
-          const remoteFeatureFlagState = initMessenger.call(
-            'RemoteFeatureFlagController:getState',
-          );
-          const featureFlag =
-            remoteFeatureFlagState?.remoteFeatureFlags?.[
-              ASSETS_UNIFY_STATE_FLAG
-            ];
-
-          return isAssetsUnifyStateFeatureEnabled(
-            featureFlag,
-            ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-          );
-        } catch {
-          return false;
-        }
-      },
+      // AssetsController is now the sole source of truth for asset rates
+      // (the legacy TokenRatesController/CurrencyRateController have been
+      // removed).
+      getUseAssetsControllerForRates: () => true,
     });
 
     return { controller: bridgeController };

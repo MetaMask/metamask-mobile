@@ -2,6 +2,7 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
+  internalAccount2,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { selectAccountBalanceByChainId } from './accountTrackerController';
@@ -32,13 +33,39 @@ describe('selectAccountBalanceByChainId', () => {
               ticker: 'ETH',
             }),
           },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [MOCK_CHAIN_ID]: {
-                [MOCK_ADDRESS_2]: { balance: '0x1' },
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [internalAccount2.id]: {
+                  ...internalAccount2,
+                  type: 'eip155:eoa' as const,
+                },
               },
             },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native' as const,
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsBalance: {
+              [internalAccount2.id]: {
+                'eip155:1/slip44:60': {
+                  amount: '0.000000000000000001',
+                },
+              },
+            },
+            assetsPrice: {},
+            customAssets: {},
+            assetPreferences: {},
           },
           MultichainNetworkController: {
             isEvmSelected: true,

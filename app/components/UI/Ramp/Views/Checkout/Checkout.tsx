@@ -59,6 +59,7 @@ import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
+import { needsLegacyApplePay } from '../../utils/needsLegacyApplePay';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
   buildBaseProps,
@@ -837,7 +838,7 @@ const Checkout = () => {
             }
           }}
           allowsInlineMediaPlayback
-          enableApplePay
+          enableApplePay={needsLegacyApplePay()}
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           originWhitelist={[

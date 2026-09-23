@@ -6,14 +6,60 @@ import {
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/bigint';
 import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
-import { strings } from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { tradeTimestampToMs } from './tradeTimestamp';
 
 /** Placeholder rendered wherever a numeric value is unavailable. */
 export const EM_DASH = '\u2014';
+
+/**
+ * Whole count with locale digit grouping (e.g. `48,707`). Use for tallies such
+ * as follower counts, where there is no currency, sign or decimal component.
+ */
+export function formatCount(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return getIntlNumberFormatter(I18n.locale, {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+/**
+ * Compact whole-count for discovery cards (e.g. `65.7K`). Values under 1,000
+ * stay as grouped digits via {@link formatCount}.
+ */
+export function formatAbbreviatedCount(
+  value: number | null | undefined,
+): string {
+  if (value == null || !Number.isFinite(value)) {
+    return EM_DASH;
+  }
+  const absValue = Math.abs(value);
+  if (absValue < 1000) {
+    return formatCount(value);
+  }
+  const i18n = { t: (key: string) => strings(key) };
+  const sign = value < 0 ? '-' : '';
+  return (
+    sign + localizeLargeNumber(i18n, absValue, { decimals: 1, includeK: true })
+  );
+}
+
+/** Localized `{count} follower(s)` using the compact count from the mock. */
+export function formatFollowerCountLabel(
+  followerCount: number | null | undefined,
+): string {
+  const count = followerCount ?? 0;
+  return strings(
+    count === 1
+      ? 'social_leaderboard.trader_profile.followers_count'
+      : 'social_leaderboard.trader_profile.followers_count_plural',
+    { count: formatAbbreviatedCount(count) },
+  );
+}
 
 /**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two
@@ -239,4 +285,69 @@ export function formatFeedTimestamp(
   }
 
   return `${Math.floor(diff / HOUR)}h`;
+}
+
+/**
+ * Duration a position was held, derived from its fills (e.g. `1d 20h`, `8h`,
+ * `45m`).
+ *
+ * Multi-day holds carry their remaining hours, because `1d` alone reads the
+ * same for 24 hours and 47. Below a day one unit is enough -- the card gives
+ * this a single right-aligned slot, and nobody needs `8h 13m`. A whole number
+ * of days drops the hours rather than padding `6d 0h`.
+ *
+ * Sub-minute holds round up to `1m` rather than reading `0m`.
+ */
+export function formatHoldDuration(durationMs: number): string {
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    return EM_DASH;
+  }
+
+  if (durationMs >= DAY) {
+    const days = Math.floor(durationMs / DAY);
+    const hours = Math.floor((durationMs % DAY) / HOUR);
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  }
+
+  if (durationMs >= HOUR) {
+    return `${Math.floor(durationMs / HOUR)}h`;
+  }
+
+  return `${Math.max(1, Math.floor(durationMs / MINUTE))}m`;
+}
+
+/**
+ * Spelled-out post age for Social V1 feed cards (e.g. `40 min ago`).
+ *
+ * The V1 post header gives the timestamp its own right-aligned column, so
+ * unlike the compact V0 row ({@link formatFeedTimestamp}) there is room for the
+ * unit and the "ago" suffix. Ages of a day or more stay relative here rather
+ * than switching to a clock time, because a post's position in the feed is
+ * already chronological and "3 d ago" reads faster than a bare date.
+ */
+export function formatFeedPostAge(
+  timestamp: number,
+  now: number = Date.now(),
+): string {
+  const diff = now - tradeTimestampToMs(timestamp);
+
+  if (diff < MINUTE) {
+    return strings('social_leaderboard.feed.just_now');
+  }
+
+  if (diff < HOUR) {
+    return strings('social_leaderboard.feed.age.minutes', {
+      count: Math.floor(diff / MINUTE),
+    });
+  }
+
+  if (diff < DAY) {
+    return strings('social_leaderboard.feed.age.hours', {
+      count: Math.floor(diff / HOUR),
+    });
+  }
+
+  return strings('social_leaderboard.feed.age.days', {
+    count: Math.floor(diff / DAY),
+  });
 }

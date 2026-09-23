@@ -70,10 +70,6 @@ export class WalletHomeSections {
   }
 
   get tokensSectionHeader(): Promise<AppiumElement> {
-    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
-  }
-
-  get tokensSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
     );
@@ -127,7 +123,7 @@ export class WalletHomeSections {
   }
 
   async tapOnTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSection, {
+    await Gestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'Tokens Section',
     });

@@ -67,7 +67,7 @@ jobs:
 
       - name: Checkout
         if: ${{ (inputs.runner_provider || 'current') != 'namespace' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref || github.ref }}
           clean: true
@@ -84,7 +84,7 @@ jobs:
           runner_provider: ${{ inputs.runner_provider || 'current' }}
 
       - name: Cache static ffmpeg
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/mms-ffmpeg
           key: static-ffmpeg-b6.1.1-${{ runner.os }}-${{ runner.arch }}
@@ -253,7 +253,7 @@ jobs:
         run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Restore WDA DerivedData cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/appium-wda
           key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
@@ -324,7 +324,7 @@ jobs:
 
       - name: Upload Playwright JSON report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-specs-playwright-json
           path: tests/test-reports/playwright-json/

@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { safeParseBigNumber } from '../../../../../util/number/bignumber';
+import { REDEEM_AMOUNT_DECIMALS } from '../../../../../core/Engine/controllers/card-controller/utils/redeemAmount';
 
 const CURRENCY_DISPLAY_MAP: Record<string, string> = {
   musd: 'mUSD',
@@ -7,7 +8,7 @@ const CURRENCY_DISPLAY_MAP: Record<string, string> = {
   usdt: 'USDT',
 };
 
-export const DISPLAY_PRECISION = 4;
+export const DISPLAY_PRECISION = REDEEM_AMOUNT_DECIMALS;
 const ZERO = new BigNumber(0);
 
 export const formatCurrency = (raw: string): string =>

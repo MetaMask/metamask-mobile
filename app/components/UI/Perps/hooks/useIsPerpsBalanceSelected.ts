@@ -5,13 +5,17 @@ import {
   selectPerpsPayWithToken,
 } from '../selectors/perpsController';
 import { parsePayWithToken } from '../utils/parsePayWithToken';
+import { useIsMoneyAccountPaymentOverride } from '../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 
 /**
  * Returns whether the user selected the synthetic "Perps balance" option.
  * Reads from PerpsController Redux state: selectedPaymentToken === null means Perps balance selected.
  */
 export function useIsPerpsBalanceSelected(): boolean {
-  return useSelector(selectIsPerpsBalanceSelected);
+  const isPerpsBalanceSelected = useSelector(selectIsPerpsBalanceSelected);
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
+
+  return isPerpsBalanceSelected && !isMoneyAccountSelected;
 }
 
 /** Return type matches PerpsSelectedPaymentToken from app/controllers/perps/types */

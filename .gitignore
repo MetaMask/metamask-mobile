@@ -5,6 +5,8 @@
 .claude/worktrees/
 # claude code per-user settings (agent-local, not shipped)
 .claude/settings.local.json
+# claude code per-user dev server config (agent-local, not shipped)
+.claude/launch.json
 
 # osx
 .DS_Store
@@ -265,3 +267,6 @@ sourcemaps/**/*.js.map
 
 # Platform API docs
 .platform-api-docs/
+
+# Regenerated from tests/tags.js and tests/tags.performance.js before Smart E2E analysis
+.ai-pr-analyzer/modes/smart-e2e/catalog.json

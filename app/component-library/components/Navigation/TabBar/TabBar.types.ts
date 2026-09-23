@@ -21,6 +21,7 @@ export enum TabBarIconKey {
   Rewards = 'Rewards',
   Trending = 'Trending',
   Money = 'Money',
+  Social = 'Social',
 }
 
 /**

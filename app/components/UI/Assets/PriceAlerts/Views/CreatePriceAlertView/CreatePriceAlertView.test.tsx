@@ -43,6 +43,20 @@ jest.mock('../../hooks/useAlertSaveFlow', () => ({
   default: jest.fn(() => ({ saveAlert: jest.fn() })),
 }));
 
+jest.mock('../../perpApi', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ saveAlert: jest.fn() })),
+  perpAlertsQueryKey: jest.fn((marketId: string) => ['perp-alerts', marketId]),
+  fetchPerpAlerts: jest.fn(),
+  createPerpAlert: jest.fn(),
+  updatePerpAlert: jest.fn(),
+  deletePerpAlert: jest.fn(),
+  useSubmitPerpAlert: jest.fn(() => ({
+    submit: jest.fn(),
+    isSubmitting: false,
+  })),
+}));
+
 jest.mock('./AbsolutePriceAlertForm', () => ({
   __esModule: true,
   default: (props: unknown) => mockAbsoluteForm(props),
@@ -153,6 +167,7 @@ describe('CreatePriceAlertView', () => {
       asset_id: 'eip155:1/slip44:60',
       token_symbol: 'ETH',
       has_existing_alert: false,
+      alert_market_type: 'spot',
     });
   });
 

@@ -24,7 +24,9 @@ const log = createProjectLogger('transaction-pay');
 
 const MONEY_ACCOUNT_FALLBACK_DEPOSIT_TYPES: TransactionType[] = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
 ];
 
 /**

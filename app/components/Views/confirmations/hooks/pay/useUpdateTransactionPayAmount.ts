@@ -1,247 +1,178 @@
 import { useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
-import {
-  TransactionMeta,
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
+import { updateEIP7702BatchData } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
-import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
-import {
-  updateAtomicBatchData,
-  updateTransaction,
-} from '../../../../../util/transaction-controller';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
-import {
-  updateMoneyAccountDepositTokenAmount,
-  updateMoneyAccountWithdrawTokenAmount,
-} from '../../../../UI/Money/utils/moneyAccountTransactions';
+import Engine from '../../../../../core/Engine';
+import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
-import { prefixError } from '../../../../../util/transactions/error-prefix';
-import {
-  useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
-} from './useTransactionPayData';
-
-const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
-const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
-
-type MoneyAccountAmountUpdater = (
-  transactionMeta: TransactionMeta,
-  amountHuman: string,
-  recipientOverride?: Hex,
-) => Promise<UpdateTransactionPayAmountCall[]>;
-
-interface OptimizedAmountUpdate {
-  amountHuman: string;
-  promise: Promise<boolean>;
-  transactionId: string;
-}
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const fiatPayment = useTransactionPayFiatPayment();
   const accountOverride = useTransactionAccountOverride();
-  const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
-    selectMoneyAccountDepositQuotePipelineEnabled,
-  );
-  const optimizedAmountUpdateRef = useRef<OptimizedAmountUpdate | undefined>(
-    undefined,
-  );
-  const isMoneyAccountDeposit = Boolean(
-    transactionMeta &&
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountDeposit,
-      ]),
-  );
-  const depositIntent =
-    isMoneyAccountDeposit && transactionMeta
-      ? getMoneyAccountDepositIntent(transactionMeta.batchId)
-      : undefined;
-  // Initially optimize only generic/convert crypto deposits. addMusd uses the
-  // Relay max/gas-station path and card uses the multi-stage fiat path, so both
-  // retain the existing pipeline until validated separately.
-  const isAmountUpdateQuotePipelineEnabled = Boolean(
-    isMoneyAccountDepositQuotePipelineEnabled &&
-      isMoneyAccountDeposit &&
-      (depositIntent === undefined || depositIntent === 'convert') &&
-      !fiatPayment?.selectedPaymentMethodId,
-  );
+  const latestAmountRef = useRef<string | undefined>(undefined);
 
-  const applyMoneyAccountAmountUpdates = useCallback(
-    async (
-      amountHuman: string,
-      updater: MoneyAccountAmountUpdater,
-      errorPrefix: string,
-      recipientOverride?: Hex,
-    ) => {
-      if (!transactionMeta) {
-        return;
-      }
-
-      let updates: UpdateTransactionPayAmountCall[];
-      try {
-        updates = await updater(
-          transactionMeta,
-          amountHuman,
-          recipientOverride,
-        );
-      } catch (error) {
-        throw prefixError(error, errorPrefix);
-      }
-
-      try {
-        await Promise.all(
-          updates.map(({ nestedTransactionIndex, transactionData }) =>
-            updateAtomicBatchData({
-              transactionId: transactionMeta.id,
-              transactionIndex: nestedTransactionIndex,
-              transactionData,
-            }),
-          ),
-        );
-      } catch (error) {
-        throw prefixError(error, errorPrefix);
-      }
-    },
-    [transactionMeta],
-  );
-
-  const updateOptimizedAmount = useCallback(
-    (amountHuman: string, transaction: TransactionMeta) => {
-      // The coordinator deduplicates only in-flight intents. Retain a
-      // successful prefetch so Continue can reuse it instead of launching the
-      // pipeline again.
-      const existingUpdate = optimizedAmountUpdateRef.current;
-      if (
-        existingUpdate?.amountHuman === amountHuman &&
-        existingUpdate.transactionId === transaction.id
-      ) {
-        return existingUpdate.promise;
-      }
-
-      const promise = updateMoneyAccountDepositAmount(transaction, amountHuman);
-      optimizedAmountUpdateRef.current = {
-        amountHuman,
-        promise,
-        transactionId: transaction.id,
-      };
-
-      promise.then(
-        (isPublished) => {
-          if (
-            !isPublished &&
-            optimizedAmountUpdateRef.current?.promise === promise
-          ) {
-            optimizedAmountUpdateRef.current = undefined;
-          }
-        },
-        () => {
-          if (optimizedAmountUpdateRef.current?.promise === promise) {
-            optimizedAmountUpdateRef.current = undefined;
-          }
-        },
-      );
-
-      return promise;
-    },
-    [],
-  );
+  const decimals = requiredTokens?.[0]?.decimals;
 
   const updateTransactionPayAmount = useCallback(
-    async (amountHuman: string) => {
+    async (amountHuman: string): Promise<boolean> => {
       if (!transactionMeta) {
-        return;
+        return false;
       }
 
-      if (isMoneyAccountDeposit) {
-        if (isAmountUpdateQuotePipelineEnabled) {
-          return updateOptimizedAmount(amountHuman, transactionMeta);
-        }
+      latestAmountRef.current = amountHuman;
 
-        syncMoneyAccountDepositRequiredAssets(
-          transactionMeta,
-          amountHuman,
-          requiredTokens?.[0]?.decimals,
-        );
-        await applyMoneyAccountAmountUpdates(
-          amountHuman,
-          updateMoneyAccountDepositTokenAmount,
-          DEPOSIT_ERROR_PREFIX,
-        );
-        return;
+      const calls = await getTransactionPayAmountCalls(
+        transactionMeta,
+        amountHuman,
+        accountOverride,
+      );
+
+      // A single-call transfer already lands in one transaction state update.
+      if (!calls) {
+        await updateTokenAmount(amountHuman);
+        return true;
       }
 
-      if (
-        hasTransactionType(transactionMeta, [
-          TransactionType.moneyAccountWithdraw,
-        ])
-      ) {
-        await applyMoneyAccountAmountUpdates(
-          amountHuman,
-          updateMoneyAccountWithdrawTokenAmount,
-          WITHDRAW_ERROR_PREFIX,
-          accountOverride,
-        );
-        return;
+      // A newer amount superseded this one while its calldata was being built.
+      if (latestAmountRef.current !== amountHuman) {
+        return false;
       }
 
-      await updateTokenAmount(amountHuman);
+      const requiredAssetAmount = getRequiredAssetAmount(amountHuman, decimals);
+
+      const isRequiredAssetChanged = Boolean(
+        requiredAssetAmount &&
+          transactionMeta.requiredAssets?.length &&
+          transactionMeta.requiredAssets[0].amount !== requiredAssetAmount,
+      );
+
+      if (!calls.length && !isRequiredAssetChanged) {
+        return false;
+      }
+
+      commitPayAmountUpdate({
+        calls,
+        requiredAssetAmount,
+        transactionId: transactionMeta.id,
+      });
+
+      return true;
     },
-    [
-      transactionMeta,
-      applyMoneyAccountAmountUpdates,
-      updateTokenAmount,
-      requiredTokens,
-      accountOverride,
-      isMoneyAccountDeposit,
-      isAmountUpdateQuotePipelineEnabled,
-      updateOptimizedAmount,
-    ],
+    [accountOverride, decimals, transactionMeta, updateTokenAmount],
   );
 
   return {
-    isAmountUpdateQuotePipelineEnabled,
     updateTransactionPayAmount,
   };
 }
 
-function syncMoneyAccountDepositRequiredAssets(
-  transactionMeta: TransactionMeta,
+/**
+ * Applies the new calldata and required asset amount in a single transaction
+ * state update.
+ *
+ * Both have to land together. TransactionPayController requests a quote
+ * whenever either changes, so a partially applied amount gets quoted against
+ * the placeholder calldata and the relay rejects it as
+ * "Reverted - Unknown Error".
+ *
+ * @param options - Options bag.
+ * @param options.calls - Nested calls to re-encode into the batch.
+ * @param options.requiredAssetAmount - Encoded amount for the first required asset.
+ * @param options.transactionId - Confirmation being updated.
+ */
+function commitPayAmountUpdate({
+  calls,
+  requiredAssetAmount,
+  transactionId,
+}: {
+  calls: UpdateTransactionPayAmountCall[];
+  requiredAssetAmount: Hex | undefined;
+  transactionId: string;
+}): void {
+  Engine.context.TransactionController.updateTransactionMetadata({
+    transactionId,
+    skipResimulate: true,
+    callback: (meta) => {
+      if (calls.length === 1) {
+        // A single call is not a batch, so it needs no EIP-7702 wrapper and the
+        // call data is the transaction data.
+        const [{ transactionData }] = calls;
+
+        meta.txParams.data = transactionData;
+
+        if (meta.nestedTransactions?.length === 1) {
+          meta.nestedTransactions = [
+            { ...meta.nestedTransactions[0], data: transactionData },
+          ];
+        }
+      } else if (calls.length) {
+        const { nestedTransactions, transactionData } = updateEIP7702BatchData({
+          from: meta.txParams.from as Hex,
+          transactions: meta.nestedTransactions ?? [],
+          updates: calls.map(
+            ({ nestedTransactionIndex, transactionData: data }) => ({
+              transactionIndex: nestedTransactionIndex,
+              transactionData: data,
+            }),
+          ),
+        });
+
+        meta.nestedTransactions = nestedTransactions;
+        meta.txParams.data = transactionData;
+      }
+
+      if (requiredAssetAmount && meta.requiredAssets?.length) {
+        meta.requiredAssets = [
+          { ...meta.requiredAssets[0], amount: requiredAssetAmount },
+          ...meta.requiredAssets.slice(1),
+        ];
+      }
+
+      // Drop metadata derived from the previous amount so stale gas and
+      // simulation results are not shown against the new calldata.
+      meta.txParams.gas = undefined;
+      meta.gasLimitNoBuffer = undefined;
+      meta.gasUsed = undefined;
+      meta.securityAlertResponse = undefined;
+      meta.simulationData = undefined;
+      meta.simulationFails = undefined;
+
+      if (meta.revert) {
+        delete meta.revert.gas;
+        delete meta.revert.simulation;
+
+        if (!meta.revert.receipt) {
+          meta.revert = undefined;
+        }
+      }
+    },
+  });
+}
+
+function getRequiredAssetAmount(
   amountHuman: string,
   decimals: number | undefined,
-): void {
-  const existing = transactionMeta.requiredAssets;
-  if (!existing?.length || decimals === undefined) return;
-
-  try {
-    // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
-    // more than the source balance can fund (ROUND_UP was pushing past it).
-    const amount = toHex(
-      new BigNumber(amountHuman)
-        .shiftedBy(decimals)
-        .decimalPlaces(0, BigNumber.ROUND_DOWN)
-        .toFixed(0),
-    ) as Hex;
-    if (existing[0].amount === amount) return;
-
-    updateTransaction(
-      {
-        ...transactionMeta,
-        txParams: { ...transactionMeta.txParams },
-        requiredAssets: [{ ...existing[0], amount }, ...existing.slice(1)],
-      },
-      'Money Account deposit: sync requiredAssets amount',
-    );
-  } catch (error) {
-    throw prefixError(error, DEPOSIT_ERROR_PREFIX);
+): Hex | undefined {
+  if (decimals === undefined) {
+    return undefined;
   }
+
+  // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+  // more than the source balance can fund (ROUND_UP was pushing past it).
+  const amount = new BigNumber(amountHuman)
+    .shiftedBy(decimals)
+    .decimalPlaces(0, BigNumber.ROUND_DOWN);
+
+  if (!amount.isFinite() || amount.isNegative()) {
+    return undefined;
+  }
+
+  return toHex(amount.toFixed(0)) as Hex;
 }

@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowAddButtonTestId,
+  getTrendingTokenRowItemTestId,
+} from './TrendingTokenRowItem.testIds';
 import { Pressable, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -9,31 +13,28 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  ButtonIcon,
+  ButtonIconSize,
   Icon,
-  IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenLogo from '../TrendingTokenLogo';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { isCaipAssetType, isCaipChainId } from '@metamask/utils';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
   getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
+  getNetworkBadgeSrc,
   formatMarketStats,
   getPriceChangeFieldKey,
 } from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
@@ -90,9 +91,19 @@ interface TrendingTokenRowItemProps {
    * `testID` (and E2E selectors) unique per instance.
    */
   testIdInstanceKey?: string;
-  /** When provided, shows a circular Quick Trade button on the right of the row. */
-  onQuickTrade?: (token: TrendingAsset) => void;
+  /** Optional trailing action button rendered on the right of the row. */
+  endAction?: QuickActionButton;
 }
+
+/**
+ * Trailing action button variants for {@link TrendingTokenRowItem}.
+ *
+ * - `quick-trade`: circular Quick Trade button.
+ * - `watchlist`: outline star button (add to watchlist), matching perps.
+ */
+export type QuickActionButton =
+  | { type: 'quick-trade'; onPress: (token: TrendingAsset) => void }
+  | { type: 'watchlist'; onPress: (token: TrendingAsset) => void };
 
 /**
  * Converts a TrendingAsset to Asset navigation params
@@ -144,7 +155,7 @@ const TrendingTokenRowItem = ({
   onPress,
   onCardPress,
   testIdInstanceKey,
-  onQuickTrade,
+  endAction,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -155,7 +166,7 @@ const TrendingTokenRowItem = ({
   );
 
   const networkBadgeImageSource = useMemo(
-    () => getNetworkBadgeSource(caipChainId),
+    () => getNetworkBadgeSrc(caipChainId),
     [caipChainId],
   );
 
@@ -203,16 +214,9 @@ const TrendingTokenRowItem = ({
       testID={rowTestId}
     >
       <BadgeWrapper
-        style={styles.badge}
-        badgePosition={BadgePosition.BottomRight}
-        anchorSize={{ width: 40, height: 40 }}
-        badgeElement={
-          <Badge
-            size={AvatarSize.Xs}
-            variant={BadgeVariant.Network}
-            imageSource={networkBadgeImageSource}
-            isScaled={false}
-          />
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork src={networkBadgeImageSource} twClassName="h-5 w-5" />
         }
       >
         <TrendingTokenLogo
@@ -276,11 +280,21 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
-      {onQuickTrade && (
+      {endAction?.type === 'watchlist' && (
+        <ButtonIcon
+          iconName={IconName.Star}
+          size={ButtonIconSize.Md}
+          onPress={() => endAction.onPress(token)}
+          accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
+          testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
+          twClassName="self-center"
+        />
+      )}
+      {endAction?.type === 'quick-trade' && (
         <Pressable
           onPress={(e) => {
             e?.stopPropagation?.();
-            onQuickTrade(token);
+            endAction.onPress(token);
           }}
           hitSlop={8}
           testID="quick-trade-button"

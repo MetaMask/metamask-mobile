@@ -26,6 +26,8 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import { strings } from '../../../../../locales/i18n';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../../core/redux/types';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from '../../../UI/BasicFunctionality/BasicFunctionality.constants';
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
@@ -262,5 +264,47 @@ describe('SecuritySettings', () => {
     const toggle = getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
     expect(toggle).toBeDefined();
     expect(toggle.props.value).toBe(true);
+  });
+
+  describe('Basic Functionality switch for a consolidated social wallet', () => {
+    const socialWalletState = (basicFunctionalityEnabled: boolean) => ({
+      ...initialState,
+      settings: {
+        ...initialState.settings,
+        basicFunctionalityEnabled,
+        isBasicFunctionalityConsolidatedEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+          },
+        },
+      },
+    });
+
+    it('locks the switch while Basic Functionality is on', () => {
+      const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+        state: socialWalletState(true),
+      });
+
+      expect(
+        getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
+      ).toBe(true);
+    });
+
+    it('leaves the switch usable when Basic Functionality is off', () => {
+      // Consolidation repairs an off social wallet, but that repair writes
+      // nothing if the service call rejects and only re-runs on unlock, so
+      // Settings has to stay the way back on.
+      const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+        state: socialWalletState(false),
+      });
+
+      expect(
+        getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
+      ).toBe(false);
+    });
   });
 });
