@@ -140,8 +140,7 @@ import {
   useHomepageSearchPaste,
 } from '../TrendingView/search/useHomepageSearchPaste';
 /* eslint-enable import-x/no-restricted-paths */
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
+import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -905,18 +904,13 @@ const Wallet = ({
       searchOrigin?: SearchOrigin,
       pastePillVisible?: boolean,
     ) => {
-      if (!isSearchHeaderEnabled) {
-        trackExploreSearchOpened('home');
-        navigation.navigate(Routes.EXPLORE_SEARCH);
-        return;
-      }
-
-      navigation.navigate(Routes.EXPLORE_SEARCH, {
-        entryPoint: 'home',
-        ...(initialQuery ? { initialQuery } : {}),
-        ...(searchOrigin ? { searchOrigin } : {}),
-        ...(pastePillVisible ? { pastePillVisible } : {}),
-      });
+      navigateToExploreSearch(
+        navigation,
+        isSearchHeaderEnabled,
+        initialQuery,
+        searchOrigin,
+        pastePillVisible,
+      );
     },
     [isSearchHeaderEnabled, navigation],
   );

@@ -11,6 +11,7 @@ import { initialStateWallet } from '../presets/wallet';
 interface RenderWalletViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+  remoteFeatureFlags?: Record<string, unknown>;
 }
 
 interface RenderWalletViewWithRoutesOptions extends RenderWalletViewOptions {
@@ -24,9 +25,12 @@ interface RenderWalletViewWithRoutesOptions extends RenderWalletViewOptions {
 export function renderWalletView(
   options: RenderWalletViewOptions = {},
 ): ReturnType<typeof renderComponentViewScreen> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, remoteFeatureFlags } = options;
 
   const builder = initialStateWallet({ deterministicFiat });
+  if (remoteFeatureFlags) {
+    builder.withRemoteFeatureFlags(remoteFeatureFlags);
+  }
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -46,9 +50,13 @@ export function renderWalletView(
 export function renderWalletViewWithRoutes(
   options: RenderWalletViewWithRoutesOptions,
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat, extraRoutes } = options;
+  const { overrides, deterministicFiat, extraRoutes, remoteFeatureFlags } =
+    options;
 
   const builder = initialStateWallet({ deterministicFiat });
+  if (remoteFeatureFlags) {
+    builder.withRemoteFeatureFlags(remoteFeatureFlags);
+  }
   if (overrides) {
     builder.withOverrides(overrides);
   }
