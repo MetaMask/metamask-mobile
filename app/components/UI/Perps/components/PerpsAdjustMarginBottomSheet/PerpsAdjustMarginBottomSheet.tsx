@@ -156,6 +156,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       onSuccess: () => {
         handleClose();
       },
+      onAmountChanged: (safeMaxAmount) => {
+        submittedEstimateRef.current = null;
+        setMarginAmountString(safeMaxAmount.toFixed(2));
+      },
       onError: (errorMessage) => {
         submittedEstimateRef.current = null;
         setSubmissionError(errorMessage);
@@ -191,6 +195,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     currentMargin,
     newMargin,
     maxAmount,
+    exchangeMaxAmount,
     currentLiquidationPrice,
     newLiquidationPrice,
     currentLiquidationDistance,
@@ -204,6 +209,12 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
   const flooredMaxAmount =
     Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0;
+  // Validate against what the exchange accepts, not the headroom-reduced max
+  // offered by Max/slider, so a price tick after choosing Max does not block it.
+  const submitLimitAmount =
+    Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
+      ? floorUsd(exchangeMaxAmount)
+      : flooredMaxAmount;
   const sliderPercentage = useMemo(
     () =>
       flooredMaxAmount <= 0
@@ -213,13 +224,16 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   );
 
   const validationError = useMemo(() => {
-    if (isInputFocused || marginAmount <= flooredMaxAmount) {
+    if (isInputFocused || marginAmount <= submitLimitAmount) {
       return null;
     }
     return isAddMode
       ? strings('perps.adjust_margin.exceeds_available')
       : strings('perps.errors.marginValidation.exceedsMaxRemovable');
-  }, [flooredMaxAmount, isAddMode, isInputFocused, marginAmount]);
+  }, [submitLimitAmount, isAddMode, isInputFocused, marginAmount]);
+
+  const hasNoRemovableMargin =
+    !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
 
   const isPositionGone = !isLoading && !position;
   const positionError = isPositionGone
@@ -236,7 +250,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     Boolean(validationError) && displayedError === validationError;
   const hasInvalidAmount =
     marginAmount <= 0 ||
-    marginAmount > flooredMaxAmount ||
+    marginAmount > submitLimitAmount ||
     Boolean(validationError);
 
   usePerpsMeasurement({
@@ -492,7 +506,9 @@ const PerpsAdjustMarginBottomSheet: React.FC<
           <PerpsAmountDisplay
             variant="tradeSheet"
             amount={marginAmountString}
-            onPress={() => setIsInputFocused(true)}
+            onPress={
+              hasNoRemovableMargin ? undefined : () => setIsInputFocused(true)
+            }
             isActive={isInputFocused}
             hasError={Boolean(validationError)}
             isLoading={isLoading}
@@ -519,7 +535,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               trackInset={8}
               showRangeLabels
               showRangeDots
-              isDisabled={isAdjusting}
+              isDisabled={isAdjusting || hasNoRemovableMargin}
               onGrip={() => playImpact(ImpactMoment.SliderGrip)}
               onMark={() => playImpact(ImpactMoment.SliderTick)}
               accessibilityLabel={strings(
@@ -537,6 +553,17 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               accessibilityRole="alert"
             >
               {displayedError}
+            </HelpText>
+          )}
+
+          {hasNoRemovableMargin && !displayedError && (
+            <HelpText
+              twClassName="justify-center text-center"
+              testID={
+                PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN
+              }
+            >
+              {strings('perps.adjust_margin.no_removable_margin')}
             </HelpText>
           )}
         </Box>

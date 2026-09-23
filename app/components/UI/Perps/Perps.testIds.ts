@@ -1204,6 +1204,7 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-available-value',
   LIQUIDATION_PRICE_VALUE: 'perps-adjust-margin-liquidation-price-value',
   LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-no-removable-margin',
 } as const;
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
@@ -1225,6 +1226,7 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
   LIQUIDATION_DISTANCE_INFO:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-bottom-sheet-no-removable-margin',
 } as const;
 
 // ========================================

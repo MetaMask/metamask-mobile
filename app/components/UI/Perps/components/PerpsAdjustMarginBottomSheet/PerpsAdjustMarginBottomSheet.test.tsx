@@ -23,6 +23,7 @@ let mockMarginAdjustmentOptions:
   | {
       onSuccess?: () => void;
       onError?: (error: string) => void;
+      onAmountChanged?: (maxAmount: number) => void;
     }
   | undefined;
 
@@ -698,5 +699,53 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expect(confirmButton).toBeDisabled();
     fireEvent.press(confirmButton);
     expect(mockHandleAddMargin).not.toHaveBeenCalled();
+  });
+  it('explains and blocks removal when no margin can be removed', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      maxAmount: 0.004,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    ).toBeDisabled();
+  });
+
+  it('hides the zero-state explanation while margin can be removed', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('sets the amount to the new safe max when removable margin shrank before submit', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveProp(
+      'accessibilityLabel',
+      'perps.adjust_margin.amount_accessibility_label, 150.00',
+    );
   });
 });
