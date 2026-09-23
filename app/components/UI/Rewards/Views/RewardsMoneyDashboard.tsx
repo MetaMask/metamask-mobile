@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -7,13 +6,14 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
-  Icon,
+  HeaderStandardAnimated,
   IconName,
-  IconSize,
   SectionDivider,
+  TitleStandard,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import {
   TabsBar,
   type TabItem,
@@ -38,7 +38,6 @@ import { navigateToRewardsRoute } from '../utils';
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   CONTAINER: 'rewards-money-dashboard',
   LOADING: 'rewards-money-dashboard-loading',
-  CHART_BUTTON: 'rewards-money-dashboard-chart-button',
   SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
   TABS: 'rewards-money-dashboard-tabs',
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
@@ -57,6 +56,17 @@ const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const floatingTabBarInset = useFloatingTabBarInset();
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+  const collapsingBlockStyle = useAnimatedStyle(() => {
+    const maxShift = titleSectionHeightSv.value;
+    const shift =
+      maxShift > 0 ? Math.max(0, Math.min(scrollY.value, maxShift)) : 0;
+    return {
+      bottom: -maxShift,
+      transform: [{ translateY: -shift }],
+    };
+  });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { profileId, isResolved: isProfileResolved } = useSessionProfileId();
   const referralMeEntry = useSelector((state: RootState) =>
@@ -87,16 +97,7 @@ const RewardsMoneyDashboard: React.FC = () => {
   );
 
   const headerEndAccessory = (
-    <Box twClassName="flex-row items-center gap-2">
-      <Box twClassName="h-8 w-8 items-center justify-center">
-        <Icon
-          name={IconName.Chart}
-          size={IconSize.Lg}
-          accessible
-          accessibilityLabel={localizedText?.performanceTitle}
-          testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CHART_BUTTON}
-        />
-      </Box>
+    <Box twClassName="flex-row gap-2">
       {/* Rewards settings only exist for a subscription, so an unsubscribed
       user gets no control rather than a dead one. */}
       {subscriptionId ? (
@@ -128,83 +129,106 @@ const RewardsMoneyDashboard: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardAnimated
+          scrollY={scrollY}
+          titleSectionHeight={titleSectionHeightSv}
           title={strings('rewards.main_title')}
           titleProps={{ accessibilityRole: 'header' }}
           onBack={isPushedScreen ? navigation.goBack : undefined}
           endAccessory={headerEndAccessory}
         />
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
-        >
-          <Box>
+        {/* `overflow-hidden` clips the title as the block slides up so it
+            disappears under the fixed header (revealing the compact title)
+            instead of scrolling over the header actions. */}
+        <Box twClassName="flex-1 overflow-hidden">
+          <Animated.View
+            style={[
+              tw.style('absolute top-0 right-0 bottom-0 left-0'),
+              collapsingBlockStyle,
+            ]}
+          >
+            <TitleStandard
+              title={strings('rewards.main_title')}
+              twClassName="px-4 pt-2 pb-4"
+              onLayout={(event) =>
+                setTitleSectionHeight(event.nativeEvent.layout.height)
+              }
+              titleProps={{ accessibilityRole: 'header' }}
+            />
             <Box
               twClassName="border-b border-muted"
               testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}
             >
               <TabsBar
                 tabs={tabs}
-                isFullWidth
                 activeIndex={TAB_ORDER.indexOf(activeTab)}
                 onTabPress={(index) => setActiveTab(TAB_ORDER[index])}
               />
             </Box>
-            {activeTab === 'waysToEarn' ? (
-              <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}>
-                {referralMe?.variant === 'REFERRER' ? (
-                  <RefererHeroCard
-                    profileId={profileId}
-                    referralCode={referralMe.referral_code}
-                    localizedText={referralMe.localized_text}
-                  />
-                ) : null}
-                {referralMe?.variant === 'REFEREE' ? (
-                  <RefereeHeroCard
-                    profileId={profileId}
-                    referredBy={referralMe.referred_by}
-                    localizedText={referralMe.localized_text}
-                  />
-                ) : null}
-                {referralMe ? (
-                  subscriptionId ? (
-                    <>
-                      <Box
-                        testID={
-                          REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION
-                        }
-                      >
-                        <SectionDivider
-                          marginVertical={0}
-                          twClassName="mt-8 mb-5"
-                        />
-                        <CampaignsPreview />
-                      </Box>
-                      <Box
-                        testID={
-                          REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION
-                        }
-                      >
-                        <SectionDivider
-                          marginVertical={0}
-                          twClassName="mt-8 mb-5"
-                        />
-                        <BenefitsPreview />
-                      </Box>
-                    </>
-                  ) : (
-                    <RewardsOptInSection
+            <Animated.ScrollView
+              showsVerticalScrollIndicator={false}
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+            >
+              {activeTab === 'waysToEarn' ? (
+                <Box
+                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                >
+                  {referralMe?.variant === 'REFERRER' ? (
+                    <RefererHeroCard
+                      profileId={profileId}
+                      referralCode={referralMe.referral_code}
                       localizedText={referralMe.localized_text}
                     />
-                  )
-                ) : null}
-              </Box>
-            ) : (
-              <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
-            )}
-          </Box>
-        </ScrollView>
+                  ) : null}
+                  {referralMe?.variant === 'REFEREE' ? (
+                    <RefereeHeroCard
+                      profileId={profileId}
+                      referredBy={referralMe.referred_by}
+                      localizedText={referralMe.localized_text}
+                    />
+                  ) : null}
+                  {referralMe ? (
+                    subscriptionId ? (
+                      <>
+                        <Box
+                          testID={
+                            REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION
+                          }
+                        >
+                          <SectionDivider
+                            marginVertical={0}
+                            twClassName="mt-8 mb-5"
+                          />
+                          <CampaignsPreview />
+                        </Box>
+                        <Box
+                          testID={
+                            REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION
+                          }
+                        >
+                          <SectionDivider
+                            marginVertical={0}
+                            twClassName="mt-8 mb-5"
+                          />
+                          <BenefitsPreview />
+                        </Box>
+                      </>
+                    ) : (
+                      <RewardsOptInSection
+                        localizedText={referralMe.localized_text}
+                      />
+                    )
+                  ) : null}
+                </Box>
+              ) : (
+                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
+              )}
+            </Animated.ScrollView>
+          </Animated.View>
+        </Box>
       </SafeAreaView>
     </ErrorBoundary>
   );
