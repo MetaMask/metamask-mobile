@@ -21,16 +21,18 @@ const KEYRING_TYPES_SUPPORTING_7702: string[] = [
  *
  * @param address - Account address (e.g. request.from or transactionMeta.txParams?.from).
  * @param keyringControllerOrGetter - KeyringController instance or a function that returns it.
- * @returns True if the account supports 7702 (or address is missing / lookup fails; assume supported).
+ * @param fallback - Value returned when the account or keyring cannot be resolved.
+ * @returns True if the account supports 7702, or the configured fallback when support cannot be determined.
  */
 export async function accountSupports7702(
   address: string | undefined,
   keyringControllerOrGetter:
     | KeyringControllerLike
     | (() => KeyringControllerLike),
+  fallback = true,
 ): Promise<boolean> {
   if (!address) {
-    return true;
+    return fallback;
   }
   const keyringController =
     typeof keyringControllerOrGetter === 'function'
@@ -47,6 +49,6 @@ export async function accountSupports7702(
         : '';
     return KEYRING_TYPES_SUPPORTING_7702.includes(keyringType);
   } catch {
-    return true;
+    return fallback;
   }
 }

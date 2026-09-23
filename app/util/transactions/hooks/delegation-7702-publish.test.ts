@@ -187,7 +187,9 @@ describe('Delegation 7702 Publish Hook', () => {
     });
 
     isAtomicBatchSupportedMock.mockResolvedValue([]);
+    // Preserve legacy fixtures while production receives the approval hook decision.
     isSponsoredMock.mockImplementation((transactionMeta) =>
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       Boolean(transactionMeta.isGasFeeSponsored),
     );
     signTypedMessageMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);

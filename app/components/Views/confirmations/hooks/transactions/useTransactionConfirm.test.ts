@@ -251,7 +251,9 @@ describe('useTransactionConfirm', () => {
   it('confirms approval request', async () => {
     const { result } = renderHook();
 
-    await result.current.onConfirm();
+    await act(async () => {
+      await result.current.onConfirm();
+    });
 
     expect(onApprovalConfirm).toHaveBeenCalled();
   });
@@ -722,7 +724,9 @@ describe('useTransactionConfirm', () => {
         } as TransactionMeta);
 
         const { result } = renderHook();
-        await result.current.onConfirm();
+        await act(async () => {
+          await result.current.onConfirm();
+        });
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalled();
@@ -730,7 +734,7 @@ describe('useTransactionConfirm', () => {
     );
   });
 
-  describe('isGasFeeSponsored override', () => {
+  describe('gas sponsorship metadata', () => {
     it('passes gas sponsorship metadata through when gasless is not supported', async () => {
       useIsGaslessSupportedMock.mockReturnValue({
         isSmartTransaction: false,
