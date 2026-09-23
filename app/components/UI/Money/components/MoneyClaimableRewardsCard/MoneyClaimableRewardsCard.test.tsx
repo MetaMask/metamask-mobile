@@ -79,6 +79,22 @@ describe('MoneyClaimableRewardsCard', () => {
     ).toHaveTextContent(strings('rewards.kol.claim'));
   });
 
+  it('renders the expiring-rewards notice on the claim card', () => {
+    const { getByTestId, getByText } = render(<MoneyClaimableRewardsCard />);
+
+    expect(
+      getByTestId(MoneyClaimableRewardsCardTestIds.EXPIRY_NOTICE),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('rewards.kol.claim_expiry_warning', {
+          amount: formatUsd(KOL_EARNINGS_FIXTURE.expiringSoonAmount),
+          days: KOL_EARNINGS_FIXTURE.expiringSoonDays,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('opens the residency sheet when Claim is pressed', () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyClaimableRewardsCard />,

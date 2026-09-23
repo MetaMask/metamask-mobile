@@ -10586,6 +10586,7 @@
       "available_to_claim": "Available to claim",
       "claim": "Claim",
       "claimed": "Claimed",
+      "claim_expiry_warning": "{{amount}} expires in {{days}} days",
       "claim_success_toast": "Earnings successfully claimed and deposited in Money account.",
       "claim_success_view_account": "View account",
       "tax_form_title": "Tax form required to claim",

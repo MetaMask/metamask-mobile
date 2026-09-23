@@ -19,6 +19,7 @@ export const KOL_DASHBOARD_SELECTORS = {
   EARNINGS_TAB: 'rewards-kol-earnings-tab',
   AVAILABLE_TO_CLAIM: 'rewards-kol-available-to-claim',
   CLAIM_BUTTON: 'rewards-kol-claim-button',
+  CLAIM_EXPIRY_NOTICE: 'rewards-kol-claim-expiry-notice',
   CLAIM_RESIDENCY_SHEET: 'rewards-kol-claim-residency-sheet',
   CLAIM_RESIDENCY_TITLE: 'rewards-kol-claim-residency-title',
   CLAIM_RESIDENCY_DESCRIPTION: 'rewards-kol-claim-residency-description',

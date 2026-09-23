@@ -39,6 +39,7 @@ import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
 import { useClaimEligibilityFlow } from './ClaimEligibilityFlow';
+import ClaimExpiryNotice from './ClaimExpiryNotice';
 
 const BREAKDOWN_ROWS: {
   kind: Extract<KolEarningsHistoryKind, 'referrals' | 'commission' | 'rebate'>;
@@ -248,7 +249,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="p-4"
+            twClassName="px-4 pt-4 pb-2"
           >
             <Box twClassName="flex-1">
               <Text
@@ -281,6 +282,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 )}
               </Button>
             </Box>
+          </Box>
+          <Box twClassName="px-4 pb-4">
+            <ClaimExpiryNotice
+              testID={KOL_DASHBOARD_SELECTORS.CLAIM_EXPIRY_NOTICE}
+            />
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
