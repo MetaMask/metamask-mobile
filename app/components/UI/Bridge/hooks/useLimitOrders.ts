@@ -31,7 +31,7 @@ export function useLimitOrders({
   });
   const query = useInfiniteQuery<GetLimitOrdersResponse>({
     queryKey: descriptor.queryKey,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined as string | undefined,
     enabled: enabled && Boolean(walletAddress),
     refetchInterval: LIMIT_ORDERS_STALE_TIME,
