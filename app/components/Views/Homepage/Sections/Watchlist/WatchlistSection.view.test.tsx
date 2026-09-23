@@ -47,9 +47,18 @@ afterEach(() => {
 
 describeForPlatforms('WatchlistSection', () => {
   it('loads and displays name, price, and percent change for each homepage row (newest first)', async () => {
-    const { findByTestId } = renderWatchlistSectionWithRoutes({
+    const { findByTestId, getByTestId } = renderWatchlistSectionWithRoutes({
       deterministicFiat: true,
     });
+
+    await waitFor(
+      () => {
+        for (const assetId of NEWEST_FIRST_ASSET_IDS) {
+          expect(getByTestId(getRowTestId(assetId))).toBeOnTheScreen();
+        }
+      },
+      { timeout: 5000 },
+    );
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
       const tokenMeta = mockWatchlistTokensResponse.find(
@@ -57,7 +66,7 @@ describeForPlatforms('WatchlistSection', () => {
       );
       expect(tokenMeta).toBeDefined();
 
-      const row = await findByTestId(getRowTestId(assetId));
+      const row = getByTestId(getRowTestId(assetId));
       const scope = within(row);
 
       expect(scope.getByText(tokenMeta?.name ?? '')).toBeOnTheScreen();

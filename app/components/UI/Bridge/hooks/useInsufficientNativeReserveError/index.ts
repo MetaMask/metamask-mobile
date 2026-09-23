@@ -16,6 +16,7 @@ import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isArcTokenUSDC } from '../../../../../enablement/assets/arc';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
 type ActiveQuote = QuoteResponse | null | undefined;
@@ -26,16 +27,27 @@ const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
   [key in ChainIdHexOrCaip]?: string;
 } = {
   '0x8f': '10',
+  // Arc: reserve pays gas only for ONE swap-or-bridge + its approve
+  // (~528k gas worst case). The 0.875% MetaMask fee is taken from the swap
+  // amount, not this native balance, so it's excluded here.
+  // 0.05 = ~5x base-fee-spike headroom over the 20 gwei floor.
+  '0x13b2': '0.05',
   [BTC_MAINNET_CHAIN_ID]: '0.00003',
 };
 
 const getMinimumReserveBalanceForTokenChainAndAddress = ({
   chainId,
   tokenAddress,
+  token,
 }: {
   chainId: ChainIdHexOrCaip;
   tokenAddress: string;
+  token: BridgeToken;
 }): string => {
+  if (isArcTokenUSDC(token)) {
+    return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainId] ?? '0';
+  }
+
   if (!tokenAddress || !isNativeAddress(tokenAddress)) {
     return '0';
   }
@@ -114,11 +126,13 @@ export const useInsufficientNativeReserveError = ({
       isGasFeesSponsoredNetworkEnabled(chainIdHex),
   );
 
+  const isArcUSDCReserveToken = isArcTokenUSDC(token);
   const minimumNativeBalanceToBeKeptInAccount =
-    isNetworkGasSponsored || isBitcoinReserveChain
+    isNetworkGasSponsored || isBitcoinReserveChain || isArcUSDCReserveToken
       ? getMinimumReserveBalanceForTokenChainAndAddress({
           chainId: chainIdWithNativeReserve,
           tokenAddress: token.address,
+          token,
         })
       : '0';
 

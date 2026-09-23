@@ -31,7 +31,7 @@ import {
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
   isPerpsOrderKind,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
   shouldShowPlusSign,
   type Status,
   type TokenAmount,
@@ -257,12 +257,14 @@ function perpsPositionSubtitle(
   );
 }
 
-function getPredictActivity(item: ActivityListItem) {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
+function getPredictEventTitle(item: ActivityListItem): string | undefined {
+  return 'eventTitle' in item.data
+    ? (item.data.eventTitle as string | undefined)
+    : undefined;
 }
 
 function predictMarketSubtitle(item: ActivityListItem): string | undefined {
-  return getPredictActivity(item)?.title;
+  return getPredictEventTitle(item);
 }
 
 function protocolSubtitle(protocol?: string) {
@@ -392,15 +394,11 @@ function enrichSpendingCapToken(
   }
   const symbol = token.symbol ?? listToken?.symbol;
   const decimals = token.decimals ?? listToken?.decimals;
-  const isUnlimitedApproval =
-    token.amount !== undefined
-      ? isUnlimitedApprovalAmount(token.amount, decimals)
-      : token.isUnlimitedApproval;
+
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
     ...(decimals === undefined ? {} : { decimals }),
-    ...(isUnlimitedApproval ? { isUnlimitedApproval: true } : {}),
   };
 }
 
@@ -919,14 +917,15 @@ function resolveAmount(
 ): string | undefined {
   if (!token) return undefined;
 
-  const displayAmount = token.isUnlimitedApproval
+  const isUnlimited = isSpendingCapUnlimited(token.amount, token.decimals);
+  const displayAmount = isUnlimited
     ? strings('confirm.unlimited')
     : getHumanReadableTokenAmount(token);
   if (displayAmount === undefined) {
     return undefined;
   }
 
-  const amount = token.isUnlimitedApproval
+  const amount = isUnlimited
     ? withOptionalSymbol(displayAmount, token.symbol)
     : formatTokenDisplayAmount(formatters, displayAmount, token.symbol);
 
@@ -1304,9 +1303,12 @@ export function useActivityListItemRowContent(
       ? item.data.sourceToken?.symbol
       : undefined
     : undefined;
-  const predictIconUrl = isPredictTradeKind(item.type)
-    ? getPredictActivity(item)?.icon
-    : undefined;
+  const predictIconUrl =
+    isPredictTradeKind(item.type) &&
+    'icon' in item.data &&
+    typeof item.data.icon === 'string'
+      ? item.data.icon
+      : undefined;
 
   let avatarTokens: TokenAmount[];
   if (isSpendingCap && spendingCapToken) {

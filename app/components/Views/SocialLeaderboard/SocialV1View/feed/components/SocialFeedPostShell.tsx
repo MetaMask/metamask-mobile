@@ -37,6 +37,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
+        twClassName="mb-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -70,7 +71,11 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
       </Box>
 
       {post.item.comment ? (
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          twClassName="mb-2"
+        >
           {post.item.comment}
         </Text>
       ) : null}

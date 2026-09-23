@@ -44,6 +44,11 @@ export type { ShareAddressQRParams } from './sheets/ShareAddressQR/ShareAddressQ
 /** Delete account parameters */
 export interface DeleteAccountParams extends AccountParams {}
 
+/** Remove account parameters */
+export interface RemoveAccountParams extends AccountParams {
+  accountGroup?: AccountGroupObject;
+}
+
 /** Smart account parameters */
 export interface SmartAccountParams extends AccountParams {}
 

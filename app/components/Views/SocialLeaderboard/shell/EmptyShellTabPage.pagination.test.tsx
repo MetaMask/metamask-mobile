@@ -26,6 +26,11 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => ({
   default: () => null,
 }));
 
+jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockUseSocialV1Feed = jest.mocked(useSocialV1Feed);
 
 const mockLoadMore = jest.fn();
