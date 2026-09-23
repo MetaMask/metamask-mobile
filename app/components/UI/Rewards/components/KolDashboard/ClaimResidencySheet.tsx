@@ -47,7 +47,7 @@ const ClaimResidencySheet: React.FC<ClaimResidencySheetProps> = ({
       </Text>
     </Box>
     <BottomSheetFooter
-      buttonsAlignment={ButtonsAlignment.Horizontal}
+      buttonsAlignment={ButtonsAlignment.Vertical}
       secondaryButtonProps={{
         children: strings('rewards.kol.claim_residency_no'),
         onPress: onConfirmNonUs,
