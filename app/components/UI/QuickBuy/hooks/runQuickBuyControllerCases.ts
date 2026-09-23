@@ -676,7 +676,7 @@ export const runQuickBuyControllerCases = ({
         expect(onClose).not.toHaveBeenCalled();
       });
 
-      it('skips quote fetching when a pill exceeds the available balance', () => {
+      it('passes insufficient balance when a pill exceeds the available balance', () => {
         // Balance 0.1 ETH @ 2000 => maxSpendFiat 200; the 250 pill exceeds it.
         (useLatestBalance as jest.Mock).mockReturnValue({
           displayBalance: '0.1',
@@ -695,10 +695,9 @@ export const runQuickBuyControllerCases = ({
           result.current.handleQuickAmountPress(250, 250);
         });
 
-        // The amount handed to the quotes hook is suppressed (undefined), so no
-        // bridge request runs while the CTA routes to Ramp.
         const calls = mockQuoteSource.mock.calls;
-        expect(calls[calls.length - 1][0].sourceTokenAmount).toBeUndefined();
+        expect(calls[calls.length - 1][0].sourceTokenAmount).toBe('0.125');
+        expect(calls[calls.length - 1][0].insufficientBalance).toBe(true);
         // Existing add-funds behaviour is preserved: actionable, labelled "Add funds".
         expect(result.current.getButtonLabel()).toBe(
           'social_leaderboard.quick_buy.add_funds',

@@ -80,6 +80,7 @@ interface UseQuickBuyQuotesParams {
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
   sourceTokenAmount: string | undefined;
+  insufficientBalance?: boolean;
   analyticsContext?: QuickBuyQuotesAnalyticsContext;
   /** When set, overrides the recommended quote with the quote matching this requestId. */
   selectedQuoteRequestId?: string;
@@ -130,6 +131,7 @@ const buildQuoteRequest = ({
   destAddress,
   gasIncluded,
   gasIncluded7702,
+  insufficientBalance,
 }: {
   sourceToken: BridgeToken;
   destToken: BridgeToken;
@@ -139,6 +141,7 @@ const buildQuoteRequest = ({
   destAddress: string | undefined;
   gasIncluded: boolean;
   gasIncluded7702: boolean;
+  insufficientBalance: boolean;
 }): GenericQuoteRequest | null => {
   let normalizedSourceAmount: string;
   try {
@@ -165,6 +168,7 @@ const buildQuoteRequest = ({
     destWalletAddress: destAddress ?? walletAddress,
     gasIncluded,
     gasIncluded7702,
+    insufficientBal: insufficientBalance,
   };
 };
 
@@ -214,6 +218,7 @@ export function useQuickBuyQuotes({
   sourceToken,
   destToken,
   sourceTokenAmount,
+  insufficientBalance = false,
   analyticsContext,
   selectedQuoteRequestId,
   immediateFetchToken,
@@ -279,8 +284,16 @@ export function useQuickBuyQuotes({
         destAddress: destAddress ?? null,
         gasIncluded,
         gasIncluded7702,
+        insufficientBalance,
       }),
-    [slippage, sourceTokenAmount, destAddress, gasIncluded, gasIncluded7702],
+    [
+      slippage,
+      sourceTokenAmount,
+      destAddress,
+      gasIncluded,
+      gasIncluded7702,
+      insufficientBalance,
+    ],
   );
   const nonSlippageRequestParamsKey = JSON.stringify([
     sourceTokenAmount ?? null,
@@ -328,6 +341,7 @@ export function useQuickBuyQuotes({
       destAddress: destAddress ?? undefined,
       gasIncluded,
       gasIncluded7702,
+      insufficientBalance,
     });
 
     if (!params) {
@@ -498,6 +512,7 @@ export function useQuickBuyQuotes({
     destAddress,
     gasIncluded,
     gasIncluded7702,
+    insufficientBalance,
     shouldStream,
     resetQuotesIdle,
     analyticsContext,

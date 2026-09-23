@@ -59,7 +59,7 @@ describe('QuickBuyAmountSection', () => {
     render(<QuickBuyAmountSection {...baseProps} />);
 
     expect(screen.getByText('$2.55')).toBeOnTheScreen();
-    expect(screen.getByText('56.52037 GIGA')).toBeOnTheScreen();
+    expect(screen.getByText('≈ 56.52037 GIGA')).toBeOnTheScreen();
     expect(
       screen.queryByTestId('quick-buy-amount-loading'),
     ).not.toBeOnTheScreen();

@@ -178,6 +178,7 @@ export interface UseQuickBuyControllerResult {
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
+  hasInsufficientBalance: boolean;
   /**
    * Live fiat balance of the sell-mode "Receive" token, resynced from the
    * reactive receive-token list so it tracks underlying balance changes.
@@ -788,16 +789,10 @@ export function useQuickBuyController(
     ],
   );
 
-  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
-  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
-  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
-  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
-  // so the Add funds button is actionable immediately. The exported
-  // `sourceTokenAmount` is intentionally left untouched (still drives balance
-  // checks, the redux dispatch, and display).
-  const quotesSourceTokenAmount = isPresetAddFundsMode
-    ? undefined
-    : sourceTokenAmount;
+  // Keep fetching a quote when a Buy amount exceeds the pay-with balance so the
+  // sheet can still show an estimated receive amount. The CTA remains on the
+  // existing Add funds path and never submits this quote.
+  const quotesSourceTokenAmount = sourceTokenAmount;
 
   const {
     activeQuote,
@@ -819,6 +814,7 @@ export function useQuickBuyController(
     sourceTokenAmount: quotesSourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
+    insufficientBalance: isPresetAddFundsMode,
     immediateFetchToken,
   });
 
@@ -1885,6 +1881,7 @@ export function useQuickBuyController(
     estimatedReceiveAmount,
     sourceBalanceFiat,
     sourceBalanceDisplay,
+    hasInsufficientBalance,
     destBalanceFiat,
     formattedNetworkFee,
     formattedSlippage,
