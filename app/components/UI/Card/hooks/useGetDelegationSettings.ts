@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
 import { DelegationSettingsResponse } from '../types';
@@ -16,7 +16,10 @@ const useGetDelegationSettings = () => {
   const { sdk } = useCardSDK();
   const queryClient = useQueryClient();
   const sdkRef = useRef(sdk);
-  sdkRef.current = sdk;
+
+  useEffect(() => {
+    sdkRef.current = sdk;
+  }, [sdk]);
 
   const queryFn = useMemo(
     () => () => {

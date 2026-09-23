@@ -24,11 +24,9 @@ import {
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 import {
   navigateToPerpsHomeTarget,
   resetToPerpsHomeTarget,
@@ -246,13 +244,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (params: PerpsNavigationParamList['PerpsOrder']) => {
       const useBottomSheet = Boolean(params.useBottomSheet);
       if (useBottomSheet) {
-        trace({
-          name: TraceName.PerpsTradeSheetInteractive,
-          op: TraceOperation.PerpsOperation,
-          data: {
-            source: params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-          },
-        });
+        startPerpsTradeSheetInteractiveTrace(
+          params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        );
       }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
@@ -272,10 +266,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         })
         .catch((error: unknown) => {
           if (useBottomSheet) {
-            endTrace({
-              name: TraceName.PerpsTradeSheetInteractive,
-              data: { success: false, reason: 'transaction_creation_failed' },
-            });
+            failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
           }
           const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
           Logger.error(err, {

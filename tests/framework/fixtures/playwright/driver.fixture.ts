@@ -24,6 +24,18 @@ import {
   resolveLiveDriver,
 } from './sessionLifecycle.ts';
 
+/** Appium reports the OS version unprefixed in session capabilities; W3C prefixes it. */
+const readCapability = (capabilities: object | undefined, key: string) => {
+  if (!capabilities) {
+    return '';
+  }
+  const value: unknown =
+    key in capabilities
+      ? Reflect.get(capabilities, key)
+      : Reflect.get(capabilities, `appium:${key}`);
+  return typeof value === 'string' ? value : '';
+};
+
 const logger = createAppiumLogger('driver');
 
 export const driverFixture = {
@@ -89,13 +101,15 @@ export const driverFixture = {
 
       globalThis.driver = drv;
 
-      const platformName = (await drv.capabilities)?.platformName;
+      const capabilities = await drv.capabilities;
+      const platformName = capabilities?.platformName;
       const windowSize = await drv.getWindowSize();
       setDeviceInfo(
         (platformName?.toLowerCase() === 'android' ? 'android' : 'ios') as
           | 'android'
           | 'ios',
         { width: windowSize.width, height: windowSize.height },
+        readCapability(capabilities, 'platformVersion'),
       );
 
       const deviceProviderName = project.use.device?.provider;
