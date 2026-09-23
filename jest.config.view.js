@@ -28,6 +28,9 @@ process.env.MM_PREDICT_API_URL =
 
 module.exports = {
   ...baseConfig,
+  // Unit coverage owns the repo-wide file list. Report the production files
+  // exercised by view tests without rescanning the entire app in every shard.
+  collectCoverageFrom: undefined,
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetupView.js'],
   testPathIgnorePatterns: (baseConfig.testPathIgnorePatterns || []).filter(
     (pattern) => !pattern.includes('view'),
