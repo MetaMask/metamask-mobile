@@ -1,1 +1,3 @@
+# ESLint needs a larger heap when linting staged files in bulk.
+export NODE_OPTIONS="--max-old-space-size=12288"
 yarn lint-staged

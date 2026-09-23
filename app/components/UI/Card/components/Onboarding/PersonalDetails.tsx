@@ -10,8 +10,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -334,18 +334,20 @@ const PersonalDetails = () => {
           {strings('card.card_onboarding.personal_details.first_name_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleFirstNameChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={firstName}
-          keyboardType="default"
-          maxLength={255}
           isError={!!nameError}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.first_name_label',
-          )}
-          testID="personal-details-first-name-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.personal_details.first_name_label',
+            ),
+            testID: 'personal-details-first-name-input',
+          }}
         />
       </Box>
 
@@ -355,18 +357,20 @@ const PersonalDetails = () => {
           {strings('card.card_onboarding.personal_details.last_name_label')}
         </Label>
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleLastNameChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={lastName}
-          keyboardType="default"
-          maxLength={255}
           isError={!!nameError}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.last_name_label',
-          )}
-          testID="personal-details-last-name-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.personal_details.last_name_label',
+            ),
+            testID: 'personal-details-last-name-input',
+          }}
         />
         {!!nameError && (
           <Text
@@ -406,20 +410,22 @@ const PersonalDetails = () => {
             {strings('card.card_onboarding.personal_details.ssn_label')}
           </Label>
           <TextField
-            autoCapitalize={'none'}
             onChangeText={handleSSNChange}
             onBlur={handleSSNBlur}
-            numberOfLines={1}
             value={SSN}
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            secureTextEntry
-            maxLength={9}
-            accessibilityLabel={strings(
-              'card.card_onboarding.personal_details.ssn_label',
-            )}
             isError={isSSNTouched && isSSNError}
-            testID="personal-details-ssn-input"
+            inputProps={{
+              autoCapitalize: 'none',
+              numberOfLines: 1,
+              keyboardType: 'number-pad',
+              autoComplete: 'one-time-code',
+              secureTextEntry: true,
+              maxLength: 9,
+              accessibilityLabel: strings(
+                'card.card_onboarding.personal_details.ssn_label',
+              ),
+              testID: 'personal-details-ssn-input',
+            }}
           />
           {isSSNTouched && isSSNError ? (
             <Text

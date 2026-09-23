@@ -111,12 +111,10 @@ export const clearImmersveKycOnClose = () => {
   onCloseCallback = null;
 };
 
-const getMediaPermissions = (): Permission[] => {
-  if (Platform.OS === 'ios') {
-    return [PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.MICROPHONE];
-  }
-  return [PERMISSIONS.ANDROID.CAMERA, PERMISSIONS.ANDROID.RECORD_AUDIO];
-};
+const getMediaPermissions = (): Permission[] => [
+  PERMISSIONS.ANDROID.CAMERA,
+  PERMISSIONS.ANDROID.RECORD_AUDIO,
+];
 
 const areAllPermissionsGranted = (
   statuses: Record<string, PermissionStatus>,
@@ -230,6 +228,11 @@ const ImmersveKYCModal: React.FC = () => {
 
   const requestMediaPermissions = useCallback(
     async (isRetry: boolean) => {
+      if (Platform.OS !== 'android') {
+        setStatus('loading');
+        return;
+      }
+
       setStatus('requesting-permissions');
 
       try {
