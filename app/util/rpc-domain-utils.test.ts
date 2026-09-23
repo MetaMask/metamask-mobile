@@ -214,76 +214,47 @@ describe('rpc-domain-utils', () => {
       },
     ];
 
-    it('persists the derived hostnames when the store is missing', async () => {
-      // Arrange
-      setupTestEnvironment();
-      mockRpcDomainStorage(JSON.stringify(chainsWithInfura), null);
-      // Act
-      await initializeRpcProviderDomains();
-      // Assert
-      const persistedCalls = (
-        StorageWrapper.setItem as jest.Mock
-      ).mock.calls.filter(
-        (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
-      );
-      expect(persistedCalls).toHaveLength(1);
-      expect(JSON.parse(persistedCalls[0][1])).toStrictEqual([
-        'mainnet.infura.io',
-      ]);
-      expect(getKnownDomains()?.has('mainnet.infura.io')).toBe(true);
-    });
-
-    it('hydrates from the persisted store without re-parsing the chains list', async () => {
-      // Arrange
-      setupTestEnvironment();
-      mockRpcDomainStorage(
-        JSON.stringify(chainsWithInfura),
-        JSON.stringify(['hydrated.from.store']),
-      );
-      // Act
-      await initializeRpcProviderDomains();
-      // Assert
-      expect(getKnownDomains()).toStrictEqual(new Set(['hydrated.from.store']));
-      expect(
-        (StorageWrapper.setItem as jest.Mock).mock.calls.filter(
+    it.each`
+      case                                                                      | hostnamesRaw                               | setItemRejects | expectedKnownDomains       | expectedPersistedHostnames
+      ${'persists the derived hostnames when the store is missing'}             | ${null}                                    | ${false}       | ${['mainnet.infura.io']}   | ${['mainnet.infura.io']}
+      ${'hydrates from the persisted store without re-parsing the chains list'} | ${JSON.stringify(['hydrated.from.store'])} | ${false}       | ${['hydrated.from.store']} | ${null}
+      ${'re-derives from the chains list when the persisted store is corrupt'}  | ${'not valid json {'}                      | ${false}       | ${['mainnet.infura.io']}   | ${['mainnet.infura.io']}
+      ${'keeps the derived set when persisting fails'}                          | ${null}                                    | ${true}        | ${['mainnet.infura.io']}   | ${['mainnet.infura.io']}
+    `(
+      '$case',
+      async ({
+        hostnamesRaw,
+        setItemRejects,
+        expectedKnownDomains,
+        expectedPersistedHostnames,
+      }) => {
+        // Arrange
+        setupTestEnvironment();
+        mockRpcDomainStorage(JSON.stringify(chainsWithInfura), hostnamesRaw);
+        if (setItemRejects) {
+          (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+            new Error('write failed'),
+          );
+        }
+        // Act
+        await initializeRpcProviderDomains();
+        // Assert
+        expect(getKnownDomains()).toStrictEqual(new Set(expectedKnownDomains));
+        const persistedCalls = (
+          StorageWrapper.setItem as jest.Mock
+        ).mock.calls.filter(
           (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
-        ),
-      ).toHaveLength(0);
-    });
-
-    it('re-derives from the chains list when the persisted store is corrupt', async () => {
-      // Arrange
-      setupTestEnvironment();
-      mockRpcDomainStorage(
-        JSON.stringify(chainsWithInfura),
-        'not valid json {',
-      );
-      // Act
-      await initializeRpcProviderDomains();
-      // Assert
-      expect(getKnownDomains()).toStrictEqual(new Set(['mainnet.infura.io']));
-      const persistedCalls = (
-        StorageWrapper.setItem as jest.Mock
-      ).mock.calls.filter(
-        (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
-      );
-      expect(JSON.parse(persistedCalls[0][1])).toStrictEqual([
-        'mainnet.infura.io',
-      ]);
-    });
-
-    it('keeps the derived set when persisting fails', async () => {
-      // Arrange
-      setupTestEnvironment();
-      mockRpcDomainStorage(JSON.stringify(chainsWithInfura), null);
-      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
-        new Error('write failed'),
-      );
-      // Act
-      await expect(initializeRpcProviderDomains()).resolves.not.toThrow();
-      // Assert
-      expect(getKnownDomains()).toStrictEqual(new Set(['mainnet.infura.io']));
-    });
+        );
+        if (expectedPersistedHostnames === null) {
+          expect(persistedCalls).toHaveLength(0);
+        } else {
+          expect(persistedCalls).toHaveLength(1);
+          expect(JSON.parse(persistedCalls[0][1])).toStrictEqual(
+            expectedPersistedHostnames,
+          );
+        }
+      },
+    );
   });
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
