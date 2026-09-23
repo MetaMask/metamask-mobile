@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Platform, TextInputProps } from 'react-native';
+import { Platform, TextInput, TextInputProps } from 'react-native';
 import {
   Box,
   Text,
@@ -9,8 +9,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -29,6 +29,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
@@ -38,6 +39,8 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 
 const ConfirmPhoneNumber = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const codeInputRef = useRef<TextInput>(null);
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   const dispatch = useDispatch();
   const { setUser } = useCardSDK();
   const [resendCooldown, setResendCooldown] = useState(60);
@@ -229,6 +232,13 @@ const ConfirmPhoneNumber = () => {
     }
   }, [confirmCode, handleContinue, latestValueSubmitted]);
 
+  useEffect(() => {
+    if (!isScreenTransitionComplete) {
+      return;
+    }
+    codeInputRef.current?.focus();
+  }, [isScreenTransitionComplete]);
+
   const isDisabled =
     verifyLoading ||
     verifyIsError ||
@@ -242,20 +252,22 @@ const ConfirmPhoneNumber = () => {
     <>
       <Box>
         <TextField
-          autoCapitalize={'none'}
+          inputRef={codeInputRef}
           onChangeText={handleValueChange}
-          numberOfLines={1}
           value={confirmCode}
-          keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          autoComplete={autoComplete}
-          maxLength={CODE_LENGTH}
-          accessibilityLabel={strings(
-            'card.card_onboarding.confirm_phone_number.confirm_code_label',
-          )}
           isError={verifyIsError}
-          testID="confirm-phone-number-code-field"
-          autoFocus
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            keyboardType: 'number-pad',
+            textContentType: 'oneTimeCode',
+            autoComplete,
+            maxLength: CODE_LENGTH,
+            accessibilityLabel: strings(
+              'card.card_onboarding.confirm_phone_number.confirm_code_label',
+            ),
+            testID: 'confirm-phone-number-code-field',
+          }}
         />
         {verifyIsError && (
           <Text

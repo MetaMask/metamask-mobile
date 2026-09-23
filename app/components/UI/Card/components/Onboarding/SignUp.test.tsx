@@ -202,6 +202,8 @@ jest.mock('../../util/validatePassword');
 const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
 const mockLogout = jest.fn();
+const mockBeginMigration = jest.fn();
+const mockCancelMigration = jest.fn();
 const mockGetUserDetails = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
@@ -215,6 +217,8 @@ jest.mock('../../../../../core/Engine', () => ({
       setSelectedCountry: (...args: unknown[]) =>
         mockSetSelectedCountry(...args),
       logout: (...args: unknown[]) => mockLogout(...args),
+      beginMigration: (...args: unknown[]) => mockBeginMigration(...args),
+      cancelMigration: (...args: unknown[]) => mockCancelMigration(...args),
       getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
@@ -248,11 +252,14 @@ jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: () => 'Account 1',
 }));
 const IMMERSVE_TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
-jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => ({
-    address: IMMERSVE_TEST_ADDRESS,
-  }),
-}));
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => {
+  const selectByScope = () => ({
+    address: '0x1234567890123456789012345678901234567890',
+  });
+  return {
+    selectSelectedInternalAccountByScope: () => selectByScope,
+  };
+});
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -578,6 +585,21 @@ describe('SignUp Component', () => {
   });
 
   describe('Email Input', () => {
+    it('uses the email keyboard and autofill hints', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      expect(emailInput.props.keyboardType).toBe('email-address');
+      expect(emailInput.props.autoComplete).toBe('email');
+      expect(emailInput.props.textContentType).toBe('emailAddress');
+      expect(emailInput.props.autoCapitalize).toBe('none');
+      expect(emailInput.props.autoCorrect).toBe(false);
+    });
+
     it('allows text input', () => {
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1810,7 +1832,7 @@ describe('SignUp Component', () => {
       );
     });
 
-    it('clears Baanx session before Immersve continue on Next', async () => {
+    it('calls beginMigration before Immersve continue on Next', async () => {
       mockImmersveSignIn.mockResolvedValue({ done: true });
       mockGetFundingSources.mockResolvedValue([]);
       mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
@@ -1852,12 +1874,41 @@ describe('SignUp Component', () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });
 
-      expect(mockLogout).toHaveBeenCalledTimes(1);
+      expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockBeginMigration).toHaveBeenCalledTimes(1);
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });
-      expect(mockLogout.mock.invocationCallOrder[0]).toBeLessThan(
+      expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
         mockImmersveSignIn.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls cancelMigration when Immersve continue fails after beginMigration', async () => {
+      mockImmersveSignIn.mockRejectedValue(new Error('user rejected'));
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      await waitFor(() => {
+        expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+        expect(mockCancelMigration).toHaveBeenCalledTimes(1);
+      });
+      expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
+        mockCancelMigration.mock.invocationCallOrder[0],
       );
     });
 

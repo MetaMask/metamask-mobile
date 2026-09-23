@@ -1253,6 +1253,11 @@
         "size_at_price": "{{size}} at {{price}}",
         "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
+      "trader_stats": {
+        "pnl_30d": "{{pnl}} P&L (30d)",
+        "followers": "{{count}} followers",
+        "win_rate": "{{winRate}} win rate"
+      },
       "no_data": "No data",
       "position_card": {
         "copy_trade": "Copy trade",
@@ -1545,10 +1550,12 @@
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
     "trade_sheet": {
+      "close": "Close trade",
       "settings": "Settings",
       "order_summary": "Order summary",
       "includes_fee": "Includes {{feePercentage}}% fee",
       "amount_slider_accessibility_label": "Order amount",
+      "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
       "show_fiat_value": "Show fiat value"
     },
@@ -1999,6 +2006,8 @@
         "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
+        "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
@@ -2283,6 +2292,13 @@
       "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
+      "close": "Close",
+      "sheet_position_summary": "{{direction}} {{asset}} {{leverage}}x",
+      "sheet_title_long": "Close Long {{asset}}",
+      "sheet_title_short": "Close Short {{asset}}",
+      "order_type_accessibility_label": "Order type: {{orderType}}",
+      "toggle_amount_display": "Toggle between fiat and token amount",
+      "total_inc_pnl": "Total (inc. P&L)",
       "margin": "Margin",
       "includes_pnl": "includes P&L",
       "pnl": "P&L",
@@ -2503,14 +2519,14 @@
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
-      "marginAdjustmentFailed": "Unable to adjust margin. Please try again.",
-      "tpslUpdateFailed": "Unable to update take profit/stop loss. Please try again.",
-      "orderRejected": "Order was rejected. Please check your parameters and try again.",
+      "marginAdjustmentFailed": "Unable to adjust margin. Try again.",
+      "tpslUpdateFailed": "Unable to update take profit/stop loss. Try again.",
+      "orderRejected": "Order was rejected. Check your parameters and try again.",
       "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
-      "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
-      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
-      "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
-      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
+      "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
+      "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "networkErrorSimple": "Network error occurred. Check your connection and try again.",
+      "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
@@ -2519,12 +2535,12 @@
       },
       "networkError": {
         "title": "Network error",
-        "description": "There was a problem connecting to the network. Please try again.",
+        "description": "There was a problem connecting to the network. Try again.",
         "retry": "Try again"
       },
       "unknown": {
         "title": "Something went wrong",
-        "description": "An unexpected error occurred. Please try again later.",
+        "description": "An unexpected error occurred. Try again later.",
         "retry": "Retry"
       },
       "marginValidation": {
@@ -2572,7 +2588,7 @@
         "position_count_plural": "{{count}} positions"
       },
       "details": {
-        "error_message": "Position data not found. Please go back and try again.",
+        "error_message": "Position data not found. Go back and try again.",
         "section_title": "Position"
       },
       "account": {
@@ -2600,7 +2616,7 @@
     "market": {
       "details": {
         "title": "Market details",
-        "error_message": "Market data not found. Please go back and try again."
+        "error_message": "Market data not found. Go back and try again."
       },
       "statistics": "Overview",
       "stats": "Stats",
@@ -2877,6 +2893,31 @@
     "feedback": {
       "title": "Give us feedback"
     },
+    "outreach_details": {
+      "title": "You're one of our top perp traders",
+      "subtitle": "Your volume earned you a seat at the table. Tell the Perps team what to build next and unlock VIP status.",
+      "features": {
+        "vip": {
+          "title": "VIP access, built for pros",
+          "subtitle": "Perks, status, and first access to new features"
+        },
+        "support": {
+          "title": "24/7 priority support",
+          "subtitle": "Real humans, no bots, no tickets"
+        },
+        "roadmap": {
+          "title": "Your calls shape the roadmap",
+          "subtitle": "What you ask for gets built"
+        },
+        "trip": {
+          "title": "Meet the team IRL",
+          "subtitle": "A sponsored trip with MetaMask, on us"
+        }
+      },
+      "contact": "Reach out on Telegram {{telegramHandle}}, or email {{email}}",
+      "telegram_button": "Chat on Telegram",
+      "schedule_button": "Schedule call"
+    },
     "close_all_modal": {
       "title": "Close all positions",
       "title_filtered": "Close positions",
@@ -3001,6 +3042,7 @@
     },
     "transactions": {
       "title": "Perps",
+      "aggregated": "Aggregated",
       "tabs": {
         "trades": "Trades",
         "orders": "Orders",
@@ -3774,7 +3816,7 @@
       "no_funds_enough_try_token": "Not enough funds. Try a different token.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
-      "order_failed_generic": "Transaction failed. Please try again.",
+      "order_failed_generic": "Transaction failed. Try again.",
       "market_busy_title": "Market busy",
       "market_busy_body_buy": "The market is moving fast, so we couldn't buy at {{price}}. Try again at the best available price?",
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
@@ -3801,7 +3843,7 @@
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "unavailable_title": "Withdrawals temporarily unavailable",
-      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_description": "For urgent assistance, contact Customer Service.",
       "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdrawal",
@@ -3836,7 +3878,7 @@
       "title": "Couldn't connect to Predictions",
       "description": "Check your connection and try again. If it continues, try a different network.",
       "description_short": "Couldn't connect to Predictions. Check your connection and try again.",
-      "chart_connection_error": "There is an issue connecting. Please try again later.",
+      "chart_connection_error": "There is an issue connecting. Try again later.",
       "retry": "Try again"
     },
     "error_messages": {
@@ -4041,7 +4083,7 @@
     "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
     "discover_nfts": "Import NFTs",
     "no_transactions": "You have no transactions",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Switch network to view transactions",
     "send_button": "Send",
     "deposit_button": "Deposit",
     "copy_address": "Copy",
@@ -4201,7 +4243,7 @@
       "search_link": "Enable it from Settings.",
       "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
       "custom_warning_link": "scams and security risks.",
-      "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+      "custom_info_desc": "Token detection is not available on this network yet. Import the token manually and make sure you trust it. Learn about ",
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security tips"
     }
@@ -4406,9 +4448,12 @@
     "remove_hardware_account": "Remove hardware account",
     "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
     "remove_snap_account": "Remove snap account",
-    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Never mind",
+    "remove_account_alert_cancel_btn": "Cancel",
+    "remove_account_title_with_account_name": "Remove {{accountName}}?",
+    "remove_account_warning": "You can restore this account anytime by importing it with the private key.",
+    "account_removed_toast": "{{accountName}} removed",
     "accounts_title": "Accounts",
     "connect_account_title": "Connect account",
     "connect_accounts_title": "Connect accounts",
@@ -4572,7 +4617,7 @@
     "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
-    "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
+    "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
     "autolock_immediately": "Immediately",
     "autolock_never": "Never",
     "autolock_after": "After {{time}} seconds",
@@ -4726,7 +4771,7 @@
     "add_chain_title": "Add a network",
     "add_chain_search_placeholder": "Search by name, chain ID, or currency",
     "add_chain_loading": "Loading networks…",
-    "add_chain_error": "Failed to load networks. Please try again.",
+    "add_chain_error": "Failed to load networks. Try again.",
     "add_chain_retry": "Retry",
     "add_chain_added": "Added",
     "add_chain_or": "or",
@@ -4830,7 +4875,7 @@
     "delete_data_status_title": "Deletion task status",
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
-    "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue, please try again later.",
+    "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue. Try again later.",
     "ok": "OK",
     "clear_sdk_connections_title": "Clear all MetaMask SDK connections",
     "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
@@ -5034,7 +5079,7 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES crypto - test form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, report it to MetaMask support.",
     "developer_options": {
       "title": "Developer options",
       "generate_trace_test": "Generate trace test",
@@ -5207,7 +5252,7 @@
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Account couldn't connect",
-    "info": "Please scan the QR code on the site to reconnect to MetaMask"
+    "info": "Scan the QR code on the site to reconnect to MetaMask"
   },
   "app_information": {
     "title": "Information",
@@ -5321,7 +5366,7 @@
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
-    "save_error": "Failed to save price alert. Please try again.",
+    "save_error": "Failed to save price alert. Try again.",
     "delete_success": "Price alert deleted.",
     "delete_error": "Failed to delete price alert. Try again.",
     "toggle_error": "Failed to update price alert. Try again.",
@@ -9158,12 +9203,18 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expiry: {{timeLeft}}",
+      "days_left": "{{count}}d left",
+      "hours_left": "{{count}}h left",
+      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
       "expired_after": "Expired after {{duration}}",
+      "duration_days": "{{count}}d",
+      "duration_hours": "{{count}}h",
+      "duration_minutes": "{{count}}m",
       "canceled": "Canceled",
       "canceled_at": "Canceled at {{date}}",
       "failed": "Failed",
@@ -9198,7 +9249,8 @@
       "confirm_order": "Confirm order",
       "edit_cost_tolerance": "Edit cost tolerance",
       "try_again": "Try again",
-      "error_calculation_network_fees": "Couldn't calculate the network fee."
+      "error_calculation_network_fees": "Couldn't calculate the network fee.",
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
     },
     "recurring": {
       "you_get": "You get",
@@ -9236,6 +9288,7 @@
         "max_token_price": "Max {{symbol}} price",
         "min_placeholder": "Market price",
         "max_placeholder": "Market price",
+        "max_must_exceed_min": "Max price must be more than the min price",
         "clear": "Clear",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
@@ -9825,7 +9878,7 @@
     },
     "manage_accounts": {
       "title": "Manage accounts",
-      "locked": "Locked",
+      "locked": "Lock",
       "remove": "Remove",
       "remove_wallet": "Remove wallet"
     }
@@ -10622,7 +10675,7 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "configuration_error": "Service is temporarily unavailable. Try again later.",
         "forbidden_error": "This action isn't available for your account.",
         "account_check_failed": "We couldn't check this account. Try again."
       }
@@ -10664,7 +10717,7 @@
       "error_card_provider_not_found": "Card provider is not available for your region.",
       "error_card_id_mismatch": "Card verification failed. Please try again.",
       "error_card_not_active": "Your card is not active. Please activate your card first.",
-      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_network": "Network error occurred. Check your connection and try again.",
       "error_timeout": "The request timed out. Please try again.",
       "error_server": "Server error occurred. Please try again later.",
       "error_unknown": "An unexpected error occurred. Please try again or contact support.",
@@ -11964,18 +12017,31 @@
       "stay_question_placeholder": "Describe what would have made you stay",
       "keep_membership": "Keep membership",
       "cancel": "Cancel",
+      "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
+      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
       "success": {
         "title": "Plan canceled",
         "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
         "description_suffix": ".",
+        "immediate_description": "Your Pro plan was canceled successfully and your benefits have ended.",
         "done": "Done"
       }
     }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
+    "description": "{{monthlyPrice}}/mo ({{annualPrice}} for annual membership)",
+    "description_monthly": "{{monthlyPrice}}/mo",
+    "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "pro": "Pro",
+    "pricing": {
+      "loading": "Loading plans...",
+      "error": "We couldn't load plan prices. Try again.",
+      "unavailable": "Pro plans aren't available right now. Try again later.",
+      "malformed": "We couldn't read plan prices. Try again.",
+      "retry": "Retry"
+    },
     "benefits": {
       "apy": {
         "title": "Up to 7% APY on Money account",
@@ -12007,16 +12073,17 @@
     "plans": {
       "annual": {
         "label": "Annual",
-        "price": "$49.99",
-        "sub_price": "($4.15/mo)",
+        "price": "{{price}}",
+        "sub_price": "({{price}}/mo)",
         "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "cta": "Join Pro for {{price}}/month"
       },
       "monthly": {
         "label": "Monthly",
-        "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
-      }
+        "price": "{{price}}/mo",
+        "cta": "Join Pro for {{price}}/month"
+      },
+      "trial": "{{days}}-day free trial"
     },
     "benefits_description": {
       "apy": {
