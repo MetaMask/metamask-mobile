@@ -116,6 +116,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
   [AlertKeys.HeadlessBuyError]: 'headless_buy_error',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
+  [AlertKeys.GasLimitBelowMinimum]: 'gas_limit_below_minimum',
   [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',

@@ -3,7 +3,7 @@ import {
   formatExchangeRate,
   formatPriceRangeLabel,
   formatTokenPrice,
-  isPriceRangeInCurrentCurrency,
+  isInvertedPriceRange,
   isValidPriceRange,
   matchingPricePercent,
   parsePriceInput,
@@ -139,6 +139,29 @@ describe('isValidPriceRange', () => {
   });
 });
 
+describe('isInvertedPriceRange', () => {
+  it.each([
+    ['2000', '1000'],
+    ['2000', '2000'],
+  ])('returns true when min %s is not less than max %s', (min, max) => {
+    const result = isInvertedPriceRange(min, max);
+
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['1800', '2200'],
+    ['1800', ''],
+    ['', '2200'],
+    ['', ''],
+    ['.', '1000'],
+  ])('returns false for min %s and max %s', (min, max) => {
+    const result = isInvertedPriceRange(min, max);
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('matchingPricePercent', () => {
   it('returns the percent whose computed price matches the field', () => {
     const result = matchingPricePercent('1800.00', 2000, [-1, -10, -25]);
@@ -150,42 +173,6 @@ describe('matchingPricePercent', () => {
     const result = matchingPricePercent('1850', 2000, [-1, -10, -25]);
 
     expect(result).toBeUndefined();
-  });
-});
-
-describe('isPriceRangeInCurrentCurrency', () => {
-  const range = {
-    tokenSide: 'dest' as const,
-    currency: 'usd',
-    min: '0.90',
-    max: '1.10',
-  };
-
-  it('returns true when currency codes match ignoring case', () => {
-    const result = isPriceRangeInCurrentCurrency(range, 'USD');
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when currency codes differ', () => {
-    const result = isPriceRangeInCurrentCurrency(range, 'eur');
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the range is undefined', () => {
-    const result = isPriceRangeInCurrentCurrency(undefined, 'USD');
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the stored currency is missing', () => {
-    const result = isPriceRangeInCurrentCurrency(
-      { tokenSide: 'dest', currency: '', min: '1', max: '2' },
-      'USD',
-    );
-
-    expect(result).toBe(false);
   });
 });
 

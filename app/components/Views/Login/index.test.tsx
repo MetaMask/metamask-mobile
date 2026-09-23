@@ -484,6 +484,9 @@ describe('Login', () => {
         <Login />,
       );
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
+      expect(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+      ).toBeOnTheScreen();
       expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
       expect(queryByTestId(LoginViewSelectors.TITLE_ID)).not.toBeOnTheScreen();
       expect(
@@ -591,10 +594,14 @@ describe('Login', () => {
       ['Decrypt failed', 'generic decryption failure'],
       [
         'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
-        'Android BAD_DECRYPT',
+        'Android legacy OPENSSL BAD_DECRYPT',
+      ],
+      [
+        'Cipher.final(...): Cipher final failed: error:1C800064:Provider routines::bad decrypt',
+        'Android Provider routines bad decrypt',
       ],
       ['error in DoCipher, status: 2', 'Android DoCipher'],
-      ['Password is incorrect, try again.', 'incorrect password'],
+      ['Incorrect password. Try again.', 'incorrect password'],
     ])('displays invalid password error for %s', async (errorMessage) => {
       mockUnlockWallet.mockRejectedValueOnce(new Error(errorMessage));
       const { getByTestId } = renderWithProvider(<Login />);
@@ -1085,14 +1092,11 @@ describe('Login', () => {
 
     it('tracks LOGIN_DOWNLOAD_LOGS and calls downloadStateLogs on long press', () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      const foxAnimationMock = getByTestId('fox-animation-mock');
-      const foxWrapper = foxAnimationMock.parent;
 
-      if (!foxWrapper) {
-        throw new Error('Fox animation wrapper not found');
-      }
-
-      fireEvent(foxWrapper, 'longPress');
+      fireEvent(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+        'longPress',
+      );
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,
@@ -2084,12 +2088,11 @@ describe('Login', () => {
 
     it('tracks LOGIN_DOWNLOAD_LOGS on long press', () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      const foxAnimationMock = getByTestId('fox-animation-mock');
-      const foxWrapper = foxAnimationMock.parent;
-      if (!foxWrapper) {
-        throw new Error('Fox animation wrapper not found');
-      }
-      fireEvent(foxWrapper, 'longPress');
+
+      fireEvent(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+        'longPress',
+      );
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,

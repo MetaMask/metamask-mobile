@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectBridgeQuotes,
+  selectQuoteStreamComplete,
   selectSlippage,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -47,6 +48,7 @@ export const useBridgeQuoteEvents = ({
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
   );
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
   const isFirstQuoteUsable =
@@ -130,16 +132,21 @@ export const useBridgeQuoteEvents = ({
     }
   }, [firstUsableQuoteRequestId]);
 
+  // The stream's complete event drives the empty-state UI before close updates
+  // loading status and refresh count. Finish on that same explicit signal.
   useEffect(() => {
-    if (
-      !isLoading &&
-      quotesRefreshCount > 0 &&
-      !quoteFetchError &&
-      hasNoQuotesAvailable
-    ) {
-      swapQuoteFetchTrace.finish('no_quotes');
+    if (!quoteFetchError && quoteStreamComplete?.hasQuotes === false) {
+      swapQuoteFetchTrace.finish(
+        'no_quotes',
+        undefined,
+        quoteStreamComplete?.reason,
+      );
     }
-  }, [hasNoQuotesAvailable, isLoading, quoteFetchError, quotesRefreshCount]);
+  }, [
+    quoteFetchError,
+    quoteStreamComplete?.hasQuotes,
+    quoteStreamComplete?.reason,
+  ]);
 
   useEffect(() => {
     if (quoteFetchError) {

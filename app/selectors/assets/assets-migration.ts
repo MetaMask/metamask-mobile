@@ -1,5 +1,4 @@
 import { createDeepEqualSelector } from '../util';
-import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import {
   type AccountTrackerControllerState,
   type CurrencyRateState,
@@ -58,10 +57,6 @@ const isStakedTokenAssetId = (assetId: string): boolean => {
 export const getAccountTrackerControllerAccountsByChainId =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.AccountTrackerController
-          ?.accountsByChainId ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
       (state) =>
@@ -71,16 +66,10 @@ export const getAccountTrackerControllerAccountsByChainId =
           ?.accounts ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      accountsByChainId: AccountTrackerControllerState['accountsByChainId'],
       assetsBalance: AssetsControllerState['assetsBalance'],
       assetsInfo: AssetsControllerState['assetsInfo'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): AccountTrackerControllerState['accountsByChainId'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return accountsByChainId;
-      }
-
       const result: AccountTrackerControllerState['accountsByChainId'] = {};
 
       for (const [accountId, accountBalances] of Object.entries(
@@ -139,8 +128,6 @@ export const getAccountTrackerControllerAccountsByChainId =
 // ChainId (hex) -> AccountAddress (hex lowercase) -> Array of Tokens
 export const getTokensControllerAllTokens = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) => state.engine?.backgroundState?.TokensController?.allTokens ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
@@ -152,17 +139,11 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    allTokens: TokensControllerState['allTokens'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokensControllerState['allTokens'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return allTokens;
-    }
-
     const result: TokensControllerState['allTokens'] = {};
 
     // Merge assetsBalance and customAssets: accountId -> assetId[]
@@ -230,9 +211,6 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
 // ChainId (hex) -> AccountAddress (hex lowercase) -> Array of TokenAddress (hex lowercase)
 export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.TokensController?.allIgnoredTokens ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetPreferences ?? {},
     (state) =>
@@ -240,15 +218,9 @@ export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    allIgnoredTokens: TokensControllerState['allIgnoredTokens'],
     assetPreferences: AssetsControllerState['assetPreferences'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokensControllerState['allIgnoredTokens'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return allIgnoredTokens;
-    }
-
     const result: TokensControllerState['allIgnoredTokens'] = {};
 
     for (const [assetId, { hidden }] of Object.entries(assetPreferences)) {
@@ -284,10 +256,6 @@ export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
 // AcountAddress (hex lowercase) -> ChainId (hex) -> TokenAddress (hex checksummed) -> Balance (hex)
 export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.TokenBalancesController?.tokenBalances ??
-      {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
@@ -299,17 +267,11 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    tokenBalances: TokenBalancesControllerState['tokenBalances'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokenBalancesControllerState['tokenBalances'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return tokenBalances;
-    }
-
     const result: TokenBalancesControllerState['tokenBalances'] = {};
     for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
       const internalAccount = internalAccountsById[accountId];
@@ -413,10 +375,6 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
 export const getMultiChainAssetsControllerAccountsAssets =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsController
-          ?.accountsAssets ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
       (state) =>
@@ -426,16 +384,10 @@ export const getMultiChainAssetsControllerAccountsAssets =
           ?.accounts ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      accountsAssets: MultichainAssetsControllerState['accountsAssets'],
       assetsBalance: AssetsControllerState['assetsBalance'],
       customAssets: AssetsControllerState['customAssets'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): MultichainAssetsControllerState['accountsAssets'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return accountsAssets;
-      }
-
       const result: MultichainAssetsControllerState['accountsAssets'] = {};
 
       // Merge assetsBalance and customAssets: accountId -> assetId[]
@@ -482,22 +434,12 @@ export const getMultiChainAssetsControllerAccountsAssets =
 export const getMultiChainAssetsControllerAssetsMetadata =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsController
-          ?.assetsMetadata ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      assetsMetadata: MultichainAssetsControllerState['assetsMetadata'],
       assetsInfo: AssetsControllerState['assetsInfo'],
     ): MultichainAssetsControllerState['assetsMetadata'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return assetsMetadata;
-      }
-
       const result: MultichainAssetsControllerState['assetsMetadata'] = {};
 
       for (const [assetId, metadata] of Object.entries(assetsInfo)) {
@@ -529,10 +471,6 @@ export const getMultiChainAssetsControllerAssetsMetadata =
 export const getMultiChainAssetsControllerAllIgnoredAssets =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsController
-          ?.allIgnoredAssets ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetPreferences ?? {},
       (state) =>
@@ -540,15 +478,9 @@ export const getMultiChainAssetsControllerAllIgnoredAssets =
           ?.accounts ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      allIgnoredAssets: MultichainAssetsControllerState['allIgnoredAssets'],
       assetPreferences: AssetsControllerState['assetPreferences'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): MultichainAssetsControllerState['allIgnoredAssets'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return allIgnoredAssets;
-      }
-
       const result: MultichainAssetsControllerState['allIgnoredAssets'] = {};
 
       for (const accountId of Object.keys(internalAccountsById)) {
@@ -580,10 +512,6 @@ export const getMultiChainAssetsControllerAllIgnoredAssets =
 // AccountId -> AssetId -> Balance (amount + unit)
 export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.MultichainBalancesController?.balances ??
-      {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
     (state) =>
@@ -593,16 +521,10 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
         ?.accounts ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    balances: MultichainBalancesControllerState['balances'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): MultichainBalancesControllerState['balances'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return balances;
-    }
-
     const result: MultichainBalancesControllerState['balances'] = {};
 
     for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
@@ -637,47 +559,26 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
 
 export const getCurrencyRateControllerCurrentCurrency = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.CurrencyRateController?.currentCurrency,
     (state) =>
       state.engine?.backgroundState?.AssetsController?.selectedCurrency,
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    currentCurrency: CurrencyRateState['currentCurrency'],
     selectedCurrency: AssetsControllerState['selectedCurrency'],
-  ): CurrencyRateState['currentCurrency'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return currentCurrency;
-    }
-
-    return selectedCurrency;
-  },
+  ): CurrencyRateState['currentCurrency'] => selectedCurrency,
 );
 
 // Native Symbol -> Rates (conversionRate, usdConversionRate, conversionDate)
 export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.CurrencyRateController?.currencyRates ??
-      {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    currencyRates: CurrencyRateState['currencyRates'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsPrice: AssetsControllerState['assetsPrice'],
   ): CurrencyRateState['currencyRates'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return currencyRates;
-    }
-
     const result: CurrencyRateState['currencyRates'] = {};
 
     // Sorting just to ensure that we process mainnet (eip155:1) first
@@ -719,9 +620,6 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
 // ChainId (hex) -> TokenAddress (hex checksummed) -> MarketData
 export const getTokenRatesControllerMarketData = createDeepEqualSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
-    (state) =>
-      state.engine?.backgroundState?.TokenRatesController?.marketData ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
     (state) =>
@@ -732,17 +630,11 @@ export const getTokenRatesControllerMarketData = createDeepEqualSelector(
         ?.networkConfigurationsByChainId ?? {},
   ],
   (
-    isAssetsUnifyStateEnabled: boolean,
-    marketData: TokenRatesControllerState['marketData'],
     assetsPrice: AssetsControllerState['assetsPrice'],
     assetsInfo: AssetsControllerState['assetsInfo'],
     currencyRates: CurrencyRateState['currencyRates'],
     networkConfigurationsByChainId: NetworkState['networkConfigurationsByChainId'],
   ): TokenRatesControllerState['marketData'] => {
-    if (!isAssetsUnifyStateEnabled) {
-      return marketData;
-    }
-
     const result: TokenRatesControllerState['marketData'] = {};
 
     for (const [assetId, price] of Object.entries(assetsPrice) as [
@@ -814,22 +706,12 @@ export const getTokenRatesControllerMarketData = createDeepEqualSelector(
 export const getMultichainAssetsRatesControllerConversionRates =
   createDeepEqualSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
-      (state) =>
-        state.engine?.backgroundState?.MultichainAssetsRatesController
-          ?.conversionRates ?? {},
       (state) =>
         state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
-      conversionRates: MultichainAssetsRatesControllerState['conversionRates'],
       assetsPrice: AssetsControllerState['assetsPrice'],
     ): MultichainAssetsRatesControllerState['conversionRates'] => {
-      if (!isAssetsUnifyStateEnabled) {
-        return conversionRates;
-      }
-
       const result: MultichainAssetsRatesControllerState['conversionRates'] =
         {};
 

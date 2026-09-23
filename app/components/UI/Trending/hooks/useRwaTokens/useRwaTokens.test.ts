@@ -1,6 +1,6 @@
 import { useRwaTokens } from './useRwaTokens';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { fetchRwas } from '@metamask/assets-controllers';
+import { fetchRwas, type TrendingAsset } from '@metamask/assets-controllers';
 import {
   PriceChangeOption,
   SortDirection,
@@ -15,8 +15,13 @@ jest.mock('@metamask/assets-controllers', () => ({
 
 const mockFetchRwas = jest.mocked(fetchRwas);
 type RwaToken = Awaited<ReturnType<typeof fetchRwas>>['data'][number];
+type RwaTokenWithSecurityData = RwaToken & {
+  securityData?: TrendingAsset['securityData'];
+};
 
-const createRwaToken = (overrides: Partial<RwaToken> = {}): RwaToken => ({
+const createRwaToken = (
+  overrides: Partial<RwaTokenWithSecurityData> = {},
+): RwaTokenWithSecurityData => ({
   id: '1',
   assetId: 'eip155:1/erc20:0xaaa' as CaipAssetType,
   symbol: 'OUSG',
@@ -87,6 +92,18 @@ describe('useRwaTokens', () => {
     });
   });
 
+  it('requests token security data when enabled', async () => {
+    renderHookWithProvider(() =>
+      useRwaTokens({ includeTokenSecurityData: true }),
+    );
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ includeTokenSecurityData: true }),
+      );
+    });
+  });
+
   it('uses provided chainIds instead of defaults', async () => {
     const customChainIds: CaipChainId[] = ['eip155:137' as CaipChainId];
 
@@ -153,6 +170,49 @@ describe('useRwaTokens', () => {
     });
 
     expect(result.current.data[0].price).toBe('200.00');
+  });
+
+  it('preserves token security data when normalizing the response', async () => {
+    const securityData: TrendingAsset['securityData'] = {
+      resultType: 'Verified',
+      maliciousScore: '0',
+      features: [],
+      fees: {
+        transfer: 0,
+        transferFeeMaxAmount: null,
+        buy: 0,
+        sell: null,
+      },
+      financialStats: {
+        supply: 1000000,
+        topHolders: [],
+        holdersCount: 100,
+        tradeVolume24h: null,
+        lockedLiquidityPct: null,
+        markets: [],
+      },
+      metadata: {
+        externalLinks: {
+          homepage: null,
+          twitterPage: null,
+          telegramChannelId: null,
+        },
+      },
+      created: '2023-01-01T00:00:00Z',
+    };
+    arrangeMocks({
+      tokens: [createRwaToken({ securityData })],
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useRwaTokens({ includeTokenSecurityData: true }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data[0].securityData).toEqual(securityData);
   });
 
   it('passes price_change_asc sortBy when ascending PriceChange selected', async () => {

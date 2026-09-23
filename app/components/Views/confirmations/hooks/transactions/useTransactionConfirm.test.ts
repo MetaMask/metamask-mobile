@@ -28,12 +28,17 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { PayWithOption } from '../../components/confirm/confirm-component';
+import {
+  ConfirmationLaunchSource,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
+import { StackActions } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -61,6 +66,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    dispatch: mockDispatch,
   }),
 }));
 
@@ -108,11 +114,11 @@ const gasFeeToken = (
   ({
     tokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
     symbol: 'USDC',
-    transferTransaction: {
+    getTransferTransaction: () => ({
       data: '0xabc',
       to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
       value: '0x0',
-    },
+    }),
     gas: '0x5208',
     maxFeePerGas: '0x1',
     maxPriorityFeePerGas: '0x2',
@@ -518,6 +524,62 @@ describe('useTransactionConfirm', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
+    it('money home over the Rewards stack if money account deposit was launched from Rewards', async () => {
+      useParamsMock.mockReturnValue({
+        launchedFrom: ConfirmationLaunchSource.Rewards,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      // Replacing keeps the Rewards campaign underneath, so Money home's back
+      // button returns there; a HOME_TABS switch would strand the user.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.MONEY.ROOT, {
+          screen: Routes.MONEY.HOME,
+          params: {
+            showBackButton: true,
+            launchedFrom: ConfirmationLaunchSource.Rewards,
+          },
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('back to the existing money home if the deposit was launched from a Rewards-originated money home', async () => {
+      useParamsMock.mockReturnValue({
+        launchedFrom: ConfirmationLaunchSource.RewardsMoneyHome,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      // Money home is already on the stack, so popping back to it avoids
+      // landing the user on a second copy stacked over the first.
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        StackActions.replace(Routes.MONEY.ROOT, expect.anything()),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('defers money account deposit navigation until requested', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -762,7 +824,11 @@ describe('useTransactionConfirm', () => {
       });
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(true));
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc', to: '0xdef', value: '0x0' },
+        getTransferTransaction: () => ({
+          data: '0xabc',
+          to: '0xdef',
+          value: '0x0',
+        }),
         gas: '0x5208',
         maxFeePerGas: '0x1',
         maxPriorityFeePerGas: '0x2',
@@ -861,7 +927,7 @@ describe('useTransactionConfirm', () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc' },
+        getTransferTransaction: () => ({ data: '0xabc' }),
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
 
       const { result } = renderHook();
@@ -881,7 +947,7 @@ describe('useTransactionConfirm', () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc' },
+        getTransferTransaction: () => ({ data: '0xabc' }),
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
 
       const { result } = renderHook();
@@ -917,7 +983,7 @@ describe('useTransactionConfirm', () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
-        transferTransaction: { data: '0xabc' },
+        getTransferTransaction: () => ({ data: '0xabc' }),
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
 
       useTransactionMetadataRequestMock.mockReturnValue({

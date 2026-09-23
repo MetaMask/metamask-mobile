@@ -5,11 +5,9 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  FeatureId,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -20,7 +18,6 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,
@@ -35,7 +32,6 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectBridgeBalanceRefreshKey,
   selectBridgeControllerState,
   selectQuoteStreamComplete,
   selectSlippage,
@@ -53,10 +49,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { createStyles } from './BridgeMarketView.styles';
 import { useInitialSourceToken } from '../../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../../hooks/useInitialDestToken';
@@ -125,22 +118,26 @@ import {
 } from '../../../components/SwapsBanners';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError/index.ts';
+import { getQuoteEventWarningState } from './BridgeMarketView.utils';
 import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable/index.ts';
 import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
 import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
+import { isGaslessQuote } from '../../../utils/isGaslessQuote';
+import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
+import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
+import {
+  GASLESS_SWAP_REDESIGN_AB_KEY,
+  GASLESS_SWAP_REDESIGN_EXPOSURE_METADATA,
+  GASLESS_SWAP_REDESIGN_VARIANTS,
+} from '../../../components/QuoteDetailsCard/abTestConfig';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
-interface BridgeMarketViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeMarketViewContent = ({
-  latestSourceBalance,
-}: BridgeMarketViewContentProps) => {
+const BridgeMarketViewContent = () => {
   const [isNearBottom, setIsNearBottom] = useState(false);
 
   const { isStockMarketClosed } = useStockMarketHours();
@@ -209,7 +206,6 @@ const BridgeMarketViewContent = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
-    featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -276,12 +272,14 @@ const BridgeMarketViewContent = ({
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
+  const { latestSourceBalance } = useBridgeSession();
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const {
     activeQuote,
+    formattedQuoteData,
     isLoading,
     destTokenAmount,
     isNoQuotesAvailable,
@@ -396,10 +394,19 @@ const BridgeMarketViewContent = ({
     destToken?.chainId,
     isGasFeesSponsoredNetworkEnabled,
   ]);
+  const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
+    quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
+    hasInsufficientBalance,
+  });
 
   const hasInsufficientNativeReserveError = Boolean(
     insufficientNativeReserveError,
   );
+  const quoteEventWarningState = getQuoteEventWarningState({
+    hasInsufficientGas,
+    hasInsufficientNativeReserveError,
+    sourceToken,
+  });
 
   const isSubmitDisabled =
     (isLoading && !activeQuote) ||
@@ -419,9 +426,10 @@ const BridgeMarketViewContent = ({
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
-    hasInsufficientNativeReserveError,
+    hasInsufficientNativeReserveError:
+      quoteEventWarningState.hasInsufficientNativeReserveError,
     hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas,
+    hasInsufficientGas: quoteEventWarningState.hasInsufficientGas,
     hasTxAlert: Boolean(blockaidError),
     isNetworkFeeUnavailable,
     isSubmitDisabled,
@@ -501,7 +509,6 @@ const BridgeMarketViewContent = ({
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Source,
-      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const handleFlipTokensPress = useCallback(() => {
@@ -514,7 +521,6 @@ const BridgeMarketViewContent = ({
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
-      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const getContentMode = () => {
@@ -530,6 +536,30 @@ const BridgeMarketViewContent = ({
     return 'quote';
   };
   const contentMode = getContentMode();
+  const networkFee = formattedQuoteData?.networkFee;
+  const gaslessFeeAsset = getGaslessFeeAsset(
+    activeQuote?.quote?.feeData?.txFee,
+  );
+  const isGaslessSwapRedesignEligible =
+    contentMode === 'quote' &&
+    isGaslessQuote(activeQuote?.quote) &&
+    !shouldShowGasSponsored;
+  const { variant: gaslessSwapRedesignVariant } = useABTest(
+    GASLESS_SWAP_REDESIGN_AB_KEY,
+    GASLESS_SWAP_REDESIGN_VARIANTS,
+    {
+      ...GASLESS_SWAP_REDESIGN_EXPOSURE_METADATA,
+      trackExposure: isGaslessSwapRedesignEligible,
+    },
+  );
+  const showGaslessRedesign =
+    isGaslessSwapRedesignEligible && gaslessSwapRedesignVariant.redesigned;
+  const destinationGasFeeLabel =
+    showGaslessRedesign && networkFee && networkFee !== '-'
+      ? strings('bridge.gas_fee_deduction', {
+          fee: networkFee,
+        })
+      : undefined;
   const shouldShowDiscoveryFeed = contentMode === 'zero';
   const hasInteractiveDiscoverySurface =
     shouldShowDiscoveryFeed && discoveryFeedVariant.mode !== 'empty';
@@ -637,13 +667,13 @@ const BridgeMarketViewContent = ({
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
                   showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  destinationGasFeeLabel={destinationGasFeeLabel}
                 />
               </Box>
             </Box>
           </Box>
 
           <SwapsBanners
-            latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
             location={location}
             onAdjustSourceAmount={handleSourcePresetAmountSelect}
           >
@@ -672,6 +702,10 @@ const BridgeMarketViewContent = ({
                 <QuoteDetailsCard
                   location={location}
                   hasInsufficientBalance={hasInsufficientBalance}
+                  gaslessFeeAsset={
+                    showGaslessRedesign ? gaslessFeeAsset : undefined
+                  }
+                  isGaslessSwapRedesignTreatment={showGaslessRedesign}
                 />
               </Box>
             ) : null}
@@ -692,7 +726,6 @@ const BridgeMarketViewContent = ({
 
         <BridgeMarketViewFooter
           location={location}
-          latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
 
@@ -706,7 +739,6 @@ const BridgeMarketViewContent = ({
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsMarketOrderConfirmButton
               location={location}
-              latestSourceBalance={latestSourceBalance}
               transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />
@@ -725,24 +757,4 @@ const BridgeMarketViewContent = ({
   );
 };
 
-const BridgeMarketView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeMarketViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
-  );
-};
-
-export default BridgeMarketView;
+export default BridgeMarketViewContent;

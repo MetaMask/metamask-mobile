@@ -224,7 +224,7 @@ const TraderPositionView = () => {
   }, [navigation]);
 
   const handleTraderPress = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+    navigation.navigate(Routes.SOCIAL.PROFILE, {
       traderId,
       traderName,
     });

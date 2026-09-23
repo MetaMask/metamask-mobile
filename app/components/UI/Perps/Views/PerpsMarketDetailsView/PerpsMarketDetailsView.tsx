@@ -1,12 +1,16 @@
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button as DSButton,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  FilterButtonVariant,
   IconName,
   Text,
   TextColor,
@@ -42,6 +46,7 @@ import {
   PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -109,9 +114,13 @@ import {
   selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
+  selectPerpsPriceAlertsEnabledFlag,
 } from '../../selectors/featureFlags';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
-import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
+import {
+  PERPS_MIN_BALANCE_THRESHOLD,
+  PROVIDER_CONFIG,
+} from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -121,6 +130,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -149,6 +159,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
   PERPS_MARKET_DETAIL_SECTION,
@@ -184,7 +195,10 @@ import {
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { useABTest } from '../../../../../hooks/useABTest';
@@ -194,6 +208,7 @@ import {
 } from '../../abTestConfig';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import { refreshLightweightChartViewport } from '../../utils/refreshLightweightChartViewport';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -282,8 +297,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
   // Use centralized navigation hook for all Perps navigation
-  const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
-    usePerpsNavigation();
+  const {
+    navigateToOrder,
+    navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+  } = usePerpsNavigation();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   // Use position management hook for bottom sheet state and handlers
   const {
@@ -317,6 +337,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const activeProvider = useSelector(selectPerpsProvider);
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
@@ -338,10 +359,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     // If route market already has all required fields, use it directly
     if (!needsEnrichment) return routeMarket;
 
-    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
+    const defaultCandidateProvider =
+      activeProvider !== undefined &&
+      activeProvider !== PROVIDER_CONFIG.AggregatedProvider
+        ? activeProvider
+        : PROVIDER_CONFIG.DefaultProvider;
+    const preferredProvider =
+      routeMarket?.providerId ?? defaultCandidateProvider;
+    const fullMarket = markets.find(
+      (candidate) =>
+        candidate.symbol === routeMarket?.symbol &&
+        (candidate.providerId ?? defaultCandidateProvider) ===
+          preferredProvider,
+    );
 
     return fullMarket || routeMarket;
-  }, [markets, routeMarket, needsEnrichment]);
+  }, [activeProvider, markets, routeMarket, needsEnrichment]);
 
   // About section: fires displayed (on render) + viewed (on scroll into view)
   // analytics and gates the section's visibility on an available description.
@@ -442,6 +475,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }, [market?.symbol]);
 
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const isPriceAlertsEnabled = useSelector(selectPerpsPriceAlertsEnabledFlag);
   const {
     perpsMode,
     isWatchlist,
@@ -523,9 +557,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(
-    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
-  );
+  const { visibleCandleCount, onVisibleCandleCountChange } =
+    usePerpsVisibleCandleCount(market?.symbol);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
@@ -765,7 +798,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             Logger.error(
               ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
               {
-                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'PerpsMarketDetailsView',
+                  action: 'financial_deposit',
+                  operation: 'financial_operations',
+                },
               },
             );
           },
@@ -773,7 +811,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsMarketDetailsView',
+          action: 'financial_deposit',
+          operation: 'financial_operations',
+        },
       });
     }
   }, [
@@ -968,15 +1011,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     setRefreshing(true);
 
     try {
-      // Reset chart to default state (like initial navigation)
-      setVisibleCandleCount(45);
-
-      // Reset chart view to default position
+      // Snap the viewport to the latest candles; keep the persisted zoom.
       if (isAdvancedChartEnabled) {
         setEffectiveChartLibrary(configuredChartLibrary);
         setAdvancedChartResetKey((key) => key + 1);
       } else {
-        chartRef.current?.resetToDefault();
+        refreshLightweightChartViewport(chartRef.current, visibleCandleCount);
       }
 
       // WebSocket streaming provides real-time data - no manual refresh needed
@@ -989,7 +1029,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [configuredChartLibrary, isAdvancedChartEnabled]);
+  }, [configuredChartLibrary, isAdvancedChartEnabled, visibleCandleCount]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1182,11 +1222,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         navigateToOrder({
           direction,
           asset: market.symbol,
+          ...(market.providerId ? { providerId: market.providerId } : {}),
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
           ...(source_section ? { source_section } : {}),
           chartLibrary,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
+          ...(useBottomSheet ? { useBottomSheet: true } : {}),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -1202,9 +1244,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       source_section,
       transactionActiveAbTests,
       market?.symbol,
+      market?.providerId,
       marketData,
       isButtonColorTestEnabled,
       chartLibrary,
+      useBottomSheet,
     ],
   );
 
@@ -1258,6 +1302,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         position: existingPosition,
         initialTakeProfitPrice: existingPosition.takeProfitPrice,
         initialStopLossPrice: existingPosition.stopLossPrice,
+        ...(useBottomSheet ? { useBottomSheet: true } : {}),
         onConfirm: async (
           positionFromRoute?: Position,
           takeProfitPrice?: string,
@@ -1287,6 +1332,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     handleUpdateTPSL,
     isEligible,
     track,
+    useBottomSheet,
   ]);
 
   const handleMarginPress = useCallback(() => {
@@ -1305,9 +1351,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
+      // The bottom sheet treatment carries its own add/remove toggle, so the
+      // separate action-choice sheet is redundant there.
+      if (useBottomSheet) {
+        navigateToAdjustMargin(existingPosition, 'add', {
+          useBottomSheet: true,
+        });
+        return;
+      }
+
       openAdjustMarginSheet();
     });
-  }, [gate, existingPosition, openAdjustMarginSheet, isEligible, track]);
+  }, [
+    gate,
+    existingPosition,
+    openAdjustMarginSheet,
+    isEligible,
+    track,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
@@ -1412,10 +1475,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
-      // Navigate directly to PerpsAdjustMarginView with mode='add'
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
-        position: existingPosition,
-        mode: 'add',
+      navigateToAdjustMargin(existingPosition, 'add', {
+        useBottomSheet,
       });
 
       // Track the interaction - use ADD_MARGIN interaction type for banner clicks
@@ -1427,7 +1488,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
       });
     });
-  }, [gate, existingPosition, navigation, track, isEligible]);
+  }, [
+    gate,
+    existingPosition,
+    track,
+    isEligible,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   // Handler for "Set Stop Loss" from stop loss prompt banner
   const handleSetStopLossFromBanner = useCallback(() => {
@@ -1592,6 +1660,27 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       ...chartAnalyticsProperties,
     });
   }, [chartAnalyticsProperties, market?.symbol, track]);
+
+  const handlePriceAlertsPress = useCallback(() => {
+    if (!market) return;
+    // Prefer the stable backend-issued id from the v3 Terminal snapshot; fall back to
+    // deriving it from symbol + provider + network for HyperLiquid-direct paths.
+    // providerId is 'hyperliquid', not 'hyperliquid-mainnet', so we append '-mainnet'.
+    const marketId =
+      market.id ??
+      `${market.symbol.toLowerCase()}-${market.providerId ?? 'hyperliquid'}-mainnet`;
+    // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
+    const displaySymbol = getPerpsDisplaySymbol(market.symbol);
+    navigation.navigate(Routes.PERPS.PRICE_ALERTS, {
+      symbol: displaySymbol,
+      ticker: displaySymbol,
+      currentPrice,
+      currentCurrency: 'usd',
+      assetId: market.symbol,
+      mode: 'perps',
+      marketId,
+    });
+  }, [market, currentPrice, navigation]);
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);
@@ -1836,6 +1925,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           setChartDeliveryRevision((revision) => revision + 1)
         }
         onError={handleChartError}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         fallbackCandleData={candleData}
         fallbackDeliveryRevision={priceDeliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -1861,6 +1951,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
       />
     );
@@ -1909,12 +2000,49 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             size="large"
             onLayout={handleMarketSummaryLayout}
             endAccessory={
+              isPriceAlertsEnabled ? (
+                <ButtonIcon
+                  iconName={IconName.Notification}
+                  size={ButtonIconSize.Md}
+                  variant={ButtonIconVariant.Filled}
+                  onPress={handlePriceAlertsPress}
+                  isDisabled={!isMarketContextReady}
+                  style={styles.marketSummaryFullscreenButton}
+                  accessibilityLabel={strings('perps.price_alerts.open')}
+                  testID={
+                    PerpsMarketDetailsViewSelectorsIDs.PRICE_ALERTS_BUTTON
+                  }
+                />
+              ) : undefined
+            }
+          />
+
+          {/* TradingView Chart Section */}
+          <View style={[styles.section, styles.chartSection]}>
+            {/* Chart nav row — mirrors Pro layout exactly */}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="mt-2 mb-2 gap-6"
+            >
+              <CandlePeriodSelector
+                selectedPeriod={selectedCandlePeriod}
+                onPeriodChange={handleCandlePeriodChange}
+                onMorePress={handleMorePress}
+                twClassName="flex-1 py-0"
+                groupTwClassName="gap-2"
+                filterVariant={FilterButtonVariant.Secondary}
+                periodButtonTwClassName="h-8 rounded-lg px-1"
+                moreButtonTwClassName="h-8 rounded-lg px-1"
+                textVariant={TextVariant.BodySm}
+                fillWidth
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
+              />
               <ButtonIcon
                 iconName={IconName.Expand}
-                size={ButtonIconSize.Md}
+                size={ButtonIconSize.Sm}
                 onPress={handleFullscreenChartOpen}
                 isDisabled={!isMarketContextReady}
-                style={styles.marketSummaryFullscreenButton}
                 testID={
                   PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON
                 }
@@ -1922,11 +2050,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                   'perps.market_details.fullscreen_chart',
                 )}
               />
-            }
-          />
-
-          {/* TradingView Chart Section */}
-          <View style={[styles.section, styles.chartSection]}>
+            </Box>
             <ComponentErrorBoundary
               componentLabel="PerpsMarketDetailsChart"
               onError={handleChartError}
@@ -1954,14 +2078,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 {detailChartContent}
               </View>
             </ComponentErrorBoundary>
-
-            {/* Candle Period Selector */}
-            <CandlePeriodSelector
-              selectedPeriod={selectedCandlePeriod}
-              onPeriodChange={handleCandlePeriodChange}
-              onMorePress={handleMorePress}
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
-            />
           </View>
 
           {/* Price Deviation Warning - outside chart section so px-4 isn't doubled with section padding */}
@@ -2026,19 +2142,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (
-            perpsInsightsReport ? (
-              <MarketInsightsEntryCard
-                report={perpsInsightsReport}
-                timeAgo={perpsInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                traceId={perpsInsightsEntryTraceId}
-                source="perps"
-                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-              />
-            ) : (
-              <MarketInsightsEntryCardSkeleton />
-            )
+            <Box twClassName="mb-4">
+              {perpsInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={perpsInsightsReport}
+                  timeAgo={perpsInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                  traceId={perpsInsightsEntryTraceId}
+                  source="perps"
+                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
+            </Box>
           ) : null}
 
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
@@ -2236,6 +2354,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           visibleCandleCount={visibleCandleCount}
           onClose={handleFullscreenChartClose}
           onIntervalChange={handleCandlePeriodChange}
+          onVisibleCandleCountChange={onVisibleCandleCountChange}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           symbol={market?.symbol}
           positionSize={existingPosition?.size}
@@ -2259,6 +2378,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
           testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_ACTION_SHEET}
+          useBottomSheet={useBottomSheet}
         />
       )}
 
@@ -2268,6 +2388,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           sheetRef={adjustMarginActionSheetRef}
           position={existingPosition ?? undefined}
           onClose={closeAdjustMarginSheet}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

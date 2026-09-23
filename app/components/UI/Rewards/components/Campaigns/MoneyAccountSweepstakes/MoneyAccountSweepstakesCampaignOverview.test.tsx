@@ -8,7 +8,14 @@ import {
   type CampaignDto,
   type MoneyAccountSweepstakesStatsMeDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -88,6 +95,10 @@ const stats: MoneyAccountSweepstakesStatsMeDto = {
 };
 
 describe('MoneyAccountSweepstakesCampaignOverview', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('uses qualifying deposits for the balance display and qualification shortfall', () => {
     const { getByText, queryByText } = render(
       <MoneyAccountSweepstakesCampaignOverview
@@ -255,4 +266,80 @@ describe('MoneyAccountSweepstakesCampaignOverview', () => {
       ).toBeNull();
     },
   );
+
+  it('flags the deposit figure as still catching up to a confirmed transaction', () => {
+    const { getByTestId, getByText } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={stats}
+        isIngestLagging
+      />,
+    );
+
+    expect(
+      getByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_LABEL,
+      ),
+    ).toBeOnTheScreen();
+    // The figure and its qualification verdict still show — the label qualifies
+    // them rather than replacing them with a spinner.
+    expect(getByText('$40.00')).toBeOnTheScreen();
+    expect(
+      getByText("Add $60.00 today to reach $100 and earn today's entry."),
+    ).toBeOnTheScreen();
+  });
+
+  it('explains the delay in an info sheet rather than inline', () => {
+    const { getByTestId, queryByText } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={stats}
+        isIngestLagging
+      />,
+    );
+
+    expect(
+      queryByText(localizedText.eligibleBalancePendingDescription),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_INFO_BUTTON,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: localizedText.eligibleBalanceTitle,
+        description: localizedText.eligibleBalancePendingDescription,
+      },
+    );
+  });
+
+  it('omits the catching-up label when the figures are up to date', () => {
+    const { queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={stats}
+      />,
+    );
+
+    expect(
+      queryByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_LABEL,
+      ),
+    ).toBeNull();
+    expect(
+      queryByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_INFO_BUTTON,
+      ),
+    ).toBeNull();
+  });
 });

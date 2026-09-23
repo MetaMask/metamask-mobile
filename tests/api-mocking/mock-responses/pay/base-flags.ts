@@ -39,6 +39,11 @@ const BASE_ASSETS_FLAGS = [
     ],
   },
   {
+    // `assetsUnifyState.useUnlockCleanup` is still read directly by the
+    // patched `@metamask/assets-controller` package (see
+    // `.yarn/patches/@metamask-assets-controller-*.patch`), independent of
+    // the app-side `assetsUnifyState` selector which has been removed.
+    // Keep this mock so `useUnlockCleanup`-gated E2E tests keep working.
     assetsUnifyState: {
       versions: {
         '8.3.0': {
@@ -1254,86 +1259,6 @@ const BASE_STX_FLAGS = [
         '0x4e65fe4dba92790696d040ac24aa414708f5c0ab',
       ],
     },
-  },
-  {
-    stxMigrationBatchStatus: [
-      {
-        value: true,
-        name: 'sentinel on',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-      },
-      {
-        name: 'sentinel off',
-        scope: {
-          value: 0,
-          type: 'threshold',
-        },
-        value: false,
-      },
-    ],
-  },
-  {
-    stxMigrationCancel: [
-      {
-        name: 'sentinel on',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: true,
-      },
-      {
-        value: false,
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-      },
-    ],
-  },
-  {
-    stxMigrationGetFees: [
-      {
-        value: true,
-        name: 'sentinel on',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-      },
-      {
-        value: false,
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-      },
-    ],
-  },
-  {
-    stxMigrationSubmitTransactions: [
-      {
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: true,
-        name: 'sentinel on',
-      },
-      {
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: false,
-      },
-    ],
   },
 ];
 

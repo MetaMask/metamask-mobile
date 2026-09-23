@@ -24,10 +24,6 @@ low_level_test_files: &low_level_test_files
   - '**/*.stories.*'
   - '**/*.snap'
 
-# LOCALE TRANSLATION FILES
-locale_translation_files: &locale_translation_files
-  - 'locales/languages/**/*.json'
-
 # CONFIG FILES
 config_files: &config_files
   - '.eslint*'
@@ -45,22 +41,24 @@ config_files: &config_files
 ci_files: &ci_files
   - '.github/**'
 
-# E2E / PERFORMANCE TEST FILES — do not require a fresh native build, but still
-# run E2E + Smart E2E selection when these are the only non-ignorable changes.
-e2e_test_files: &e2e_test_files
-  - 'tests/performance/**'
-  - 'tests/smoke-appium/**'
-  - 'tests/flows/**'
+# Shared smoke / Appium paths that request both platforms on PRs targeting main.
+e2e_smoke_infra: &e2e_smoke_infra
   - 'tests/page-objects/**'
   - 'tests/selectors/**'
   - 'tests/locators/**'
   - 'tests/framework/**'
+  - 'tests/helpers/**'
+  - 'tests/smoke-appium/**'
+
+# E2E / PERFORMANCE TEST FILES
+e2e_test_files: &e2e_test_files
+  - 'tests/performance/**'
+  - *e2e_smoke_infra
+  - 'tests/flows/**'
   - 'tests/api-mocking/**'
-  - 'tests/docs/**'
   - 'tests/scripts/**'
   - 'tests/reporters/**'
   - 'tests/tools/e2e-ai-analyzer/**'
-  - 'tests/helpers/**'
   - 'tests/playwright*.config.ts'
   - 'tests/playwright.*.config.ts'
   - 'tests/helpers.js'
@@ -69,23 +67,29 @@ e2e_test_files: &e2e_test_files
   - 'tests/teams-config.js'
 
 # ALL IGNORABLE FILES - safe to skip E2E
-e2e_ignorable:
+e2e_ignorable: &e2e_ignorable
   - *documentation_files
   - *asset_files
   - *low_level_test_files
-  - *locale_translation_files
   - *config_files
   - *ci_files
 
 # Union of ignorable + E2E test files for test-only change detection.
 e2e_test_or_ignorable:
-  - *documentation_files
-  - *asset_files
-  - *low_level_test_files
-  - *locale_translation_files
-  - *config_files
-  - *ci_files
+  - *e2e_ignorable
   - *e2e_test_files
+
+# Spec files used for flakiness detection on PRs targeting main (run changed specs twice).
+# Kept separate from all_changes so only this short list is passed through
+# workflow outputs/env vars — the full list overflows ARG_MAX on large PRs.
+e2e_spec_files:
+  - '**/*.spec.{ts,js}'
+
+# Smart E2E contract tests only run when the mode/action changes. The analyzer
+# pin lives in the action, so analyzer version bumps are included here too.
+smart_e2e_contracts:
+  - '.ai-pr-analyzer/modes/smart-e2e/**'
+  - '.github/actions/smart-e2e-selection/**'
 
 e2e_relevant_workflows:
   - '.github/workflows/ci.yml'
@@ -98,8 +102,12 @@ e2e_relevant_workflows:
   - '.github/workflows/run-performance-e2e*.yml'
   - '.github/workflows/update-e2e-fixtures.yml'
   - '.github/workflows/build.yml'
+  - '.github/workflows/performance-test-runner.yml'
+  - '.github/actions/download-e2e-artifact/**'
+  - '.github/actions/dual-upload-e2e-artifact/**'
   - '.github/actions/setup-e2e-env/**'
   - '.github/actions/smart-e2e-selection/**'
+  - '.github/scripts/qa-automation/appium-runner-prep/**'
   - '.github/scripts/qa-automation/reporting/**/*.mjs'
   - '.github/scripts/qa-automation/e2e-sharding/**/*.mjs'
   - '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs'
@@ -116,36 +124,11 @@ ios:
 # dorny/paths-filter counts each file once per filter, so these give the correct union count.
 android_or_ignorable:
   - 'android/**'
-  - *documentation_files
-  - *asset_files
-  - *low_level_test_files
-  - *locale_translation_files
-  - *config_files
-  - *ci_files
+  - *e2e_ignorable
 
 ios_or_ignorable:
   - 'ios/**'
-  - *documentation_files
-  - *asset_files
-  - *low_level_test_files
-  - *locale_translation_files
-  - *config_files
-  - *ci_files
-
-# Shared smoke / Appium paths that request both platforms on PRs targeting main.
-e2e_smoke_infra:
-  - 'tests/page-objects/**'
-  - 'tests/selectors/**'
-  - 'tests/locators/**'
-  - 'tests/framework/**'
-  - 'tests/helpers/**'
-  - 'tests/smoke-appium/**'
+  - *e2e_ignorable
 
 all_changes:
   - '**'
-
-# Spec files used for flakiness detection on PRs targeting main (run changed specs twice).
-# Kept separate from all_changes so only this short list is passed through
-# workflow outputs/env vars — the full list overflows ARG_MAX on large PRs.
-e2e_spec_files:
-  - '**/*.spec.{ts,js}'

@@ -29,6 +29,18 @@ jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
 }));
 
+jest.mock('../../../../selectors/multichain/multichain', () => {
+  const actual = jest.requireActual(
+    '../../../../selectors/multichain/multichain',
+  );
+  return {
+    ...actual,
+    selectNonEvmTransactionsForSelectedAccountGroup: jest.fn(() => ({
+      transactions: [],
+    })),
+  };
+});
+
 jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
@@ -63,11 +75,21 @@ jest.mock('../../../UI/Perps/hooks', () => ({
     isLoading: false,
     hasError: false,
   }),
+  usePerpsConnection: () => ({ isConnected: false }),
+  usePerpsTransactionHistory: () => ({ transactions: [] }),
+}));
+
+jest.mock('./Perps/usePerpsDetailsItem', () => ({
+  usePerpsDetailsItem: jest.fn(() => ({
+    item: undefined,
+    transaction: undefined,
+    isLoading: false,
+  })),
 }));
 
 const RAMP_DETAILS_STUB_TEST_ID = 'ramp-details-stub';
-jest.mock('./RampDetails', () => {
-  const actual = jest.requireActual('./RampDetails');
+jest.mock('./Ramps/RampDetails', () => {
+  const actual = jest.requireActual('./Ramps/RampDetails');
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -84,7 +106,6 @@ const rampItem = (type: 'buy' | 'sell'): ActivityListItem =>
     status: 'success',
     timestamp: 1,
     hash: '0xramp',
-    raw: { type: 'rampOrder', data: {} },
     data: {
       token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
     },
@@ -402,27 +423,6 @@ describe('TemplateLoader', () => {
       status: 'success',
       timestamp: 1,
       hash: '0xperps',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'deposit-1',
-          type: 'deposit',
-          category: 'deposit',
-          title: 'Account funded',
-          subtitle: '+$100',
-          timestamp: 1,
-          asset: 'USDC',
-          depositWithdrawal: {
-            amount: '+$100',
-            amountNumber: 100,
-            isPositive: true,
-            asset: 'USDC',
-            txHash: '0xperps',
-            status: 'completed',
-            type: 'deposit',
-          },
-        },
-      },
       data: {
         token: {
           amount: '100',
@@ -500,28 +500,6 @@ describe('TemplateLoader', () => {
     );
 
     expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
-  });
-
-  it('falls back to DefaultDetails for a non-ramp buy (no total row)', () => {
-    const buyItem = {
-      type: 'buy',
-      chainId: 'eip155:1',
-      status: 'success',
-      timestamp: 1,
-      hash: '0xbuy',
-      data: {
-        token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
-      },
-    } as ActivityListItem;
-
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <TemplateLoader item={buyItem} />,
-    );
-
-    expect(
-      getByTestId(ActivityDetailsSelectorsIDs.AMOUNT_HEADER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW)).toBeNull();
   });
 
   it('renders the SmartAccountUpgradeDetails template (fee, no total) for upgrades', () => {

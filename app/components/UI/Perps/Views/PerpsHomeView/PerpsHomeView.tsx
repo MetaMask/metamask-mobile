@@ -73,9 +73,17 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsNetwork,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
-import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
+import {
+  buildDefaultProMarket,
+  withHomeDroppedFromHistory,
+} from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -88,10 +96,6 @@ import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import {
-  selectPerpsNetwork,
-  selectPerpsWatchlistMarkets,
-} from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
@@ -121,6 +125,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -132,6 +137,7 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
@@ -168,6 +174,7 @@ const PerpsHomeView = () => {
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
@@ -188,17 +195,17 @@ const PerpsHomeView = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
+              params: withHomeDroppedFromHistory({
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-              },
+              }),
             },
           ],
         });
       }
       return true;
     },
-    [navigation, setPerpsMode],
+    [lastViewedMarketSymbol, navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
@@ -300,6 +307,10 @@ const PerpsHomeView = () => {
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
 
+  // The banner sits above the header, so whichever of the two is at the top of
+  // the screen owns the status-bar inset.
+  const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
+
   const perpsScreenTitle = strings('perps.title');
 
   const perpsScrollHandler = useAnimatedScrollHandler({
@@ -325,6 +336,7 @@ const PerpsHomeView = () => {
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
+  const [aggregateFills, setAggregateFills] = useState(true);
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -345,7 +357,7 @@ const PerpsHomeView = () => {
     recentActivity,
     sortBy,
     isLoading,
-  } = usePerpsHomeData({});
+  } = usePerpsHomeData({ aggregateFills });
 
   // Independently gates the section from the Terminal backend flag that
   // supplies `listedAt` data, so it can be hidden even when that data flows.
@@ -951,6 +963,8 @@ const PerpsHomeView = () => {
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
+            aggregateFills={aggregateFills}
+            onAggregateFillsChange={setAggregateFills}
           />
         ),
       },
@@ -990,6 +1004,7 @@ const PerpsHomeView = () => {
       forexMarkets,
       sortBy,
       recentActivity,
+      aggregateFills,
       handleSectionLayout,
       moreItems,
     ],
@@ -1091,9 +1106,12 @@ const PerpsHomeView = () => {
 
   return (
     <View style={styles.container}>
+      {/* Perps Outreach Banner */}
+      <PerpsOutreachBanner includesTopInset location="perps_home" />
+
       {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
       <HeaderStandardAnimated
-        includesTopInset
+        includesTopInset={!outreachCampaign}
         // h-16 (64px) matches the Figma header when the Lite pill is shown
         // (HeaderBase defaults to 56px).
         twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
@@ -1110,7 +1128,7 @@ const PerpsHomeView = () => {
             accessible={false}
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={1}
+            gap={2}
           >
             <ButtonIcon
               iconName={IconName.Search}

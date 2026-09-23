@@ -16,8 +16,6 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     header: {
       backgroundColor: colors.background.default,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
       paddingHorizontal: 16,
       paddingTop: 12,
       paddingBottom: 12,

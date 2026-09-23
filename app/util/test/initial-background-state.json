@@ -622,8 +622,10 @@
     "transactionData": {}
   },
   "ProfileMetricsController": {
+    "accountSourceBackfillEnqueued": false,
     "initialEnqueueCompleted": false,
     "proofBackfillEnqueued": false,
+    "reportedAccounts": [],
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -631,7 +633,8 @@
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
     "isContactSyncingEnabled": true,
-    "isContactSyncingInProgress": false
+    "isContactSyncingInProgress": false,
+    "isRampsSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
@@ -772,7 +775,9 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
-    "redeemWithdrawal": null
+    "redeemWithdrawal": null,
+    "signInLink": null,
+    "accountLookupCache": {}
   },
   "UiSlotsController": {
     "enabled": false,
@@ -791,6 +796,21 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "email": null,
+    "vendor": null,
+    "geoCountry": null,
+    "sessionStatus": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -885,7 +905,6 @@
     "moneyAccountSweepstakesPrizePool": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
-    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -898,6 +917,17 @@
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
+  },
+  "RewardsMoneyController": {
+    "referralMe": {},
+    "referralCodes": {},
+    "referralFunnel": {},
+    "earningsSummary": {},
+    "earningsLedgerFirstPage": {},
+    "claimHistoryFirstPage": {},
+    "commissionsFirstPage": {},
+    "claimById": {},
+    "rewardsMoneyEnvUrl": null
   },
   "PredictController": {
     "eligibility": {

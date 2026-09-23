@@ -118,7 +118,7 @@ describe('useTronStakeApy', () => {
       });
     });
 
-    it('sets apyPercent with truncated rate and percent symbol', async () => {
+    it('sets apyPercent with rate rounded to 1 decimal place and percent symbol', async () => {
       const witness = createMockWitnessData({ annualizedRate: '4.56789' });
       mockGetWitnesses.mockResolvedValue(
         createMockWitnessesResponse([witness]),
@@ -127,7 +127,7 @@ describe('useTronStakeApy', () => {
       const { result } = renderHook(() => useTronStakeApy());
 
       await waitFor(() => {
-        expect(result.current.apyPercent).toBe('4.56%');
+        expect(result.current.apyPercent).toBe('4.6%');
       });
     });
 

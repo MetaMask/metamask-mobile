@@ -26,6 +26,10 @@
     "description_line2": "오류라고 생각되면 지원팀에 문의하여 검토를 요청하세요.",
     "contact_support": "지원팀에 문의"
   },
+  "arc_usage_notice": {
+    "title": "알림",
+    "description": "Arc에 오신 것을 환영합니다! Arc 체인 사용을 지원하고 확인하기 위해 Arc 팀과 정보를 공유할 수 있습니다."
+  },
   "storage": {
     "device_full_alert": "기기 저장 공간이 부족합니다. MetaMask에서 지갑 데이터를 저장할 수 있도록 공간을 확보하세요."
   },
@@ -125,7 +129,7 @@
     },
     "headless_buy_error": {
       "title": "법정화폐 구매 실패",
-      "message": "법정화폐 구매 시 오류가 발생했습니다. 다시 시도하세요."
+      "message": "법정화폐 구매 중 문제가 발생했습니다. 다시 시도해 주세요."
     },
     "mmpay_hardware_account": {
       "title": "지원되지 않는 지갑",
@@ -169,7 +173,7 @@
       },
       "warning": {
         "message": "신뢰할 수 있는 기록이 충분하지 않아 보안 파트너가 이 주소를 검증할 수 없습니다.",
-        "title": "Limited address signals"
+        "title": "주소 신호 제한됨"
       }
     },
     "url_trust_signal": {
@@ -215,7 +219,7 @@
     "setting_up_alerts_description": "보안 경고를 설정하는 작업을 최대한 빠르게 진행하고 있습니다. 잠시만 기다리세요. 거의 다 끝났습니다.",
     "setup_complete": "설정 완료",
     "setup_failed": "보안 알림 설정을 완료할 수 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.",
-    "setup_multiple_failures": "현재 인터넷 연결이 안정적이지 않아 보안 알림을 설정할 수 없습니다. 연결이 안정화되면 다시 시도하세요.",
+    "setup_multiple_failures": "현재 인터넷 연결이 불안정하여 보안 알림을 설정할 수 없습니다. 연결이 안정되면 다시 시도하세요.",
     "setup_complete_description": "보안 경고를 사용할 준비가 되었습니다. 이 페이지를 닫고 지갑을 탐색하시면 됩니다.",
     "continue": "계속",
     "cancel": "취소",
@@ -310,7 +314,7 @@
     "new_to_metamask": "MetaMask에 처음 오셨나요?",
     "already_have_wallet": "이미 지갑이 있으신가요?",
     "optin_back_title": "조심하세요!",
-    "optin_back_desc": "데이터 분석 사용에 동의 또는 비동의해 주세요. 설정에서 이 옵션을 변경하실 수 있습니다.",
+    "optin_back_desc": "데이터 분석 사용에 동의 또는 동의하지 않음을 선택해 주세요. 이 옵션은 설정에서도 변경할 수 있습니다.",
     "warning_title": "경고",
     "warning_text_1": "계속 진행하시면 현재의 지갑과 계정이",
     "warning_text_2": "제거되니",
@@ -496,7 +500,7 @@
     "go_back": "지갑의 잠금이 해제되지 않나요? 현재 지갑을 삭제한 후 새 지갑을 생성할 수 있습니다",
     "forgot_password": "비밀번호를 잊으셨나요?",
     "cant_proceed": "'삭제(Delete)'라는 단어를 입력할 때까지 더 진행할 수 없습니다. 이 단어를 입력하시면, 현재 지갑을 지우는 것을 선택하는 것입니다.",
-    "invalid_password": "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
+    "invalid_password": "잘못된 비밀번호입니다. 다시 시도해 주세요.",
     "type_delete": "‘{{erase}}’을(를) 입력해 컨펌하세요",
     "erase_my": "예, 지갑을 초기화합니다",
     "cancel": "취소",
@@ -509,10 +513,10 @@
     "metamask_does_not": "MetaMask는 사용자의 비밀 복구 구문을 보유하고 있지 않습니다.",
     "i_understand": "이해했습니다. 계속 진행하겠습니다",
     "passcode_not_set_error": "오류: 비밀번호가 설정되지 않았습니다.",
-    "wrong_password_error": "오류: 디크립트에 실패했습니다",
-    "wrong_password_error_android": "오류: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+    "wrong_password_error": "잘못된 비밀번호입니다. 다시 시도해 주세요.",
+    "wrong_password_error_android": "잘못된 비밀번호입니다. 다시 시도해 주세요.",
     "vault_error": "오류: 이전 볼트가 없으면 잠금을 해제할 수 없습니다.",
-    "clean_vault_error": "저장 공간 부족으로 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치하고 비밀 복구 구문으로 복원을 진행하세요.",
+    "clean_vault_error": "저장 공간 한도에 도달하여 MetaMask에서 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치한 후 비밀복구구문을 사용하여 복구하세요.",
     "seedless_password_outdated": "비밀번호가 최근에 변경되었습니다.",
     "seedless_password_outdated_modal_title": "비밀번호가 변경되었습니다",
     "seedless_password_outdated_modal_content": "비밀번호가 최근에 변경되었습니다. 따라서 MetaMask 로그인 상태를 계속 유지하려면 새 비밀번호를 입력해야 합니다.",
@@ -544,7 +548,7 @@
     "reset_wallet_desc_srp": "지갑을 복구하려면 비밀복구구문이 있어야 합니다. MetaMask는 이 정보를 보관하지 않습니다.",
     "biometric_authentication_cancelled": "바이오메트릭 인증 취소",
     "biometric_authentication_cancelled_title": "바이오메트릭 설정 실패",
-    "biometric_authentication_cancelled_description": "설정에서 바이오메트릭 인증을 다시 설정해 주세요.",
+    "biometric_authentication_cancelled_description": "설정에서 바이오메트릭 인증을 다시 설정하세요.",
     "biometric_authentication_cancelled_button": "컨펌",
     "biometric_changed": "바이오메트릭 변경됨",
     "biometric_changed_alert_desc": "바이오메트릭이 변경되었습니다. 설정에서 바이오메트릭을 다시 활성화하세요.",
@@ -575,7 +579,7 @@
     "create_button": "비밀번호 생성",
     "import_with_seed_phrase": "비밀 복구 구문으로 불러오기",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
-    "password_dont_match": "비밀번호가 일치하지 않습니다",
+    "password_dont_match": "비밀번호가 일치하지 않습니다.",
     "password_strength": "비밀번호 강도:",
     "strength_weak": "약함",
     "strength_good": "좋음",
@@ -619,7 +623,7 @@
     "reset_button": "비밀번호 재설정",
     "import_with_seed_phrase": "비밀 복구 구문으로 불러오기",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
-    "password_dont_match": "비밀번호가 일치하지 않습니다",
+    "password_dont_match": "비밀번호가 일치하지 않습니다.",
     "password_strength": "비밀번호 강도:",
     "strength_weak": "약함",
     "strength_good": "좋음",
@@ -659,7 +663,7 @@
     "import_button": "가져오기",
     "cancel_button": "취소",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
-    "password_dont_match": "비밀번호가 일치하지 않습니다",
+    "password_dont_match": "비밀번호가 일치하지 않습니다.",
     "seed_phrase_requirements": "비밀 복구 구문에은 12, 15, 18, 21 또는 24 단어가 포함됩니다",
     "invalid_seed_phrase": "비밀복구구문을 찾을 수 없습니다.",
     "error": "오류",
@@ -705,7 +709,8 @@
     "settings": "설정",
     "rewards": "보상",
     "trending": "둘러보기",
-    "money": "머니"
+    "money": "머니",
+    "social": "사회"
   },
   "drawer": {
     "send_button": "보내기",
@@ -744,7 +749,7 @@
     "units": "단위",
     "next": "다음",
     "title": "보내기",
-    "deeplink_failure": "문제가 발생했습니다...다시 시도해 주세요",
+    "deeplink_failure": "문제가 발생했습니다. 다시 시도해 주세요",
     "warn_network_change": "다음으로 네트워크 변경:",
     "send_to": "수신:",
     "amount": "금액",
@@ -909,7 +914,7 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "이메일 전송",
       "loading": "이메일 전송 중...",
-      "validation_error": "올바른 이메일 주소를 입력하세요",
+      "validation_error": "유효한 이메일 주소를 입력하세요",
       "error": "이메일 전송 중 오류가 발생했습니다"
     },
     "otp_code": {
@@ -919,7 +924,7 @@
       "submit_button": "제출",
       "loading": "코드 확인 중...",
       "invalid_code_error": "잘못된 코드입니다",
-      "validation_error": "올바른 코드를 입력하세요",
+      "validation_error": "유효한 코드를 입력하세요",
       "need_help": "도움이 필요하신가요?",
       "resend_code_description": "코드를 받지 못하셨나요?",
       "resend_code_error": "코드 재전송 오류.",
@@ -964,13 +969,13 @@
       "enter_phone_number": "전화번호 입력",
       "select_region": "지역 선택",
       "first_name_required": "이름은 필수입니다",
-      "first_name_invalid": "유효한 이름을 입력해 주세요",
+      "first_name_invalid": "유효한 이름을 입력하세요",
       "last_name_required": "성은 필수입니다",
-      "last_name_invalid": "유효한 성을 입력해 주세요",
+      "last_name_invalid": "유효한 성을 입력하세요",
       "mobile_number_required": "전화번호는 필수입니다",
-      "mobile_number_invalid": "유효한 전화번호를 입력해 주세요",
+      "mobile_number_invalid": "유효한 전화번호를 입력하세요",
       "dob_required": "생년월일은 필수입니다",
-      "dob_invalid": "유효한 생년월일을 입력해 주세요",
+      "dob_invalid": "유효한 생년월일을 입력하세요",
       "ssn_required": "사회보장번호는 필수입니다",
       "unexpected_error": "예기치 못한 오류가 발생했습니다. 다시 시도하세요.",
       "phone_already_registered": "이 전화번호는 이미 {{email}} 계정에서 사용 중입니다. 계속하려면 해당 이메일로 로그인하세요.",
@@ -989,14 +994,14 @@
       "country": "국가",
       "select_state": "주 선택",
       "address_line_1_required": "도로명 주소는 필수입니다",
-      "address_line_1_invalid": "유효한 주소를 입력해 주세요",
-      "address_line_2_invalid": "유효한 주소를 입력해 주세요",
+      "address_line_1_invalid": "유효한 주소를 입력하세요",
+      "address_line_2_invalid": "유효한 주소를 입력하세요",
       "city_required": "도시는 필수입니다",
-      "city_invalid": "유효한 도시를 입력해 주세요",
+      "city_invalid": "유효한 도시를 입력하세요",
       "state_required": "주/지역은 필수입니다",
-      "state_invalid": "유효한 주를 입력해 주세요",
+      "state_invalid": "유효한 주를 입력하세요",
       "postal_code_required": "우편번호는 필수입니다",
-      "postal_code_invalid": "유효한 우편번호를 입력해 주세요",
+      "postal_code_invalid": "유효한 우편번호를 입력하세요",
       "unexpected_error": "예기치 않은 오류입니다."
     },
     "privacy_section": {
@@ -1129,11 +1134,18 @@
       "how_to_delete_description": "'설정 > 데이터 관리'에서 언제든지 개인 데이터를 삭제할 수 있습니다.",
       "metamask_privacy_policy": "MetaMask 개인정보 처리방법",
       "metamask_terms": "MetaMask 이용 약관",
-      "idos_privacy_policy": "idOS 개인정보 처리방법",
-      "idos_terms": "idOS 이용 약관",
-      "sumsub_privacy_policy": "Sumsub 개인정보 처리방법",
-      "sumsub_terms": "Sumsub 이용 약관",
+      "disclaimers_error": "이용 약관을 불러올 수 없습니다.",
+      "disclaimers_retry": "다시 시도",
       "button": "계속"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "이메일 주소",
+      "button": "계속",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again.",
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
     }
   },
   "social_leaderboard": {
@@ -1158,14 +1170,26 @@
     "sort_filter": {
       "title": "정렬 기준",
       "pnl": "손익",
+      "profit": "이익",
+      "volume": "거래량",
       "roi": "손익 %",
       "win_rate": "승률"
+    },
+    "cohort_filter": {
+      "title": "Trader cohort"
     },
     "feed": {
       "title": "상위 트레이더",
       "tabs": {
         "leaderboard": "리더보드",
-        "feed": "피드"
+        "feed": "피드",
+        "trending": "인기",
+        "following": "팔로우 중",
+        "live_trades": "실시간 거래"
+      },
+      "live_stream": {
+        "paused": "Paused",
+        "live": "진행 중"
       },
       "following": "팔로우 중",
       "all": "모두",
@@ -1212,7 +1236,76 @@
         "size_at_price": "{{price}}에 {{size}}",
         "size_at_market_cap": "{{marketCap}} {{abbreviation}} 기준 {{size}}"
       },
-      "no_data": "데이터 없음"
+      "no_data": "데이터 없음",
+      "position_card": {
+        "copy_trade": "Copy trade",
+        "leverage": "레버리지",
+        "auto_close": "Auto-close",
+        "entry_price": "진입 가격",
+        "exit_price": "Exit price",
+        "max_hold_time": "Max hold time",
+        "status": "상태",
+        "closed": "닫힘",
+        "buy": "매수",
+        "sell": "매도"
+      }
+    },
+    "shell": {
+      "subnav": {
+        "trending": "인기",
+        "hot_right_now": "Hot right now",
+        "pumping": "Pumping",
+        "top_gainers": "Top gainers",
+        "top_losers": "Top losers",
+        "new_markets": "New markets",
+        "top_traders": "상위 트레이더",
+        "kols": "KOL"
+      },
+      "filters": {
+        "title": "Filters",
+        "show_results": "Show results",
+        "section": {
+          "type": "유형",
+          "trader_cohort": "Trader cohort",
+          "timeframe": "기간",
+          "network": "네트워크",
+          "market_cap": "시가총액",
+          "volume_24h": "24시간 거래량"
+        },
+        "type": {
+          "all": "모두",
+          "tokens": "토큰",
+          "perps": "무기한 선물",
+          "predictions": "예측"
+        },
+        "trader_cohort": {
+          "all": "모두",
+          "following": "팔로우 중",
+          "shrimp": "Shrimp",
+          "dolphin": "Dolphin",
+          "whale": "Whale",
+          "kol": "KOL"
+        },
+        "timeframe": {
+          "1h": "1H",
+          "24h": "24H",
+          "7d": "7일",
+          "30d": "30일"
+        },
+        "network": {
+          "all": "모두",
+          "robinhood": "Robinhood",
+          "bnb": "BNB",
+          "solana": "솔라나",
+          "base": "기본"
+        },
+        "range": {
+          "market_cap_min": "$0",
+          "market_cap_max": "$1000B",
+          "volume_24h_min": "$0",
+          "volume_24h_max": "$100M"
+        }
+      }
     },
     "onboarding": {
       "slide_trade": {
@@ -1250,6 +1343,7 @@
     },
     "follow": "팔로우",
     "following": "팔로우 중",
+    "win_rate_tag": "{{winRate}} WR",
     "mute": {
       "on_accessibility_label": "알림이 켜졌습니다. 탭하여 이 트레이더를 음소거하세요",
       "muted_accessibility_label": "음소거되었습니다. 탭하여 알림을 다시 켜세요",
@@ -1277,6 +1371,43 @@
         "pnl_percent": "손익 %",
         "recent": "최근"
       }
+    },
+    "my_profile": {
+      "avatar_accessibility_label": "Your profile avatar",
+      "open_profile": "Open my profile",
+      "followers": "followers",
+      "following": "팔로우 중",
+      "edit_profile": "Edit profile",
+      "share_profile": "Share profile",
+      "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
+      "posts": "Posts",
+      "first_trade_prompt": "First trade?",
+      "empty_title": "Your feed starts here",
+      "empty_description": "Share a trade and it'll show up here for your followers",
+      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "share_first_trade": "Share your first trade",
+      "retry": "다시 시도"
+    },
+    "manage_profile": {
+      "title": "Manage profile",
+      "about": "정보",
+      "privacy": "개인정보 보호",
+      "display_name": "이름 표시",
+      "handle": "Handle",
+      "bio": "Bio",
+      "socials": "Socials",
+      "trading_activity": "트레이딩 활동",
+      "trading_activity_on": "On",
+      "linked_social_account": "Linked social account",
+      "save": "저장",
+      "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
+      "socials_helper": "Your X handle appears on posts and your profile.",
+      "show_trading_activity": "Show trading activity",
+      "show_trading_activity_subtitle": "Public and available to copy",
+      "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+      "trading_activity_info": "More information about trading activity",
+      "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
+      "avatar_accessibility_label": "Your profile avatar"
     },
     "trader_position": {
       "market_cap": "시가총액",
@@ -1356,13 +1487,21 @@
   "perps": {
     "basic_functionality_disabled_title": "무기한 선물을 사용할 수 없습니다",
     "title": "무기한 선물",
+    "trade_sheet": {
+      "settings": "설정",
+      "order_summary": "Order summary",
+      "includes_fee": "Includes {{feePercentage}}% fee",
+      "amount_slider_accessibility_label": "Order amount",
+      "show_asset_value": "Show asset value",
+      "show_fiat_value": "Show fiat value"
+    },
     "mode": {
       "lite": "라이트",
       "pro": "프로",
       "selection_title": "거래 방식 선택",
-      "selection_subtitle": "Change this anytime on the top right menu.",
+      "selection_subtitle": "이는 오른쪽 상단 메뉴에서 언제든지 변경할 수 있습니다.",
       "lite_description": "탭 한번으로 롱 또는 숏 주문. 심플한 디자인.",
-      "pro_description": "Professional workstation with advanced controls.",
+      "pro_description": "고급 제어 기능을 갖춘 전문가용 워크스테이션.",
       "lite_transition_title": "라이트 모드",
       "pro_transition_title": "프로 모드",
       "active_pill_accessibility_label": "현재 {{mode}} 모드",
@@ -1496,7 +1635,7 @@
         "view_transaction": "트랜잭션 보기"
       },
       "success_toast": "무기한 선물 계정에 자금이 조달되었습니다",
-      "success_message": "{{amount}} 거래 가능",
+      "success_amount_added": "{{amount}} was added to Perps",
       "funds_are_ready_to_trade": "거래 준비 완료",
       "error_toast": "트랜잭션 실패",
       "error_generic": "자금이 반환되었습니다",
@@ -1590,34 +1729,33 @@
       "before_after": "{{before}} → {{after}}",
       "tpsl": "익절/손절",
       "place_order": "주문하기",
-      "keyboard_previous": "Previous field",
-      "keyboard_next": "Next field",
+      "keyboard_previous": "이전 필드",
+      "keyboard_next": "다음 필드",
       "keyboard_done": "완료",
       "price_unavailable": "시장 가격을 확인할 수 없습니다. 가격 데이터가 표시된 후 주문을 진행해 주세요.",
       "scale": {
-        "start_price": "Start (USD)",
-        "end_price": "End (USD)",
-        "total_orders": "Order count",
-        "size_skew": "Size skew",
-        "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
+        "start_price": "시작(USD)",
+        "end_price": "종료(USD)",
+        "total_orders": "주문 수",
+        "size_skew": "사이즈 스큐",
+        "size_skew_hint": "가중치가 전체 범위에 걸쳐 1에서 설정된 비율까지 선형으로 증가합니다.",
         "start": "시작",
         "end": "종료",
         "margin": "증거금",
-        "orders_submitted": "Scale orders submitted",
-        "orders_placed": "Scale orders placed",
-        "orders_partially_placed": "Scale orders partially placed",
-        "submission_summary": "Placing {{totalCount}} orders · {{size}} {{assetSymbol}}",
-        "placement_summary": "{{submittedCount}} orders placed · {{size}} {{assetSymbol}}",
-        "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
+        "orders_submitted": "스케일 주문 제출 완료",
+        "orders_placed": "스케일 주문 접수 완료",
+        "orders_partially_placed": "스케일 주문 일부 접수 완료",
+        "submission_summary": "주문 {{totalCount}}개 접수 중 · {{size}} {{assetSymbol}}",
+        "placement_summary": "주문 {{submittedCount}}개 접수 완료 · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "주문 {{totalCount}}개 중 {{submittedCount}}개 접수 완료 · {{size}} {{assetSymbol}}",
         "validation": {
-          "prices_required": "Enter both Scale range prices",
-          "size_required": "Enter a Scale order size",
-          "invalid_range": "Start price must be lower than end price",
-          "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
-          "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
-          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+          "prices_required": "스케일 범위의 양쪽 가격을 모두 입력하세요",
+          "size_required": "스케일 주문 수량을 입력하세요",
+          "invalid_range": "시작 가격은 종료 가격보다 낮아야 합니다",
+          "invalid_order_count": "주문 수는 {{minOrderCount}}~{{maxOrderCount}}개여야 합니다",
+          "invalid_skew": "사이즈 스큐는 0보다 커야 합니다",
+          "minimum_lot": "최소 주문 금액은 ${{minOrderValue}} 이상이어야 합니다",
+          "unavailable": "스케일 주문은 일시적으로 사용할 수 없습니다. 다른 주문 유형을 선택하세요."
         }
       },
       "twap": {
@@ -1630,7 +1768,16 @@
         "randomize": "무작위화",
         "randomize_description": "각 분할 주문의 액수를 최대 ±{{randomizeVariancePercent}}%까지 변경합니다.",
         "minimum_size": "TWAP 주문 총액은 ${{minNotionalUsd}} 이상이어야 합니다.",
-        "duration_range": "실행 시간은 최소 {{minDurationMinutes}}분, 최대 {{maxDurationHours}}시간이어야 합니다."
+        "duration_range": "실행 시간은 최소 {{minDurationMinutes}}분, 최대 {{maxDurationHours}}시간이어야 합니다.",
+        "summary_runtime": "Runtime",
+        "summary_size_per_suborder": "Size per suborder",
+        "runtime_info": "About TWAP runtime",
+        "duration_day": "1 day",
+        "duration_days": "{{count}}일",
+        "duration_hour": "1 hr",
+        "duration_hours": "{{count}}시간",
+        "duration_minute": "1 min",
+        "duration_minutes": "{{count}} mins"
       }
     },
     "pro_positions_panel": {
@@ -1645,6 +1792,8 @@
       "positions_with_count": "포지션({{count}})",
       "orders": "주문",
       "orders_with_count": "주문({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} 전용",
       "view_market_accessibility": "{{symbol}} 시장으로 전환",
       "positions_empty": "보유 중인 포지션이 여기에 표시됩니다.",
@@ -1655,6 +1804,20 @@
       "orders_empty_filtered": "미체결 {{ticker}} 주문이 없습니다.",
       "orders_empty_long": "롱 주문이 없습니다.",
       "orders_empty_short": "숏 주문이 없습니다.",
+      "twap_empty": "진행 중인 TWAP이 여기에 표시됩니다.",
+      "twap_empty_filtered": "진행 중인 {{ticker}} TWAP이 없습니다.",
+      "twap_empty_long": "진행 중인 롱 TWAP이 없습니다.",
+      "twap_empty_short": "진행 중인 숏 TWAP이 없습니다.",
+      "twap_history_empty": "완료된 TWAP이 여기에 표시됩니다.",
+      "twap_history_empty_filtered": "{{ticker}} TWAP 내역이 없습니다.",
+      "twap_history_empty_long": "롱 TWAP 내역이 없습니다.",
+      "twap_history_empty_short": "숏 TWAP 내역이 없습니다.",
+      "twap_fill_history_empty": "TWAP 체결 내역이 여기에 표시됩니다.",
+      "twap_fill_history_empty_filtered": "{{ticker}} TWAP 체결 내역이 없습니다.",
+      "twap_fill_history_empty_long": "롱 TWAP 체결 내역이 없습니다.",
+      "twap_fill_history_empty_short": "숏 TWAP 체결 내역이 없습니다.",
+      "twap_load_error": "최신 TWAP 일정을 불러올 수 없습니다.",
+      "twap_retry": "다시 시도",
       "side_filter": {
         "all_sides": "전체 포지션 방향",
         "long": "롱",
@@ -1695,6 +1858,36 @@
         "edit": "편집",
         "edit_price": "지정가 수정",
         "edit_size": "수량 수정"
+      },
+      "twap_views": {
+        "active": "진행 중",
+        "history": "내역",
+        "fill_history": "체결 내역",
+        "previous": "이전",
+        "next": "다음",
+        "page_count": "{{total}}페이지 중 {{page}}페이지"
+      },
+      "twap_card": {
+        "total_size": "총 수량",
+        "filled_size": "체결됨",
+        "average_price": "평균 체결가",
+        "progress": "진행 상황",
+        "elapsed": "경과 시간",
+        "reduce_only": "청산 전용",
+        "randomize": "무작위화됨",
+        "terminate": "종료",
+        "status_active": "진행 중",
+        "status_completed": "완료",
+        "status_completed_underfilled": "일부 미체결 상태로 완료됨",
+        "status_canceled": "종료됨",
+        "status_failed": "실패"
+      },
+      "twap_terminate": {
+        "title": "{{symbol}} TWAP를 종료하시겠습니까?",
+        "description": "남은 수량은 체결되지 않습니다. 이미 체결된 수량은 포지션으로 유지됩니다.",
+        "description_reduce_only": "남은 수량은 체결되지 않습니다. 이미 체결된 수량만큼 기존 포지션이 감소했습니다.",
+        "confirm": "종료",
+        "cancel": "취소"
       }
     },
     "order": {
@@ -1743,20 +1936,26 @@
         "limit_price_must_be_set_before_configuring_tpsl": "익절/손절 구성 전에 지정가를 설정해야 합니다",
         "only_hyperliquid_usdc": "현재 Hyperliquid 결제는 USDC만 지원됩니다",
         "limit_price_far_warning": "지정가가 현재 시장 가격과 거리가 멉니다",
+        "limit_price_far_from_market_bid": "현재 최우선 매수호가에서 {{percent}}% 차이 나는 지정가를 사용하고 있습니다.",
+        "limit_price_far_from_market_ask": "현재 최우선 매도호가에서 {{percent}}% 차이 나는 지정가를 사용하고 있습니다.",
         "limit_price_above_warning": "지정가가 현재 가격보다 높습니다. 주문이 시장가 주문으로 체결될 수 있습니다.",
         "limit_price_below_warning": "지정가가 현재 가격보다 낮습니다. 주문이 시장가 주문으로 체결될 수 있습니다.",
+        "scale_price_above_warning": "가격 범위가 현재 가격보다 높아 즉시 테이커 주문으로 체결되고 테이커 수수료가 발생할 수 있습니다.",
+        "scale_price_below_warning": "가격 범위가 현재 가격보다 낮아 즉시 테이커 주문으로 체결되고 테이커 수수료가 발생할 수 있습니다.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
+        "scale_price_below_partial_warning": "가격 범위의 일부가 현재 가격보다 낮아 즉시 테이커 주문으로 체결되고 테이커 수수료가 발생할 수 있습니다.",
         "trigger_must_be_above_mid": "트리거 가격은 중간 가격보다 높아야 합니다",
         "trigger_must_be_below_mid": "트리거 가격은 중간 가격보다 낮아야 합니다",
         "trigger_orders_unavailable": "트리거 주문은 일시적으로 사용할 수 없습니다. 시장가 주문을 선택하세요.",
         "please_set_a_trigger_price": "트리거 가격을 설정하세요",
         "oi_cap_reached": "미결제 약정 한도에 도달했습니다. 현재 신규 포지션에 진입할 수 없습니다.",
-        "chase_limit": "You can run up to {{count}} active Chase orders at a time.",
-        "chase_max_distance_usd": "Max chase distance must be greater than $0 and less than the current price.",
-        "chase_max_distance_percent": "Max chase distance must be greater than 0% and less than 100%.",
-        "chase_account_changed": "Account changed. Review and place the Chase order again.",
-        "chase_details_changed": "Order details changed. Review and place the Chase order again.",
-        "chase_route_changed": "Market route changed. Review and place the Chase order again.",
-        "chase_unavailable": "Chase placement is not available for this provider.",
+        "chase_limit": "동시에 최대 {{count}}개의 체이스 주문을 진행할 수 있습니다.",
+        "chase_max_distance_usd": "최대 체이스 범위는 $0보다 크고 현재 가격보다 작아야 합니다.",
+        "chase_max_distance_percent": "최대 체이스 범위는 0%보다 크고 100%보다 작아야 합니다.",
+        "chase_account_changed": "계정이 변경되었습니다. 체이스 주문을 검토한 후 다시 제출하세요.",
+        "chase_details_changed": "주문 세부 정보가 변경되었습니다. 체이스 주문을 검토한 후 다시 제출하세요.",
+        "chase_route_changed": "시장 루트가 변경되었습니다. 체이스 주문을 검토한 후 다시 제출하세요.",
+        "chase_unavailable": "이 제공업체는 체이스 주문을 지원하지 않습니다.",
         "reduce_only_no_position": "리듀스 온리 주문을 하려면 이 시장에 보유 중인 포지션이 있어야 합니다",
         "reduce_only_wrong_side": "리듀스 온리 주문은 기존 포지션을 축소하는 것만 가능합니다. 반대 포지션으로 전환하세요.",
         "reduce_only_too_large": "리듀스 온리 주문 수량이 보유 중인 포지션보다 큽니다",
@@ -1816,15 +2015,12 @@
       },
       "leverage_modal": {
         "title": "레버리지",
+        "set": "설정",
         "confirm": "컨펌",
         "entry_price": "진입 가격",
         "current_price": "현재가",
         "liquidation_price": "청산 가격",
         "liquidation_distance": "청산 가격과의 차이",
-        "liquidation_warning": "가격이 {{percentage}} {{direction}}하면 청산됩니다",
-        "drops": "하락",
-        "rises": "상승",
-        "set_leverage": "{{leverage}}배 설정",
         "price_unavailable": "가격 정보 확인 불가"
       },
       "type": {
@@ -1841,28 +2037,28 @@
           "description": "지정한 가격 또는 더 유리한 가격으로 체결"
         },
         "scale": {
-          "title": "Scale",
-          "description": "Multiple limit orders spread across a price range"
+          "title": "스케일",
+          "description": "가격 범위에 걸쳐 여러 지정가 주문을 분산 제출"
         },
         "chase": {
-          "title": "Chase",
-          "description": "Post-only limit order that follows the best bid or ask"
+          "title": "체이스",
+          "description": "Auto adjust limit order to the best price"
         },
         "stop_limit": {
           "title": "스탑 리밋",
-          "description": "트리거 가격 도달 시 지정가로 체결"
+          "description": "트리거 가격 도달 시 지정가 주문 실행"
         },
         "stop_market": {
           "title": "스탑 마켓",
-          "description": "트리거 가격 도달 시 시장가로 체결"
+          "description": "트리거 가격 도달 시 시장가 주문 실행"
         },
         "take_profit_limit": {
           "title": "테이크 리밋",
-          "description": "트리거 가격 도달 시 지정가로 익절"
+          "description": "트리거 가격 도달 시 지정가 주문 실행"
         },
         "take_profit_market": {
           "title": "테이크 마켓",
-          "description": "트리거 가격 도달 시 시장가로 익절"
+          "description": "트리거 가격 도달 시 시장가 주문 실행"
         },
         "twap": {
           "title": "TWAP",
@@ -1870,47 +2066,47 @@
         }
       },
       "chase": {
-        "max_distance": "Max distance",
-        "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
-        "reference_price_accessibility_value": "{{orderType}}, reference price {{price}}",
-        "foreground_notice": "Keep the app open while the Chase order is running.",
-        "backgrounding_title": "Securing Chase orders",
-        "backgrounding_notification": "MetaMask is stopping Chase repricing before disconnecting.",
-        "backgrounded_title": "Chase became a limit order",
-        "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
-        "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
-        "max_distance_reached_title": "Chase max distance reached",
-        "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
-        "tab": "Chase",
-        "tab_with_count": "Chase ({{count}})",
+        "max_distance": "최대 범위",
+        "switch_max_distance_unit": "최대 범위 단위를 {{unit}}(으)로 전환",
+        "reference_price_accessibility_value": "{{orderType}}, 기준 가격 {{price}}",
+        "foreground_notice": "체이스 주문이 실행되는 동안 앱을 열어 두세요.",
+        "backgrounding_title": "체이스 주문 안전 처리 중",
+        "backgrounding_notification": "MetaMask가 연결을 해제하기 전에 체이스 주문의 가격 재조정을 중단하고 있습니다.",
+        "backgrounded_title": "체이스 주문이 지정가 주문으로 전환됨",
+        "backgrounded_notification": "체이스 주문이 마지막으로 추적한 가격의 지정가 주문으로 대기 중입니다.",
+        "backgrounded_notification_multiple": "체이스 주문 {{count}}개가 각각 마지막으로 추적한 가격의 지정가 주문으로 대기 중입니다.",
+        "max_distance_reached_title": "체이스 최대 범위 도달",
+        "max_distance_reached_notification": "{{symbol}} 체이스 주문이 최대 범위에 도달하여 현재 지정가 주문으로 대기 중입니다.",
+        "tab": "체이스",
+        "tab_with_count": "체이스 ({{count}})",
         "active": "진행 중",
         "history": "내역",
-        "filled_only": "Filled orders only",
-        "visible_count": "{{count}} visible",
-        "running": "Running",
-        "running_with_progress": "Running · {{progress}}",
+        "filled_only": "체결된 주문만",
+        "visible_count": "{{count}}개 표시",
+        "running": "실행 중",
+        "running_with_progress": "실행 중 · {{progress}}",
         "cancel": "취소",
-        "empty": "Your Chase orders will appear here.",
-        "empty_history": "Your Chase order history will appear here.",
-        "empty_filtered": "No Chase orders match {{ticker}}.",
-        "empty_long": "No long Chase orders.",
-        "empty_short": "No short Chase orders.",
+        "empty": "체이스 주문이 여기에 표시됩니다.",
+        "empty_history": "체이스 주문 내역이 여기에 표시됩니다.",
+        "empty_filtered": "{{ticker}}에 해당하는 체이스 주문이 없습니다.",
+        "empty_long": "롱 체이스 주문이 없습니다.",
+        "empty_short": "숏 체이스 주문이 없습니다.",
         "card": {
           "size": "규모",
-          "filled_size": "Filled size",
-          "max_distance": "Max distance",
-          "distance_chased": "Distance chased",
-          "distance_chased_with_max": "{{distance}} / {{max}} max"
+          "filled_size": "체결 수량",
+          "max_distance": "최대 범위",
+          "distance_chased": "체이스 범위",
+          "distance_chased_with_max": "{{distance}} / 최대 {{max}}"
         },
         "status": {
-          "termination_pending": "Termination pending",
+          "termination_pending": "종료 대기 중",
           "canceled": "취소됨",
-          "backgrounded": "Resting after app backgrounded",
-          "max_distance_reached": "Max distance reached · resting",
-          "duration_reached": "Duration reached · resting",
-          "repricing_limit_reached": "Repricing limit reached · resting",
+          "backgrounded": "앱이 백그라운드로 전환되어 대기 중",
+          "max_distance_reached": "최대 범위 도달 · 대기 중",
+          "duration_reached": "기간 도달 · 대기 중",
+          "repricing_limit_reached": "가격 재조정 한도 도달 · 대기 중",
           "filled": "체결됨",
-          "failed": "Chase stopped"
+          "failed": "체이스 중단됨"
         }
       },
       "payment_token": "결제 토큰",
@@ -1949,8 +2145,8 @@
       "submitting_your_trade": "거래 제출 중",
       "order_filled": "주문 체결 완료",
       "order_placed": "주문 접수 완료",
-      "chase_submitted": "Chase order submitted",
-      "chase_started": "Chase started",
+      "chase_submitted": "체이스 주문 제출 완료",
+      "chase_started": "체이스 시작됨",
       "twap_started": "TWAP 시작됨",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "twap_placement_subtitle": "{{duration}} 동안 {{direction}} {{amount}} {{assetSymbol}}",
@@ -2043,6 +2239,8 @@
       "success_title": "포지션 종료",
       "position_closed": "포지션 종료 완료",
       "funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
+      "already_closed": "포지션 이미 종료됨",
+      "already_closed_subtitle": "이 포지션은 이미 체결되었거나 종료되었습니다",
       "failed_to_close_position": "포지션 종료에 실패했습니다",
       "failed_to_partially_close_position": "포지션 부분 종료 실패",
       "failed_to_place_close_order": "청산 주문 제출 실패",
@@ -2110,8 +2308,12 @@
       "loss_percent_placeholder": "손실",
       "profit_roe_placeholder": "% 이익",
       "loss_roe_placeholder": "% 손실",
+      "gain_roe_placeholder": "% Gain",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "익절은 {{direction}} {{priceType}} 가격이어야 합니다",
+      "trigger_price_must_be_positive": "트리거 가격은 0보다 커야 합니다",
       "stop_loss_invalid_price": "손절은 {{direction}} {{priceType}} 가격이어야 합니다",
       "stop_loss_beyond_liquidation_error": "손절은 {{direction}} 청산 가격이어야 합니다",
       "stop_loss_order_view_warning": "손절이 {{direction}} 청산 가격입니다",
@@ -2140,7 +2342,7 @@
       "exchangeClientNotAvailable": "초기화 후에는 교환 클라이언트를 사용할 수 없습니다",
       "exchangeAccountNotFound": "주문하기 전에 계정에 자금을 추가하세요",
       "exchangeMultiSigRequired": "거래하려면 이 계정의 다중 서명 서명자가 필요합니다",
-      "exchangeInvalidNonce": "오류가 발생했습니다. 다시 시도해 주세요.",
+      "exchangeInvalidNonce": "문제가 발생했습니다. 다시 시도해 주세요.",
       "infoClientNotAvailable": "초기화 후에는 정보 클라이언트를 사용할 수 없습니다",
       "subscriptionClientNotAvailable": "초기화 후 SubscriptionClient를 사용할 수 없습니다",
       "subscriptionClientNotInitialized": "구독 클라이언트가 초기화되지 않았습니다",
@@ -2205,7 +2407,11 @@
         "chaseLimitReached": "이미 실행 중인 체이스 주문이 너무 많습니다",
         "chaseAbandoned": "연결이 끊겨 체이스 주문이 취소되었습니다",
         "chaseTouchUnavailable": "이 체이스 주문을 넣는 데 사용할 시장 가격이 없습니다",
-        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range"
+        "chaseMaxDistanceInvalid": "최대 체이스 범위가 허용 범위를 벗어났습니다",
+        "marginModeInvalid": "Choose a valid margin mode.",
+        "marginModeUnsupported": "The selected margin mode is not available for this market.",
+        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
+        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode."
       },
       "networkToggleFailed": "네트워크 전환에 실패했습니다: {{error}}",
       "accountBalanceFailed": "계정 잔액을 가져오는 데 실패했습니다: {{error}}",
@@ -2312,6 +2518,7 @@
         "unrealized_pnl": "미실현 손익"
       },
       "tpsl": {
+        "update_in_progress": "Updating TP/SL",
         "update_success": "익절/손절이 업데이트되었습니다",
         "update_failed": "익절/손절 업데이트 실패"
       },
@@ -2394,6 +2601,14 @@
         "title": "청산 가격",
         "content": "가격이 이 값에 도달하면 포지션이 강제로 청산되어 증거금을 잃게 됩니다. 레버리지가 높을수록 청산 가능성이 커집니다."
       },
+      "cross_liquidation_price": {
+        "title": "Cross liquidation price",
+        "content": "This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance."
+      },
+      "cross_no_liquidation_price": {
+        "title": "No liquidation price",
+        "content": "At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance."
+      },
       "liquidation_distance": {
         "title": "청산 가격과의 차이",
         "content": "이 비율만큼 가격이 포지션의 반대 방향으로 움직이면 청산됩니다. 비율이 높을수록 청산 위험이 낮습니다."
@@ -2412,8 +2627,12 @@
         "discount_message": "VIP 혜택으로 수수료 {{percentage}}% 할인이 적용됩니다."
       },
       "size_skew": {
-        "title": "Size skew",
-        "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+        "title": "사이즈 스큐",
+        "content": "사이즈 스큐는 전체 범위에서 주문 규모가 어떻게 배분되는지를 조정합니다. 1보다 큰 값은 종료 지점에 더 많은 규모의 주문을 배분하고, 1보다 작은 값은 시작 지점에 더 많이 배분하며, 1.00은 주문을 균등한 규모로 배분합니다."
+      },
+      "twap_runtime": {
+        "title": "Runtime",
+        "content": "Runtime is how long the TWAP order keeps working. The total size is split into suborders that are submitted at regular intervals until the runtime ends."
       },
       "closing_fees": {
         "title": "청산 수수료",
@@ -2633,6 +2852,12 @@
       "cross_title": "교차",
       "cross_description": "전체 계정 잔액이 모든 포지션에 걸쳐 공유됩니다. 한 포지션의 수익이 다른 포지션의 손실을 방어할 수 있지만, 청산 발생 시 전체 잔액이 소진될 수 있습니다. 곧 출시될 예정입니다."
     },
+    "cross_position": {
+      "badge": "교차",
+      "margin_used": "Position margin used",
+      "no_liquidation_price": "No liquidation price",
+      "liquidation_info": "About cross liquidation price"
+    },
     "crossMargin": {
       "title": "교차 마진 미지원",
       "message": "MetaMask 무기한 거래는 격리 마진 거래만 지원합니다. MetaMask에서 거래하려면 먼저 교차 마진 포지션을 청산해야 합니다.",
@@ -2679,13 +2904,12 @@
     "no_favorites_description": "시장의 별 아이콘을 탭하면 관심 목록에 추가됩니다",
     "watchlist": {
       "empty_title": "거래량이 가장 많은 시장부터 시작해 보세요",
-      "empty_subtitle": "+를 탭하면 시장이 관심 목록에 추가됩니다.",
       "show_more": "{{count}}개 더 표시",
       "show_less": "요약 보기",
       "added": "관심 목록에 {{symbol}} 추가됨",
       "removed": "관심 목록에서 {{symbol}} 제거됨",
       "add_error": "시장을 관심 목록에 추가하지 못했습니다",
-      "remove_error": "Failed to remove market from watchlist",
+      "remove_error": "관심 목록에서 시장을 삭제하지 못했습니다",
       "limit_reached": "관심 목록 한도에 도달했습니다(최대 {{limit}}개 시장)",
       "filter_badge_label": "관심 목록",
       "suggested": "추천"
@@ -2917,6 +3141,39 @@
       "submit": "제출"
     }
   },
+  "predict_next": {
+    "available_balance": "사용 가능한 잔액",
+    "balance_unavailable": {
+      "title": "잔액을 확인할 수 없음",
+      "description": "Unable to load your available balance.",
+      "retry": "다시 시도"
+    },
+    "home_title": "예측",
+    "portfolio": {
+      "title": "Portfolio",
+      "positions": "포지션",
+      "activity_empty": {
+        "title": "아직 활동이 없습니다",
+        "description": "Your fills and settlements will appear here."
+      },
+      "load_failed": "불러올 수 없음.",
+      "load_failed_retry": "다시 시도",
+      "outcome_shares": "{{outcome}} · {{shares}} shares",
+      "active_positions": "진행 중인 포지션",
+      "add_funds": "자금 추가",
+      "withdraw": "출금",
+      "empty": {
+        "title": "아직 포지션이 없습니다",
+        "description": "Your active and resolved positions will appear here.",
+        "browse_markets": "시장 둘러보기"
+      },
+      "activity": "내역",
+      "activity_rows": {
+        "settled": "Settled",
+        "shares_at_price": "{{shares}} @ {{price}}"
+      }
+    }
+  },
   "predict": {
     "title": "MetaMask 예측",
     "game_status": {
@@ -2966,13 +3223,13 @@
       "footer_price_unavailable": "가격 사용 불가"
     },
     "market_groups": {
-      "total_points": "Total points",
+      "total_points": "총 포인트",
       "spread": "스프레드",
-      "market_option": "Market option",
-      "line_unavailable": "line unavailable",
+      "market_option": "시장 옵션",
+      "line_unavailable": "라인 사용 불가",
       "price_unavailable": "가격 사용 불가",
-      "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
-      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+      "option_accessibility_label": "{{team}}의 시장 옵션, {{line}} 라인, {{price}} 가격",
+      "outcome_accessibility_label": "{{team}}, {{line}} 라인, {{price}} 가격"
     },
     "rules": {
       "event_accessibility_label": "이벤트 규칙 보기",
@@ -3451,7 +3708,7 @@
       "unavailable_description": "긴급한 지원이 필요한 경우 고객센터로 문의해 주세요.",
       "unavailable_got_it": "컨펌",
       "error_title": "문제가 발생했습니다",
-      "error_description": "출금에 실패했습니다",
+      "error_description": "출금 실패",
       "try_again": "다시 시도"
     },
     "fee_summary": {
@@ -3651,7 +3908,7 @@
       "fund_subtitle": "빈 지갑을 좋아하는 사람은 없습니다. 간편하게 자금을 추가하여 거래를 시작하세요.",
       "fund_primary": "자금 추가",
       "trade_title": "첫 거래 시작하기",
-      "trade_subtitle": "다양한 네트워크에서 인기 토큰을 거래하며 포트폴리오를 키워보세요.",
+      "trade_subtitle": "다양한 네트워크에서 인기 토큰을 거래하며 포트폴리오를 성장시키세요.",
       "trade_primary": "거래하기",
       "notifications_title": "알림 켜기",
       "notifications_subtitle": "시장 변화를 계속 확인하며 포트폴리오에 가장 유리한 투자 결정을 내리세요.",
@@ -3924,6 +4181,20 @@
     "settings": "다른 기본 설정을",
     "settings_link": "관리할 수도 있습니다."
   },
+  "basic_functionality_migration": {
+    "title": "We’ve updated our settings",
+    "social_title": "개인정보 보호 및 제품 업데이트",
+    "social_body_1": "MetaMask의 소셜 로그인 작동 방식을 업데이트합니다. MetaMask 전반에서 원활한 이용 환경을 제공하기 위해 이제 소셜 로그인 식별자(이메일 또는 아이디)가 사용자 프로필 및 연결된 계정 주소에 안전하게 링크됩니다. 이번 업데이트에 따라 기본 기능과 기타 기본 설정은 항상 활성화 상태로 유지됩니다.",
+    "social_body_2_prefix": "MetaMask는 사용자의 데이터를 제삼자에게 절대 판매하지 않습니다. 수집하는 데이터와 그 이유에 대한 자세한 내용은 다음에서 확인하세요:",
+    "social_body_2_middle": " 및 업데이트된 ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "블로그 포스트",
+    "privacy_notice_link": "개인정보 처리방침",
+    "toast_description": "Basic functionality now includes third-party APIs. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Basic functionality now includes third-party APIs. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "설정 > 개인정보 보호.",
+    "accept_and_close": "동의하고 종료하기"
+  },
   "onboarding_interest_questionnaire": {
     "title": "MetaMask를 어떻게 사용하실 건가요?",
     "description": "해당 사항을 모두 선택하세요.",
@@ -4170,6 +4441,7 @@
     "resources": "리소스",
     "permissions": "권한",
     "card_title": "MetaMask 카드",
+    "card_update_badge": "업데이트",
     "settings": "설정",
     "networks": "네트워크",
     "log_out": "로그아웃",
@@ -4220,7 +4492,7 @@
     "clear_approvals_modal_message": "계정 정보를 다시 보려면 모든 디앱에서 액세스를 요청해야 합니다.",
     "clear_browser_history_modal_title": "브라우저 기록을 지울까요?",
     "clear_browser_history_modal_message": "브라우저 기록을 제거할 예정입니다. 확실합니까?",
-    "clear_cookies_modal_title": "브라우저 쿠키 지우기",
+    "clear_cookies_modal_title": "브라우저 쿠키 지우기?",
     "clear_cookies_modal_message": "브라우저의 쿠키를 제거할 예정입니다. 확실합니까?",
     "reset_account_modal_message": "계정을 초기화하면 거래 활동이 지워집니다.",
     "save_rpc_url": "저장",
@@ -4284,7 +4556,8 @@
       "select_all": "전체 선택",
       "deselect_all": "전체 선택 해제",
       "select_accounts_title": "계정",
-      "select_accounts_desc": "어느 계정에 대한 알림을 받을지 선택하세요.",
+      "select_accounts_desc": "어느 계정에 대한 알림을 받을지 선택하세요",
+      "accounts_load_error": "계정 알림 설정을 불러올 수 없습니다. 나중에 다시 시도하세요.",
       "wallet_activity_title": "지갑 활동",
       "wallet_activity_desc": "매수, 매도, 전송, 스왑",
       "perps_title": "트레이딩 활동",
@@ -4401,7 +4674,7 @@
     "metametrics_restart_required": "변경 내용을 적용하려면 앱을 다시 시작해야 합니다.",
     "create_password": "비밀번호 생성",
     "invalid_password": "잘못된 비밀번호",
-    "invalid_password_message": "비밀번호가 틀렸습니다. 다시 시도하세요.",
+    "invalid_password_message": "비밀번호를 확인한 후 다시 시도하세요.",
     "security_heading": "보안",
     "general_heading": "일반",
     "privacy_heading": "개인정보 보호",
@@ -4570,7 +4843,7 @@
     "autodetect_nft_desc": "MetaMask가 타사 서비스(예: OpenSea)를 이용하여 회원님의 NFT를 추가할 수 있도록 합니다. NFT를 자동 감지하면 이러한 서비스에 IP와 계정 주소가 노출됩니다. 이 기능을 켜면 IP 주소가 이더리움 주소와 연결되고 사기꾼이 에어드랍한 가짜 NFT가 표시될 수 있습니다. 이러한 위험을 피하기 위해 수동으로 토큰을 추가할 수 있습니다.",
     "display_nft_media_desc_new": "NFT 미디어와 데이터를 표시하면 IP 주소가 OpenSea나 기타 제삼자에게 노출될 수 있습니다. NFT 자동 감지는 이 기능을 이용하기 때문에 이 기능이 꺼져 있는 경우 사용할 수 없습니다. NFT 미디어가 IPFS에 완전히 자리를 잡으면 이 기능이 꺼져 있어도 계속 표시될 수 있습니다.",
     "use_safe_chains_list_validation_desc_1": "MetaMask는 다음의 제3자 서비스를 사용하여 ",
-    "use_safe_chains_list_validation_desc_2": "정확하고 표준화된 네트워크 세부 정보를 표시합니다. 이를 통해 악성 또는 잘못된 네트워크에 연결될 가능성이 줄어듭니다. 이 기능을 사용하면 사용자의 IP 주소가 다음에 노출됩니다:  ",
+    "use_safe_chains_list_validation_desc_2": "정확하고 표준화된 네트워크 세부 정보를 표시합니다. 이를 통해 악의적이거나 잘못된 네트워크에 연결될 가능성을 줄일 수 있습니다. 이 기능을 사용하면 사용자의 IP 주소가 다음에 노출됩니다:",
     "snaps": {
       "title": "Snap",
       "description": "Snap 개요 및 관리",
@@ -4896,8 +5169,8 @@
     "private_key_copied_time": "(1분간 저장됨)",
     "private_key_copied_ios": "개인 키를 임시로 클립보드에 복사했습니다\n",
     "private_key_copied_android": "개인 키를 클립보드에 복사했습니다\n",
-    "warning_incorrect_password": "잘못된 비밀번호",
-    "unknown_error": "계정을 잠금 해제할 수 없습니다. 다시 시도해 주세요.",
+    "warning_incorrect_password": "잘못된 비밀번호입니다. 다시 시도해 주세요.",
+    "unknown_error": "계정을 잠금해제할 수 없습니다. 다시 시도해 주세요.",
     "hardware_error": "하드웨어 지갑 계정입니다. 개인 키를 내보낼 수 없습니다.",
     "seed_warning": "이것은 지갑용 12단어 구문입니다. 이 구문은 현재 계정은 물론 앞으로 만들 계정도 통제하는 데 사용됩니다. 이 구문이 있으면 지갑의 어떤 자금도 송금할 수 있는 권한이 생깁니다. 그러니 구문을 안전하게 보관하세요. 절대 이를 다른 사람과 공유하지 마세요.",
     "text": "텍스트",
@@ -5051,7 +5324,7 @@
     "bridge_description": "네트워크간 토큰 전송",
     "send_description": "원하는 계정에 암호화폐 보내기",
     "receive_description": "암호화폐 수령",
-    "earn_description": "토큰으로 보상을 획득하세요",
+    "earn_description": "암호화폐를 활용하세요",
     "perps_description": "무기한 선물 계약 거래",
     "predict_description": "현실 세계의 이슈를 기반으로 거래해 보세요",
     "chart_time_period": {
@@ -5102,13 +5375,13 @@
     "malicious_token_description_no_symbol": "보안 파트너가 이 토큰을 고위험 자산으로 식별했습니다.",
     "malicious_token_banner_description": "보안 파트너가 {{symbol}}을(를) 고위험 자산으로 식별했습니다.",
     "malicious_token_banner_description_no_symbol": "보안 파트너가 이 토큰을 고위험 자산으로 식별했습니다.",
-    "suspicious_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
-    "suspicious_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
+    "suspicious_token_description": "보안 파트너가 {{symbol}}의 계약 또는 거래 활동에서 위험 신호를 발견했습니다.",
+    "suspicious_token_description_no_symbol": "보안 파트너가 토큰의 계약 또는 거래 활동에서 위험 신호를 발견했습니다.",
     "verified_token_title": "검증된 토큰",
     "verified_token_description": "{{symbol}}은(는) 활발하게 거래되고 있으며 널리 알려져 있습니다. 검증은 MetaMask의 보증을 의미하지 않습니다.",
     "risky_token_title": "의심스러운 토큰",
-    "risky_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
-    "risky_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
+    "risky_token_description": "보안 파트너가 {{symbol}}의 계약 또는 거래 활동에서 위험 신호를 발견했습니다.",
+    "risky_token_description_no_symbol": "보안 파트너가 토큰의 계약 또는 거래 활동에서 위험 신호를 발견했습니다.",
     "malicious_token_sheet_description": "보안 파트너가 {{symbol}}을(를) 고위험 자산으로 식별했습니다.",
     "malicious_token_sheet_description_no_symbol": "보안 파트너가 이 토큰을 고위험 자산으로 식별했습니다.",
     "got_it": "컨펌",
@@ -5118,7 +5391,7 @@
     "data_unavailable": "보안 데이터 없음",
     "subtitle_known": "위험 신호가 감지되지 않았습니다. 거래하기 전에 항상 자산을 조사하세요.",
     "subtitle_no_issues": "위험 신호가 감지되지 않았습니다. 거래하기 전에 항상 자산을 조사하세요.",
-    "subtitle_suspicious": "Security partners found risk signals in this token's contract or trading activity.",
+    "subtitle_suspicious": "보안 파트너가 토큰의 계약 또는 거래 활동에서 위험 신호를 발견했습니다.",
     "subtitle_malicious": "보안 파트너가 이 토큰을 고위험 자산으로 식별했습니다.",
     "subtitle_unavailable": "이 토큰의 보안 분석을 불러올 수 없습니다.",
     "token_distribution": "토큰 분포",
@@ -5332,7 +5605,7 @@
     "invalid_amount": "잘못된 금액",
     "invalid_gas": "잘못된 가스량",
     "invalid_gas_price": "잘못된 가스 가격",
-    "high_gas_price": "Your network fee may be set unnecessarily high ({{currentGasPrice}}). Consider lowering the amount.",
+    "high_gas_price": "네트워크 수수료가 불필요하게 높게 설정되었을 수 있습니다({{currentGasPrice}}). 금액을 낮추는 것을 고려하세요.",
     "low_gas_price": "가스 가격이 과도하게 낮음",
     "invalid_collectible_ownership": "이 콜렉티블을 소유하고 있지 않습니다",
     "known_asset_contract": "확인된 자산 계약 주소",
@@ -5365,7 +5638,7 @@
     "use_max": "최대 사용",
     "set_gas": "설정",
     "cancel_gas": "취소",
-    "transaction_fee_estimated": "Estimated network fee",
+    "transaction_fee_estimated": "예상 네트워크 수수료",
     "transaction_fee": "네트워크 수수료",
     "transaction_fee_less": "요금 없음",
     "total_amount": "총 금액",
@@ -5390,7 +5663,7 @@
     "tokenContractAddressWarning_1": "이 주소는 다음에 해당합니다:",
     "tokenContractAddressWarning_2": "토큰 계약 주소입니다",
     "tokenContractAddressWarning_3": ". 이 주소로 토큰을 보내면 토큰을 잃게 됩니다.",
-    "smartContractAddressWarning": "이 주소는 스마트 계약 주소입니다. 이 주소가 어떤 용도인지 명확히 파악하시기 바랍니다. 그렇지 않으면 자금을 잃을 수 있습니다.",
+    "smartContractAddressWarning": "이 주소는 스마트 계약 주소입니다. 이 주소의 용도를 정확히 이해하고 있는지 확인하세요. 그렇지 않으면 자금을 잃을 수 있습니다.",
     "continueError": "위험을 인지하고 있습니다. 계속 진행해 주세요",
     "gas_education_title_ethereum": "이더리움 가스요금",
     "gas_education_title": "가스요금",
@@ -5404,16 +5677,16 @@
     "confusable_msg": "ENS 이름에 혼란을 줄 수 있는 글자가 들어 있는 것을 확인했습니다. 사기를 방지하기 위해 ENS 이름을 확인하세요.",
     "similar_to": "(은)는 다음과 유사합니다.",
     "contains_zero_width": "에 너비가 0인 문자가 있습니다.",
-    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It’s using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
-    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
+    "dapp_suggested_gas": "이 네트워크 수수료는 {{origin}}에서 제안했습니다. 이는 레거시 가스 예측 방식을 사용하므로 부정확할 수 있습니다. 그러나 이 네트워크 수수료를 수정하면 트랜잭션에 문제가 생길 수 있습니다. 궁금한 점이 있으면 {{origin}}에 문의하세요.",
+    "dapp_suggested_eip1559_gas": "이 네트워크 수수료는 {{origin}}에서 제안했습니다. 이를 변경하면 트랜잭션에 문제가 발생할 수 있습니다. 궁금한 점이 있으면 {{origin}}에 문의하세요.",
     "address_invalid": "수신인 주소가 올바르지 않습니다.",
     "ens_not_found": "이 이름에 설정된 주소가 없습니다.",
-    "unknown_qr_code": "잘못된 QR 코드입니다. 다시 시도하세요.",
+    "unknown_qr_code": "잘못된 QR 코드입니다. 다시 시도해 주세요.",
     "invalid_qr_code_sync": "잘못된 QR 코드입니다. 하드웨어 지갑의 동기화 QR 코드를 스캔하세요.",
-    "no_camera_permission": "카메라가 허용되지 않았습니다. 권한 허용 후 다시 시도하세요.",
+    "no_camera_permission": "카메라 권한이 없습니다. 권한을 허용한 후 다시 시도하세요",
     "invalid_qr_code_sign": "잘못된 QR 코드입니다. 하드웨어를 확인하고 다시 시도하세요.",
     "no_camera_permission_android": "진행하려면 MetaMask에서 카메라를 허용해야 합니다. 시스템 설정을 변경해야 할 수도 있습니다.",
-    "mismatched_qr_request_id": "일치하지 않는 트랜잭션 데이터입니다. 하드웨어 지갑으로 아래의 QR 코드에 서명하고 '서명받기'를 누르세요.",
+    "mismatched_qr_request_id": "트랜잭션 데이터가 일치하지 않습니다. 하드웨어 지갑을 사용하여 아래 QR 코드에 서명한 다음 ‘서명받기’를 탭하세요.",
     "fiat_conversion_not_available": "현재 명목 화폐 환율을 사용할 수 없습니다.",
     "hex_data_copied": "헥스 데이터를 클립보드에 복사했습니다",
     "invalid_recipient": "잘못된 수신자",
@@ -5614,6 +5887,8 @@
     "activity_market_close_long": "시장가 — 롱 청산",
     "activity_limit_long": "지정가 롱",
     "activity_limit_close_long": "지정가 — 롱 청산",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "체결됨",
     "activity_order_status_canceled": "취소됨",
     "activity_order_status_rejected": "거부됨",
@@ -5746,7 +6021,6 @@
       "only_numbers_allowed": "숫자만 허용됩니다",
       "negative_values_not_allowed": "음수 값은 허용되지 않습니다",
       "max_base_fee_must_be_greater_than_priority_fee": "최대 기본 요금은 우선 요금보다 높아야 합니다",
-      "gas_limit_too_low": "가스 한도 값은 21000보다 더 커야 합니다",
       "priority_fee_too_high": "우선 요금은 최대 기본 요금보다 낮아야 합니다",
       "no_zero_value": "{{field}}(은)는 0보다 커야 합니다",
       "speed": "속도",
@@ -5758,9 +6032,9 @@
     "status_submitting_description": "예상 잔여 시간: {{timeLeft}}",
     "status_success_header": "트랜잭션이 완료되었습니다",
     "status_submitting_past_estimated_deadline_header": "기다리게 해서 죄송합니다",
-    "status_submitting_past_estimated_deadline_description": "{{timeLeft}} 이내에 트랜잭션이 완료되지 않으면, 트랜잭션이 취소되고 가스비가 부과되지 않습니다.",
+    "status_submitting_past_estimated_deadline_description": "{{timeLeft}} 이내에 최종 확정되지 않으면 트랜잭션이 취소되며 네트워크 수수료는 부과되지 않습니다.",
     "status_cancelled_header": "트랜잭션이 취소되었습니다",
-    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary network fees.",
+    "status_cancelled_description": "트랜잭션을 완료할 수 없어 불필요한 네트워크 수수료가 부과되지 않도록 취소했습니다.",
     "status_failed_header": "트랜잭션 실패",
     "status_failed_description": "시장 상황이 갑자기 변하면 실패할 수 있습니다. 문제가 지속되면 MetaMask 고객 지원으로 문의하세요.",
     "view_transaction": "트랜잭션 보기",
@@ -5966,7 +6240,7 @@
     "show_balance": "총 잔액 표시"
   },
   "authentication": {
-    "auth_prompt_desc": "MetaMask를 사용하려면 인증을 받으세요",
+    "auth_prompt_desc": "MetaMask를 사용하려면 인증하세요",
     "labels": {
       "remember_me": "로그인 유지",
       "face_id": "Face ID",
@@ -6004,7 +6278,7 @@
     "cta_text": "가져오기",
     "example": "예: 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "문제가 발생했습니다",
-    "error_message": "개인 키를 불러올 수 없었습니다. 키를 정확히 입력했는지 확인하세요.",
+    "error_message": "해당 개인 키를 가져올 수 없습니다. 정확히 입력했는지 확인하세요.",
     "error_empty_message": "개인 키를 입력해야 합니다.",
     "or_scan_a_qr_code": "또는 QR 코드를 스캔하세요"
   },
@@ -6145,8 +6419,8 @@
     "confirm": "컨펌"
   },
   "account_backup_step_5": {
-    "error_title": "Incorrect word order",
-    "error_message": "Make sure you wrote it down correctly and go to the previous screen if it is necessary.",
+    "error_title": "단어 순서 오류",
+    "error_message": "정확히 적었는지 확인하고 필요한 경우 이전 화면으로 돌아가세요.",
     "back": "뒤로",
     "title": "비밀 복구 구문 확인",
     "info_text": "이전 화면에 나왔던 순서에 맞게 각 단어를 입력하세요.",
@@ -6225,21 +6499,21 @@
   "phishing": {
     "ethereum_phishing_detection": "이더리움 피싱 사기 탐지",
     "ethereum_phishing_detector": "이더리움 피싱 사기 탐지기",
-    "intro": "이 도메인은 현재 MetaMask 도메인 위험 목록에 있습니다. 즉 이용 가능한 정보를 바탕으로, MetaMask는 이 도메인이 귀하의 보안에 침투할 수 있다고 판단한 것입니다. 추가적인 안전 조치로 MetaMask는 해당 사이트의 접근을 제한했습니다. 이를 무시하고 계속 진행하고 싶으시면 나머지 경고 내용을 읽어 위험을 감수하고 계속 진행하는 방법을 확인하세요.",
+    "intro": " 은(는) 현재 MetaMask 도메인 경고 목록에 있습니다. 즉 이용 가능한 정보를 바탕으로, MetaMask는 이 도메인이 사용자의 보안을 위협할 수 있다고 판단한 것입니다. 추가적인 안전 조치로 MetaMask는 해당 사이트의 접근을 제한했습니다. 이를 무시하고 계속 진행하고 싶으시면 나머지 경고 내용을 읽어 위험을 감수하고 계속 진행하는 방법을 확인하세요.",
     "reasons": "사이트가 위험 목록에 오르는 데에는 여러가지 이유가 있습니다. 그MetaMask은 다른 산업에서도 널리 사용되고 있는 목록을 병합한 것입니다. 사기 이력, 보안 위험 같이 테스트 결과 위험이 확인되는 것 등이 이유가 될 수 있습니다.",
     "list_content": "위험 목록에 있는 도메인은 명백히 악의적인 웹사이트이거나 악의적인 행위자에 의해 해킹을 당한 적이 있는 적법한 웹사이트 등일 수 있습니다.",
     "to_read_more": "이 웹사이트 대해 더 자세히 알아보세요",
-    "review_on_etherscam": "이더스캠(Etherscam)에 있는 도메인을 검토하세요.",
+    "review_on_etherscam": "Etherscam에서 도메인을 검토하세요.",
     "warning": "위험 목록은 자발적 참여로 만들어진 목록입니다. 때문에 목록이 부정확하거나 완벽하지 않을 수 있습니다. 목록에 나오지 않는다고 해서 도메인의 안전이 보장된다는 의미는 아닙니다. 언제나 거래에 대한 모든 책임은 본인에게 있습니다. 위험 목록에 있는 도메인과 계속 인터렉션하기 원하시면 다음과 같이 하시면 됩니다.",
     "continue_on_your_own": "위험을 감수하고 계속하기.",
     "file_an_issue_intro": "도메인이 위험 목록으로 잘못 분류되어 있다고 생각되거나 적법한 웹사이트임에도 보안 문제로 접근이 제한된 사이트의 보안 문제가 해결된 경우,",
-    "file_an_issue": "문의를 제출하세요.",
+    "file_an_issue": "문제를 신고하세요.",
     "back_to_safety": "안전성으로 돌아가기",
     "site_might_be_harmful": "이 웹사이트는 해로울 수 있습니다",
     "metamask_flagged_site": "MetaMask는 방문하려는 사이트를 잠재적인 사기성 사이트로 표시했습니다. 공격자가 사용자를 속여 위험한 행동을 유도할 수 있습니다.",
     "you_may_proceed_anyway": "아마",
     "proceed_anyway": "계속 진행",
-    "but_please_do_so_at_your_own_risk": "하지만 위험은 직접 감수하셔야 합니다.",
+    "but_please_do_so_at_your_own_risk": "단, 이에 따른 위험은 사용자가 감수해야 합니다.",
     "report_detection_problem": "감지 문제 보고",
     "share_on_twitter": "이 정보가 유용했다면, X를 통해 공유해 주세요.",
     "share_text": "MetaMask가 잠재적으로 위험한 사이트({{url}})로부터 저를 보호해줬어요. 모두 안전하게 이용하세요!"
@@ -6263,35 +6537,7 @@
     "swap_completed": "{{from}}(을)를 {{to}}(으)로 스왑함",
     "swap": "스왑됨",
     "sent": "{{address}}(으)로 전송됨",
-    "menu_item_title": {
-      "metamask_swap_completed": "{{symbolIn}}을(를) {{symbolOut}}(으)로 스왑함",
-      "erc20_sent": "{{address}}(으)로 전송됨",
-      "erc20_received": "{{address}}에서 받음",
-      "eth_sent": "{{address}}(으)로 전송됨",
-      "eth_received": "{{address}}에서 받음",
-      "erc721_sent": "{{address}}(으)로 NFT를 전송함",
-      "erc1155_sent": "{{address}}(으)로 NFT를 전송함",
-      "erc721_received": "{{address}}에서 NFT를 받음",
-      "erc1155_received": "{{address}}에서 NFT를 받음",
-      "rocketpool_stake_completed": "스테이킹 완료",
-      "rocketpool_unstake_completed": "언스테이킹 완료",
-      "lido_stake_completed": "스테이킹 완료",
-      "lido_withdrawal_requested": "언스테이킹 요청됨",
-      "lido_withdrawal_completed": "언스테이킹 완료",
-      "lido_stake_ready_to_be_withdrawn": "출금 요청됨"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "{{amount}} {{symbol}} 언스테이킹 요청이 전송되었습니다",
-      "lido_stake_ready_to_be_withdrawn": "이제 언스테이킹한 {{symbol}}을(를) 인출할 수 있습니다"
-    },
     "modal": {
-      "title_sent": "보낸 {{symbol}}",
-      "title_received": "받은 {{symbol}}",
-      "title_unstake_requested": "언스테이킹 요청됨",
-      "title_untake_ready": "인출 준비 완료",
-      "title_stake": "{{symbol}} 스테이킹 완료",
-      "title_unstake_completed": "언스테이킹 완료됨",
-      "title_swapped": "{{symbolIn}}을(를) {{symbolOut}}(으)로 스왑함",
       "label_address_to": "수신:",
       "label_address_from": "보내는 사람",
       "label_address_to_you": "받음(나)",
@@ -6317,7 +6563,7 @@
     "pending_deposit_title": "예치 진행 중",
     "pending_withdrawal_title": "인출이 진행 중입니다",
     "cancelled_title": "트랜잭션이 취소되었습니다",
-    "success_title": "Transaction #{{nonce}} complete",
+    "success_title": "트랜잭션 #{{nonce}} 완료",
     "speedup_title": "#{{nonce}} 속도 향상 중",
     "success_deposit_title": "예치 완료",
     "success_withdrawal_title": "출금 완료",
@@ -6394,7 +6640,7 @@
     "wc_signed_failed_title": "이 서명 요청은 실패했습니다",
     "wc_sent_tx_rejected_title": "거래 요청을 거부했습니다",
     "approved_tx_rejected_title": "권한 승인을 거부했습니다",
-    "wc_description": "애플리케이션을 확인하세요",
+    "wc_description": "애플리케이션 확인",
     "wallet": "지갑",
     "web3": "웹3",
     "staking_provider": "스테이킹 공급자",
@@ -6533,7 +6779,7 @@
     "wallet_connect_dapps_cta": "세션 보기",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
     "select_provider": "선호하는 공급업체 선택",
-    "switch_network": "메인넷이나 세폴리아로 전환하세요",
+    "switch_network": "메인넷 또는 Sepolia로 전환하세요",
     "card_title": "MetaMask 카드 버튼 항상 표시",
     "card_desc": "MetaMask 카드는 일부 국가의 거주자만 사용할 수 있습니다.",
     "daimo_demo_title": "DaimoPay 데모 환경 사용",
@@ -6593,10 +6839,10 @@
     "pay_with": "결제 수단:",
     "buying_via": "{{providerName}}을(를) 통해 구매",
     "change_provider": "공급자를 변경하세요.",
-    "circuit_breaker_open": "이 서비스는 일시적으로 사용할 수 없습니다. 30분 정도 후에 다시 시도하세요.",
-    "payment_error": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "circuit_breaker_open": "이 서비스는 일시적으로 사용할 수 없습니다. 약 30분 후 다시 시도하세요.",
+    "payment_error": "문제가 발생했습니다. 다시 시도해 주세요.",
     "no_payment_methods_available": "사용 가능한 결제 방법이 없습니다.",
-    "error_fetching_quotes": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "error_fetching_quotes": "문제가 발생했습니다. 다시 시도해 주세요.",
     "no_quotes_available": "공급자가 없습니다.",
     "quote_unavailable": "견적을 확인할 수 없습니다.",
     "providers": "공급자",
@@ -6609,7 +6855,7 @@
     "powered_by_provider": "제공자: {{provider}}",
     "purchased_currency": "구매한 {{currency}}",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
-    "switch_network": "메인넷으로 전환하세요",
+    "switch_network": "메인넷으로 전환",
     "switch": "전환",
     "purchases": "구매",
     "purchase_method": "구매 방법",
@@ -6752,7 +6998,7 @@
       "what_to_expect": "예상되는 내용",
       "quotes": "MetaMask의 암호화폐 구매 기능은 통합된 공급업체로부터 견적을 집계하여 견적을 제공하므로 대기 기간 없이 암호화폐를 소스에서 지갑으로 직접 가져올 수 있습니다.",
       "quotes_sell": "이제 MetaMask에서 직접 현금을 인출할 수 있습니다! MetaMask의 안내에 따라 한 단계씩 진행하며 신뢰하는 제공업체의 최신 견적을 받으세요.",
-      "benefits": "Fewer network fees to pay, and numerous networks, tokens, and payment methods supported",
+      "benefits": "지불해야 하는 네트워크 수수료는 줄이고 다양한 네트워크, 토큰 및 결제 수단을 지원합니다",
       "benefits_sell": "이제 암호화폐를 현지 통화로 환전하는 것이 어느 때보다 쉬워졌습니다.",
       "get_started": "시작하기"
     },
@@ -6793,8 +7039,8 @@
     "best_rate": "최적 환율",
     "most_reliable": "가장 신뢰할 수 있음",
     "quotes_timeout": "견적 타임아웃",
-    "request_new_quotes": "최고의 환율을 가질 수 있도록 새로운 견적을 요청하세요.",
-    "wallet_pay_terms": "By continuing, you accept Crossmint's",
+    "request_new_quotes": "새 견적을 요청하여 현재 가장 유리한 요율을 확인하세요.",
+    "wallet_pay_terms": "계속하면 Crossmint의 다음 약관에 동의하는 것입니다:",
     "terms_of_service": "서비스 약관",
     "amount_to_buy": "매수",
     "amount_to_sell": "매도",
@@ -6824,10 +7070,10 @@
     "minimum": "최소 예치 금액:",
     "maximum": "최대 예치 금액:",
     "insufficient_balance": "잔액이 부족합니다",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the network fees.",
+    "insufficient_native_balance": "네트워크 수수료를 지불할 {{currency}} 잔액이 부족합니다.",
     "enter_larger_amount": "계속하려면 더 많은 금액을 입력하세요",
     "enter_smaller_amount": "계속하려면 더 적은 금액을 입력하세요",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for network fees",
+    "enter_lower_gas_fees": "네트워크 수수료를 지불할 수 있도록 더 낮은 금액을 입력하세요",
     "max": "최대",
     "try_again": "다시 시도",
     "error": "오류",
@@ -6847,12 +7093,12 @@
     "return_home": "홈 화면으로 돌아가기",
     "incompatible_token_account_modal": {
       "title": "호환되지 않는 계정",
-      "description": "현재 사용 중인 계정은 {{networkName}} 토큰을 지원할 수 없습니다. 계속 진행하려면 호환되는 계정으로 전환해 주세요.",
+      "description": "현재 계정은 {{networkName}}의 토큰을 지원하지 않습니다. 계속하려면 호환되는 계정으로 전환하세요.",
       "cta": "확인"
     },
     "eligibility_failed_modal": {
       "title": "자격 요건 확인 실패",
-      "description": "지역 기준에 따라 접근 권한을 확인할 수 없습니다. 다시 시도해 주시기 바랍니다. 문제가 계속될 경우 고객 지원팀으로 문의해 주세요.",
+      "description": "지역 기준에 따라 액세스 가능 여부를 확인할 수 없습니다. 다시 시도해 주세요. 문제가 계속되면 지원팀에 문의하세요.",
       "contact_support": "지원팀에 문의",
       "got_it": "확인"
     },
@@ -6896,7 +7142,7 @@
       "failed": "주문 실패",
       "cancelled": "주문 취소 완료",
       "pending": "주문 보류 중",
-      "failed_description": "오류가 발생해 {{provider}}(이)가 주문을 완료하지 못했습니다. 나중에 다시 시도하거나 다른 공급업체를 이용하세요.",
+      "failed_description": "문제가 발생하여 {{provider}}에서 주문을 완료할 수 없습니다. 다시 시도하거나 다른 공급업체를 이용하세요.",
       "continue_order_description": "주문을 계속하려면 이 페이지의 하단에 있는 버튼을 선택해야 합니다.",
       "the_provider": "공급업체",
       "processing": "주문 처리 중",
@@ -6971,7 +7217,7 @@
     "processing_info_modal_description": "카드 결제는 보통 몇 분 정도 소요됩니다. 문의 사항이 있으면 지원팀에 연락해 주세요.",
     "go_to_provider_support": "{{provider}} 지원 페이지로 이동",
     "error_title": "문제가 발생했습니다",
-    "error_message": "주문 정보를 불러올 수 없습니다. 다시 시도하세요.",
+    "error_message": "주문 상세 정보를 불러올 수 없습니다. 다시 시도해 주세요.",
     "try_again": "다시 시도",
     "close": "닫기"
   },
@@ -7006,7 +7252,7 @@
       "start_swapping": "스와프 시작"
     },
     "feature_off_title": "일시적으로 이용이 불가합니다",
-    "feature_off_body": "MetaMask 스왑은 현재 유지 보수 중입니다. 나중에 다시 확인해 주세요.",
+    "feature_off_body": "MetaMask 스왑이 현재 유지 보수 중입니다. 나중에 다시 확인해 주세요.",
     "wrong_network_title": "스와프 이용 불가",
     "wrong_network_body": "이더리움 메인 네트워크에서만 토큰 스와프가 가능합니다.",
     "unallowed_asset_title": "이 토큰은 스와프할 수 없습니다.",
@@ -7036,10 +7282,10 @@
     "manually_pasting": "이 주소를 붙여 넣어서 토큰을 수동으로 추가하세요.",
     "token_address_can_be_found": "토큰 계약 주소는 다음에서 찾을 수 있습니다:",
     "gathering_token_details": "토큰 세부 사항 수집 중...",
-    "error_gathering_token_details": "There was an error gathering token details.",
+    "error_gathering_token_details": "토큰 세부사항을 가져오는 도중 오류가 발생했습니다.",
     "Import": "불러오기",
     "invalid_token_contract_address": "잘못된 토큰 계약 주소.",
-    "please_verify_on_explorer": "다음에서 인증하세요:",
+    "please_verify_on_explorer": "다음에서 인증:",
     "add_warning": "누구든 토큰을 생성할 수 있습니다. 여기에는 프로젝트를 대표한다고 주장하는 기존 토큰의 가짜 버전 생성도 포함됩니다.",
     "import_token": "토큰을 불러오시겠습니까?",
     "contract": "계약:",
@@ -7080,10 +7326,10 @@
     "saving": "저장",
     "n_quotes": "견적 {{numberOfQuotes}}건",
     "view_details": "세부 사항 확인",
-    "estimated_gas_fee": "Estimated network fee",
+    "estimated_gas_fee": "예상 네트워크 수수료",
     "gas_fee": "네트워크 수수료",
     "included": "포함됨",
-    "max_gas_fee": "Max network fee",
+    "max_gas_fee": "최대 네트워크 수수료",
     "edit": "수정",
     "quotes_include_fee": "견적에는 {{fee}}%의 MetaMask 수수료가 포함됩니다",
     "quotes_include_gas_and_metamask_fee": "견적에는 가스비와 {{fee}}%의 MetaMask 수수료가 포함됩니다",
@@ -7111,7 +7357,7 @@
     "rate": "환율",
     "quote_details_max_slippage": "최대 슬리피지",
     "source": "출처",
-    "estimated_network_fees": "Estimated network fees",
+    "estimated_network_fees": "예상 네트워크 수수료",
     "guaranteed_amount": "보장되는 금액",
     "quote_source_dex": {
       "1": "이 견적은 다음에서 직접 제공됩니다:",
@@ -7134,11 +7380,11 @@
       "3": "스마트 계약은 가스 비용을 절약할 수 있는 네이티브 토큰을 래핑 및 래핑 해제하는 시스템입니다."
     },
     "quotes_timeout": "견적 타임아웃",
-    "request_new_quotes": "최고의 환율을 가질 수 있도록 새로운 견적을 요청하세요.",
+    "request_new_quotes": "새 견적을 요청하여 현재 가장 유리한 요율을 확인하세요.",
     "quotes_not_available": "견적 확인 불가",
     "try_adjusting": "수량을 조정하여 다시 시도해 보세요.",
     "error_fetching_quote": "견적 산출 중 오류 발생",
-    "unexpected_error": "예상하지 못한 오류가 있었습니다. 가장 좋은 환율을 얻을 수 있도록 새 견적을 요청하세요(오류: {{error}})",
+    "unexpected_error": "예기치 않은 오류가 발생했습니다. 새 견적을 요청하여 현재 가장 유리한 요율을 확인하세요. (오류: {{error}})",
     "get_new_quotes": "새 견적을 받기",
     "try_again": "다시 시도",
     "terms_of_service": "이용 약관",
@@ -7155,9 +7401,9 @@
     "medium_selected_warning": "스와프는 시간이 중요합니다. \"중간\"은 권장되지 않습니다.",
     "high_recommendation": "스와프는 일반적으로 시간에 민감합니다. \"높음\"은 시장 조건의 변화로 생길 수 있는 손실을 피하는 데 도움이 됩니다.",
     "recommended": "권장됨",
-    "recommended_gas": "Recommended network fee",
-    "gas_included_tooltip_explanation": "This quote incorporates network fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about network fees",
+    "recommended_gas": "권장 네트워크 수수료",
+    "gas_included_tooltip_explanation": "이 견적은 네트워크 수수료가 포함되어 있으며 보내거나 받는 토큰 수량이 조정됩니다. ETH는 활동 목록에서 별도의 거래로 표시될 수 있습니다.",
+    "gas_included_tooltip_explanation_link_text": "네트워크 수수료에 대해 더 자세히 알아보기",
     "gas_education_title": "예상 가스요금",
     "gas_education_1": "가스요금은 다음 네트워크에서 거래를 진행할 때 암호화 화폐 채굴자에게 지불하는 비용입니다:",
     "gas_education_2_ethereum": "이더리움 네트워크.",
@@ -7180,13 +7426,17 @@
   },
   "deeplink": {
     "invalid": "잘못된 딥링크",
-    "not_supported": "딥링크 지원하지 않음"
+    "not_supported": "딥링크 지원하지 않음",
+    "solana_pay_transaction_request_not_supported": "이 Solana Pay QR은 아직 지원되지 않는 트랜잭션 요청을 사용합니다.",
+    "solana_pay_reference_not_supported": "이 Solana Pay QR에는 아직 지원되지 않는 결제 참조가 포함되어 있습니다.",
+    "solana_pay_memo_not_supported": "이 Solana Pay QR에는 아직 지원되지 않는 메모가 포함되어 있습니다.",
+    "solana_pay_token_not_supported": "이 Solana Pay QR은 인식할 수 없는 토큰을 사용합니다. 결제가 시작되지 않았습니다."
   },
   "error_screen": {
     "title": "오류가 발생했습니다",
     "subtitle": "정보가 보이지 않습니다. 걱정하지 마세요. 귀하의 지갑과 자금은 안전합니다.",
     "try_again_button": "다시 시도하세요",
-    "submit_ticket_1": "수정할 수 있도록 이를 신고해 주세요:",
+    "submit_ticket_1": "문제를 해결할 수 있도록 신고해 주세요:",
     "submit_ticket_2": "화면의 스크린샷을 찍으세요.",
     "submit_ticket_3": "복사",
     "submit_ticket_4": "하시면 오류 메시지가 클립보드에 복사됩니다.",
@@ -7194,7 +7444,7 @@
     "submit_ticket_6": "제출하세요.",
     "submit_ticket_7": "오류 메시지와 스크린샷을 포함해 주세요.",
     "submit_ticket_8": "버그 리포트 전송",
-    "submit_ticket_9": "오류에 대해 자세히 설명해 주세요.",
+    "submit_ticket_9": "발생한 상황에 대해 자세히 설명해 주세요.",
     "bug_report_prompt_title": "어떤 오류인지 알려주세요",
     "bug_report_prompt_description": "무엇이 잘못되었는지 파악할 수 있도록 세부 정보를 추가하세요.",
     "bug_report_thanks": "감사합니다! 곧 확인하겠습니다.",
@@ -7285,7 +7535,7 @@
     "max_priority_fee": "최대 우선 수수료",
     "max_fee": "최대 수수료",
     "estimate": "예상",
-    "recommended_gas_fee": "Recommended network fee",
+    "recommended_gas_fee": "권장 네트워크 수수료",
     "swaps_warning": "스와프는 시간이 중요합니다. \"높음\"으로 설정하면 시장 조건의 변화로 생길 수 있는 손실을 피하는 데 도움이 됩니다.",
     "priority_fee_at_least_0_error": "우선 수수료는 최소 1 GWEI여야 합니다",
     "learn_more": {
@@ -7312,8 +7562,8 @@
     "learn_more_gas_limit": "가스 한도란 사용을 원하는 가스의 최대 단위를 말합니다. 가스 단위는 \"최대 우선 수수료\" 및 \"최대 수수료\"의 승수입니다.",
     "learn_more_max_priority_fee": "최대 우선 수수료(혹은 “채굴자 팁”)는 거래를 우선화하기 위해 채굴자에게 직접 지불하는 인센티브입니다. 주로 최대 설정 비용을 지불하게 됩니다.",
     "learn_more_max_fee": "최대 수수료는 사용자가 지불할 최대 금액입니다(기본 수수료 + 우선 수수료).",
-    "learn_more_new_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 10% (required by the network). ",
-    "learn_more_cancel_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 50% (required by the network). ",
+    "learn_more_new_gas_fee": "현재 네트워크 상태를 반영하여 네트워크 수수료를 업데이트했으며, 네트워크 요구 사항에 따라 최소 10% 인상했습니다. ",
+    "learn_more_cancel_gas_fee": "현재 네트워크 상태를 반영하여 네트워크 수수료를 업데이트했으며, 네트워크 요구 사항에 따라 최소 50% 인상했습니다. ",
     "low": "낮음",
     "medium": "중간",
     "high": "높음",
@@ -7323,8 +7573,8 @@
     "edit_priority": "우선 순위 수정",
     "speed_up_transaction": "거래 속도 향상",
     "cancel_transaction": "거래 취소",
-    "new_gas_fee": "New network fee",
-    "edit_suggested_gas_fee": "Edit suggested network fee",
+    "new_gas_fee": "신규 네트워크 수수료",
+    "edit_suggested_gas_fee": "추천 네트워크 수수료 편집",
     "gas_price": "가스 가격",
     "learn_more_gas_limit_legacy": "가스 한도는 사용을 원하는 최대 가스 단위입니다. 가스 단위는 \"가스 가격\"의 승수입니다.",
     "learn_more_gas_price": "거래를 제출할 때 이 네트워크에 \"가스 가격\" 란을 채워야 합니다. 가스 가격은 가스 단위에 따라 지불할 수 있는 최대 금액입니다.",
@@ -7332,19 +7582,19 @@
     "gas_price_high": "가스 가격이 필요 이상으로 높습니다"
   },
   "transaction_review_eip1559": {
-    "estimated_gas_fee": "Estimated network fee",
+    "estimated_gas_fee": "예상 네트워크 수수료",
     "network_fee": "네트워크 수수료",
     "max_fee": "최대 수수료",
     "total": "총",
     "max_amount": "최대 금액",
-    "estimated_gas_fee_tooltip": "What are network fees?",
+    "estimated_gas_fee_tooltip": "네트워크 수수료란?",
     "estimated_gas_fee_tooltip_text_1": "가스요금은 다음에서 거래를 처리하는 암호화 화폐 채굴자에게 지급되는 비용입니다:",
     "estimated_gas_fee_tooltip_text_2": "이더리움",
     "estimated_gas_fee_tooltip_text_3": "네트워크.",
     "estimated_gas_fee_tooltip_text_4": "MetaMask는 가스요금으로 수익을 얻지 않습니다.",
     "estimated_gas_fee_tooltip_text_5": "가스요금은 네트워크에 의해 설정되며 네트워크 트래픽 및 거래 복잡성에 따라 달라집니다.",
-    "learn_more": "Learn more about network fees",
-    "legacy_gas_suggestion_tooltip": "This network fee suggestion is using legacy gas estimation which may be inaccurate."
+    "learn_more": "네트워크 수수료에 대해 더 자세히 알아보기",
+    "legacy_gas_suggestion_tooltip": "이 네트워크 수수료 제안은 기존 방식의 가스 예측을 사용해 계산된 것으로, 부정확할 수 있습니다."
   },
   "times_eip1559": {
     "unknown": "확인되지 않은 처리 시간",
@@ -7354,8 +7604,8 @@
     "very_likely": "높은 확률로 약 <",
     "at_least": "최소",
     "less_than": "다음 미만:",
-    "warning_very_likely": "This network fee is much higher than the other options available.",
-    "warning_very_likely_title": "Network fees too high",
+    "warning_very_likely": "이 네트워크 수수료는 다른 옵션보다 훨씬 높습니다.",
+    "warning_very_likely_title": "네트워크 수수료 너무 높음",
     "warning_unknown": "귀하의 최대 수수료 및 최대 우선 수수료가 현재 시장 조건에서는 낮을 수 있습니다. 거래가 처리될 시기(혹은 처리될 수 있는지 여부)는 알 수 없습니다.",
     "warning_low": "이렇게 하면 최대 수수료가 낮아지지만 네트워크 트래픽이 증가하면 거래가 지연되거나 실패할 수 있습니다.",
     "warning_low_title": "낮은 우선 순위",
@@ -7388,10 +7638,10 @@
   "network_information": {
     "things_to_keep_in_mind": "유의사항",
     "testnet_network": "{{type}} 테스트넷",
-    "first_description": "The native token on this network is {{ticker}}. It is the token used for network fees.",
+    "first_description": "이 네트워크의 네이티브 토큰은 {{ticker}}입니다. 이는 네트워크 수수료 지불에 사용되는 토큰입니다.",
     "second_description": "한 네트워크에서 다른 네트워크로 자산을 직접 전송하면 자산이 영구적으로 손실될 수 있습니다. 반드시 브릿지를 이용하세요.",
     "third_description": "토큰이 지갑에서 자동으로 표시되지 않을 수 있습니다.",
-    "private_network": "This network is unknown and may use a special token for network fees.",
+    "private_network": "알 수 없는 네트워크이며 특수한 토큰으로 네트워크 수수료를 지불해야 할 수 있습니다.",
     "unknown_network": "알 수 없는 네트워크",
     "switched_network": "다음으로 변경했습니다.",
     "learn_more": "자세히 알아보기",
@@ -7399,8 +7649,8 @@
     "add_token_manually": "수동으로 추가하세요.",
     "got_it": "확인",
     "error_title": "문제가 발생했습니다",
-    "error_message": "네트워크 정보를 불러오는 데 오류가 발생했습니다. 나중에 다시 시도하세요.",
-    "private_network_third_description": "식별하기 쉽도록 네트워크 이름을 입력해 주세요.",
+    "error_message": "네트워크 정보를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도하세요.",
+    "private_network_third_description": "쉽게 식별할 수 있도록 이 네트워크의 이름을 입력하세요.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "자동 토큰 감지 활성화",
     "token_detection_mainnet_title": "토큰 감지가 활성화되어 여러 토큰이 자동으로 지갑에 나타납니다.",
@@ -7542,7 +7792,7 @@
     "open_settings": "설정 열기",
     "view_settings": "설정 보기",
     "bluetooth_off": "블루투스 꺼짐",
-    "bluetooth_off_message": "기기의 블루투스를 켜세요",
+    "bluetooth_off_message": "장치의 블루투스를 켜세요",
     "bluetooth_access_blocked": "Ledger가 모바일 기기와 페어링하려면 블루투스가 필요합니다.",
     "bluetooth_access_blocked_message": "블루투스를 사용하여 Ledger 장치를 페어링하려면, 설정에서 블루투스를 켜고 다시 시도하세요.",
     "location_access_blocked": "MetaMask를 Ledger와 페어링하려면 위치 액세스 권한이 필요합니다.",
@@ -7550,22 +7800,22 @@
     "nearbyDevices_access_blocked": "MetaMask를 Ledger와 페어링하려면 주변 장치 권한이 필요합니다.",
     "nearbyDevices_access_blocked_message": "블루투스를 사용하여 Ledger 장치를 페어링하려면, 설정에서 근처 기기 권한을 허용하고 다시 시도하세요.",
     "bluetooth_scanning_error": "기기 스캐닝 중 오류 발생",
-    "bluetooth_scanning_error_message": "기기가 잠금해제되어 있고 이더리움 앱이 실행되고 있는지 확인하세요",
+    "bluetooth_scanning_error_message": "장치가 잠금해제되어 있고 이더리움 앱이 실행되고 있는지 확인하세요",
     "bluetooth_connection_failed": "블루투스 연결 실패",
-    "bluetooth_connection_failed_message": "Ledger가 잠금해제되어 있고 Bluetooth가 활성화되어 있는지 확인하세요",
+    "bluetooth_connection_failed_message": "Ledger가 잠금해제되어 있고 블루투스가 활성화되어 있는지 확인하세요",
     "ethereum_app_open": "Ledger에 대한 컨펌이 필요합니다",
-    "ethereum_app_open_message": "기기에 이더리움 앱이 열려 있는지 컨펌하세요. 열려 있다면 컨펌(OK)을 누르세요.",
+    "ethereum_app_open_message": "장치에서 확인하여 이더리움 앱을 여세요. 완료되면 OK를 누르세요.",
     "ethereum_app_unconfirmed_error": "이더리움 앱 열기 요청을 거부했습니다.",
     "failed_to_open_eth_app": "이더리움 앱 열기 실패",
-    "ethereum_app_open_error": "Ledger 기기에 이더리움 앱을 설치하고 권한을 허용하세요.",
+    "ethereum_app_open_error": "Ledger 장치에 이더리움 앱을 설치하거나 설치 요청을 승인하세요.",
     "running_app_close": "실행 중인 앱 종료 실패",
     "running_app_close_error": "Ledger 기기에 실행 중인 앱을 종료하는 데 실패했습니다.",
     "ethereum_app_not_installed": "이더리움 앱이 설치되어 있지 않습니다.",
-    "ethereum_app_not_installed_error": "Ledger 기기에 이더리움 앱을 설치하세요.",
+    "ethereum_app_not_installed_error": "Ledger 장치에 이더리움 앱을 설치하세요.",
     "eth_app_not_open": "Ethereum 앱이 열려 있지 않습니다",
-    "eth_app_not_open_message": "Ledger 장치에서 Ethereum 앱을 열어 주세요.",
+    "eth_app_not_open_message": "Ledger 장치에서 이더리움 앱을 열어 주세요.",
     "ledger_is_locked": "Ledger 잠김",
-    "unlock_ledger_message": "Ledger 기기를 잠금해제하세요",
+    "unlock_ledger_message": "Ledger 장치를 잠금 해제하세요",
     "unlock_ledger_device": "Ledger 장치를 잠금 해제하세요",
     "cannot_get_account": "계정 연결 실패",
     "connect_ledger": "Ledger 연결",
@@ -7576,7 +7826,7 @@
     "save_device_selection": "저장",
     "enable_bluetooth": "블루투스를 켜세요",
     "install_and_open_eth_app": "이더리움 앱을 설치하고 실행하세요",
-    "ledger_reminder_message": "Ledger 장치가 다음과 같은 상태인지 확인하세요.",
+    "ledger_reminder_message": "Ledger 장치가 다음과 같은 상태인지 확인하세요:",
     "ledger_reminder_message_step_one": "1. Ledger 장치를 잠금 해제하세요",
     "ledger_reminder_message_step_two": "2. 이더리움 앱을 설치하고 실행하세요",
     "ledger_reminder_message_step_three": "3. 블루투스를 켜세요",
@@ -7591,14 +7841,14 @@
     "bluetooth_enabled_message": "블루투스가 활성화된 상태인지 확인하세요",
     "device_unlocked_message": "기기가 잠금해제 되었습니다",
     "ledger_disconnected": "기기의 연결이 해제되었습니다",
-    "ledger_disconnected_error": "기기의 연결이 끊어졌습니다. 다시 시도하세요.",
+    "ledger_disconnected_error": "장치와의 연결이 끊어졌습니다. 다시 시도해 주세요.",
     "unknown_error": "예기치 못한 오류가 발생했습니다.",
     "unknown_error_message": "예기치 못한 오류가 발생했습니다. 다시 시도하세요.",
     "error_occured": "오류가 발생했습니다",
     "how_to_install_eth_app": "Ledger 기기에 이더리움 앱 설치하는 방법",
     "ledger_account_count": "MetaMask Mobile의 Ledger에서 1개의 계정을 사용 중입니다.",
-    "open_eth_app": "이더리움 앱을 여세요",
-    "open_eth_app_message_one": "이더리움 앱이 설치되었지만 열려있지 않습니다. ",
+    "open_eth_app": "이더리움 앱 열기",
+    "open_eth_app_message_one": "이더리움 앱이 설치되었지만 열려 있지 않은 것으로 확인되었습니다, ",
     "open_eth_app_message_two": "이더리움 앱을 계속 실행할 수 있도록 기기의 두 버튼을 누르고 안내에 따라 진행하세요.",
     "toast_bluetooth_connection_error_title": "문제가 발생했습니다",
     "toast_bluetooth_connection_error_subtitle": "Ledger이 연결되지 않았습니다",
@@ -7608,7 +7858,7 @@
     "forget_device": "Ledger 연결 해제",
     "sign_with_ledger": "Ledger로 서명",
     "ledger_pending_confirmation": "Ledger가 다른 작업을 수행 중입니다",
-    "ledger_pending_confirmation_error": "Ledger에 시행을 기다리는 작업이 있습니다. 먼저 활동을 삭제하고 다시 시도하세요.",
+    "ledger_pending_confirmation_error": "Ledger에서 대기 중인 작업이 있습니다. 먼저 해당 작업을 완료한 후 다시 시도하세요.",
     "not_supported": "지원되지 않는 지역입니다",
     "not_supported_error": "입력한 데이터의 버전 4만 지원됩니다.",
     "error_during_connection": "알 수 없는 오류가 발생했습니다",
@@ -7624,7 +7874,7 @@
     "ledger_bip44_path": "BIP44 (예: MetaMask, Trezor)",
     "ledger_legacy_label": " (레거시)",
     "blind_sign_error": "블라인드 서명 오류",
-    "blind_sign_error_message": "Ledger 장치에서 블라인드 서명이 활성화되어 있지 않습니다. 설정에서 활성화해 주세요.",
+    "blind_sign_error_message": "Ledger 장치에서 블라인드 서명이 활성화되어 있지 않습니다. 설정에서 이를 활성화하세요.",
     "user_reject_transaction": "사용자가 트랜잭션을 거부했습니다",
     "user_reject_transaction_message": "사용자가 Ledger 장치에서 트랜잭션을 거부했습니다.",
     "multiple_devices_error_message": "다중 장치는 아직 지원되지 않습니다. 새 Ledger 장치를 추가하려면 이전 이전 장치를 제거해야 합니다.",
@@ -7632,9 +7882,9 @@
     "unspecified_error_during_connect": "Ledger 하드웨어 연결 시 불특정 오류가 발생했습니다,",
     "account_name_existed": "{{accountName}} 계정이 이미 존재합니다",
     "unresponsive": "Ledger 응답 없음",
-    "unresponsive_message": "장치를 분리한 후 다시 연결하세요",
+    "unresponsive_message": "장치의 연결을 해제한 후 다시 연결하세요",
     "ethereum_app_closed": "이더리움 앱이 닫혀 있습니다",
-    "ethereum_app_closed_message": "계속하려면 Ledger 장치에서 앱을 열어 주세요",
+    "ethereum_app_closed_message": "계속하려면 Ledger 장치에서 열어 주세요",
     "ledger_locked_message_continue": "계속하려면 Ledger 장치의 잠금을 해제하세요",
     "bluetooth_access_denied": "블루투스가 액세스가 거부되었습니다",
     "bluetooth_access_denied_message": "Ledger 장치를 연결하려면 장치 설정에서 블루투스를 활성화하세요",
@@ -7693,7 +7943,7 @@
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 게이트웨이",
-    "ipfs_gateway_banner_content1": "IPFS 웹사이트입니다. 이 사이트를 보려면",
+    "ipfs_gateway_banner_content1": "IPFS 웹사이트입니다. 이 사이트를 보려면 다음 기능을 켜야 합니다:",
     "ipfs_gateway_banner_content2": "IPFS 게이트웨이",
     "ipfs_gateway_banner_content3": "게이트웨이를",
     "ipfs_gateway_banner_content4": "설정."
@@ -7726,33 +7976,33 @@
         "medium_risk": "중위험",
         "high_risk": "고위험"
       },
-      "up_to": "Up to",
+      "up_to": "최대",
       "toasts": {
         "deposit_navigation": {
-          "failed": "Failed to navigate to deposit screen for selected asset"
+          "failed": "선택한 자산의 입금 화면으로 이동하지 못했습니다"
         }
       },
       "strategies": {
-        "rate_unavailable_subtitle": "Earn on your balance",
+        "rate_unavailable_subtitle": "잔액으로 수익 창출",
         "money": {
           "title": "Money Account",
           "info_rows": {
-            "row_1": "Earn up to ~{{percentage}}% APY on your balance",
-            "row_2": "No lockups—trade or withdraw anytime",
-            "row_3": "Held in mUSD, MetaMask's 1:1 dollar-backed stablecoin"
+            "row_1": "잔액으로 최대 ~{{percentage}}% APY 수익 적립",
+            "row_2": "락업 없이 언제든지 거래하거나 출금 가능",
+            "row_3": "MetaMask의 달러로 1:1 뒷받침되는 스테이블코인 mUSD로 보유"
           }
         },
         "stablecoin_lending": {
           "title": "{{asset}} 빌려주기",
-          "subtitle": "Earn rewards daily and withdraw anytime."
+          "subtitle": "매일 리워드를 받고 언제든지 출금하세요."
         },
         "pooled_staking": {
           "title": "ETH 스테이킹",
-          "subtitle": "Earn rewards daily and unstake anytime."
+          "subtitle": "매일 리워드를 받고 언제든지 언스테이킹하세요."
         },
         "trx_staking": {
-          "title": "Stake TRX",
-          "subtitle": "Earn rewards daily and unstake anytime."
+          "title": "TRX 스테이킹",
+          "subtitle": "매일 리워드를 받고 언제든지 언스테이킹하세요."
         }
       },
       "get_started": "지금 시작하세요"
@@ -7939,10 +8189,10 @@
     "asset_unavailable": "자산을 이용할 수 없음",
     "assets_unavailable": "일부 수익 기회를 불러올 수 없습니다.",
     "retry": "다시 시도",
-    "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
-    "money_fallback_description": "Add assets to your Money account to start earning",
-    "more_ways_to_earn": "More ways to earn",
-    "empty_state_description": "No earning opportunities are available right now.",
+    "stake_or_lend_description": "암호화폐를 스테이킹하거나 대출하여 수익을 창출하세요. 수익률은 자산과 전략에 따라 달라집니다",
+    "money_fallback_description": "Money 계정에 자산을 추가하여 수익 창출을 시작하세요",
+    "more_ways_to_earn": "더 많은 수익 창출 방법",
+    "empty_state_description": "현재 이용할 수 있는 수익 창출 기회가 없습니다.",
     "view_more": "더 보기"
   },
   "money": {
@@ -7953,7 +8203,7 @@
     "apy_info_label": "APY 정보",
     "balance_unavailable": "잔액을 확인할 수 없음",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "일시적으로 잔액을 표시할 수 없습니다. 자금은 안전하게 보관되고 있습니다. 잠시 후 다시 시도해 보세요.",
+    "balance_unavailable_banner_description": "일시적으로 잔액을 표시할 수 없습니다. 자금은 안전하게 보관되고 있습니다. 잠시 후 다시 시도하세요.",
     "balance_retry": "다시 시도",
     "balance_no_account": "Money Account를 찾을 수 없음",
     "onboarding": {
@@ -8044,8 +8294,8 @@
     "potential_earnings": {
       "title": "암호화폐로 수익 얻기",
       "description": "암호화폐를 mUSD로 전환했을 때 자금이 시간에 따라 어떻게 늘어날 수 있는지 확인해 보세요.",
-      "description_with_amounts_prefix": "Add your",
-      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
+      "description_with_amounts_prefix": "보유 자산",
+      "description_with_amounts_middle": "의 금액을 을 Money 계정에 추가하면 최대 다음까지 수익을 창출할 수 있습니다:",
       "description_with_amounts_suffix": "1년 후.",
       "add": "추가",
       "convert_cta": "암호자산 전환",
@@ -8070,7 +8320,6 @@
       "link_pending_title": "카드 연결 중",
       "link_success_title": "이제 카드를 사용할 수 있습니다",
       "link_error": "카드를 연결하는 동안 오류가 발생했습니다",
-      "link_error_different_card": "이 지갑은 이미 다른 MetaMask 카드에 연결되어 있습니다",
       "unlink_pending_title": "카드 연결 해제 중",
       "unlink_success_title": "카드 연결이 해제되었습니다",
       "unlink_error": "카드 연결을 해제하는 중 문제가 발생했습니다",
@@ -8442,7 +8691,7 @@
     "max_modal": {
       "title": "최대",
       "eth": {
-        "description": "Max is the total amount of ETH you have, minus the network fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+        "description": "최대값은 보유한 ETH 총액에서 스테이킹에 필요한 네트워크 수수료를 뺀 금액입니다. 향후 트랜잭션을 위해 지갑에 여분의 ETH를 남겨두는 것이 좋습니다."
       }
     },
     "use_max": "최대 사용",
@@ -8509,7 +8758,7 @@
     "drawer_assets_desc": "지갑에서 토큰을 자동으로 감지하고, NFT를 표시하며, 계정 잔액을 일괄 업데이트하세요.",
     "drawer_security_title": "보안",
     "drawer_security_desc": "안전하지 않은 네트워크에 가입할 가능성을 줄이고 계정을 보호하세요",
-    "network_details_check_desc": "MetaMask는 chainid.network라는 제3자 서비스를 사용하여 정확하고 표준화된 네트워크 세부 정보를 표시합니다. 이를 통해 악성 또는 잘못된 네트워크에 연결할 가능성이 줄어듭니다. 이 기능을 사용하면 사용자의 IP 주소가 chainid.network에 노출됩니다."
+    "network_details_check_desc": "MetaMask는 chainid.network라는 타사 서비스를 사용하여 정확하고 표준화된 네트워크 세부 정보를 표시합니다. 이를 통해 악의적이거나 잘못된 네트워크에 연결될 가능성을 줄일 수 있습니다. 이 기능을 사용하면 사용자의 IP 주소가 chainid.network에 노출됩니다."
   },
   "simulation_details": {
     "failed": "추정치를 불러오는 동안 오류가 발생했습니다.",
@@ -8542,10 +8791,10 @@
       "tooltip": "지난주의 보상률을 기준으로, 연간 예상 스테이킹 가치 증가량입니다."
     },
     "estimated_gas_fee": {
-      "title": "Estimated network fee",
+      "title": "예상 네트워크 수수료",
       "gas_recipient": "가스비는 이더리움 네트워크에서 트랜잭션을 처리하는 암호화폐 채굴자에게 지급됩니다. MetaMask는 가스비로 수익을 창출하지 않습니다.",
       "gas_fluctuation": "가스비는 예상치이며 네트워크 트래픽과 트랜잭션 복잡도에 따라 변동됩니다.",
-      "gas_learn_more": "Learn more about network fees"
+      "gas_learn_more": "네트워크 수수료에 대해 더 자세히 알아보기"
     },
     "reward_frequency": {
       "title": "보상 지급 주기",
@@ -8825,19 +9074,27 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "(시장가 대비 -{{percent}}%)",
       "from_market_above": "(시장가 대비 +{{percent}}%)",
+      "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
       "market": "시장",
       "custom": "맞춤형",
-      "expires": "Expires",
-      "expiration": "Expiration",
+      "expires": "만료",
+      "expiration": "만료",
       "expiration_option": {
         "minutes": "{{count}}분",
         "hour": "{{count}}시간",
         "day": "{{count}}일",
         "days": "{{count}}일",
-        "week": "{{count}} week",
-        "month": "{{count}} month"
+        "week": "{{count}}주",
+        "month": "{{count}}개월"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "예상 네트워크 수수료",
+      "create_order": "주문 생성",
+      "paying": "결제 금액",
+      "receiving": "받는 중",
+      "trigger_condition": "트리거 조건",
+      "expiry_label": "유효기간",
+      "confirm_order": "주문 컨펌",
+      "edit_cost_tolerance": "Edit cost tolerance"
     },
     "recurring": {
       "you_get": "수령 금액",
@@ -8845,16 +9102,23 @@
       "repeat": "반복",
       "times": "회",
       "confirm": "컨펌",
-      "preview_order": "Preview Order",
-      "confirm_title": "Confirm recurring order",
-      "paying_all_orders": "Paying (all orders)",
-      "paying_per_order": "Paying (per order)",
+      "preview_order": "주문 미리보기",
+      "confirm_title": "반복 주문 컨펌",
+      "order_created_toast_title": "Order created",
+      "order_created_toast_body": "We'll let you know when it's filled.",
+      "order_canceled_toast_title": "주문 취소 완료",
+      "paying_all_orders": "결제 금액(전체 주문)",
+      "paying_per_order": "결제 금액(개별 주문)",
       "receiving": "받는 중",
-      "est_receiving_per_order": "Est. receiving (per order)",
-      "est_receiving_all_orders": "Est. receiving (all orders)",
-      "expires_after": "Expires after",
-      "slippage_all_orders": "Slippage (all orders)",
-      "est_network_fee_per_order": "Est. network fee (per order)",
+      "est_receiving_per_order": "예상 수령액(개별 주문)",
+      "est_receiving_all_orders": "예상 수령액(전체 주문)",
+      "expires_after": "다음 기간 후 만료",
+      "slippage_all_orders": "슬리피지(전체 주문)",
+      "est_network_fee_per_order": "예상 네트워크 수수료(개별 주문)",
+      "delegation_fee_one_time": "Delegation fee (one time)",
+      "delegation_fee_info_title": "Delegation fee",
+      "delegation_fee_info_body": "placeholder",
+      "got_it": "컨펌",
       "repeat_info_title": "반복 주문",
       "repeat_info_body": "주문의 시점과 규모를 무작위로 조정하여 스왑이 예측 가능한 패턴에 따라 실행되지 않도록 합니다.",
       "max_is": "최댓값은 {{max}}입니다",
@@ -8866,9 +9130,9 @@
         "exchange_rate": "환율",
         "min_token_price": "{{symbol}} 최저 가격",
         "max_token_price": "{{symbol}} 최고 가격",
-        "min_placeholder": "최저 가격",
-        "max_placeholder": "최고 가격",
-        "clear_all": "모두 지우기",
+        "min_placeholder": "시장 가격",
+        "max_placeholder": "시장 가격",
+        "clear": "지우기",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
       },
@@ -8894,10 +9158,29 @@
         "month": "월"
       },
       "pair": "{{source}} → {{dest}}",
-      "schedule_summary": "{{interval}} / {{count}}개 주문",
+      "schedule_summary": "{{interval}} × {{count}}개 주문",
       "spend_summary": "총 {{repeatCount}}회에 걸쳐 {{everyValue}}{{unit}}마다 {{amount}} {{symbol}}씩 지출합니다",
       "percent_filled": "{{percent}}% 체결",
-      "filled": "체결됨"
+      "completed": "완료",
+      "you_sent": "전송 금액:",
+      "you_receive": "받음:",
+      "filled_progress": "{{percent}}%",
+      "interval": "간격",
+      "size_per_order": "주문별 규모",
+      "total_received": " 총 수령량",
+      "average_execution_price": "평균 체결가",
+      "start_date": "시작일",
+      "end_date": "종료 날짜",
+      "history": "내역",
+      "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} 체결됨",
+      "not_enough_gas": "가스 부족",
+      "out_of_price_range": "가격 범위를 벗어남",
+      "failed": "실패",
+      "filled": "체결됨",
+      "order_not_found": "주문을 찾을 수 없음",
+      "cancel_order": "주문 취소",
+      "duplicate_order": "중복 주문",
+      "cancel_confirmation_body": "주문을 정말 취소하시겠습니까?"
     },
     "continue": "계속",
     "confirm_bridge": "브릿지",
@@ -8940,6 +9223,8 @@
     "robinhood_banner_subtitle": "인기 토큰 살펴보기",
     "no_tokens_found": "토큰을 찾을 수 없습니다",
     "no_tokens_found_description": "해당 이름의 토큰을 찾을 수 없습니다. 다른 검색어를 입력해 보세요.",
+    "no_watchlist_tokens_found": "관심 목록에 자산이 없습니다",
+    "no_watchlist_tokens_found_description": "자산의 별 아이콘을 탭하면 관심 목록에 추가됩니다.",
     "select_network": "네트워크 선택",
     "all_networks": "모든 네트워크",
     "num_networks": "{{numNetworks}}개 네트워크",
@@ -8953,6 +9238,7 @@
     "slippage": "슬리피지",
     "slippage_info": "주문이 제출되고 확정되는 시점 사이에 가격이 변동되는 것을 '슬리피지'라고 합니다. 슬리피지가 여기 설정한 허용치를 초과하면 스왑이 자동으로 취소됩니다.",
     "network_fee": "네트워크 수수료",
+    "relayer_fee": "릴레이어 수수료",
     "gas_fees_sponsored": "MetaMask가 지불함",
     "included": "포함됨",
     "estimated_time": "예상 시간",
@@ -8965,6 +9251,8 @@
     "quote_info_title": "비율",
     "network_fee_info_title": "네트워크 수수료",
     "network_fee_info_content": "네트워크 수수료는 네트워크의 혼잡도와 트랜잭션의 복잡성에 따라 달라집니다.",
+    "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
+    "gas_fee_deduction": "-{{fee}} for gas",
     "batch_sell_network_fee_info_content": "네트워크 수수료는 네트워크 사용량과 거래의 복잡성에 따라 달라집니다. 수수료를 지불할 잔액이 부족한 경우, 전환하려는 토큰에서 해당 수수료가 차감됩니다.",
     "network_fee_info_content_sponsored": "이 네트워크 수수료는 MetaMask가 부담하므로 계정에 {{nativeToken}} 토큰이 없어도 거래할 수 있습니다.",
     "points": "예상 포인트",
@@ -9067,6 +9355,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "완료"
     },
+    "off_hours_trading": {
+      "title": "시간 외 거래",
+      "description": "시장 마감: 가격은 실시간 시장 데이터가 아니라 발행자가 산정한 가격입니다. 다음 거래 가능 세션에 시장이 다시 열리면 가격이 달라질 수 있습니다."
+    },
     "post_trade_modal": {
       "swap_in_progress": "스왑 진행 중",
       "swap_success": "스왑 완료",
@@ -9081,9 +9373,13 @@
     },
     "submit": "제출",
     "default_slippage_description": "가격이 슬리피지 비율보다 더 크게 변동하면 트랜잭션이 처리되지 않습니다.",
+    "cost_tolerance": "Cost Tolerance",
+    "default_cost_tolerance_description": "Your transaction won't go through if the price changes more than the cost tolerance percent.",
+    "exceeding_lower_cost_tolerance_error": "Enter a cost tolerance greater than {{value}}%",
+    "exceeding_upper_cost_tolerance_error": "Enter a cost tolerance lower than {{value}}%",
     "confirm": "컨펌",
     "exceeding_upper_slippage_warning": "슬리피지가 높아 스왑이 불리한 조건으로 이루어질 수 있습니다",
-    "exceeding_lower_slippage_warning": "슬리피지가 높아 스왑이 불리한 조건으로 이루어질 수 있습니다",
+    "exceeding_lower_slippage_warning": "슬리피지가 낮아 스왑이 불리한 조건으로 이루어질 수 있습니다",
     "exceeding_lower_slippage_error": "{{value}}%보다 큰 값을 입력하세요",
     "exceeding_upper_slippage_error": "{{value}}%를 초과하는 값은 입력할 수 없습니다",
     "custom": "맞춤형",
@@ -9099,10 +9395,10 @@
     "insufficient_native_reserve_cta": "최대 허용 금액 사용",
     "insufficient_native_reserve_message": "이 네트워크를 이용하려면 계정에 최소 {{minimumReserve}} {{ticker}}의 잔액이 남아 있어야 합니다. 최대 {{maxSwappable}} {{ticker}}을(를) 사용할 수 있습니다.",
     "insufficient_native_reserve_title": "최소 {{ticker}}의 예치금 필요함",
-    "dest_asset_require_activate_warning_cta": "Activate {{token}}",
-    "dest_asset_require_activate_warning_message": "This swap may fail. On {{network}} your account can't receive {{token}} until the token is activated in your wallet.",
-    "dest_asset_require_activate_warning_message_different_account": "This swap may fail. On {{network}} {{account}} can't receive {{token}} until you switch to that account and activate the token.",
-    "dest_asset_require_activate_warning_title": "Activate {{token}} on {{network}} first",
+    "dest_asset_require_activate_warning_cta": "{{token}} 활성화",
+    "dest_asset_require_activate_warning_message": "이 스왑은 실패할 수 있습니다. {{network}}에서 지갑에 토큰을 활성화하기 전까지 계정에서 {{token}}을(를) 받을 수 없습니다.",
+    "dest_asset_require_activate_warning_message_different_account": "이 스왑은 실패할 수 있습니다. {{network}}에서 해당 계정으로 전환하고 토큰을 활성화하기 전까지 {{account}}에서 {{token}}을(를) 받을 수 없습니다.",
+    "dest_asset_require_activate_warning_title": "먼저 {{network}}에서 {{token}}을(를) 활성화하세요",
     "token_warning_suspicious_banner": "{{token}}은(는) 의심스러운 토큰입니다.",
     "token_warning_malicious_banner": "{{token}}은(는) 악성 토큰입니다. 이 토큰과 상호작용할 때 주의하세요.",
     "token_warning_modal_suspicious_title": "의심스러운 토큰",
@@ -9128,7 +9424,7 @@
     "status": "상태",
     "date": "날짜",
     "network": "네트워크",
-    "total_gas_fee": "Total network fee",
+    "total_gas_fee": "총 네트워크 수수료",
     "estimated_completion": "예상 완료 시간",
     "bridge_step_action_bridge_complete": "{{destChainName}}에서 {{destSymbol}} 받음",
     "bridge_step_action_bridge_pending": "{{destChainName}}에서 {{destSymbol}} 받는 중",
@@ -9160,7 +9456,7 @@
   },
   "error_sheet": {
     "still_there_title": "아직 자리에 계세요?",
-    "still_there_description": "활동이 없는 상태에서 로그인 시간이 초과되었습니다. 준비되면 다시 시도하세요.",
+    "still_there_description": "활동이 없어 세션이 만료되었습니다. 준비되면 다시 로그인하세요.",
     "unable_to_login_title": "연결할 수 없음",
     "unable_to_login_description": "인터넷 연결이 불안정합니다. 연결을 확인하고 다시 시도하세요.",
     "something_went_wrong_title": "문제가 발생했습니다",
@@ -9313,7 +9609,9 @@
       "set_up": "설정",
       "secret_recovery_phrase": "비밀복구구문",
       "back_up": "백업",
-      "remove_account": "계정 제거"
+      "remove_account": "계정 제거",
+      "hide_account": "계정 숨기기",
+      "unhide_account": "계정 숨기기 해제"
     },
     "address_list": {
       "addresses": "주소",
@@ -9327,7 +9625,7 @@
       "learn_more": "더 보기",
       "enter_password": "비밀번호를 입력하세요",
       "password_placeholder": "비밀번호",
-      "wrong_password": "잘못된 비밀번호",
+      "wrong_password": "잘못된 비밀번호입니다. 다시 시도해 주세요.",
       "copied": "개인 키 복사 완료",
       "continue": "계속",
       "cancel": "취소"
@@ -9407,6 +9705,12 @@
       "search_placeholder": "네트워크 검색",
       "no_networks_found": "네트워크를 찾을 수 없습니다",
       "no_networks_available": "사용 가능한 네트워크가 없습니다"
+    },
+    "manage_accounts": {
+      "title": "계정 관리",
+      "locked": "잠김",
+      "remove": "제거",
+      "remove_wallet": "지갑 제거"
     }
   },
   "deep_link_modal": {
@@ -9474,7 +9778,7 @@
       "invalid_pin_error": "사용할 수 없는 PIN입니다. 다른 PIN을 선택하세요.",
       "repeating_pin_error": "사용할 수 없는 PIN입니다. 다른 PIN을 선택하세요.",
       "forbidden_error": "현재 이 카드에는 PIN을 설정할 수 없습니다.",
-      "network_error": "오류가 발생했습니다. 다시 시도해 주세요.",
+      "network_error": "문제가 발생했습니다. 다시 시도해 주세요.",
       "success_title": "PIN이 설정되었습니다",
       "success_description": "안전하게 보관하세요. 앱 내에서는 다시 확인할 수 없습니다."
     },
@@ -9513,7 +9817,7 @@
       "renews_annually": "받으세요",
       "total": "총액",
       "pay": "결제",
-      "payment_creation_error": "결제에 실패했습니다. 다시 시도해 주세요."
+      "payment_creation_error": "결제를 생성하지 못했습니다. 다시 시도해 주세요."
     },
     "order_completed": {
       "title": "카드 주문이\n완료되었습니다",
@@ -9529,18 +9833,30 @@
       "got_it": "컨펌"
     },
     "uk_migration_bottom_sheet": {
-      "title": "Update your MetaMask Card",
-      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "title": "MetaMask Card 업데이트",
+      "description": "새로운 카드 제공업체로 전환했습니다. 중단 없이 계속 사용하려면 {{deadline}} 전에 다음 단계를 완료하세요.",
+      "description_no_deadline": "새로운 카드 제공업체로 전환했습니다. 중단 없이 계속 사용하려면 다음 단계를 완료하세요.",
       "steps": {
-        "reverify_identity": "Re-verify your identity",
-        "get_new_card_number": "Get your new card number",
-        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+        "reverify_identity": "본인 인증 다시 하기",
+        "get_new_card_number": "새 카드 번호 받기",
+        "convert_funds_usdc_base": "자금을 Base의 USDC로 전환"
       },
       "get_started": "지금 시작하세요",
       "remind_me_later": "나중에 알림"
     },
+    "uk_migration_soft": {
+      "title": "MetaMask Card 업데이트",
+      "description": "서비스 중단을 방지하려면 {{deadline}}까지 설정을 완료하세요.",
+      "description_no_deadline": "서비스 중단을 방지하려면 카드를 설정하세요.",
+      "confirm_button_label": "카드 설정"
+    },
+    "uk_migration_required": {
+      "title": "계속 사용하려면 업데이트 필요",
+      "description": "카드를 계속 사용하려면 MetaMask Card 업데이트를 완료하세요.",
+      "confirm_button_label": "지금 업데이트"
+    },
     "daimo_pay_modal": {
-      "load_error": "결제 페이지를 불러오지 못했습니다. 다시 시도하세요.",
+      "load_error": "결제 페이지를 불러오지 못했습니다. 다시 시도해 주세요.",
       "timeout_error": "결제 확인 시간이 초과되었습니다. 트랜잭션 상태를 확인하세요.",
       "payment_bounced_error": "결제에 실패했습니다. 다른 결제 수단으로 다시 시도해 주세요.",
       "close": "닫기",
@@ -9575,6 +9891,7 @@
         "clickwrap_prefix": "'다음'을 누르면 사용자는 Immersve의 다음 항목에 동의하게 됩니다 ",
         "clickwrap_and": " 및 ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". 설정이 완료될 때까지 카드를 일시적으로 사용할 수 없습니다.",
         "legal_docs_error": "약관 문서를 불러올 수 없습니다."
       },
       "confirm_email": {
@@ -9608,7 +9925,7 @@
         "terms_2": "승인에는 ID와 주소 증빙 서류가 필요하지 않습니다. 승인에는 보통 5분 정도 소요됩니다.",
         "terms_2_us": "미국 연방법(USA PATRIOT Act)에 따라 테러 및 자금 세탁 방지를 위해 신분증과 주소 증빙을 통한 본인 확인이 필요합니다. 이 절차는 보통 5분 정도 소요됩니다.",
         "verify_button": "다음",
-        "start_verification_error": "확인을 시작할 수 없습니다. 잠시 후에 다시 시도해 주세요."
+        "start_verification_error": "인증을 시작하는 중 오류가 발생했습니다. 잠시 후에 다시 시도하세요."
       },
       "kyc_webview": {
         "close_confirmation_title": "인증을 종료할까요?",
@@ -9643,9 +9960,10 @@
         "info_needed_title": "추가 정보 필요",
         "info_needed_description": "인증을 완료하려면 정보가 조금 더 필요합니다. 계속해서 입력해 주세요.",
         "info_needed_button": "인증 계속하기",
-        "expiring_error": "인증 세션이 만료되었습니다. 계속하려면 고객 지원팀에 문의하세요."
+        "expiring_error": "인증 세션이 만료되었습니다. 계속하려면 지원팀에 문의하세요."
       },
       "immersve_kyc_modal": {
+        "permission_error": "본인 인증을 위해 카메라와 마이크 액세스가 필요합니다. 액세스를 허용한 후 다시 시도하세요.",
         "load_error": "본인 인증을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
         "try_again": "다시 시도"
       },
@@ -9757,18 +10075,18 @@
       "errors": {
         "no_region_results": "{{searchString}}에 일치하는 지역이 없습니다",
         "email_already_exists": "이미 존재하는 이메일 주소입니다. 다른 이메일 주소를 사용해 주세요.",
-        "invalid_email_format": "이메일 주소 형식이 잘못되었습니다. 이메일 주소를 확인하고 다시 입력해 주세요.",
-        "invalid_verification_code": "잘못된 확인 코드입니다. 코드를 확인한 후 다시 입력해 주세요.",
-        "verification_code_expired": "만료된 확인 코드입니다. 새 코드를 요청하세요.",
+        "invalid_email_format": "이메일 형식이 잘못되었습니다. 이메일을 확인하고 다시 입력해 주세요.",
+        "invalid_verification_code": "잘못된 인증 코드입니다. 코드를 확인한 후 다시 입력해 주세요.",
+        "verification_code_expired": "인증 코드가 만료되었습니다. 새 코드를 요청하세요.",
         "invalid_contact_verification_id": "잘못되었거나 만료된 연락처 인증 ID입니다. 등록 절차를 다시 시작해 주세요.",
         "invalid_phone_format": "잘못된 형식의 전화번호입니다. 전화번호를 확인한 후 다시 입력해 주세요.",
         "phone_already_exists": "이미 존재하는 전화번호입니다. 다른 전화번호를 사용해 주세요.",
-        "phone_number_mismatch": "전화번호가 인증 세션 정보와 일치하지 않습니다. 정확한 전화번호를 입력했는지 확인해 주세요.",
-        "invalid_zip_code": "잘못된 우편번호입니다. 올바른 우편번호를 입력한 후 다시 시도해 보세요.",
-        "us_state_required": "미국 거주자의 경우 미국 주를 입력해야 합니다. 올바른 주를 입력한 후 다시 시도해 보세요.",
-        "consent_already_linked": "해당 사용자는 이미 하나의 동의 세트와 연결되어 있습니다. 다른 사용자로 시도하거나 지원팀에 문의해 주세요.",
-        "invalid_onboard_id": "잘못된 온보딩 ID입니다. 가입 절차를 다시 시작해 주세요.",
-        "create_user_failed": "사용자를 생성할 수 없습니다. 다시 시도해 주세요."
+        "phone_number_mismatch": "전화번호가 인증 세션 정보와 일치하지 않습니다. 전화번호를 확인한 후 다시 입력해 주세요.",
+        "invalid_zip_code": "잘못된 우편번호입니다. 올바른 우편번호를 입력한 후 다시 시도하세요.",
+        "us_state_required": "미국 거주자의 경우 미국 주를 입력해야 합니다. 올바른 주를 입력한 후 다시 시도하세요.",
+        "consent_already_linked": "사용자가 이미 동의 세트에 연결되어 있습니다. 다른 사용자를 이용하거나 지원팀에 문의하세요.",
+        "invalid_onboard_id": "잘못된 온보딩 ID입니다. 등록 절차를 다시 시작해 주세요.",
+        "create_user_failed": "사용자를 생성하지 못했습니다. 다시 시도해 주세요."
       }
     },
     "card_home": {
@@ -9913,6 +10231,7 @@
       "category": "카테고리",
       "location": "위치",
       "decline_reason": "거절 사유",
+      "network_fee": "네트워크 수수료",
       "decline_reasons": {
         "insufficient_funds": "자금 부족"
       },
@@ -10089,14 +10408,13 @@
         "email_required": "이메일 주소를 입력해야 합니다",
         "password_required": "비밀번호를 입력해야 합니다",
         "email_invalid": "잘못된 이메일 주소입니다",
-        "password_invalid": "잘못된 비밀번호입니다",
+        "password_invalid": "잘못된 비밀번호입니다. 다시 시도해 주세요.",
         "invalid_email_or_password": "이메일 또는 비밀번호를 잘못 입력하셨습니다. 자격 증명을 확인하고 다시 시도하세요.",
         "network_error": "네트워크 오류입니다. 연결을 확인하고 다시 시도하세요.",
         "timeout_error": "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",
         "server_error": "서버 오류입니다. 나중에 다시 시도하세요.",
         "configuration_error": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
-        "forbidden_error": "이 계정에서는 이 작업을 사용할 수 없습니다.",
-        "money_account_linked_to_different_card": "이 지갑은 이미 다른 MetaMask 카드에 연결되어 있습니다. 해당 카드와의 연결을 해제한 후 여기에 연결하세요."
+        "forbidden_error": "이 계정에서는 이 작업을 사용할 수 없습니다."
       }
     },
     "card_forgot_password": {
@@ -10252,7 +10570,7 @@
       "description": "MetaMask 메탈 카드는 자격 요건에 따라 발급되며 모든 지역에서 사용할 수 있는 것은 아닙니다. 자격이 되지 않는 경우, 대신 독점 프리미엄 굿즈 보상을 받게 됩니다.",
       "contact_info": "연락처를 공유해 주시면 2주 이내에 텔레그램(@MidwitMilhouse) 또는 이메일(christian.montoya@consensys.net)로 연락드리겠습니다.",
       "email_label": "이메일",
-      "email_validation_error": "올바른 이메일 주소를 입력하세요",
+      "email_validation_error": "유효한 이메일 주소를 입력하세요",
       "telegram_label": "Telegram 아이디",
       "telegram_placeholder": "선택 사항"
     },
@@ -11053,7 +11371,6 @@
     "ecosystems_subtitle": "MetaMask Portfolio에서 다양한 체인의 디앱, 토큰, NFT를 둘러보세요.",
     "all_sports": "인기 스포츠",
     "basketball": "농구",
-    "football": "풋볼",
     "soccer": "축구",
     "tennis": "테니스",
     "f1": "F1",
@@ -11342,31 +11659,48 @@
     "deactivate_error_non_zero_balance_stellar": "이 지갑에 아직 {{balance}} {{symbol}}이(가) 남아 있습니다. Stellar에서 이 자산을 비활성화하려면 먼저 모든 잔액을 보내거나 스왑해야 합니다."
   },
   "pro_hub": {
-    "title": "MetaMask Pro",
-    "subtitle": "내 Pro 멤버십",
+    "title": "MetaMask Orange",
     "manage": "구독 관리",
+    "manage_membership": "멤버십 관리",
+    "also_included": {
+      "title": "추가 포함 사항",
+      "transaction_protection": {
+        "title": "트랜잭션 보호",
+        "badge": "확장 프로그램",
+        "subtitle": "최대 $10,000의 온체인 보호"
+      },
+      "priority_support": {
+        "title": "우선 지원",
+        "subtitle": "24시간 실제 상담원 지원"
+      },
+      "disclaimer": "한도는 매월 초기화됩니다. APY는 변동되며 보장되지 않습니다. 혜택과 카드 이용 가능 여부는 지역에 따라 다릅니다."
+    },
+    "membership_brand": "METAMASK",
+    "membership_label": "프로",
+    "lifetime_earnings": "누적 수익",
+    "money_balance": "{{apy}} APY on Money balance",
+    "musd_back": "{{rate}} mUSD back",
     "member_pricing": {
       "title": "거래 시 멤버 전용 요금",
       "allowance_currency": "${{amount}}",
-      "allowance_count_one": "{{count}} trade",
-      "allowance_count_other": "{{count}} trades",
+      "allowance_count_one": "거래 {{count}}회",
+      "allowance_count_other": "거래 {{count}}회",
       "swaps": {
         "label": "스왑",
-        "footnote": "Allowance resets monthly. Fees apply above $500."
+        "footnote": "한도는 매월 초기화됩니다. $500를 초과하면 수수료가 부과됩니다."
       },
       "perps": {
         "label": "무기한 선물",
-        "footnote": "Allowance resets monthly. Fees apply above $1,000."
+        "footnote": "한도는 매월 초기화됩니다. $1,000를 초과하면 수수료가 부과됩니다."
       },
       "predict": {
         "label": "예측",
-        "footnote": "One prediction trade per month. Unused trades don't roll over."
+        "footnote": "월 1회 예측 거래가 가능합니다. 사용하지 않은 거래 횟수는 다음 달로 이월되지 않습니다."
       }
     },
     "physical_card": {
-      "title": "실물 카드를 받으세요.",
-      "description": "전 세계 1억 5천만 곳 이상의 가맹점에서 MetaMask 카드로 결제하면 결제 금액의 3%를 mUSD로 돌려받을 수 있습니다.",
-      "cta": "카드 받기"
+      "title": "무료 MetaMask 카드 받기",
+      "description": "구매 시 3% mUSD 적립"
     },
     "earned": {
       "total_label": "Pro 가입 후 적립한 금액",
@@ -11380,7 +11714,6 @@
       "grow_description": "최대 연 7% APY가 적용되어 $1,000당 연간 약 $70의 수익을 얻을 수 있습니다.",
       "add_money": "자금 추가"
     },
-    "explore_benefits": "혜택 살펴보기",
     "membership": {
       "title": "내 멤버십",
       "plan": "멤버십",
@@ -11390,6 +11723,7 @@
       "paying_with": "결제 수단:",
       "renews_on": "갱신일",
       "manage": "관리",
+      "invoices": "인보이스",
       "contact_support": "지원팀에 문의",
       "cancel_membership": "멤버십 취소",
       "earned_info": {
@@ -11432,7 +11766,7 @@
       },
       "cashback": {
         "title": "카드 구매 시 3% mUSD 캐시백",
-        "subtitle": "Up to $12,000/yr, worldwide",
+        "subtitle": "전 세계에서 연간 최대 $12,000",
         "subtitle_monthly": "전 세계에서 월 최대 $1,000"
       },
       "member_pricing": {
@@ -11469,18 +11803,18 @@
     },
     "benefits_description": {
       "apy": {
-        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description": "Pro 회원은 Money 계정에서 최대 약 7% APY의 수익을 mUSD로 받습니다. 비회원은 최대 약 4% APY의 수익을 받습니다.",
         "description2": "APY는 변동될 수 있으며 보장되지 않습니다."
       },
       "cashback": {
-        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning up to ~7% APY.",
+        "description": "카드로 결제하면 3%를 mUSD로 돌려받아 Money 잔액에 바로 적립됩니다. 적립된 금액에는 최대 약 7% APY의 수익이 발생하기 시작합니다.",
         "points": [
           "월간 멤버: 매월 최대 $1,000의 구매 금액에 대해 3% 캐시백",
           "연간 멤버: 매년 최대 $12,000의 구매 금액에 대해 3% 캐시백"
         ]
       },
       "member_pricing": {
-        "description": "Pay no MetaMask fees on:",
+        "description": "다음 항목에 대해 MetaMask 수수료가 부과되지 않습니다:",
         "points": [
           "스왑: 월 $500까지",
           "무기한 선물: 월 $1,000까지",
@@ -11492,18 +11826,18 @@
         "description_monthly": "월간 회원용 MetaMask Card가 별도로 제공됩니다. 전 세계 1억 5천만 곳 이상의 Mastercard 가맹점에서 사용할 수 있습니다. MetaMask에서 부과하는 ATM 수수료나 해외 거래 수수료는 없습니다."
       },
       "protection": {
-        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000. Members receive clear in-app alerts when a transaction is covered.",
-        "sub_description": "Protection includes:",
+        "description": "월 최대 100건의 MetaMask 확장 프로그램 트랜잭션에 대해 최대 $10,000까지 보호받을 수 있습니다. 보호 대상 트랜잭션에는 회원에게 명확한 인앱 알림이 표시됩니다.",
+        "sub_description": "보호 대상:",
         "points": [
-          "DeFi swaps",
-          "NFT mints",
-          "Airdrop claims"
+          "디파이 스왑",
+          "NFT 민트",
+          "에어드롭 청구"
         ],
         "learn_more": "더 보기",
         "notes": "참고: 트랜잭션 보호는 트랜잭션 전후에 발생하는 손실을 보호하지 않습니다."
       },
       "support": {
-        "description": "Get priority customer support from a real human—anytime, any day."
+        "description": "언제든지 실제 상담원의 우선 고객 지원을 받을 수 있습니다."
       }
     },
     "success": {

@@ -4,10 +4,10 @@ import { ConnectionStatus, ErrorCode } from '@metamask/hw-wallet-sdk';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import {
   getRecoveryActionForErrorCode,
-  isUserCancellation,
+  isDeviceUserRejection,
 } from '../../../../core/HardwareWallet/errors/helpers';
-import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
+import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
@@ -231,7 +231,7 @@ export function useHwConnectionMonitoring({
       return;
     }
 
-    if (error && isUserCancellation(error)) {
+    if (error && isDeviceUserRejection(error)) {
       handledErrorRef.current = error;
       dispatch(
         updateHardwareWalletsSwaps({

@@ -17,6 +17,7 @@ import { useInsufficientNativeReserveError } from './index';
 import { ZERO_ADDRESS } from '../../../../Views/confirmations/constants/address';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../enablement/assets/arc';
 
 jest.mock('../../../../../selectors/featureFlagController/gasFeesSponsored');
 jest.mock('../../../../../util/address', () => ({
@@ -34,7 +35,7 @@ const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockStore = (): Store => {
   const rootReducer = (state = initialState) => state;
-  return createStore(rootReducer, initialState);
+  return createStore(rootReducer as never);
 };
 
 // Helper to wrap hook with provider
@@ -213,6 +214,37 @@ describe('useInsufficientNativeReserveError', () => {
         walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
       }),
     );
+    expect(result.current).toStrictEqual(undefined);
+  });
+
+  it('returns a insufficientNativeReserveError on Arc USDC when source amount leaves less than the reserve', () => {
+    mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '10',
+        token: ARC_USDC_BRIDGE_TOKEN,
+        latestAtomicBalance: BigNumber.from('10000000'), // 10 USDC
+        walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '9.95',
+      minimumNativeBalanceToBeKeptInAccount: '0.05',
+    });
+  });
+
+  it('returns insufficientNativeReserveError=undefined on Arc USDC when source amount keeps the reserve', () => {
+    mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '9.95',
+        token: ARC_USDC_BRIDGE_TOKEN,
+        latestAtomicBalance: BigNumber.from('10000000'), // 10 USDC
+        walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
+      }),
+    );
+
     expect(result.current).toStrictEqual(undefined);
   });
 

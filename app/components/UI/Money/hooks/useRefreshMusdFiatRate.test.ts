@@ -1,9 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import useRefreshMusdFiatRate from './useRefreshMusdFiatRate';
 
 jest.mock('react-redux', () => ({
@@ -12,7 +10,6 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockGetAssets = jest.fn().mockResolvedValue(undefined);
-const mockUpdateExchangeRates = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -21,53 +18,29 @@ jest.mock('../../../../core/Engine', () => ({
       AssetsController: {
         getAssets: (...args: unknown[]) => mockGetAssets(...args),
       },
-      TokenRatesController: {
-        updateExchangeRates: (...args: unknown[]) =>
-          mockUpdateExchangeRates(...args),
-      },
     },
   },
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/assetsUnifyState',
-  () => ({
-    selectIsAssetsUnifyStateEnabled: jest.fn(),
-  }),
-);
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
   }),
 );
-jest.mock('../../../../selectors/networkController', () => ({
-  selectNetworkConfigurations: jest.fn(),
-}));
 
 const mockUseSelector = jest.mocked(useSelector);
 
 const MOCK_EVM_ACCOUNT = { id: 'mock-account', address: '0xMock' };
-const MOCK_NETWORK_CONFIGS = { '0x8f': { nativeCurrency: 'MON' } };
 
 function setupSelectors({
-  isAssetsUnifyStateEnabled = false,
   selectedEvmAccount = MOCK_EVM_ACCOUNT as ReturnType<
     typeof selectSelectedAccountGroupEvmInternalAccount
   >,
-  networkConfigurations = MOCK_NETWORK_CONFIGS as unknown as ReturnType<
-    typeof selectNetworkConfigurations
-  >,
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectIsAssetsUnifyStateEnabled) {
-      return isAssetsUnifyStateEnabled;
-    }
     if (selector === selectSelectedAccountGroupEvmInternalAccount) {
       return selectedEvmAccount;
-    }
-    if (selector === selectNetworkConfigurations) {
-      return networkConfigurations;
     }
     return undefined;
   });
@@ -77,108 +50,42 @@ describe('useRefreshMusdFiatRate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetAssets.mockResolvedValue(undefined);
-    mockUpdateExchangeRates.mockResolvedValue(undefined);
     setupSelectors();
   });
 
-  describe('unified assets path (isAssetsUnifyStateEnabled = true)', () => {
-    it('calls AssetsController.getAssets with Monad chain, price data type, and forceUpdate for the mUSD asset', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: true });
+  it('calls AssetsController.getAssets with Monad chain, price data type, and forceUpdate for the mUSD asset', async () => {
+    const { result } = renderHook(() => useRefreshMusdFiatRate());
 
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockGetAssets).toHaveBeenCalledTimes(1);
-      expect(mockGetAssets).toHaveBeenCalledWith(
-        [MOCK_EVM_ACCOUNT],
-        expect.objectContaining({
-          dataTypes: ['price'],
-          forceUpdate: true,
-        }),
-      );
+    await act(async () => {
+      await result.current();
     });
 
-    it('does not call AssetsController.getAssets when no selected EVM account exists', async () => {
-      setupSelectors({
-        isAssetsUnifyStateEnabled: true,
-        selectedEvmAccount: null,
-      });
-
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockGetAssets).not.toHaveBeenCalled();
-    });
-
-    it('does not call TokenRatesController.updateExchangeRates in unified mode', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: true });
-
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockUpdateExchangeRates).not.toHaveBeenCalled();
-    });
+    expect(mockGetAssets).toHaveBeenCalledTimes(1);
+    expect(mockGetAssets).toHaveBeenCalledWith(
+      [MOCK_EVM_ACCOUNT],
+      expect.objectContaining({
+        dataTypes: ['price'],
+        forceUpdate: true,
+      }),
+    );
   });
 
-  describe('legacy path (isAssetsUnifyStateEnabled = false)', () => {
-    it('calls TokenRatesController.updateExchangeRates with Monad and its native currency', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
+  it('does not call AssetsController.getAssets when no selected EVM account exists', async () => {
+    setupSelectors({ selectedEvmAccount: null });
 
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
+    const { result } = renderHook(() => useRefreshMusdFiatRate());
 
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockUpdateExchangeRates).toHaveBeenCalledTimes(1);
-      expect(mockUpdateExchangeRates).toHaveBeenCalledWith([
-        { chainId: '0x8f', nativeCurrency: 'MON' },
-      ]);
+    await act(async () => {
+      await result.current();
     });
 
-    it('does not call TokenRatesController.updateExchangeRates when Monad native currency is missing', async () => {
-      setupSelectors({
-        isAssetsUnifyStateEnabled: false,
-        networkConfigurations: {},
-      });
-
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockUpdateExchangeRates).not.toHaveBeenCalled();
-    });
-
-    it('does not call AssetsController.getAssets in legacy mode', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
-
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockGetAssets).not.toHaveBeenCalled();
-    });
+    expect(mockGetAssets).not.toHaveBeenCalled();
   });
 
   describe('module-level promise dedupe', () => {
     it('returns the same in-flight promise for concurrent callers and calls the controller only once', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
-
       let resolveRefresh!: () => void;
-      mockUpdateExchangeRates.mockReturnValue(
+      mockGetAssets.mockReturnValue(
         new Promise<void>((resolve) => {
           resolveRefresh = resolve;
         }),
@@ -193,7 +100,7 @@ describe('useRefreshMusdFiatRate', () => {
 
       expect(promise1).toBe(promise2);
       expect(promise1).toBe(promise3);
-      expect(mockUpdateExchangeRates).toHaveBeenCalledTimes(1);
+      expect(mockGetAssets).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         resolveRefresh();
@@ -202,8 +109,6 @@ describe('useRefreshMusdFiatRate', () => {
     });
 
     it('allows a retry after the in-flight promise settles', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
-
       const { result } = renderHook(() => useRefreshMusdFiatRate());
       const refresh = result.current;
 
@@ -215,12 +120,10 @@ describe('useRefreshMusdFiatRate', () => {
         await refresh();
       });
 
-      expect(mockUpdateExchangeRates).toHaveBeenCalledTimes(2);
+      expect(mockGetAssets).toHaveBeenCalledTimes(2);
     });
 
     it('clears the in-flight promise after it settles so later calls do not return the old promise', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
-
       const { result } = renderHook(() => useRefreshMusdFiatRate());
       const refresh = result.current;
 
@@ -241,7 +144,6 @@ describe('useRefreshMusdFiatRate', () => {
 
   describe('error handling', () => {
     it('logs and swallows AssetsController errors instead of throwing', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: true });
       mockGetAssets.mockRejectedValue(new Error('network error'));
 
       const { result } = renderHook(() => useRefreshMusdFiatRate());
@@ -253,22 +155,8 @@ describe('useRefreshMusdFiatRate', () => {
       ).resolves.not.toThrow();
     });
 
-    it('logs and swallows TokenRatesController errors instead of throwing', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
-      mockUpdateExchangeRates.mockRejectedValue(new Error('network error'));
-
-      const { result } = renderHook(() => useRefreshMusdFiatRate());
-
-      await expect(
-        act(async () => {
-          await result.current();
-        }),
-      ).resolves.not.toThrow();
-    });
-
     it('clears the in-flight promise even when the controller call fails', async () => {
-      setupSelectors({ isAssetsUnifyStateEnabled: false });
-      mockUpdateExchangeRates.mockRejectedValue(new Error('network error'));
+      mockGetAssets.mockRejectedValue(new Error('network error'));
 
       const { result } = renderHook(() => useRefreshMusdFiatRate());
       const refresh = result.current;
@@ -277,13 +165,13 @@ describe('useRefreshMusdFiatRate', () => {
         await refresh();
       });
 
-      mockUpdateExchangeRates.mockResolvedValue(undefined);
+      mockGetAssets.mockResolvedValue(undefined);
 
       await act(async () => {
         await refresh();
       });
 
-      expect(mockUpdateExchangeRates).toHaveBeenCalledTimes(2);
+      expect(mockGetAssets).toHaveBeenCalledTimes(2);
     });
   });
 });

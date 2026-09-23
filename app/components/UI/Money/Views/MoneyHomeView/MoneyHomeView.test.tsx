@@ -22,6 +22,7 @@ import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoadi
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
@@ -49,9 +50,12 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedir
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import {
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
+  SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -78,6 +82,8 @@ const mockMoneyFormatUsd = moneyFormatUsd as jest.MockedFunction<
   typeof moneyFormatUsd
 >;
 
+let mockRouteParams: object | undefined;
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -88,7 +94,7 @@ jest.mock('@react-navigation/native', () => {
       setParams: jest.fn(),
     }),
     useFocusEffect: (callback: () => void) => callback(),
-    useRoute: () => ({ params: undefined }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -253,6 +259,28 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
+}));
+
+// Polling reaches into Engine.context.SubscriptionController, which the Engine
+// mock above does not provide; the view only needs the hook to be called.
+const mockUseSubscriptionPolling = jest.fn();
+jest.mock('../../../../hooks/useSubscriptionPolling', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseSubscriptionPolling(...args),
+}));
+
+const mockUseProSubscriptionEnabled = jest.fn(() => ({
+  isProSubscriptionEnabled: false,
+  variantName: 'control',
+  isActive: false,
+}));
+jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+}));
+
+const mockUseIsProSubscriber = jest.fn(() => false);
+jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
+  useIsProSubscriber: () => mockUseIsProSubscriber(),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -479,10 +507,17 @@ describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
+    mockRouteParams = undefined;
 
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
     jest.mocked(selectPrivacyMode).mockReturnValue(false);
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+      variantName: 'control',
+      isActive: false,
+    });
+    mockUseIsProSubscriber.mockReturnValue(false);
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -1242,6 +1277,25 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('$2,384.34');
     });
 
+    it('measures the banner as part of the collapsing title section', () => {
+      mockRouteParams = { showBackButton: true };
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock('$2,384.34'));
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const titleSection = within(
+        getByTestId(MoneyHomeViewTestIds.TITLE_SECTION),
+      );
+      expect(
+        titleSection.getByTestId(
+          MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        titleSection.getByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).toBeOnTheScreen();
+    });
+
     it('hides the banner when the balance loads successfully', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1308,6 +1362,86 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  });
+
+  it('carries the Rewards launch source into Add money when this home was opened from a Rewards deposit', () => {
+    mockRouteParams = {
+      showBackButton: true,
+      launchedFrom: ConfirmationLaunchSource.Rewards,
+    };
+
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
+
+    // Without this the next confirmation defaults to a HOME_TABS switch and
+    // drops the Rewards campaign the user came from.
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      params: { launchedFrom: ConfirmationLaunchSource.RewardsMoneyHome },
+    });
+  });
+
+  describe('back button', () => {
+    it('is not rendered as the Money tab, which has nothing to go back to', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('is rendered when the stack was pushed with showBackButton', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyHeaderTestIds.BACK_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('pops back to the screen that pushed this stack when pressed', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('collapsing title', () => {
+    it('moves the title into the content when the stack was pushed', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
+    });
+
+    it('keeps the title in the header as the Money tab', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('measures the title section only when the stack was pushed', () => {
+      mockRouteParams = { showBackButton: true };
+      const pushed = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        pushed.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
+      ).toBeDefined();
+
+      mockRouteParams = undefined;
+      const tab = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        tab.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
+      ).toBeUndefined();
     });
   });
 
@@ -2509,6 +2643,75 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  describe('Pro entry point', () => {
+    beforeEach(() => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUseIsProSubscriber.mockReturnValue(false);
+    });
+
+    it('starts subscription polling while the Pro flow is enabled', () => {
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
+        enabled: true,
+      });
+    });
+
+    it('leaves subscription polling off while the Pro flow is disabled', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: false,
+        variantName: 'control',
+        isActive: false,
+      });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
+        enabled: false,
+      });
+    });
+
+    it('navigates to the subscription flow when the user is not subscribed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.MONEY_HEADER,
+        label_key: 'pro_subscription.join_pro',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'money_header',
+      });
+    });
+
+    it('navigates to the Pro hub when the user is already subscribed', () => {
+      mockUseIsProSubscriber.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+        component_name: COMPONENT_NAMES.MONEY_HEADER,
+        label_key: 'pro_subscription.pro',
+        redirect_target: SCREEN_NAMES.PRO_HUB,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'money_header',
+      });
+    });
+  });
+
   describe('card upsell mode — Get Now handler', () => {
     it('navigates to Card root when the Get Now card row is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -3033,17 +3236,28 @@ describe('MoneyHomeView', () => {
       reset: jest.fn(),
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>;
 
-    // EUR/ETH = 900, USD/ETH = 1000 -> fiat->USD factor is 1000/900 = 10/9.
+    // EUR/ETH = 900, USD/ETH = 1000 -> conversionRate/usdConversionRate
+    // are derived by the compat selector from AssetsController's native
+    // ETH price entry (denominated in the selected currency) + usdPrice.
     const eurCurrencyRatesState = {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'eur',
-            currencyRates: {
-              ETH: {
-                conversionDate: 0,
-                conversionRate: 900,
-                usdConversionRate: 1000,
+          AssetsController: {
+            selectedCurrency: 'eur' as const,
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native' as const,
+                symbol: 'ETH',
+                name: 'Ether',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 900,
+                usdPrice: 1000,
+                lastUpdated: 0,
               },
             },
           },

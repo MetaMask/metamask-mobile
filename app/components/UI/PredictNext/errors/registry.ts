@@ -1,5 +1,6 @@
 export enum PredictErrorCode {
   VENUE_UNAVAILABLE = 'VENUE_UNAVAILABLE',
+  UNAUTHENTICATED = 'UNAUTHENTICATED',
   RATE_LIMITED = 'RATE_LIMITED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
@@ -7,6 +8,12 @@ export enum PredictErrorCode {
   GEO_BLOCKED = 'GEO_BLOCKED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
   SERVICE_DEGRADED = 'SERVICE_DEGRADED',
+  MARKET_NOT_FOUND = 'MARKET_NOT_FOUND',
+  MARKET_NOT_TRADEABLE = 'MARKET_NOT_TRADEABLE',
+  QUOTE_UNAVAILABLE = 'QUOTE_UNAVAILABLE',
+  BALANCE_UNAVAILABLE = 'BALANCE_UNAVAILABLE',
+  INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY',
+  INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -26,6 +33,11 @@ export const predictErrorRegistry: Record<
   PredictErrorCode,
   PredictErrorDefaults
 > = {
+  [PredictErrorCode.UNAUTHENTICATED]: {
+    category: 'unavailable',
+    message: 'Prediction authentication is unavailable.',
+    recoverable: true,
+  },
   [PredictErrorCode.VENUE_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'This prediction venue is unavailable.',
@@ -65,6 +77,36 @@ export const predictErrorRegistry: Record<
     category: 'degraded',
     message: 'Prediction data may be temporarily out of date.',
     recoverable: true,
+  },
+  [PredictErrorCode.MARKET_NOT_FOUND]: {
+    category: 'action_failed',
+    message: 'This prediction market could not be found.',
+    recoverable: false,
+  },
+  [PredictErrorCode.MARKET_NOT_TRADEABLE]: {
+    category: 'action_failed',
+    message: 'This market is no longer tradeable.',
+    recoverable: false,
+  },
+  [PredictErrorCode.QUOTE_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'A quote is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.BALANCE_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'Your balance is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.INSUFFICIENT_LIQUIDITY]: {
+    category: 'action_failed',
+    message: 'Not enough liquidity to quote this amount.',
+    recoverable: false,
+  },
+  [PredictErrorCode.INSUFFICIENT_BALANCE]: {
+    category: 'action_failed',
+    message: 'Not enough balance for this order.',
+    recoverable: false,
   },
   [PredictErrorCode.UNKNOWN]: {
     category: 'action_failed',

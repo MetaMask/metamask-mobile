@@ -40,6 +40,7 @@ import PerpsSelectProviderView from '../../../app/components/UI/Perps/Views/Perp
 import PerpsPositionsView from '../../../app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView';
 import PerpsHomeView from '../../../app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PerpsClosePositionView from '../../../app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView';
+import PerpsClosePositionRouter from '../../../app/components/UI/Perps/Views/PerpsClosePositionRouter/PerpsClosePositionRouter';
 import PerpsOrderBookView from '../../../app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView';
 import PerpsWithdrawView from '../../../app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView';
 import PerpsTransactionsView from '../../../app/components/UI/Perps/Views/PerpsTransactionsView/PerpsTransactionsView';
@@ -125,6 +126,7 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   setTargetWalletType: (): void => undefined,
   setPendingOperationAddress: (): void => undefined,
   showHardwareWalletError: (): void => undefined,
+  cancelConnectionFlow: (): void => undefined,
   showAwaitingConfirmation: (): void => undefined,
   hideAwaitingConfirmation: (): void => undefined,
   qr: {
@@ -438,6 +440,8 @@ interface RenderPerpsViewOptions {
   extraRoutes?: PerpsExtraRoute[];
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
+  /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
+  connectionValue?: PerpsConnectionContextValue;
 }
 
 const DefaultRouteProbe =
@@ -456,8 +460,14 @@ export function renderPerpsView(
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams, streamOverrides, extraRoutes, mode } =
-    options;
+  const {
+    overrides,
+    initialParams,
+    streamOverrides,
+    extraRoutes,
+    mode,
+    connectionValue,
+  } = options;
   const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
   if (overrides) {
     builder.withOverrides(overrides);
@@ -472,6 +482,7 @@ export function renderPerpsView(
     <PerpsTestProviders
       queryClient={queryClient}
       streamManager={testStreamManager}
+      connectionValue={connectionValue}
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -575,13 +586,17 @@ const defaultSelectModifyActionPosition: Position = {
   stopLossCount: 0,
 };
 
+export const ROUTE_ORDER_CONFIRMATION_TEST_ID = 'route-order-confirmation';
+
 const selectModifyActionExtraRoutes = [
   { name: Routes.PERPS.CLOSE_POSITION },
   { name: Routes.PERPS.ADJUST_MARGIN },
   { name: Routes.PERPS.TUTORIAL },
   {
     name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    Component: () => <Text testID="route-order-confirmation">Order</Text>,
+    Component: () => (
+      <Text testID={ROUTE_ORDER_CONFIRMATION_TEST_ID}>Order</Text>
+    ),
   },
 ];
 
@@ -787,6 +802,31 @@ export function renderPerpsClosePositionView(
   );
 }
 
+/**
+ * Renders PerpsClosePositionRouter. Use in PerpsClosePositionRouter.view.test.tsx.
+ */
+export function renderPerpsClosePositionRouter(
+  options: {
+    overrides?: DeepPartial<RootState>;
+    initialParams?: Record<string, unknown>;
+    streamOverrides?: PerpsStreamOverrides;
+  } = {},
+) {
+  const position = options.initialParams?.position ?? defaultPositionForViews;
+  return renderPerpsView(
+    PerpsClosePositionRouter as unknown as React.ComponentType,
+    Routes.PERPS.CLOSE_POSITION,
+    {
+      ...options,
+      initialParams: { ...options.initialParams, position },
+      streamOverrides: {
+        positions: [position],
+        ...options.streamOverrides,
+      },
+    },
+  );
+}
+
 /** Default market for PerpsOrderBookView. */
 const defaultOrderBookMarket = {
   symbol: 'ETH',
@@ -805,7 +845,8 @@ const defaultOrderBookMarket = {
  */
 export function renderPerpsOrderBookView(options: RenderPerpsViewOptions = {}) {
   const initialParams = {
-    market: defaultOrderBookMarket,
+    symbol: defaultOrderBookMarket.symbol,
+    marketData: defaultOrderBookMarket,
     ...options.initialParams,
   };
   return renderPerpsView(
@@ -877,28 +918,40 @@ const defaultTPSLParams = {
 };
 
 /**
+ * Hoisted so the sheet arm keeps a stable component identity across renders
+ * rather than remounting on every call.
+ */
+const PerpsTPSLSheetView = () => <PerpsTPSLView variant="sheet" />;
+
+/**
  * Renders PerpsTPSLView. Use in PerpsTPSLView.view.test.tsx.
+ *
+ * `variant` selects the A/B arm: omit it for the full-screen control, or pass
+ * `sheet` for the bottom-sheet treatment.
  */
 export function renderPerpsTPSLView(
   options: {
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    variant?: 'screen' | 'sheet';
   } = {},
 ) {
   const initialParams = {
     ...defaultTPSLParams,
     ...options.initialParams,
   };
+  const Component =
+    options.variant === 'sheet' ? PerpsTPSLSheetView : PerpsTPSLView;
   return renderPerpsView(
-    PerpsTPSLView as unknown as React.ComponentType,
+    Component as unknown as React.ComponentType,
     Routes.PERPS.TPSL,
     { ...options, initialParams, streamOverrides: options.streamOverrides },
   );
 }
 
 /** Minimal order for PerpsOrderDetailsView. */
-const defaultOrderDetailsOrder = {
+export const defaultOrderDetailsOrder = {
   orderId: 'order_1',
   symbol: 'ETH',
   side: 'buy' as const,

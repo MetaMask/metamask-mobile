@@ -7,6 +7,7 @@ import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
@@ -35,6 +36,8 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 
+let mockRouteParams: object | undefined;
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -43,6 +46,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -121,10 +125,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetAllMocks();
-    // Re-establish implementations wiped by resetAllMocks.
-    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
-    mockInitiateDeposit.mockImplementation(() => Promise.resolve());
+    mockRouteParams = undefined;
 
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
@@ -203,7 +204,7 @@ describe('MoneyAddMoneySheet', () => {
     // It is a standalone VBA screen, not part of the crypto deposit flow.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {
@@ -348,6 +349,33 @@ describe('MoneyAddMoneySheet', () => {
       intent: 'card',
     });
   });
+
+  it.each([
+    [
+      'Convert crypto',
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      { intent: 'convert' },
+    ],
+    [
+      'Deposit funds',
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      { autoSelectFiatPayment: true, intent: 'card' },
+    ],
+  ])(
+    'forwards the launch source of the caller that opened the sheet when %s is pressed',
+    (_label, testID, expectedOptions) => {
+      mockRouteParams = { launchedFrom: ConfirmationLaunchSource.Rewards };
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(testID));
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        ...expectedOptions,
+        launchedFrom: ConfirmationLaunchSource.Rewards,
+      });
+    },
+  );
 
   it('initiates a deposit when Convert crypto is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -648,6 +676,17 @@ describe('MoneyAddMoneySheet', () => {
       renderWithProvider(<MoneyAddMoneySheet />);
 
       expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with BANK_ACCOUNT component when "Bank account" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
+        redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
+      });
     });
 
     it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {

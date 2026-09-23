@@ -19,10 +19,10 @@ import {
   POLYMARKET_GEO_UNAVAILABLE_MOCKS,
   POLYMARKET_MARKET_FEEDS_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks.js';
-import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds.js';
 import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView.js';
 import PredictConnectionErrorView from '../../page-objects/Predict/PredictConnectionErrorView.js';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
+import PredictHome from '../../page-objects/Predict/PredictHome.js';
+import PredictFeedView from '../../page-objects/Predict/PredictFeedView.js';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics.js';
 import {
@@ -66,17 +66,23 @@ appiumTest.describe(SmokePredictions('Predictions - Geo Restriction'), () => {
           await loginForPredictTests();
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
-          await PredictMarketList.waitForScreenToDisplay({
-            description:
-              'Predict market list container is visible before feed action',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home is visible before feed action',
           });
 
-          await PredictMarketList.tapCategoryTab('new');
-          await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
+          await PredictHome.tapCategoryTile('politics');
+          await PredictFeedView.waitForScreenToDisplay({
+            description: 'Predict politics feed is visible before feed action',
+          });
+          await PredictFeedView.tapYesOnCard(1);
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
-          await PredictMarketList.tapBackButton();
-          await TabBarComponent.tapWallet();
+          await PredictFeedView.tapBackButton();
+          await PredictHome.waitForScreenToDisplay({
+            description:
+              'Predict home is visible after dismissing unavailable modal',
+          });
+          await PredictHome.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
 
           await WalletView.scrollAndTapPredictionsPosition(
@@ -92,23 +98,20 @@ appiumTest.describe(SmokePredictions('Predictions - Geo Restriction'), () => {
           await PredictDetailsPage.tapBackButton();
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.balanceCard,
-            {
-              description:
-                'Predict balance card is visible before attempting add funds',
-            },
-          );
-          await PredictAddFunds.tapAddFunds();
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home is visible before attempting add funds',
+          });
+          await PredictHome.expectPrimaryValueVisible({
+            description:
+              'Predict home portfolio value is visible before attempting add funds',
+          });
+          await PredictHome.tapAddFunds();
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.balanceCard,
-            {
-              description:
-                'Predict balance card is visible after dismissing unavailable modal',
-            },
-          );
+          await PredictHome.expectPrimaryValueVisible({
+            description:
+              'Predict home portfolio value is visible after dismissing unavailable modal',
+          });
         },
       );
     },
@@ -153,13 +156,16 @@ appiumTest.describe(
             await loginForPredictTests();
             await TabBarComponent.tapActions();
             await WalletActionsBottomSheet.tapPredictButton();
-            await PredictMarketList.waitForScreenToDisplay({
-              description:
-                'Predict market list container is visible before feed action',
+            await PredictHome.waitForScreenToDisplay({
+              description: 'Predict home is visible before feed action',
             });
 
-            await PredictMarketList.tapCategoryTab('new');
-            await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
+            await PredictHome.tapCategoryTile('politics');
+            await PredictFeedView.waitForScreenToDisplay({
+              description:
+                'Predict politics feed is visible before feed action',
+            });
+            await PredictFeedView.tapYesOnCard(1);
             await PredictConnectionErrorView.expectVisible();
             await Assertions.expectElementToNotBeVisible(
               PredictUnavailableView.title,

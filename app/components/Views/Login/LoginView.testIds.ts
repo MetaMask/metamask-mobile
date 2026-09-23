@@ -11,6 +11,8 @@ export const LoginViewSelectors = {
   PASSWORD_INPUT: 'login-password-input',
   DEVICE_AUTHENTICATION_ICON: 'device-authentication-icon',
   OTHER_METHODS_BUTTON: 'other-methods-button',
+  /** Long-press target for downloading state logs (dev diagnostics). */
+  DOWNLOAD_LOGS_BUTTON: 'login-download-logs-button',
 };
 
 export const LoginViewSelectorText = {
