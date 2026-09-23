@@ -707,7 +707,9 @@ const SignUp = () => {
           }
           inputProps={{
             autoCapitalize: 'none',
-            autoComplete: 'one-time-code',
+            autoCorrect: false,
+            autoComplete: 'email',
+            textContentType: 'emailAddress',
             numberOfLines: 1,
             keyboardType: 'email-address',
             maxLength: 255,

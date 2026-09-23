@@ -1044,6 +1044,10 @@ export const PerpsTradeSheetSelectorsIDs = {
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
+export const getPerpsSliderSelector = {
+  compactLabel: (percent: number) => `perps-slider-compact-label-${percent}`,
+};
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================
@@ -1338,6 +1342,7 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_ORDERS: 'perps-transactions-tab-orders',
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+  AGGREGATED_CHECKBOX: 'perps-transactions-aggregated-checkbox',
   FUNDING_LOAD_MORE_SPINNER: 'perps-transactions-funding-load-more-spinner',
 } as const;
 
