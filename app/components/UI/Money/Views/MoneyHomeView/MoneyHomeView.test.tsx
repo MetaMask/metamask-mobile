@@ -50,9 +50,12 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedir
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import {
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
+  SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -256,6 +259,28 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
+}));
+
+// Polling reaches into Engine.context.SubscriptionController, which the Engine
+// mock above does not provide; the view only needs the hook to be called.
+const mockUseSubscriptionPolling = jest.fn();
+jest.mock('../../../../hooks/useSubscriptionPolling', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseSubscriptionPolling(...args),
+}));
+
+const mockUseProSubscriptionEnabled = jest.fn(() => ({
+  isProSubscriptionEnabled: false,
+  variantName: 'control',
+  isActive: false,
+}));
+jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+}));
+
+const mockUseIsProSubscriber = jest.fn(() => false);
+jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
+  useIsProSubscriber: () => mockUseIsProSubscriber(),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -487,6 +512,12 @@ describe('MoneyHomeView', () => {
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
     jest.mocked(selectPrivacyMode).mockReturnValue(false);
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+      variantName: 'control',
+      isActive: false,
+    });
+    mockUseIsProSubscriber.mockReturnValue(false);
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -2609,6 +2640,75 @@ describe('MoneyHomeView', () => {
           message: expect.stringContaining('MoneyHomeView'),
         }),
       );
+    });
+  });
+
+  describe('Pro entry point', () => {
+    beforeEach(() => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUseIsProSubscriber.mockReturnValue(false);
+    });
+
+    it('starts subscription polling while the Pro flow is enabled', () => {
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
+        enabled: true,
+      });
+    });
+
+    it('leaves subscription polling off while the Pro flow is disabled', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: false,
+        variantName: 'control',
+        isActive: false,
+      });
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
+        enabled: false,
+      });
+    });
+
+    it('navigates to the subscription flow when the user is not subscribed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.MONEY_HEADER,
+        label_key: 'pro_subscription.join_pro',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'money_header',
+      });
+    });
+
+    it('navigates to the Pro hub when the user is already subscribed', () => {
+      mockUseIsProSubscriber.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+        component_name: COMPONENT_NAMES.MONEY_HEADER,
+        label_key: 'pro_subscription.pro',
+        redirect_target: SCREEN_NAMES.PRO_HUB,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'money_header',
+      });
     });
   });
 

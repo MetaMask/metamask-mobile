@@ -5,7 +5,7 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs, AnalysisContext, SelectTagsAnalysis } from './types';
+import { ParsedArgs, AnalysisContext } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
@@ -70,7 +70,7 @@ function validateProvidedFiles(
 function parseArgs(args: string[]): ParsedArgs {
   const options: ParsedArgs = {
     baseBranch: APP_CONFIG.defaultBaseBranch,
-    mode: 'select-tags',
+    mode: 'generate-test-plan',
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -195,7 +195,7 @@ AI AGENTIC FLOW:
 Usage: node -r esbuild-register tests/tools/e2e-ai-analyzer [options]
 
 Options:
-  -m, --mode <mode>             Analysis mode (default: select-tags)
+  -m, --mode <mode>             Analysis mode (default: generate-test-plan)
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
@@ -384,37 +384,16 @@ async function main() {
     console.log(`🔗 PR #${options.prNumber} - using gh CLI for diffs`);
   }
 
-  let e2eHardRuleResult: SelectTagsAnalysis | null = null;
-
-  // Check hard rules before provider availability. For select-tags mode, hard
-  // rules still own the E2E tag decision, but performance_tests should be
-  // decided by the AI using tags.performance.js context.
   const { checkHardRules } = MODES[mode];
   if (checkHardRules) {
     const hardRuleResult = checkHardRules(allChangedFiles, analysisContext);
     if (hardRuleResult) {
-      if (mode === 'select-tags') {
-        e2eHardRuleResult = hardRuleResult as SelectTagsAnalysis;
-        console.log(
-          '🤖 Continuing AI analysis for performance test selection only.',
-        );
-      } else {
-        (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
-        return;
-      }
+      (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
+      return;
     }
   }
 
   const outputAnalysis = (analysis: unknown): void => {
-    if (mode === 'select-tags' && e2eHardRuleResult) {
-      const aiAnalysis = analysis as SelectTagsAnalysis;
-      (MODES[mode].outputAnalysis as (a: unknown) => void)({
-        ...e2eHardRuleResult,
-        performanceTests: aiAnalysis.performanceTests,
-      });
-      return;
-    }
-
     (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
   };
 
@@ -791,7 +770,6 @@ async function main() {
         mode,
         analysisContext,
         availableSkills,
-        { skipHardRules: Boolean(e2eHardRuleResult) },
       );
 
       // Success - output results and exit

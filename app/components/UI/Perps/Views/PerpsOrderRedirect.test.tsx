@@ -19,6 +19,12 @@ import {
 } from '../utils/perpsTradeSheetInteractiveTrace';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 
+// Legacy deposit lifecycle cases retain the Hyperliquid route. Lighter routing
+// is covered with real Redux state in PerpsOrderRedirect.view.test.tsx.
+jest.mock('react-redux', () => ({
+  useSelector: () => 'hyperliquid',
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),

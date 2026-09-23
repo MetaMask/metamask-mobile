@@ -379,6 +379,7 @@ export const PerpsTPSLViewSelectorsIDs = {
   TAKE_PROFIT_PERCENTAGE_INPUT: 'perps-tpsl-tp-percentage-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
   STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
+  LIQUIDATION_DISTANCE: 'perps-tpsl-liquidation-distance',
   TAKE_PROFIT_ERROR: 'perps-tpsl-tp-error',
   STOP_LOSS_ERROR: 'perps-tpsl-sl-error',
   TAKE_PROFIT_ROE_SIGN_BADGE: 'perps-tpsl-tp-roe-sign-badge',
@@ -1342,6 +1343,7 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_ORDERS: 'perps-transactions-tab-orders',
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+  AGGREGATED_CHECKBOX: 'perps-transactions-aggregated-checkbox',
   FUNDING_LOAD_MORE_SPINNER: 'perps-transactions-funding-load-more-spinner',
 } as const;
 

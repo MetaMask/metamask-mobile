@@ -41,6 +41,10 @@ import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
+  calculateLiquidationDistance,
+  clampLiquidationDistance,
+} from '../../utils/liquidationDistance';
+import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -270,14 +274,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     }
 
     if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
-      const theoreticalPercentage = (1 / tempLeverage) * 100;
-      return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
+      return clampLiquidationDistance((1 / tempLeverage) * 100);
     }
 
-    const percentageDrop =
-      (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
-
-    return percentageDrop >= 99.9 ? 100 : percentageDrop;
+    return clampLiquidationDistance(
+      calculateLiquidationDistance(currentPrice, dynamicLiquidationPrice),
+    );
   }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
   const isRecalculating = leverageChanged;
