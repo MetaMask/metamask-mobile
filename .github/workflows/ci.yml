@@ -1264,7 +1264,6 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
-      fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6]
     steps:
