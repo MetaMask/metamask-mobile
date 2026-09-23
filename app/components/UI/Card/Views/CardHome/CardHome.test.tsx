@@ -105,6 +105,7 @@ import {
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
   selectCardProviderUserId,
+  selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -874,6 +875,7 @@ function setupMockSelectors(
     activeProviderId: string;
     isCardIntercomSupportEnabled: boolean;
     providerUserId: string | null;
+    hasCompletedMigration: boolean;
   }>,
 ) {
   const defaults = {
@@ -898,6 +900,7 @@ function setupMockSelectors(
     activeProviderId: 'baanx',
     isCardIntercomSupportEnabled: false,
     providerUserId: 'cardholder-1',
+    hasCompletedMigration: false,
   };
 
   const config = { ...defaults, ...overrides };
@@ -925,6 +928,8 @@ function setupMockSelectors(
     if (selector === selectCardIntercomSupportEnabled)
       return config.isCardIntercomSupportEnabled;
     if (selector === selectCardProviderUserId) return config.providerUserId;
+    if (selector === selectHasCompletedCardMigration)
+      return config.hasCompletedMigration;
 
     if (selector === selectSelectedInternalAccountByScope)
       return () => config.selectedAccount;
@@ -7184,6 +7189,33 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.UK_MIGRATION_SOFT_BANNER),
       ).toBeOnTheScreen();
+    });
+
+    it('does not show soft migration UI after the migration is completed', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        hasCompletedMigration: true,
+        ukMigrationState: {
+          phase: 'soft',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UK_MIGRATION_SOFT_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UK_MIGRATION,
+      });
     });
 
     it('does not show soft migration UI for Immersve users', () => {

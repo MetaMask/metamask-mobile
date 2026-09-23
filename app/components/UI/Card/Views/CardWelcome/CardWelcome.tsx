@@ -26,7 +26,10 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
+import {
+  selectHasCardholderAccounts,
+  selectHasCardSignInLink,
+} from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import {
@@ -58,6 +61,7 @@ const CardWelcome = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
+  const hasSignInLink = useSelector(selectHasCardSignInLink);
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const dimensions = useWindowDimensions();
@@ -180,6 +184,8 @@ const CardWelcome = () => {
     goBack();
   }, [goBack]);
 
+  const shouldGoToSignIn = hasCardholderAccounts || hasSignInLink;
+
   const handleButtonPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -191,7 +197,7 @@ const CardWelcome = () => {
         .build(),
     );
 
-    if (hasCardholderAccounts) {
+    if (shouldGoToSignIn) {
       navigate(
         Routes.CARD.AUTHENTICATION,
         postAuthRedirect ? { postAuthRedirect } : undefined,
@@ -203,7 +209,7 @@ const CardWelcome = () => {
       );
     }
   }, [
-    hasCardholderAccounts,
+    shouldGoToSignIn,
     navigate,
     postAuthRedirect,
     trackEvent,
@@ -266,7 +272,7 @@ const CardWelcome = () => {
         >
           <Text variant={TextVariant.BodyMd} twClassName="text-black">
             {strings(
-              hasCardholderAccounts
+              shouldGoToSignIn
                 ? 'card.card_onboarding.login_button'
                 : 'card.card_onboarding.apply_now_button',
             )}

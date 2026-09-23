@@ -6,7 +6,7 @@ import {
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/bigint';
 import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -25,6 +25,40 @@ export function formatCount(value: number | null | undefined): string {
   return getIntlNumberFormatter(I18n.locale, {
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+/**
+ * Compact whole-count for discovery cards (e.g. `65.7K`). Values under 1,000
+ * stay as grouped digits via {@link formatCount}.
+ */
+export function formatAbbreviatedCount(
+  value: number | null | undefined,
+): string {
+  if (value == null || !Number.isFinite(value)) {
+    return EM_DASH;
+  }
+  const absValue = Math.abs(value);
+  if (absValue < 1000) {
+    return formatCount(value);
+  }
+  const i18n = { t: (key: string) => strings(key) };
+  const sign = value < 0 ? '-' : '';
+  return (
+    sign + localizeLargeNumber(i18n, absValue, { decimals: 1, includeK: true })
+  );
+}
+
+/** Localized `{count} follower(s)` using the compact count from the mock. */
+export function formatFollowerCountLabel(
+  followerCount: number | null | undefined,
+): string {
+  const count = followerCount ?? 0;
+  return strings(
+    count === 1
+      ? 'social_leaderboard.trader_profile.followers_count'
+      : 'social_leaderboard.trader_profile.followers_count_plural',
+    { count: formatAbbreviatedCount(count) },
+  );
 }
 
 /**
