@@ -585,6 +585,21 @@ describe('SignUp Component', () => {
   });
 
   describe('Email Input', () => {
+    it('uses the email keyboard and autofill hints', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      expect(emailInput.props.keyboardType).toBe('email-address');
+      expect(emailInput.props.autoComplete).toBe('email');
+      expect(emailInput.props.textContentType).toBe('emailAddress');
+      expect(emailInput.props.autoCapitalize).toBe('none');
+      expect(emailInput.props.autoCorrect).toBe(false);
+    });
+
     it('allows text input', () => {
       const { getByTestId } = render(
         <Provider store={store}>

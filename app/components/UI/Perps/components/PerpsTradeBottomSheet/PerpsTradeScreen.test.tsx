@@ -95,7 +95,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onPercentagePress: jest.fn(),
   onMaxPress: jest.fn(),
   onDonePress: jest.fn(),
-  onOrderTypePress: jest.fn(),
+  onOrderTypeToggle: jest.fn(),
   onLimitPricePress: jest.fn(),
   onLimitPriceKeypadChange: jest.fn(),
   onLimitPricePresetPress: jest.fn(),
@@ -140,12 +140,12 @@ describe('PerpsTradeScreen errors', () => {
   it('wires primary Trade actions to the sheet and order handlers', () => {
     const onSubmit = jest.fn();
     const onPayWithPress = jest.fn();
-    const onOrderTypePress = jest.fn();
+    const onOrderTypeToggle = jest.fn();
     const onMarginInfoPress = jest.fn();
     render(
       <PerpsTradeScreen
         {...defaultProps}
-        onOrderTypePress={onOrderTypePress}
+        onOrderTypeToggle={onOrderTypeToggle}
         onPayWithPress={onPayWithPress}
         onMarginInfoPress={onMarginInfoPress}
         onSubmit={onSubmit}
@@ -155,7 +155,7 @@ describe('PerpsTradeScreen errors', () => {
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON),
     );
-    expect(onOrderTypePress).toHaveBeenCalledTimes(1);
+    expect(onOrderTypeToggle).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LEVERAGE_ROW),
@@ -376,6 +376,20 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('preserves in-progress limit price input while editing', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="98.50"
+        isLimitPriceFocused
+      />,
+    );
+
+    expect(screen.getByText('$98.50')).toBeOnTheScreen();
+    expect(screen.queryByText('$98.5')).not.toBeOnTheScreen();
   });
 
   it.each([

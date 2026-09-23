@@ -7,6 +7,7 @@ import {
 import type { RootState } from '../../../../../reducers';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
+import { isLighterProviderEnabled } from '../../utils/lighterFeatureFlags';
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -540,5 +541,28 @@ export const selectPerpsCrossMarginEnabledFlag = createSelector(
       remoteFeatureFlags?.[PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY];
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for the Lighter venue provider (TAT-3766 POC).
+ * Controls whether Lighter appears in the provider/network selector.
+ *
+ * Remote flag wins when valid; falls back to the local env gate so the POC
+ * stays switchable on a dev machine without a LaunchDarkly entry.
+ *
+ * LaunchDarkly key (kebab-case): `perps-lighter-provider-enabled`.
+ *
+ * @returns boolean - true if the Lighter provider should be selectable
+ */
+export const selectPerpsLighterProviderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = isLighterProviderEnabled();
+    const remoteFlag =
+      remoteFeatureFlags?.perpsLighterProviderEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );

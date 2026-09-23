@@ -17,6 +17,8 @@ export enum SCREEN_NAMES {
   VBA_GET_PIX_KEY = 'vba_get_pix_key',
   VBA_KYC_EMAIL = 'vba_kyc_email',
   EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
+  PRO_SUBSCRIPTION = 'pro_subscription',
+  PRO_HUB = 'pro_hub',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -106,6 +108,7 @@ export enum COMPONENT_NAMES {
   MONEY_ASSET_OVERVIEW_BALANCE_CTA = 'money_asset_overview_balance_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
+  MONEY_HEADER = 'money_header',
 
   // — How It Works / FAQ —
   FAQ_ITEM = 'money_faq_item',

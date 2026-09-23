@@ -408,6 +408,11 @@ import {
   type RecurringOrdersDataServiceActions,
   type RecurringOrdersDataServiceEvents,
 } from '../../components/UI/Bridge/services/RecurringOrdersDataService';
+import {
+  LimitOrdersDataService,
+  type LimitOrdersDataServiceActions,
+  type LimitOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/LimitOrdersDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -728,6 +733,7 @@ export type GlobalActions =
   | PredictPortfolioServiceActions
   | PredictOrderPreviewServiceActions
   | RecurringOrdersDataServiceActions
+  | LimitOrdersDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -852,6 +858,7 @@ export type GlobalEvents =
   | PredictPortfolioServiceEvents
   | PredictOrderPreviewServiceEvents
   | RecurringOrdersDataServiceEvents
+  | LimitOrdersDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -1015,6 +1022,7 @@ export type MessengerClients = {
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderPreviewService: PredictOrderPreviewService;
   RecurringOrdersDataService: RecurringOrdersDataService;
+  LimitOrdersDataService: LimitOrdersDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1230,6 +1238,7 @@ export type MessengerClientsToInitialize =
   | 'PredictPortfolioService'
   | 'PredictOrderPreviewService'
   | 'RecurringOrdersDataService'
+  | 'LimitOrdersDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'

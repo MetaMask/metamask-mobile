@@ -111,7 +111,10 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
-import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
+import {
+  PERPS_MIN_BALANCE_THRESHOLD,
+  PROVIDER_CONFIG,
+} from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -186,7 +189,10 @@ import {
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { useABTest } from '../../../../../hooks/useABTest';
@@ -325,6 +331,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const activeProvider = useSelector(selectPerpsProvider);
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
@@ -346,10 +353,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     // If route market already has all required fields, use it directly
     if (!needsEnrichment) return routeMarket;
 
-    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
+    const defaultCandidateProvider =
+      activeProvider !== undefined &&
+      activeProvider !== PROVIDER_CONFIG.AggregatedProvider
+        ? activeProvider
+        : PROVIDER_CONFIG.DefaultProvider;
+    const preferredProvider =
+      routeMarket?.providerId ?? defaultCandidateProvider;
+    const fullMarket = markets.find(
+      (candidate) =>
+        candidate.symbol === routeMarket?.symbol &&
+        (candidate.providerId ?? defaultCandidateProvider) ===
+          preferredProvider,
+    );
 
     return fullMarket || routeMarket;
-  }, [markets, routeMarket, needsEnrichment]);
+  }, [activeProvider, markets, routeMarket, needsEnrichment]);
 
   // About section: fires displayed (on render) + viewed (on scroll into view)
   // analytics and gates the section's visibility on an available description.
@@ -1196,6 +1215,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         navigateToOrder({
           direction,
           asset: market.symbol,
+          ...(market.providerId ? { providerId: market.providerId } : {}),
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
           ...(source_section ? { source_section } : {}),
           chartLibrary,
@@ -1217,6 +1237,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       source_section,
       transactionActiveAbTests,
       market?.symbol,
+      market?.providerId,
       marketData,
       isButtonColorTestEnabled,
       chartLibrary,

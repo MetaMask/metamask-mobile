@@ -5,6 +5,7 @@ import type { ReactTestRendererJSON } from 'react-test-renderer';
 import { Slider } from '@metamask/design-system-react-native';
 import PerpsSlider from './PerpsSlider';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
+import { getPerpsSliderSelector } from '../../Perps.testIds';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   Slider: jest.fn(() => null),
@@ -219,8 +220,10 @@ describe('PerpsSlider', () => {
       render(<PerpsSlider {...defaultProps} variant="compact" />);
 
       expect(getSliderProps().showRangeLabels).toBe(false);
-      ['0%', '25%', '50%', '75%', '100%'].forEach((label) => {
-        expect(screen.getByText(label)).toBeOnTheScreen();
+      [0, 25, 50, 75, 100].forEach((percent) => {
+        expect(
+          screen.getByTestId(getPerpsSliderSelector.compactLabel(percent)),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -245,7 +248,9 @@ describe('PerpsSlider', () => {
         />,
       );
 
-      fireEvent.press(screen.getByText('25%'));
+      fireEvent.press(
+        screen.getByTestId(getPerpsSliderSelector.compactLabel(25)),
+      );
 
       expect(onValueChange).toHaveBeenCalledWith(50);
       expect(onDragEnd).toHaveBeenCalledWith(50);
