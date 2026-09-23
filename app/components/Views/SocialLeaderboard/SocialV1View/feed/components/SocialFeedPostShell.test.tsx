@@ -82,11 +82,9 @@ const renderShell = (post: SocialV1FeedPost) => {
 
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
-    jest
-      .spyOn(View.prototype, 'measureInWindow')
-      .mockImplementation((cb) => {
-        cb(20, 100, 40, 24);
-      });
+    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
+      cb(20, 100, 40, 24);
+    });
   });
 
   afterEach(() => {
@@ -113,6 +111,25 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
       ).toBeOnTheScreen();
     });
+  });
+
+  it('closes the balloon when the scrim is pressed', () => {
+    renderShell(basePost({ reactions: [] }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
+    );
+
+    expect(
+      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeNull();
   });
 
   it('renders the author, win rate, comment, position card, and engagement row', () => {

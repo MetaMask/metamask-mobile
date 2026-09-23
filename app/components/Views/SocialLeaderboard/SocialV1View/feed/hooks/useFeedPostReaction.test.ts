@@ -2,12 +2,20 @@ import { act, renderHook } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { patchFeedCommentEngagementInCache } from '../utils/patchFeedCommentEngagementInCache';
 import { useFeedPostReaction } from './useFeedPostReaction';
+
+jest.mock('../utils/patchFeedCommentEngagementInCache', () => ({
+  patchFeedCommentEngagementInCache: jest.fn(),
+}));
 
 jest.mock('../commentReactionApi');
 
 const mockReactToComment = jest.mocked(reactToComment);
 const mockRemoveCommentReaction = jest.mocked(removeCommentReaction);
+const mockPatchFeedCommentEngagementInCache = jest.mocked(
+  patchFeedCommentEngagementInCache,
+);
 
 const wrapper =
   (queryClient: QueryClient) =>
@@ -43,6 +51,14 @@ describe('useFeedPostReaction', () => {
       { emotion: '👍', count: 1 },
     ]);
     expect(result.current.userReaction).toBe('👍');
+    expect(mockPatchFeedCommentEngagementInCache).toHaveBeenCalledWith(
+      queryClient,
+      'comment-1',
+      {
+        reactions: [{ emotion: '👍', count: 1 }],
+        userReaction: '👍',
+      },
+    );
   });
 
   it('removes the current emotion via removeCommentReaction', async () => {
@@ -131,5 +147,39 @@ describe('useFeedPostReaction', () => {
       { emotion: '🔥', count: 99 },
     ]);
     expect(result.current.userReaction).toBe('🔥');
+  });
+
+  it('ignores a second pick while a request is pending', async () => {
+    const queryClient = new QueryClient();
+    let resolvePut: (value: {
+      reactions: { emotion: string; count: number }[];
+      userReaction: string | null;
+    }) => void = () => undefined;
+    mockReactToComment.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvePut = resolve;
+        }),
+    );
+    const { result } = renderHook(
+      () => useFeedPostReaction('comment-1', [], null),
+      { wrapper: wrapper(queryClient) },
+    );
+
+    await act(async () => {
+      void result.current.pickEmotion('🔥');
+    });
+    await act(async () => {
+      await result.current.pickEmotion('👍');
+    });
+
+    expect(mockReactToComment).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolvePut({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: '🔥',
+      });
+    });
   });
 });
