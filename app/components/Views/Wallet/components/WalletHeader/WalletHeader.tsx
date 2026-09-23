@@ -43,10 +43,7 @@ interface TouchAreaSlop {
 
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
-const menuTransitionWrapperStyle: ViewStyle = {
-  height: 48,
-  overflow: 'hidden',
-};
+const menuTransitionWrapperStyle: ViewStyle = { height: 48 };
 
 export interface WalletHeaderProps {
   displayName: string;
