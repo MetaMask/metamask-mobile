@@ -25,11 +25,9 @@ import type { PerpsNavigationParamList } from '../types/navigation';
 import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
@@ -72,11 +70,9 @@ const PerpsOrderRedirect: React.FC = () => {
 
     const runDepositFlow = async (): Promise<void> => {
       if (useBottomSheet) {
-        trace({
-          name: TraceName.PerpsTradeSheetInteractive,
-          op: TraceOperation.PerpsOperation,
-          data: { source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN },
-        });
+        startPerpsTradeSheetInteractiveTrace(
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        );
       }
       try {
         await withPendingTransactionActiveAbTests(
@@ -103,10 +99,7 @@ const PerpsOrderRedirect: React.FC = () => {
         );
       } catch (error: unknown) {
         if (useBottomSheet) {
-          endTrace({
-            name: TraceName.PerpsTradeSheetInteractive,
-            data: { success: false, reason: 'transaction_creation_failed' },
-          });
+          failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
         }
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {

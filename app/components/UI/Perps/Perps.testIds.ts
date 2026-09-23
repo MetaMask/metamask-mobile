@@ -1044,6 +1044,10 @@ export const PerpsTradeSheetSelectorsIDs = {
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
+export const getPerpsSliderSelector = {
+  compactLabel: (percent: number) => `perps-slider-compact-label-${percent}`,
+};
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================

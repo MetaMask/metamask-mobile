@@ -1,10 +1,12 @@
 import React from 'react';
+import { TextInput } from 'react-native';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { SCREEN_TRANSITION_FALLBACK_MS } from '../../../../hooks/useScreenTransitionComplete';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { useCardSignIn } from '../../hooks/useCardSignIn';
 import {
@@ -61,6 +63,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     reset: jest.fn(),
     dispatch: jest.fn(),
+    isFocused: () => true,
     addListener: jest.fn(() => jest.fn()),
   }),
   useRoute: () => ({ params: {} }),
@@ -511,10 +514,14 @@ describe('CardAuthentication', () => {
       setResolution({ kind: 'email', option: emailOption });
       render();
 
-      fireEvent.changeText(
-        screen.getByTestId(CardAuthenticationSelectors.OTP_CODE_FIELD),
-        '123456',
+      const codeField = screen.getByTestId(
+        CardAuthenticationSelectors.OTP_CODE_FIELD,
       );
+      expect(codeField.props.autoFocus).not.toBe(true);
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(codeField.props.keyboardType).toBe('number-pad');
+
+      fireEvent.changeText(codeField, '123456');
 
       await waitFor(() => {
         expect(mockSubmitMutateAsync).toHaveBeenCalledWith(
@@ -524,6 +531,39 @@ describe('CardAuthentication', () => {
           }),
         );
       });
+    });
+
+    it('focuses the code field as soon as OTP appears on the open screen', () => {
+      const auth = makeAuthReturn();
+      let step: { type: 'otp' | 'email_password'; destination?: string } = {
+        type: 'email_password',
+      };
+      mockUseCardAuth.mockImplementation(
+        () =>
+          ({
+            ...auth,
+            currentStep: step,
+          }) as ReturnType<typeof useCardAuth>,
+      );
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      act(() => {
+        jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS);
+      });
+
+      const focus = jest
+        .spyOn(TextInput.prototype, 'focus')
+        .mockImplementation(() => undefined);
+
+      step = { type: 'otp', destination: '+1555****90' };
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+
+      expect(focus).toHaveBeenCalled();
+      focus.mockRestore();
     });
 
     it('does not show the password banner after an invalid code', async () => {
