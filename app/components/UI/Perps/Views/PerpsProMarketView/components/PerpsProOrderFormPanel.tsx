@@ -18,6 +18,7 @@ import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomS
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -47,6 +48,9 @@ const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
 const SCALE_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
 const CHASE_ORDER_TYPES: readonly OrderType[] = ['chase'];
+// Lighter rejects any explicit margin mode; only Hyperliquid places Cross.
+const CROSS_MARGIN_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -79,10 +83,19 @@ const PerpsProOrderFormPanel = ({
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const isScaleFlagEnabled = useSelector(selectPerpsMobileScaleEnabledFlag);
   const isChaseFlagEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
+  const isCrossMarginFlagEnabled = useSelector(
+    selectPerpsCrossMarginEnabledFlag,
+  );
   const activeProvider = useSelector(selectPerpsProvider);
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
+  // Hyperliquid refuses Cross on HIP-3 dexes (non-null market source).
+  const isCrossMarginAvailable =
+    isProModeActive &&
+    isCrossMarginFlagEnabled &&
+    selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
+    !market.marketSource;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
   const isChaseBaseEnabled = isProModeActive && isChaseFlagEnabled;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
@@ -225,6 +238,9 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
+    marginMode,
+    isMarginModeLocked,
+    onMarginModeSelect,
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
@@ -241,6 +257,7 @@ const PerpsProOrderFormPanel = ({
     refreshChaseCapability,
     chaseProviderId,
     isScreenFocused,
+    isCrossMarginAvailable,
   });
 
   const { styles } = useStyles(createStyles, {});
@@ -337,7 +354,11 @@ const PerpsProOrderFormPanel = ({
         onDirectionChange={onDirectionChange}
         isOrderBookCollapsed={isOrderBookCollapsed}
         onExpandOrderBook={onExpandOrderBook}
-        marginModeLabel={strings('perps.pro_order_form.isolated')}
+        marginModeLabel={strings(
+          marginMode === 'cross'
+            ? 'perps.pro_order_form.cross'
+            : 'perps.pro_order_form.isolated',
+        )}
         onMarginModePress={openMarginMode}
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
@@ -499,7 +520,14 @@ const PerpsProOrderFormPanel = ({
           animationType="fade"
           onRequestClose={closeMarginMode}
         >
-          <PerpsMarginModeBottomSheet isVisible onClose={closeMarginMode} />
+          <PerpsMarginModeBottomSheet
+            isVisible
+            onClose={closeMarginMode}
+            selectedMarginMode={marginMode}
+            isCrossMarginAvailable={isCrossMarginAvailable}
+            isMarginModeLocked={isMarginModeLocked}
+            onMarginModeSelect={onMarginModeSelect}
+          />
         </PerpsProModalPortal>
       )}
     </Box>

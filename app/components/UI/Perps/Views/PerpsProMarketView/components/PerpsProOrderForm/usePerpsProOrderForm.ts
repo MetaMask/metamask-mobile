@@ -15,6 +15,7 @@ import {
   isTriggerOrderType,
   splitScaleSizes,
   type ChaseOrder,
+  type MarginMode,
   type OrderType,
   type PerpsMarketData,
   type PerpsProviderType,
@@ -484,6 +485,8 @@ export interface UsePerpsProOrderFormParams {
   chaseProviderId: PerpsProviderType | null;
   /** Whether this Pro market screen is currently focused. */
   isScreenFocused?: boolean;
+  /** Flag, provider, and market allow placing Cross margin orders. */
+  isCrossMarginAvailable?: boolean;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -527,6 +530,10 @@ export interface UsePerpsProOrderFormResult {
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
   onPlaceOrderPress: () => Promise<void>;
+  // Margin mode sheet
+  marginMode: MarginMode;
+  isMarginModeLocked: boolean;
+  onMarginModeSelect: (marginMode: MarginMode) => void;
   // Leverage sheet
   isLeverageVisible: boolean;
   minLeverage: number;
@@ -585,6 +592,7 @@ export const usePerpsProOrderForm = ({
   refreshChaseCapability,
   chaseProviderId,
   isScreenFocused = true,
+  isCrossMarginAvailable = false,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -870,6 +878,21 @@ export const usePerpsProOrderForm = ({
     loadOnMount: true,
   });
   const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
+
+  const [selectedMarginMode, setSelectedMarginMode] =
+    useState<MarginMode>('isolated');
+  // The venue refuses a mode change while a position is open, so an open
+  // position's mode wins over the picker. Undefined keeps the isolated default.
+  const resolveOrderMarginMode = useCallback(
+    (position?: Position | null): MarginMode | undefined =>
+      isCrossMarginAvailable
+        ? (position?.leverage?.type ?? selectedMarginMode)
+        : undefined,
+    [isCrossMarginAvailable, selectedMarginMode],
+  );
+  const marginMode =
+    resolveOrderMarginMode(currentMarketPosition) ?? 'isolated';
+  const isMarginModeLocked = isCrossMarginAvailable && !!currentMarketPosition;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -1956,7 +1979,7 @@ export const usePerpsProOrderForm = ({
       : PERPS_EVENT_VALUE.DIRECTION.SHORT;
   const rejectCrossMarginPosition = useCallback(
     (position?: Position | null) => {
-      if (position?.leverage?.type !== 'cross') {
+      if (isCrossMarginAvailable || position?.leverage?.type !== 'cross') {
         return false;
       }
 
@@ -1974,7 +1997,7 @@ export const usePerpsProOrderForm = ({
       });
       return true;
     },
-    [navigation, track],
+    [isCrossMarginAvailable, navigation, track],
   );
 
   const handlePlaceOrder = async (
@@ -2453,6 +2476,9 @@ export const usePerpsProOrderForm = ({
             maxSlippageBps: resolvedMaxSlippageBps,
             reduceOnly: latestScale.reduceOnly,
             providerId: expectedProviderId,
+            marginMode: resolveOrderMarginMode(
+              latestScale.currentMarketPosition,
+            ),
             isFullClose: latestScale.reduceOnly
               ? latestScale.reduceOnlyValidation.isFullClose ||
                 latestScale.isExactFullClose
@@ -2664,6 +2690,7 @@ export const usePerpsProOrderForm = ({
             ? undefined
             : placementOrderForm.stopLossPrice,
         reduceOnly: placementReduceOnly,
+        marginMode: resolveOrderMarginMode(placementCurrentMarketPosition),
         twapDuration: isTwapOrder ? twapDuration : undefined,
         twapRandomize: isTwapOrder ? twapRandomize : undefined,
         isFullClose: placementReduceOnly
@@ -3972,6 +3999,10 @@ export const usePerpsProOrderForm = ({
     isPlaceOrderLoading:
       isScalePlacementPending || isChasePreflightPending || isPlacing,
     onPlaceOrderPress,
+    // Margin mode sheet
+    marginMode,
+    isMarginModeLocked,
+    onMarginModeSelect: setSelectedMarginMode,
     // Leverage sheet
     isLeverageVisible,
     minLeverage: 1,

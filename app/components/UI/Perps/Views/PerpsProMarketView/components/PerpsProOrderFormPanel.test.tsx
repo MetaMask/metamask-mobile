@@ -15,11 +15,13 @@ import type {
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
+  PerpsMarginModeBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -156,6 +158,9 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   feeProtocolFeeRate: 0.02,
   feeOriginalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
+  marginMode: 'isolated' as 'isolated' | 'cross',
+  isMarginModeLocked: false,
+  onMarginModeSelect: jest.fn(),
 };
 
 // Mutated in place by tests; fully restored in beforeEach via Object.assign so
@@ -793,5 +798,82 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+
+  describe('cross margin availability', () => {
+    it('enables Cross on a Hyperliquid main-DEX market when the flag is on', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+
+      renderPanel();
+
+      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ isCrossMarginAvailable: true }),
+      );
+    });
+
+    it('keeps Cross unavailable when the flag is off', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, false);
+
+      renderPanel();
+
+      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ isCrossMarginAvailable: false }),
+      );
+    });
+
+    it('keeps Cross unavailable on HIP-3 markets', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+
+      renderPanel({ market: { ...market, marketSource: 'xyz' } });
+
+      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ isCrossMarginAvailable: false }),
+      );
+    });
+
+    it('keeps Cross unavailable on non-Hyperliquid providers', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+
+      renderPanel({ market: { ...market, providerId: 'lighter' } });
+
+      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ isCrossMarginAvailable: false }),
+      );
+    });
+
+    it('keeps Cross unavailable when Pro mode is inactive', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+      mockUseIsPerpsProModeActive.mockReturnValue(false);
+
+      renderPanel();
+
+      expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ isCrossMarginAvailable: false }),
+      );
+    });
+
+    it('labels the margin control with the active cross margin mode', () => {
+      mockHookResult.marginMode = 'cross';
+
+      renderPanel();
+
+      expect(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+      ).toHaveTextContent('Cross');
+    });
+
+    it('selects Cross margin from the margin mode sheet', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+      renderPanel();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      );
+
+      expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
+    });
   });
 });

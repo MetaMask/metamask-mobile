@@ -490,6 +490,7 @@ const renderProForm = (
     isScreenFocused?: boolean;
   } = {},
   formMarket: PerpsMarketData = market,
+  isCrossMarginAvailable = false,
 ) => {
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
@@ -517,6 +518,7 @@ const renderProForm = (
           ? null
           : (chaseGate.providerId ?? 'hyperliquid'),
       isScreenFocused: chaseGate.isScreenFocused ?? true,
+      isCrossMarginAvailable,
     }),
   );
 };
@@ -3604,6 +3606,98 @@ describe('usePerpsProOrderForm', () => {
     });
   });
 
+  describe('margin mode', () => {
+    const renderWithCrossMargin = () =>
+      renderProForm(true, true, 'hyperliquid', false, {}, {}, market, true);
+
+    it('sends cross margin mode after the trader selects Cross', async () => {
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'cross' }),
+      );
+    });
+
+    it('sends isolated margin mode by default when Cross is available', async () => {
+      const { result } = renderWithCrossMargin();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.marginMode).toBe('isolated');
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'isolated' }),
+      );
+    });
+
+    it('omits margin mode when Cross is unavailable', async () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.marginMode).toBe('isolated');
+      expect(result.current.isMarginModeLocked).toBe(false);
+      expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
+        'marginMode',
+      );
+    });
+
+    describe('existing cross position', () => {
+      beforeEach(() => {
+        mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
+      });
+
+      it('follows the position margin mode and locks the picker', () => {
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('isolated');
+        });
+
+        expect(result.current.marginMode).toBe('cross');
+        expect(result.current.isMarginModeLocked).toBe(true);
+      });
+
+      it('places the order in cross margin instead of showing the unsupported warning', async () => {
+        const { result } = renderWithCrossMargin();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ marginMode: 'cross' }),
+        );
+      });
+
+      it('still shows the unsupported warning when Cross is unavailable', async () => {
+        const { result } = renderProForm();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('execution toasts', () => {
     it('shows the accepted size when the provider rounds the requested size', () => {
       renderProForm();
@@ -4039,6 +4133,33 @@ describe('usePerpsProOrderForm', () => {
       expect(params).not.toHaveProperty('timeInForce');
       expect(params).not.toHaveProperty('clientOrderId');
       expect(params).not.toHaveProperty('price');
+    });
+
+    it('sends the selected margin mode with a Scale order', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        true,
+      );
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ orderType: 'scale', marginMode: 'cross' }),
+      );
     });
 
     it('rejects an unsupported Scale provider before placement', async () => {
