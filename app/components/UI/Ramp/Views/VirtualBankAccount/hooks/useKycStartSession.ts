@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
@@ -8,6 +9,8 @@ import type {
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { strings } from '../../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 interface UseKycStartSessionResult {
   isStarting: boolean;
@@ -19,8 +22,15 @@ const toAcceptedDisclaimerKeys = (
 ): KycConsentRecord[] =>
   (documents ?? []).map(({ key, version }) => ({ key, version }));
 
-/** Records session consents and launches the configured KYC provider flow. */
+/**
+ * Records the session-scoped idOS / SumSub consents (Verify Identity), then
+ * advances the Mobile funnel to SumSub. The journey itself is launched on the
+ * dedicated SumSub screen ({@link useLaunchSumSub}), where it runs
+ * back-to-back with the session-consent record so the idOS applicant stays
+ * valid.
+ */
 export const useKycStartSession = (): UseKycStartSessionResult => {
+  const navigation = useNavigation<AppNavigationProp>();
   const [isStarting, setIsStarting] = useState(false);
 
   const startSession = useCallback(async () => {
@@ -55,7 +65,8 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
         idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
         credentialReusabilityConsentGiven: false,
       });
-      await Engine.context.KycController.launchProviderFlow({});
+
+      navigation.navigate(Routes.RAMP.VBA_SUMSUB_KYC);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -69,7 +80,7 @@ export const useKycStartSession = (): UseKycStartSessionResult => {
     } finally {
       setIsStarting(false);
     }
-  }, [isStarting]);
+  }, [isStarting, navigation]);
 
   return { isStarting, startSession };
 };

@@ -1,7 +1,16 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useKycStartSession } from './useKycStartSession';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 const mockKycControllerState = {
   email: 'user@example.com' as string | null,
@@ -87,7 +96,8 @@ describe('useKycStartSession', () => {
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
       credentialReusabilityConsentGiven: false,
     });
-    expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_SUMSUB_KYC);
+    expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
   });
 
   it('alerts when KycService is unavailable', async () => {
@@ -123,7 +133,7 @@ describe('useKycStartSession', () => {
       'Email is missing. Go back and enter your email.',
     );
     expect(mockKycController.recordSessionDisclaimers).not.toHaveBeenCalled();
-    expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('alerts when recording session disclaimers rejects', async () => {
@@ -139,21 +149,6 @@ describe('useKycStartSession', () => {
       'Identity verification',
       'Consent recording failed',
     );
-    expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
-  });
-
-  it('alerts when launching the provider flow rejects', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockKycController.launchProviderFlow.mockRejectedValue(
-      new Error('Sumsub launch failed'),
-    );
-    const { result } = renderHook(() => useKycStartSession());
-
-    await act(result.current.startSession);
-
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Identity verification',
-      'Sumsub launch failed',
-    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
