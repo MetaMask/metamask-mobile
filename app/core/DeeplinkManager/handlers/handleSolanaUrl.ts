@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 import { SolScope } from '@metamask/keyring-api';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../AppConstants';
 import NavigationService from '../../NavigationService';
 import {
   ChainType,
@@ -111,12 +112,18 @@ export const buildSolanaPayAsset = (
   return buildSplAsset(splToken, meta);
 };
 
+export const mapDeeplinkOriginToInitSendLocation = (origin: string): string =>
+  origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+    ? InitSendLocation.QRScanner
+    : InitSendLocation.Deeplink;
+
 const navigateToSolanaPaySend = (
   parsed: Extract<SolanaPayParseResult, { type: 'transfer' }>,
   asset: AssetType,
+  origin: string,
 ) => {
   handleSendPageNavigation(NavigationService.navigation.navigate, {
-    location: InitSendLocation.QRScanner,
+    location: mapDeeplinkOriginToInitSendLocation(origin),
     predefinedRecipient: {
       address: parsed.recipient,
       chainType: ChainType.SOLANA,
@@ -126,7 +133,13 @@ const navigateToSolanaPaySend = (
   });
 };
 
-async function handleSolanaUrl({ url }: { url: string }) {
+async function handleSolanaUrl({
+  url,
+  origin,
+}: {
+  url: string;
+  origin: string;
+}) {
   const parsed = parseSolanaPayUrl(url);
 
   if (!parsed) {
@@ -178,7 +191,7 @@ async function handleSolanaUrl({ url }: { url: string }) {
         return;
       }
 
-      navigateToSolanaPaySend(parsed, asset);
+      navigateToSolanaPaySend(parsed, asset, origin);
       return;
     }
     case 'transaction-request':
