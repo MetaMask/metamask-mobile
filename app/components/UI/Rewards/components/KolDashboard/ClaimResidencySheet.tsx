@@ -13,56 +13,56 @@ import { strings } from '../../../../../../locales/i18n';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import KolDashboardSheet from './KolDashboardSheet';
 
-interface RewardsLocationSheetProps {
+interface ClaimResidencySheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onConfirmYes: () => void;
-  onConfirmNo: () => void;
+  onConfirmUs: () => void;
+  onConfirmNonUs: () => void;
 }
 
-const RewardsLocationSheet: React.FC<RewardsLocationSheetProps> = ({
+const ClaimResidencySheet: React.FC<ClaimResidencySheetProps> = ({
   isVisible,
   onClose,
-  onConfirmYes,
-  onConfirmNo,
+  onConfirmUs,
+  onConfirmNonUs,
 }) => (
   <KolDashboardSheet
     isVisible={isVisible}
     onClose={onClose}
-    testID={KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_SHEET}
+    testID={KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET}
   >
     <BottomSheetHeader
       onClose={onClose}
-      testID={KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_TITLE}
+      testID={KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_TITLE}
     >
-      {strings('rewards.kol.rewards_location_title')}
+      {strings('rewards.kol.claim_residency_title')}
     </BottomSheetHeader>
     <Box twClassName="px-4">
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        testID={KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_DESCRIPTION}
+        testID={KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_DESCRIPTION}
       >
-        {strings('rewards.kol.rewards_location_description')}
+        {strings('rewards.kol.claim_residency_description')}
       </Text>
     </Box>
     <BottomSheetFooter
       buttonsAlignment={ButtonsAlignment.Horizontal}
       secondaryButtonProps={{
-        children: strings('rewards.kol.rewards_location_no'),
-        onPress: onConfirmNo,
+        children: strings('rewards.kol.claim_residency_no'),
+        onPress: onConfirmNonUs,
         size: ButtonSize.Lg,
-        testID: KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO,
+        testID: KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO,
       }}
       primaryButtonProps={{
-        children: strings('rewards.kol.rewards_location_yes'),
-        onPress: onConfirmYes,
+        children: strings('rewards.kol.claim_residency_yes'),
+        onPress: onConfirmUs,
         size: ButtonSize.Lg,
-        testID: KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES,
+        testID: KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES,
       }}
       twClassName="px-4 pt-6"
     />
   </KolDashboardSheet>
 );
 
-export default RewardsLocationSheet;
+export default ClaimResidencySheet;

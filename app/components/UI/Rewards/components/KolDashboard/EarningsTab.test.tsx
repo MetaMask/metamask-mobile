@@ -36,6 +36,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../utils', () => ({
+  navigateToRewardsRoute: (
+    navigation: { navigate: (name: string, params: unknown) => void },
+    screen: string,
+    params?: unknown,
+  ) => {
+    navigation.navigate('RewardsFlow', { screen, params });
+  },
+}));
+
 jest.mock('./ClaimMoneyFallOverlay', () => () => null);
 
 const mockShowToast = jest.fn();
@@ -53,10 +63,18 @@ jest.mock('../../hooks/useRewardsToast', () => ({
   }),
 }));
 
-const openPrototype = (
+const openResidency = (
   getByTestId: (id: string) => React.ReactTestInstance,
 ) => {
   fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
+};
+
+const completeEligibleClaim = (
+  getByTestId: (id: string) => React.ReactTestInstance,
+) => {
+  openResidency(getByTestId);
+  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
+  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
 };
 
 describe('EarningsTab', () => {
@@ -77,56 +95,49 @@ describe('EarningsTab', () => {
     jest.restoreAllMocks();
   });
 
-  it('opens the prototype picker when Claim is pressed', () => {
+  it('opens the residency sheet when Claim is pressed', () => {
     const { getByTestId, queryByTestId } = render(<EarningsTab />);
 
     expect(
-      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_SHEET),
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
     ).toBeNull();
 
-    openPrototype(getByTestId);
+    openResidency(getByTestId);
 
     expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_SHEET),
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
     ).toBeOnTheScreen();
   });
 
-  it('opens the tax form required sheet from US - first time', () => {
+  it('opens the tax form sheet when the user is a US person', () => {
     const { getByTestId, queryByTestId } = render(<EarningsTab />);
 
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_FIRST_TIME),
-    );
+    openResidency(getByTestId);
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES));
 
     expect(
-      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_SHEET),
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
     ).toBeNull();
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
     ).toBeOnTheScreen();
   });
 
-  it('opens the pending-review sheet from US - pending', () => {
+  it('opens the US-activity sheet when the user is not a US person', () => {
     const { getByTestId } = render(<EarningsTab />);
 
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_PENDING),
-    );
+    openResidency(getByTestId);
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
 
     expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_PENDING_SHEET),
+      getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_SHEET),
     ).toBeOnTheScreen();
   });
 
-  it('runs the claim animation from US - approved with reduce motion', async () => {
+  it('runs the claim animation when no US activity is confirmed with reduce motion', async () => {
     const { getByTestId, getByText } = render(<EarningsTab />);
 
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_APPROVED),
-    );
+    completeEligibleClaim(getByTestId);
 
     expect(getByText('rewards.kol.claimed')).toBeOnTheScreen();
     expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toBeDisabled();
@@ -160,10 +171,7 @@ describe('EarningsTab', () => {
   it('dismisses the toast when View account redirects to the Money tab', async () => {
     const { getByTestId } = render(<EarningsTab />);
 
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_US_APPROVED),
-    );
+    completeEligibleClaim(getByTestId);
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalled();
     });
@@ -172,27 +180,22 @@ describe('EarningsTab', () => {
     expect(mockCloseToast).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the location sheet from Elsewhere', () => {
+  it('opens the tax form sheet when US activity is confirmed', () => {
     const { getByTestId } = render(<EarningsTab />);
 
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_ELSEWHERE),
-    );
+    openResidency(getByTestId);
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
 
     expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_SHEET),
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
     ).toBeOnTheScreen();
   });
 
   it('claims when all activity is confirmed as outside the US', async () => {
     const { getByTestId, getByText } = render(<EarningsTab />);
 
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_ELSEWHERE),
-    );
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
+    completeEligibleClaim(getByTestId);
 
     expect(getByText('rewards.kol.claimed')).toBeOnTheScreen();
     await waitFor(() => {
@@ -200,20 +203,6 @@ describe('EarningsTab', () => {
         getByTestId(KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM),
       ).toHaveTextContent(formatUsd(0));
     });
-  });
-
-  it('opens the claim-on-hold sheet when some activity was in the US', () => {
-    const { getByTestId } = render(<EarningsTab />);
-
-    openPrototype(getByTestId);
-    fireEvent.press(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_PROTOTYPE_ELSEWHERE),
-    );
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
-
-    expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
-    ).toBeOnTheScreen();
   });
 
   it('previews five history rows with two-decimal amounts', () => {

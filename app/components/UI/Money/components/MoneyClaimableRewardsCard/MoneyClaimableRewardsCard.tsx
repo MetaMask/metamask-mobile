@@ -27,6 +27,7 @@ import {
   claimAllRewards,
   useClaimableRewards,
 } from '../../../Rewards/components/KolDashboard/rewardsClaimStore';
+import { useClaimEligibilityFlow } from '../../../Rewards/components/KolDashboard/ClaimEligibilityFlow';
 import useMoneyToasts from '../../hooks/useMoneyToasts';
 import { MoneyClaimableRewardsCardTestIds } from './MoneyClaimableRewardsCard.testIds';
 
@@ -126,7 +127,7 @@ const MoneyClaimableRewardsCard = ({
     [amountOpacity, animateAmountToZero],
   );
 
-  const handleClaimPress = useCallback(() => {
+  const completeClaim = useCallback(() => {
     if (claimableRewards <= 0) {
       return;
     }
@@ -157,6 +158,16 @@ const MoneyClaimableRewardsCard = ({
     showToast,
   ]);
 
+  const { startClaimFlow, claimEligibilitySheets } =
+    useClaimEligibilityFlow(completeClaim);
+
+  const handleClaimPress = useCallback(() => {
+    if (claimableRewards <= 0) {
+      return;
+    }
+    startClaimFlow();
+  }, [claimableRewards, startClaimFlow]);
+
   // A claim on the Rewards Claims tab zeroes the store, which retires this
   // card too — but only once any count-down running here has finished.
   if (isDismissed || (!isCountingDown && claimableRewards <= 0)) {
@@ -168,6 +179,7 @@ const MoneyClaimableRewardsCard = ({
       twClassName="mx-4 mt-2"
       testID={MoneyClaimableRewardsCardTestIds.CONTAINER}
     >
+      {claimEligibilitySheets}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

@@ -11,8 +11,8 @@ describe('RewardsLocationSheet', () => {
   const defaultProps = {
     isVisible: true,
     onClose: jest.fn(),
-    onConfirmAllOutsideUs: jest.fn(),
-    onConfirmSomeUsActivity: jest.fn(),
+    onConfirmYes: jest.fn(),
+    onConfirmNo: jest.fn(),
   };
 
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('RewardsLocationSheet', () => {
     ).toBeNull();
   });
 
-  it('renders the location copy and both primary actions', () => {
+  it('renders the location copy and both Yes/No actions', () => {
     const { getByTestId } = render(<RewardsLocationSheet {...defaultProps} />);
 
     expect(
@@ -46,19 +46,19 @@ describe('RewardsLocationSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('confirms that all activity was outside the US', () => {
+  it('confirms that some activity was in the US', () => {
     const { getByTestId } = render(<RewardsLocationSheet {...defaultProps} />);
 
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
 
-    expect(defaultProps.onConfirmAllOutsideUs).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onConfirmYes).toHaveBeenCalledTimes(1);
   });
 
-  it('confirms that some activity was in the US', () => {
+  it('confirms that no activity was in the US', () => {
     const { getByTestId } = render(<RewardsLocationSheet {...defaultProps} />);
 
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
 
-    expect(defaultProps.onConfirmSomeUsActivity).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onConfirmNo).toHaveBeenCalledTimes(1);
   });
 });

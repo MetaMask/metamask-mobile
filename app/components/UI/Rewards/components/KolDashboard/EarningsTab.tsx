@@ -38,13 +38,7 @@ import { claimAllRewards, useClaimableRewards } from './rewardsClaimStore';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
-import ClaimPrototypeSheet, {
-  type ClaimPrototypeOption,
-} from './ClaimPrototypeSheet';
-import TaxFormRequiredSheet from './TaxFormRequiredSheet';
-import TaxFormPendingSheet from './TaxFormPendingSheet';
-import RewardsLocationSheet from './RewardsLocationSheet';
-import ClaimOnHoldSheet from './ClaimOnHoldSheet';
+import { useClaimEligibilityFlow } from './ClaimEligibilityFlow';
 
 const BREAKDOWN_ROWS: {
   kind: Extract<KolEarningsHistoryKind, 'referrals' | 'commission' | 'rebate'>;
@@ -74,14 +68,6 @@ interface EarningsTabProps {
   onViewPerformance?: () => void;
 }
 
-type ClaimSheet =
-  | 'hidden'
-  | 'prototype'
-  | 'taxRequired'
-  | 'taxPending'
-  | 'location'
-  | 'claimOnHold';
-
 const COUNTDOWN_DURATION_MS = 700;
 const OPACITY_DURATION_MS = 350;
 const CLAIM_SUCCESS_TOAST_TIMEOUT_MS = 4000;
@@ -101,7 +87,6 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // read from local state until they land on the same value.
   const [countdownAmount, setCountdownAmount] = useState(claimableRewards);
   const [isCountingDown, setIsCountingDown] = useState(false);
-  const [claimSheet, setClaimSheet] = useState<ClaimSheet>('hidden');
   const available = isCountingDown ? countdownAmount : claimableRewards;
   const isClaimed = claimableRewards <= 0;
   const amountOpacity = useRef(new Animated.Value(1)).current;
@@ -194,7 +179,6 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       return;
     }
     const startAmount = claimableRewards;
-    setClaimSheet('hidden');
     // Hold the pre-claim amount on screen so the digits roll down from it
     // rather than snapping to the zeroed store value.
     setCountdownAmount(startAmount);
@@ -241,43 +225,15 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     RewardsToastOptions,
   ]);
 
+  const { startClaimFlow, claimEligibilitySheets } =
+    useClaimEligibilityFlow(completeClaim);
+
   const handleClaim = useCallback(() => {
     if (claimableRewards <= 0) {
       return;
     }
-    setClaimSheet('prototype');
-  }, [claimableRewards]);
-
-  const handleCloseClaimSheet = useCallback(() => {
-    setClaimSheet('hidden');
-  }, []);
-
-  const handleSelectPrototypeOption = useCallback(
-    (option: ClaimPrototypeOption) => {
-      if (option === 'usFirstTime') {
-        setClaimSheet('taxRequired');
-        return;
-      }
-      if (option === 'usPending') {
-        setClaimSheet('taxPending');
-        return;
-      }
-      if (option === 'usApproved') {
-        completeClaim();
-        return;
-      }
-      setClaimSheet('location');
-    },
-    [completeClaim],
-  );
-
-  const handleConfirmAllOutsideUs = useCallback(() => {
-    completeClaim();
-  }, [completeClaim]);
-
-  const handleConfirmSomeUsActivity = useCallback(() => {
-    setClaimSheet('claimOnHold');
-  }, []);
+    startClaimFlow();
+  }, [claimableRewards, startClaimFlow]);
 
   return (
     <Box
@@ -285,29 +241,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       testID={KOL_DASHBOARD_SELECTORS.EARNINGS_TAB}
     >
       <ClaimMoneyFallOverlay visible={isFalling} />
-      <ClaimPrototypeSheet
-        isVisible={claimSheet === 'prototype'}
-        onClose={handleCloseClaimSheet}
-        onSelect={handleSelectPrototypeOption}
-      />
-      <TaxFormRequiredSheet
-        isVisible={claimSheet === 'taxRequired'}
-        onClose={handleCloseClaimSheet}
-      />
-      <TaxFormPendingSheet
-        isVisible={claimSheet === 'taxPending'}
-        onClose={handleCloseClaimSheet}
-      />
-      <RewardsLocationSheet
-        isVisible={claimSheet === 'location'}
-        onClose={handleCloseClaimSheet}
-        onConfirmAllOutsideUs={handleConfirmAllOutsideUs}
-        onConfirmSomeUsActivity={handleConfirmSomeUsActivity}
-      />
-      <ClaimOnHoldSheet
-        isVisible={claimSheet === 'claimOnHold'}
-        onClose={handleCloseClaimSheet}
-      />
+      {claimEligibilitySheets}
       <Box twClassName="px-4">
         <Box twClassName="overflow-hidden rounded-2xl bg-muted">
           <Box

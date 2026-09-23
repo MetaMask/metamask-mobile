@@ -11,6 +11,7 @@ import {
   getClaimableRewards,
   resetClaimableRewards,
 } from '../../../Rewards/components/KolDashboard/rewardsClaimStore';
+import { KOL_DASHBOARD_SELECTORS } from '../../../Rewards/components/KolDashboard/KolDashboard.testIds';
 import MoneyClaimableRewardsCard from './MoneyClaimableRewardsCard';
 import { MoneyClaimableRewardsCardTestIds } from './MoneyClaimableRewardsCard.testIds';
 
@@ -26,6 +27,14 @@ jest.mock('../../hooks/useMoneyToasts', () => ({
     },
   }),
 }));
+
+const completeEligibleClaim = (
+  getByTestId: (id: string) => React.ReactTestInstance,
+) => {
+  fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
+  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
+};
 
 describe('MoneyClaimableRewardsCard', () => {
   beforeEach(() => {
@@ -67,12 +76,54 @@ describe('MoneyClaimableRewardsCard', () => {
     ).toHaveTextContent(strings('rewards.kol.claim'));
   });
 
-  it('shows the success toast when Claim is pressed', async () => {
+  it('opens the residency sheet when Claim is pressed', () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyClaimableRewardsCard />,
     );
 
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeNull();
+
     fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeOnTheScreen();
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('opens the tax form sheet when the user is a US person', () => {
+    const { getByTestId } = render(<MoneyClaimableRewardsCard />);
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
+    ).toBeOnTheScreen();
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('opens the tax form sheet when US activity is confirmed', () => {
+    const { getByTestId } = render(<MoneyClaimableRewardsCard />);
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
+    ).toBeOnTheScreen();
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('shows the success toast when a non-US user confirms no US activity', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyClaimableRewardsCard />,
+    );
+
+    completeEligibleClaim(getByTestId);
 
     expect(mockClaimSuccess).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledWith({ title: 'claim-success' });
@@ -83,12 +134,12 @@ describe('MoneyClaimableRewardsCard', () => {
     });
   });
 
-  it('hides the card after Claim is pressed with reduce motion', async () => {
+  it('hides the card after an eligible claim with reduce motion', async () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyClaimableRewardsCard />,
     );
 
-    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+    completeEligibleClaim(getByTestId);
 
     await waitFor(() => {
       expect(
@@ -97,12 +148,12 @@ describe('MoneyClaimableRewardsCard', () => {
     });
   });
 
-  it('zeroes the balance the Rewards Claims tab reads when Claim is pressed', async () => {
+  it('zeroes the balance the Rewards Claims tab reads after an eligible claim', async () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyClaimableRewardsCard />,
     );
 
-    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+    completeEligibleClaim(getByTestId);
 
     expect(getClaimableRewards()).toBe(0);
     await waitFor(() => {
