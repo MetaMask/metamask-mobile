@@ -19,12 +19,14 @@ export const inputStepperStyles = ({
     },
     inputRow: {
       flexDirection: 'row',
-      width: 100,
+      flex: 1,
+      alignItems: 'center',
       justifyContent: 'center',
     },
     input: {
       backgroundColor: importedColors.transparent,
       borderWidth: 0,
+      paddingHorizontal: 0,
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,

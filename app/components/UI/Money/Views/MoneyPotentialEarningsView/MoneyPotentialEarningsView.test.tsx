@@ -150,7 +150,6 @@ jest.mock('../../utils/moneyFormatFiat', () => ({
 }));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
-    trackButtonClicked: jest.fn(),
     trackScreenViewed: jest.fn(),
     trackTokenButtonClicked: mockTrackTokenButtonClicked,
     trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
@@ -441,14 +440,6 @@ describe('MoneyPotentialEarningsView', () => {
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
     await waitFor(() => expect(mockInitiateDeposit).not.toHaveBeenCalled());
-  });
-
-  it('calls initiateDeposit from the Convert CTA', async () => {
-    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
-
-    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
-
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
   });
 
   it('triggers deposit when a token row is pressed', async () => {

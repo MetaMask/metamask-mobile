@@ -227,7 +227,7 @@ const getTrackedEarnExperiences = ({
     const rate = isTrxStaking
       ? trxRate
       : createEarnRate({
-          type: isPooledStaking ? 'APR' : 'APY',
+          type: 'APR',
           percentage: parseRatePercent(experience.apr),
         });
 
@@ -411,7 +411,7 @@ const useEarnAssetCatalogue = ({
             reason: 'asset_not_tracked' as const,
           },
           rate: createEarnRate({
-            type: 'APY',
+            type: 'APR',
             percentage: ratePercentage,
           }),
           isFeeSubsidized: false,

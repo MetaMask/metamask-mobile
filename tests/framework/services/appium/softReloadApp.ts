@@ -15,6 +15,7 @@ import { PlatformDetector } from '../../PlatformLocator.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import {
   isDeviceHealthError,
+  recreateSharedSessionNow,
   requestSharedSessionRecreate,
 } from './sessionRecovery.ts';
 
@@ -106,13 +107,7 @@ async function measureMs(fn: () => Promise<void>): Promise<number> {
   return Date.now() - start;
 }
 
-/**
- * Soft-reload the app on an existing Appium session for fixture re-bootstrap.
- *
- * Extract of the Appium `restartDevice: true` path:
- * clearAppData → NATIVE_APP context reset → launchApp → wait for /state.json.
- */
-export async function softReloadAppForFixtures(
+async function softReloadAppForFixturesOnce(
   options: SoftReloadAppForFixturesOptions,
 ): Promise<SoftReloadAppForFixturesResult> {
   const {
@@ -216,4 +211,42 @@ export async function softReloadAppForFixtures(
     fixtureBootstrapMs,
     attemptedMetroDevLauncherDismissal,
   };
+}
+
+/**
+ * Soft-reload the app on an existing Appium session for fixture re-bootstrap.
+ *
+ * Extract of the Appium `restartDevice: true` path:
+ * clearAppData → NATIVE_APP context reset → launchApp → wait for /state.json.
+ *
+ * When UiAutomator2 (or other device-health) dies mid soft-reload, recreate the
+ * shared WebDriver session in-process (same Playwright attempt) and retry once
+ * so the health report does not count a flake that Playwright retry would heal.
+ */
+export async function softReloadAppForFixtures(
+  options: SoftReloadAppForFixturesOptions,
+): Promise<SoftReloadAppForFixturesResult> {
+  try {
+    return await softReloadAppForFixturesOnce(options);
+  } catch (error) {
+    if (!isDeviceHealthError(error)) {
+      throw error;
+    }
+
+    requestSharedSessionRecreate();
+    const recreatedDrv = await recreateSharedSessionNow();
+    if (!recreatedDrv) {
+      throw error;
+    }
+
+    logger.warn(
+      'Soft reload hit a device-health error; retrying once after in-process session recreate',
+      error,
+    );
+
+    return softReloadAppForFixturesOnce({
+      ...options,
+      drv: recreatedDrv,
+    });
+  }
 }

@@ -13,12 +13,6 @@ import {
   BannerAlertSeverity,
   Box,
   FontWeight,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
   SectionDivider,
   SensitiveText,
   SensitiveTextLength,
@@ -27,6 +21,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import type { Asset } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../locales/i18n';
@@ -625,19 +620,12 @@ const EarnSectionListView = () => {
         style={{ paddingTop: insets.top }}
         testID={EARN_SECTION_LIST_TEST_IDS.HEADER}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-3"
-        >
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={handleBack}
-            testID={EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON}
-          />
-        </Box>
+        <HeaderStandard
+          onBack={handleBack}
+          backButtonProps={{
+            testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,
+          }}
+        />
       </Box>
       <FlashList
         data={
@@ -658,7 +646,6 @@ const EarnSectionListView = () => {
         showsVerticalScrollIndicator={false}
         testID={EARN_SECTION_LIST_TEST_IDS.LIST}
         maintainVisibleContentPosition={{ disabled: true }}
-        style={{ paddingBottom: insets.bottom }}
       />
     </Box>
   );

@@ -4,6 +4,7 @@ import type {
   KycSumSubLaunchParams,
 } from '@metamask/kyc-controller';
 import Logger from '../../../../util/Logger';
+import { buildSumSubTheme } from './sumSubTheme';
 
 export const SUMSUB_NATIVE_MODULE_NAME = 'SNSMobileSDKModule';
 
@@ -72,6 +73,7 @@ export const sumsubLauncher: KycSumSubLauncher = {
         })
         .withDebug(debug)
         .withLocale(locale)
+        .withTheme(buildSumSubTheme())
         .build();
 
       const result = (await sdk.launch()) as Record<string, unknown>;

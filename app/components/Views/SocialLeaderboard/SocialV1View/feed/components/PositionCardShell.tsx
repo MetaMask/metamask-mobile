@@ -1,21 +1,21 @@
 import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
 
-export type PositionCardShellTone = 'muted' | 'success';
+/**
+ * Horizontal bleed that cancels the shell's padding, so a full-width rule can
+ * reach the card's borders. Kept next to the padding it negates -- the two have
+ * to move together, and they live in different components.
+ */
+export const POSITION_CARD_BLEED_TW_CLASS = '-mx-4';
 
 export interface PositionCardShellProps {
-  tone: PositionCardShellTone;
   children: React.ReactNode;
 }
 
-const SHELL_TW_CLASS: Record<PositionCardShellTone, string> = {
-  muted: 'bg-default rounded-2xl p-3 gap-3 border border-default',
-  success: 'bg-default rounded-2xl p-3 gap-3 border border-success-default',
-};
-
-const PositionCardShell: React.FC<PositionCardShellProps> = ({
-  tone,
-  children,
-}) => <Box twClassName={SHELL_TW_CLASS[tone]}>{children}</Box>;
+const PositionCardShell: React.FC<PositionCardShellProps> = ({ children }) => (
+  <Box twClassName="bg-background-alternative rounded-2xl p-4 gap-3 border border-muted">
+    {children}
+  </Box>
+);
 
 export default PositionCardShell;

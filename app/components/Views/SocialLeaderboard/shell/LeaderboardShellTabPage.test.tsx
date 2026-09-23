@@ -2,7 +2,6 @@ import React from 'react';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import LeaderboardShellTabPage from './LeaderboardShellTabPage';
-import { getSubnavPillTestId } from './SubnavPills';
 import {
   SOCIAL_V1_TRADER_ROW_HEIGHT,
   SocialV1TraderRow,
@@ -34,25 +33,17 @@ describe('LeaderboardShellTabPage', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the leaderboard subnav pills', () => {
-    renderWithProvider(
-      <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
-    );
-
-    expect(
-      screen.getByTestId(getSubnavPillTestId('topTraders')),
-    ).toBeOnTheScreen();
-    expect(screen.getByTestId(getSubnavPillTestId('kols'))).toBeOnTheScreen();
-  });
-
-  it('scopes the list to every position type', () => {
+  it('enables the Social V1 filter chrome on the list', () => {
     renderWithProvider(
       <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
     );
 
     expect(mockTopTradersProps).toHaveBeenCalledWith(
-      expect.objectContaining({ pinnedTypeFilter: 'all' }),
+      expect.objectContaining({ useV1Filters: true }),
     );
+    expect(
+      mockTopTradersProps.mock.calls[0][0].pinnedTypeFilter,
+    ).toBeUndefined();
   });
 
   it('injects the Social V1 row, skeleton, and matching row height', () => {

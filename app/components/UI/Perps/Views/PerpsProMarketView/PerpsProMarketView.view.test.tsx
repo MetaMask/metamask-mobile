@@ -48,6 +48,7 @@ import {
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
+  getPerpsProActivityViewSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
   getPerpsProTwapFillValueSelector,
@@ -124,6 +125,7 @@ const triggeredOrderTypeIDs = [
 
 let connectionReadySpy: jest.SpyInstance;
 let connectionSubscriptionSpy: jest.SpyInstance;
+let dateNowSpy: jest.SpyInstance | undefined;
 const issuedTwapReadPromises = new Set<Promise<TwapOrder[]>>();
 const activeTwapSubscriptions = new Set<symbol>();
 const settledChaseReadPromises = new Set<Promise<ChaseOrder[]>>();
@@ -140,12 +142,6 @@ const mockTwapOrders = (orders: TwapOrder[]) => {
   jest
     .mocked(Engine.context.PerpsController.getTwapOrders)
     .mockImplementation(() => trackTwapRead(Promise.resolve(orders)));
-};
-
-const mockTwapOrdersFailure = (error: Error) => {
-  jest
-    .mocked(Engine.context.PerpsController.getTwapOrders)
-    .mockImplementation(() => trackTwapRead(Promise.reject(error)));
 };
 
 const mockNextTwapOrdersFailure = (error: Error) => {
@@ -211,7 +207,9 @@ const openChaseManagementTab = async () => {
       PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
     ),
   );
-  await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER);
+  await screen.findByTestId(
+    PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
+  );
   await settleIssuedChaseReads();
 };
 
@@ -219,15 +217,14 @@ const openTwapManagementTab = async () => {
   await screen.findByTestId(
     PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
   );
-  // Rollout-off discovery inserts the tab asynchronously. Drain that read and
-  // reacquire the current tab node so the press cannot target the instance
-  // replaced by the discovery render.
+  // Drain the issued read and reacquire the current tab node so the press
+  // cannot target an instance replaced by a re-render.
   await settleIssuedTwapReads();
   fireEvent.press(
     screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP),
   );
   await screen.findByTestId(
-    PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_ACTIVE,
+    PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
   );
   await settleIssuedTwapReads();
 };
@@ -328,6 +325,10 @@ afterEach(async () => {
     connectionSubscriptionSpy.mockRestore();
     resetPerpsChaseOrdersStoreForTests();
     resetChaseOrderVisibilityForTests();
+    // The TWAP elapsed journey pins Date.now; restore it here so a failed
+    // assertion cannot leak a frozen clock into the next test.
+    dateNowSpy?.mockRestore();
+    dateNowSpy = undefined;
   }
 });
 
@@ -686,28 +687,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'discovers an active TWAP termination surface on cold-start rollback',
-    async () => {
-      mockTwapOrders([activeTwap]);
-      renderProMarketWithTwapFlag(false);
-
-      await openTwapManagementTab();
-
-      expect(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            getTwapOrderProviderId(activeTwap),
-            activeTwap.orderId,
-          ),
-        ),
-      ).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
     'renders complete TWAP data and switches a same-symbol provider row',
     async () => {
-      // Arrange
+      // Arrange: the elapsed row derives from the wall clock, so pin it to the
+      // one minute past `startedAt` this fixture's elapsedTimeMilliseconds
+      // describes. Without this the schedule reads as decades old and clamps
+      // to its full duration. A Date.now spy keeps timers real, which the
+      // async findBy* assertions below depend on.
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(completeTwap.startedAt + 60_000);
       mockTwapOrders([completeTwap]);
       renderProMarketWithTwapFlag(true);
 
@@ -775,7 +764,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED),
         ),
-      ).toHaveTextContent('1 minute / 30 minutes');
+      ).toHaveTextContent('00:01:00 / 00:30:00');
       expect(
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_RANDOMIZE),
@@ -826,10 +815,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(getPerpsProTwapSideFilterOptionSelector('all')),
       );
 
-      // Act
+      // Act: the activity filter reaches Fill history in one step.
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
       fireEvent.press(
         screen.getByTestId(
-          PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_FILL_HISTORY,
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('fill_history')}`,
         ),
       );
       const fillValueTestID = (baseTestID: string) =>
@@ -872,7 +864,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'retains an active TWAP termination surface when rollout turns off',
+    'withdraws the TWAP tab when rollout turns off mid-session',
     async () => {
       mockTwapOrders([activeTwap]);
       const { store } = renderProMarketWithTwapFlag(true);
@@ -901,43 +893,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
 
       expect(
-        screen.getByTestId(
+        screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
         ),
-      ).toBeOnTheScreen();
-      expect(screen.getByTestId(terminateTestID)).toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
-    'keeps discovery retry available after rollback and recovers an active TWAP',
-    async () => {
-      const getTwapOrders = jest.mocked(
-        Engine.context.PerpsController.getTwapOrders,
-      );
-      mockTwapOrdersFailure(new Error('venue down'));
-      renderProMarketWithTwapFlag(false);
-
-      await openTwapManagementTab();
-      expect(
-        await screen.findByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
-      ).toBeOnTheScreen();
-      const retryButton = screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.TWAP_RETRY,
-      );
-      await waitFor(() => expect(retryButton).toBeEnabled());
-
-      mockTwapOrders([activeTwap]);
-      fireEvent.press(retryButton);
-
-      expect(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            getTwapOrderProviderId(activeTwap),
-            activeTwap.orderId,
-          ),
-        ),
-      ).toBeOnTheScreen();
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(terminateTestID)).not.toBeOnTheScreen();
     },
   );
 
@@ -960,7 +920,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
       cancelOrder.mockClear();
       cancelOrder.mockResolvedValueOnce({ success: true });
-      renderProMarketWithTwapFlag(false);
+      renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateTestID = getPerpsProTwapTerminateSelector(
         getTwapOrderProviderId(activeTwap),
@@ -1013,7 +973,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         Engine.context.PerpsController.getTwapOrders,
       );
       mockTwapOrders([activeTwap]);
-      renderProMarketWithTwapFlag(false);
+      renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateButton = await screen.findByTestId(
         getPerpsProTwapTerminateSelector(
@@ -1061,7 +1021,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       `closes TWAP termination when the ${identityChange} identity changes`,
       async () => {
         mockTwapOrders([activeTwap]);
-        const { store } = renderProMarketWithTwapFlag(false);
+        const { store } = renderProMarketWithTwapFlag(true);
         await openTwapManagementTab();
         fireEvent.press(
           await screen.findByTestId(
@@ -1209,7 +1169,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.queryByTestId(rowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const canceledStatusSelector = getPerpsProChaseStatusSelector(
         'canceled',
@@ -1281,7 +1246,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
       await waitFor(() => expect(cancelOrder).toHaveBeenCalledTimes(1));
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1481,7 +1451,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(isChaseOrderHandleVisible('other-chase')).toBe(false);
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       await waitFor(() =>
         expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false),
@@ -1734,7 +1709,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await openChaseManagementTab();
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1778,7 +1758,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE),
       ).toHaveTextContent(strings('perps.order.chase.empty'));
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
 
       expect(
@@ -1832,7 +1817,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         await openChaseManagementTab();
         fireEvent.press(
           screen.getByTestId(
-            PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER,
+            PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE,
+          ),
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
           ),
         );
 
@@ -1881,17 +1871,19 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await openChaseManagementTab();
       expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(getPerpsProActivityViewSelector('active')),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE),
       ).toHaveTextContent(strings('perps.order.chase.empty'));
 
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       expect(
         await screen.findByText(strings('perps.order.chase.status.canceled')),
@@ -2004,7 +1996,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await waitFor(() => expect(getChaseOrders).toHaveBeenCalledTimes(3));
       await openChaseManagementTab();
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const rowSelector = getPerpsProChaseRowSelector(
         'ETH',
@@ -2079,7 +2076,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.queryByTestId(activeRowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}-option-${getPerpsProActivityViewSelector('history')}`,
+        ),
       );
       const filledStatusSelector = getPerpsProChaseStatusSelector(
         'filled',

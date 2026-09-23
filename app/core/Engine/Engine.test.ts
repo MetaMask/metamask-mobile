@@ -14,7 +14,7 @@ import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller
 import { ConnectivityController } from '@metamask/connectivity-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
-import { backupVault } from '../BackupVault';
+import { backupVault, clearAllVaultBackups } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
@@ -34,6 +34,7 @@ jest.mock('redux-persist-filesystem-storage');
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
+  clearAllVaultBackups: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -376,6 +377,109 @@ describe('Engine', () => {
       [],
     );
     expect(backupVault).not.toHaveBeenCalled();
+  });
+
+  it('does not back up again when stateChange fires twice with the same vault (burst dedup)', () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const publish = (vault: string) =>
+      // @ts-expect-error accessing protected property for testing
+      engine.keyringController.messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publish('vault-a');
+    publish('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(1);
+  });
+
+  it('backs up again on the next unlock after a lock, even for the same vault (self-heal preserved)', () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-a');
+    messenger.publish('KeyringController:lock');
+    publishStateChange('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not resurrect a cleared vault when a stale stateChange arrives after clearAllVaultBackups', async () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-being-reset');
+    expect(backupVault).toHaveBeenCalledTimes(1);
+
+    await clearAllVaultBackups();
+
+    // A straggler stateChange event for the same (now stale) vault arrives
+    // with no KeyringController:lock in between — it must not be treated as
+    // a "new" unlock and must not trigger another backup.
+    publishStateChange('vault-being-reset');
+
+    expect(backupVault).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a failed backup on the next stateChange for the same vault, without waiting for a lock', async () => {
+    (backupVault as jest.Mock)
+      .mockResolvedValueOnce({
+        success: false,
+        error: 'Vault backup failed',
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        vault: 'vault-a',
+      });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-a');
+    // Let the failed attempt's .then/.catch settle before the retry.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // No lock happened, but the same vault arrives again — since the prior
+    // attempt failed, this must be treated as a fresh attempt, not skipped
+    // as a burst duplicate.
+    publishStateChange('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(2);
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {
@@ -1364,6 +1468,17 @@ describe('Engine', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.ClaimsController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls KycController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.KycController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();

@@ -217,6 +217,8 @@ export enum TraceName {
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Trade action -> bottom sheet content laid out and interactive. */
+  PerpsTradeSheetInteractive = 'Perps Trade Sheet Interactive',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
   /** Limit order submit tap -> resting order rendered in the live orders stream. */
@@ -276,10 +278,13 @@ export enum TraceName {
   PredictNextEventView = 'PredictNext Event View',
   PredictNextPortfolioView = 'PredictNext Portfolio View',
   PredictNextGetBalance = 'PredictNext Get Balance',
+  PredictNextGetPositions = 'PredictNext Get Positions',
+  PredictNextGetActivity = 'PredictNext Get Activity',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
   PredictNextGetMarketHistory = 'PredictNext Get Market History',
+  PredictNextOrderPreview = 'PredictNext Order Preview',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',

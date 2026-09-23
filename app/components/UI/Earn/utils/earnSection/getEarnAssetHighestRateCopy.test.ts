@@ -154,13 +154,11 @@ describe('getEarnAssetHighestRateCopy', () => {
     expect(result).toBe(strings('earn_module.rate_apy', { percentage: '4.2' }));
   });
 
-  it('truncates the displayed percentage to two decimal places', () => {
+  it('rounds the displayed percentage to one decimal place', () => {
     const asset = createAsset({ percentage: 4.219 });
 
     const result = getEarnAssetHighestRateCopy({ asset });
 
-    expect(result).toBe(
-      strings('earn_module.rate_apy', { percentage: '4.21' }),
-    );
+    expect(result).toBe(strings('earn_module.rate_apy', { percentage: '4.2' }));
   });
 });

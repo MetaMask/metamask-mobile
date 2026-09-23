@@ -12,12 +12,11 @@ export type {
   TokenAmount,
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
-export {
-  isNftTransferType,
-  isUnlimitedApprovalAmount,
-} from './adapters/helpers';
+export { isNftTransferType, isSpendingCapUnlimited } from './adapters/helpers';
 export {
   enrichLocalActivity,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
 export {
