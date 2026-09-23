@@ -1141,7 +1141,8 @@ const Wallet = ({
   ) : null;
 
   const compactHeaderAccountName =
-    isSearchHeaderEnabled && !inWalletHomePostOnboardingFlow ? (
+    (isCompactHeader || isSearchHeaderEnabled) &&
+    !inWalletHomePostOnboardingFlow ? (
       <ButtonAnimated
         onPress={handleAccountHubPress}
         style={styles.compactHeaderAccountName}
@@ -1254,6 +1255,9 @@ const Wallet = ({
                   handleSearchPress={
                     isHeaderSearchEnabled ? handleSearchPress : undefined
                   }
+                  useSearchHeaderLayout={isSearchHeaderEnabled}
+                  showSearchPastePill={showPastePill}
+                  handleSearchPastePress={handlePastePress}
                   touchAreaSlop={touchAreaSlop}
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}

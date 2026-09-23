@@ -21,14 +21,13 @@ export interface SearchOrigin {
   height: number;
 }
 
-const consumedClipboardKeys = new Set<string>();
+const consumedClipboardRevisions = new Set<number>();
 
-export const isNewHomepageClipboardContent = (
-  clipboardContent: string,
-  clipboardRevision = 0,
+export const isNewHomepageClipboardRevision = (
+  hasClipboardString: boolean,
+  clipboardRevision: number,
 ): boolean =>
-  clipboardContent.length > 0 &&
-  !consumedClipboardKeys.has(`${clipboardRevision}:${clipboardContent}`);
+  hasClipboardString && !consumedClipboardRevisions.has(clipboardRevision);
 
 export const useHomepageSearchPaste = ({
   enabled,
@@ -50,12 +49,10 @@ export const useHomepageSearchPaste = ({
     }
 
     try {
-      const clipboardContent = String(
-        (await ClipboardManager.getString()) ?? '',
-      ).trim();
+      const hasClipboardString = await ClipboardManager.hasString();
       setClipboardContentAvailable(
-        isNewHomepageClipboardContent(
-          clipboardContent,
+        isNewHomepageClipboardRevision(
+          hasClipboardString,
           ClipboardManager.getRevision(),
         ),
       );
@@ -76,7 +73,7 @@ export const useHomepageSearchPaste = ({
     }
 
     const subscription = ClipboardManager.addListener(() => {
-      consumedClipboardKeys.clear();
+      consumedClipboardRevisions.clear();
       refreshClipboardAvailability();
     });
 
@@ -97,9 +94,7 @@ export const useHomepageSearchPaste = ({
           return;
         }
 
-        consumedClipboardKeys.add(
-          `${ClipboardManager.getRevision()}:${clipboardContent}`,
-        );
+        consumedClipboardRevisions.add(ClipboardManager.getRevision());
         setClipboardContentAvailable(false);
         trackHomepageSearchPaste(clipboardContent);
         onPaste(clipboardContent, origin);
