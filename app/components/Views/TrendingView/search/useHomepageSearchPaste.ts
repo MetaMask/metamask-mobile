@@ -1,6 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { useABTest } from '../../../../hooks/useABTest';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { trackHomepageSearchPaste } from '../../../../util/analytics/homepageSearchPasteTracking';
@@ -42,9 +41,7 @@ export const useHomepageSearchPaste = ({
     HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS,
     HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isTreatment =
-    (process.env.NODE_ENV !== 'test' && __DEV__) || variant.showPastePill;
-  const previousAppState = useRef(AppState.currentState);
+  const isTreatment = variant.showPastePill;
   const [clipboardContentAvailable, setClipboardContentAvailable] =
     useState(initiallyAvailable);
 
@@ -90,28 +87,6 @@ export const useHomepageSearchPaste = ({
     return () => {
       consumedClipboardListeners.delete(handleClipboardConsumed);
       subscription?.remove?.();
-    };
-  }, [enabled, refreshClipboardAvailability]);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      const returnedToForeground =
-        previousAppState.current !== 'active' && nextAppState === 'active';
-      previousAppState.current = nextAppState;
-
-      if (returnedToForeground) {
-        consumedClipboardRevisions.clear();
-        setClipboardContentAvailable(false);
-        refreshClipboardAvailability();
-      }
-    });
-
-    return () => {
-      subscription.remove();
     };
   }, [enabled, refreshClipboardAvailability]);
 
