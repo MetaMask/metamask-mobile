@@ -40,20 +40,19 @@ const CancelMembership = () => {
     endDate: string;
   } | null>(null);
   const isNavigatingRef = useRef(false);
-  const isSubmittingRef = useRef(false);
 
   const handleBack = useCallback(() => {
-    if (isSubmittingRef.current) return;
+    if (isSubmitting) return;
     navigation.goBack();
-  }, [navigation]);
+  }, [isSubmitting, navigation]);
 
   const handleKeepMembership = useCallback(() => {
-    if (isSubmittingRef.current) return;
+    if (isSubmitting) return;
     navigation.goBack();
-  }, [navigation]);
+  }, [isSubmitting, navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
-    if (isSubmittingRef.current) return;
+    if (isSubmitting) return;
 
     const controller = Engine.context.SubscriptionController;
     const subscription: Subscription | undefined =
@@ -70,7 +69,6 @@ const CancelMembership = () => {
     }
 
     setErrorMessage(null);
-    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -96,10 +94,9 @@ const CancelMembership = () => {
       });
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
     } finally {
-      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [selectedReasonId]);
+  }, [isSubmitting, selectedReasonId]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
