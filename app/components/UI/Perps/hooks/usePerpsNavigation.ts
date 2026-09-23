@@ -24,6 +24,10 @@ import {
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
+import {
   navigateToPerpsHomeTarget,
   resetToPerpsHomeTarget,
   useGetPerpsHomeNavigationTarget,
@@ -239,6 +243,11 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
       const useBottomSheet = Boolean(params.useBottomSheet);
+      if (useBottomSheet) {
+        startPerpsTradeSheetInteractiveTrace(
+          params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        );
+      }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         depositWithOrder,
@@ -256,6 +265,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
+          if (useBottomSheet) {
+            failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
+          }
           const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
           Logger.error(err, {
             tags: { feature: PERPS_CONSTANTS.FeatureName },

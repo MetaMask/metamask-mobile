@@ -54,6 +54,10 @@ export interface FeedItemRowProps {
   onTradePress: (item: FeedItem) => void;
   onPositionPress: (item: FeedItem) => void;
   onTraderPress: (item: FeedItem) => void;
+  /** Live stream rows omit the Trade CTA; defaults to showing it. */
+  showTradeButton?: boolean;
+  /** Match V1 position card border/fill on the compact trade card. */
+  usePositionCardChrome?: boolean;
   /**
    * Wall-clock instant used to format the relative timestamp. Parent should
    * bump this after pull-to-refresh so memoized rows recompute even when the
@@ -72,6 +76,8 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   onTradePress,
   onPositionPress,
   onTraderPress,
+  showTradeButton = true,
+  usePositionCardChrome = false,
   now,
 }) => {
   const handleTradePress = useCallback(() => {
@@ -101,6 +107,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
     (item.isClosed ?? action === 'closed')
       ? null
       : NEW_POSITION_LABEL_KEYS[assetClass];
+
+  const tradeCardTwClassName = usePositionCardChrome
+    ? 'bg-background-alternative rounded-2xl p-3 border border-muted'
+    : 'bg-muted rounded-2xl p-3';
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
@@ -149,14 +159,16 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           </Box>
         </TouchableOpacity>
 
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Sm}
-          onPress={handleTradePress}
-          testID={getFeedTradeButtonTestId(item.id)}
-        >
-          {strings('social_leaderboard.feed.trade')}
-        </Button>
+        {showTradeButton ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Sm}
+            onPress={handleTradePress}
+            testID={getFeedTradeButtonTestId(item.id)}
+          >
+            {strings('social_leaderboard.feed.trade')}
+          </Button>
+        ) : null}
       </Box>
 
       <Pressable
@@ -170,7 +182,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName="bg-muted rounded-2xl p-3"
+          twClassName={tradeCardTwClassName}
         >
           <PositionTokenAvatar
             position={item.tokenAvatar}

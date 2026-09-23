@@ -24,6 +24,10 @@ import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
@@ -65,6 +69,11 @@ const PerpsOrderRedirect: React.FC = () => {
     });
 
     const runDepositFlow = async (): Promise<void> => {
+      if (useBottomSheet) {
+        startPerpsTradeSheetInteractiveTrace(
+          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        );
+      }
       try {
         await withPendingTransactionActiveAbTests(
           transactionActiveAbTests,
@@ -89,6 +98,9 @@ const PerpsOrderRedirect: React.FC = () => {
           ),
         );
       } catch (error: unknown) {
+        if (useBottomSheet) {
+          failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
+        }
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
           tags: {
