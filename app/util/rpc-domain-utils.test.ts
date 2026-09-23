@@ -251,7 +251,7 @@ describe('rpc-domain-utils', () => {
       ).toHaveLength(0);
     });
 
-    it('initializes with an empty set when the persisted store is corrupt', async () => {
+    it('re-derives from the chains list when the persisted store is corrupt', async () => {
       // Arrange
       setupTestEnvironment();
       mockRpcDomainStorage(
@@ -261,7 +261,15 @@ describe('rpc-domain-utils', () => {
       // Act
       await initializeRpcProviderDomains();
       // Assert
-      expect(getKnownDomains()).toStrictEqual(new Set());
+      expect(getKnownDomains()).toStrictEqual(new Set(['mainnet.infura.io']));
+      const persistedCalls = (
+        StorageWrapper.setItem as jest.Mock
+      ).mock.calls.filter(
+        (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
+      );
+      expect(JSON.parse(persistedCalls[0][1])).toStrictEqual([
+        'mainnet.infura.io',
+      ]);
     });
 
     it('keeps the derived set when persisting fails', async () => {

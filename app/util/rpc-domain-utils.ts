@@ -49,6 +49,22 @@ export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
   }
 }
 
+async function tryPopulateWithCachedDomains(): Promise<boolean> {
+  const state = getModuleState();
+  try {
+    const cachedHostnames = await StorageWrapper.getItem(
+      RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
+    );
+    if (!cachedHostnames) {
+      return false;
+    }
+    state.setKnownDomainsSet(new Set<string>(JSON.parse(cachedHostnames)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Initialize the set of known domains from the chains list
  */
@@ -58,15 +74,11 @@ export async function initializeRpcProviderDomains(): Promise<void> {
     return state.initPromise;
   }
   const promise = (async () => {
-    try {
-      const cachedHostnames = await StorageWrapper.getItem(
-        RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
-      );
-      if (cachedHostnames) {
-        state.setKnownDomainsSet(new Set<string>(JSON.parse(cachedHostnames)));
-        return;
-      }
+    if (await tryPopulateWithCachedDomains()) {
+      return;
+    }
 
+    try {
       const chainsList = await getSafeChainsListFromCacheOnly();
       const newKnownDomainsSet = new Set<string>();
 
