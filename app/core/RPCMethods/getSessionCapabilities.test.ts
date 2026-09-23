@@ -11,6 +11,7 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { isRelaySupported } from '../../util/transactions/transaction-relay';
+import { getSendBundleSupportedChains } from '../../util/transactions/sentinel-api';
 
 jest.mock('@metamask/eip-5792-middleware', () => ({
   getCapabilities: jest.fn(),
@@ -32,6 +33,10 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
 
 jest.mock('../../util/transactions/transaction-relay', () => ({
   isRelaySupported: jest.fn(),
+}));
+
+jest.mock('../../util/transactions/sentinel-api', () => ({
+  getSendBundleSupportedChains: jest.fn(),
 }));
 
 jest.mock('../../store', () => ({
@@ -65,6 +70,9 @@ jest.mock('../Engine', () => ({
 const mockGetCapabilities = jest.mocked(getCapabilities);
 const mockSelectSmartTransactionsEnabled = jest.mocked(
   selectSmartTransactionsEnabled,
+);
+const mockGetSendBundleSupportedChains = jest.mocked(
+  getSendBundleSupportedChains,
 );
 const SELECTED_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -122,24 +130,23 @@ describe('getSessionCapabilities', () => {
       });
     });
 
-    it('maps the TransactionController result in getSendBundleSupportedChains', async () => {
-      jest
-        .mocked(Engine.context.TransactionController.isAtomicBatchSupported)
-        .mockResolvedValue([
-          { chainId: '0x1', isSupported: true },
-          { chainId: '0x2', isSupported: false },
-        ] as never);
+    it('wires getSendBundleSupportedChains to the sentinel API', async () => {
+      mockGetSendBundleSupportedChains.mockResolvedValue({
+        '0x1': true,
+        '0x2': false,
+      });
 
       const hooks = buildGetCapabilitiesHooks();
       const result = await hooks.getSendBundleSupportedChains(['0x1', '0x2']);
 
+      expect(mockGetSendBundleSupportedChains).toHaveBeenCalledWith([
+        '0x1',
+        '0x2',
+      ]);
+      expect(result).toStrictEqual({ '0x1': true, '0x2': false });
       expect(
         Engine.context.TransactionController.isAtomicBatchSupported,
-      ).toHaveBeenCalledWith({
-        address: SELECTED_ADDRESS,
-        chainIds: ['0x1', '0x2'],
-      });
-      expect(result).toStrictEqual({ '0x1': true, '0x2': false });
+      ).not.toHaveBeenCalled();
     });
 
     it('wires isAuxiliaryFundsSupported to ALLOWED_BRIDGE_CHAIN_IDS', () => {
@@ -147,23 +154,6 @@ describe('getSessionCapabilities', () => {
 
       expect(hooks.isAuxiliaryFundsSupported('0x1')).toBe(true);
       expect(hooks.isAuxiliaryFundsSupported('0x2')).toBe(false);
-    });
-
-    it('uses the target address for getSendBundleSupportedChains when provided', async () => {
-      const targetAddress = '0xAbcDef0123456789012345678901234567890123';
-      jest
-        .mocked(Engine.context.TransactionController.isAtomicBatchSupported)
-        .mockResolvedValue([]);
-
-      const hooks = buildGetCapabilitiesHooks(targetAddress);
-      await hooks.getSendBundleSupportedChains(['0x1']);
-
-      expect(
-        Engine.context.TransactionController.isAtomicBatchSupported,
-      ).toHaveBeenCalledWith({
-        address: targetAddress,
-        chainIds: ['0x1'],
-      });
     });
   });
 
@@ -191,26 +181,6 @@ describe('getSessionCapabilities', () => {
       expect(messenger).toBe(Engine.controllerMessenger);
       expect(address).toBe(SELECTED_ADDRESS);
       expect(extra).toBeUndefined();
-    });
-
-    it('threads the queried address into the send-bundle support hook', async () => {
-      const targetAddress = '0xAbcDef0123456789012345678901234567890123';
-      mockGetCapabilities.mockReturnValue({} as never);
-      jest
-        .mocked(Engine.context.TransactionController.isAtomicBatchSupported)
-        .mockResolvedValue([]);
-
-      getSessionCapabilities(targetAddress);
-
-      const [hooks] = mockGetCapabilities.mock.calls[0];
-      await hooks.getSendBundleSupportedChains(['0x1']);
-
-      expect(
-        Engine.context.TransactionController.isAtomicBatchSupported,
-      ).toHaveBeenCalledWith({
-        address: targetAddress,
-        chainIds: ['0x1'],
-      });
     });
 
     it('forwards chainIds to the eip-5792 getCapabilities', () => {

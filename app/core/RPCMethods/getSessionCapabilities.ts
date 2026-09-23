@@ -16,6 +16,7 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { isRelaySupported } from '../../util/transactions/transaction-relay';
+import { getSendBundleSupportedChains } from '../../util/transactions/sentinel-api';
 
 type SessionCapabilities = Awaited<ReturnType<typeof getCapabilities>>;
 
@@ -72,7 +73,7 @@ async function computeAndCache(
 ): Promise<SessionCapabilities> {
   try {
     const value = await getCapabilities(
-      buildGetCapabilitiesHooks(address as Hex),
+      buildGetCapabilitiesHooks(),
       Engine.controllerMessenger as unknown as EIP5792Messenger,
       address as Hex,
       chainIds,
@@ -96,15 +97,9 @@ async function computeAndCache(
  * multichain session `getCapabilities` hook so both compute capabilities
  * identically.
  *
- * @param targetAddress - The address capabilities are being computed for.
- * `getSendBundleSupportedChains` receives only chain IDs from the middleware,
- * so the address must be threaded in here; when omitted (the EIP-1193
- * middleware call site, which cannot know the per-request address at hook
- * build time), it falls back to the selected account — the historical
- * behavior.
  * @returns The getCapabilities hooks.
  */
-export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
+export function buildGetCapabilitiesHooks() {
   return {
     getDismissSmartAccountSuggestionEnabled: () =>
       Engine.context.PreferencesController.state
@@ -116,23 +111,7 @@ export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
         Engine.context.TransactionController,
       ),
     isRelaySupported,
-    getSendBundleSupportedChains: async (chainIds: Hex[]) => {
-      const address =
-        targetAddress ??
-        (Engine.context.AccountsController.getSelectedAccount().address as Hex);
-      const isAtomicBatchSupportedResult =
-        await Engine.context.TransactionController.isAtomicBatchSupported({
-          address,
-          chainIds,
-        });
-      return isAtomicBatchSupportedResult.reduce(
-        (acc: Record<Hex, boolean>, { chainId, isSupported }) => ({
-          ...acc,
-          [chainId]: isSupported,
-        }),
-        {},
-      );
-    },
+    getSendBundleSupportedChains,
     isAuxiliaryFundsSupported: (chainId: Hex) =>
       (ALLOWED_BRIDGE_CHAIN_IDS as readonly Hex[]).includes(chainId),
   };
