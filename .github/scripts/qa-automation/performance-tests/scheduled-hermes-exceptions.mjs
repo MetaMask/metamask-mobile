@@ -49,12 +49,18 @@ export function buildScheduledException(currentReport, baselineReports) {
     }
   }
 
-  const findings = (currentReport.scenarios || [])
+  const scenarios = currentReport.scenarios || [];
+  // A scenario with too little history is not "clean"; it is unchecked. The
+  // all-clear says so instead of implying the whole run was compared.
+  const comparedScenarios = scenarios.filter(
+    (scenario) =>
+      (baselineByScenario.get(scenarioKey(scenario)) || []).length >=
+      MIN_BASELINE_RUNS,
+  );
+
+  const findings = comparedScenarios
     .map((scenario) => {
       const observations = baselineByScenario.get(scenarioKey(scenario)) || [];
-      if (observations.length < MIN_BASELINE_RUNS) {
-        return null;
-      }
       const baselineMedianJsWorkMs = median(observations);
       const ratio =
         baselineMedianJsWorkMs > 0
@@ -87,6 +93,8 @@ export function buildScheduledException(currentReport, baselineReports) {
       baselineRunCount: baselineReports.length,
       minimumBaselineRuns: MIN_BASELINE_RUNS,
       thresholdRatio: REGRESSION_RATIO,
+      scenarioCount: scenarios.length,
+      comparedScenarioCount: comparedScenarios.length,
       profileCount: currentReport.meta.profileCount,
       symbolicatedProfileCount: currentReport.meta.symbolicatedProfileCount,
     },
@@ -94,9 +102,27 @@ export function buildScheduledException(currentReport, baselineReports) {
   };
 }
 
-export function buildScheduledExceptionSlack(exception) {
-  if (!exception.meta.hasFindings) {
+function baselineCoverageNote(meta) {
+  const unchecked = meta.scenarioCount - meta.comparedScenarioCount;
+  if (unchecked <= 0) {
     return '';
+  }
+  return ` · ${unchecked} still building a baseline of ${meta.minimumBaselineRuns} runs`;
+}
+
+/**
+ * A clean run still reports. Silence is indistinguishable from a job that
+ * stopped running, so the all-clear is the signal that the check is alive.
+ */
+export function buildScheduledExceptionSlack(exception) {
+  const { meta } = exception;
+  if (!meta.hasFindings) {
+    return [
+      '*Hermes CPU-profile run check* · nothing to action',
+      `_Run:_ <${meta.runUrl}|${meta.runId}>`,
+      `_Checked:_ ${meta.comparedScenarioCount}/${meta.scenarioCount} scenarios against their median of the previous ${meta.baselineHours}h${baselineCoverageNote(meta)}`,
+      `_Result:_ no scenario reached ${meta.thresholdRatio}× its recent median JS work.`,
+    ].join('\n');
   }
   const sharedRun = exception.findings.length > 1;
   const lines = [
@@ -137,9 +163,9 @@ export function buildScheduledExceptionMarkdown(exception) {
   ];
   if (!exception.meta.hasFindings) {
     lines.push(
-      'No scenario exceeded the recent median by the 1.5× notification threshold.',
+      `Checked ${exception.meta.comparedScenarioCount}/${exception.meta.scenarioCount} scenarios; none reached ${exception.meta.thresholdRatio}× its recent median JS work.`,
       '',
-      'No Slack message was sent.',
+      'An all-clear was posted so a silent channel still means the check stopped running.',
     );
     return lines.join('\n');
   }

@@ -25,7 +25,7 @@ function report(runId, scenarios) {
   };
 }
 
-test('a run below the recent threshold stays silent', () => {
+test('a run below the recent threshold reports an all-clear', () => {
   const current = report('4', [scenario('Perps add funds', 140)]);
   const baseline = [
     report('1', [scenario('Perps add funds', 100)]),
@@ -34,11 +34,35 @@ test('a run below the recent threshold stays silent', () => {
   ];
 
   const exception = buildScheduledException(current, baseline);
+  const slack = buildScheduledExceptionSlack(exception);
 
   assert.equal(exception.meta.hasFindings, false);
   assert.deepEqual(exception.findings, []);
-  assert.equal(buildScheduledExceptionSlack(exception), '');
-  assert.match(buildScheduledExceptionMarkdown(exception), /No Slack message/);
+  // Silence would be indistinguishable from a job that stopped running.
+  assert.match(slack, /nothing to action/);
+  assert.match(slack, /_Checked:_ 1\/1 scenarios/);
+  assert.match(slack, /no scenario reached 1\.5× its recent median/);
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /An all-clear was posted/,
+  );
+});
+
+test('an all-clear names the scenarios that have no baseline yet', () => {
+  const current = report('4', [
+    scenario('Perps add funds', 140),
+    scenario('Money Home after importing SRP with funded balance', 900),
+  ]);
+  const baseline = [1, 2, 3].map((runId) =>
+    report(String(runId), [scenario('Perps add funds', 100)]),
+  );
+
+  const slack = buildScheduledExceptionSlack(
+    buildScheduledException(current, baseline),
+  );
+
+  assert.match(slack, /_Checked:_ 1\/2 scenarios/);
+  assert.match(slack, /1 still building a baseline of 3 runs/);
 });
 
 test('a scenario at 1.5 times the recent median becomes a finding', () => {

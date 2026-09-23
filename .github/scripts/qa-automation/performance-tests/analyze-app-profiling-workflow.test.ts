@@ -164,9 +164,6 @@ describe('Analyze App Profiling triggers', () => {
     expect(slackStep?.if).toContain(
       "github.event.workflow_run.event == 'schedule'",
     );
-    expect(slackStep?.if).toContain(
-      "steps.findings.outputs.has-findings == 'true'",
-    );
     expect(notify.needs).toStrictEqual([
       'analyze',
       'upload-scenario-profiles',
@@ -174,16 +171,17 @@ describe('Analyze App Profiling triggers', () => {
     expect(slackStep?.env?.GITHUB_RUN_ID).toBe('${{ github.run_id }}');
   });
 
-  it('keeps clean scheduled runs out of Slack', () => {
+  it('posts every scheduled run so a quiet channel means a stopped job', () => {
     const workflow = loadWorkflow();
     const notify = workflow.jobs['publish-summary'];
-    const detection = notify.steps.find(
-      (step) => step.name === 'Detect Slack findings',
+    const slackStep = notify.steps.find(
+      (step) => step.name === 'Post Slack summary',
     );
 
-    expect(detection?.run).toContain('notification.json');
-    expect(detection?.run).toContain('.meta.hasFindings');
-    expect(detection?.run).toContain('has-findings=${HAS_FINDINGS}');
+    expect(slackStep?.if).not.toContain('has-findings');
+    expect(
+      notify.steps.find((step) => step.name === 'Detect Slack findings'),
+    ).toBeUndefined();
   });
 
   it('routes Slack by the branch that produced the profiles', () => {

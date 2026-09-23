@@ -8,8 +8,9 @@
 #
 # Cadence:
 # - After a *scheduled* 6-hour performance run: collect `report.json`, compare
-#   the run with the prior 7-day median, and post only when the 1.5× threshold
-#   is crossed. No clean-run Slack. No per-scenario profile zips.
+#   the run with the prior 7-day median, and post either the scenarios that
+#   crossed the 1.5× threshold or a one-line all-clear, so a quiet channel
+#   always means the check stopped running. No per-scenario profile zips.
 # - After a *manually dispatched* performance run: full digest + Slack
 #   (#metamask-performance on main; personal DM on a branch).
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
@@ -359,16 +360,6 @@ jobs:
             --style markdown --optional
           cat /tmp/analyze-app-profiling/github-summary-linked.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Detect Slack findings
-        id: findings
-        run: |
-          set -euo pipefail
-          HAS_FINDINGS=true
-          if [ -f /tmp/analyze-app-profiling/notification.json ]; then
-            HAS_FINDINGS=$(jq -r '.meta.hasFindings' /tmp/analyze-app-profiling/notification.json)
-          fi
-          echo "has-findings=${HAS_FINDINGS}" >> "$GITHUB_OUTPUT"
-
       - name: Post Slack summary
         if: >-
           needs.upload-scenario-profiles.result != 'failure' &&
@@ -379,8 +370,7 @@ jobs:
              (
                (github.event.workflow_run.event == 'workflow_dispatch' &&
                 needs.upload-scenario-profiles.result == 'success') ||
-               (github.event.workflow_run.event == 'schedule' &&
-                steps.findings.outputs.has-findings == 'true')
+               github.event.workflow_run.event == 'schedule'
              ))
           )
         continue-on-error: true
