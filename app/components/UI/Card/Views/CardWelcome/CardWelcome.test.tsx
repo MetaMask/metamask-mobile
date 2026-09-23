@@ -350,30 +350,27 @@ describe('CardWelcome', () => {
 
     /**
      * Animated.View order: title, description, footer.
+     * Typed to match RNTL's `UNSAFE_getAllByType` so `lint:tsc` accepts the helpers.
      */
-    const getRevealContainers = (
-      UNSAFE_getAllByType: (
-        type: typeof Animated.View,
-      ) => { props: { style: ViewStyle[] } }[],
-    ) => UNSAFE_getAllByType(Animated.View);
+    type GetAllByType = <P>(
+      type: React.ComponentType<P>,
+    ) => import('react-test-renderer').ReactTestInstance[];
 
-    const getTitleRevealStyleEntries = (
-      UNSAFE_getAllByType: (
-        type: typeof Animated.View,
-      ) => { props: { style: ViewStyle[] } }[],
-    ) => getRevealContainers(UNSAFE_getAllByType)[0].props.style as ViewStyle[];
+    const getRevealStyleEntries = (
+      UNSAFE_getAllByType: GetAllByType,
+      index: number,
+    ): ViewStyle[] =>
+      UNSAFE_getAllByType(Animated.View)[index].props.style as ViewStyle[];
+
+    const getTitleRevealStyleEntries = (UNSAFE_getAllByType: GetAllByType) =>
+      getRevealStyleEntries(UNSAFE_getAllByType, 0);
 
     const getDescriptionRevealStyleEntries = (
-      UNSAFE_getAllByType: (
-        type: typeof Animated.View,
-      ) => { props: { style: ViewStyle[] } }[],
-    ) => getRevealContainers(UNSAFE_getAllByType)[1].props.style as ViewStyle[];
+      UNSAFE_getAllByType: GetAllByType,
+    ) => getRevealStyleEntries(UNSAFE_getAllByType, 1);
 
-    const getFooterRevealStyleEntries = (
-      UNSAFE_getAllByType: (
-        type: typeof Animated.View,
-      ) => { props: { style: ViewStyle[] } }[],
-    ) => getRevealContainers(UNSAFE_getAllByType)[2].props.style as ViewStyle[];
+    const getFooterRevealStyleEntries = (UNSAFE_getAllByType: GetAllByType) =>
+      getRevealStyleEntries(UNSAFE_getAllByType, 2);
 
     it('releases the hidden text reveal style when the cards animation reports a Rive error while animating', () => {
       mockUseCardEducationAnimationState.mockReturnValue('animate');
