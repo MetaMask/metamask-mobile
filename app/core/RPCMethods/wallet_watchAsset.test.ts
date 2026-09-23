@@ -216,7 +216,9 @@ describe('wallet_watchAsset', () => {
       expect.any(String),
       expect.any(String),
       expect.objectContaining({
-        address: correctWBTC.address,
+        // addCustomAsset normalizes the address to its checksummed form so
+        // the CAIP-19 id matches the ids built by other call sites.
+        address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
         symbol: correctWBTC.symbol,
         decimals: Number(correctWBTC.decimals),
         iconUrl: correctWBTC.image,
@@ -409,7 +411,7 @@ describe('wallet_watchAsset', () => {
       expect.any(String),
       expect.any(String),
       expect.objectContaining({
-        address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+        address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
         symbol: 'TST',
         decimals: 18,
       }),

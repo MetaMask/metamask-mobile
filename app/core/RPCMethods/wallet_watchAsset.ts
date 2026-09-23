@@ -22,6 +22,7 @@ import {
 } from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
 import { toAssetId } from '../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+import { safeToChecksumAddress } from '../../util/address';
 
 /**
  * Strips `undefined` properties (and any other non-JSON-serializable values
@@ -176,8 +177,14 @@ export const wallet_watchAsset = async ({
     );
   }
 
+  // toAssetId embeds the address verbatim (no case normalization) and
+  // customAssets is keyed by the resulting CAIP-19 string via exact match,
+  // while other call sites (e.g. useAddressBalance) build the id from a
+  // checksummed address. Normalize here so the same token always resolves to
+  // a single canonical CAIP-19 id regardless of the casing the dapp sent.
+  const checksummedAddress = safeToChecksumAddress(address) ?? address;
   const caipChainId = toEvmCaipChainId(chainId);
-  const caipAssetType = toAssetId(address, caipChainId);
+  const caipAssetType = toAssetId(checksummedAddress, caipChainId);
 
   if (!caipAssetType) {
     throw new Error(`Could not build an asset id for address "${address}"`);
@@ -188,7 +195,7 @@ export const wallet_watchAsset = async ({
   // surface as an error rather than silently leaving `res.result = true`
   // while nothing was actually persisted.
   await AssetsController.addCustomAsset(interactingAccount.id, caipAssetType, {
-    address,
+    address: checksummedAddress,
     symbol: finalTokenSymbol,
     decimals: Number(finalTokenDecimals),
     name: finalTokenSymbol,
