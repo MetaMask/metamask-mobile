@@ -24,8 +24,13 @@ export type FeedCardItem = CoreFeedItem & {
   commentCount?: number;
   replyCount?: number;
   /**
-   * How long the position has been held, in milliseconds. Closed positions
-   * are final; open ones are measured to the time the response was built.
+   * Unix seconds of the position's first fill. The anchor to count from for
+   * a position that is still open.
+   */
+  firstTradeAt?: number | null;
+  /**
+   * Final hold in milliseconds. Only set once the position is closed; null
+   * while it is still running, because that span grows every second.
    */
   holdTimeMs?: number | null;
   /**

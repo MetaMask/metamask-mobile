@@ -265,6 +265,12 @@
     "@metamask/profile-sync-controller": "^32.1.1",
     "@metamask/account-tree-controller": "^9.0.0"
   },
+  "previewBuilds": {
+    "@metamask/social-controllers": {
+      "type": "non-breaking",
+      "previewVersion": "3.0.2-preview-aecbce4ff"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",

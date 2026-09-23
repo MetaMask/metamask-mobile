@@ -12086,17 +12086,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@metamask/social-controllers@npm:3.0.2"
+"@metamask/social-controllers@npm:@metamask-previews/social-controllers@3.0.2-preview-aecbce4ff":
+  version: 3.0.2-preview-aecbce4ff
+  resolution: "@metamask-previews/social-controllers@npm:3.0.2-preview-aecbce4ff"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
+    "@metamask/profile-sync-controller": "npm:^32.2.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/cbc9b5ac4dc1faa62bc7357d6d9f6aaca838142b5c79ac51dba0d2c3d657f40e5cdd4e4c34c40b0d679558077721a30ad92c971ecc16c89ec623680ed805e4c4
+  checksum: 10/c0020b1b431f573d7b5827898e3a9cf0b009492212c2b6e2d05125f0139793c8c4fe327e8352e7e0c174ffcca79c3b6edf479089512362734f7c058c0c22de36
   languageName: node
   linkType: hard
 

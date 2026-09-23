@@ -86,20 +86,29 @@ const deriveExitPrice = (core: CoreFeedItem): number | null => {
 /**
  * How long the position has been held, in milliseconds.
  *
- * The API reports this directly -- measured from the position row, so it is
- * right even when the fill history was truncated. The fill-derived span below
- * is the fallback for responses that predate the field: a closed position
- * measures first fill to last, an open one measures first fill to `now`,
- * because `lastTradeAt` would freeze the clock at the most recent top-up.
+ * A closed position has a final span, and the API sends it as `holdTimeMs`.
+ * An open one keeps running, so the API sends only `firstTradeAt` and the
+ * clock is ours -- a server-computed number would be stale by the time it
+ * rendered, and staler still the longer the page stays on screen.
+ *
+ * Both API fields come from the position row, so they are right even when the
+ * fill history was truncated. Deriving from the fills is the fallback for
+ * responses that predate them.
  */
 const deriveHoldDurationMs = (
   core: CoreFeedItem,
   isClosed: boolean,
   now: number,
 ): number | null => {
-  const reported = asFeedCardItem(core).holdTimeMs;
-  if (isPresentNumber(reported) && reported > 0) {
-    return reported;
+  const { firstTradeAt, holdTimeMs } = asFeedCardItem(core);
+
+  if (isClosed && isPresentNumber(holdTimeMs) && holdTimeMs > 0) {
+    return holdTimeMs;
+  }
+
+  if (!isClosed && isPresentNumber(firstTradeAt)) {
+    const span = now - tradeTimestampToMs(firstTradeAt);
+    return span > 0 ? span : null;
   }
 
   const timestamps = (core.trades ?? []).map((trade) =>

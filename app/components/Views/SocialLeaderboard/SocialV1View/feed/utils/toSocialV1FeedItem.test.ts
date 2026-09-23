@@ -506,14 +506,16 @@ describe('toSocialV1FeedItem', () => {
       expect(result.entryPriceLabel).toBe('$9,000');
     });
 
-    // The API measures the hold from the position row, so it covers fills the
-    // 50-trade cap dropped. Re-deriving from the page would understate it.
-    it('prefers the reported hold time over the loaded fills', () => {
+    // An open hold grows every second, so the API sends only the anchor and
+    // the clock is ours. `firstTradeAt` comes off the position row, so it
+    // predates any fill the 50-trade cap dropped.
+    it('counts an open hold from firstTradeAt, not the loaded fills', () => {
       const openedAt = 1_700_000_000;
-      const now = (openedAt + 2 * HOUR_IN_SECONDS) * 1000;
+      const now = (openedAt + 10 * HOUR_IN_SECONDS) * 1000;
       const row = buildRow(
         mockSpotFeedItem({
-          holdTimeMs: 10 * HOUR_IN_SECONDS * 1000,
+          firstTradeAt: openedAt,
+          holdTimeMs: null,
           trades: [
             {
               direction: 'buy',
@@ -521,7 +523,8 @@ describe('toSocialV1FeedItem', () => {
               action: 'opened',
               tokenAmount: 1000,
               usdCost: 100_000,
-              timestamp: openedAt,
+              // A later top-up: the only fill on the page, and not the open.
+              timestamp: openedAt + 8 * HOUR_IN_SECONDS,
               transactionHash: '0xa',
               classification: 'spot',
             },
@@ -533,6 +536,69 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.variant).toBe('spotOpen');
       if (result.variant !== 'spotOpen') return;
+      expect(result.holdTimeLabel).toBe('10h');
+    });
+
+    it('keeps an open hold ticking as time passes', () => {
+      const openedAt = 1_700_000_000;
+      const row = buildRow(
+        mockSpotFeedItem({ firstTradeAt: openedAt, holdTimeMs: null }),
+      );
+
+      const afterOneHour = toSocialV1FeedItem(
+        row,
+        (openedAt + HOUR_IN_SECONDS) * 1000,
+      );
+      const afterFiveHours = toSocialV1FeedItem(
+        row,
+        (openedAt + 5 * HOUR_IN_SECONDS) * 1000,
+      );
+
+      expect(afterOneHour.variant).toBe('spotOpen');
+      if (afterOneHour.variant !== 'spotOpen') return;
+      expect(afterFiveHours.variant).toBe('spotOpen');
+      if (afterFiveHours.variant !== 'spotOpen') return;
+      expect(afterOneHour.holdTimeLabel).toBe('1h');
+      expect(afterFiveHours.holdTimeLabel).toBe('5h');
+    });
+
+    it('uses the reported hold time once the position is closed', () => {
+      const openedAt = 1_700_000_000;
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: false,
+          holdTimeMs: 10 * HOUR_IN_SECONDS * 1000,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: openedAt,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'closed',
+              tokenAmount: 5,
+              usdCost: 58_000,
+              timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+              transactionHash: '0xb',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsClosed');
+      if (result.variant !== 'perpsClosed') return;
       expect(result.holdTimeLabel).toBe('10h');
     });
   });

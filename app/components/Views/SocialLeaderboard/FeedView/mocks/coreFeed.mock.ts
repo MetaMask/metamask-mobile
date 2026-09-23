@@ -27,6 +27,7 @@ interface FeedCardOverrides {
   };
   commentCount?: number;
   replyCount?: number;
+  firstTradeAt?: number | null;
   holdTimeMs?: number | null;
   entryPriceUsd?: number | null;
 }
