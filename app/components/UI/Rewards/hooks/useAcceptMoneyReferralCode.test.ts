@@ -63,6 +63,7 @@ const buildReferralMe = (
   },
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 });
 
 describe('useAcceptMoneyReferralCode', () => {
@@ -370,6 +371,15 @@ describe('useAcceptMoneyReferralCode', () => {
         'some other gate',
         'registration_failed' as const,
         'rewards.error_messages.something_went_wrong' as const,
+      ],
+      [
+        403,
+        JSON.stringify({
+          message: 'Product is not available in your country',
+          error: 'RestrictedCountryCodeError',
+        }),
+        'restricted_country' as const,
+        'rewards.onboarding.not_supported_region_description' as const,
       ],
     ])(
       'maps a %s with body "%s" to %s and stays on the sheet',

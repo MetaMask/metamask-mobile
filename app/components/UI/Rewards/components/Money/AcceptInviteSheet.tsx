@@ -20,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import {
   canAcceptMoneyReferralInvite,
+  selectMoneyReferralAllowedForGeo,
   selectReferralMeEntry,
 } from '../../../../../reducers/rewardsMoney/selectors';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -37,6 +38,7 @@ import {
   MONEY_REFERRAL_CODE_MIN_LENGTH,
   useValidateMoneyReferralCode,
 } from '../../hooks/useValidateMoneyReferralCode';
+import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CONTAINER: 'accept-invite-sheet',
@@ -111,8 +113,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   const profileId = useSelector(selectSessionProfileId);
   const isProfileResolved = Boolean(profileId);
+  useGeoRewardsMetadata({ enabled: true });
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
+  );
+  const acceptAllowedForGeo = useSelector((state: RootState) =>
+    selectMoneyReferralAllowedForGeo(state, profileId),
   );
   const referralMe = referralMeEntry?.data;
   // Once this sheet has shown an eligible invite, accept's own refresh to
@@ -159,8 +165,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // A code the server rejected, as opposed to validation that could not run.
   const isRejectedCode =
     hasCodeToValidate && !isValidating && !isValid && !isUnknownError;
+  const geoBlockedMessage = !acceptAllowedForGeo
+    ? strings('rewards.onboarding.not_supported_region_description')
+    : '';
   const errorMessage =
     registerError ||
+    geoBlockedMessage ||
     (isRejectedCode
       ? strings('rewards.error_messages.invalid_referral_code')
       : isUnknownError
@@ -171,12 +181,14 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // is the authority on it; a rejected one would only be refused again.
   const isRateLimited =
     acceptBlockedUntil !== null && Date.now() < acceptBlockedUntil;
+  // Geo exclusion disables Accept and surfaces through the same field error.
   const canAccept =
     hasCodeToValidate &&
     !isValidating &&
     !isRejectedCode &&
     !isAccepting &&
-    !isRateLimited;
+    !isRateLimited &&
+    acceptAllowedForGeo;
 
   // An offer is viewed only once this sheet is showing one: never on a
   // payload still in flight, and never for a stale deeplink or an existing
