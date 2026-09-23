@@ -23,12 +23,23 @@ export const ROUTE_RESTORE_WINDOW_MS = 5 * MINUTE;
  */
 export const RESTORABLE_ROUTES: readonly string[] = [
   Routes.TRENDING_VIEW, // Explore
-  Routes.MONEY.HOME,
   Routes.REWARDS_VIEW,
+
+  // A section appears under two names depending on how deep the user is, and
+  // both are needed. Inside its own stack — say Perps home beneath an order
+  // form pushed on top — the home screen's own name is what is reachable.
+  // But a section's detail screens and modals are registered as *siblings* of
+  // its stack in MainNavigator rather than inside it, so from one of those the
+  // only thing reachable is the stack's container name.
+  Routes.MONEY.ROOT,
+  Routes.MONEY.HOME,
+  Routes.PERPS.ROOT,
   Routes.PERPS.PERPS_HOME,
+  Routes.PREDICT.ROOT,
   // Predictions has two homes; which one renders is behind a remote flag.
   Routes.PREDICT.MARKET_LIST,
   Routes.PREDICT.FEED,
+  Routes.BRIDGE.ROOT,
   Routes.BRIDGE.BRIDGE_VIEW, // Swap
   Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
 ];

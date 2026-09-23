@@ -176,6 +176,42 @@ describe('decideRouteRestore', () => {
     });
   });
 
+  it('returns to a section from a modal registered beside its stack', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({
+        // Predict modals are siblings of the Predict stack in MainNavigator,
+        // so the stack's container name is the only thing reachable.
+        stack: [Routes.PREDICT.ROOT, Routes.PREDICT.MODALS.ROOT],
+      }),
+      backgroundedAt: NOW - 1000,
+      enabled: true,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: true,
+      route: Routes.PREDICT.ROOT,
+      exact: false,
+    });
+  });
+
+  it('returns to a section from a detail screen registered beside its stack', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({
+        stack: [Routes.MONEY.ROOT, Routes.MONEY.TRANSACTION_DETAILS],
+      }),
+      backgroundedAt: NOW - 1000,
+      enabled: true,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: true,
+      route: Routes.MONEY.ROOT,
+      exact: false,
+    });
+  });
+
   it('prefers the nearest allow-listed screen when several are reachable', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
