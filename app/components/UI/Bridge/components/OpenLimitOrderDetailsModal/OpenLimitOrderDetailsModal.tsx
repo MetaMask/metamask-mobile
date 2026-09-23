@@ -84,7 +84,9 @@ export const OpenLimitOrderDetailsModal = ({
                 variant={TextVariant.BodySm}
                 color={triggerComparisonColor}
                 twClassName="text-right"
-                testID={OpenLimitOrderDetailsModalSelectorsIDs.TRIGGER_COMPARISON}
+                testID={
+                  OpenLimitOrderDetailsModalSelectorsIDs.TRIGGER_COMPARISON
+                }
               >
                 {triggerComparison.label}
               </Text>

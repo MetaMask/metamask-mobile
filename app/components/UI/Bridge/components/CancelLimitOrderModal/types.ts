@@ -7,7 +7,8 @@ export interface CancelLimitOrderModalParams {
   onConfirm: () => void;
 }
 
-export interface CancelLimitOrderModalProps extends CancelLimitOrderModalParams {
+export interface CancelLimitOrderModalProps
+  extends CancelLimitOrderModalParams {
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */
