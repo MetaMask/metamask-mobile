@@ -39637,7 +39637,7 @@ __metadata:
     react-native-render-html: "npm:^6.3.4"
     react-native-reorderable-list: "npm:^0.18.1"
     react-native-safe-area-context: "npm:~5.8.0"
-    react-native-screens: "npm:~4.27.0"
+    react-native-screens: "patch:react-native-screens@npm%3A4.27.0#~/.yarn/patches/react-native-screens-npm-4.27.0-78335f53c6.patch"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "patch:react-native-share@npm%3A12.3.1#~/.yarn/patches/react-native-share-npm-12.3.1-be09b19fc2.patch"
     react-native-size-matters: "npm:0.4.0"
@@ -45879,7 +45879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:~4.27.0":
+"react-native-screens@npm:4.27.0":
   version: 4.27.0
   resolution: "react-native-screens@npm:4.27.0"
   dependencies:
@@ -45889,6 +45889,19 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/fbbe2c63b1af67be1c2cab0143a02ac8dee542569695acd904c44d6799d3bbbe68edf99404169dad30ce8d87269b65282e49c7ec3cde376595a0a28430138be3
+  languageName: node
+  linkType: hard
+
+"react-native-screens@patch:react-native-screens@npm%3A4.27.0#~/.yarn/patches/react-native-screens-npm-4.27.0-78335f53c6.patch":
+  version: 4.27.0
+  resolution: "react-native-screens@patch:react-native-screens@npm%3A4.27.0#~/.yarn/patches/react-native-screens-npm-4.27.0-78335f53c6.patch::version=4.27.0&hash=c493ac"
+  dependencies:
+    react-freeze: "npm:^1.0.0"
+    warn-once: "npm:^0.1.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/a5da80eb9dda78f4c8b8a574363d2f2e70d5e525b4562ed9375f91609414c896b9abfd91b06e20b1c0444b0054f1efe1700d64ca44148d29fbfaeb1a2146a7ab
   languageName: node
   linkType: hard
 
