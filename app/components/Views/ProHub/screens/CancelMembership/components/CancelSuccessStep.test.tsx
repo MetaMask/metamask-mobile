@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelSuccessStep from './CancelSuccessStep';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
+import { CANCELLATION_TIMINGS } from '../CancelMembership.utils';
 import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -13,7 +14,7 @@ const CANCELLATION_END_DATE = 'July 20, 2027';
 
 const renderStep = ({
   onDone = jest.fn(),
-  timing = 'period_end',
+  timing = CANCELLATION_TIMINGS.PERIOD_END,
 }: {
   onDone?: () => void;
   timing?: React.ComponentProps<typeof CancelSuccessStep>['timing'];
@@ -93,7 +94,9 @@ describe('CancelSuccessStep', () => {
     });
 
     it('renders immediate cancellation copy without the period end date', () => {
-      const { getByTestId } = renderStep({ timing: 'immediate' });
+      const { getByTestId } = renderStep({
+        timing: CANCELLATION_TIMINGS.IMMEDIATE,
+      });
       const description = getByTestId(
         CancelMembershipTestIds.SUCCESS_DESCRIPTION,
       );

@@ -15,7 +15,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
-import type { CancellationTiming } from '../CancelMembership.utils';
+import {
+  CANCELLATION_TIMINGS,
+  type CancellationTiming,
+} from '../CancelMembership.utils';
 
 export interface CancelSuccessStepProps {
   onDone: () => void;
@@ -61,7 +64,7 @@ const CancelSuccessStep = ({
         twClassName="text-center"
         testID={CancelMembershipTestIds.SUCCESS_DESCRIPTION}
       >
-        {timing === 'period_end' ? (
+        {timing === CANCELLATION_TIMINGS.PERIOD_END ? (
           <>
             {strings('pro_hub.cancel_membership.success.description_prefix')}
             <Text

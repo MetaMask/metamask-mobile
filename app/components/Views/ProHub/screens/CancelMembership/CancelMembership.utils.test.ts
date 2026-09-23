@@ -6,6 +6,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { CANCEL_REASONS, OTHER_REASON_ID } from './CancelMembership.constants';
 import {
+  CANCELLATION_TIMINGS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
   buildPostCancellationResetState,
   formatCancellationEndDate,
@@ -89,13 +90,13 @@ describe('toCancellationReason', () => {
 describe('getCancellationTiming', () => {
   it('maps immediate cancellation', () => {
     expect(getCancellationTiming(CANCEL_TYPES.ALLOWED_IMMEDIATE)).toBe(
-      'immediate',
+      CANCELLATION_TIMINGS.IMMEDIATE,
     );
   });
 
   it('maps period-end cancellation', () => {
     expect(getCancellationTiming(CANCEL_TYPES.ALLOWED_AT_PERIOD_END)).toBe(
-      'period_end',
+      CANCELLATION_TIMINGS.PERIOD_END,
     );
   });
 

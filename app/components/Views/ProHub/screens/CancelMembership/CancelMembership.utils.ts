@@ -33,7 +33,13 @@ export const shuffleCancelReasons = (
   return [...shuffled, ...other];
 };
 
-export type CancellationTiming = 'immediate' | 'period_end';
+export const CANCELLATION_TIMINGS = {
+  IMMEDIATE: 'immediate',
+  PERIOD_END: 'period_end',
+} as const;
+
+export type CancellationTiming =
+  (typeof CANCELLATION_TIMINGS)[keyof typeof CANCELLATION_TIMINGS];
 
 const CANCELLATION_REASON_CODES = new Set<string>(
   Object.values(CANCELLATION_REASONS),
@@ -67,11 +73,11 @@ export const getCancellationTiming = (
   cancelType: CancelType,
 ): CancellationTiming | undefined => {
   if (cancelType === CANCEL_TYPES.ALLOWED_IMMEDIATE) {
-    return 'immediate';
+    return CANCELLATION_TIMINGS.IMMEDIATE;
   }
 
   if (cancelType === CANCEL_TYPES.ALLOWED_AT_PERIOD_END) {
-    return 'period_end';
+    return CANCELLATION_TIMINGS.PERIOD_END;
   }
 
   return undefined;

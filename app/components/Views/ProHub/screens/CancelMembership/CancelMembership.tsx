@@ -15,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
   buildPostCancellationResetState,
+  CANCELLATION_TIMINGS,
   formatCancellationEndDate,
   getCancellationTiming,
   toCancellationReason,
@@ -77,7 +78,7 @@ const CancelMembership = () => {
 
       await controller.cancelSubscription({
         subscriptionId: subscription.id,
-        cancelAtPeriodEnd: timing === 'period_end',
+        cancelAtPeriodEnd: timing === CANCELLATION_TIMINGS.PERIOD_END,
         ...(cancellationReason ? { cancellationReason } : {}),
       });
 
@@ -122,7 +123,7 @@ const CancelMembership = () => {
       CommonActions.reset(
         buildPostCancellationResetState(
           state,
-          cancelledSubscription?.timing === 'period_end',
+          cancelledSubscription?.timing === CANCELLATION_TIMINGS.PERIOD_END,
         ),
       ),
     );
