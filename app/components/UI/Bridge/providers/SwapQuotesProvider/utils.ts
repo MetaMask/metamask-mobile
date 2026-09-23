@@ -12,7 +12,7 @@ const normalizeSrcAmount = (
   return calcTokenValue(srcAmount, decimals).toFixed(0);
 };
 
-export type QuoteParams = {
+export interface QuoteParams {
   srcAmount?: string;
   srcToken?: BridgeToken;
   destToken?: BridgeToken;
@@ -21,7 +21,7 @@ export type QuoteParams = {
   slippage?: string;
   gasIncluded?: boolean;
   gasIncluded7702?: boolean;
-};
+}
 
 export const buildGenericQuoteRequest = (input: {
   quoteParams: QuoteParams;

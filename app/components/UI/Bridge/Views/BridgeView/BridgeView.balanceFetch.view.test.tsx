@@ -1,10 +1,10 @@
-import '../../../../../../tests/component-view/mocks';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   MetaMetricsSwapsEventSource,
   RequestStatus,
 } from '@metamask/bridge-controller';
+import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
