@@ -176,13 +176,15 @@ async function getTransactionApprovalDecision(
       (transactionMeta.selectedGasFeeToken && is7702Supported),
   );
 
-  // Explicit sponsorship metadata remains the migration fallback when Core
-  // does not refresh availability because simulation is disabled.
+  // Explicit sponsorship metadata remains authoritative during migration so
+  // an unavailable refresh cannot silently turn a client-sponsored flow into
+  // a locally signed, user-paid transaction.
   const legacySponsorshipEnabled = Boolean(
     legacyApprovalMetadata.isGasFeeSponsored,
   );
-  const isSponsorshipAvailable =
-    transactionMeta.isGasFeeSponsoredAvailable ?? legacySponsorshipEnabled;
+  const isSponsorshipAvailable = Boolean(
+    transactionMeta.isGasFeeSponsoredAvailable || legacySponsorshipEnabled,
+  );
   const sponsorshipEnabled =
     isSponsorshipAvailable &&
     transactionMeta.type !== TransactionType.revokeDelegation &&

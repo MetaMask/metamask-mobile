@@ -262,12 +262,19 @@ describe('submitSmartTransactionHook', () => {
           nonce: undefined,
         },
       };
+      request.transactionController.approveTransactionsWithSameNonce.mockImplementation(
+        async (transactions = []) => {
+          transactions[0].nonce = '0x4c';
+          return [createSignedTransaction()];
+        },
+      );
 
       await submitSmartTransactionHook(request);
 
       expect(
         request.transactionController.approveTransactionsWithSameNonce,
       ).toHaveBeenCalledWith(expect.anything(), { hasNonce: false });
+      expect(request.transactionMeta.txParams.nonce).toBe('0x4c');
     });
   });
 
