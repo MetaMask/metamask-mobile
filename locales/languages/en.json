@@ -8625,7 +8625,7 @@
       "retry": "Retry",
       "pending": "Pending",
       "filter_all": "All",
-      "filter_deposits": "Add funds",
+      "filter_deposits": "Additions",
       "filter_sends": "Sends",
       "filter_purchases": "Purchases"
     },
