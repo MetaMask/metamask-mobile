@@ -431,6 +431,35 @@ test('a comparison is not printed in two different units', () => {
   assert.deepEqual(formatDurationsAlike([400, 120]), ['400.0 ms', '120.0 ms']);
 });
 
+test('the markdown record scales this week and last week alike', () => {
+  const markdown = buildWeeklyMarkdown(
+    buildWeeklyReport({
+      thisWindow: {
+        meta: { profileCount: 20, symbolicatedProfileCount: 18 },
+        scenarios: [
+          scenarioFixture('Perps add funds', {
+            medianJsWorkMs: 15_600,
+            minJsWorkMs: 12_000,
+            maxJsWorkMs: 18_000,
+          }),
+        ],
+      },
+      lastWindow: {
+        meta: {},
+        scenarios: [
+          scenarioFixture('Perps add funds', { medianJsWorkMs: 3782 }),
+        ],
+      },
+      bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+      thisWeekRunCount: 20,
+      lastWeekRunCount: 19,
+    }),
+  );
+
+  assert.match(markdown, /Last week median JS work: 3\.8 s → 15\.6 s this week/);
+  assert.doesNotMatch(markdown, /3782\.0 ms/);
+});
+
 test('a slow run every scenario has run clean past is marked recovered', () => {
   const report = buildWeeklyReport({
     thisWindow: spikeWindow(

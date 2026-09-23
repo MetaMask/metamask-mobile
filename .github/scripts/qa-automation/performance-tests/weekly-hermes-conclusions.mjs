@@ -735,8 +735,12 @@ export function buildWeeklyMarkdown(report) {
       `This week: ${card.current.runsObserved}/${card.current.runsTotal} runs, median JS work ${median} (range ${min} – ${max}), JS duty ${card.current.medianJsDutyPct.toFixed(1)}%.`,
     );
     if (card.previous) {
+      const [previousMedian, currentMedian] = formatDurationsAlike([
+        card.previous.medianJsWorkMs,
+        card.current.medianJsWorkMs,
+      ]);
       lines.push(
-        `Last week median JS work: ${formatDuration(card.previous.medianJsWorkMs)}.`,
+        `Last week median JS work: ${previousMedian} → ${currentMedian} this week.`,
       );
     }
     lines.push(`Conclusion: ${card.conclusion}`);
