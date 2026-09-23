@@ -104,9 +104,9 @@ describe('useSubscriptionPolling', () => {
   it('reports the in-flight fetch so callers can tell unknown from empty', async () => {
     const { result } = renderUseSubscriptionPolling({ enabled: true });
 
-    expect(result.current.isPending).toBe(true);
+    expect(result.current.isLoading).toBe(true);
 
-    await waitFor(() => expect(result.current.isPending).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
   });
 
   it('surfaces a failed fetch as an error instead of empty state', async () => {

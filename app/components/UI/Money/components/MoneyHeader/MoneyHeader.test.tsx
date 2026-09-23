@@ -183,6 +183,27 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
     });
 
+    it('is hidden while subscriptions are initially loading', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          onGetProPress={jest.fn()}
+          isSubscriptionLoading
+        />,
+      );
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+    });
+
     it('invites the user to join when they are not subscribed', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,

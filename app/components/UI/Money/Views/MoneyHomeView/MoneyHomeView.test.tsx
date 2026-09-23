@@ -518,6 +518,7 @@ describe('MoneyHomeView', () => {
       isActive: false,
     });
     mockUseIsProSubscriber.mockReturnValue(false);
+    mockUseSubscriptionPolling.mockReturnValue({ isLoading: false });
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -2673,6 +2674,19 @@ describe('MoneyHomeView', () => {
       expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
         enabled: false,
       });
+    });
+
+    it('hides the Pro entry point while subscriptions are initially loading', () => {
+      mockUseSubscriptionPolling.mockReturnValue({ isLoading: true });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
     it('navigates to the subscription flow when the user is not subscribed', () => {

@@ -25,6 +25,8 @@ interface MoneyHeaderCommonProps {
    * Only fired when the Pro subscription flow flag is enabled.
    */
   onGetProPress: () => void;
+  /** Whether the initial subscription request is still loading. */
+  isSubscriptionLoading?: boolean;
 }
 
 /**
@@ -68,19 +70,20 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   // "Get Pro" is a text button, so it can only go in the end accessory, which
   // takes the menu with it — the header slots the two ButtonIcon paths and the
   // accessory as alternatives rather than siblings.
-  const endAccessory = isProSubscriptionEnabled ? (
-    <Box twClassName="flex-row items-center gap-1">
-      <Button
-        size={ButtonSize.Md}
-        onPress={onGetProPress}
-        testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-        accessibilityLabel={proLabel}
-      >
-        {proLabel}
-      </Button>
-      <ButtonIcon {...menuButtonProps} />
-    </Box>
-  ) : undefined;
+  const endAccessory =
+    isProSubscriptionEnabled && !props.isSubscriptionLoading ? (
+      <Box twClassName="flex-row items-center gap-1">
+        <Button
+          size={ButtonSize.Md}
+          onPress={onGetProPress}
+          testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
+          accessibilityLabel={proLabel}
+        >
+          {proLabel}
+        </Button>
+        <ButtonIcon {...menuButtonProps} />
+      </Box>
+    ) : undefined;
 
   if (props.onBack) {
     return (
