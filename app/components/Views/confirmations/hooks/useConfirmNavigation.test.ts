@@ -54,12 +54,13 @@ describe('useConfirmNavigation', () => {
 
     navigateToConfirmation({
       stack: STACK_MOCK,
+      amount: '12.34',
       loader: ConfirmationLoader.CustomAmount,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(STACK_MOCK, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      params: { loader: ConfirmationLoader.CustomAmount },
+      params: { amount: '12.34', loader: ConfirmationLoader.CustomAmount },
     });
   });
 
