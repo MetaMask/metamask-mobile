@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import { useABTest } from '../../../../hooks/useABTest';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
@@ -12,10 +12,6 @@ import { strings } from '../../../../../locales/i18n';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -116,8 +112,6 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
-const mockUseABTest = jest.mocked(useABTest);
-
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -152,11 +146,6 @@ describe('TokenDetailsStickyFooter', () => {
     mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
     setupSelectorMock();
-    mockUseABTest.mockReturnValue({
-      variant: { showMoneyDepositFooterCta: true },
-      variantName: 'treatment',
-      isActive: true,
-    });
   });
 
   describe('button visibility', () => {
@@ -242,6 +231,43 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onStickyButtonsResolved).toHaveBeenCalledWith('buy');
     });
 
+    it('reports "money_swap" when Money Deposit and Swap CTAs are shown', () => {
+      const onStickyButtonsResolved = jest.fn();
+
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress: jest.fn(),
+          }}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('money_swap');
+    });
+
+    it('reports "money" when Money Deposit CTA is shown without Swap', () => {
+      mockHasEligibleSwapTokens = false;
+      const onStickyButtonsResolved = jest.fn();
+
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          moneyDepositCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress: jest.fn(),
+          }}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+        />,
+      );
+
+      expect(onStickyButtonsResolved).toHaveBeenCalledWith('money');
+    });
+
     it('reports null when token is not tradable', () => {
       mockIsTokenTradable.mockReturnValue(false);
       const onStickyButtonsResolved = jest.fn();
@@ -255,38 +281,28 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('Money Earn CTA', () => {
-    const moneyEarnCta = {
+  describe('Money Deposit CTA', () => {
+    const moneyDepositCta = {
       isLoading: false,
       label: 'Earn 6% APY',
       onPress: jest.fn(),
     };
 
-    it('hides Money Earn CTA for the control variant', () => {
-      mockUseABTest.mockReturnValue({
-        variant: { showMoneyDepositFooterCta: false },
-        variantName: 'control',
-        isActive: true,
-      });
-
+    it('does not render Money Deposit CTA when no CTA is provided', () => {
       const { queryByTestId, queryByText } = render(
-        <TokenDetailsStickyFooter
-          {...defaultProps}
-          hasTokenBalance
-          moneyEarnCta={moneyEarnCta}
-        />,
+        <TokenDetailsStickyFooter {...defaultProps} hasTokenBalance />,
       );
 
       expect(queryByTestId('money-asset-overview-footer-cta')).toBeNull();
       expect(queryByText('Earn 6% APY')).toBeNull();
     });
 
-    it('shows Money Earn CTA for the treatment variant', () => {
+    it('shows Money Deposit CTA when provided', () => {
       const { getByTestId, getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={moneyEarnCta}
+          moneyDepositCta={moneyDepositCta}
         />,
       );
 
@@ -294,12 +310,12 @@ describe('TokenDetailsStickyFooter', () => {
       expect(getByText('Earn 6% APY')).toBeOnTheScreen();
     });
 
-    it('renders Swap and primary Earn actions for a held token', () => {
+    it('renders Swap and primary Money actions for a held token', () => {
       const { getByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={moneyEarnCta}
+          moneyDepositCta={moneyDepositCta}
         />,
       );
 
@@ -308,26 +324,63 @@ describe('TokenDetailsStickyFooter', () => {
       expect(queryByText('Buy')).not.toBeOnTheScreen();
     });
 
-    it('renders secondary Earn and Buy actions for a token without balance', () => {
-      const { getByText, queryByText } = render(
+    it('renders Swap before Money Deposit and Quick Buy in treatment', () => {
+      const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
-          hasTokenBalance={false}
-          moneyEarnCta={moneyEarnCta}
+          hasTokenBalance
+          swapTestID="swap-button"
+          moneyDepositCta={moneyDepositCta}
+          onQuickBuyPress={jest.fn()}
+          quickBuyTestID="quick-buy-button"
         />,
       );
 
-      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
-      expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Swap')).not.toBeOnTheScreen();
+      const footerChildren = getByTestId('bottomsheetfooter').props
+        .children as (
+        | React.ReactElement<{ testID?: string }>
+        | null
+        | undefined
+      )[];
+
+      expect(
+        footerChildren
+          .filter((child): child is React.ReactElement<{ testID?: string }> =>
+            Boolean(child),
+          )
+          .map((child) => child.props.testID),
+      ).toEqual([
+        'swap-button',
+        'money-asset-overview-footer-cta',
+        'quick-buy-button',
+      ]);
     });
 
-    it('renders a loading Earn button alongside Swap for a held token', () => {
+    it('uses primary variant for Money CTA and secondary variant for Swap in treatment', () => {
+      const { getByTestId, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          swapTestID="swap-button"
+          moneyDepositCta={moneyDepositCta}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta').props.variant).toBe(
+        ButtonVariant.Primary,
+      );
+      expect(getByTestId('swap-button').props.variant).toBe(
+        ButtonVariant.Secondary,
+      );
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Money button alongside Swap for a held token', () => {
       const { getByTestId, getByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
         />,
       );
 
@@ -339,12 +392,12 @@ describe('TokenDetailsStickyFooter', () => {
       expect(queryByText('Buy')).not.toBeOnTheScreen();
     });
 
-    it('renders a loading Earn button alongside Buy for a token without balance', () => {
+    it('renders a loading Money button alongside Swap when provided', () => {
       const { getByTestId, getByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance={false}
-          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
         />,
       );
 
@@ -352,8 +405,8 @@ describe('TokenDetailsStickyFooter', () => {
         'isLoading',
         true,
       );
-      expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Swap')).not.toBeOnTheScreen();
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
     });
 
     it('renders disclaimer after the APY resolves', () => {
@@ -361,7 +414,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={moneyEarnCta}
+          moneyDepositCta={moneyDepositCta}
         />,
       );
 
@@ -375,7 +428,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+          moneyDepositCta={{ isLoading: true, onPress: jest.fn() }}
         />,
       );
 
@@ -390,7 +443,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{ isLoading: true, onPress }}
+          moneyDepositCta={{ isLoading: true, onPress }}
         />,
       );
 
@@ -406,7 +459,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{
+          moneyDepositCta={{
             isLoading: false,
             label: 'Earn 6% APY',
             onPress,
@@ -431,7 +484,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{
+          moneyDepositCta={{
             isLoading: false,
             label: 'Earn 6% APY',
             onPress,
@@ -450,7 +503,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter
           {...defaultProps}
           hasTokenBalance
-          moneyEarnCta={{
+          moneyDepositCta={{
             isLoading: false,
             label: 'Earn 6% APY',
             onPress,

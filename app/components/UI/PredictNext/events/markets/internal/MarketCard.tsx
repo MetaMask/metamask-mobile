@@ -102,18 +102,20 @@ const Actions = ({ children }: ChildrenProps) => (
   <Box twClassName="flex-row gap-[10px]">{children}</Box>
 );
 
-const noOp = (): void => undefined;
-
 const OutcomeButton = ({
   label,
   price,
   side,
   testID,
+  onPress,
+  isDisabled = false,
 }: {
   label: string;
   price?: string;
   side: 'yes' | 'no';
   testID?: string;
+  onPress?: () => void;
+  isDisabled?: boolean;
 }) => {
   const displayLabel = price ? `${label} · ${price}` : label;
 
@@ -123,10 +125,11 @@ const OutcomeButton = ({
       accessibilityLabel={
         price ? `${label}, ${price}` : `${label}, price unavailable`
       }
-      accessibilityState={{ disabled: false }}
+      accessibilityState={{ disabled: isDisabled }}
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      onPress={noOp}
+      onPress={isDisabled ? undefined : onPress}
+      isDisabled={isDisabled}
       twClassName="h-12 min-w-0 flex-1 rounded-xl bg-muted px-2"
     >
       <Text

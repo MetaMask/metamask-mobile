@@ -49,6 +49,7 @@ import {
   applyPercentToPrice,
   formatExchangeRate,
   formatPriceRangeLabel,
+  PRICE_RANGE_CURRENCY,
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
 import {
@@ -58,12 +59,13 @@ import {
 
 const errorColor = lightTheme.colors.error.default;
 const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-const ETH_FIAT_RATE = 2000;
+const ETH_USD_RATE = 2000;
+const ETH_EUR_RATE = 1800;
 const MUSD_ETH_PRICE = 0.0005;
-const MUSD_FIAT_RATE = ETH_FIAT_RATE * MUSD_ETH_PRICE;
+const MUSD_USD_RATE = ETH_USD_RATE * MUSD_ETH_PRICE;
 const STORED_USD_PRICE_RANGE: RecurringPriceRange = {
   tokenSide: 'dest',
-  currency: 'usd',
+  currency: PRICE_RANGE_CURRENCY,
   min: '0.90',
   max: '1.10',
 };
@@ -73,11 +75,23 @@ function renderRecurringPriceRangeView({
 }: {
   currentCurrency?: 'usd' | 'eur';
 } = {}) {
+  const ethFiatRate = currentCurrency === 'usd' ? ETH_USD_RATE : ETH_EUR_RATE;
+  const musdFiatRate = ethFiatRate * MUSD_ETH_PRICE;
+
   return renderBridgeView({
     deterministicFiat: true,
     overrides: {
       engine: {
         backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: currentCurrency.toUpperCase(),
+            currencyRates: {
+              ETH: {
+                conversionRate: ethFiatRate,
+                usdConversionRate: ETH_USD_RATE,
+              },
+            },
+          },
           AssetsController: {
             selectedCurrency: currentCurrency,
             assetsInfo: {
@@ -97,16 +111,17 @@ function renderRecurringPriceRangeView({
             assetsPrice: {
               'eip155:1/slip44:60': {
                 assetPriceType: 'fungible',
-                price: ETH_FIAT_RATE,
-                usdPrice: ETH_FIAT_RATE,
+                price: ethFiatRate,
+                usdPrice: ETH_USD_RATE,
                 lastUpdated: Date.now(),
               },
-              // Priced at $1 (fiat); the compat selector converts this into
-              // the native-currency-denominated market data the fiat-rate
-              // helpers expect (i.e. MUSD_ETH_PRICE = 1 / ETH_FIAT_RATE).
+              // Priced at one USD and converted into the selected fiat. The
+              // compat selector converts this into the native-denominated
+              // market data the rate helpers expect.
               [`eip155:1/erc20:${MUSD_ADDRESS}`]: {
                 assetPriceType: 'fungible',
-                price: MUSD_FIAT_RATE,
+                price: musdFiatRate,
+                usdPrice: MUSD_USD_RATE,
                 lastUpdated: Date.now(),
               },
             },
@@ -198,8 +213,6 @@ function assertRecurringOrderSummary(
     summary.getByText(
       formatRecurringPriceRange({
         priceRange: order.priceRange,
-        currentCurrency: 'USD',
-        usdToCurrentCurrencyRate: 1,
       }),
     ),
   ).toBeOnTheScreen();
@@ -1420,7 +1433,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           selected: 'dest',
           sourceSymbol: 'ETH',
           destSymbol: 'mUSD',
-          quoteRate: ETH_FIAT_RATE / MUSD_FIAT_RATE,
+          quoteRate: ETH_USD_RATE / MUSD_USD_RATE,
         }),
       );
       expect(
@@ -1466,7 +1479,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     it('clears min and max independently without closing the sheet', async () => {
       const renderResult = renderRecurringPriceRangeView();
-      const expectedMax = applyPercentToPrice(MUSD_FIAT_RATE, 10);
+      const expectedMax = applyPercentToPrice(MUSD_USD_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -1519,8 +1532,10 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(confirmButton.props.accessibilityState.disabled).toBe(false);
     });
 
-    it('fills min and max from percent chips relative to the live price', async () => {
-      const renderResult = renderRecurringPriceRangeView();
+    it('fills min and max from the USD price when EUR is selected', async () => {
+      const renderResult = renderRecurringPriceRangeView({
+        currentCurrency: 'eur',
+      });
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -1538,11 +1553,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       await waitFor(() => {
         expect(
           renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
-        ).toHaveDisplayValue(applyPercentToPrice(MUSD_FIAT_RATE, -10));
+        ).toHaveDisplayValue(applyPercentToPrice(MUSD_USD_RATE, -10));
       });
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
-      ).toHaveDisplayValue(applyPercentToPrice(MUSD_FIAT_RATE, 10));
+      ).toHaveDisplayValue(applyPercentToPrice(MUSD_USD_RATE, 10));
     });
 
     it('updates titles and clears fields when the token segment changes', async () => {
@@ -1582,20 +1597,23 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
       );
       expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).not.toBeOnTheScreen();
     });
 
     it.each([
       {
         bound: 'min' as const,
         percent: -10,
-        min: applyPercentToPrice(MUSD_FIAT_RATE, -10),
+        min: applyPercentToPrice(MUSD_USD_RATE, -10),
         max: '',
       },
       {
         bound: 'max' as const,
         percent: 10,
         min: '',
-        max: applyPercentToPrice(MUSD_FIAT_RATE, 10),
+        max: applyPercentToPrice(MUSD_USD_RATE, 10),
       },
     ])(
       'enables confirm and saves a $bound-only range',
@@ -1614,6 +1632,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
         );
         expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+        expect(
+          renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+        ).not.toBeOnTheScreen();
         fireEvent.press(confirmButton);
 
         await waitFor(() => {
@@ -1623,12 +1644,14 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         });
         expect(
           renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
-        ).toHaveTextContent(formatPriceRangeLabel(min, max, 'usd'));
+        ).toHaveTextContent(
+          formatPriceRangeLabel(min, max, PRICE_RANGE_CURRENCY),
+        );
         expect(
           renderResult.store.getState().bridge.recurring.priceRange,
         ).toEqual({
           tokenSide: 'dest',
-          currency: 'usd',
+          currency: PRICE_RANGE_CURRENCY,
           min,
           max,
         });
@@ -1659,6 +1682,59 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
       expect(stillDisabledConfirm).toBeDisabled();
       expect(stillDisabledConfirm.props.accessibilityState.disabled).toBe(true);
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).toHaveTextContent(
+        strings('bridge.recurring.price_range.max_must_exceed_min'),
+      );
+    });
+
+    it('shows the inverted range error when min equals max', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+
+      await openPriceRangeKeypad(renderResult, 'min');
+      typePriceRangeDigits(renderResult, '2000');
+      await openPriceRangeKeypad(renderResult, 'max');
+      typePriceRangeDigits(renderResult, '2000');
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState.disabled,
+      ).toBe(true);
+    });
+
+    it('hides the inverted range error when max is cleared', async () => {
+      const renderResult = renderRecurringPriceRangeView();
+
+      await openRecurringTab(renderResult);
+      await openPriceRangeSheet(renderResult);
+
+      await openPriceRangeKeypad(renderResult, 'min');
+      typePriceRangeDigits(renderResult, '2000');
+      await openPriceRangeKeypad(renderResult, 'max');
+      typePriceRangeDigits(renderResult, '1000');
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      );
+
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).not.toBeOnTheScreen();
     });
 
     it('keeps the max field on screen while the keypad is open', async () => {
@@ -1698,8 +1774,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     it('writes the confirmed range onto the row', async () => {
       const renderResult = renderRecurringPriceRangeView();
-      const min = applyPercentToPrice(MUSD_FIAT_RATE, -10);
-      const max = applyPercentToPrice(MUSD_FIAT_RATE, 10);
+      const min = applyPercentToPrice(MUSD_USD_RATE, -10);
+      const max = applyPercentToPrice(MUSD_USD_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -1713,6 +1789,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           PriceRangeSheetSelectorsIDs.PERCENT('max', 10),
         ),
       );
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.MAX_ERROR),
+      ).not.toBeOnTheScreen();
       fireEvent.press(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON),
       );
@@ -1724,14 +1803,16 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       });
       expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
-      ).toHaveTextContent(formatPriceRangeLabel(min, max, 'usd'));
+      ).toHaveTextContent(
+        formatPriceRangeLabel(min, max, PRICE_RANGE_CURRENCY),
+      );
       expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.AVATAR),
       ).toBeOnTheScreen();
       expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
         {
           tokenSide: 'dest',
-          currency: 'usd',
+          currency: PRICE_RANGE_CURRENCY,
           min,
           max,
         },
@@ -1770,7 +1851,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeUndefined();
     });
 
-    it('treats a stored range as unset when the settings currency differs', async () => {
+    it('keeps the stored USD range when EUR is selected', async () => {
       const renderResult = renderRecurringPriceRangeView({
         currentCurrency: 'eur',
       });
@@ -1780,10 +1861,16 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
       expect(
         renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
-      ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
+      ).toHaveTextContent(
+        formatPriceRangeLabel(
+          STORED_USD_PRICE_RANGE.min,
+          STORED_USD_PRICE_RANGE.max,
+          PRICE_RANGE_CURRENCY,
+        ),
+      );
       expect(
-        renderResult.queryByTestId(PriceRangeRowSelectorsIDs.AVATAR),
-      ).not.toBeOnTheScreen();
+        renderResult.getByTestId(PriceRangeRowSelectorsIDs.AVATAR),
+      ).toBeOnTheScreen();
       expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
         STORED_USD_PRICE_RANGE,
       );
@@ -1792,16 +1879,16 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
-      ).toHaveDisplayValue('');
+      ).toHaveDisplayValue(STORED_USD_PRICE_RANGE.min);
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
-      ).toHaveDisplayValue('');
+      ).toHaveDisplayValue(STORED_USD_PRICE_RANGE.max);
       expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
         STORED_USD_PRICE_RANGE,
       );
     });
 
-    it('shows the stored range when the settings currency matches', async () => {
+    it('shows the stored range when USD is selected', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
