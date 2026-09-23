@@ -33,7 +33,7 @@ describe('DottedUnderline', () => {
       </DottedUnderline>,
     );
 
-    expect(queryByTestId(`${TEST_ID}-underline`)).toBeNull();
+    expect(queryByTestId(`${TEST_ID}-underline`)).not.toBeOnTheScreen();
 
     fireEvent(getByTestId(TEST_ID), 'layout', layoutEvent(80));
 
@@ -49,6 +49,6 @@ describe('DottedUnderline', () => {
 
     fireEvent(getByTestId(TEST_ID), 'layout', layoutEvent(0));
 
-    expect(queryByTestId(`${TEST_ID}-underline`)).toBeNull();
+    expect(queryByTestId(`${TEST_ID}-underline`)).not.toBeOnTheScreen();
   });
 });

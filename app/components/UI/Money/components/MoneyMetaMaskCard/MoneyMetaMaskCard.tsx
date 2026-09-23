@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
 import {
   BannerAlert,
@@ -263,6 +263,14 @@ const ManageContent = ({
   </Box>
 );
 
+const HEADER_TITLE_KEY_BY_MODE = {
+  upsell: 'money.metamask_card.upsell_title',
+  link: 'money.metamask_card.link_title',
+  manage: 'money.metamask_card.title',
+  verifying: 'money.metamask_card.title',
+  loading: 'money.metamask_card.title',
+} as const satisfies Record<MoneyMetaMaskCardMode, string>;
+
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
@@ -372,33 +380,37 @@ const MoneyMetaMaskCard = ({
     onManagePress?.();
   }, [trackCardButtonClick, onManagePress]);
 
-  const getPressBehaviourByMode = useCallback(() => {
-    if (mode === 'upsell') {
-      return handleGetNowPress;
-    } else if (mode === 'link') {
-      if (isLinkDisabled) {
-        return undefined;
-      }
-      return handleLinkPress;
-    } else if (mode === 'manage') {
-      return handleManagePress;
-    }
-  }, [
-    mode,
-    isLinkDisabled,
-    handleGetNowPress,
-    handleLinkPress,
-    handleManagePress,
-  ]);
+  const isInteractionDisabled =
+    mode === 'verifying' || mode === 'loading' || isLinkDisabled;
+
+  const pressHandler = useMemo(
+    () =>
+      isInteractionDisabled
+        ? undefined
+        : (
+            {
+              upsell: handleGetNowPress,
+              link: handleLinkPress,
+              manage: handleManagePress,
+            } satisfies Partial<Record<MoneyMetaMaskCardMode, () => void>>
+          )[mode],
+    [
+      handleGetNowPress,
+      handleLinkPress,
+      handleManagePress,
+      isInteractionDisabled,
+      mode,
+    ],
+  );
 
   const handleContentPress = useCallback(() => {
-    getPressBehaviourByMode()?.();
-  }, [getPressBehaviourByMode]);
+    pressHandler?.();
+  }, [pressHandler]);
 
   const handleHeaderPress = useCallback(() => {
     onHeaderPress?.(mode);
-    getPressBehaviourByMode()?.();
-  }, [getPressBehaviourByMode, mode, onHeaderPress]);
+    pressHandler?.();
+  }, [mode, onHeaderPress, pressHandler]);
 
   let content: React.ReactNode = null;
   if (mode === 'link') {
@@ -462,14 +474,7 @@ const MoneyMetaMaskCard = ({
     );
   }
 
-  let headerTitleKey: string;
-  if (mode === 'link') {
-    headerTitleKey = 'money.metamask_card.link_title';
-  } else if (mode === 'manage' || mode === 'verifying' || mode === 'loading') {
-    headerTitleKey = 'money.metamask_card.title';
-  } else {
-    headerTitleKey = 'money.metamask_card.upsell_title';
-  }
+  const headerTitleKey = HEADER_TITLE_KEY_BY_MODE[mode];
 
   return (
     <Box
@@ -479,20 +484,12 @@ const MoneyMetaMaskCard = ({
       <MoneySectionHeader
         testID={MoneyMetaMaskCardTestIds.HEADER}
         title={strings(headerTitleKey)}
-        onPress={
-          mode === 'verifying' || mode === 'loading' || isLinkDisabled
-            ? undefined
-            : handleHeaderPress
-        }
+        onPress={pressHandler ? handleHeaderPress : undefined}
       />
       <Pressable
         testID={MoneyMetaMaskCardTestIds.CONTENT}
         style={tw.style('gap-3')}
-        onPress={
-          mode === 'verifying' || mode === 'loading' || isLinkDisabled
-            ? undefined
-            : handleContentPress
-        }
+        onPress={pressHandler ? handleContentPress : undefined}
       >
         {content}
       </Pressable>

@@ -111,19 +111,6 @@ const linkableCardHomeOverrides = {
     },
   },
 } satisfies DeepPartial<RootState>;
-const loadingLinkableCardHomeOverrides = {
-  ...linkableCardHomeOverrides,
-  engine: {
-    ...linkableCardHomeOverrides.engine,
-    backgroundState: {
-      ...linkableCardHomeOverrides.engine.backgroundState,
-      CardController: {
-        ...linkableCardHomeOverrides.engine.backgroundState.CardController,
-        cardHomeDataStatus: 'loading',
-      },
-    },
-  },
-} satisfies DeepPartial<RootState>;
 
 describe('CardHome', () => {
   afterEach(() => {
@@ -472,39 +459,6 @@ describe('CardHome', () => {
   });
 
   describe('Money Account linking', () => {
-    it('renders link-mode content when Money Account linking is available', async () => {
-      const { findByTestId } = renderCardHomeView({
-        overrides: linkableCardHomeOverrides,
-      });
-
-      expect(
-        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        await findByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
-      ).toBeOnTheScreen();
-    });
-
-    it('hides link-mode content when Money Account linking is unavailable', async () => {
-      const { queryByTestId } = renderCardHomeView();
-
-      await waitFor(() => {
-        expect(
-          queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-        ).not.toBeOnTheScreen();
-      });
-    });
-
-    it('keeps link-mode content visible during a CardHome data refresh', async () => {
-      const { findByTestId } = renderCardHomeView({
-        overrides: loadingLinkableCardHomeOverrides,
-      });
-
-      expect(
-        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      ).toBeOnTheScreen();
-    });
-
     it('navigates to the Link Card sheet when link-mode content is pressed', async () => {
       const { findByTestId } = renderCardHomeView({
         overrides: linkableCardHomeOverrides,

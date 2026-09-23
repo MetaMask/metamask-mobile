@@ -10,12 +10,21 @@ const UNDERLINE_START_INSET = 1;
 const UNDERLINE_GAP = -1;
 
 export interface DottedUnderlineProps {
+  /** Content rendered above the underline. */
   children: React.ReactNode;
+  /** Color used for the dotted underline. */
   color: ColorValue;
+  /** Test identifier applied to the wrapper and derived underline. */
   testID?: string;
+  /** Additional Tailwind classes applied to the wrapper. */
   twClassName?: string;
 }
 
+/**
+ * Renders content with a dotted underline sized to the content layout.
+ *
+ * The underline is omitted until the wrapper reports a positive width.
+ */
 const DottedUnderline = ({
   children,
   color,

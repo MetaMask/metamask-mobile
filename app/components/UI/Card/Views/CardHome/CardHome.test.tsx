@@ -7023,7 +7023,7 @@ describe('CardHome Component', () => {
 
   describe('Link Money Account content', () => {
     const setupLinkageMock = (
-      overrides: Partial<{ canLink: boolean }> = {},
+      overrides: Partial<{ canLink: boolean; isLinking: boolean }> = {},
     ) => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
@@ -7086,6 +7086,41 @@ describe('CardHome Component', () => {
         screen: Routes.CARD.HOME,
         entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
       });
+    });
+
+    it('renders link-mode content when Money Account linking is available', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+      setupLinkageMock();
+
+      render();
+
+      expect(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides link-mode content when Money Account linking is unavailable', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps link-mode content visible while linking is in progress', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'loading' });
+      setupLinkageMock({ isLinking: true });
+
+      render();
+
+      expect(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('starts the link flow when section header is pressed', () => {
