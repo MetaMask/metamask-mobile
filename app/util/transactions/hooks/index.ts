@@ -94,6 +94,11 @@ async function getNextNonce(
   return toHex(nonceLock.nextNonce);
 }
 
+interface LegacyTransactionApprovalMetadata {
+  isExternalSign?: boolean;
+  isGasFeeSponsored?: boolean;
+}
+
 interface TransactionApprovalDecision {
   keyringSupports7702: boolean;
   sendBundleSupport: boolean;
@@ -158,10 +163,14 @@ async function getTransactionApprovalDecision(
       txParams?.to !== undefined,
   );
 
+  const legacyApprovalMetadata: LegacyTransactionApprovalMetadata =
+    transactionMeta;
+
   // Predict still uses this compatibility marker to hand external signing
   // policy from its beforeSign hook to the shared shouldSign hook.
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
-  const isPreparedForExternalSigning = Boolean(transactionMeta.isExternalSign);
+  const isPreparedForExternalSigning = Boolean(
+    legacyApprovalMetadata.isExternalSign,
+  );
   const requiresExternalSigning = Boolean(
     isPreparedForExternalSigning ||
       (transactionMeta.selectedGasFeeToken && is7702Supported),
@@ -169,8 +178,9 @@ async function getTransactionApprovalDecision(
 
   // Explicit sponsorship metadata remains the migration fallback when Core
   // does not refresh availability because simulation is disabled.
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
-  const legacySponsorshipEnabled = Boolean(transactionMeta.isGasFeeSponsored);
+  const legacySponsorshipEnabled = Boolean(
+    legacyApprovalMetadata.isGasFeeSponsored,
+  );
   const isSponsorshipAvailable =
     transactionMeta.isGasFeeSponsoredAvailable ?? legacySponsorshipEnabled;
   const sponsorshipEnabled =
