@@ -246,25 +246,27 @@ describe('handleSolanaUrl', () => {
 
 describe('mapDeeplinkOriginToInitSendLocation', () => {
   it('maps QR origin to QRScanner', () => {
-    expect(
-      mapDeeplinkOriginToInitSendLocation(
-        AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-      ),
-    ).toBe(InitSendLocation.QRScanner);
+    const origin = AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
+
+    const location = mapDeeplinkOriginToInitSendLocation(origin);
+
+    expect(location).toBe(InitSendLocation.QRScanner);
   });
 
   it('maps a supported non-QR origin to Deeplink', () => {
-    expect(
-      mapDeeplinkOriginToInitSendLocation(
-        AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-      ),
-    ).toBe(InitSendLocation.Deeplink);
+    const origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+    const location = mapDeeplinkOriginToInitSendLocation(origin);
+
+    expect(location).toBe(InitSendLocation.Deeplink);
   });
 
   it('maps an unknown origin to Deeplink', () => {
-    expect(mapDeeplinkOriginToInitSendLocation('unknown-origin')).toBe(
-      InitSendLocation.Deeplink,
-    );
+    const origin = 'unknown-origin';
+
+    const location = mapDeeplinkOriginToInitSendLocation(origin);
+
+    expect(location).toBe(InitSendLocation.Deeplink);
   });
 });
 

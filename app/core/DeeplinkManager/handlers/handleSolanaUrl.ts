@@ -112,6 +112,11 @@ export const buildSolanaPayAsset = (
   return buildSplAsset(splToken, meta);
 };
 
+/**
+ * Maps a DeeplinkManager origin to the send-flow analytics location.
+ * Settings → Scan (`ORIGIN_QR_CODE`) stays `QRScanner`; every other origin
+ * uses `Deeplink` so Solana Pay is not labeled as a QR scan.
+ */
 export const mapDeeplinkOriginToInitSendLocation = (origin: string): string =>
   origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
     ? InitSendLocation.QRScanner
@@ -120,10 +125,10 @@ export const mapDeeplinkOriginToInitSendLocation = (origin: string): string =>
 const navigateToSolanaPaySend = (
   parsed: Extract<SolanaPayParseResult, { type: 'transfer' }>,
   asset: AssetType,
-  origin: string,
+  location: string,
 ) => {
   handleSendPageNavigation(NavigationService.navigation.navigate, {
-    location: mapDeeplinkOriginToInitSendLocation(origin),
+    location,
     predefinedRecipient: {
       address: parsed.recipient,
       chainType: ChainType.SOLANA,
@@ -191,7 +196,11 @@ async function handleSolanaUrl({
         return;
       }
 
-      navigateToSolanaPaySend(parsed, asset, origin);
+      navigateToSolanaPaySend(
+        parsed,
+        asset,
+        mapDeeplinkOriginToInitSendLocation(origin),
+      );
       return;
     }
     case 'transaction-request':
