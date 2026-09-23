@@ -3035,6 +3035,7 @@
     },
     "transactions": {
       "title": "Perps",
+      "aggregated": "Aggregated",
       "tabs": {
         "trades": "Trades",
         "orders": "Orders",
