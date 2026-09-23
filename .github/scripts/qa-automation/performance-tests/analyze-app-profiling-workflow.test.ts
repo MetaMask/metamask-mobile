@@ -129,7 +129,7 @@ describe('Analyze App Profiling triggers', () => {
 
     expect(command).toContain('if [ "${WEEKLY}" = "true" ]; then');
     expect(command).toContain('ARGS+=(--weekly --skip-ai --skip-scenario-artifacts)');
-    expect(command).toContain('ARGS+=(--collect-only)');
+    expect(command).toContain('ARGS+=(--scheduled-exception)');
     expect(command).toContain('if [ -n \"${LOOKBACK_HOURS}\" ]; then');
     expect(command).toContain('ARGS+=(--lookback-hours \"${LOOKBACK_HOURS}\")');
     expect(command).toContain('elif [ -n \"${RUN_ID}\" ]; then');
@@ -150,7 +150,7 @@ describe('Analyze App Profiling triggers', () => {
     );
   });
 
-  it('posts Slack on a chained manual run, an opted-in dispatch, and Monday', () => {
+  it('posts Slack on scheduled findings, a manual run, and Monday', () => {
     const workflow = loadWorkflow();
     const notify = workflow.jobs['publish-summary'];
     const slackStep = notify.steps.find(
@@ -161,8 +161,11 @@ describe('Analyze App Profiling triggers', () => {
     expect(slackStep?.if).toContain(
       "github.event.workflow_run.event == 'workflow_dispatch'",
     );
-    expect(slackStep?.if).not.toContain(
+    expect(slackStep?.if).toContain(
       "github.event.workflow_run.event == 'schedule'",
+    );
+    expect(slackStep?.if).toContain(
+      "steps.findings.outputs.has-findings == 'true'",
     );
     expect(notify.needs).toStrictEqual([
       'analyze',
@@ -171,12 +174,24 @@ describe('Analyze App Profiling triggers', () => {
     expect(slackStep?.env?.GITHUB_RUN_ID).toBe('${{ github.run_id }}');
   });
 
+  it('keeps clean scheduled runs out of Slack', () => {
+    const workflow = loadWorkflow();
+    const notify = workflow.jobs['publish-summary'];
+    const detection = notify.steps.find(
+      (step) => step.name === 'Detect Slack findings',
+    );
+
+    expect(detection?.run).toContain('notification.json');
+    expect(detection?.run).toContain('.meta.hasFindings');
+    expect(detection?.run).toContain('has-findings=${HAS_FINDINGS}');
+  });
+
   it('routes Slack by the branch that produced the profiles', () => {
     const workflow = loadWorkflow();
 
     const target = workflow.env?.SLACK_TARGET ?? '';
 
-    expect(target).toContain('C07KB8HRZ4J');
+    expect(target).toContain('C0C3WSWNKS5');
     expect(target).toContain('UEYQL2PEV');
     // A workflow_run listener always runs from the default branch, so
     // github.ref would send a chained branch run to the channel.

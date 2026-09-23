@@ -80,11 +80,9 @@ function scenarioTeam(scenario) {
   );
 }
 
-function slackTeamMention(scenario) {
+function slackTeamOwnerLabel(scenario) {
   const team = scenarioTeam(scenario);
-  return team.id
-    ? `<!subteam^${team.id}|${team.handle}>`
-    : `@${team.handle}`;
+  return `owner ${team.handle}`;
 }
 
 function parseArgs(argv) {
@@ -140,19 +138,19 @@ function scenarioDownloadMap(artifacts, manifest, repo, runId) {
       return {
         scenario: item.scenario,
         url: `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`,
-        teamMention: slackTeamMention(item.scenario),
+        ownerLabel: slackTeamOwnerLabel(item.scenario),
       };
     })
     .filter(Boolean)
     .sort((left, right) => right.scenario.length - left.scenario.length);
 }
 
-function formatLink(scenario, url, teamMention, style) {
+function formatLink(scenario, url, ownerLabel, style) {
   if (style === 'markdown') {
     return `[${scenario}](${url})`;
   }
-  return teamMention
-    ? `<${url}|${scenario}> ${teamMention}`
+  return ownerLabel
+    ? `<${url}|${scenario}> · ${ownerLabel}`
     : `<${url}|${scenario}>`;
 }
 
@@ -165,13 +163,13 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function linkLine(line, mappings, style, withMentions) {
+function linkLine(line, mappings, style, withOwnerLabels) {
   let text = line;
-  for (const { scenario, url, teamMention } of mappings) {
+  for (const { scenario, url, ownerLabel } of mappings) {
     const linked = formatLink(
       scenario,
       url,
-      withMentions ? teamMention : null,
+      withOwnerLabels ? ownerLabel : null,
       style,
     );
     const escaped = escapeRegExp(scenario);
@@ -189,9 +187,9 @@ function linkLine(line, mappings, style, withMentions) {
 }
 
 /**
- * Links every scenario name, and owns the digest section where the team is
- * mentioned. Tagging a team under each conclusion put every owner at the top
- * of the message, so ownership is stated once per outlier instead.
+ * Links every scenario name and owns the digest section where the team is
+ * named. Repeating a team under each conclusion put every owner at the top of
+ * the message, so ownership is stated once per outlier instead.
  */
 function linkScenarioNames(
   markdown,
@@ -276,7 +274,7 @@ export {
   listRunArtifacts,
   scenarioDownloadMap,
   scenarioTeam,
-  slackTeamMention,
+  slackTeamOwnerLabel,
   linkScenarioNames,
   readManifest,
 };

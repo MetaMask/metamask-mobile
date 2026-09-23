@@ -111,14 +111,13 @@ test('addScenarioArtifactLinks turns each named outcome into its download', () =
     2,
   );
   assert.doesNotMatch(digest, /\*Perps open position and close it\*/);
-  // The owner is tagged once, on the outlier, not again under conclusions.
+  // The owner is named once, on the outlier, without notifying the team.
   assert.equal(
-    digest.split(
-      '<!subteam^S094DMAQNCV|mm-perps-engineering-team>',
-    ).length - 1,
+    digest.split('owner mm-perps-engineering-team').length - 1,
     1,
   );
-  assert.match(digest, /<!subteam\^S095BEYMASG\|team-predict>/);
+  assert.match(digest, /owner team-predict/);
+  assert.doesNotMatch(digest, /subteam|<!/);
 });
 
 test('addScenarioArtifactLinks requires at least one scenario artifact', () => {

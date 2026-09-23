@@ -5,7 +5,7 @@ import {
   parseArgs,
   listRunArtifacts,
   scenarioDownloadMap,
-  slackTeamMention,
+  slackTeamOwnerLabel,
   linkScenarioNames,
 } from './link-scenario-artifacts.mjs';
 
@@ -85,27 +85,29 @@ test('scenarioDownloadMap skips expired and non-scenario artifacts', () => {
     'https://github.com/MetaMask/metamask-mobile/actions/runs/123/artifacts/11',
   );
   assert.equal(
-    mappings[1].teamMention,
-    '<!subteam^S094DMAQNCV|mm-perps-engineering-team>',
+    mappings[1].ownerLabel,
+    'owner mm-perps-engineering-team',
   );
 });
 
-test('slackTeamMention maps scenario ownership from performance test tags', () => {
+test('slackTeamOwnerLabel names owners without notifying Slack groups', () => {
   assert.equal(
-    slackTeamMention('Predict Deposit - Complete Flow Performance'),
-    '<!subteam^S095BEYMASG|team-predict>',
+    slackTeamOwnerLabel('Predict Deposit - Complete Flow Performance'),
+    'owner team-predict',
   );
   assert.equal(
-    slackTeamMention('Money Home after importing SRP with funded balance'),
-    '<!subteam^S052NJFKX6Y|mm-earn-team>',
+    slackTeamOwnerLabel('Money Home after importing SRP with funded balance'),
+    'owner mm-earn-team',
   );
   assert.equal(
-    slackTeamMention('Seedless Onboarding: Apple Login New User'),
-    '<!subteam^S090QC71NQ2|metamask-onboarding-team>',
+    slackTeamOwnerLabel('Seedless Onboarding: Apple Login New User'),
+    'owner metamask-onboarding-team',
   );
   assert.equal(
-    slackTeamMention('Rewards tab time-to-content: onboarding or dashboard'),
-    '@performance-team',
+    slackTeamOwnerLabel(
+      'Rewards tab time-to-content: onboarding or dashboard',
+    ),
+    'owner performance-team',
   );
 });
 
@@ -138,13 +140,11 @@ test('linkScenarioNames leaves an already linked scenario alone', () => {
 
   assert.equal(once, twice);
   assert.equal(once.split('artifacts/11').length - 1, 1);
-  assert.match(
-    once,
-    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/,
-  );
+  assert.match(once, /owner mm-perps-engineering-team/);
+  assert.doesNotMatch(once, /subteam/);
 });
 
-test('team mentions stay in the outliers section', () => {
+test('owner labels stay in the outliers section without Slack mentions', () => {
   const linked = linkScenarioNames(
     [
       '*Conclusions*',
@@ -166,9 +166,9 @@ test('team mentions stay in the outliers section', () => {
   assert.equal(conclusions.split('/artifacts/').length - 1, 2);
   assert.doesNotMatch(conclusions, /subteam/);
 
-  assert.match(outliers, /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/);
-  assert.match(outliers, /<!subteam\^S095BEYMASG\|team-predict>/);
-  assert.equal(outliers.split('subteam').length - 1, 2);
+  assert.match(outliers, /owner mm-perps-engineering-team/);
+  assert.match(outliers, /owner team-predict/);
+  assert.doesNotMatch(outliers, /subteam/);
 });
 
 test('listRunArtifacts surfaces a GitHub API failure', async () => {

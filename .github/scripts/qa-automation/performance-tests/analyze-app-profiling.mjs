@@ -19,6 +19,7 @@
  *   … --lookback-hours 24
  *   … --weekly
  *   … --collect-only --run 123456789
+ *   … --scheduled-exception --run 123456789
  *   … --scenario "Cold Start"
  *   … --current-dir ./downloaded-test-results --skip-ai
  *
@@ -37,6 +38,12 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import transformerModule from '@margelo/hermes-profile-transformer';
+import {
+  SCHEDULED_BASELINE_HOURS,
+  buildScheduledException,
+  buildScheduledExceptionMarkdown,
+  buildScheduledExceptionSlack,
+} from './scheduled-hermes-exceptions.mjs';
 import {
   buildWeeklyMarkdown,
   buildWeeklyParentSlack,
@@ -111,6 +118,7 @@ function parseArgs(argv) {
     lookbackHours: null,
     weekly: false,
     collectOnly: false,
+    scheduledException: false,
     skipScenarioArtifacts: false,
     now: null,
     maxRunsPerWeek: null,
@@ -177,6 +185,12 @@ function parseArgs(argv) {
         args.skipAi = true;
         args.skipScenarioArtifacts = true;
         break;
+      case '--scheduled-exception':
+        args.scheduledException = true;
+        args.collectOnly = true;
+        args.skipAi = true;
+        args.skipScenarioArtifacts = true;
+        break;
       case '--skip-scenario-artifacts':
         args.skipScenarioArtifacts = true;
         break;
@@ -237,6 +251,7 @@ Options:
   --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
   --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
   --collect-only         Analyze one run without Slack-sized scenario zips
+  --scheduled-exception  Collect one run and compare it with the prior 7-day median
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
@@ -2062,6 +2077,31 @@ function writeWeeklyOutputs(outputDirectory, weekly) {
   );
 }
 
+function writeScheduledExceptionOutputs(
+  outputDirectory,
+  currentReport,
+  exception,
+) {
+  // Keep report.json as the reusable per-run collection consumed by Monday's
+  // report. The notification decision is a separate artifact.
+  writeOutputs(outputDirectory, currentReport);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'notification.json'),
+    `${JSON.stringify(exception, null, 2)}\n`,
+  );
+  const markdown = `${buildScheduledExceptionMarkdown(exception)}\n`;
+  fs.writeFileSync(path.join(outputDirectory, 'report.md'), markdown);
+  fs.writeFileSync(path.join(outputDirectory, 'github-summary.md'), markdown);
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack.md'),
+    `${buildScheduledExceptionSlack(exception)}\n`,
+  );
+  fs.writeFileSync(
+    path.join(outputDirectory, 'slack-cards.json'),
+    '[]\n',
+  );
+}
+
 async function callClaude(briefing) {
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
   if (!apiKey) {
@@ -2428,6 +2468,15 @@ async function main() {
     return;
   }
 
+  if (args.scheduledException) {
+    await runScheduledExceptionAnalysis({
+      args,
+      outputDirectory,
+      skillAnalyzerPath,
+    });
+    return;
+  }
+
   if (args.lookbackHours && !args.currentDir) {
     await runWindowAnalysis({ args, outputDirectory, skillAnalyzerPath });
     return;
@@ -2465,6 +2514,52 @@ async function main() {
   writeOutputs(outputDirectory, report);
   console.log(
     `✅ Wrote Hermes-only analysis for ${report.scenarios.length} scenarios to ${outputDirectory}`,
+  );
+}
+
+async function runScheduledExceptionAnalysis({
+  args,
+  outputDirectory,
+  skillAnalyzerPath,
+}) {
+  const currentReport = await analyzeRun({
+    args,
+    runId: args.run,
+    workingDirectory: outputDirectory,
+    skillAnalyzerPath,
+  });
+  const until = new Date(
+    currentReport.meta.createdAt || currentReport.meta.generatedAt,
+  );
+  const since = new Date(
+    until.getTime() - SCHEDULED_BASELINE_HOURS * 60 * 60 * 1000,
+  );
+  const collected = loadCollectedReports(
+    args.repo,
+    since.toISOString(),
+    until.toISOString(),
+  );
+  collected.delete(String(currentReport.meta.runId));
+  const scheduledRuns = resolveRunsInRange(
+    listLatestRuns({
+      repo: args.repo,
+      workflow: args.workflow,
+      branch: args.branch,
+      limit: 40,
+    }),
+    {
+      sinceIso: since.toISOString(),
+      untilIso: until.toISOString(),
+      scheduledOnly: true,
+    },
+  );
+  const baselineReports = scheduledRuns
+    .map((run) => collected.get(String(run.databaseId)))
+    .filter(Boolean);
+  const exception = buildScheduledException(currentReport, baselineReports);
+  writeScheduledExceptionOutputs(outputDirectory, currentReport, exception);
+  console.log(
+    `✅ Checked run ${currentReport.meta.runId} against ${baselineReports.length} collected runs: ${exception.findings.length} finding(s)`,
   );
 }
 

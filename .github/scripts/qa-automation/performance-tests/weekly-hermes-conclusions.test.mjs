@@ -392,9 +392,10 @@ test('one slow run is reported once, not as a regression per scenario', () => {
   const cards = weeklySlackCards(report);
   assert.equal(cards.length, 1);
   assert.match(cards[0], /\*Slow run\*/);
-  assert.match(cards[0], /Owning teams are tagged/);
-  assert.match(cards[0], /subteam\^S094DMAQNCV/);
-  assert.match(cards[0], /subteam\^S052NJFKX6Y/);
+  assert.match(cards[0], /Owners are named for routing/);
+  assert.match(cards[0], /owner mm-perps-engineering-team/);
+  assert.match(cards[0], /owner mm-earn-team/);
+  assert.doesNotMatch(cards[0], /subteam/);
   // A bare duration reads as the test's wall clock, which this is not.
   assert.match(
     cards[0],
@@ -631,7 +632,11 @@ test('a lone scenario spiking on its own run keeps its owner', () => {
   );
   assert.match(
     buildWeeklyScenarioCard(collapsed.cards[0]),
-    /subteam\^S094DMAQNCV/,
+    /owner mm-perps-engineering-team/,
+  );
+  assert.doesNotMatch(
+    buildWeeklyScenarioCard(collapsed.cards[0]),
+    /subteam/,
   );
 });
 

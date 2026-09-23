@@ -63,7 +63,7 @@ function profile(fileName, overrides = {}) {
   };
 }
 
-test('parseArgs supports weekly and collect-only modes', () => {
+test('parseArgs supports weekly, collection and scheduled exception modes', () => {
   const weekly = parseArgs(['--weekly', '--now', '2026-09-21T09:00:00.000Z']);
   assert.equal(weekly.weekly, true);
   assert.equal(weekly.skipAi, true);
@@ -84,6 +84,13 @@ test('parseArgs supports weekly and collect-only modes', () => {
   assert.equal(collect.skipAi, true);
   assert.equal(collect.skipScenarioArtifacts, true);
   assert.equal(collect.run, '99');
+
+  const scheduled = parseArgs(['--scheduled-exception', '--run', '100']);
+  assert.equal(scheduled.scheduledException, true);
+  assert.equal(scheduled.collectOnly, true);
+  assert.equal(scheduled.skipAi, true);
+  assert.equal(scheduled.skipScenarioArtifacts, true);
+  assert.equal(scheduled.run, '100');
 });
 
 test('resolveRunsInRange keeps a half-open scheduled window', () => {

@@ -7,8 +7,9 @@
 # intentionally not used.
 #
 # Cadence:
-# - After a *scheduled* 6-hour performance run: collect `report.json` only.
-#   No Slack. No per-scenario profile zips.
+# - After a *scheduled* 6-hour performance run: collect `report.json`, compare
+#   the run with the prior 7-day median, and post only when the 1.5× threshold
+#   is crossed. No clean-run Slack. No per-scenario profile zips.
 # - After a *manually dispatched* performance run: full digest + Slack
 #   (#metamask-performance on main; personal DM on a branch).
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
@@ -86,7 +87,7 @@ env:
   # that actually produced the profiles is the one that decides.
   SLACK_TARGET: >-
     ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
-        && 'C07KB8HRZ4J'
+        && 'C0C3WSWNKS5'
         || 'UEYQL2PEV' }}
 
 concurrency:
@@ -172,7 +173,7 @@ jobs:
           SCENARIO: ${{ inputs.scenario }}
           SKIP_AI: ${{ inputs.skip_ai }}
           WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
-          COLLECT_ONLY: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
           MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
         run: |
@@ -195,14 +196,14 @@ jobs:
             ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")
           elif [ -n "${RUN_ID}" ]; then
             ARGS+=(--run "${RUN_ID}")
-            if [ "${COLLECT_ONLY}" = "true" ]; then
-              ARGS+=(--collect-only)
+            if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
+              ARGS+=(--scheduled-exception)
             fi
           fi
           if [ -n "${SCENARIO}" ] && [ "${WEEKLY}" != "true" ]; then
             ARGS+=(--scenario "${SCENARIO}")
           fi
-          if [ "${SKIP_AI}" = "true" ] || [ "${WEEKLY}" = "true" ] || [ "${COLLECT_ONLY}" = "true" ]; then
+          if [ "${SKIP_AI}" = "true" ] || [ "${WEEKLY}" = "true" ] || [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
             ARGS+=(--skip-ai)
           fi
           "${ARGS[@]}"
@@ -211,17 +212,17 @@ jobs:
         id: flags
         env:
           WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
-          COLLECT_ONLY: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
         run: |
           set -euo pipefail
           UPLOAD_PROFILES=true
-          if [ "${WEEKLY}" = "true" ] || [ "${COLLECT_ONLY}" = "true" ]; then
+          if [ "${WEEKLY}" = "true" ] || [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
             UPLOAD_PROFILES=false
           fi
           # Digests are read within days. A collected report is the history the
           # Monday job compares against, so it has to outlive two whole weeks.
           RETENTION_DAYS=7
-          if [ "${COLLECT_ONLY}" = "true" ]; then
+          if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
             RETENTION_DAYS=21
           fi
           echo "upload-profiles=${UPLOAD_PROFILES}" >> "$GITHUB_OUTPUT"
@@ -252,6 +253,7 @@ jobs:
           path: |
             /tmp/analyze-app-profiling/*.md
             /tmp/analyze-app-profiling/report.json
+            /tmp/analyze-app-profiling/notification.json
             /tmp/analyze-app-profiling/slack-cards.json
             /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/
@@ -357,6 +359,16 @@ jobs:
             --style markdown --optional
           cat /tmp/analyze-app-profiling/github-summary-linked.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Detect Slack findings
+        id: findings
+        run: |
+          set -euo pipefail
+          HAS_FINDINGS=true
+          if [ -f /tmp/analyze-app-profiling/notification.json ]; then
+            HAS_FINDINGS=$(jq -r '.meta.hasFindings' /tmp/analyze-app-profiling/notification.json)
+          fi
+          echo "has-findings=${HAS_FINDINGS}" >> "$GITHUB_OUTPUT"
+
       - name: Post Slack summary
         if: >-
           needs.upload-scenario-profiles.result != 'failure' &&
@@ -364,8 +376,12 @@ jobs:
             github.event_name == 'schedule' ||
             (github.event_name == 'workflow_dispatch' && inputs.post_to_slack) ||
             (github.event_name == 'workflow_run' &&
-             github.event.workflow_run.event == 'workflow_dispatch' &&
-             needs.upload-scenario-profiles.result == 'success')
+             (
+               (github.event.workflow_run.event == 'workflow_dispatch' &&
+                needs.upload-scenario-profiles.result == 'success') ||
+               (github.event.workflow_run.event == 'schedule' &&
+                steps.findings.outputs.has-findings == 'true')
+             ))
           )
         continue-on-error: true
         env:

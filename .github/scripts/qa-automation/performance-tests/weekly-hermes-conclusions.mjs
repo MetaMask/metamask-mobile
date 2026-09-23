@@ -8,7 +8,7 @@
 
 import {
   scenarioTeam,
-  slackTeamMention,
+  slackTeamOwnerLabel,
 } from './link-scenario-artifacts.mjs';
 
 export const SPIKE_RATIO = 1.5;
@@ -192,10 +192,6 @@ function scenarioKey(scenario) {
  */
 function scenarioOwner(scenario) {
   return scenarioTeam(displayName(scenario)).handle;
-}
-
-function scenarioOwnerMention(scenario) {
-  return slackTeamMention(displayName(scenario));
 }
 
 function topContributor(scenario) {
@@ -503,14 +499,14 @@ function contributorSlackLine(contributor, scenario) {
 
 export function buildWeeklyScenarioCard(card) {
   const { current, previous, statusLabel, conclusion } = card;
-  const mention = slackTeamMention(displayName(card.scenario));
+  const owner = slackTeamOwnerLabel(displayName(card.scenario));
   const [median, min, max] = formatDurationsAlike([
     current.medianJsWorkMs,
     current.minJsWorkMs,
     current.maxJsWorkMs,
   ]);
   const lines = [
-    `*${statusLabel}* · *${displayName(card.scenario)}* ${mention}`,
+    `*${statusLabel}* · *${displayName(card.scenario)}* · ${owner}`,
     `_This week:_ ${current.runsObserved}/${current.runsTotal} runs · median JS work ${median} (${min} – ${max}) · JS duty ${current.medianJsDutyPct.toFixed(1)}%`,
   ];
   if (previous && previous.medianJsWorkMs > 0) {
@@ -566,17 +562,11 @@ function sharedSpikeDurations(sharedSpike) {
 }
 
 export function buildSharedSpikeCard(sharedSpike) {
-  // A recovered run is history: naming the owners is useful, paging them is
-  // not, so only an open slow run uses live mentions.
-  const owner = sharedSpike.recovered
-    ? (scenario) => `· owner ${scenarioOwner(scenario)}`
-    : (scenario) => scenarioOwnerMention(scenario);
+  const owner = (scenario) => `· owner ${scenarioOwner(scenario)}`;
   const lines = [
     `*Slow run${sharedSpike.recovered ? ' (recovered)' : ''}* · <${sharedSpike.runUrl}|${sharedSpike.runId}> peaked in ${sharedSpike.scenarios.length} scenarios`,
     `_Read as:_ one run-level anomaly, not ${sharedSpike.scenarios.length} scenario regressions. ${
-      sharedSpike.recovered
-        ? 'Owners are named for the record; no team is notified.'
-        : 'Owning teams are tagged.'
+      'Owners are named for routing; no team is notified.'
     }`,
     '_Hermes JS work (sampled JS self time, not test duration) in that run vs the scenario median across this week:_',
   ];
