@@ -239,6 +239,7 @@ describe('usePerpsDepositStatus', () => {
 
     mockUsePerpsToasts.mockReturnValue({
       showToast: mockShowToast,
+      closeToast: jest.fn(),
       PerpsToastOptions: mockPerpsToastOptions,
     });
 

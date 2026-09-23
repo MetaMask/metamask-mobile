@@ -37,6 +37,7 @@ import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSh
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsSlippageRow from '../../components/PerpsSlippageRow';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -215,20 +216,11 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Slippage - market closes use the same persisted setting as trades. */}
         {effectiveOrderType === 'market' && !isInputFocused && (
-          <Box twClassName="px-4 pb-0">
-            <Box twClassName="bg-background-section rounded-xl overflow-hidden">
-              <TouchableOpacity
-                testID={PerpsClosePositionViewSelectorsIDs.SLIPPAGE_ROW}
-                onPress={() => setIsSlippageVisible(true)}
-              >
-                <KeyValueRow
-                  variant={KeyValueRowVariant.Input}
-                  keyLabel={strings('perps.slippage.slippage')}
-                  value={`${maxSlippageBps / 100}%`}
-                />
-              </TouchableOpacity>
-            </Box>
-          </Box>
+          <PerpsSlippageRow
+            maxSlippageBps={maxSlippageBps}
+            onPress={() => setIsSlippageVisible(true)}
+            testID={PerpsClosePositionViewSelectorsIDs.SLIPPAGE_ROW}
+          />
         )}
 
         {/* Order Details moved to footer summary */}

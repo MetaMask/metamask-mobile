@@ -1218,37 +1218,40 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Execution failures surface through the `onError` toast after we leave the
   // form — market details by default, or the presenting screen when
   // `stayOnCurrentScreen` is set.
-  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
-    usePerpsOrderExecution({
-      onSuccess: (_position, result) => {
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
-        );
-        postCopyTradeIntent(
-          () =>
-            buildPerpsCopyTradeIntent({
-              copyTradeOrigin,
-              asset: orderForm.asset,
-              orderType: orderForm.type,
-              result,
-              address: getSelectedAccountByScope('eip155:1')?.address,
-              activeProvider: activePerpsProvider,
-            }),
-          { surface: 'trader_feed', source: 'PerpsOrderView' },
-        );
-      },
-      onError: (error) => {
-        // Error is already captured in usePerpsOrderExecution hook
-        // No need to capture again here to avoid duplicate Sentry reports
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].creationFailed(error),
-        );
-      },
-    });
+  const {
+    placeOrder: executeOrder,
+    isPlacing: isPlacingOrder,
+    error: orderExecutionError,
+  } = usePerpsOrderExecution({
+    onSuccess: (_position, result) => {
+      showToast(
+        PerpsToastOptions.orderManagement[
+          getOrderManagementToastKey(orderForm.type)
+        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+      );
+      postCopyTradeIntent(
+        () =>
+          buildPerpsCopyTradeIntent({
+            copyTradeOrigin,
+            asset: orderForm.asset,
+            orderType: orderForm.type,
+            result,
+            address: getSelectedAccountByScope('eip155:1')?.address,
+            activeProvider: activePerpsProvider,
+          }),
+        { surface: 'trader_feed', source: 'PerpsOrderView' },
+      );
+    },
+    onError: (error) => {
+      // Error is already captured in usePerpsOrderExecution hook
+      // No need to capture again here to avoid duplicate Sentry reports
+      showToast(
+        PerpsToastOptions.orderManagement[
+          getOrderManagementToastKey(orderForm.type)
+        ].creationFailed(error),
+      );
+    },
+  });
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(
@@ -1973,6 +1976,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             feeResults,
             marketPrice: assetData.price,
             inputMethod: inputMethodRef.current,
+            orderType: orderForm.type,
             source,
             sourceSection,
             currentMarketPosition,
@@ -2559,10 +2563,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         ? [
             {
               key: `execution-${
-                typeof orderExecutionError === 'string'
-                  ? orderExecutionError
-                  : (orderExecutionError.errorCode ??
-                    String(orderExecutionError.error ?? 'unknown'))
+                orderExecutionError.errorCode ?? orderExecutionError.error
               }`,
               message: handlePerpsError({
                 error: orderExecutionError,
