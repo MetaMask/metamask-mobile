@@ -1,6 +1,16 @@
 import React from 'react';
 import type { Json } from '@metamask/utils';
 
+let mockSearchPasteTreatment = false;
+
+jest.mock('../TrendingView/search/useHomepageSearchPaste', () => ({
+  useHomepageSearchPaste: jest.fn(() => ({
+    isTreatment: mockSearchPasteTreatment,
+    showPastePill: false,
+    handlePastePress: jest.fn(),
+  })),
+}));
+
 // Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
 import StorageWrapper from '../../../store/storage-wrapper';
 
@@ -1958,6 +1968,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountEnabled = false;
     mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
+    mockSearchPasteTreatment = false;
   });
 
   it('leaves the control header untouched', () => {
@@ -1992,6 +2003,15 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
     ).toBeOnTheScreen();
+  });
+
+  it('uses the treatment header when the paste experiment is active', () => {
+    mockSearchPasteTreatment = true;
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(getByTestId('explore-view-search-button')).toBeOnTheScreen();
+    expect(queryByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeNull();
   });
 
   it('renders the account name when the balance breakdown treatment is also active', () => {

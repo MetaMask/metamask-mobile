@@ -75,6 +75,23 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(await findByText('Apple Token')).toBeOnTheScreen();
   });
 
+  it('keeps the homepage search handoff layout and cancel action', () => {
+    const { getByPlaceholderText, getByTestId } =
+      renderExploreSearchScreenWithRoutes({
+        initialParams: {
+          entryPoint: 'home',
+          searchOrigin: { x: 48, y: 48, width: 220, height: 48 },
+        },
+      });
+
+    expect(
+      getByPlaceholderText(strings('wallet.homepage_search_placeholder')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('attributes a deeplink search open to the deeplink entry point', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
 
