@@ -204,6 +204,7 @@ import {
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
+  SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -1296,6 +1297,14 @@ const MainNavigator = () => {
             name={Routes.PERPS.FUNDING_TRANSACTION}
             component={PerpsFundingTransactionView}
           />
+          <NativeStack.Screen
+            name={Routes.PERPS.PRICE_ALERTS}
+            component={ManagePriceAlertsView}
+          />
+          <NativeStack.Screen
+            name={Routes.PERPS.CREATE_PRICE_ALERT}
+            component={CreatePriceAlertView}
+          />
         </>
       )}
       {isPredictEnabled && (
@@ -1364,6 +1373,10 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
             component={ManageProfileLinkedAccountView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.PROFILE_ONBOARDING}
+            component={SocialProfileOnboardingView}
           />
         </NativeStack.Group>
       )}

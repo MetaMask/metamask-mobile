@@ -20,6 +20,7 @@ import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
+import PerpsBalanceOrderView from '../Views/PerpsBalanceOrderView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
@@ -32,7 +33,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
-import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsTPSLRouter from '../Views/PerpsTPSLRouter';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
 import PerpsAdjustMarginBottomSheet from '../components/PerpsAdjustMarginBottomSheet';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
@@ -147,6 +148,24 @@ export const getAdjustMarginOptions = (
       }
     : {
         title: strings('perps.adjust_margin.title'),
+        headerShown: false,
+      };
+
+export const getTpslOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        // The sheet draws its own backdrop fade and slide. Leaving the stack
+        // animation on would slide the whole transparent screen, backdrop
+        // included, which is what separates this from the modify modal.
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
+      }
+    : {
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
         headerShown: false,
       };
 
@@ -428,6 +447,11 @@ const PerpsScreenStack = () => {
 
               {/* Withdrawal flow screens */}
               <Stack.Screen
+                name={Routes.PERPS.BALANCE_ORDER}
+                component={PerpsBalanceOrderView}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name={Routes.PERPS.WITHDRAW}
                 component={PerpsWithdrawView}
                 options={{
@@ -484,12 +508,10 @@ const PerpsScreenStack = () => {
               {/* TP/SL View - Regular screen */}
               <Stack.Screen
                 name={Routes.PERPS.TPSL}
-                component={PerpsTPSLView}
-                options={{
-                  ...transparentModalScreenOptions,
-                  title: strings('perps.tpsl.title'),
-                  headerShown: false,
-                }}
+                component={PerpsTPSLRouter}
+                options={({ route }) =>
+                  getTpslOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Adjust Margin View */}
