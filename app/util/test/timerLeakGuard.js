@@ -35,7 +35,7 @@ const trackPendingTimers = (target) => {
 
   const track = (schedule, pending, untrackOnFire) =>
     function trackedSchedule(handler, ...rest) {
-      let id;
+      let id = null;
       const callback =
         untrackOnFire && typeof handler === 'function'
           ? (...args) => {
