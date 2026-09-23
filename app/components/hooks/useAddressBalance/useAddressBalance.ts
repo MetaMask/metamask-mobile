@@ -1,8 +1,9 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import BN4 from 'bnjs4';
+import type BN5 from 'bnjs5';
 
 import Engine from '../../../core/Engine';
 import { getTicker } from '../../../util/transactions';
@@ -30,6 +31,13 @@ import {
 import { useAsyncResult } from '../useAsyncResult';
 
 export const ERC20_DEFAULT_DECIMALS = 18;
+
+/**
+ * Extracted from the fetch below so the conditional stays out of the
+ * surrounding `try`, which React Compiler cannot lower.
+ */
+const toMinimalUnitString = (balance?: BN5): string =>
+  balance?.toString(10) || '0';
 
 const useAddressBalance = (
   asset?: Asset,
@@ -70,7 +78,17 @@ const useAddressBalance = (
     ticker = networkConfigurationByChainId?.nativeCurrency;
   }
 
+  // The asset is watched at most once per mount. The ref guard keeps that
+  // behavior while letting `react-hooks/exhaustive-deps` see the real
+  // dependencies: a suppressed React rule makes React Compiler skip this hook.
+  const hasWatchedAsset = useRef(false);
+
   useEffect(() => {
+    if (hasWatchedAsset.current) {
+      return;
+    }
+    hasWatchedAsset.current = true;
+
     if (asset && !asset.isETH && !asset.tokenId) {
       const {
         address: rawAddress,
@@ -98,8 +116,7 @@ const useAddressBalance = (
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [asset, contractBalances, dontWatchAsset, selectedNetworkClientId]);
 
   useEffect(() => {
     const setBalance = () => {
@@ -156,7 +173,7 @@ const useAddressBalance = (
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
               // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
-              new BN4(fromAccBalance?.toString(10) || '0', 10),
+              new BN4(toMinimalUnitString(fromAccBalance), 10),
               decimals,
             )} ${symbol}`;
             setAddressBalance(fromAccBalance);
