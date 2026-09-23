@@ -1895,6 +1895,18 @@ class FixtureBuilder {
   }
 
   withStellarEnabled() {
+    merge(this.fixture.state.engine.backgroundState, {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          stellarAccounts: {
+            enabled: true,
+            featureVersion: null,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    });
+
     return this.withNetworkEnabledMap({
       stellar: {
         'stellar:pubnet': true,
