@@ -58,6 +58,7 @@ describe('useCardWalletProvisioning', () => {
       isProvisioning: false,
       isLoading: false,
       canAddToWallet: true,
+      isCardInWallet: false,
     });
   });
 
@@ -70,7 +71,9 @@ describe('useCardWalletProvisioning', () => {
       primaryAccountIdentifier: '91ad6fea3b52ca58d60d7fd310f789ec',
     };
 
-    renderHook(() => useCardWalletProvisioning(homeData(walletProvisioning)));
+    const { result } = renderHook(() =>
+      useCardWalletProvisioning(homeData(walletProvisioning)),
+    );
 
     expect(mockUsePushProvisioning).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -78,6 +81,7 @@ describe('useCardWalletProvisioning', () => {
         walletProvisioning,
       }),
     );
+    expect(result.current.isCardInWallet).toBe(false);
   });
 
   it('passes null provisioning when the provider has no card', () => {

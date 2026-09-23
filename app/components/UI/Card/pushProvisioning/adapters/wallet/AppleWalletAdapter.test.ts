@@ -10,14 +10,12 @@ import {
 // Mock react-native-wallet module functions
 const mockAddCardToAppleWallet = jest.fn();
 const mockGetCardStatusBySuffix = jest.fn();
-const mockGetCardStatusByIdentifier = jest.fn();
 const mockCheckWalletAvailability = jest.fn();
 const mockAddListener = jest.fn();
 
 const mockWalletModule = {
   addCardToAppleWallet: mockAddCardToAppleWallet,
   getCardStatusBySuffix: mockGetCardStatusBySuffix,
-  getCardStatusByIdentifier: mockGetCardStatusByIdentifier,
   checkWalletAvailability: mockCheckWalletAvailability,
   addListener: mockAddListener,
 };
@@ -470,38 +468,16 @@ describe('AppleWalletAdapter', () => {
       expect(result.isAvailable).toBe(true);
       expect(result.canAddCard).toBe(true);
       expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
-      expect(mockGetCardStatusByIdentifier).not.toHaveBeenCalled();
     });
 
-    it('matches the pass by primaryAccountIdentifier and does not use the PAN suffix', async () => {
-      const primaryAccountIdentifier = '91ad6fea3b52ca58d60d7fd310f789ec';
-      mockGetCardStatusByIdentifier.mockResolvedValue('active');
+    it('matches an existing pass by the PAN suffix', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('active');
 
-      const result = await adapter.getEligibility(
-        '1234',
-        primaryAccountIdentifier,
-      );
+      const result = await adapter.getEligibility('1234');
 
-      expect(mockGetCardStatusByIdentifier).toHaveBeenCalledWith(
-        primaryAccountIdentifier,
-        'MASTERCARD',
-      );
-      expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
+      expect(mockGetCardStatusBySuffix).toHaveBeenCalledWith('1234');
       expect(result.canAddCard).toBe(false);
-      expect(result.recommendedAction).toBe('none');
-    });
-
-    it('does not fall back to the PAN suffix when the identifier is not in the wallet', async () => {
-      mockGetCardStatusByIdentifier.mockResolvedValue('not found');
-
-      const result = await adapter.getEligibility(
-        '1234',
-        '91ad6fea3b52ca58d60d7fd310f789ec',
-      );
-
-      expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
-      expect(result.canAddCard).toBe(true);
-      expect(result.recommendedAction).toBe('add_card');
+      expect(result.existingCardStatus).toBe('active');
     });
   });
 

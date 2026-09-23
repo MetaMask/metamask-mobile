@@ -41,6 +41,7 @@ const mockUsePushProvisioning = jest.fn(
     isError: false,
     isLoading: false,
     canAddToWallet: false,
+    isCardInWallet: false,
   }),
 );
 
@@ -2033,6 +2034,7 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: true,
         canAddToWallet: false,
+        isCardInWallet: false,
       });
 
       render();
@@ -2055,6 +2057,7 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: false,
         canAddToWallet: true,
+        isCardInWallet: false,
       });
 
       render();
@@ -2064,6 +2067,50 @@ describe('CardHome Component', () => {
           CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
         ),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the card is already in the wallet', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the instructions when push provisioning is unavailable', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: false,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -6980,6 +7027,7 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: false,
         canAddToWallet: false,
+        isCardInWallet: false,
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();

@@ -228,6 +228,7 @@ const CardHome = () => {
     isProvisioning,
     isLoading: isPushProvisioningLoading,
     canAddToWallet,
+    isCardInWallet,
   } = useCardWalletProvisioning(data);
   const platformWallet = getWalletTypeForPlatform();
   const platformWalletSupported =
@@ -235,7 +236,8 @@ const CardHome = () => {
       ? capabilities?.pushProvisioning?.applePay === true
       : capabilities?.pushProvisioning?.googlePay === true;
   const showDigitalWalletInstructions =
-    !platformWalletSupported || (!isPushProvisioningLoading && !canAddToWallet);
+    !platformWalletSupported ||
+    (!isPushProvisioningLoading && !canAddToWallet && !isCardInWallet);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);

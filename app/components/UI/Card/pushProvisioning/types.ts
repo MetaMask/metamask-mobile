@@ -26,7 +26,6 @@ export type CardTokenStatus =
 /** Provisioning operation status */
 export type ProvisioningStatus =
   | 'idle'
-  | 'checking_eligibility'
   | 'provisioning'
   | 'success'
   | 'error'
@@ -174,4 +173,6 @@ export interface UsePushProvisioningReturn {
   isError: boolean;
   isLoading: boolean;
   canAddToWallet: boolean;
+  /** True when this card is already in the wallet, including right after a successful add. */
+  isCardInWallet: boolean;
 }

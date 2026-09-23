@@ -15,12 +15,10 @@ import {
   ProvisioningResult,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
-  CardTokenStatus,
 } from '../../types';
 import { IWalletProviderAdapter } from './IWalletProviderAdapter';
 import { BaseWalletAdapter } from './BaseWalletAdapter';
 import {
-  mapCardStatus,
   mapTokenizationStatus,
   createErrorResult,
   logAdapterError,
@@ -60,37 +58,6 @@ export class AppleWalletAdapter
 
   protected getExpectedPlatform(): PlatformOSType {
     return 'ios';
-  }
-
-  /**
-   * When the issuer supplies a stable id, match that pass.
-   * Do not fall back to the PAN suffix: after a reissue the suffix changes
-   * and a last-four match can be a different card.
-   */
-  protected async resolveExistingCardStatus(
-    lastFourDigits?: string,
-    primaryAccountIdentifier?: string,
-  ): Promise<CardTokenStatus | undefined> {
-    if (!primaryAccountIdentifier) {
-      return super.resolveExistingCardStatus(lastFourDigits);
-    }
-
-    try {
-      const wallet = await this.getWalletModule();
-      // iOS matches pass.primaryAccountIdentifier and ignores tsp.
-      const status = await wallet.getCardStatusByIdentifier(
-        primaryAccountIdentifier,
-        'MASTERCARD',
-      );
-      return mapCardStatus(status);
-    } catch (error) {
-      logAdapterError(
-        this.getAdapterName(),
-        'resolveExistingCardStatus',
-        error,
-      );
-      return 'not_found';
-    }
   }
 
   /**

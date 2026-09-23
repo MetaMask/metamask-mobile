@@ -192,10 +192,7 @@ describe('usePushProvisioning', () => {
       const { unmount } = renderHook(() => usePushProvisioning(defaultOptions));
 
       await waitFor(() => {
-        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith(
-          '1234',
-          undefined,
-        );
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith('1234');
       });
 
       unmount();
@@ -553,6 +550,69 @@ describe('usePushProvisioning', () => {
         value: originalPlatform,
         writable: true,
       });
+      unmount();
+    });
+  });
+
+  describe('isCardInWallet', () => {
+    it('is false when the card is not in the wallet', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: true,
+        existingCardStatus: 'not_found',
+        recommendedAction: 'add_card',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isCardInWallet).toBe(false);
+      unmount();
+    });
+
+    it('is false when the card requires activation', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: true,
+        existingCardStatus: 'requires_activation',
+        recommendedAction: 'add_card',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isCardInWallet).toBe(false);
+      unmount();
+    });
+
+    it('is true when the card is already active in the wallet', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        existingCardStatus: 'active',
+        recommendedAction: 'none',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isCardInWallet).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
       unmount();
     });
   });
@@ -1305,10 +1365,7 @@ describe('usePushProvisioning', () => {
         expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(2);
       });
 
-      expect(mockWalletAdapter.getEligibility).toHaveBeenLastCalledWith(
-        '5678',
-        undefined,
-      );
+      expect(mockWalletAdapter.getEligibility).toHaveBeenLastCalledWith('5678');
       unmount();
     });
   });
@@ -1360,6 +1417,7 @@ describe('usePushProvisioning', () => {
       });
 
       expect(result.current.status).toBe('success');
+      expect(result.current.isCardInWallet).toBe(true);
 
       // Should re-check eligibility after success
       await waitFor(() => {
