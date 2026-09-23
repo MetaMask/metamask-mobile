@@ -6358,11 +6358,23 @@ describe('PerpsOrderView', () => {
     });
 
     it.each([
-      { surface: 'full-screen view', useTradeSheet: false },
-      { surface: 'Trade sheet', useTradeSheet: true },
+      {
+        surface: 'full-screen view',
+        useTradeSheet: false,
+        // The full-screen form has a slippage setting, so the copy may point
+        // the user at the cap.
+        expectedCopyKey: 'perps.slippage.exceeds_max',
+      },
+      {
+        surface: 'Trade sheet',
+        useTradeSheet: true,
+        // The Trade sheet has no slippage control (product decision), so the
+        // copy must only suggest reducing the order size.
+        expectedCopyKey: 'perps.slippage.exceeds_max_reduce_size',
+      },
     ])(
       'blocks placeOrder on the $surface when estimated slippage exceeds the configured cap',
-      async ({ useTradeSheet }) => {
+      async ({ useTradeSheet, expectedCopyKey }) => {
         const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
         (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
           placeOrder: mockPlaceOrder,
@@ -6437,9 +6449,16 @@ describe('PerpsOrderView', () => {
         });
 
         // The critical AC invariant: an order whose estimated slippage exceeds
-        // the configured cap must NOT reach the order execution path. (The toast
-        // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
+        // the configured cap must NOT reach the order execution path. (The
+        // event payload is verified separately by the slippage recipe and the
+        // `eventNames` constants tests.)
         expect(mockPlaceOrder).not.toHaveBeenCalled();
+        // The i18n mock returns the key for untranslated strings, so the copy
+        // choice per surface is observable through the toast argument.
+        expect(mockValidationError).toHaveBeenCalledWith(expectedCopyKey);
+        expect(mockShowToast).toHaveBeenCalledWith({
+          id: 'slippage-block-toast',
+        });
       },
     );
 

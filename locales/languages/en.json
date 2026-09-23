@@ -2244,7 +2244,8 @@
       "increment_label": "Increase slippage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "slippage": "Slippage",
-      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size."
+      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size.",
+      "exceeds_max_reduce_size": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Reduce the order size."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."

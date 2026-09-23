@@ -1603,12 +1603,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
         const estPct = bpsToPercent(estimatedSlippageBps);
         const maxPct = bpsToPercent(maxSlippageBps);
+        // The Trade sheet deliberately has no slippage control, so its copy
+        // must not tell the user to raise a cap they cannot reach; reducing
+        // the order size is the only remedy there.
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
-            strings('perps.slippage.exceeds_max', {
-              est: estPct.toFixed(2),
-              max: maxPct.toFixed(2),
-            }),
+            strings(
+              useBottomSheet
+                ? 'perps.slippage.exceeds_max_reduce_size'
+                : 'perps.slippage.exceeds_max',
+              {
+                est: estPct.toFixed(2),
+                max: maxPct.toFixed(2),
+              },
+            ),
           ),
         );
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -1951,6 +1959,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       estimatedSlippageBps,
       exceedsMaxSlippage,
       vipTier,
+      useBottomSheet,
     ],
   );
 
