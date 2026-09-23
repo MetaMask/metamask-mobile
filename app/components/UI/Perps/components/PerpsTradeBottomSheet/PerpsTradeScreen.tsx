@@ -471,6 +471,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               />
             </Box>
           ) : (
+            // The same full-size slider as the close-position sheet, so both
+            // A/B bottom sheets share one control.
             <PerpsSlider
               value={Number.parseFloat(amount || '0')}
               onValueChange={onSliderValueChange}
@@ -480,7 +482,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
-              variant="compact"
               accessibilityLabel={strings(
                 'perps.trade_sheet.amount_slider_accessibility_label',
               )}
