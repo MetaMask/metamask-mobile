@@ -92,10 +92,12 @@ describe('useSocialV1Feed', () => {
       expect(result.current.posts[0].authorHandle).toBe('aparjey');
     });
 
-    it('omits the win-rate label when the actor has no win rate', () => {
+    // The header reads the trader's stats off the item rather than the
+    // envelope, and reports nothing when the actor sent nothing.
+    it('carries the actor stats through without inventing a win rate', () => {
       const { result } = renderHook(() => useSocialV1Feed('trending'));
 
-      expect(result.current.posts[0].winRateLabel).toBeUndefined();
+      expect(result.current.posts[0].item.author.winRatePercent).toBeNull();
     });
 
     it('reads the leaderboard scope on Trending', () => {
