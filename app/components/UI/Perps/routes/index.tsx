@@ -25,7 +25,7 @@ import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsClosePositionView from '../Views/PerpsClosePositionView';
+import PerpsClosePositionRouter from '../Views/PerpsClosePositionRouter';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
@@ -47,6 +47,7 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
+import PerpsOutreachDetailsView from '../Views/PerpsOutreachDetailsView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -56,6 +57,7 @@ import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -81,6 +83,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+const getPerpsConversionScreenOptions = (
+  isBottomSheet: boolean,
+  baseOptions: NativeStackNavigationOptions,
+): NativeStackNavigationOptions =>
+  isBottomSheet
+    ? { ...baseOptions, ...transparentModalScreenOptions }
+    : baseOptions;
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
@@ -299,6 +309,13 @@ const PerpsModalStack = () => {
               title: strings('perps.mode.selection_title'),
             }}
           />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.OUTREACH_DETAILS}
+            component={PerpsOutreachDetailsView}
+            options={{
+              title: strings('perps.outreach_details.title'),
+            }}
+          />
           {/* Action Selection Modals */}
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_MODIFY_ACTION}
@@ -360,6 +377,9 @@ const PerpsScreenStack = () => {
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
+  // Shared by every screen-to-bottom-sheet conversion in this navigator.
+  const { useBottomSheet: isPerpsBottomSheet } =
+    usePerpsScreenVsBottomSheetAbTest({ trackExposure: false });
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
@@ -451,11 +471,11 @@ const PerpsScreenStack = () => {
 
               <Stack.Screen
                 name={Routes.PERPS.CLOSE_POSITION}
-                component={PerpsClosePositionView}
-                options={{
+                component={PerpsClosePositionRouter}
+                options={getPerpsConversionScreenOptions(isPerpsBottomSheet, {
                   title: strings('perps.close_position.title'),
                   headerShown: false,
-                }}
+                })}
               />
 
               {/* Debug tools - only available in development builds */}

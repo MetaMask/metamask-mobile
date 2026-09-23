@@ -9672,7 +9672,7 @@
       "view_on_block_explorer": "Просмотр в обозревателе блоков"
     },
     "share_address_qr": {
-      "title": "адрес {{networkName}}",
+      "title": "Адрес {{networkName}}",
       "copy_address": "Скопировать адрес",
       "description": "Используйте этот адрес для получения токенов и предметов коллекционирования",
       "description_prefix": "Используйте это для получения активов на"

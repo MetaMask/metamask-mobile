@@ -3332,7 +3332,7 @@ describe('usePerpsProOrderForm', () => {
       expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('shows a final trigger-limit field error without executing the order', async () => {
+    it('places a trigger-limit order whose trigger is on the wrong side of mid', async () => {
       // Arrange
       mockOrderForm.type = 'stop_limit';
       mockOrderForm.limitPrice = '89000';
@@ -3350,8 +3350,25 @@ describe('usePerpsProOrderForm', () => {
             },
           },
         ],
-        isValid: false,
+        isValid: true,
       });
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockExecuteOrder).toHaveBeenCalled();
+      expect(validationError).not.toHaveBeenCalled();
+    });
+
+    it('still refuses a trigger-limit order that has no limit price', async () => {
+      // Arrange
+      mockOrderForm.type = 'stop_limit';
+      mockOrderForm.limitPrice = undefined;
+      mockContextValue.triggerPrice = '91000';
       const { result } = renderProForm();
 
       // Act
@@ -3362,7 +3379,7 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
-        'Trigger price must be higher than mid price',
+        'Please set a limit price for limit orders',
       );
     });
 
@@ -3419,7 +3436,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
-    it('blocks a pending trigger order when the live mid crosses the trigger', async () => {
+    it('places a pending trigger order even when the live mid crosses the trigger', async () => {
       // Arrange
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = '91000';
@@ -3457,13 +3474,10 @@ describe('usePerpsProOrderForm', () => {
         await Promise.resolve();
       });
 
-      // Assert
-      expect(validationError).toHaveBeenCalledWith(
-        'Trigger price must be higher than mid price',
-      );
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(playImpact).not.toHaveBeenCalled();
-      expect(submitted).not.toHaveBeenCalled();
+      // Assert: the mid moving past the trigger mid-flight is now advice, not
+      // a reason to drop an order the user already confirmed.
+      expect(validationError).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).toHaveBeenCalled();
     });
 
     it('navigates to the cross-margin warning and aborts', async () => {
@@ -6012,7 +6026,7 @@ describe('usePerpsProOrderForm', () => {
         message: 'Trigger price must be higher than mid price',
       },
     ] as const)(
-      'blocks $direction $orderType before blur and shows guidance after blur',
+      'stays quiet for $direction $orderType before blur and warns after blur',
       ({
         orderType,
         direction,
@@ -6027,7 +6041,9 @@ describe('usePerpsProOrderForm', () => {
           ? '90000'
           : undefined;
         mockContextValue.triggerPrice = triggerPrice;
-        mockValidation.isValid = false;
+        // A wrong-side trigger no longer invalidates the order, so the
+        // validation hook reports it as an issue while staying valid.
+        mockValidation.isValid = true;
         mockValidation.fieldIssues = [
           {
             field: 'triggerPrice',
@@ -6041,7 +6057,6 @@ describe('usePerpsProOrderForm', () => {
         const { result, rerender } = renderProForm();
 
         expect(result.current.priceCardMessage).toBeUndefined();
-        expect(result.current.isPlaceOrderDisabled).toBe(true);
 
         act(() => {
           result.current.onTriggerPriceBlur();
@@ -6049,10 +6064,10 @@ describe('usePerpsProOrderForm', () => {
         rerender({});
 
         expect(result.current.priceCardMessage).toEqual({
-          severity: 'error',
+          severity: 'warning',
           message,
         });
-        expect(result.current.isPlaceOrderDisabled).toBe(true);
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
       },
     );
 
@@ -6083,7 +6098,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.priceCardMessage).toBeUndefined();
     });
 
-    it('shows a new wrong-side error when live mid crosses a blurred trigger', () => {
+    it('shows a new wrong-side warning when live mid crosses a blurred trigger', () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = '91000';
       const { result, rerender } = renderProForm();
@@ -6095,7 +6110,7 @@ describe('usePerpsProOrderForm', () => {
 
       mockLivePrice = '92000';
       mockLiveMarkPrice = '92000';
-      mockValidation.isValid = false;
+      mockValidation.isValid = true;
       mockValidation.fieldIssues = [
         {
           field: 'triggerPrice',
@@ -6109,13 +6124,122 @@ describe('usePerpsProOrderForm', () => {
       rerender({});
 
       expect(result.current.priceCardMessage).toEqual({
-        severity: 'error',
+        severity: 'warning',
         message: 'Trigger price must be higher than mid price',
       });
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
     });
 
-    it('shows the trigger error before the required limit error', () => {
+    it.each([
+      {
+        name: 'a stop limit buy resting below its trigger',
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '95000',
+        limitPrice: '90000',
+        message: strings(
+          'perps.order.validation.limit_price_below_trigger_warning',
+        ),
+      },
+      {
+        name: 'a take profit limit sell resting above its trigger',
+        orderType: 'take_profit_limit',
+        direction: 'short',
+        triggerPrice: '90000',
+        limitPrice: '95000',
+        message: strings(
+          'perps.order.validation.limit_price_above_trigger_warning',
+        ),
+      },
+    ] as const)(
+      'warns about $name without blocking it',
+      ({ orderType, direction, triggerPrice, limitPrice, message }) => {
+        mockOrderForm.type = orderType;
+        mockOrderForm.direction = direction;
+        mockOrderForm.limitPrice = limitPrice;
+        mockContextValue.triggerPrice = triggerPrice;
+        // The rule reads both prices, so both must be finished being typed.
+        mockContextValue.hasBlurredTriggerPrice = true;
+        mockValidation.isValid = true;
+        mockValidation.fieldIssues = [];
+        const { result, rerender } = renderProForm();
+
+        act(() => {
+          result.current.onLimitPriceBlur();
+        });
+        rerender({});
+
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'warning',
+          message,
+        });
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+      },
+    );
+
+    it('stays quiet about a trigger price the user is still typing', () => {
+      // Short take-limit with the limit already taken from Mid. On the way to
+      // 3000 the trigger passes through '3' and '30', both below that limit,
+      // which would read as "limit is above trigger" if the rule fired before
+      // the trigger was committed.
+      mockOrderForm.type = 'take_profit_limit';
+      mockOrderForm.direction = 'short';
+      mockOrderForm.limitPrice = '2500';
+      mockContextValue.triggerPrice = '3';
+      mockContextValue.hasBlurredTriggerPrice = false;
+      mockValidation.isValid = true;
+      mockValidation.fieldIssues = [];
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+    });
+
+    it('warns once the half-typed trigger price is committed', () => {
+      mockOrderForm.type = 'take_profit_limit';
+      mockOrderForm.direction = 'short';
+      mockOrderForm.limitPrice = '2500';
+      mockContextValue.triggerPrice = '3';
+      mockContextValue.hasBlurredTriggerPrice = true;
+      mockValidation.isValid = true;
+      mockValidation.fieldIssues = [];
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'warning',
+        message: strings(
+          'perps.order.validation.limit_price_above_trigger_warning',
+        ),
+      });
+    });
+
+    it('stays quiet when a stop limit buy rests at or above its trigger', () => {
+      mockOrderForm.type = 'stop_limit';
+      mockOrderForm.direction = 'long';
+      mockOrderForm.limitPrice = '96000';
+      mockContextValue.triggerPrice = '95000';
+      mockValidation.isValid = true;
+      mockValidation.fieldIssues = [];
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+      rerender({});
+
+      expect(result.current.priceCardMessage).toBeUndefined();
+    });
+
+    it('shows the blocking limit error rather than advice about a placeable trigger', () => {
       mockOrderForm.type = 'stop_limit';
       mockOrderForm.limitPrice = undefined;
       mockContextValue.triggerPrice = '1000';
@@ -6139,10 +6263,13 @@ describe('usePerpsProOrderForm', () => {
       });
       rerender({});
 
+      // The missing limit price is what holds the CTA down, so it is what the
+      // user is told; the wrong-side trigger is only advice and would place.
       expect(result.current.priceCardMessage).toEqual({
         severity: 'error',
-        message: 'Trigger price must be higher than mid price',
+        message: strings('perps.order.validation.limit_price_required'),
       });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it.each(['stop_limit', 'take_profit_limit'] as const)(
@@ -6845,10 +6972,27 @@ describe('usePerpsProOrderForm', () => {
         result.current.onOrderTypeSelect('limit');
       });
 
-      // Assert
-      expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
+      // Assert: a limit order keeps the prices already typed, so their
+      // committed state is kept too.
+      expect(mockResetPriceInputInteraction).not.toHaveBeenCalled();
       expect(mockSetOrderType).toHaveBeenCalledWith('limit');
     });
+
+    it.each(['twap', 'scale', 'chase'] as const)(
+      'forgets committed prices when %s discards them',
+      (orderType) => {
+        // Arrange
+        const { result } = renderProForm();
+
+        // Act
+        act(() => {
+          result.current.onOrderTypeSelect(orderType);
+        });
+
+        // Assert
+        expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
+      },
+    );
 
     it('clears incompatible prices when TWAP is selected', () => {
       mockOrderForm.limitPrice = '91000';
@@ -6924,13 +7068,13 @@ describe('usePerpsProOrderForm', () => {
       ).toBeDefined();
     });
 
-    it('preserves price values while resetting presentation for a new order type', () => {
+    it('keeps showing the trigger warning when the carried-over price moves to a new order type', () => {
       // Arrange
       mockOrderForm.type = 'stop_market';
       mockOrderForm.limitPrice = '91000';
       mockContextValue.triggerPrice = '92000';
       mockContextValue.hasBlurredTriggerPrice = true;
-      mockValidation.isValid = false;
+      mockValidation.isValid = true;
       mockValidation.fieldIssues = [
         {
           field: 'triggerPrice',
@@ -6943,7 +7087,7 @@ describe('usePerpsProOrderForm', () => {
       ];
       const { result, rerender } = renderProForm();
       expect(result.current.priceCardMessage).toEqual({
-        severity: 'error',
+        severity: 'warning',
         message: 'Trigger price must be higher than mid price',
       });
 
@@ -6954,14 +7098,18 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.type = 'stop_limit';
       rerender({});
 
-      // Assert
-      expect(mockResetPriceInputInteraction).toHaveBeenCalledTimes(1);
+      // Assert: the trigger price survives the switch untouched, so the
+      // warning it earned survives with it instead of needing a re-visit.
+      expect(mockResetPriceInputInteraction).not.toHaveBeenCalled();
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
       expect(mockSetTriggerPrice).not.toHaveBeenCalled();
       expect(mockOrderForm.limitPrice).toBe('91000');
       expect(mockContextValue.triggerPrice).toBe('92000');
-      expect(result.current.priceCardMessage).toBeUndefined();
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'warning',
+        message: 'Trigger price must be higher than mid price',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
     });
     it('ignores size input over nine digits and forwards valid input', () => {
       // Arrange
