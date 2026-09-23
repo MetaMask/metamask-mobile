@@ -26,13 +26,6 @@ export interface TabProps extends PressableProps {
    */
   onLayout?: (event: LayoutChangeEvent) => void;
   /**
-   * Whether the tab stretches to share the row's width with its siblings
-   * instead of hugging its label
-   *
-   * @default false
-   */
-  isFullWidth?: boolean;
-  /**
    * Whether to render a dot after the label, for tabs holding something the
    * user has not seen or acted on yet
    */

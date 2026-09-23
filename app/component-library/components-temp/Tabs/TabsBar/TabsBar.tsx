@@ -47,7 +47,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
   onTabPress,
   testID,
   twClassName,
-  isFullWidth = false,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -158,12 +157,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   // Check if content overflows and update scroll state
   useEffect(() => {
-    // Full-width tabs share the bar's width, so they can never overflow.
-    if (isFullWidth) {
-      setScrollEnabled(false);
-      return;
-    }
-
     if (
       containerWidth > 0 &&
       areAllTabLayoutsMeasured(tabLayouts.current, tabs.length)
@@ -180,7 +173,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
       const shouldScroll = calculatedContentWidth > containerWidth - 32;
       setScrollEnabled(shouldScroll);
     }
-  }, [containerWidth, tabs.length, isFullWidth]);
+  }, [containerWidth, tabs.length]);
 
   // Handle container layout to measure available width
   const handleContainerLayout = (layoutEvent: LayoutChangeEvent) => {
@@ -252,7 +245,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           }
 
           // Update scroll detection
-          if (containerWidth > 0 && !isFullWidth) {
+          if (containerWidth > 0) {
             const totalWidth = tabLayouts.current.reduce(
               (sum, layout) => sum + (layout?.width || 0),
               0,
@@ -265,14 +258,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         }
       }
     },
-    [
-      tabs.length,
-      layoutsReady,
-      containerWidth,
-      animateToTab,
-      isInitialized,
-      isFullWidth,
-    ],
+    [tabs.length, layoutsReady, containerWidth, animateToTab, isInitialized],
   );
 
   const underlineStyle = useAnimatedStyle(() => ({
@@ -302,7 +288,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={isFullWidth ? 'relative w-full gap-6' : 'relative gap-6'}
+      twClassName="relative gap-6"
     >
       {tabs.map((tab, index) => (
         <Tab
@@ -311,7 +297,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
           isActive={index === activeIndex}
           isDisabled={tab.isDisabled}
           showsIndicatorDot={tab.showsIndicatorDot}
-          isFullWidth={isFullWidth}
           onPress={() => handleTabPress(index)}
           onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
           testID={tab.testID ?? `${testID}-tab-${index}`}

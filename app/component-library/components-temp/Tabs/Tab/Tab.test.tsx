@@ -45,16 +45,6 @@ describe('Tab', () => {
       expect(queryByTestId('plain-tab-indicator-dot')).toBeNull();
     });
 
-    it('stretches to share the row when isFullWidth is true', () => {
-      const { getByTestId } = render(
-        <Tab {...defaultProps} isFullWidth testID="full-width-tab" />,
-      );
-
-      expect(getByTestId('full-width-tab-container')).toHaveStyle({
-        flexGrow: 1,
-      });
-    });
-
     it('renders long labels without truncating the element', () => {
       const longLabel =
         'This is a very long tab label that should be truncated';

@@ -20,7 +20,6 @@ const Tab: React.FC<TabProps> = ({
   onPress,
   testID,
   onLayout,
-  isFullWidth = false,
   showsIndicatorDot = false,
   ...pressableProps
 }) => {
@@ -40,8 +39,7 @@ const Tab: React.FC<TabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={tw.style(isFullWidth ? 'flex-1' : 'flex-shrink-0')}
-      testID={testID ? `${testID}-container` : undefined}
+      style={tw.style('flex-shrink-0')}
     >
       <Pressable
         style={tw.style(
@@ -53,8 +51,7 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* The label sizes itself, so the overlay below spans the label rather
-            than the whole tab, which a full-width tab would stretch. */}
+        {/* The label sizes itself, so the dot below can sit beside it */}
         <View>
           {/* Hidden bold text that determines layout size */}
           <Text
