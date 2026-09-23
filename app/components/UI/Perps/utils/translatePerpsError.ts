@@ -1,6 +1,8 @@
 import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
+  ORDER_SLIPPAGE_CONFIG,
+  type PerpsErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
@@ -10,6 +12,92 @@ import {
  * When provided, enables detailed logging for debugging.
  */
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
+
+export interface PerpsErrorInput {
+  error?: unknown;
+  errorCode?: PerpsErrorCode;
+  errorDetails?: PerpsErrorDetails;
+  context?: Record<string, unknown>;
+}
+
+const formatBpsAsPercent = (bps: number): number =>
+  Math.round((bps / 100) * 100) / 100;
+
+const getPerpsErrorInput = (
+  error: unknown,
+): {
+  errorString: string | null;
+  errorCode?: PerpsErrorCode;
+  errorDetails?: PerpsErrorDetails;
+  context?: Record<string, unknown>;
+} => {
+  if (error instanceof Error) {
+    const typedError = error as Error & {
+      errorCode?: PerpsErrorCode;
+      errorDetails?: PerpsErrorDetails;
+    };
+    return {
+      errorString: error.message,
+      errorCode: typedError.errorCode,
+      errorDetails: typedError.errorDetails,
+    };
+  }
+
+  if (error !== null && typeof error === 'object' && !Array.isArray(error)) {
+    const input = error as PerpsErrorInput;
+    const nestedError = input.error;
+    return {
+      errorString:
+        nestedError instanceof Error
+          ? nestedError.message
+          : typeof nestedError === 'string'
+            ? nestedError
+            : null,
+      errorCode: input.errorCode,
+      errorDetails: input.errorDetails,
+      context: input.context,
+    };
+  }
+
+  return {
+    errorString:
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : null,
+  };
+};
+
+const getErrorInterpolationData = (
+  errorCode: PerpsErrorCode | undefined,
+  errorDetails: PerpsErrorDetails | undefined,
+  context?: Record<string, unknown>,
+): Record<string, unknown> => {
+  const interpolationData: Record<string, unknown> = {};
+
+  if (
+    PERPS_ERROR_CODES.PRICE_MOVED &&
+    errorDetails?.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    Number.isFinite(errorDetails.priceDeltaBps) &&
+    Number.isFinite(errorDetails.maxSlippageBps)
+  ) {
+    interpolationData.priceDelta = formatBpsAsPercent(
+      errorDetails.priceDeltaBps,
+    );
+    interpolationData.maxSlippage = formatBpsAsPercent(
+      errorDetails.maxSlippageBps,
+    );
+  } else if (errorCode === PERPS_ERROR_CODES.IOC_CANCEL) {
+    const maxSlippageBps =
+      typeof context?.maxSlippageBps === 'number'
+        ? context.maxSlippageBps
+        : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
+    interpolationData.maxSlippage = formatBpsAsPercent(maxSlippageBps);
+  }
+
+  return interpolationData;
+};
 
 /**
  * Maps error codes to i18n keys
@@ -35,7 +123,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
-  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.insufficientLiquidity',
+  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',
   [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
   // Withdraw validation errors
   [PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED]:
@@ -193,6 +281,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
+  [PERPS_ERROR_CODES.PRICE_MOVED]: 'perps.errors.priceMoved',
   [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
   // Network/service errors
   [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
@@ -330,15 +419,24 @@ export function translatePerpsError(
   error: unknown,
   data?: Record<string, unknown>,
 ): string {
+  const {
+    errorString,
+    errorCode,
+    errorDetails,
+    context: errorContext,
+  } = getPerpsErrorInput(error);
+  const interpolationData = {
+    ...getErrorInterpolationData(errorCode, errorDetails, errorContext),
+    ...data,
+  };
+
   // Handle null or undefined
   if (error === null || error === undefined) {
     return strings('perps.errors.unknownError');
   }
 
-  // Handle error code strings
-  if (typeof error === 'string' && error in ERROR_CODE_TO_I18N_KEY) {
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[error as PerpsErrorCode];
-    return strings(i18nKey, data || {});
+  if (errorCode && errorCode in ERROR_CODE_TO_I18N_KEY) {
+    return strings(ERROR_CODE_TO_I18N_KEY[errorCode], interpolationData);
   }
 
   // Handle standard Error objects
@@ -346,26 +444,32 @@ export function translatePerpsError(
     // Check if error message is an error code
     if (error.message in ERROR_CODE_TO_I18N_KEY) {
       const i18nKey = ERROR_CODE_TO_I18N_KEY[error.message as PerpsErrorCode];
-      return strings(i18nKey, data || {});
+      return strings(i18nKey, interpolationData);
     }
     // Try pattern matching for API error messages
     const matchedErrorCode = matchApiErrorPattern(error.message);
     if (matchedErrorCode) {
       const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, data || {});
+      return strings(i18nKey, interpolationData);
     }
     return error.message;
   }
 
   // Handle string errors that might be error codes
-  if (typeof error === 'string') {
+  if (errorString) {
+    if (errorString in ERROR_CODE_TO_I18N_KEY) {
+      return strings(
+        ERROR_CODE_TO_I18N_KEY[errorString as PerpsErrorCode],
+        interpolationData,
+      );
+    }
     // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(error);
+    const matchedErrorCode = matchApiErrorPattern(errorString);
     if (matchedErrorCode) {
       const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, data || {});
+      return strings(i18nKey, interpolationData);
     }
-    return error;
+    return errorString;
   }
 
   // Handle objects, numbers, and other types
@@ -379,6 +483,16 @@ export function isPerpsErrorCode(
   error: unknown,
   code: PerpsErrorCode,
 ): boolean {
+  if (
+    error !== null &&
+    typeof error === 'object' &&
+    !Array.isArray(error) &&
+    'errorCode' in error &&
+    (error as PerpsErrorInput).errorCode === code
+  ) {
+    return true;
+  }
+
   if (error instanceof Error && error.message === code) {
     return true;
   }
@@ -444,14 +558,19 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     return fallbackMessage || strings('perps.errors.unknownError');
   }
 
-  // Extract error string from Error objects or use as-is
-  let errorString: string | null = null;
-
-  if (error instanceof Error) {
-    errorString = error.message;
-  } else if (typeof error === 'string') {
-    errorString = error;
-  }
+  const parsedError = getPerpsErrorInput(error);
+  const errorString = parsedError.errorString;
+  const errorCode =
+    parsedError.errorCode ??
+    (errorString &&
+    Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
+      ? (errorString as PerpsErrorCode)
+      : undefined);
+  const errorParams = getErrorInterpolationData(
+    errorCode,
+    parsedError.errorDetails,
+    context ?? parsedError.context,
+  );
 
   // Log error for debugging (without event tracking)
   debugLogger?.log('PerpsErrorHandler: Error encountered', {
@@ -461,14 +580,9 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   });
 
   // Check if it's a Core PerpsController or Perps Provider error code
-  if (
-    errorString &&
-    Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
-  ) {
+  if (errorCode && errorCode in ERROR_CODE_TO_I18N_KEY) {
     // Map error codes to their required parameters
-    const errorParams: Record<string, unknown> = {};
-
-    switch (errorString) {
+    switch (errorCode) {
       case PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED:
         errorParams.token = context?.token || 'Unknown';
         break;
@@ -479,11 +593,11 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
       // Add other error codes that need parameters as they arise
       default:
         // Pass through any provided context as-is for other errors
-        Object.assign(errorParams, context || {});
+        Object.assign(errorParams, context || parsedError.context || {});
         break;
     }
 
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[errorString as PerpsErrorCode];
+    const i18nKey = ERROR_CODE_TO_I18N_KEY[errorCode];
     return strings(i18nKey, errorParams);
   }
 

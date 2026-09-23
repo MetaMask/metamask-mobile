@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -9,6 +10,8 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
+  KeyValueRow,
+  KeyValueRowVariant,
   Text,
   TextColor,
   TextVariant,
@@ -30,6 +33,7 @@ import { formatPositionSize } from '../../utils/formatUtils';
 import PerpsCloseTotals from './components/PerpsCloseTotals';
 import PerpsClosePositionSheetHeader from './components/PerpsClosePositionSheetHeader';
 import PerpsLimitPriceRow from './components/PerpsLimitPriceRow';
+import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
 
 /** One top-of-book button here, unlike the modal's separate bid and ask. */
 const LIMIT_PRESET_TEST_IDS = {
@@ -42,6 +46,7 @@ const LIMIT_PRESET_TEST_IDS = {
 const PerpsClosePositionBottomSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const [isSlippageVisible, setIsSlippageVisible] = useState(false);
 
   const dismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -78,11 +83,20 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     receiveAmount,
     filteredErrors,
     isClosing,
+    shouldOpenSlippage,
+    maxSlippageBps,
+    setMaxSlippage,
   } = usePerpsClosePositionForm({
     dismiss,
     confirmButtonTestID:
       PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
   });
+
+  React.useEffect(() => {
+    if (shouldOpenSlippage) {
+      setIsSlippageVisible(true);
+    }
+  }, [shouldOpenSlippage]);
 
   // The sheet has two modes: reviewing the close (slider, totals, CTA) and
   // editing the limit price (limit row, presets, keypad). The keypad covers
@@ -265,6 +279,25 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         />
       )}
 
+      {effectiveOrderType === 'market' &&
+        !isEditingLimitPrice &&
+        !isInputFocused && (
+        <Box twClassName="px-4 pb-0">
+          <Box twClassName="bg-background-section rounded-xl overflow-hidden">
+            <TouchableOpacity
+              testID={PerpsClosePositionBottomSheetSelectorsIDs.SLIPPAGE_ROW}
+              onPress={() => setIsSlippageVisible(true)}
+            >
+              <KeyValueRow
+                variant={KeyValueRowVariant.Input}
+                keyLabel={strings('perps.slippage.slippage')}
+                value={`${maxSlippageBps / 100}%`}
+              />
+            </TouchableOpacity>
+          </Box>
+        </Box>
+      )}
+
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
           margin={summaryMargin}
@@ -400,6 +433,13 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           </Box>
         </>
       )}
+
+      <PerpsSlippageBottomSheet
+        isVisible={isSlippageVisible && effectiveOrderType === 'market'}
+        currentValueBps={maxSlippageBps}
+        onClose={() => setIsSlippageVisible(false)}
+        onSave={setMaxSlippage}
+      />
     </BottomSheet>
   );
 };

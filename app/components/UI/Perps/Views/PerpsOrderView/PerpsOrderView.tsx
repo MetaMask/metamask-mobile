@@ -101,6 +101,7 @@ import {
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
+  PERPS_ERROR_CODES,
   calculatePositionSize,
   getPerpsDisplaySymbol,
   type InputMethod,
@@ -208,6 +209,10 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
+import {
+  handlePerpsError,
+  isPerpsErrorCode,
+} from '../../utils/translatePerpsError';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
@@ -1183,28 +1188,37 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
-  // Execution failures surface through the `onError` toast after we leave the
-  // form — market details by default, or the presenting screen when
-  // `stayOnCurrentScreen` is set.
-  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
-    usePerpsOrderExecution({
-      onSuccess: (_position) => {
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
-        );
-      },
-      onError: (error) => {
-        // Error is already captured in usePerpsOrderExecution hook
-        // No need to capture again here to avoid duplicate Sentry reports
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].creationFailed(error),
-        );
-      },
-    });
+  const {
+    placeOrder: executeOrder,
+    isPlacing: isPlacingOrder,
+    error: orderExecutionError,
+  } = usePerpsOrderExecution({
+    onSuccess: (_position) => {
+      showToast(
+        PerpsToastOptions.orderManagement[
+          getOrderManagementToastKey(orderForm.type)
+        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+      );
+    },
+    onError: (error) => {
+      // No need to capture again here to avoid duplicate Sentry reports
+      const onAdjustSlippage =
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.IOC_CANCEL) ||
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.PRICE_MOVED) ||
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED)
+          ? () => setIsSlippageVisible(true)
+          : undefined;
+      const creationFailed =
+        PerpsToastOptions.orderManagement[
+          getOrderManagementToastKey(orderForm.type)
+        ].creationFailed;
+      showToast(
+        onAdjustSlippage
+          ? creationFailed(error, onAdjustSlippage)
+          : creationFailed(error),
+      );
+    },
+  });
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(
@@ -1905,6 +1919,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             vipTier,
             hasCustomTokenSelected,
             payToken,
+            maxSlippageBps,
+            maxSlippageSource,
+            estimatedSlippageBps:
+              typeof estimatedSlippageBps === 'number'
+                ? estimatedSlippageBps
+                : undefined,
           }),
         });
 
@@ -2458,6 +2478,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     ? strings('perps.tpsl.below')
                     : strings('perps.tpsl.above'),
                 priceType: tpslPriceType,
+              }),
+            },
+          ]
+        : []),
+      ...(orderExecutionError
+        ? [
+            {
+              key: `execution-${
+                typeof orderExecutionError === 'string'
+                  ? orderExecutionError
+                  : (orderExecutionError.errorCode ??
+                    String(orderExecutionError.error ?? 'unknown'))
+              }`,
+              message: handlePerpsError({
+                error: orderExecutionError,
+                fallbackMessage: strings('perps.errors.unknownError'),
               }),
             },
           ]
