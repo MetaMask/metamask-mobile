@@ -397,6 +397,46 @@ jobs:
             echo "No changes detected"
           fi
 
+  smart-e2e-contract-tests:
+    name: Smart E2E contract tests
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    if: >-
+      ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
+    needs:
+      - get_requirements
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Read AI Analyzer ref
+        id: analyzer-ref
+        shell: bash
+        run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+      - name: Checkout AI Analyzer
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: ${{ steps.analyzer-ref.outputs.ref }}
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+      - name: Install AI Analyzer dependencies
+        working-directory: .ai-analyzer-action
+        run: npm ci
+      - run: yarn test:smart-e2e
+
   # Advisory only: never fails, never gates merges. Surfaces findings via a
   # workflow warning and step summary instead. Exposes `has-advisories` as a
   # job output so a follow-up automation can consume it without this job
@@ -1444,6 +1484,11 @@ jobs:
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
+      - name: Read AI Analyzer ref
+        id: analyzer-ref
+        shell: bash
+        run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+
       - name: Run Smart E2E Selection
         id: e2e-selection
         uses: ./.github/actions/smart-e2e-selection
@@ -1453,7 +1498,7 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
-          analyzer-ref: 9499081fbaa5001bad2884097a23c0bc1db297a4
+          analyzer-ref: ${{ steps.analyzer-ref.outputs.ref }}
           analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}

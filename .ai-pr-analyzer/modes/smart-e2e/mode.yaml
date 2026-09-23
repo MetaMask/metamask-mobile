@@ -30,7 +30,7 @@ skills:
     coding style, or how to open a PR.
 # Gate stays unset (engine default is off). Do not declare
 # `AI PR Analyzer / Gate` — that check belongs to pr-risk-analysis.
-# Pin both tiers so repo escalationPatterns cannot switch the model.
+# Pin both tiers so repo escalationPatterns cannot switch the model. Legacy smart E2E mode uses claude-sonnet-4-6.
 # Prefer a tight budget; raise only if continue hard-rules need more room.
 config:
   maxIterations: 20
