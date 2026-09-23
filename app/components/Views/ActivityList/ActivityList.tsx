@@ -104,6 +104,9 @@ import {
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
+import { useRampsOrders } from '../../UI/Ramp/hooks/useRampsOrders';
+import { getOrders } from '../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../reducers/fiatOrders/types';
 import {
   navigateToRampOrderTarget,
   resolveRampOrderTarget,
@@ -167,6 +170,8 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
+  /** Collapse each Perps order's fills into one row. Defaults to on. */
+  aggregateFills?: boolean;
   trackScreenViewed?: boolean;
   entryPoint?: ActivityScreenEntryPoint;
 }
@@ -185,6 +190,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter,
       networkFilter,
       subFilterKinds,
+      aggregateFills = true,
       trackScreenViewed = false,
       entryPoint,
     },
@@ -221,6 +227,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const localActivityItems = useLocalActivityItems();
     const rampActivityItems = useRampActivityItems();
     const { goToBuy } = useRampNavigation();
+    const legacyFiatOrders = useSelector(getOrders);
+    const { orders: v2RampsOrders } = useRampsOrders();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const perps = usePerpsActivityItems({
@@ -228,6 +236,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         isPerpsEnabled &&
         (typeFilter === ActivityTypeFilter.Perps ||
           typeFilter === ActivityTypeFilter.All),
+      aggregateFills,
     });
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const predictFilterActive =
@@ -763,27 +772,47 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
-        const { raw } = item;
-
         // Ramp rows own their redesign gate: flag ON → ActivityDetails /
         // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
         // shared redesign early-return so CREATED deposits always resume buy and
         // flag-OFF never accidentally hits ActivityDetails.
         // Sell/offramp always uses legacy OrderDetails — that screen owns the
         // Continue → Send Transaction flow which ActivityDetails does not.
-        if (raw?.type === 'rampOrder') {
-          if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
-            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
-            return;
-          }
+        if (item.type === 'buy' || item.type === 'sell') {
+          const hash = item.hash?.toLowerCase();
+          const rawOrder:
+            | FiatOrder
+            | (typeof v2RampsOrders)[number]
+            | undefined =
+            (legacyFiatOrders as FiatOrder[]).find(
+              (o) =>
+                // Sell orders key their on-chain hash under sellTxHash, not txHash.
+                // Check every candidate because placeholders such as `0x` are
+                // truthy but are rejected by the activity mapper.
+                o.sellTxHash?.toLowerCase() === hash ||
+                o.txHash?.toLowerCase() === hash ||
+                o.id?.toLowerCase() === hash,
+            ) ??
+            v2RampsOrders.find(
+              (o) =>
+                o.txHash?.toLowerCase() === hash ||
+                o.id?.toLowerCase() === hash,
+            );
 
-          if (item.type === 'sell') {
-            navigateToRampOrderTarget({
-              data: raw.data,
-              navigation,
-              goToBuy,
-            });
-            return;
+          if (rawOrder) {
+            if (resolveRampOrderTarget(rawOrder) === 'deposit-resume-buy') {
+              goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
+              return;
+            }
+
+            if (item.type === 'sell') {
+              navigateToRampOrderTarget({
+                data: rawOrder,
+                navigation,
+                goToBuy,
+              });
+              return;
+            }
           }
 
           const detailsRoute = getActivityDetailsRoute(item);
@@ -798,7 +827,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         }
       },
-      [goToBuy, navigation],
+      [goToBuy, legacyFiatOrders, navigation, v2RampsOrders],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.

@@ -59,6 +59,11 @@ import {
   getPredictPortfolioServiceInitMessenger,
   getPredictPortfolioServiceMessenger,
 } from './predict-portfolio-service-messenger';
+import { getRecurringOrdersDataServiceMessenger } from './recurring-orders-data-service-messenger';
+import {
+  getPredictOrderPreviewServiceInitMessenger,
+  getPredictOrderPreviewServiceMessenger,
+} from './predict-order-preview-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -69,6 +74,7 @@ import {
   getMultichainAccountServiceMessenger,
 } from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
+import { getRewardsMoneyControllerMessenger } from './rewards-money-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
 import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
 import {
@@ -119,6 +125,7 @@ import { getGeolocationApiServiceMessenger } from './geolocation-api-service-mes
 import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
+import { getRewardsMoneyDataServiceMessenger } from './rewards-money-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
@@ -376,6 +383,14 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictPortfolioServiceMessenger,
     getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
+  PredictOrderPreviewService: {
+    getMessenger: getPredictOrderPreviewServiceMessenger,
+    getInitMessenger: getPredictOrderPreviewServiceInitMessenger,
+  },
+  RecurringOrdersDataService: {
+    getMessenger: getRecurringOrdersDataServiceMessenger,
+    getInitMessenger: noop,
+  },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,
     getInitMessenger: getBridgeControllerInitMessenger,
@@ -398,6 +413,14 @@ export const MESSENGER_FACTORIES = {
   },
   RewardsDataService: {
     getMessenger: getRewardsDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RewardsMoneyController: {
+    getMessenger: getRewardsMoneyControllerMessenger,
+    getInitMessenger: noop,
+  },
+  RewardsMoneyDataService: {
+    getMessenger: getRewardsMoneyDataServiceMessenger,
     getInitMessenger: noop,
   },
   RampsController: {

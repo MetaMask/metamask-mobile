@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
+  IconName,
   Text,
   TextButton,
   TextColor,
@@ -18,7 +25,9 @@ import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
 import { selectIsUnlocked } from '../../selectors/keyringController';
 import {
+  selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldRepairSocialLoginBasicFunctionality,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -48,9 +57,8 @@ export function useBasicFunctionalityConsolidation(): void {
   const isRunning = useRef(false);
   const hasPresentedBottomSheet = useRef(false);
   const hasPresentedToast = useRef(false);
-  const toastCtaAction = useRef<BasicFunctionalityMixedToastAction | null>(
-    null,
-  );
+  const isHidingToastWithoutAck = useRef(false);
+  const hasAcknowledgedToast = useRef(false);
 
   const trackMixedToastNotice = useCallback(
     (action: BasicFunctionalityMixedToastAction) => {
@@ -75,6 +83,12 @@ export function useBasicFunctionalityConsolidation(): void {
     selectBasicFunctionalityEnabled,
   );
   const completedOnboarding = useSelector(selectCompletedOnboardingSafely);
+  const isExistingSocialWalletRestore = useSelector(
+    selectIsExistingSocialWalletRestore,
+  );
+  const shouldRepairSocialLoginBasicFunctionality = useSelector(
+    selectShouldRepairSocialLoginBasicFunctionality,
+  );
   const shouldShowBottomSheet = useSelector(
     selectShouldShowBasicFunctionalityMigrationBottomSheet,
   );
@@ -88,18 +102,29 @@ export function useBasicFunctionalityConsolidation(): void {
   // existing wallet never reads false here; latching a false read marks this as
   // an onboarding session and keeps the newly created wallet off the
   // existing-wallet migration path, which would otherwise show it a notice.
+  //
+  // Social rehydration also reads false while restoring, but it hands back a
+  // wallet that already exists and is never enrolled by onboarding, so release
+  // the latch and migrate it in the same session instead of the next launch.
   const isOnboardingSession = useRef(false);
-  if (!completedOnboarding) {
+  if (isExistingSocialWalletRestore) {
+    isOnboardingSession.current = false;
+  } else if (!completedOnboarding) {
     isOnboardingSession.current = true;
   }
 
+  // The onboarding-session latch only guards wallets onboarding has not yet
+  // enrolled. A social repair targets an already-enrolled wallet, so it runs in
+  // the session that finds Basic Functionality off rather than the next launch.
+  const shouldRunConsolidation =
+    (isFlagEnabled && !isConsolidated && !isOnboardingSession.current) ||
+    shouldRepairSocialLoginBasicFunctionality;
+
   useEffect(() => {
     if (
-      !isFlagEnabled ||
-      isConsolidated ||
+      !shouldRunConsolidation ||
       !isUnlocked ||
       !completedOnboarding ||
-      isOnboardingSession.current ||
       isRunning.current
     ) {
       return;
@@ -116,16 +141,13 @@ export function useBasicFunctionalityConsolidation(): void {
       .finally(() => {
         isRunning.current = false;
       });
-  }, [
-    completedOnboarding,
-    dispatch,
-    isConsolidated,
-    isFlagEnabled,
-    isUnlocked,
-  ]);
+  }, [completedOnboarding, dispatch, isUnlocked, shouldRunConsolidation]);
 
-  // Gating on `isUnlocked` keeps the notice off the lock screen. Clearing the
-  // presented ref while locked lets it present once the wallet is unlocked.
+  // `isUnlocked` is not enough on its own to keep the notice off the lock
+  // screen, since the keyring unlocks before Login hands the session over.
+  // Mounting on the wallet stack is what guarantees the handoff has happened;
+  // `isUnlocked` covers LockScreen, which covers the wallet without
+  // unmounting it. Clearing the ref while locked lets it present on unlock.
   useEffect(() => {
     if (!shouldShowBottomSheet || !isUnlocked) {
       hasPresentedBottomSheet.current = false;
@@ -145,27 +167,69 @@ export function useBasicFunctionalityConsolidation(): void {
     if (!shouldShowToast || !isUnlocked) {
       // Hide the overlay without acknowledging the notice. The DS Toaster sits
       // in FullWindowOverlay above native-stack screens, so leaving it up would
-      // keep the Settings link tappable on the lock screen.
+      // keep the Settings link tappable on the lock screen. Swipe and
+      // toast.dismiss() share closeToast() and do not call onClose, so this
+      // flag is only needed if that wiring changes.
       if (hasPresentedToast.current) {
+        isHidingToastWithoutAck.current = true;
         toast.dismiss();
+        isHidingToastWithoutAck.current = false;
       }
       hasPresentedToast.current = false;
+      hasAcknowledgedToast.current = false;
       return;
     }
     if (hasPresentedToast.current) {
       return;
     }
 
-    const dismissNotification = () => {
+    const acknowledgeToast = (
+      action: BasicFunctionalityMixedToastAction.DISMISS,
+    ) => {
+      if (isHidingToastWithoutAck.current || hasAcknowledgedToast.current) {
+        return;
+      }
+      hasAcknowledgedToast.current = true;
+      trackMixedToastNotice(action);
       dispatch(dismissBasicFunctionalityMigrationNotification());
     };
 
     hasPresentedToast.current = true;
-    toastCtaAction.current = null;
     trackMixedToastNotice(BasicFunctionalityMixedToastAction.VIEWED);
     toast({
       hasNoTimeout: true,
-      title: strings('basic_functionality_migration.title'),
+      // The design system close button occupies its own column for the whole
+      // toast height, which wraps every description line short of the edge.
+      // Render it beside the title instead so the description spans the width.
+      showCloseButton: false,
+      title: (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1"
+          >
+            {strings('basic_functionality_migration.title')}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            accessibilityLabel={strings('navigation.close')}
+            // The 32pt touch target would otherwise grow the title row and sit
+            // further in than the padding the toast reserves for its own close
+            // button.
+            twClassName="-my-1 -mr-2"
+            onPress={() => {
+              acknowledgeToast(BasicFunctionalityMixedToastAction.DISMISS);
+              toast.dismiss();
+            }}
+          />
+        </Box>
+      ),
       // A node rather than a string so the settings link flows inline with the
       // sentence instead of sitting below it as a separate action button.
       description: (
@@ -180,12 +244,13 @@ export function useBasicFunctionalityConsolidation(): void {
           <TextButton
             variant={TextVariant.BodySm}
             onPress={() => {
-              toastCtaAction.current =
-                BasicFunctionalityMixedToastAction.OPEN_SETTINGS;
-              trackMixedToastNotice(
-                BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
-              );
-              dismissNotification();
+              if (!hasAcknowledgedToast.current) {
+                hasAcknowledgedToast.current = true;
+                trackMixedToastNotice(
+                  BasicFunctionalityMixedToastAction.OPEN_SETTINGS,
+                );
+                dispatch(dismissBasicFunctionalityMigrationNotification());
+              }
               toast.dismiss();
               NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
                 screen: Routes.SETTINGS.SECURITY_SETTINGS,
@@ -196,17 +261,12 @@ export function useBasicFunctionalityConsolidation(): void {
           </TextButton>
         </Text>
       ),
+      // Today's Toaster only invokes this from its own close button, which we
+      // hide. Swipe and toast.dismiss() use closeToast() and skip it. Keep the
+      // handler so a later Toaster that forwards those paths still acknowledges,
+      // without treating a lock-screen hide as dismiss.
       onClose: () => {
-        // Opening Settings also dismisses the toast; only count a plain close
-        // as dismiss so we do not double-fire against the CTA action.
-        if (
-          toastCtaAction.current !==
-          BasicFunctionalityMixedToastAction.OPEN_SETTINGS
-        ) {
-          trackMixedToastNotice(BasicFunctionalityMixedToastAction.DISMISS);
-        }
-        toastCtaAction.current = null;
-        dismissNotification();
+        acknowledgeToast(BasicFunctionalityMixedToastAction.DISMISS);
       },
     });
   }, [

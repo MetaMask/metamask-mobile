@@ -9,7 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
@@ -129,12 +129,12 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
 
   return useMemo(() => {
     if (!shouldShow || !chainId) {
-      return [];
+      return NO_ALERTS;
     }
 
     const rule = GAS_SPONSORSHIP_WARNING_RULES[chainId as Hex];
     if (!rule) {
-      return [];
+      return NO_ALERTS;
     }
 
     const { titleKey, messageKey, nativeCurrency, minBalance } = rule;

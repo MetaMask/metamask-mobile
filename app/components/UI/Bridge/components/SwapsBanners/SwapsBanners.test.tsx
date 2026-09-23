@@ -1,7 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState, createMockToken } from '../../testUtils';
 import { SwapsBanners } from './SwapsBanners';
@@ -44,7 +43,6 @@ describe('SwapsBanners', () => {
   it('shares the swap being quoted with the banners', () => {
     const { getByTestId } = renderWithProvider(
       <SwapsBanners
-        latestSourceAtomicBalance={BigNumber.from('1000')}
         location={MetaMetricsSwapsEventSource.TokenView}
         onAdjustSourceAmount={mockOnAdjustSourceAmount}
       >

@@ -13,9 +13,11 @@ jest.mock('../Engine', () => ({
 }));
 
 const mockSetTimeout = jest.fn();
+const mockClearTimeout = jest.fn();
 
 jest.mock('react-native-background-timer', () => ({
   setTimeout: () => mockSetTimeout(),
+  clearTimeout: (id: number) => mockClearTimeout(id),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -37,6 +39,8 @@ describe('LockManagerService', () => {
     jest.clearAllMocks();
     jest.resetModules();
     jest.useFakeTimers();
+    // Returning an id lets the service track and later clear the pending timer.
+    mockSetTimeout.mockReturnValue(1);
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {
         mockAppStateListener = listener;
@@ -142,6 +146,23 @@ describe('LockManagerService', () => {
       lockManagerService.startListening();
       mockAppStateListener('background');
       expect(mockSetTimeout).toHaveBeenCalled();
+    });
+
+    it('clears the pending background timer when resuming through inactive', () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      // Android resumes as background -> inactive -> active, which takes the
+      // ignored-transition path and must still cancel the pending lock.
+      mockAppStateListener('background');
+      mockAppStateListener('inactive');
+      mockAppStateListener('active');
+
+      expect(mockClearTimeout).toHaveBeenCalledWith(1);
     });
   });
 });
