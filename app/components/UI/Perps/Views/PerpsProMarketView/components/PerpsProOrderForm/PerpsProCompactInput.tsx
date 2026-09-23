@@ -24,6 +24,11 @@ import {
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
+import {
+  formatPerpsInput,
+  normalizePerpsNumericInput,
+} from '../../../../utils/formatUtils';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -144,10 +149,14 @@ const PerpsProCompactInput = React.forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
+    const locale = usePerpsLocale();
     const inputRef = useRef<TextInput>(null);
     const [isFocused, setIsFocused] = useState(false);
+    const [displayValue, setDisplayValue] = useState(() =>
+      formatPerpsInput(value, locale),
+    );
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
-    const isInlineActive = isFocused || value.length > 0;
+    const isInlineActive = isFocused || displayValue.length > 0;
     const usesFloatingLabel =
       variant === 'inline' || variant === 'inline-labeled';
     const isInputVisible = !usesFloatingLabel || isInlineActive;
@@ -158,6 +167,12 @@ const PerpsProCompactInput = React.forwardRef<
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+
+    useEffect(() => {
+      if (!isFocused) {
+        setDisplayValue(formatPerpsInput(value, locale));
+      }
+    }, [isFocused, locale, value]);
 
     useEffect(() => {
       if (isHidden) {
@@ -184,9 +199,19 @@ const PerpsProCompactInput = React.forwardRef<
       setIsFocused(true);
       onFocus?.();
     };
+    const handleChangeText = (nextValue: string) => {
+      setDisplayValue(nextValue);
+      onChangeText(normalizePerpsNumericInput(nextValue, locale));
+    };
     const handleBlur = () => {
+      const canonicalValue = normalizePerpsNumericInput(displayValue, locale);
       setIsFocused(false);
+      setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
+
+      if (canonicalValue !== value) {
+        onChangeText(canonicalValue);
+      }
     };
     const handleFieldPress = () => {
       if (isDisabled) {
@@ -206,9 +231,11 @@ const PerpsProCompactInput = React.forwardRef<
     const input = (
       <Input
         ref={inputRef}
-        value={value}
-        onChangeText={onChangeText}
+        value={displayValue}
+        onChangeText={handleChangeText}
         keyboardType={keyboardType}
+        returnKeyType="done"
+        onSubmitEditing={Keyboard.dismiss}
         onFocus={handleFocus}
         onBlur={handleBlur}
         isDisabled={isDisabled}

@@ -7,6 +7,10 @@ import { strings } from '../../../../../locales/i18n';
 import {
   formatPercentage,
   formatPerpsFiat,
+  formatProPercentage,
+  formatProPerpsFiat,
+  formatProPnl,
+  formatProPositionSize,
   formatPnl,
   formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -34,6 +38,7 @@ export interface PerpsPositionHeaderDisplay {
  */
 export const getPerpsPositionHeaderDisplay = (
   position: Position,
+  locale?: string,
 ): PerpsPositionHeaderDisplay => {
   const size = Number.parseFloat(position.size);
   const isLong = size > 0;
@@ -45,20 +50,31 @@ export const getPerpsPositionHeaderDisplay = (
   const pnl = Number.parseFloat(position.unrealizedPnl);
   const roe = (Number.parseFloat(position.returnOnEquity) || 0) * 100;
   const pnlColor = pnl >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
-  const positionValue = formatPerpsFiat(position.positionValue, {
-    ranges: PRICE_RANGES_MINIMAL_VIEW,
-  });
+  const positionValue = locale
+    ? formatProPerpsFiat(
+        position.positionValue,
+        { ranges: PRICE_RANGES_MINIMAL_VIEW },
+        locale,
+      )
+    : formatPerpsFiat(position.positionValue, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      });
+  const positionSize = locale
+    ? formatProPositionSize(absoluteSize.toString(), undefined, locale)
+    : formatPositionSize(absoluteSize.toString());
+  const pnlText = locale ? formatProPnl(pnl, locale) : formatPnl(pnl);
+  const roeText = locale
+    ? formatProPercentage(roe, 1, locale)
+    : formatPercentage(roe, 1);
 
   return {
     displaySymbol,
     absoluteSize,
     directionLabel: `${position.leverage.value}x ${direction}`,
     directionSeverity: isLong ? TagSeverity.Success : TagSeverity.Danger,
-    description: `${formatPositionSize(
-      absoluteSize.toString(),
-    )} ${displaySymbol} • ${positionValue}`,
-    pnlText: formatPnl(pnl),
-    roeText: formatPercentage(roe, 1),
+    description: `${positionSize} ${displaySymbol} • ${positionValue}`,
+    pnlText,
+    roeText,
     pnlColor,
   };
 };

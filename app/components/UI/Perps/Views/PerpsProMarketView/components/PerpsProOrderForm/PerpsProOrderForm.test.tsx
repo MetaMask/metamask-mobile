@@ -22,6 +22,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 
 const mockInputFocus = jest.fn();
 let mockInputHandlesActive = true;
@@ -54,6 +55,9 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+jest.mock('../../../../hooks/usePerpsLocale', () => ({
+  usePerpsLocale: jest.fn(() => 'en-US'),
+}));
 
 jest.mock('../../../../../../../util/haptics');
 
@@ -194,6 +198,7 @@ describe('PerpsProOrderForm', () => {
     mockInputHandlesActive = true;
     jest.mocked(playImpact).mockClear();
     jest.mocked(playSelection).mockClear();
+    (usePerpsLocale as jest.Mock).mockReturnValue('en-US');
   });
 
   afterEach(() => {
@@ -382,6 +387,29 @@ describe('PerpsProOrderForm', () => {
       fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '1..2');
 
       expect(onChange).toHaveBeenCalledWith('1..2');
+    });
+
+    it('groups displayed size values while preserving canonical callbacks', () => {
+      const onChange = jest.fn();
+      renderForm({
+        sizeInput: createSizeInput({ value: '1200', onChange }),
+      });
+
+      expect(getMountedInput(ids.SIZE_INPUT)).toHaveProp('value', '1,200');
+
+      fireEvent.changeText(getMountedInput(ids.SIZE_INPUT), '1,200.50');
+
+      expect(onChange).toHaveBeenCalledWith('1200.50');
+    });
+
+    it('uses locale-specific grouping in advanced order inputs', () => {
+      (usePerpsLocale as jest.Mock).mockReturnValue('de-DE');
+
+      renderForm({
+        sizeInput: createSizeInput({ value: '1200.50' }),
+      });
+
+      expect(getMountedInput(ids.SIZE_INPUT)).toHaveProp('value', '1.200,50');
     });
 
     it('passes raw limit price text to onLimitPriceChange', () => {
