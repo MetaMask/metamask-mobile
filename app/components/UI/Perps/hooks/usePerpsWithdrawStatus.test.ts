@@ -111,6 +111,7 @@ describe('usePerpsWithdrawStatus', () => {
 
     mockUsePerpsToasts.mockReturnValue({
       showToast: mockShowToast,
+      closeToast: jest.fn(),
       PerpsToastOptions: mockPerpsToastOptions,
     });
 

@@ -325,6 +325,7 @@ const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
 
 const usePerpsToasts = (): {
   showToast: (config: PerpsToastOptions) => void;
+  closeToast: () => void;
   PerpsToastOptions: PerpsToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -478,6 +479,10 @@ const usePerpsToasts = (): {
       toastRef?.current?.showToast(toastOptions as ToastOptions);
       playNotification(hapticsType);
     },
+    [toastRef],
+  );
+  const closeToast = useCallback(
+    () => toastRef?.current?.closeToast(),
     [toastRef],
   );
 
@@ -1333,7 +1338,7 @@ const usePerpsToasts = (): {
     ],
   );
 
-  return { showToast, PerpsToastOptions };
+  return { showToast, closeToast, PerpsToastOptions };
 };
 
 export default usePerpsToasts;

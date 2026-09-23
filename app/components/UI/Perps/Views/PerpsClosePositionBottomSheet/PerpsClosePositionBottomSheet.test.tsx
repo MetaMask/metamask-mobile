@@ -114,9 +114,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: ReactActual.forwardRef(
       (
         { children, testID }: { children?: React.ReactNode; testID?: string },
-        ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+        ref: React.Ref<{
+          onOpenBottomSheet: () => void;
+          onCloseBottomSheet: (cb?: () => void) => void;
+        }>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: jest.fn(),
           onCloseBottomSheet: (cb?: () => void) => {
             mockSheetClose();
             cb?.();
@@ -280,6 +284,20 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_LEVERAGE),
       ).toHaveTextContent('3x');
+    });
+
+    it('opens the shared slippage editor from the market sheet', async () => {
+      const { getByTestId, getByText } = renderSheet();
+
+      fireEvent.press(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.SLIPPAGE_ROW),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('perps.slippage.config_title')),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('labels a short position in the header', () => {

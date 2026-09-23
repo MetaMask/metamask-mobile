@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -10,8 +9,6 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
-  KeyValueRow,
-  KeyValueRowVariant,
   Text,
   TextColor,
   TextVariant,
@@ -32,6 +29,7 @@ import PerpsCloseTotals from './components/PerpsCloseTotals';
 import PerpsClosePositionSheetHeader from './components/PerpsClosePositionSheetHeader';
 import PerpsLimitPriceRow from './components/PerpsLimitPriceRow';
 import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
+import PerpsSlippageRow from '../../components/PerpsSlippageRow';
 
 /** One top-of-book button here, unlike the modal's separate bid and ask. */
 const LIMIT_PRESET_TEST_IDS = {
@@ -256,20 +254,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       )}
 
       {effectiveOrderType === 'market' && !isEditingLimitPrice && (
-        <Box twClassName="px-4 pb-0">
-          <Box twClassName="bg-background-section rounded-xl overflow-hidden">
-            <TouchableOpacity
-              testID={PerpsClosePositionBottomSheetSelectorsIDs.SLIPPAGE_ROW}
-              onPress={() => setIsSlippageVisible(true)}
-            >
-              <KeyValueRow
-                variant={KeyValueRowVariant.Input}
-                keyLabel={strings('perps.slippage.slippage')}
-                value={`${maxSlippageBps / 100}%`}
-              />
-            </TouchableOpacity>
-          </Box>
-        </Box>
+        <PerpsSlippageRow
+          maxSlippageBps={maxSlippageBps}
+          onPress={() => setIsSlippageVisible(true)}
+          testID={PerpsClosePositionBottomSheetSelectorsIDs.SLIPPAGE_ROW}
+        />
       )}
 
       {!isEditingLimitPrice && (

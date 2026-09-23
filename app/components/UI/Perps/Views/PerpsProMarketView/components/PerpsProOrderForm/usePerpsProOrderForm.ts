@@ -1943,22 +1943,16 @@ export const usePerpsProOrderForm = ({
           ? () => setIsSlippageVisible(true)
           : undefined;
       const toast = isTwapOrder
-        ? onAdjustSlippage
-          ? PerpsToastOptions.orderManagement.twap.creationFailed(
+        ? PerpsToastOptions.orderManagement.twap.creationFailed(
+            error,
+            onAdjustSlippage,
+          )
+        : isChaseExecutionRef.current
+          ? PerpsToastOptions.orderManagement.chase.creationFailed(
               error,
               onAdjustSlippage,
             )
-          : PerpsToastOptions.orderManagement.twap.creationFailed(error)
-        : isChaseExecutionRef.current
-          ? onAdjustSlippage
-            ? PerpsToastOptions.orderManagement.chase.creationFailed(
-                error,
-                onAdjustSlippage,
-              )
-            : PerpsToastOptions.orderManagement.chase.creationFailed(error)
-          : onAdjustSlippage
-            ? standardOrderToastOptions.creationFailed(error, onAdjustSlippage)
-            : standardOrderToastOptions.creationFailed(error);
+          : standardOrderToastOptions.creationFailed(error, onAdjustSlippage);
       showToast(toast);
     },
   });
@@ -2454,14 +2448,13 @@ export const usePerpsProOrderForm = ({
           feeResults: latestScale.feeResults,
           marketPrice: latestScale.assetPrice,
           inputMethod: 'default',
+          orderType: 'scale',
           source,
           sourceSection,
           currentMarketPosition: latestScale.currentMarketPosition,
           direction: latestScale.orderForm.direction,
           chartLibrary,
           vipTier,
-          maxSlippageBps: resolvedMaxSlippageBps,
-          maxSlippageSource,
         });
         const scaleOrderParams = {
           ...buildPerpsOrderParams({
@@ -2698,6 +2691,7 @@ export const usePerpsProOrderForm = ({
           feeResults: submissionChaseSnapshot?.feeResults ?? feeResults,
           marketPrice: submissionChaseSnapshot?.assetPrice ?? assetData.price,
           inputMethod: 'default',
+          orderType: placementOrderForm.type,
           source,
           sourceSection,
           currentMarketPosition: placementCurrentMarketPosition,

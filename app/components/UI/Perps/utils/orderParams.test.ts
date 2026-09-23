@@ -16,6 +16,7 @@ const trackingData = buildPerpsOrderTrackingData({
   },
   marketPrice: 90000,
   inputMethod: 'default' as const,
+  orderType: 'market',
   direction: 'long',
   chartLibrary: 'lightweight',
 });
@@ -260,6 +261,7 @@ describe('buildPerpsOrderTrackingData', () => {
     },
     marketPrice: 90000,
     inputMethod: 'default' as const,
+    orderType: 'market' as const,
     direction: 'long' as const,
     chartLibrary: 'lightweight',
   };
@@ -302,6 +304,36 @@ describe('buildPerpsOrderTrackingData', () => {
     // Assert
     expect(withRate.hlFeeRate).toBe(0.02);
     expect(withoutRate).not.toHaveProperty('hlFeeRate');
+  });
+
+  it('only includes slippage analytics for market-executing orders', () => {
+    const slippage = {
+      maxSlippageBps: 300,
+      maxSlippageSource: 'user_configured' as const,
+      estimatedSlippageBps: 125,
+    };
+
+    const market = buildPerpsOrderTrackingData({
+      ...base,
+      orderType: 'market',
+      ...slippage,
+    });
+    const limit = buildPerpsOrderTrackingData({
+      ...base,
+      orderType: 'limit',
+      ...slippage,
+    });
+    const scale = buildPerpsOrderTrackingData({
+      ...base,
+      orderType: 'scale',
+      ...slippage,
+    });
+
+    expect(market).toMatchObject(slippage);
+    expect(limit).not.toHaveProperty('maxSlippageBps');
+    expect(limit).not.toHaveProperty('maxSlippageSource');
+    expect(limit).not.toHaveProperty('estimatedSlippageBps');
+    expect(scale).not.toHaveProperty('maxSlippageBps');
   });
 });
 

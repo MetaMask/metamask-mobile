@@ -2550,6 +2550,7 @@
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "iocCancel": "Your order couldn't fill within your {{maxSlippage}}% slippage tolerance. Try a limit order or adjust your slippage.",
+      "iocCancelUnknownTolerance": "Your order couldn't fill within your slippage tolerance. Try a limit order or adjust your slippage.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
       "transferFailed": "Unable to transfer funds. Please try again.",

@@ -1458,7 +1458,10 @@ describe('usePerpsProOrderForm', () => {
         mockExecutionOptions.onError?.('TWAP rejected');
       });
 
-      expect(twapCreationFailed).toHaveBeenCalledWith('TWAP rejected');
+      expect(twapCreationFailed).toHaveBeenCalledWith(
+        'TWAP rejected',
+        undefined,
+      );
       expect(creationFailed).not.toHaveBeenCalled();
     });
 
@@ -4384,7 +4387,10 @@ describe('usePerpsProOrderForm', () => {
         mockExecutionOptions.onError?.('Scale order rejected');
       });
 
-      expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
+      expect(limitCreationFailed).toHaveBeenCalledWith(
+        'Scale order rejected',
+        undefined,
+      );
       expect(creationFailed).not.toHaveBeenCalled();
     });
 
@@ -4409,7 +4415,10 @@ describe('usePerpsProOrderForm', () => {
         await hook.result.current.onPlaceOrderPress();
       });
 
-      expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
+      expect(limitCreationFailed).toHaveBeenCalledWith(
+        'Scale order rejected',
+        undefined,
+      );
       expect(chaseCreationFailed).not.toHaveBeenCalled();
     });
 

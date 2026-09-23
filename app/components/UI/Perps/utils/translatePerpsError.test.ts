@@ -172,7 +172,6 @@ describe('translatePerpsError', () => {
           maxSlippageBps: 300,
           expectedPrice: 788.71,
           currentPrice: 815.22,
-          szDecimals: 3,
         },
       });
 
@@ -185,10 +184,16 @@ describe('translatePerpsError', () => {
       const result = translatePerpsError({
         error: PERPS_ERROR_CODES.IOC_CANCEL,
         errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
-        context: { maxSlippageBps: 500 },
+        maxSlippageBps: 500,
       });
 
       expect(result).toBe('perps.errors.iocCancel [maxSlippage:5]');
+    });
+
+    it('uses non-numeric IOC_CANCEL copy when tolerance is unavailable', () => {
+      const result = translatePerpsError(PERPS_ERROR_CODES.IOC_CANCEL);
+
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
   });
 
@@ -702,7 +707,7 @@ describe('handlePerpsError', () => {
         error: 'Insufficient liquidity for this trade',
       });
 
-      expect(result).toBe('perps.errors.iocCancel');
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
 
     it('translates transfer failed error pattern', () => {
