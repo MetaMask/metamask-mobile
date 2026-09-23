@@ -497,17 +497,12 @@ import {
   GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import {
+import type {
   DelegationController,
   DelegationControllerActions,
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
-// `DelegationControllerState` isn't re-exported from the package's public
-// entry, so we go through the `@metamask/delegation-controller/types` path
-// alias declared in `tsconfig.json`. Once the upstream package re-exports it
-// (or we move to Node16/NodeNext module resolution), drop both the alias and
-// this dedicated import.
-import type { DelegationControllerState } from '@metamask/delegation-controller/types';
+type DelegationControllerState = DelegationController['state'];
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -1267,8 +1262,7 @@ export type MessengerClientsToInitialize =
   | 'KycService'
   | 'KycController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController'
-  | 'SubscriptionDelegationService';
+  | 'MoneyAccountUpgradeController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

@@ -202,7 +202,6 @@ import { kycServiceInit } from './controllers/kyc/kyc-service-init';
 import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
-import { subscriptionDelegationServiceInit } from './controllers/subscription-delegation-service-init';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
@@ -427,7 +426,6 @@ export class Engine {
         KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
-        SubscriptionDelegationService: subscriptionDelegationServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -735,8 +733,9 @@ export class Engine {
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
-      SubscriptionDelegationService:
-        messengerClientsByName.SubscriptionDelegationService,
+      SubscriptionDelegationService: this.#wallet.getInstance(
+        'SubscriptionDelegationService',
+      ),
     };
 
     const childControllers = Object.assign({}, this.context);
