@@ -1,7 +1,6 @@
 import {
   buildProvisioningUserAddress,
   buildShippingAddress,
-  buildCardholderName,
 } from './buildUserAddress';
 import { UserResponse } from '../types';
 
@@ -34,20 +33,17 @@ describe('buildUserAddress utilities', () => {
 
     it('returns undefined when required fields are missing', () => {
       expect(
+        buildProvisioningUserAddress({ city: 'NYC', zip: '10001' }, 'Name'),
+      ).toBeUndefined();
+      expect(
         buildProvisioningUserAddress(
-          { id: 'test', city: 'NYC', zip: '10001' },
+          { addressLine1: '123 St', zip: '10001' },
           'Name',
         ),
       ).toBeUndefined();
       expect(
         buildProvisioningUserAddress(
-          { id: 'test', addressLine1: '123 St', zip: '10001' },
-          'Name',
-        ),
-      ).toBeUndefined();
-      expect(
-        buildProvisioningUserAddress(
-          { id: 'test', addressLine1: '123 St', city: 'NYC' },
+          { addressLine1: '123 St', city: 'NYC' },
           'Name',
         ),
       ).toBeUndefined();
@@ -98,7 +94,7 @@ describe('buildUserAddress utilities', () => {
 
     it('handles missing optional fields with defaults', () => {
       const result = buildProvisioningUserAddress(
-        { id: 'test', addressLine1: '123 St', city: 'NYC', zip: '10001' },
+        { addressLine1: '123 St', city: 'NYC', zip: '10001' },
         'Name',
       );
 
@@ -146,79 +142,6 @@ describe('buildUserAddress utilities', () => {
     it('returns undefined when neither address is complete', () => {
       const result = buildShippingAddress({ id: 'test', firstName: 'Test' });
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe('buildCardholderName', () => {
-    it('returns default fallback when userDetails is null or undefined', () => {
-      expect(buildCardholderName(null)).toBe('Card Holder');
-      expect(buildCardholderName(undefined)).toBe('Card Holder');
-    });
-
-    it('returns custom fallback when provided', () => {
-      expect(buildCardholderName(null, 'Unknown')).toBe('Unknown');
-    });
-
-    it('returns full name when both firstName and lastName present', () => {
-      expect(buildCardholderName(mockFullUserDetails)).toBe('John Doe');
-    });
-
-    it('returns single name when only one is present', () => {
-      expect(buildCardholderName({ id: 'test', firstName: 'Alice' })).toBe(
-        'Alice',
-      );
-      expect(buildCardholderName({ id: 'test', lastName: 'Smith' })).toBe(
-        'Smith',
-      );
-    });
-
-    it('returns fallback when names are empty or null', () => {
-      expect(
-        buildCardholderName({ id: 'test', firstName: '', lastName: '' }),
-      ).toBe('Card Holder');
-      expect(
-        buildCardholderName({ id: 'test', firstName: null, lastName: null }),
-      ).toBe('Card Holder');
-    });
-
-    it('sanitizes special characters and decomposes accented names via NFD normalization', () => {
-      expect(
-        buildCardholderName({
-          id: 'test',
-          firstName: 'José',
-          lastName: "O'Brien",
-        }),
-      ).toBe('Jose OBrien');
-    });
-
-    it('sanitizes accented characters and preserves base letters', () => {
-      expect(
-        buildCardholderName({
-          id: 'test',
-          firstName: 'Müller',
-          lastName: 'Straße',
-        }),
-      ).toBe('Muller Strae');
-    });
-
-    it('trims whitespace before sanitizing', () => {
-      expect(
-        buildCardholderName({
-          id: 'test',
-          firstName: '  John  ',
-          lastName: '  Doe  ',
-        }),
-      ).toBe('John Doe');
-    });
-
-    it('returns fallback when names are only special characters', () => {
-      expect(
-        buildCardholderName({
-          id: 'test',
-          firstName: '***',
-          lastName: '!!!',
-        }),
-      ).toBe('Card Holder');
     });
   });
 });

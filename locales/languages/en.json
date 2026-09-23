@@ -10697,6 +10697,7 @@
       "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
       "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
       "error_encryption_failed": "Failed to encrypt card data. Please try again.",
+      "error_provider_unavailable": "The card provider is temporarily unavailable. Please try again.",
       "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
       "error_card_not_found": "Card not found. Please try again.",
       "error_card_provider_not_found": "Card provider is not available for your region.",

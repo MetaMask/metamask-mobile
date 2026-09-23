@@ -6,6 +6,8 @@ import {
   selectMetalCardCheckoutFeatureFlag,
   selectGalileoAppleWalletProvisioningEnabled,
   selectGalileoGoogleWalletProvisioningEnabled,
+  selectImmersveAppleWalletProvisioningEnabled,
+  selectPushProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
   selectImmersveOnboardingEnabled,
   selectCardTransactionHistoryEnabled,
@@ -1083,6 +1085,103 @@ describe('selectCardIntercomSupportEnabled', () => {
       selectCardIntercomSupportEnabled.resultFunc({
         cardIntercomSupport: { enabled: false, minimumVersion: '7.0.0' },
       }),
+    ).toBe(false);
+  });
+});
+
+describe('selectPushProvisioningEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    }) as never;
+
+  beforeEach(() => {
+    mockedValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+      const enabled = (flag as { enabled?: boolean } | undefined)?.enabled;
+      return enabled === true;
+    });
+  });
+
+  it('uses the Galileo Apple flag for Baanx on Apple Wallet', () => {
+    const state = stateWithFlags({
+      galileoAppleWalletInAppProvisioningEnabled: {
+        enabled: true,
+        minimumVersion: '7.0.0',
+      },
+    });
+
+    expect(selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet')).toBe(
+      true,
+    );
+    expect(selectImmersveAppleWalletProvisioningEnabled(state)).toBe(false);
+  });
+
+  it('uses the Galileo Google flag for Baanx on Google Wallet', () => {
+    const state = stateWithFlags({
+      galileoGoogleWalletInAppProvisioningEnabled: {
+        enabled: true,
+        minimumVersion: '7.0.0',
+      },
+    });
+
+    expect(selectPushProvisioningEnabled(state, 'baanx', 'google_wallet')).toBe(
+      true,
+    );
+  });
+
+  it('uses the Immersve Apple flag and stays off for Google Wallet', () => {
+    const state = stateWithFlags({
+      immersveAppleWalletInAppProvisioningEnabled: {
+        enabled: true,
+        minimumVersion: '7.0.0',
+      },
+    });
+
+    expect(
+      selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
+    ).toBe(true);
+    expect(
+      selectPushProvisioningEnabled(state, 'immersve', 'google_wallet'),
+    ).toBe(false);
+  });
+
+  it('returns false for a provider and wallet pair that has no flag', () => {
+    const state = stateWithFlags({
+      immersveAppleWalletInAppProvisioningEnabled: {
+        enabled: true,
+        minimumVersion: '7.0.0',
+      },
+    });
+
+    expect(selectPushProvisioningEnabled(state, null, 'apple_wallet')).toBe(
+      false,
+    );
+    expect(selectPushProvisioningEnabled(state, 'baanx', 'apple_wallet')).toBe(
+      false,
+    );
+  });
+
+  it('returns false when the Immersve flag is invalid', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const state = stateWithFlags({
+      immersveAppleWalletInAppProvisioningEnabled: { enabled: 'yes' },
+    });
+
+    expect(
+      selectPushProvisioningEnabled(state, 'immersve', 'apple_wallet'),
     ).toBe(false);
   });
 });
