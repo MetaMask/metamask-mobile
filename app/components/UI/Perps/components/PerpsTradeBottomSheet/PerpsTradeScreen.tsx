@@ -342,7 +342,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   )}
                   testID={PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG}
                 >
-                  {maxLeverage}x
+                  {/* Must be a single string: Tag only wraps string children in <Text>. */}
+                  {`${maxLeverage}x`}
                 </Tag>
               ) : null}
             </Box>

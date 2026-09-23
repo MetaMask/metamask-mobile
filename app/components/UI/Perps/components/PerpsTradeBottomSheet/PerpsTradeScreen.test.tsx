@@ -1,6 +1,11 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
@@ -194,9 +199,14 @@ describe('PerpsTradeScreen errors', () => {
       <PerpsTradeScreen {...defaultProps} leverage={3} maxLeverage={40} />,
     );
 
+    // `getByText` only matches host <Text> nodes, so this also guards against
+    // the label being emitted as bare strings inside the Tag's <View>, which
+    // React Native does not draw.
     expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG),
-    ).toHaveTextContent('40x');
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG),
+      ).getByText('40x'),
+    ).toBeOnTheScreen();
     expect(screen.getByLabelText('Up to 40x leverage')).toBeOnTheScreen();
     // The selected leverage still lives in the Leverage row.
     expect(screen.getByLabelText('Leverage, 3x')).toBeOnTheScreen();
