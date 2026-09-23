@@ -386,6 +386,13 @@ export function isPerpsErrorCode(
   return error === code;
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return typeof error === 'string' ? error : '';
+}
+
 /** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
 const NO_POSITION_FOUND_PATTERN = /No position found/i;
 
@@ -394,13 +401,19 @@ const NO_POSITION_FOUND_PATTERN = /No position found/i;
  * filled, closed, or liquidated — a stale-state race, not a user-side failure.
  */
 export function isNoPositionFoundError(error: unknown): boolean {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-        ? error
-        : '';
-  return NO_POSITION_FOUND_PATTERN.test(message);
+  return NO_POSITION_FOUND_PATTERN.test(getErrorMessage(error));
+}
+
+/** HyperLiquid phrasing for a reduce-only order against a flat or flipped position. */
+const REDUCE_ONLY_WOULD_INCREASE_PATTERN =
+  /reduce only order would increase position/i;
+
+/**
+ * True when the venue rejected a reduce-only order because it would grow the
+ * position. For a full close this means the position is already flat.
+ */
+export function isReduceOnlyWouldIncreaseError(error: unknown): boolean {
+  return REDUCE_ONLY_WOULD_INCREASE_PATTERN.test(getErrorMessage(error));
 }
 
 /**

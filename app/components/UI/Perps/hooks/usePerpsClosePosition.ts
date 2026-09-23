@@ -14,6 +14,7 @@ import {
 import {
   handlePerpsError,
   isNoPositionFoundError,
+  isReduceOnlyWouldIncreaseError,
 } from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import {
@@ -99,9 +100,18 @@ export const usePerpsClosePosition = (
         DevLogger.log('usePerpsClosePosition: Close already in flight', {
           symbol: position.symbol,
         });
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .closeAlreadyInProgress,
+        );
         return undefined;
       }
       const isFullClose = size === undefined || size === '';
+      // A full close rejected as "would increase position" found the position
+      // flat: an earlier close or a TP/SL fill got there first.
+      const isAlreadyClosedError = (closeError: unknown) =>
+        isNoPositionFoundError(closeError) ||
+        (isFullClose && isReduceOnlyWouldIncreaseError(closeError));
 
       // Failure toast varies by order type and full/partial close. Shared so
       // both the { success: false } branch and the rejected-promise catch
@@ -268,11 +278,11 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
-        if (result.success || isNoPositionFoundError(result.error)) {
+        if (result.success || isAlreadyClosedError(result.error)) {
           recordPerpsAction();
         }
 
-        if (!result.success && isNoPositionFoundError(result.error)) {
+        if (!result.success && isAlreadyClosedError(result.error)) {
           reconcileAlreadyClosed();
           return result;
         }
@@ -336,7 +346,7 @@ export const usePerpsClosePosition = (
 
         return result;
       } catch (err) {
-        if (isNoPositionFoundError(err)) {
+        if (isAlreadyClosedError(err)) {
           reconcileAlreadyClosed();
           return {
             success: false,

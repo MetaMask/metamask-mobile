@@ -87,6 +87,7 @@ const mockPerpsToastOptions = {
         },
       },
       positionAlreadyClosed: { label: 'already-closed' },
+      closeAlreadyInProgress: { label: 'close-in-progress' },
     },
   },
 };
@@ -815,6 +816,68 @@ describe('usePerpsClosePosition', () => {
           expect(Logger.error).not.toHaveBeenCalled();
         });
 
+        it('shows already-closed toast when a full close is rejected as would increase position', async () => {
+          const rejection = {
+            success: false,
+            error:
+              'order 0: Reduce only order would increase position. asset=0',
+          };
+          mockClosePosition.mockResolvedValue(rejection);
+          const onError = jest.fn();
+          const { result } = renderHook(() =>
+            usePerpsClosePosition({ onError }),
+          );
+
+          let closeResult: OrderResult | undefined;
+          await act(async () => {
+            closeResult = await result.current.handleClosePosition({
+              position: mockPosition,
+            });
+          });
+
+          expect(closeResult).toEqual(rejection);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition
+              .positionAlreadyClosed,
+          );
+          expect(mockShowToast).not.toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionFailed,
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'positions',
+          );
+          expect(onError).not.toHaveBeenCalled();
+          expect(Logger.error).not.toHaveBeenCalled();
+        });
+
+        it('still reports a partial close rejected as would increase position', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error:
+              'order 0: Reduce only order would increase position. asset=0',
+          });
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionFailed,
+          );
+          expect(mockShowToast).not.toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition
+              .positionAlreadyClosed,
+          );
+        });
+
         it('should show failure toast for full position market close', async () => {
           const failureResult: OrderResult = {
             success: false,
@@ -1260,9 +1323,9 @@ describe('usePerpsClosePosition', () => {
 
       expect(secondResult).toBeUndefined();
       expect(mockClosePosition).toHaveBeenCalledTimes(1);
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'usePerpsClosePosition: Close already in flight',
-        { symbol: 'BTC' },
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockPerpsToastOptions.positionManagement.closePosition
+          .closeAlreadyInProgress,
       );
 
       await act(async () => {
