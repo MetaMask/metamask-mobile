@@ -1,6 +1,10 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
-import { Box, Label } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconSize,
+  Label,
+  Spinner,
+} from '@metamask/design-system-react-native';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import type { Region } from '../../types';
 import SelectField from './SelectField';
@@ -36,7 +40,7 @@ const CountrySelectField = ({
           twClassName="flex-row items-center justify-center h-12 rounded-xl border border-solid border-border-muted bg-background-muted"
           testID={loadingTestID}
         >
-          <ActivityIndicator size="small" />
+          <Spinner spinnerIconProps={{ size: IconSize.Sm }} />
         </Box>
       ) : (
         <SelectField
