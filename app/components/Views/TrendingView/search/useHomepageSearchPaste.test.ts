@@ -1,11 +1,11 @@
-import { isNewHomepageClipboardContent } from './useHomepageSearchPaste';
+import { isNewHomepageClipboardRevision } from './useHomepageSearchPaste';
 
-describe('isNewHomepageClipboardContent', () => {
-  it('accepts non-empty clipboard content', () => {
-    expect(isNewHomepageClipboardContent('0xabc')).toBe(true);
+describe('isNewHomepageClipboardRevision', () => {
+  it('accepts clipboard content when the native clipboard has a string', () => {
+    expect(isNewHomepageClipboardRevision(true, 1)).toBe(true);
   });
 
   it('rejects empty clipboard content', () => {
-    expect(isNewHomepageClipboardContent('')).toBe(false);
+    expect(isNewHomepageClipboardRevision(false, 1)).toBe(false);
   });
 });
