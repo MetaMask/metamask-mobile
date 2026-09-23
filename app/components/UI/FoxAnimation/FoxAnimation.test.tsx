@@ -9,20 +9,18 @@ import {
   __mockRiveTriggerInput,
   __resetRiveMocks,
 } from '../../../__mocks__/rive-app-react-native';
+import { useBottomSafeAreaInset } from '../../hooks/useBottomSafeAreaInset';
 
 // Mock dependencies
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/device');
+jest.mock('../../hooks/useBottomSafeAreaInset', () => ({
+  useBottomSafeAreaInset: jest.fn(() => 0),
+}));
 
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
 const mockedDevice = Device as jest.Mocked<typeof Device>;
-
-const insets = (bottom: number) => ({
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom,
-});
+const mockedUseBottomSafeAreaInset = jest.mocked(useBottomSafeAreaInset);
 
 describe('getSafeBottomPosition', () => {
   const originalOS = Platform.OS;
@@ -44,77 +42,85 @@ describe('getSafeBottomPosition', () => {
   it('returns iOS footer offset using bottom inset plus 60', () => {
     setPlatformOS('ios');
 
-    expect(getSafeBottomPosition(true, insets(50))).toBe(110);
+    expect(getSafeBottomPosition(true, 50)).toBe(110);
   });
 
   it('returns minimum 100 for iOS footer when inset is small', () => {
     setPlatformOS('ios');
 
-    expect(getSafeBottomPosition(true, insets(0))).toBe(100);
+    expect(getSafeBottomPosition(true, 0)).toBe(100);
   });
 
   it('returns Android footer offset with large inset', () => {
     setPlatformOS('android');
 
-    expect(getSafeBottomPosition(true, insets(48))).toBe(108);
+    expect(getSafeBottomPosition(true, 48)).toBe(108);
   });
 
   it('returns Android footer offset with small inset', () => {
     setPlatformOS('android');
 
-    expect(getSafeBottomPosition(true, insets(10))).toBe(100);
+    expect(getSafeBottomPosition(true, 10)).toBe(100);
   });
 
   it('returns 100 for footer on non-iOS non-Android platforms', () => {
     setPlatformOS('web');
 
-    expect(getSafeBottomPosition(true, insets(0))).toBe(100);
+    expect(getSafeBottomPosition(true, 0)).toBe(100);
   });
 
   it('returns negative iOS offset when home indicator inset is present', () => {
     setPlatformOS('ios');
 
-    expect(getSafeBottomPosition(false, insets(34))).toBe(-24);
+    expect(getSafeBottomPosition(false, 34)).toBe(-24);
   });
 
   it('clamps iOS no-footer offset to -40 for large home indicator', () => {
     setPlatformOS('ios');
 
-    expect(getSafeBottomPosition(false, insets(80))).toBe(-40);
+    expect(getSafeBottomPosition(false, 80)).toBe(-40);
   });
 
   it('returns -20 for iOS with no bottom inset', () => {
     setPlatformOS('ios');
 
-    expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
+    expect(getSafeBottomPosition(false, 0)).toBe(-20);
   });
 
   it('tucks Android full-bleed fox into the gesture inset like iOS', () => {
     setPlatformOS('android');
 
-    expect(
-      getSafeBottomPosition(false, insets(48), { fullBleedBottom: true }),
-    ).toBe(-38);
+    expect(getSafeBottomPosition(false, 24, { fullBleedBottom: true })).toBe(
+      -14,
+    );
+  });
+
+  it('positions Android full-bleed fox above three-button navigation', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(false, 48, { fullBleedBottom: true })).toBe(
+      48,
+    );
   });
 
   it('uses a small negative Android full-bleed offset when inset is missing', () => {
     setPlatformOS('android');
 
     expect(
-      getSafeBottomPosition(false, undefined, { fullBleedBottom: true }),
+      getSafeBottomPosition(false, 0, { fullBleedBottom: true }),
     ).toBe(-20);
   });
 
   it('returns 0 for Android when parent already applied bottom safe area', () => {
     setPlatformOS('android');
 
-    expect(getSafeBottomPosition(false, insets(48))).toBe(0);
+    expect(getSafeBottomPosition(false, 48)).toBe(0);
   });
 
   it('returns -20 for no-footer on non-iOS non-Android platforms', () => {
     setPlatformOS('web');
 
-    expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
+    expect(getSafeBottomPosition(false, 0)).toBe(-20);
   });
 });
 
@@ -123,6 +129,7 @@ describe('FoxAnimation', () => {
     jest.clearAllMocks();
     __resetRiveMocks();
     mockedDevice.isMediumDevice.mockReturnValue(false);
+    mockedUseBottomSafeAreaInset.mockReturnValue(0);
   });
 
   afterEach(() => {
@@ -182,6 +189,29 @@ describe('FoxAnimation', () => {
 
       // Assert
       expect(root).toBeTruthy();
+    });
+
+    it('uses the derived three-button inset to position full-bleed artwork', () => {
+      const originalOS = Platform.OS;
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        get: () => 'android',
+      });
+      mockedUseBottomSafeAreaInset.mockReturnValue(48);
+
+      try {
+        render(<FoxAnimation hasFooter={false} fullBleedBottom />);
+
+        expect(mockedUseBottomSafeAreaInset).toHaveBeenCalled();
+        expect(
+          getSafeBottomPosition(false, 48, { fullBleedBottom: true }),
+        ).toBe(48);
+      } finally {
+        Object.defineProperty(Platform, 'OS', {
+          configurable: true,
+          get: () => originalOS,
+        });
+      }
     });
 
     it('adjusts height based on device size for medium devices with footer', () => {
