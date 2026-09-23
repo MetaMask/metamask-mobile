@@ -109,6 +109,9 @@ describe('EarningsTab', () => {
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
+    ).toBeNull();
   });
 
   it('opens the tax form sheet when the user answers Yes', () => {

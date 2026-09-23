@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import ClaimOnHoldSheet from './ClaimOnHoldSheet';
 import ClaimResidencySheet from './ClaimResidencySheet';
 import TaxFormPendingSheet from './TaxFormPendingSheet';
 import TaxFormRequiredSheet from './TaxFormRequiredSheet';
@@ -68,6 +69,8 @@ export const useClaimEligibilityFlow = (
           isVisible={sheet === 'pendingReview'}
           onClose={handleClose}
         />
+        {/* Kept for the flagged-user path; the live flow never opens it. */}
+        <ClaimOnHoldSheet isVisible={false} onClose={handleClose} />
       </>
     ),
   };
