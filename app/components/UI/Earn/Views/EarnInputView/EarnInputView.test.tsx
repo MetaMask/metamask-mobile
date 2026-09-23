@@ -334,13 +334,13 @@ const mockInitialState: DeepPartial<RootState> = {
         },
         assetsPrice: {
           'eip155:1/slip44:60': {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 2000,
             usdPrice: 2000,
             lastUpdated: 1717334400000,
           },
           [`eip155:1/erc20:${MOCK_USDC_MAINNET_ASSET.address}`]: {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 1,
             usdPrice: 1,
             lastUpdated: 1717334400000,

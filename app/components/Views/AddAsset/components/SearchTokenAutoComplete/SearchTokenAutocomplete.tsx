@@ -29,6 +29,7 @@ import {
   CaipAssetType,
   CaipChainId,
   Hex,
+  isCaipAssetType,
   parseCaipAssetType,
 } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -219,7 +220,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     ]);
 
     presentAssetIds.forEach((assetId) => {
-      if (!assetIdBelongsToChain(assetId, caipChainId)) {
+      if (
+        !isCaipAssetType(assetId) ||
+        !assetIdBelongsToChain(assetId, caipChainId)
+      ) {
         return;
       }
       if (assetPreferences[assetId]?.hidden === true) {
