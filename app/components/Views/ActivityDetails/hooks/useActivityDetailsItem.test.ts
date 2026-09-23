@@ -17,11 +17,12 @@ import {
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
+import { selectExcludedActivityTransactionHashes } from '../../../../selectors/transactionController';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
-import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
+import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -33,6 +34,7 @@ jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
 jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
+  ...jest.requireActual('../../ActivityList/helpers/transformations'),
   mapNonEvmTransactions: jest.fn(() => []),
 }));
 jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
@@ -46,7 +48,7 @@ jest.mock('./useLocalTransactionMeta', () => ({
 }));
 
 const useApiTransactionMock = jest.mocked(useApiTransaction);
-const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
+const useRampActivityItemsByIdMock = jest.mocked(useRampActivityItemsById);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
@@ -127,7 +129,16 @@ function setSources({
 }) {
   const groups = localGroups ?? local.map(stubGroup);
   localByIdentifier = identifierMapFrom(local, groups);
-  useRampActivityItemsMock.mockReturnValue(ramp);
+  useRampActivityItemsByIdMock.mockReturnValue(
+    new Map(
+      ramp.flatMap((item) => [
+        [item.hash?.toLowerCase() ?? '', item] as [string, ActivityListItem],
+        ...(item.hash === rampOrder.txHash
+          ? [[rampOrder.id, item] as [string, ActivityListItem]]
+          : []),
+      ]),
+    ),
+  );
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
     isFetching: false,
@@ -156,6 +167,9 @@ describe('useActivityDetailsItem', () => {
       }
       if (selector === selectEvmAddress) {
         return '0x1234567890abcdef1234567890abcdef12345678';
+      }
+      if (selector === selectExcludedActivityTransactionHashes) {
+        return new Set<string>();
       }
       return { transactions: [] };
     });
@@ -411,7 +425,50 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetched');
-    expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
+  });
+
+  it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xnotours',
+        // Relayer / unrelated sender — subject only appears (if at all) in
+        // valueTransfers. List path drops these via shouldSkipTransaction.
+        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '2500000000000000000',
+        transactionCategory: 'STANDARD',
+        valueTransfers: [
+          {
+            from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            to: '0x1234567890abcdef1234567890abcdef12345678',
+            amount: '1',
+            decimal: 18,
+            contractAddress: '',
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xnotours', 'eip155:1'),
+    );
+
+    expect(result.current.item).toBeUndefined();
   });
 
   it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {
@@ -431,6 +488,9 @@ describe('useActivityDetailsItem', () => {
       }
       if (selector === selectEvmAddress) {
         return checksummedSubject;
+      }
+      if (selector === selectExcludedActivityTransactionHashes) {
+        return new Set<string>();
       }
       return { transactions: [] };
     });
@@ -453,11 +513,46 @@ describe('useActivityDetailsItem', () => {
         cumulativeGasUsed: 21000,
         value: '1',
         transactionCategory: 'TRANSFER',
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('classifies a fetched native receive that carries incoming value transfers', () => {
+    const subject = '0x1234567890abcdef1234567890abcdef12345678';
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchednativereceive',
+        from: counterparty,
+        to: subject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '1000000000000000000',
+        transactionCategory: 'TRANSFER',
+        // The by-hash request always sets `includeValueTransfers`, so real
+        // receives arrive with transfers the list gate would filter out.
         valueTransfers: [
           {
             from: counterparty,
-            to: lowercaseSubject,
-            amount: '1',
+            to: subject,
+            amount: '1000000000000000000',
             decimal: 18,
             contractAddress: '',
             symbol: 'ETH',
@@ -470,7 +565,52 @@ describe('useActivityDetailsItem', () => {
     });
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
+      useActivityDetailsItem('0xfetchednativereceive', 'eip155:1'),
+    );
+
+    expect(result.current.item?.type).toBe('receive');
+  });
+
+  it('classifies a fetched token receive that carries incoming value transfers', () => {
+    const subject = '0x1234567890abcdef1234567890abcdef12345678';
+    const counterparty = '0x0000000000000000000000000000000000000001';
+
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetchedtokenreceive',
+        from: counterparty,
+        to: subject,
+        timestamp: '2026-05-13T14:34:23.000Z',
+        blockNumber: 1,
+        blockHash: '0xblock',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 0,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        transactionCategory: 'TRANSFER',
+        valueTransfers: [
+          {
+            from: counterparty,
+            to: subject,
+            amount: '1000000',
+            decimal: 6,
+            contractAddress: '0x3333333333333333333333333333333333333333',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            transferType: 'ERC20',
+          },
+        ],
+      } as V1TransactionByHashResponse,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xfetchedtokenreceive', 'eip155:1'),
     );
 
     expect(result.current.item?.type).toBe('receive');

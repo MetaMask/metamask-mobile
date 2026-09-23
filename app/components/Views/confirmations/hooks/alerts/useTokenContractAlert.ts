@@ -11,7 +11,7 @@ import { toChecksumAddress } from '../../../../../util/address';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
@@ -58,7 +58,7 @@ export function useTokenContractAlert(): Alert[] {
 
   return useMemo(() => {
     if (!isTokenContract) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

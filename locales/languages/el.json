@@ -6537,35 +6537,7 @@
     "swap_completed": "Ανταλλάξατε {{from}} για {{to}}",
     "swap": "Ανταλλαγή",
     "sent": "Στάλθηκαν σε {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "Ανταλλάξατε {{symbolIn}} για {{symbolOut}}",
-      "erc20_sent": "Στάλθηκαν σε {{address}}",
-      "erc20_received": "Λάβατε από {{address}}",
-      "eth_sent": "Στάλθηκαν σε {{address}}",
-      "eth_received": "Λάβατε από {{address}}",
-      "erc721_sent": "Εστάλη NFT σε {{address}}",
-      "erc1155_sent": "Εστάλη NFT σε {{address}}",
-      "erc721_received": "Ελήφθησαν NFT από {{address}}",
-      "erc1155_received": "Ελήφθησαν NFT από {{address}}",
-      "rocketpool_stake_completed": "Ποντάρισμα",
-      "rocketpool_unstake_completed": "Ολοκλήρωση ακύρωσης πονταρίσματος",
-      "lido_stake_completed": "Ποντάρισμα",
-      "lido_withdrawal_requested": "Αίτημα ακύρωσης πονταρίσματος",
-      "lido_withdrawal_completed": "Ολοκλήρωση ακύρωσης πονταρίσματος",
-      "lido_stake_ready_to_be_withdrawn": "Αίτημα ανάληψης"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Το αίτημά σας για ακύρωση πονταρίσματος {{amount}} {{symbol}} έχει σταλεί",
-      "lido_stake_ready_to_be_withdrawn": "Μπορείτε τώρα να αποσύρετε την ακύρωση πονταρίσματος {{symbol}}"
-    },
     "modal": {
-      "title_sent": "Στείλτε {{symbol}}",
-      "title_received": "Λήφθησαν {{symbol}}",
-      "title_unstake_requested": "Αίτημα ακύρωσης πονταρίσματος",
-      "title_untake_ready": "Έτοιμη για ανάληψη",
-      "title_stake": "Ποντάρισμα {{symbol}}",
-      "title_unstake_completed": "Ολοκλήρωση ακύρωσης πονταρίσματος",
-      "title_swapped": "Ανταλλαγή {{symbolIn}} με {{symbolOut}}",
       "label_address_to": "Προς",
       "label_address_from": "Από",
       "label_address_to_you": "Προς (Εσάς)",
@@ -9700,7 +9672,7 @@
       "view_on_block_explorer": "Προβολή στον εξερευνητή ομάδας καταχωρίσεων (block explorer)"
     },
     "share_address_qr": {
-      "title": "διεύθυνση δικτύου στο {{networkName}}",
+      "title": "Διεύθυνση δικτύου στο {{networkName}}",
       "copy_address": "Αντιγραφή διεύθυνσης",
       "description": "Χρησιμοποιήστε αυτή τη διεύθυνση για να λάβετε tokens και συλλεκτικά αντικείμενα στο",
       "description_prefix": "Χρησιμοποιήστε αυτό για να λαμβάνετε περιουσιακά στοιχεία στο"

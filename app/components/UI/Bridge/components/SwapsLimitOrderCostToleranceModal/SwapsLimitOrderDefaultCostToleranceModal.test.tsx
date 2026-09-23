@@ -66,7 +66,11 @@ describe('SwapsLimitOrderDefaultCostToleranceModal', () => {
 
     expect(getByText(strings('bridge.cost_tolerance'))).toBeOnTheScreen();
     expect(
-      getByText(strings('bridge.default_cost_tolerance_description')),
+      getByText(
+        strings('bridge.default_cost_tolerance_description', {
+          costTolerance: '2',
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
       getByTestId(SwapsLimitOrderCostToleranceModalSelectorsIDs.DEFAULT_SHEET),
