@@ -32,6 +32,8 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -65,6 +67,7 @@ export function useDepositPrefillAmount({
   autoSelectFiatPayment?: boolean;
 } = {}): DepositPrefillResult {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { amount } = useParams<{ amount?: string }>();
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
   const { availableTokens } = useTransactionPayAvailableTokens();
@@ -91,9 +94,10 @@ export function useDepositPrefillAmount({
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 
   const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
@@ -105,6 +109,18 @@ export function useDepositPrefillAmount({
   const enabled = useMemo(() => {
     if (!isMoneyAccountDeposit) {
       return prefilledAmountConfig.enabled;
+    }
+
+    // Explicit amounts use the same quote preparation flow without opting into
+    // balance-based prefill or changing card/add-mUSD funding behavior.
+    if (amount !== undefined) {
+      const explicitAmount = new BigNumber(amount);
+      return (
+        depositIntent !== 'card' &&
+        depositIntent !== 'addMusd' &&
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0)
+      );
     }
 
     const { variantName } = resolveABTestAssignment(
@@ -127,6 +143,7 @@ export function useDepositPrefillAmount({
       intent: depositIntent,
     });
   }, [
+    amount,
     depositIntent,
     isMoneyAccountDeposit,
     prefilledAmountConfig.enabled,
@@ -157,6 +174,14 @@ export function useDepositPrefillAmount({
       };
     }
 
+    if (isMoneyAccountDeposit && amount !== undefined) {
+      return {
+        prefillAmount: amount,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
+
     const stable = isRouteToken(relayFixedSpread, {
       chainId: payToken.chainId,
       address: payToken.address,
@@ -178,7 +203,15 @@ export function useDepositPrefillAmount({
       percentage: nextPercentage,
       isLimitCapped: capped,
     };
-  }, [enabled, balanceUsd, payToken, depositLimit, relayFixedSpread]);
+  }, [
+    amount,
+    isMoneyAccountDeposit,
+    enabled,
+    balanceUsd,
+    payToken,
+    depositLimit,
+    relayFixedSpread,
+  ]);
 
   useEffect(() => {
     if (!enabled) {

@@ -47,6 +47,9 @@ import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAc
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { DepositPrefillStatus } from './useDepositPrefillAmount';
 
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  TransactionType.membershipSubscription;
+
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -740,6 +743,206 @@ describe('useTransactionCustomAmount', () => {
     const { result } = runHook();
 
     expect(result.current.amountFiat).toBe('43.21');
+  });
+
+  it('rejects keypad and percentage edits for membership top-ups', () => {
+    useParamsMock.mockReturnValue({
+      amount: '1',
+    });
+    const { result } = runHook({
+      transactionMeta: {
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      },
+    });
+
+    act(() => {
+      result.current.updatePendingAmount('50');
+      expect(result.current.updatePendingAmountPercentage(100)).toBe(false);
+      expect(result.current.updatePendingAmountPercentage(50)).toBe(false);
+    });
+
+    expect(result.current.amountFiat).toBe('1');
+    expect(result.current.hasUserEditedAmountRef.current).toBe(false);
+  });
+
+  it('keeps the membership amount when the payment token loses its balance', () => {
+    useParamsMock.mockReturnValue({
+      amount: '1',
+    });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '500',
+        chainId: '0x1',
+        balanceFiat: '500',
+        balanceHuman: '500',
+        balanceRaw: '500000000',
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      setPayToken: jest.fn(),
+    });
+    const { result, rerender } = runHook({
+      transactionMeta: {
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      },
+    });
+
+    act(() => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      rerender({});
+    });
+
+    expect(result.current.amountFiat).toBe('1');
+  });
+
+  it.each([
+    [
+      'top-level membership',
+      undefined,
+      { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+    ],
+    [
+      'nested membership batch',
+      undefined,
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+        ],
+      },
+    ],
+    [
+      'top-level membership',
+      0,
+      { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+    ],
+    [
+      'nested membership batch',
+      0,
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+        ],
+      },
+    ],
+    [
+      'top-level membership',
+      0.5,
+      { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+    ],
+    [
+      'nested membership batch',
+      0.5,
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE },
+        ],
+      },
+    ],
+  ] as [string, number | undefined, Partial<TransactionMeta>][])(
+    'commits fixed membership amount for %s when token fiat rate is %s',
+    async (_transactionKind, tokenFiatRate, transactionMeta) => {
+      useParamsMock.mockReturnValue({ amount: '12.34' });
+      useTokenFiatRateMock.mockReturnValue(tokenFiatRate);
+      const { result } = runHook({ transactionMeta });
+
+      expect(result.current.amountHuman).toBe('12.34');
+
+      await act(async () => {
+        await result.current.updateTokenAmount();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('12.34');
+    },
+  );
+
+  it('preserves an explicit money account deposit amount when balance prefill is enabled', async () => {
+    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+      prefilledAmount: {
+        default: { enabled: false },
+        overrides: {
+          moneyAccountDeposit: { enabled: true },
+        },
+      },
+    });
+    (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+    useParamsMock.mockReturnValue({ amount: '5' });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '500',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result } = runHook({
+      transactionMeta: {
+        type: TransactionType.moneyAccountDeposit,
+        batchId: '0xtestbatchid' as Hex,
+      },
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(result.current.amountFiat).toBe('5');
+    expect(result.current.depositPrefillStatus).toBe(
+      DepositPrefillStatus.Prefilled,
+    );
+  });
+
+  it('preserves edits after starting from an explicit money account deposit amount', async () => {
+    (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+      prefilledAmount: {
+        default: { enabled: false },
+        overrides: {
+          moneyAccountDeposit: { enabled: true },
+        },
+      },
+    });
+    (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+    useParamsMock.mockReturnValue({ amount: '5' });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '500',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result, rerender } = runHook({
+      transactionMeta: {
+        type: TransactionType.moneyAccountDeposit,
+        batchId: '0xtestbatchid' as Hex,
+      },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('57');
+    });
+
+    useParamsMock.mockReturnValue({ amount: '5' });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '9999',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    await act(async () => {
+      rerender({});
+      jest.runAllTimers();
+    });
+
+    expect(result.current.amountFiat).toBe('57');
   });
 
   it('displays the full input amount when isMaxAmount is true, not the destination-received targetAmount.usd', async () => {

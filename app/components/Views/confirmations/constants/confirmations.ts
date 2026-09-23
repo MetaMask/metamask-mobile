@@ -9,11 +9,16 @@ export const SIGNATURE_APPROVAL_TYPES = [
   ApprovalType.PersonalSign,
 ];
 
+export const MONEY_ACCOUNT_DEPOSIT_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.membershipSubscription,
+];
+
 export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsDeposit,
@@ -48,7 +53,7 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -110,7 +115,7 @@ export const ACTIVITY_FIAT_FRACTION_DIGITS = 2;
  * are priced in USD unless the type is also in {@link USER_CURRENCY_TYPES}.
  */
 export const PAY_TRANSACTION_TYPES = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -128,7 +133,7 @@ export const RELAY_DEPOSIT_TYPES = [
 ];
 
 export const MM_PAY_TRANSACTION_TYPES = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsDeposit,
@@ -145,7 +150,7 @@ export const MM_PAY_TRANSACTION_TYPES = [
  * These transactions will fail if no quotes are available.
  */
 export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
 ] as const;
 
 /**

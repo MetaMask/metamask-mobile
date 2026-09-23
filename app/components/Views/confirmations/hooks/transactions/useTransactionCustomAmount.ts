@@ -20,6 +20,7 @@ import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { debounce } from 'lodash';
 import Engine from '../../../../../core/Engine';
 import {
@@ -44,6 +45,7 @@ import {
   DepositPrefillStatus,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -64,14 +66,18 @@ export function useTransactionCustomAmount({
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { chainId, id: transactionId } = transactionMeta;
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const isAddMusdFlow =
     isMoneyAccountDeposit &&
     getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
-  const { amount: defaultAmount } = useParams<{ amount?: string }>();
+  const isMembershipSubscription = hasTransactionType(transactionMeta, [
+    TransactionType.membershipSubscription,
+  ]);
+  const { amount: defaultAmount } = useParams<ConfirmationParams>();
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
@@ -323,6 +329,9 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmount = useCallback(
     (value: string) => {
+      if (isMembershipSubscription) {
+        return;
+      }
       let newAmount = value.replace(/^0+/, '') || '0';
 
       if (newAmount.startsWith('.') || newAmount.startsWith(',')) {
@@ -361,6 +370,7 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
     },
     [
+      isMembershipSubscription,
       isFiatBuyLimited,
       fiatMaxAmount,
       isMaxAmount,
@@ -371,6 +381,9 @@ export function useTransactionCustomAmount({
 
   const updatePendingAmountPercentage = useCallback(
     (percentage: number): boolean => {
+      if (isMembershipSubscription) {
+        return false;
+      }
       if (!balanceUsd) {
         // No balance to derive a percentage/Max amount from — signal the caller
         // that nothing was applied so it can avoid submitting the page.
@@ -425,13 +438,24 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
       return true;
     },
-    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
+    [
+      balanceUsd,
+      isMaxAmount,
+      isMembershipSubscription,
+      setIsMax,
+      setConfirmationMetric,
+    ],
   );
 
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;
   const prevHasPrefilled = useRef(isDepositPrefilled);
   useEffect(() => {
+    // Keep the original payment amount through token/account changes; prefill
+    // readiness still triggers quote preparation in CustomAmountInfo.
+    if (isMembershipSubscription) {
+      return;
+    }
     // Skip if the user has manually typed on the keypad — a transient
     // hasPrefilled toggle (from tokenKey changes) must not overwrite
     // their input. The ref resets when the pay token genuinely changes.
@@ -482,11 +506,12 @@ export function useTransactionCustomAmount({
     // of waiting for hasPrefilled to toggle. Same-token balance updates do not
     // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDepositPrefilled, payTokenKey]);
+  }, [isDepositPrefilled, payTokenKey, isMembershipSubscription]);
 
   useEffect(() => {
     if (
       isAddMusdFlow &&
+      !isMembershipSubscription &&
       balanceUsd &&
       balanceUsd > 0 &&
       !hasPrefilled.current
@@ -505,6 +530,7 @@ export function useTransactionCustomAmount({
     }
   }, [
     isAddMusdFlow,
+    isMembershipSubscription,
     balanceUsd,
     setConfirmationMetric,
     updatePendingAmountPercentage,

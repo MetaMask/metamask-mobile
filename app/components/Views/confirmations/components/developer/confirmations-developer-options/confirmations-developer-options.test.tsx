@@ -25,6 +25,9 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
 
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  TransactionType.membershipSubscription;
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -490,6 +493,41 @@ describe('ConfirmationsDeveloperOptions', () => {
       });
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         forceBottomSheet: true,
+      });
+    });
+
+    it('calls production initiateDeposit for 5$ amount button', async () => {
+      mockSelectMoneyAccountDepositEnabledFlag.mockReturnValue(true);
+      const { getByTestId } = render(<ConfirmationsDeveloperOptions />);
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_FIVE_DOLLARS_BUTTON,
+          ),
+        );
+      });
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        forceBottomSheet: true,
+        amount: '5',
+      });
+    });
+
+    it('opens the membership subscription with its own button and transaction type', async () => {
+      mockSelectMoneyAccountDepositEnabledFlag.mockReturnValue(true);
+      const { getByTestId } = render(<ConfirmationsDeveloperOptions />);
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        forceBottomSheet: true,
+        amount: '1',
+        transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
       });
     });
 
