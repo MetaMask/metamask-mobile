@@ -166,7 +166,6 @@ const SocialPostComposerView: React.FC = () => {
       id: `composed-${Date.now()}`,
       authorHandle: profile?.handle ?? 'giga-whale',
       authorImageUrl: profile?.imageUrl,
-      winRateLabel: '78% WR',
       timestampMs: Date.now(),
       likeCount: 0,
       commentCount: 0,

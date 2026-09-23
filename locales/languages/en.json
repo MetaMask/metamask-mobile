@@ -1253,6 +1253,11 @@
         "size_at_price": "{{size}} at {{price}}",
         "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
+      "trader_stats": {
+        "pnl_30d": "{{pnl}} P&L (30d)",
+        "followers": "{{count}} followers",
+        "win_rate": "{{winRate}} win rate"
+      },
       "no_data": "No data",
       "position_card": {
         "copy_trade": "Copy trade",
