@@ -9,4 +9,5 @@ export {
   createOAuthMockttpService,
 } from './OAuthMockttpService';
 export * from './constants';
+export * from './faultProfiles';
 export * from './types';
