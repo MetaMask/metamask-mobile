@@ -863,6 +863,47 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
   }, 30000);
 
+  it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
+    stubFetch(
+      () => ({
+        body: makePreview({
+          expiresAt: new Date(Date.now() + 4000).toISOString(),
+        }),
+      }),
+      {
+        commit: () => ({
+          status: 500,
+          body: { code: 'venue_unavailable', message: 'Venue unavailable.' },
+        }),
+      },
+    );
+
+    await approveOrder();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.ERROR),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+    ).toBeOnTheScreen();
+
+    await act(() => new Promise((resolve) => setTimeout(resolve, 4500)));
+
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.REFRESH)).toBeNull();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+    await waitFor(() => expect(commitCalls()).toHaveLength(2));
+    expect(commitCalls()[0]?.body).toEqual({
+      previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+    });
+    expect(commitCalls()[1]?.body).toEqual(commitCalls()[0]?.body);
+  }, 30000);
+
   it('links the backend-owned terms URL when the venue publishes one', async () => {
     stubBalance({ termsUrl: 'https://kalshi.com/regulatory/agreement' });
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);

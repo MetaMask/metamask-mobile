@@ -108,8 +108,10 @@ export const PredictOrderFlowSheet = ({
   const [receipt, setReceipt] = useState<PredictOrderReceipt | null>(null);
   const [isRechecking, setIsRechecking] = useState(false);
   // A Commit failure that returned no Receipt: the operation may or may not
-  // exist, so the approval step stays and re-approval re-POSTs the same
-  // idempotent Preview reference.
+  // exist, so the approval step stays and keeps this Preview for observation
+  // even after local expiry. Re-approval re-POSTs the same idempotent
+  // Preview reference. A fresh quote is the sole next step only when the
+  // venue confirms `preview_expired` before creating an operation.
   const [commitError, setCommitError] = useState<PredictError | null>(null);
   // A Commit rejected as `preview_expired` marks the quote expired even when
   // the client clock disagrees: the venue is authoritative.
@@ -223,6 +225,10 @@ export const PredictOrderFlowSheet = ({
 
   const isExpired =
     venueExpired || (preview !== null && isPreviewExpired(preview, now));
+  // After an attempted Commit, keep the original Preview for observation
+  // even if the quote has expired locally. Only a venue `preview_expired`
+  // (commitError stays unset) makes a fresh quote the sole next step.
+  const approvalExpired = commitError === null && isExpired;
   const canReview =
     phase === 'input' && preview !== null && !isQuoting && !isExpired;
   const canRefresh = isExpired || Boolean(quoteError);
@@ -270,9 +276,9 @@ export const PredictOrderFlowSheet = ({
       setPhase('receipt');
     } catch (error) {
       // The Commit failed before a Receipt existed, so the operation may or
-      // may not exist. The approval step stays: re-approving re-POSTs the
-      // same idempotent Preview reference — it observes the same operation,
-      // never a second Order.
+      // may not exist. The approval step stays and keeps this Preview for
+      // observation even after local expiry: re-approving re-POSTs the same
+      // idempotent Preview reference. Never a second Order.
       setPhase('approval');
       if (
         error instanceof PredictError &&
@@ -563,7 +569,7 @@ export const PredictOrderFlowSheet = ({
                   ) : null}
                   <OrderApproval
                     preview={preview}
-                    isExpired={isExpired}
+                    isExpired={approvalExpired}
                     onApprove={handleCommit}
                     onBack={handleBack}
                     onRefresh={handleRequote}
