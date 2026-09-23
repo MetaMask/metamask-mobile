@@ -669,7 +669,7 @@ class AccountListBottomSheet {
       async () => {
         const cells = await this.getAccountElementsByAccountNameV2(accountName);
         if (cells.length === 0) {
-          return false;
+          throw new Error(`No account row found for "${accountName}"`);
         }
 
         const cell = cells[0];
@@ -680,14 +680,16 @@ class AccountListBottomSheet {
               maxScrolls: 10,
             });
             if (await cell.isVisible()) {
-              return true;
+              return;
             }
           } catch {
             // try the other scroll direction
           }
         }
 
-        return await cell.isVisible();
+        if (!(await cell.isVisible())) {
+          throw new Error(`Account row "${accountName}" is not visible`);
+        }
       },
       {
         description,
