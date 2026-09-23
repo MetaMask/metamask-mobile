@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -58,6 +58,14 @@ const AccountHub = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // The experiment assignment is injected as `active_ab_tests` by the
+  // Header & NavBar analytics mapping, which identifies the arm the user got.
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACCOUNT_LIST_VIEWED).build(),
+    );
+  }, [createEventBuilder, trackEvent]);
   const { openQRScanner } = useQRScanner();
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
@@ -115,6 +123,10 @@ const AccountHub = () => {
     );
     navigation.navigate(Routes.SETTINGS_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW);
+  }, [navigation]);
 
   const handleInfoPress = useCallback(() => {
     if (!selectedAccountGroup) {
@@ -250,6 +262,13 @@ const AccountHub = () => {
                 />
               </BadgeWrapper>
             )}
+            <ButtonIcon
+              iconName={IconName.Setting}
+              size={ButtonIconSize.Md}
+              onPress={handleManageAccountsPress}
+              testID={AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON}
+            />
+
             <BadgeWrapper
               position={BadgeWrapperPosition.TopRight}
               positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}

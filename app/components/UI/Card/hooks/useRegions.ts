@@ -11,7 +11,12 @@ import type { Region } from '../types';
  */
 const useRegions = () => {
   const { user } = useCardSDK();
-  const { data: registrationSettings, isLoading } = useRegistrationSettings();
+  const {
+    data: registrationSettings,
+    isLoading,
+    error,
+    fetchData,
+  } = useRegistrationSettings();
 
   const allRegions: Region[] = useMemo(() => {
     if (!registrationSettings?.countries) {
@@ -62,6 +67,8 @@ const useRegions = () => {
     userCountry,
     userNationality,
     isLoading,
+    error,
+    refetch: fetchData,
   };
 };
 

@@ -16,6 +16,7 @@ import { PriceImpactHeader } from '../Bridge/components/PriceImpactModal/PriceIm
 import { PriceImpactFooter } from '../Bridge/components/PriceImpactModal/PriceImpactFooter';
 import { PriceImpactModalType } from '../Bridge/components/PriceImpactModal/constants';
 import { usePriceImpactFiat } from '../Bridge/hooks/usePriceImpactFiat';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 // This screen is only ever mounted at the error case for high-price-impact swaps
@@ -59,7 +60,7 @@ const QuickBuyPriceImpactConfirmScreen: React.FC = () => {
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="text-center"
-          testID="price-impact-description"
+          testID={QuickBuySheetSelectorsIDs.PRICE_IMPACT_DESCRIPTION}
         >
           {strings('bridge.price_impact_error_description', {
             priceImpact: formattedPriceImpact ?? '0%',

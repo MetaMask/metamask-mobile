@@ -17,6 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { renderShortAddress } from '../../../../util/address';
 import {
   MUSD_DECIMALS,
@@ -35,6 +36,12 @@ import {
   resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
 import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
+import {
+  findDepositsAwaitingSignature,
+  isHardwareDepositSigningComplete,
+  isHardwareFundedDeposit,
+} from '../utils/hardwareDepositSigning';
+import { isTransactionStatusSignedOrLater } from '../../../Views/confirmations/utils/batch-signing';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -100,27 +107,39 @@ const FAILED_KEY = 'failed';
 const CONFIRMED_KEY = 'confirmed';
 export const IN_PROGRESS_DELAY_MS = 1500;
 
-// Reads the freshest copy of a transaction from controller state. The deferred
-// in-progress toast derives deposit intent from `metamaskPay`, which can be
-// populated after the `approved` event that scheduled the toast without another
-// status change re-delivering the meta — so the captured snapshot is unsafe for
-// derivation.
+// Reads the freshest copy of a transaction. The deferred in-progress toast
+// derives deposit intent from `metamaskPay`, which can be populated after the
+// `approved` event that scheduled the toast without another status change
+// re-delivering the meta — so the captured snapshot is unsafe for derivation.
 function latestTransactionMeta(
   transactionId: string,
 ): TransactionMeta | undefined {
-  return Engine.context.TransactionController.state.transactions.find(
-    (tx) => tx.id === transactionId,
+  return selectTransactionMetadataById(store.getState(), transactionId);
+}
+
+// A hardware payer signs funding legs on-device after `approved`; showing the
+// toast then would cover the device confirmation sheet.
+function isAwaitingHardwareSignature(
+  transactionMeta: TransactionMeta,
+): boolean {
+  const state = store.getState();
+  return (
+    isHardwareFundedDeposit(state, transactionMeta) &&
+    !isHardwareDepositSigningComplete(state, transactionMeta)
   );
 }
 
-// Activity rows render transaction status from the Redux copy of
-// TransactionController state, which trails these messenger events behind
-// EngineService's update batcher; under a busy JS thread the rows visibly lag
-// the toasts. Flushing here makes rows update in the same frame as the toast.
-function flushActivityState(transactionMeta: TransactionMeta) {
+// The Redux copy of TransactionController state trails these messenger events
+// behind EngineService's update batcher. Activity rows would visibly lag the
+// toasts under a busy JS thread, and the hardware signing check would judge a
+// funding leg by its pre-event status. Flushing makes both read the event's
+// state; the cost is limited to Money transactions and legs funding a deposit.
+function flushTransactionState(transactionMeta: TransactionMeta) {
   if (
     !isMoneyAccountTx(transactionMeta) &&
-    !isPerpsPredictMoneyActivity(transactionMeta)
+    !isPerpsPredictMoneyActivity(transactionMeta) &&
+    findDepositsAwaitingSignature(store.getState(), transactionMeta).length ===
+      0
   ) {
     return;
   }
@@ -174,6 +193,9 @@ export const useMoneyTransactionStatus = () => {
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      // Not reserved yet: a later `signed` event retries via
+      // `showInProgressForSignedDeposits`.
+      if (isAwaitingHardwareSignature(transactionMeta)) return;
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
       const onPress = () =>
@@ -192,6 +214,17 @@ export const useMoneyTransactionStatus = () => {
         }
       }, IN_PROGRESS_DELAY_MS);
       pendingInProgress.set(transactionMeta.id, timeoutId);
+    };
+
+    // A funding leg (or the parent itself) reaching `signed` may complete a
+    // hardware deposit's signing; re-run the in-progress toast for those.
+    const showInProgressForSignedDeposits = (
+      transactionMeta: TransactionMeta,
+    ) => {
+      if (!isTransactionStatusSignedOrLater(transactionMeta.status)) return;
+      findDepositsAwaitingSignature(store.getState(), transactionMeta).forEach(
+        showInProgressFor,
+      );
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
@@ -321,7 +354,7 @@ export const useMoneyTransactionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      flushActivityState(transactionMeta);
+      flushTransactionState(transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
@@ -338,13 +371,14 @@ export const useMoneyTransactionStatus = () => {
           }
           break;
         default:
+          showInProgressForSignedDeposits(transactionMeta);
           break;
       }
     };
 
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
-      flushActivityState(transactionMeta);
+      flushTransactionState(transactionMeta);
       showConfirmedFor(transactionMeta);
     };
 

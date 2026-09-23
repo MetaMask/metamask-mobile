@@ -4,6 +4,7 @@ import {
   type UsePredictMarketDataOptions,
   type UsePredictMarketDataResult,
 } from '../../../../UI/Predict/hooks/usePredictMarketData';
+import { strings } from '../../../../../../locales/i18n';
 import { useSportsMarketsFeed } from './useSportsMarketsFeed';
 
 jest.mock('../../../../UI/Predict/hooks/usePredictMarketData');
@@ -54,6 +55,17 @@ describe('useSportsMarketsFeed', () => {
       'tennis',
     ]);
     expect(result.current.activeKey).toBe('soccer');
+  });
+
+  it('labels the soccer pill Soccer to match the Predictions sports feed', () => {
+    const { result } = renderHook(() => useSportsMarketsFeed());
+
+    const soccerPill = result.current.pills.find((p) => p.key === 'soccer');
+
+    expect(soccerPill?.name).toBe(strings('predict.feed.tabs.soccer'));
+    expect(result.current.pills.map((p) => p.name)).not.toContain(
+      strings('predict.feed.tabs.football'),
+    );
   });
 
   it('select loads an additional sport and refetch calls all loaded feeds', async () => {

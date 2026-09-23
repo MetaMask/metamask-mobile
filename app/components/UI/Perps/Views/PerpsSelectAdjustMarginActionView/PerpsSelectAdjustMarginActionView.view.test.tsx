@@ -52,6 +52,9 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     const addMarginBtn = await screen.findByTestId(
       PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
     );
+
+    // navigateToAdjustMargin is called synchronously but the navigation stack
+    // transition does not settle in the test environment; verify no throw.
     expect(() => fireEvent.press(addMarginBtn)).not.toThrow();
   });
 });

@@ -53,7 +53,7 @@ import BN4 from 'bnjs4';
 import {
   sortByHighestBalance,
   sortByHighestRewards,
-  truncateNumber,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -314,7 +314,8 @@ const EarnTokenList = () => {
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
     const tokenApr = getTokenApr(item);
-    const formattedApr = tokenApr > 0 ? truncateNumber(tokenApr) : tokenApr;
+    const formattedApr =
+      tokenApr > 0 ? formatEarnRatePercentage(tokenApr) : tokenApr;
 
     return (
       <View style={styles.listItemContainer}>
@@ -355,7 +356,7 @@ const EarnTokenList = () => {
         primaryText={strings('stake.you_could_earn_up_to')}
         secondaryText={
           isNoEarnableTokensWithBalance
-            ? `${highestAvailableApr.toString()}%`
+            ? `${formatEarnRatePercentage(highestAvailableApr)}%`
             : `${earnableTotalFiatFormatted}`
         }
         tertiaryText={strings('stake.per_year_on_your_tokens')}

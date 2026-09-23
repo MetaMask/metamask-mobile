@@ -28,6 +28,7 @@ import {
   loginForPredictTests,
   remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
+  remoteFeatureFlagPolygonStableTokensForPredictSmoke,
   remoteFeatureFlagWithdrawAnyTokenDisabled,
 } from './helpers/predict-helpers.js';
 
@@ -40,6 +41,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
+    ...remoteFeatureFlagPolygonStableTokensForPredictSmoke(),
     ...remoteFeatureFlagWithdrawAnyTokenDisabled(),
     carouselBanners: false,
   }); // we need to mock the confirmations redesign Feature flag

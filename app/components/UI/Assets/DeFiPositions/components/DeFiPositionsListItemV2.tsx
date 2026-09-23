@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 import {
   Text,
@@ -15,11 +16,13 @@ import {
   AvatarGroupVariant,
   type AvatarTokenProps,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../../util/assets';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import DeFiAvatarWithBadge from '../../../DeFiPositions/DeFiAvatarWithBadge';
 import styleSheet from '../../../DeFiPositions/DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
 import { useStyles } from '../../../../hooks/useStyles';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -38,6 +41,7 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
   const { styles } = useStyles(styleSheet, undefined);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
+  const currency = useSelector(getSelectedCurrency);
 
   const hexChainId = useMemo(
     () => getMaybeHexChainId(position.chainId),
@@ -137,10 +141,15 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >
-          {formatWithThreshold(position.marketValue, 0.01, I18n.locale, {
-            style: 'currency',
-            currency: 'USD',
-          })}
+          {formatWithThreshold(
+            position.marketValue,
+            0.01,
+            getLocaleLanguageCode(),
+            {
+              style: 'currency',
+              currency,
+            },
+          )}
         </SensitiveText>
         <AvatarGroup
           variant={AvatarGroupVariant.Token}

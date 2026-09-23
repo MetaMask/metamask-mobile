@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
   type OrderResult,
@@ -240,6 +241,10 @@ export const usePerpsClosePosition = (
         controllerSettled = true;
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
+
+        if (result.success || isNoPositionFoundError(result.error)) {
+          recordPerpsAction();
+        }
 
         if (!result.success && isNoPositionFoundError(result.error)) {
           reconcileAlreadyClosed();

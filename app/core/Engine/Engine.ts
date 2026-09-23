@@ -132,8 +132,16 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { predictNextControllerInit } from './controllers/predict-next-controller-init';
+import {
+  predictLiveDataServiceInit,
+  predictMarketDataServiceInit,
+  predictOrderPreviewServiceInit,
+  predictPortfolioServiceInit,
+} from './controllers/predict-service-init';
+import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
+import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
+import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
@@ -165,6 +173,7 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
+import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
@@ -187,6 +196,7 @@ import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { kycServiceInit } from './controllers/kyc/kyc-service-init';
@@ -383,9 +393,16 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PredictNextController: predictNextControllerInit,
+        PredictMarketDataService: predictMarketDataServiceInit,
+        PredictLiveDataService: predictLiveDataServiceInit,
+        PredictPortfolioService: predictPortfolioServiceInit,
+        PredictOrderPreviewService: predictOrderPreviewServiceInit,
+        RecurringOrdersDataService: recurringOrdersDataServiceInit,
+        LimitOrdersDataService: limitOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
+        RewardsMoneyController: rewardsMoneyControllerInit,
+        RewardsMoneyDataService: rewardsMoneyDataServiceInit,
         DelegationController: DelegationControllerInit,
         NetworkConnectionBannerController:
           networkConnectionBannerControllerInit,
@@ -395,6 +412,7 @@ export class Engine {
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
+        NeoBankService: neoBankServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
@@ -442,8 +460,9 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
-    const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
+    const rewardsMoneyController =
+      messengerClientsByName.RewardsMoneyController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
     const selectedNetworkController =
@@ -477,6 +496,7 @@ export class Engine {
       messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
+    const neoBankService = messengerClientsByName.NeoBankService;
     const rampsController = messengerClientsByName.RampsController;
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
@@ -680,14 +700,23 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
-      PredictNextController: predictNextController,
+      PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
+      PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      PredictOrderPreviewService:
+        messengerClientsByName.PredictOrderPreviewService,
+      RecurringOrdersDataService:
+        messengerClientsByName.RecurringOrdersDataService,
+      LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
       RewardsController: rewardsController,
+      RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
+      NeoBankService: neoBankService,
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
@@ -1006,6 +1035,19 @@ export class Engine {
   }
 
   handleVaultBackup() {
+    // Coalesces the burst of identical-vault stateChange events
+    // KeyringController fires during a single unlock into one backup
+    // attempt. Reset on lock so the *next* unlock still performs a fresh
+    // keychain check (needed to self-heal an Android Keystore-invalidated
+    // backup), and reset on a failed attempt so a later stateChange for the
+    // same vault can retry instead of waiting for the next lock/unlock
+    // — see Engine.test.ts for the regression tests.
+    let lastVault: string | undefined;
+
+    this.controllerMessenger.subscribe('KeyringController:lock', () => {
+      lastVault = undefined;
+    });
+
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
@@ -1018,13 +1060,34 @@ export class Engine {
           return;
         }
 
-        // Back up vault if it exists
+        if (state.vault === lastVault) {
+          return;
+        }
+
+        const vaultBeingBackedUp = state.vault;
+        lastVault = vaultBeingBackedUp;
         backupVault(state)
-          .then(() => {
-            Logger.log('Engine', 'Vault back up successful');
+          .then((result) => {
+            if (!result.success) {
+              throw new Error(result.error ?? 'Vault backup failed');
+            }
+            Logger.log(
+              'Engine',
+              result.skipped
+                ? `Vault back up skipped (${result.skipReason})`
+                : 'Vault back up successful',
+            );
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
+            // Don't let a failed attempt block retries until the next
+            // lock/unlock — allow the next stateChange for this vault to
+            // try again. Guarded so we don't clobber a newer attempt that
+            // may have already claimed lastVault while this one was
+            // in flight.
+            if (lastVault === vaultBeingBackedUp) {
+              lastVault = undefined;
+            }
           });
       },
     );
@@ -1366,6 +1429,7 @@ export class Engine {
       SubscriptionController,
       ShieldController,
       ClaimsController,
+      KycController,
     } = this.context;
 
     // Remove all permissions.
@@ -1410,6 +1474,9 @@ export class Engine {
 
     // Claims:
     ClaimsController.clearState();
+
+    // KYC:
+    KycController.clearState();
   };
 
   removeAllListeners() {
@@ -1583,6 +1650,7 @@ export default {
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
+      RewardsMoneyController,
       SeedlessOnboardingController,
       SelectedNetworkController,
       SignatureController,
@@ -1664,6 +1732,7 @@ export default {
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,
+      RewardsMoneyController: RewardsMoneyController.state,
       SeedlessOnboardingController: SeedlessOnboardingController.state,
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,

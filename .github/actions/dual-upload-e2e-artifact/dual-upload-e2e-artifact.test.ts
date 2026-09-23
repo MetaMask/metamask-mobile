@@ -100,7 +100,7 @@ describe('dual-upload-e2e-artifact', () => {
   it('uploads to GitHub once without retry orchestration', () => {
     const actionMetadata = loadActionMetadata();
     const githubUploadSteps = actionMetadata.runs.steps.filter(
-      (step) => step.uses === 'actions/upload-artifact@v4',
+      (step) => step.uses === 'actions/upload-artifact@v7',
     );
 
     expect(githubUploadSteps).toHaveLength(1);

@@ -323,4 +323,31 @@ describe('finalizeOnboardingCompletion', () => {
     );
     expect(mockSetBasicFunctionality).toHaveBeenCalledWith(true);
   });
+
+  it('forces Basic Functionality on before seedless controller metadata hydrates', () => {
+    jest.mocked(store.getState).mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+          SeedlessOnboardingController: {},
+        },
+      },
+    } as ReturnType<typeof store.getState>);
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(true);
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      accountType: undefined,
+      isBasicFunctionalityEnabled: false,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+    });
+
+    expect(setBasicFunctionality).toHaveBeenCalledWith(true);
+    expect(syncConsolidatedBasicFunctionalityPreferences).toHaveBeenCalledWith(
+      true,
+    );
+  });
 });

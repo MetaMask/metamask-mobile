@@ -11,6 +11,7 @@ import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_SURFACE,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TIMEOUT_MS,
   type RampsBuyCufSurface,
@@ -239,7 +240,89 @@ export interface StartRampsBuyQuoteFetchTraceOptions {
   data?: Record<string, TraceValue>;
 }
 
-/** Start Buy Quote Fetch CUF. Nests under E2E parent when active. */
+export function buildRampsBuyQuoteFetchStartTags(
+  providers?: string[],
+): Record<string, TraceValue> | undefined {
+  if (providers?.length !== 1) {
+    return undefined;
+  }
+
+  return { [RAMPS_BUY_CUF_TAG.PROVIDER]: providers[0] };
+}
+
+export interface BuildRampsBuyQuoteFetchCufCompletionParams {
+  isQueryError: boolean;
+  response?: {
+    success?: {
+      provider?: string;
+      quote?: unknown;
+    }[];
+  } | null;
+  requestedProviders?: string[];
+}
+
+/**
+ * Provider errors arrive in a successful HTTP response, so query status alone
+ * cannot distinguish a usable quote from a provider-level miss.
+ */
+export function buildRampsBuyQuoteFetchCufCompletion({
+  isQueryError,
+  response,
+  requestedProviders,
+}: BuildRampsBuyQuoteFetchCufCompletionParams): Record<string, TraceValue> {
+  const singleProvider =
+    requestedProviders?.length === 1 ? requestedProviders[0] : undefined;
+  const providerData: Record<string, TraceValue> = singleProvider
+    ? { [RAMPS_BUY_CUF_TAG.PROVIDER]: singleProvider }
+    : {};
+
+  if (isQueryError) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+      ...providerData,
+    };
+  }
+
+  const successQuotes = response?.success ?? [];
+  const usableQuotes = singleProvider
+    ? successQuotes.filter(({ provider }) => provider === singleProvider)
+    : successQuotes;
+
+  if (usableQuotes.length === 0) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+      ...providerData,
+    };
+  }
+
+  const isCustomAction =
+    (usableQuotes[0].quote as { isCustomAction?: boolean } | undefined)
+      ?.isCustomAction === true;
+
+  return {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+    ...providerData,
+    ...(isCustomAction
+      ? {
+          [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+        }
+      : { [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false }),
+  };
+}
+
+/**
+ * Start Buy Quote Fetch CUF.
+ *
+ * Always a transaction, even when a parent CUF is live. A child span is only
+ * flushed inside its parent's envelope, so nesting would withhold every quote
+ * fetch until `RampBuyToOrderDetails` ends (order details reached, or the
+ * 5 minute timeout) and drop it entirely if the app dies first. That loss
+ * skews toward abandoned sessions, which is the population the quote SLO
+ * measures. `parentContext` is still passed so the trace waterfall is intact.
+ */
 export function startRampsBuyQuoteFetchTrace({
   tags,
   startTime,
@@ -259,7 +342,7 @@ export function startRampsBuyQuoteFetchTrace({
     id: opId,
     op: TraceOperation.RampOperation,
     parentContext,
-    forceTransaction: !parentContext,
+    forceTransaction: true,
     startTime,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,

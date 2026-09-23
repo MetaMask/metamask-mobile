@@ -1,6 +1,11 @@
+import { fireEvent } from '@testing-library/react-native';
+import { TouchableOpacity } from 'react-native';
+import { ReactTestInstance } from 'react-test-renderer';
+import { Icon, IconName } from '@metamask/design-system-react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import ClipboardManager from '../../../core/ClipboardManager';
 
 const initialState = {
   engine: {
@@ -205,6 +210,87 @@ describe('NftDetails', () => {
 
     expect(getByText(TEST_COLLECTIBLE.name)).toBeOnTheScreen();
     expect(getByText(TEST_COLLECTIBLE.collection.name)).toBeOnTheScreen();
+  });
+
+  it('hides empty price and attributes sections', () => {
+    mockUseParamsValues = {
+      collectible: {
+        ...TEST_COLLECTIBLE,
+        attributes: [],
+        topBid: {
+          ...TEST_COLLECTIBLE.topBid,
+          price: {
+            ...TEST_COLLECTIBLE.topBid.price,
+            amount: {
+              ...TEST_COLLECTIBLE.topBid.price.amount,
+              native: 0,
+            },
+          },
+        },
+      },
+    };
+
+    const { queryByText } = renderScreen(
+      QrScanner,
+      { name: 'NftDetails' },
+      { state: initialState },
+    );
+
+    expect(queryByText('Price')).not.toBeOnTheScreen();
+    expect(queryByText('Attributes')).not.toBeOnTheScreen();
+  });
+
+  it('copies the contract address when its copy icon is pressed', () => {
+    const setStringSpy = jest
+      .spyOn(ClipboardManager, 'setString')
+      .mockResolvedValue();
+    mockUseParamsValues = {
+      collectible: {
+        ...TEST_COLLECTIBLE,
+        rarityRank: 0,
+        topBid: {
+          ...TEST_COLLECTIBLE.topBid,
+          price: {
+            ...TEST_COLLECTIBLE.topBid.price,
+            amount: {
+              ...TEST_COLLECTIBLE.topBid.price.amount,
+              native: 0,
+            },
+          },
+        },
+        collection: {
+          ...TEST_COLLECTIBLE.collection,
+          floorAsk: {
+            ...TEST_COLLECTIBLE.collection.floorAsk,
+            price: {
+              ...TEST_COLLECTIBLE.collection.floorAsk.price,
+              amount: {
+                ...TEST_COLLECTIBLE.collection.floorAsk.price.amount,
+                native: 0,
+                usd: 0,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { UNSAFE_getAllByType } = renderScreen(
+      QrScanner,
+      { name: 'NftDetails' },
+      { state: initialState },
+    );
+    const contractCopyButton = UNSAFE_getAllByType(TouchableOpacity).find(
+      (touchable) =>
+        touchable
+          .findAllByType(Icon)
+          .some((icon) => icon.props.name === IconName.Copy),
+    );
+
+    expect(contractCopyButton).toBeDefined();
+    fireEvent.press(contractCopyButton as ReactTestInstance);
+
+    expect(setStringSpy).toHaveBeenCalledWith(TEST_COLLECTIBLE.address);
   });
 
   it('tracks NFT Details Opened event with mobile-nft-list source', () => {

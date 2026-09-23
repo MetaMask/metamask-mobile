@@ -128,6 +128,8 @@ function writeBuildEnvJson(buildName) {
     'PRICE_ALERTS_API_URL',
     'COMPLIANCE_API_URL',
     'KYC_API_URL',
+    'IDOS_ENCLAVE_URL',
+    'IDOS_RELAY_URL',
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',
     'SOCIAL_API_URL',

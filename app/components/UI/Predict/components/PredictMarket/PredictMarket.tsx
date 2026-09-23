@@ -19,7 +19,6 @@ interface PredictMarketProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -34,7 +33,6 @@ interface PredictMarketProps {
 const PredictMarket: React.FC<PredictMarketProps> = ({
   market,
   testID,
-  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
@@ -53,7 +51,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
-        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
         predictFeedTab={predictFeedTab}
@@ -70,7 +67,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
-        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
         predictFeedTab={predictFeedTab}
@@ -87,7 +83,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
-        cardPressDisabled={cardPressDisabled}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
         predictFeedTab={predictFeedTab}
@@ -103,7 +98,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       testID={testID}
       entryPoint={entryPoint}
       isCarousel={isCarousel}
-      cardPressDisabled={cardPressDisabled}
       onCardPress={onCardPress}
       onBuyButtonPress={onBuyButtonPress}
       predictFeedTab={predictFeedTab}

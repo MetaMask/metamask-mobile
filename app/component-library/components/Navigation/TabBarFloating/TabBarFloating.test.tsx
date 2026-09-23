@@ -12,7 +12,10 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
-import TabBarFloating from './TabBarFloating';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
+import TabBarFloating, {
+  type TabBarFloatingTrailingAction,
+} from './TabBarFloating';
 import {
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
@@ -23,15 +26,28 @@ import {
   ExtendedBottomTabDescriptor,
 } from '../TabBar/TabBar.types';
 
+/** `IconSize.Lg` in points, the dimension the design system renders it at. */
+const TAB_BAR_FLOATING_ICON_DIMENSION = 24;
+
 jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
   trackExploreSearchOpened: jest.fn(),
 }));
+
+jest.mock('../../../../util/haptics');
 
 const mockNavigateToMoneyHome = jest.fn();
 jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
+}));
+
+// The trade button reaches the root modal stack through the hook, not the
+// bar's tab-navigator prop.
+const mockRootNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockRootNavigate }),
 }));
 
 interface TestTabDescriptor {
@@ -96,6 +112,7 @@ const renderBar = (
   overrides: Partial<Record<string, TestTabDescriptor>> = {},
   onHeightChange?: (height: number) => void,
   activeIndex = 0,
+  trailingAction?: TabBarFloatingTrailingAction,
 ) =>
   renderWithProvider(
     <TabBarFloating
@@ -110,6 +127,7 @@ const renderBar = (
       }
       navigation={navigation}
       onHeightChange={onHeightChange}
+      trailingAction={trailingAction}
     />,
     { state: mockInitialState },
   );
@@ -160,6 +178,19 @@ describe('TabBarFloating', () => {
     );
 
     expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
+  });
+
+  // The native iOS 26 bar draws 28pt glyphs, so the fallback has to reach for
+  // the largest design-system size the 62pt bar can hold.
+  it('draws tab glyphs at the size the native bar uses', () => {
+    const { UNSAFE_getAllByProps } = renderBar();
+
+    const [glyph] = UNSAFE_getAllByProps({ fill: 'currentColor' });
+
+    expect(glyph.props.style).toMatchObject({
+      width: TAB_BAR_FLOATING_ICON_DIMENSION,
+      height: TAB_BAR_FLOATING_ICON_DIMENSION,
+    });
   });
 
   it('highlights only the active tab, and follows it when the tab changes', () => {
@@ -262,8 +293,41 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON));
 
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
+  });
+
+  describe('with the trade trailing action', () => {
+    it('replaces the search button with the trade button', () => {
+      const { getByTestId, queryByTestId } = renderBar(
+        {},
+        undefined,
+        0,
+        'trade',
+      );
+
+      expect(
+        getByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the trade tray as a plain sheet, without the bottom notch', () => {
+      const { getByTestId } = renderBar({}, undefined, 0, 'trade');
+
+      fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON));
+
+      expect(mockRootNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+          params: expect.objectContaining({ hasBottomNotch: false }),
+        }),
+      );
+    });
   });
 
   it('navigates to the wallet home from the Home tab', () => {
@@ -274,6 +338,14 @@ describe('TabBarFloating', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET_VIEW,
     });
+  });
+
+  it('plays the tab-change haptic on every tab press', () => {
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
   it('navigates to the social tab route from the Social tab', () => {

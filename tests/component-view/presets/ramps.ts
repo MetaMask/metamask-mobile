@@ -45,6 +45,26 @@ export const initialStateRamps = () =>
             gasFeeEstimates: {},
             estimatedGasFeeTimeBounds: {},
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
+          },
         },
       },
       fiatOrders: {
@@ -104,6 +124,42 @@ export function buildRampsFranceSellFixture(): RampsFranceSellFixture {
                 address: accountAddress,
                 balance: '0x56bc75e2d63100000',
               },
+            },
+          },
+        },
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            'eip155:1/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+            [`eip155:1/erc20:${RAMPS_MUSD_TOKEN_ADDRESS_CHECKSUM.toLowerCase()}`]:
+              {
+                type: 'erc20',
+                symbol: 'mUSD',
+                name: 'MetaMask USD',
+                decimals: 6,
+              },
+          },
+          assetsPrice: {
+            'eip155:1/slip44:60': {
+              assetPriceType: 'fungible',
+              id: 'eth',
+              price: 2000,
+              usdPrice: 2000,
+              lastUpdated: 1700000000000,
+            },
+          },
+          assetsBalance: {
+            [MULTICHAIN_TEST_ACCOUNTS.account1.id]: {
+              'eip155:1/slip44:60': { amount: '100' },
+              [`eip155:1/erc20:${RAMPS_MUSD_TOKEN_ADDRESS_CHECKSUM.toLowerCase()}`]:
+                // Large enough that 10001 mUSD is still under the wallet
+                // balance when the SDK token uses 18 decimals.
+                { amount: '10000000000000000000' },
             },
           },
         },

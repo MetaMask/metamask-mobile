@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, IconSize } from '@metamask/design-system-react-native';
 import { TabBarIconKey } from '../TabBar/TabBar.types';
 
 /**
@@ -38,22 +38,55 @@ export const TAB_BAR_FLOATING_INSET_REDUCTION = 12;
 /** Floor for the bottom gap, for devices reporting little or no bottom inset. */
 export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
 
+/**
+ * Clearance above Android's system navigation, added on top of its inset.
+ * Three-button navigation fills its whole 48dp inset with an opaque bar, so
+ * consuming the inset alone leaves the pill resting on it.
+ */
+export const TAB_BAR_FLOATING_SYSTEM_BAR_GAP = 16;
+
+/**
+ * Smallest bottom inset that means an opaque navigation bar rather than a
+ * gesture strip. Android reports 48dp for three-button navigation and about
+ * 24dp for gesture, whose inset is mostly empty and already reads as clearance.
+ */
+export const TAB_BAR_FLOATING_OPAQUE_NAV_BAR_INSET = 40;
+
 /** Matches Apple's iOS 26 tab bar; also the diameter of the search circle. */
 export const TAB_BAR_FLOATING_HEIGHT = 62;
 
-/** Gap between the pill and the search circle. */
-export const TAB_BAR_FLOATING_GAP = 14;
+/** Gap between the pill and the search circle; matches UIKit's iOS 26 bar. */
+export const TAB_BAR_FLOATING_GAP = 8;
 
-/** Smallest design-system body variant is 12/20, which overruns the bar. */
-export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 11;
-export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 14;
+/** Space between the bar and the screen edges; matches UIKit's iOS 26 bar. */
+export const TAB_BAR_FLOATING_HORIZONTAL_INSET = 21;
 
-/** Strength of the system material used below iOS 26. */
+/**
+ * UIKit draws 28pt tab glyphs. `Xl` (32) is equally close but overruns the
+ * 62pt bar once the label is stacked under it, so `Lg` is the usable match.
+ */
+export const TAB_BAR_FLOATING_ICON_SIZE = IconSize.Lg;
+
+/** UIKit's iOS 26 label size; the smallest design-system variant (12/20) overruns the bar. */
+export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 12;
+export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 15;
+
+/** Shared with the trade tray so every blurred surface reads as one material. */
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
+
+/** Surface colour over the glass trade tray: 0 is pure glass, 1 is opaque. */
+export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.75;
+
+/** Alpha of the hairline drawn around the glass tray. */
+export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;
+
+/** Corner radius of the glass tray, matching `rounded-3xl`. */
+export const TRADE_TRAY_GLASS_RADIUS = 24;
 
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
 
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
+  TRADE_BUTTON: 'tab-bar-floating-trade-button',
 } as const;
