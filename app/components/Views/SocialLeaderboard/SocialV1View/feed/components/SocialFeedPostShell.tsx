@@ -14,7 +14,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
-import superheroAvatar from '../../../../../../images/socialV1/superhero.png';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import { formatFeedTimestamp } from '../../../utils/formatters';
 import { MOCK_MARKER } from '../mockMarker';
 import type { SocialV1FeedPost } from '../types';
@@ -30,6 +31,9 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
 }
+
+/** Matches the previous `h-8 w-8` author image. */
+const AVATAR_SIZE = 32;
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
@@ -54,13 +58,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
           gap={2}
           twClassName="flex-1 min-w-0"
         >
-          <Image
-            source={
-              post.authorImageUrl
-                ? { uri: post.authorImageUrl }
-                : superheroAvatar
-            }
-            style={tw.style('h-8 w-8 rounded-full')}
+          <TraderAvatar
+            imageUrl={post.authorImageUrl}
+            // Profile id seeds the Maskicon. Ids that do not start with `0x`
+            // are hashed in full, so each trader stays distinct once wallet
+            // addresses leave the feed payload.
+            address={post.item.author.id}
+            size={AVATAR_SIZE}
+            recyclingKey={post.id}
+            testID={`${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`}
           />
           {/* The name row and the stat line share a column so the stats sit
               under the name rather than under the avatar. */}
