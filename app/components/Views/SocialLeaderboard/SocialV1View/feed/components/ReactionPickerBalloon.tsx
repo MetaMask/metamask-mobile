@@ -7,7 +7,20 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Modal, Pressable, useWindowDimensions } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { FEED_REACTION_EMOJIS } from '../reactions';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
@@ -27,6 +40,46 @@ export interface ReactionPickerBalloonProps {
 
 const BALLOON_HEIGHT = 48;
 const BALLOON_GAP = 8;
+const EMOJI_SLOT = 36;
+const TRAY_PADDING = 16;
+
+interface PickerEmojiProps {
+  emotion: string;
+  onPick: (emotion: string) => void;
+}
+
+const PickerEmoji: React.FC<PickerEmojiProps> = ({ emotion, onPick }) => {
+  const tw = useTailwind();
+  const prefersReducedMotion = useReducedMotion();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePress = () => {
+    if (!prefersReducedMotion) {
+      scale.value = withSequence(
+        withTiming(0.72, { duration: 80 }),
+        withSpring(1, { damping: 11, stiffness: 280 }),
+      );
+    }
+    onPick(emotion);
+  };
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      testID={`${ReactionPickerBalloonSelectorsIDs.EMOJI}-${emotion}`}
+      onPress={handlePress}
+      style={tw.style('h-9 w-9 items-center justify-center rounded-full')}
+    >
+      <Animated.View style={animatedStyle}>
+        <Text variant={TextVariant.BodyMd}>{emotion}</Text>
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 const ReactionPickerBalloon: React.FC<ReactionPickerBalloonProps> = ({
   visible,
@@ -41,12 +94,12 @@ const ReactionPickerBalloon: React.FC<ReactionPickerBalloonProps> = ({
     return null;
   }
 
-  const estimatedWidth = FEED_REACTION_EMOJIS.length * 36 + 16;
+  const contentWidth = FEED_REACTION_EMOJIS.length * EMOJI_SLOT + TRAY_PADDING;
+  const originX = Math.max(8, anchor.x);
+  const maxTrayWidth = Math.max(120, windowWidth - originX - 8);
+  const trayWidth = Math.min(contentWidth, maxTrayWidth);
   const top = Math.max(8, anchor.y - BALLOON_HEIGHT - BALLOON_GAP);
-  const left = Math.min(
-    Math.max(8, anchor.x + anchor.width / 2 - estimatedWidth / 2),
-    windowWidth - estimatedWidth - 8,
-  );
+  const left = Math.min(originX, windowWidth - trayWidth - 8);
 
   return (
     <Modal
@@ -62,24 +115,33 @@ const ReactionPickerBalloon: React.FC<ReactionPickerBalloonProps> = ({
         style={tw.style('absolute inset-0')}
       />
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
         testID={ReactionPickerBalloonSelectorsIDs.BALLOON}
-        twClassName="absolute rounded-full bg-default px-2 py-1 shadow-lg"
-        style={tw.style({ top, left })}
+        twClassName="absolute overflow-hidden rounded-full bg-background-elevated1 shadow-lg"
+        style={tw.style({
+          top,
+          left,
+          width: trayWidth,
+          height: BALLOON_HEIGHT,
+        })}
       >
-        {FEED_REACTION_EMOJIS.map((emotion) => (
-          <Pressable
-            key={emotion}
-            accessibilityRole="button"
-            testID={`${ReactionPickerBalloonSelectorsIDs.EMOJI}-${emotion}`}
-            onPress={() => onPick(emotion)}
-            style={tw.style('h-9 w-9 items-center justify-center rounded-full')}
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          testID={ReactionPickerBalloonSelectorsIDs.STRIP}
+          contentContainerStyle={tw.style('items-center px-2 py-1')}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
           >
-            <Text variant={TextVariant.BodyMd}>{emotion}</Text>
-          </Pressable>
-        ))}
+            {FEED_REACTION_EMOJIS.map((emotion) => (
+              <PickerEmoji key={emotion} emotion={emotion} onPick={onPick} />
+            ))}
+          </Box>
+        </ScrollView>
       </Box>
     </Modal>
   );

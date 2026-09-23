@@ -120,7 +120,8 @@ export interface SocialV1FeedPost {
   timestampMs: number;
   /**
    * Swap-comment id for the Call this post reacts to. Absent on pending
-   * composer posts and on live rows with no authorComment.
+   * composer posts and on live rows with no authorComment. The heart still
+   * renders; picks stay session-local until a Call id exists.
    */
   commentId?: string;
   reactions: { emotion: string; count: number }[];

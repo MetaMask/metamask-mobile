@@ -7,6 +7,13 @@ export const FEED_REACTION_EMOJIS = [
   '😢',
   '😮',
   '❗',
+  '🐐',
+  '😡',
+  '👎',
+  '🚀',
+  '💎',
+  '📈',
+  '💀',
 ] as const;
 
 export type FeedReactionEmoji = (typeof FEED_REACTION_EMOJIS)[number];

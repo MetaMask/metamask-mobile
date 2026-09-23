@@ -70,9 +70,10 @@ describe('SocialFeedPostShell', () => {
     expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     expect(screen.getByText('Just now')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
-    ).toHaveTextContent('12');
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+    ).toBeOnTheScreen();
     expect(screen.getByText('🔥')).toBeOnTheScreen();
+    expect(screen.getByText('12')).toBeOnTheScreen();
     expect(
       screen.getByTestId('social-feed-position-card-item-1'),
     ).toBeOnTheScreen();
@@ -122,15 +123,18 @@ describe('SocialFeedPostShell', () => {
     expect(screen.queryByText('0')).toBeNull();
   });
 
-  it('omits the reaction control when the post has no Call id', () => {
+  it('shows an empty heart when the post has no Call id', () => {
     renderWithProvider(
-      <SocialFeedPostShell post={basePost({ commentId: undefined })} />,
+      <SocialFeedPostShell
+        post={basePost({ commentId: undefined, reactions: [] })}
+      />,
     );
 
     expect(
-      screen.queryByTestId(
-        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
-      ),
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
     ).toBeNull();
   });
 

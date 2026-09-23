@@ -26,6 +26,27 @@ describe('ReactionPickerBalloon', () => {
     expect(onPick).toHaveBeenCalledWith('🔥');
   });
 
+  it('renders overflow emojis in a horizontal strip', () => {
+    renderWithProvider(
+      <ReactionPickerBalloon
+        visible
+        anchor={anchor}
+        onClose={jest.fn()}
+        onPick={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🐐`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-👎`),
+    ).toBeOnTheScreen();
+  });
+
   it('calls onClose when the scrim is pressed', () => {
     const onClose = jest.fn();
 
@@ -43,5 +64,20 @@ describe('ReactionPickerBalloon', () => {
     );
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('aligns the balloon with the leading edge of the heart', () => {
+    renderWithProvider(
+      <ReactionPickerBalloon
+        visible
+        anchor={anchor}
+        onClose={jest.fn()}
+        onPick={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toHaveStyle({ left: 20 });
   });
 });

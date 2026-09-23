@@ -66,7 +66,7 @@ export const useFeedPostReaction = (
 
   const pickEmotion = useCallback(
     async (emotion: string) => {
-      if (!commentId || isPending) {
+      if (isPending) {
         return;
       }
 
@@ -74,6 +74,12 @@ export const useFeedPostReaction = (
       const optimistic = applyOptimistic(previous, emotion);
       setReactions(optimistic.reactions);
       setUserReaction(optimistic.userReaction);
+
+      // No Call id on this row yet — keep the session-local toggle only.
+      if (!commentId) {
+        return;
+      }
+
       setIsPending(true);
 
       try {

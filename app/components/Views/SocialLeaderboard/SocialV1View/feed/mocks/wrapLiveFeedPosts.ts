@@ -12,7 +12,8 @@ import { toSocialV1FeedItem } from '../utils/toSocialV1FeedItem';
  * The shell reads the author header off the envelope rather than off the item,
  * so the real actor has to be copied up here. The win-rate label is the one
  * invented value in the envelope and carries the mock marker. Reactions come
- * from the Call (`authorComment`); posts without one have no reaction control.
+ * from the Call (`authorComment`). Posts without a Call still show the empty
+ * heart; picks stay session-local until a comment id exists.
  */
 export const wrapLiveFeedPosts = (
   rows: TraderFeedRow[],

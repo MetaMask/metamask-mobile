@@ -15,12 +15,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import { formatFeedTimestamp } from '../../../utils/formatters';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
-import { totalReactionCount, visibleReactions } from '../reactions';
+import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
+import ReactionChip from './ReactionChip';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
@@ -48,7 +50,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   );
 
   const chips = visibleReactions(reactions);
-  const total = totalReactionCount(reactions);
 
   const openPicker = useCallback(() => {
     reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -135,55 +136,47 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Box>
       ) : null}
 
-      {post.commentId ? (
-        <View ref={reactionAnchorRef} collapsable={false}>
-          <Pressable
-            accessibilityRole="button"
-            testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
-            onPress={openPicker}
-          >
-            {chips.length === 0 ? (
+      <View
+        ref={reactionAnchorRef}
+        collapsable={false}
+        style={tw.style('self-start')}
+      >
+        <Pressable
+          accessibilityRole="button"
+          testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+          onPress={openPicker}
+        >
+          {chips.length === 0 ? (
+            <Animated.View
+              entering={FadeIn.duration(140)}
+              exiting={FadeOut.duration(100)}
+            >
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                twClassName="pl-2"
               >
                 <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
               </Box>
-            ) : (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextMuted}
-                  testID={`${SocialFeedPostShellSelectorsIDs.TOTAL}-${post.id}`}
-                >
-                  {total}
-                </Text>
-                {chips.map((reaction) => (
-                  <Box
-                    key={reaction.emotion}
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={1}
-                    testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-                  >
-                    <Text variant={TextVariant.BodySm}>{reaction.emotion}</Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextMuted}
-                    >
-                      {reaction.count}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Pressable>
-        </View>
-      ) : null}
+            </Animated.View>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              {chips.map((reaction) => (
+                <ReactionChip
+                  key={reaction.emotion}
+                  emotion={reaction.emotion}
+                  count={reaction.count}
+                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                />
+              ))}
+            </Box>
+          )}
+        </Pressable>
+      </View>
 
       <ReactionPickerBalloon
         visible={pickerVisible}

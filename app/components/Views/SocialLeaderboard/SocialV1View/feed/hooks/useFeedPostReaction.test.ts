@@ -55,6 +55,23 @@ describe('useFeedPostReaction', () => {
     expect(result.current.userReaction).toBeNull();
   });
 
+  it('toggles locally without calling the API when the post has no Call id', async () => {
+    const { result } = renderHook(() =>
+      useFeedPostReaction(undefined, [], null),
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('🔥');
+    });
+
+    expect(mockReactToComment).not.toHaveBeenCalled();
+    expect(mockRemoveCommentReaction).not.toHaveBeenCalled();
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '🔥', count: 1 },
+    ]);
+    expect(result.current.userReaction).toBe('🔥');
+  });
+
   it('restores the previous reactions when the request fails', async () => {
     mockReactToComment.mockRejectedValue(new Error('offline'));
     const { result } = renderHook(() =>

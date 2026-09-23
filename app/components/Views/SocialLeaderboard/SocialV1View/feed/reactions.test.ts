@@ -1,4 +1,5 @@
 import {
+  FEED_REACTION_EMOJIS,
   readAuthorComment,
   totalReactionCount,
   visibleReactions,
@@ -22,5 +23,11 @@ describe('feed reactions helpers', () => {
   it('returns null when authorComment is missing or has no uid', () => {
     expect(readAuthorComment({})).toBeNull();
     expect(readAuthorComment({ authorComment: { text: 'hi' } })).toBeNull();
+  });
+
+  it('includes trading reactions beyond the original eight', () => {
+    expect(FEED_REACTION_EMOJIS).toEqual(
+      expect.arrayContaining(['🐐', '😡', '👎', '🚀', '💎', '📈', '💀']),
+    );
   });
 });
