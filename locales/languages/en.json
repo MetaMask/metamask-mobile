@@ -10679,6 +10679,7 @@
       "resume_back": "Back to your update",
       "resume_use_current_card": "Use your current card instead",
       "resume_progress_identity": "Identity verified",
+      "resume_progress_identity_pending": "Verify your identity",
       "resume_progress_spending": "Set up spending",
       "banner_account_missing_title": "Your card is linked to an account that isn't on this device",
       "banner_account_missing_body": "Import the Secret Recovery Phrase that holds your card account, or choose another account on this device.",
