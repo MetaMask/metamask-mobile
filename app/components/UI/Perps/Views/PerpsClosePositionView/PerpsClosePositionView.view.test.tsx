@@ -35,6 +35,28 @@ describe('PerpsClosePositionView', () => {
     resetPerpsCloseLocksForTests();
   });
 
+  it('opens the shared slippage editor from a market close', async () => {
+    const position = createLongPositionForViews();
+    renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsClosePositionViewSelectorsIDs.SLIPPAGE_ROW,
+      ),
+    );
+
+    expect(
+      await screen.findByText(strings('perps.slippage.config_title')),
+    ).toBeOnTheScreen();
+  });
+
   it('submits a market close for a long position with custom take profit', async () => {
     const takeProfitPosition: Position = {
       ...createLongPositionForViews(),

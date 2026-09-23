@@ -169,7 +169,7 @@ export const usePerpsClosePosition = (
   const stream = usePerpsStream();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { showToast, closeToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleClosePosition = useCallback(
     async (params: ClosePositionParams) => {
@@ -202,133 +202,80 @@ export const usePerpsClosePosition = (
       }
       const isFullClose = size === undefined || size === '';
 
-      // Failure toast varies by order type and full/partial close. Shared so
-      // both the { success: false } branch and the rejected-promise catch
-      // surface the same feedback — otherwise a thrown close would leave the
-      // submission/in-progress toast up with no failure indication.
       const showCloseFailureToast = (failure?: PerpsErrorInput) => {
-        const isSlippageRecoveryError =
-          (onAdjustSlippage !== undefined &&
-            (isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
-              isPerpsErrorCode(
-                failure,
-                PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED,
-              ))) ||
-          (onReviewPrice !== undefined &&
-            isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED));
-        const isPriceMoved = isPerpsErrorCode(
-          failure,
-          PERPS_ERROR_CODES.PRICE_MOVED,
-        );
-        const recoveryAction = isPriceMoved ? onReviewPrice : onAdjustSlippage;
-        const recoveryLabel = isPriceMoved
-          ? strings('perps.order.review_updated_price')
-          : strings('perps.order.adjust_slippage');
-        if (!isSlippageRecoveryError) {
-          if (orderType === 'market' && isFullClose) {
-            showToast(
-              PerpsToastOptions.positionManagement.closePosition.marketClose
-                .full.closeFullPositionFailed,
-            );
-          } else if (orderType === 'market') {
-            showToast(
-              PerpsToastOptions.positionManagement.closePosition.marketClose
-                .partial.closePartialPositionFailed,
-            );
-          } else if (isFullClose) {
-            showToast(
-              PerpsToastOptions.positionManagement.closePosition.limitClose.full
-                .fullPositionCloseFailed,
-            );
-          } else {
-            showToast(
-              PerpsToastOptions.positionManagement.closePosition.limitClose
-                .partial.partialPositionCloseFailed,
-            );
-          }
+        let toast;
+        if (orderType === 'market') {
+          toast = isFullClose
+            ? PerpsToastOptions.positionManagement.closePosition.marketClose
+                .full.closeFullPositionFailed
+            : PerpsToastOptions.positionManagement.closePosition.marketClose
+                .partial.closePartialPositionFailed;
+        } else {
+          toast = isFullClose
+            ? PerpsToastOptions.positionManagement.closePosition.limitClose.full
+                .fullPositionCloseFailed
+            : PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.partialPositionCloseFailed;
+        }
+
+        let recovery:
+          | {
+              action: () => void;
+              label: string;
+            }
+          | undefined;
+        if (
+          orderType === 'market' &&
+          onReviewPrice &&
+          isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED)
+        ) {
+          recovery = {
+            action: onReviewPrice,
+            label: strings('perps.order.review_updated_price'),
+          };
+        } else if (
+          orderType === 'market' &&
+          onAdjustSlippage &&
+          (isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
+            isPerpsErrorCode(failure, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED))
+        ) {
+          recovery = {
+            action: onAdjustSlippage,
+            label: strings('perps.order.adjust_slippage'),
+          };
+        }
+
+        if (!recovery) {
+          showToast(toast);
           return;
         }
-        if (orderType === 'market' && isFullClose) {
-          // Market full close failed
-          const toast =
-            PerpsToastOptions.positionManagement.closePosition.marketClose.full
-              .closeFullPositionFailed;
-          showToast({
-            ...toast,
-            hasNoTimeout: isSlippageRecoveryError,
-            labelOptions: [
-              {
-                label: strings('perps.close_position.failed_to_close_position'),
-                isBold: true,
-              },
-              {
-                label: '\n',
-              },
-              {
-                label: handlePerpsError({
-                  error: failure,
-                  fallbackMessage: strings(
-                    'perps.close_position.your_position_is_still_active',
-                  ),
-                }),
-              },
-            ],
-            ...(isSlippageRecoveryError && {
-              linkButtonOptions: {
-                label: recoveryLabel,
-                onPress: () => {
-                  recoveryAction?.();
-                },
-              },
-            }),
-          });
-        } else if (orderType === 'market') {
-          // Market partial close failed
-          const toast =
-            PerpsToastOptions.positionManagement.closePosition.marketClose
-              .partial.closePartialPositionFailed;
-          showToast({
-            ...toast,
-            hasNoTimeout: isSlippageRecoveryError,
-            labelOptions: [
-              {
-                label: strings('perps.close_position.failed_to_close_position'),
-                isBold: true,
-              },
-              {
-                label: '\n',
-              },
-              {
-                label: handlePerpsError({
-                  error: failure,
-                  fallbackMessage: strings(
-                    'perps.close_position.your_position_is_still_active',
-                  ),
-                }),
-              },
-            ],
-            ...(isSlippageRecoveryError && {
-              linkButtonOptions: {
-                label: recoveryLabel,
-                onPress: () => {
-                  recoveryAction?.();
-                },
-              },
-            }),
-          });
-        } else if (isFullClose) {
-          // Limit full close failed
-          showToast(
-            PerpsToastOptions.positionManagement.closePosition.limitClose.full
-              .fullPositionCloseFailed,
-          );
-        } else {
-          // Limit partial close failed
-          showToast(
-            PerpsToastOptions.positionManagement.closePosition.limitClose
-              .partial.partialPositionCloseFailed,
-          );
-        }
+
+        showToast({
+          ...toast,
+          hasNoTimeout: true,
+          labelOptions: [
+            {
+              label: strings('perps.close_position.failed_to_close_position'),
+              isBold: true,
+            },
+            { label: '\n' },
+            {
+              label: handlePerpsError({
+                error: failure,
+                fallbackMessage: strings(
+                  'perps.close_position.your_position_is_still_active',
+                ),
+              }),
+            },
+          ],
+          linkButtonOptions: {
+            label: recovery.label,
+            onPress: () => {
+              closeToast();
+              recovery.action();
+            },
+          },
+        });
       };
       // Guard against double-toasting: the { success: false } branch shows the
       // failure toast then throws, so the catch must not show it again.
@@ -510,12 +457,11 @@ export const usePerpsClosePosition = (
           options?.onSuccess?.(result);
         } else {
           const failureInput: PerpsErrorInput = {
-            error: result.error,
+            error:
+              result.error ?? strings('perps.close_position.error_unknown'),
             errorCode: result.errorCode,
             errorDetails: result.errorDetails,
-            context: {
-              maxSlippageBps: slippage?.maxSlippageBps,
-            },
+            maxSlippageBps: slippage?.maxSlippageBps,
           };
           showCloseFailureToast(failureInput);
           failureToastShown = true;
@@ -555,8 +501,8 @@ export const usePerpsClosePosition = (
         // was already shown for a returned failure.
         if (!failureToastShown) {
           showCloseFailureToast({
-            error: err,
-            context: { maxSlippageBps: slippage?.maxSlippageBps },
+            error: err instanceof Error ? err.message : String(err),
+            maxSlippageBps: slippage?.maxSlippageBps,
           });
         }
 
@@ -629,6 +575,7 @@ export const usePerpsClosePosition = (
       PerpsToastOptions.positionManagement,
       accountAddress,
       closePosition,
+      closeToast,
       network,
       options,
       provider,

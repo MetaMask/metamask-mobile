@@ -3,6 +3,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
   ORDER_SLIPPAGE_CONFIG,
+  PERPS_ERROR_CODES,
   type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
@@ -72,6 +73,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 // Create stable mock references for usePerpsToasts
 const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
 const mockPerpsToastOptions = {
   positionManagement: {
     closePosition: {
@@ -107,6 +109,7 @@ jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
   default: () => ({
     showToast: mockShowToast,
+    closeToast: mockCloseToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
 }));
@@ -862,6 +865,42 @@ describe('usePerpsClosePosition', () => {
           );
         });
 
+        it('dismisses a persistent IOC failure toast before recovery', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: PERPS_ERROR_CODES.IOC_CANCEL,
+            errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+          });
+          const onAdjustSlippage = jest.fn();
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'market',
+                onAdjustSlippage,
+              }),
+            ).rejects.toThrow();
+          });
+
+          const failureToast = mockShowToast.mock.calls[1][0];
+          expect(failureToast).toMatchObject({
+            hasNoTimeout: true,
+            linkButtonOptions: {
+              label: 'perps.order.adjust_slippage',
+            },
+          });
+
+          act(() => failureToast.linkButtonOptions.onPress());
+
+          expect(mockCloseToast).toHaveBeenCalledTimes(1);
+          expect(onAdjustSlippage).toHaveBeenCalledTimes(1);
+          expect(mockCloseToast.mock.invocationCallOrder[0]).toBeLessThan(
+            onAdjustSlippage.mock.invocationCallOrder[0],
+          );
+        });
+
         it('should show failure toast for partial position market close', async () => {
           const failureResult: OrderResult = {
             success: false,
@@ -888,6 +927,44 @@ describe('usePerpsClosePosition', () => {
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .partial.closePartialPositionFailed,
           );
+        });
+
+        it('offers fresh-price review for PRICE_MOVED partial closes', async () => {
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'Price moved too much',
+            errorCode: PERPS_ERROR_CODES.PRICE_MOVED,
+            errorDetails: {
+              code: PERPS_ERROR_CODES.PRICE_MOVED,
+              priceDeltaBps: 336,
+              maxSlippageBps: 300,
+              expectedPrice: 788.71,
+              currentPrice: 815.22,
+            },
+          });
+          const onReviewPrice = jest.fn();
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+                onReviewPrice,
+              }),
+            ).rejects.toThrow();
+          });
+
+          const failureToast = mockShowToast.mock.calls[1][0];
+          expect(failureToast.linkButtonOptions.label).toBe(
+            'perps.order.review_updated_price',
+          );
+
+          act(() => failureToast.linkButtonOptions.onPress());
+
+          expect(mockCloseToast).toHaveBeenCalledTimes(1);
+          expect(onReviewPrice).toHaveBeenCalledTimes(1);
         });
 
         it('should show failure toast when size is empty string (treated as full close)', async () => {

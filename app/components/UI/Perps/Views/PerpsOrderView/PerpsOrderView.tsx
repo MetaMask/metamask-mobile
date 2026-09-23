@@ -1212,11 +1212,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         PerpsToastOptions.orderManagement[
           getOrderManagementToastKey(orderForm.type)
         ].creationFailed;
-      showToast(
-        onAdjustSlippage
-          ? creationFailed(error, onAdjustSlippage)
-          : creationFailed(error),
-      );
+      showToast(creationFailed(error, onAdjustSlippage));
     },
   });
 
@@ -1911,6 +1907,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             feeResults,
             marketPrice: assetData.price,
             inputMethod: inputMethodRef.current,
+            orderType: orderForm.type,
             source,
             sourceSection,
             currentMarketPosition,
@@ -2486,10 +2483,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         ? [
             {
               key: `execution-${
-                typeof orderExecutionError === 'string'
-                  ? orderExecutionError
-                  : (orderExecutionError.errorCode ??
-                    String(orderExecutionError.error ?? 'unknown'))
+                orderExecutionError.errorCode ?? orderExecutionError.error
               }`,
               message: handlePerpsError({
                 error: orderExecutionError,

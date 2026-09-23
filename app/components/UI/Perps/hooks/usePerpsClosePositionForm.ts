@@ -53,6 +53,7 @@ import {
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
+import type { MaxSlippageSource } from '../constants/slippageConfig';
 
 export interface UsePerpsClosePositionFormOptions {
   /** Overrides `navigation.goBack()` so a sheet can animate closed first. */
@@ -96,7 +97,7 @@ export interface UsePerpsClosePositionFormResult {
   isPositionGone: boolean;
   shouldOpenSlippage: boolean;
   maxSlippageBps: number;
-  maxSlippageSource: string;
+  maxSlippageSource: MaxSlippageSource;
   setMaxSlippage: (bps: number) => void;
 
   isClosePositionLimitOrderEnabled: boolean;
@@ -157,14 +158,7 @@ export function usePerpsClosePositionForm(
     buttonLocation: entryButtonLocation,
     enableHaptics = false,
     openSlippage = false,
-  } = route.params as {
-    position: Position;
-    source?: string;
-    buttonClicked?: string;
-    buttonLocation?: string;
-    enableHaptics?: boolean;
-    openSlippage?: boolean;
-  };
+  } = route.params;
   const { playImpact: playHapticImpact } = useHaptics();
 
   // Ref so an inline closure from the caller cannot re-run the latched
@@ -738,9 +732,12 @@ export function usePerpsClosePositionForm(
           : {}),
         vipTier: vipTier ?? undefined,
         vipDiscount: feeResults.feeDiscountPercentage,
-        maxSlippageBps: effectiveMaxSlippageBps,
-        maxSlippageSource: effectiveMaxSlippageSource,
-        isFullClose,
+        ...(effectiveOrderType === 'market'
+          ? {
+              maxSlippageBps: effectiveMaxSlippageBps,
+              maxSlippageSource: effectiveMaxSlippageSource,
+            }
+          : {}),
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context

@@ -1,7 +1,8 @@
 import { strings } from '../../../../../locales/i18n';
+import { hasProperty } from '@metamask/utils';
 import {
+  isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
-  ORDER_SLIPPAGE_CONFIG,
   type PerpsErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
@@ -14,70 +15,78 @@ import {
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
 
 export interface PerpsErrorInput {
-  error?: unknown;
+  error: string;
   errorCode?: PerpsErrorCode;
   errorDetails?: PerpsErrorDetails;
-  context?: Record<string, unknown>;
+  maxSlippageBps?: number;
 }
 
-const formatBpsAsPercent = (bps: number): number =>
-  Math.round((bps / 100) * 100) / 100;
+const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
 
-const getPerpsErrorInput = (
-  error: unknown,
-): {
-  errorString: string | null;
-  errorCode?: PerpsErrorCode;
-  errorDetails?: PerpsErrorDetails;
-  context?: Record<string, unknown>;
-} => {
+function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    hasProperty(value, 'code') &&
+    value.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    hasProperty(value, 'priceDeltaBps') &&
+    typeof value.priceDeltaBps === 'number' &&
+    hasProperty(value, 'maxSlippageBps') &&
+    typeof value.maxSlippageBps === 'number' &&
+    hasProperty(value, 'expectedPrice') &&
+    typeof value.expectedPrice === 'number' &&
+    hasProperty(value, 'currentPrice') &&
+    typeof value.currentPrice === 'number'
+  );
+}
+
+function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !hasProperty(value, 'error') ||
+    typeof value.error !== 'string'
+  ) {
+    return false;
+  }
+
+  const hasValidCode =
+    !hasProperty(value, 'errorCode') ||
+    value.errorCode === undefined ||
+    isPerpsErrorCodeValue(value.errorCode);
+  const hasValidDetails =
+    !hasProperty(value, 'errorDetails') ||
+    value.errorDetails === undefined ||
+    isPerpsErrorDetails(value.errorDetails);
+  const hasValidSlippage =
+    !hasProperty(value, 'maxSlippageBps') ||
+    value.maxSlippageBps === undefined ||
+    typeof value.maxSlippageBps === 'number';
+
+  return hasValidCode && hasValidDetails && hasValidSlippage;
+}
+
+const normalizePerpsError = (error: unknown): PerpsErrorInput | null => {
+  if (isPerpsErrorInput(error)) {
+    return error;
+  }
   if (error instanceof Error) {
-    const typedError = error as Error & {
-      errorCode?: PerpsErrorCode;
-      errorDetails?: PerpsErrorDetails;
-    };
-    return {
-      errorString: error.message,
-      errorCode: typedError.errorCode,
-      errorDetails: typedError.errorDetails,
-    };
+    return { error: error.message };
   }
-
-  if (error !== null && typeof error === 'object' && !Array.isArray(error)) {
-    const input = error as PerpsErrorInput;
-    const nestedError = input.error;
-    return {
-      errorString:
-        nestedError instanceof Error
-          ? nestedError.message
-          : typeof nestedError === 'string'
-            ? nestedError
-            : null,
-      errorCode: input.errorCode,
-      errorDetails: input.errorDetails,
-      context: input.context,
-    };
+  if (typeof error === 'string') {
+    return { error };
   }
-
-  return {
-    errorString:
-      error instanceof Error
-        ? error.message
-        : typeof error === 'string'
-          ? error
-          : null,
-  };
+  return null;
 };
 
 const getErrorInterpolationData = (
-  errorCode: PerpsErrorCode | undefined,
-  errorDetails: PerpsErrorDetails | undefined,
+  errorInput: PerpsErrorInput,
   context?: Record<string, unknown>,
 ): Record<string, unknown> => {
   const interpolationData: Record<string, unknown> = {};
+  const { errorCode, errorDetails } = errorInput;
 
   if (
-    PERPS_ERROR_CODES.PRICE_MOVED &&
     errorDetails?.code === PERPS_ERROR_CODES.PRICE_MOVED &&
     Number.isFinite(errorDetails.priceDeltaBps) &&
     Number.isFinite(errorDetails.maxSlippageBps)
@@ -90,10 +99,13 @@ const getErrorInterpolationData = (
     );
   } else if (errorCode === PERPS_ERROR_CODES.IOC_CANCEL) {
     const maxSlippageBps =
-      typeof context?.maxSlippageBps === 'number'
+      errorInput.maxSlippageBps ??
+      (typeof context?.maxSlippageBps === 'number'
         ? context.maxSlippageBps
-        : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
-    interpolationData.maxSlippage = formatBpsAsPercent(maxSlippageBps);
+        : undefined);
+    if (maxSlippageBps !== undefined) {
+      interpolationData.maxSlippage = formatBpsAsPercent(maxSlippageBps);
+    }
   }
 
   return interpolationData;
@@ -290,6 +302,15 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.unsupportedCollateral',
 };
 
+const getErrorI18nKey = (
+  errorCode: PerpsErrorCode,
+  interpolationData: Record<string, unknown>,
+): string =>
+  errorCode === PERPS_ERROR_CODES.IOC_CANCEL &&
+  interpolationData.maxSlippage === undefined
+    ? 'perps.errors.iocCancelUnknownTolerance'
+    : ERROR_CODE_TO_I18N_KEY[errorCode];
+
 /**
  * Pattern matching for common HyperLiquid API error messages.
  * Maps regex patterns to error codes for user-friendly translation.
@@ -419,61 +440,41 @@ export function translatePerpsError(
   error: unknown,
   data?: Record<string, unknown>,
 ): string {
-  const {
-    errorString,
-    errorCode,
-    errorDetails,
-    context: errorContext,
-  } = getPerpsErrorInput(error);
-  const interpolationData = {
-    ...getErrorInterpolationData(errorCode, errorDetails, errorContext),
-    ...data,
-  };
-
   // Handle null or undefined
   if (error === null || error === undefined) {
     return strings('perps.errors.unknownError');
   }
 
-  if (errorCode && errorCode in ERROR_CODE_TO_I18N_KEY) {
-    return strings(ERROR_CODE_TO_I18N_KEY[errorCode], interpolationData);
+  const errorInput = normalizePerpsError(error);
+  if (!errorInput) {
+    return strings('perps.errors.unknownError');
+  }
+  const errorCode =
+    errorInput.errorCode ??
+    (isPerpsErrorCodeValue(errorInput.error) ? errorInput.error : undefined);
+  const interpolationData = {
+    ...getErrorInterpolationData(
+      errorCode ? { ...errorInput, errorCode } : errorInput,
+    ),
+    ...data,
+  };
+
+  if (errorCode) {
+    return strings(
+      getErrorI18nKey(errorCode, interpolationData),
+      interpolationData,
+    );
   }
 
-  // Handle standard Error objects
-  if (error instanceof Error) {
-    // Check if error message is an error code
-    if (error.message in ERROR_CODE_TO_I18N_KEY) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[error.message as PerpsErrorCode];
-      return strings(i18nKey, interpolationData);
-    }
-    // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(error.message);
-    if (matchedErrorCode) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, interpolationData);
-    }
-    return error.message;
+  const matchedErrorCode = matchApiErrorPattern(errorInput.error);
+  if (matchedErrorCode) {
+    return strings(
+      getErrorI18nKey(matchedErrorCode, interpolationData),
+      interpolationData,
+    );
   }
 
-  // Handle string errors that might be error codes
-  if (errorString) {
-    if (errorString in ERROR_CODE_TO_I18N_KEY) {
-      return strings(
-        ERROR_CODE_TO_I18N_KEY[errorString as PerpsErrorCode],
-        interpolationData,
-      );
-    }
-    // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(errorString);
-    if (matchedErrorCode) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, interpolationData);
-    }
-    return errorString;
-  }
-
-  // Handle objects, numbers, and other types
-  return strings('perps.errors.unknownError');
+  return errorInput.error;
 }
 
 /**
@@ -483,21 +484,8 @@ export function isPerpsErrorCode(
   error: unknown,
   code: PerpsErrorCode,
 ): boolean {
-  if (
-    error !== null &&
-    typeof error === 'object' &&
-    !Array.isArray(error) &&
-    'errorCode' in error &&
-    (error as PerpsErrorInput).errorCode === code
-  ) {
-    return true;
-  }
-
-  if (error instanceof Error && error.message === code) {
-    return true;
-  }
-
-  return error === code;
+  const errorInput = normalizePerpsError(error);
+  return errorInput?.errorCode === code || errorInput?.error === code;
 }
 
 /** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
@@ -533,6 +521,7 @@ export interface HandlePerpsErrorParams {
     assetId?: string;
     supportedAssets?: string;
     method?: string;
+    maxSlippageBps?: number;
   };
   fallbackMessage?: string;
   debugLogger?: ErrorHandlerDebugLogger;
@@ -558,19 +547,18 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     return fallbackMessage || strings('perps.errors.unknownError');
   }
 
-  const parsedError = getPerpsErrorInput(error);
-  const errorString = parsedError.errorString;
+  const parsedError = normalizePerpsError(error);
+  if (!parsedError) {
+    return fallbackMessage || strings('perps.errors.unknownError');
+  }
+  const errorString = parsedError.error;
   const errorCode =
     parsedError.errorCode ??
-    (errorString &&
-    Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
-      ? (errorString as PerpsErrorCode)
-      : undefined);
-  const errorParams = getErrorInterpolationData(
-    errorCode,
-    parsedError.errorDetails,
-    context ?? parsedError.context,
-  );
+    (isPerpsErrorCodeValue(errorString) ? errorString : undefined);
+  const normalizedError = errorCode
+    ? { ...parsedError, errorCode }
+    : parsedError;
+  const errorParams = getErrorInterpolationData(normalizedError, context);
 
   // Log error for debugging (without event tracking)
   debugLogger?.log('PerpsErrorHandler: Error encountered', {
@@ -593,11 +581,11 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
       // Add other error codes that need parameters as they arise
       default:
         // Pass through any provided context as-is for other errors
-        Object.assign(errorParams, context || parsedError.context || {});
+        Object.assign(errorParams, context || {});
         break;
     }
 
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[errorCode];
+    const i18nKey = getErrorI18nKey(errorCode, errorParams);
     return strings(i18nKey, errorParams);
   }
 
@@ -610,7 +598,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         matchedCode: matchedErrorCode,
       });
 
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
+      const i18nKey = getErrorI18nKey(matchedErrorCode, errorParams);
       // Pass through any provided context for interpolation
       return strings(i18nKey, context || {});
     }
