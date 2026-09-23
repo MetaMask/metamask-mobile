@@ -214,13 +214,38 @@ describe('rpc-domain-utils', () => {
       },
     ];
 
-    it.each`
-      case                                                                      | hostnamesRaw                               | setItemRejects | expectedKnownDomains       | expectedPersistedHostnames
-      ${'persists the derived hostnames when the store is missing'}             | ${null}                                    | ${false}       | ${['mainnet.infura.io']}   | ${['mainnet.infura.io']}
-      ${'hydrates from the persisted store without re-parsing the chains list'} | ${JSON.stringify(['hydrated.from.store'])} | ${false}       | ${['hydrated.from.store']} | ${null}
-      ${'re-derives from the chains list when the persisted store is corrupt'}  | ${'not valid json {'}                      | ${false}       | ${['mainnet.infura.io']}   | ${['mainnet.infura.io']}
-      ${'keeps the derived set when persisting fails'}                          | ${null}                                    | ${true}        | ${['mainnet.infura.io']}   | ${['mainnet.infura.io']}
-    `(
+    const testCases = [
+      {
+        case: 'persists the derived hostnames when the store is missing',
+        hostnamesRaw: null,
+        setItemRejects: false,
+        expectedKnownDomains: ['mainnet.infura.io'],
+        expectedPersistedHostnames: ['mainnet.infura.io'],
+      },
+      {
+        case: 'hydrates from the persisted store without re-parsing the chains list',
+        hostnamesRaw: JSON.stringify(['hydrated.from.store']),
+        setItemRejects: false,
+        expectedKnownDomains: ['hydrated.from.store'],
+        expectedPersistedHostnames: null,
+      },
+      {
+        case: 're-derives from the chains list when the persisted store is corrupt',
+        hostnamesRaw: 'not valid json {',
+        setItemRejects: false,
+        expectedKnownDomains: ['mainnet.infura.io'],
+        expectedPersistedHostnames: ['mainnet.infura.io'],
+      },
+      {
+        case: 'keeps the derived set when persisting fails',
+        hostnamesRaw: null,
+        setItemRejects: true,
+        expectedKnownDomains: ['mainnet.infura.io'],
+        expectedPersistedHostnames: ['mainnet.infura.io'],
+      },
+    ];
+
+    it.each(testCases)(
       '$case',
       async ({
         hostnamesRaw,
