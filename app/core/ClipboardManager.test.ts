@@ -32,6 +32,16 @@ describe('ClipboardManager', () => {
   });
 
   describe('Basic clipboard operations', () => {
+    it('exposes clipboard change listeners and a local revision', () => {
+      const listener = jest.fn();
+      const subscription = { remove: jest.fn() };
+      mockClipboard.addListener.mockReturnValue(subscription);
+
+      expect(ClipboardManager.addListener(listener)).toBe(subscription);
+      expect(mockClipboard.addListener).toHaveBeenCalledWith(listener);
+      expect(ClipboardManager.getRevision()).toEqual(expect.any(Number));
+    });
+
     it('checks whether the clipboard has string content', async () => {
       mockClipboard.hasString.mockResolvedValue(true);
 

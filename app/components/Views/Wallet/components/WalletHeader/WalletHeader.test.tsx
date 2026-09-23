@@ -65,6 +65,17 @@ describe('WalletHeader', () => {
     expect(getByTestId('explore-view-search-button')).toBeOnTheScreen();
   });
 
+  it('preserves the legacy header layout for control users', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeader {...defaultProps} useSearchHeaderLayout={false} />,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+  });
+
   it('calls handleSearchPress when the search button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeader {...defaultProps} />,
