@@ -72,7 +72,9 @@ const MoneyAccountSweepstakesCampaignEndedStats: React.FC<
         label: strings('rewards.campaign_ended_stats.total_yield'),
         value:
           volumeStats?.yieldEarnedUsd != null
-            ? formatCompactUsd(volumeStats.yieldEarnedUsd)
+            ? formatCompactUsd(volumeStats.yieldEarnedUsd, {
+                maximumFractionDigits: 2,
+              })
             : '-',
         valueColor:
           volumeStats?.yieldEarnedUsd != null

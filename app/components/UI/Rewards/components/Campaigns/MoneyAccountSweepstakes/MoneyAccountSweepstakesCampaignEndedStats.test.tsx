@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import MoneyAccountSweepstakesCampaignEndedStats from './MoneyAccountSweepstakesCampaignEndedStats';
+import { formatCompactUsd } from '../../../utils/formatUtils';
 import type {
   MoneyAccountSweepstakesPrizePoolDto,
   MoneyAccountSweepstakesVolumeStatsDto,
@@ -41,7 +42,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../utils/formatUtils', () => ({
-  formatCompactUsd: (value: number) => `compact-${value}`,
+  formatCompactUsd: jest.fn((value: number) => `compact-${value}`),
 }));
 
 const volumeStats: MoneyAccountSweepstakesVolumeStatsDto = {
@@ -98,6 +99,9 @@ describe('MoneyAccountSweepstakesCampaignEndedStats', () => {
         isLoading: false,
       },
       hasError: undefined,
+    });
+    expect(formatCompactUsd).toHaveBeenCalledWith(8123.55, {
+      maximumFractionDigits: 2,
     });
   });
 

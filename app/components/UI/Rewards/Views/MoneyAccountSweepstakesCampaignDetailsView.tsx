@@ -291,7 +291,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
               </MoneyAccountSweepstakesCampaignOverview>
 
               {showCampaignEndedStats && (
-                <Box twClassName="p-4">
+                <Box twClassName="px-4">
                   <MoneyAccountSweepstakesCampaignEndedStats
                     volumeStats={volumeStats}
                     prizePool={prizePool}
