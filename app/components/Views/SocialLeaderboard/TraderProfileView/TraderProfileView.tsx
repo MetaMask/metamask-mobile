@@ -67,6 +67,8 @@ import {
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
+import TraderStatsSheet from './components/TraderStatsSheet';
+import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
@@ -162,28 +164,28 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
-  // The headline 7D return reflects the trader's PnL across every enabled
+  // The headline 30D return reflects the trader's PnL across every enabled
   // asset class they traded. When perps are enabled this includes Hyperliquid.
-  // Summing the per-chain 7D breakdown is preferred over the global stats.pnl7d;
-  // fall back to the global value only when no per-chain breakdown is available
-  // (e.g. an older social-api that doesn't return perChainPnl7d).
+  // Summing the per-chain 30D breakdown is preferred over the global stats.pnl30d;
+  // fall back to the global value only when no per-chain breakdown is available.
   const headlineStats = useMemo(() => {
     if (!profile) return null;
-    const perChainPnl7d = profile.perChainBreakdown?.perChainPnl7d;
-    if (!perChainPnl7d || Object.keys(perChainPnl7d).length === 0) {
+    const perChainPnl = profile.perChainBreakdown?.perChainPnl;
+    if (!perChainPnl || Object.keys(perChainPnl).length === 0) {
       return profile.stats;
     }
-    const pnl7d = Object.entries(perChainPnl7d).reduce(
+    const pnl30d = Object.entries(perChainPnl).reduce(
       (sum, [chain, value]) =>
         !isPerpsEnabled && chain.toLowerCase() === HYPERLIQUID_CHAIN_NAME
           ? sum
           : sum + (value ?? 0),
       0,
     );
-    return { ...profile.stats, pnl7d };
+    return { ...profile.stats, pnl30d };
   }, [profile, isPerpsEnabled]);
   // Fire Trader Profile Screen Viewed once profile resolves so we have an
   // accurate trader_address / is_following at the point the user lands.
@@ -421,6 +423,7 @@ const TraderProfileView = () => {
                       <StatsRow
                         stats={headlineStats}
                         holdTimeMinutes={profile.stats.medianHoldMinutes}
+                        onPress={() => setIsStatsSheetOpen(true)}
                       />
                     ) : (
                       <StatsRowSkeleton />
@@ -541,6 +544,12 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
+      {isStatsSheetOpen && profile ? (
+        <TraderStatsSheet
+          profile={profile as TraderProfileWithSheetStats}
+          onClose={() => setIsStatsSheetOpen(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

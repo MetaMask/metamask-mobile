@@ -6,14 +6,14 @@ import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 import TraderProfileCompactStats from './TraderProfileCompactStats';
 
 const baseStats: TraderStats = {
-  pnl7d: 20610,
-  winRate7d: 0.92,
-  roiPercent7d: 1.5,
+  pnl30d: 20610,
+  winRate30d: 0.92,
+  roiPercent30d: 1.5,
   tradeCount30d: 48,
 };
 
 describe('TraderProfileCompactStats', () => {
-  it('renders win rate and 7D PnL', () => {
+  it('renders win rate and 30D PnL', () => {
     renderWithProvider(<TraderProfileCompactStats stats={baseStats} />);
 
     expect(
@@ -30,8 +30,8 @@ describe('TraderProfileCompactStats', () => {
   it('renders dashes when stats are null', () => {
     const stats = {
       ...baseStats,
-      winRate7d: null,
-      pnl7d: null,
+      winRate30d: null,
+      pnl30d: null,
     } as unknown as TraderStats;
 
     renderWithProvider(<TraderProfileCompactStats stats={stats} />);
