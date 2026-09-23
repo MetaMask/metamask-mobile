@@ -319,7 +319,7 @@ export const PrivateKeyList = () => {
         severity={BannerAlertSeverity.Danger}
         title={strings('multichain_accounts.private_key_list.warning_title')}
         description={privateKeyBannerDescription}
-        twClassName="mx-[10px]"
+        twClassName="mx-[10px] mt-2"
         testID={PrivateKeyListIds.BANNER}
       />
 

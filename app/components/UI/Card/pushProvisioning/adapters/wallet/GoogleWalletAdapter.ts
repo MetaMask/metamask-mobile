@@ -14,7 +14,6 @@ import {
   CardTokenStatus,
   ProvisionCardParams,
   ProvisioningResult,
-  CardActivationEvent,
   ProvisioningErrorCode,
   UserAddress,
 } from '../../types';
@@ -106,28 +105,6 @@ export class GoogleWalletAdapter
 
   protected getExpectedPlatform(): PlatformOSType {
     return 'android';
-  }
-
-  /**
-   * Handle activation event from native module
-   *
-   * Android SDK sends events with 'status' property (not 'actionStatus').
-   * Possible values: 'active' (success), 'canceled' (user canceled).
-   * Note: The SDK never sends a 'failed' status - errors are handled
-   * via the function return value, not the activation event.
-   */
-  protected handleNativeActivationEvent(data: unknown): void {
-    const typedData = data as { status?: string; tokenId?: string };
-    const event: CardActivationEvent = {
-      tokenId: typedData.tokenId,
-      status:
-        typedData.status === 'active'
-          ? 'activated'
-          : typedData.status === 'canceled'
-            ? 'canceled'
-            : 'failed', // Defensive fallback for unknown statuses
-    };
-    this.notifyActivationListeners(event);
   }
 
   /**

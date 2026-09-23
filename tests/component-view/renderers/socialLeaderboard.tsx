@@ -20,6 +20,8 @@ import {
   initialStateSocialLeaderboard,
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
+import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import { createStateFixture } from '../stateFixture';
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -89,6 +91,36 @@ export function renderTopTradersViewWithRoutes(
  * from Redux, and calls Engine.controllerMessenger for opt-in/opt-out.
  * No external API mock is required; the default Engine mock is sufficient.
  */
+/**
+ * Renders profile onboarding with a real wallet account so the link-account
+ * step can list it through the account selectors.
+ */
+export function renderSocialProfileOnboarding(
+  extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
+) {
+  const state = createStateFixture()
+    .withMinimalAccounts()
+    .withMinimalKeyringController()
+    .withMinimalMainnetNetwork()
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    })
+    .build();
+
+  return renderScreenWithRoutes(
+    SocialProfileOnboardingView as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+    extraRoutes,
+    { state },
+  );
+}
+
 export function renderSettingsTopTradersSection(
   options: RenderSocialLeaderboardOptions = {},
 ) {

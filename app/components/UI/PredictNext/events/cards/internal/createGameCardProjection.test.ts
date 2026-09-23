@@ -141,6 +141,37 @@ describe('createGameCardProjection', () => {
     expect(result.teams.away.canOrder).toBe(false);
   });
 
+  it('trades the Yes Outcome even when the Game Selection is on the No Outcome', () => {
+    // The catalog may tag a Game Selection on a No Outcome; the Team control
+    // still displays and trades the Yes side of that winner Market.
+    const awayYes = {
+      ...createOutcome('away-yes', undefined, '0.47'),
+      side: 'yes' as const,
+    };
+    const awayNo = {
+      ...createOutcome('away-no', 'away'),
+      side: 'no' as const,
+    };
+    const event = createEvent([
+      {
+        id: 'away' as PredictEntityId,
+        question: 'away',
+        status: 'active',
+        outcomes: [awayYes, awayNo],
+      },
+      createMarket('home', 'home', '0.53'),
+    ]);
+
+    const result = createGameCardProjection(event, game);
+
+    expect(result.teams.away.quote).toEqual({
+      market: expect.objectContaining({ id: 'away' }),
+      outcome: awayYes,
+    });
+    expect(result.teams.away.formattedPrice).toBe('47¢');
+    expect(result.teams.away.canOrder).toBe(true);
+  });
+
   it('projects Game status for compact and featured variants', () => {
     const scheduledGame: PredictGame = { ...game, status: 'scheduled' };
     const event = createEvent([]);

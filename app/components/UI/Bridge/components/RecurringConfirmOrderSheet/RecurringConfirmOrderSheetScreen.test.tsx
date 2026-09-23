@@ -136,7 +136,7 @@ const configuredRecurringState = {
   repeatCount: '4',
   priceRange: {
     tokenSide: 'source' as const,
-    currency: 'usd',
+    currency: 'USD' as const,
     min: '1000',
     max: '2000',
   },
@@ -163,10 +163,12 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     jest.clearAllMocks();
     jest.mocked(useEIP7702UpgradeFee).mockReturnValue({
       status: 'not-required',
+      retry: jest.fn(),
     });
-    jest
-      .mocked(useAutoUpgradeEIP7702Account)
-      .mockReturnValue(mockAutoUpgradeEIP7702Account);
+    jest.mocked(useAutoUpgradeEIP7702Account).mockReturnValue({
+      autoUpgradeEIP7702Account: mockAutoUpgradeEIP7702Account,
+      getUpgradeStatus: jest.fn(),
+    });
     mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
     jest.mocked(submitRecurringOrder).mockResolvedValue(undefined);
   });
@@ -200,6 +202,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       status: 'ready',
       displayFee: '$1.23',
       preciseNativeFeeInHex: '0x1',
+      retry: jest.fn(),
     });
 
     const { getByTestId } = renderScreen();

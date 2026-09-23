@@ -11,7 +11,37 @@ import {
   formatTradeDayLabel,
   formatFeedTimestamp,
   formatFeedPostAge,
+  formatAbbreviatedCount,
+  formatFollowerCountLabel,
+  formatHoldDuration,
+  EM_DASH,
 } from './formatters';
+
+describe('formatAbbreviatedCount', () => {
+  it('returns an em dash for nullish or non-finite values', () => {
+    expect(formatAbbreviatedCount(null)).toBe(EM_DASH);
+    expect(formatAbbreviatedCount(undefined)).toBe(EM_DASH);
+    expect(formatAbbreviatedCount(Number.NaN)).toBe(EM_DASH);
+  });
+
+  it('keeps values under one thousand as grouped digits', () => {
+    expect(formatAbbreviatedCount(999)).toBe('999');
+  });
+
+  it('abbreviates thousands with one decimal and a K suffix', () => {
+    expect(formatAbbreviatedCount(65700)).toBe('65.7K');
+  });
+});
+
+describe('formatFollowerCountLabel', () => {
+  it('uses the singular follower string for a count of one', () => {
+    expect(formatFollowerCountLabel(1)).toBe('1 follower');
+  });
+
+  it('uses the abbreviated plural follower string for large counts', () => {
+    expect(formatFollowerCountLabel(65700)).toBe('65.7K followers');
+  });
+});
 
 describe('formatUsd', () => {
   it('formats positive USD values with two decimal places', () => {
@@ -329,6 +359,35 @@ describe('formatFeedTimestamp', () => {
   it('formats an absolute clock time for timestamps older than 24h', () => {
     const result = formatFeedTimestamp(now - DAY - HOUR, now);
     expect(result).toMatch(/^\d{1,2}:\d{2} (am|pm)$/);
+  });
+});
+
+describe('formatHoldDuration', () => {
+  it('formats a sub-hour hold in minutes', () => {
+    expect(formatHoldDuration(45 * MINUTE)).toBe('45m');
+  });
+
+  it('rounds a sub-minute hold up to one minute', () => {
+    expect(formatHoldDuration(20 * SECOND)).toBe('1m');
+  });
+
+  it('formats a sub-day hold in whole hours', () => {
+    expect(formatHoldDuration(8 * HOUR)).toBe('8h');
+  });
+
+  // `1d` alone reads the same for 24 hours and for 47, so multi-day holds
+  // carry their remaining hours.
+  it('carries the remaining hours on a multi-day hold', () => {
+    expect(formatHoldDuration(DAY + 20 * HOUR)).toBe('1d 20h');
+  });
+
+  it('drops the hours on a whole number of days', () => {
+    expect(formatHoldDuration(6 * DAY)).toBe('6d');
+  });
+
+  it('returns an em dash for a non-positive duration', () => {
+    expect(formatHoldDuration(0)).toBe('—');
+    expect(formatHoldDuration(-HOUR)).toBe('—');
   });
 });
 

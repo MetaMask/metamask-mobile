@@ -21,8 +21,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFeed } from '../../hooks/useFeed';
-import { useEventsWithLiveGames } from '../../hooks/useEventsWithLiveGames';
+import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
+import { usePredictOrderFlow } from '../PredictOrderFlow';
 import {
   getFeedScreen,
   getFeedScreenTab,
@@ -78,13 +79,28 @@ interface FeedEventRowProps {
 
 const EventSeparator = () => <Box twClassName="h-3" />;
 
-const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => (
-  <PredictEventCard
-    event={event}
-    variant="featured"
-    onPress={() => onOpenEvent(event)}
-  />
-));
+const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
+  const { openOrderFlow } = usePredictOrderFlow();
+
+  return (
+    <PredictEventCard
+      event={event}
+      variant="featured"
+      onPress={() => onOpenEvent(event)}
+      onOrder={(cardEvent, market, outcome) =>
+        openOrderFlow({
+          venueId: cardEvent.venueId,
+          marketId: market.id,
+          side: outcome.side,
+          outcomeLabel: outcome.label,
+          eventTitle: cardEvent.title,
+          eventImageUrl: cardEvent.imageUrl,
+          askPrice: outcome.askPrice,
+        })
+      }
+    />
+  );
+});
 
 const FeedLoading = () => (
   <Box testID={PredictFeedScreenTestIds.LOADING} twClassName="gap-3 px-3 pt-2">
@@ -166,7 +182,10 @@ const PredictFeedContent = ({
     () => getFeedWatchEventIds(feedEvents, visibleEventIds),
     [feedEvents, visibleEventIds],
   );
-  const events = useEventsWithLiveGames(venueId, feedEvents, watchEventIds);
+  const events = useEventsWithLiveData(venueId, feedEvents, {
+    watchEventIds,
+    marketScope: 'card',
+  });
   const hasInitialError = isError && events.length === 0;
 
   usePredictNextMeasurement({

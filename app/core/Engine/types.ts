@@ -398,6 +398,21 @@ import {
   type PredictPortfolioServiceActions,
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictOrderPreviewService,
+  type PredictOrderPreviewServiceActions,
+  type PredictOrderPreviewServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderPreviewService';
+import {
+  RecurringOrdersDataService,
+  type RecurringOrdersDataServiceActions,
+  type RecurringOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/RecurringOrdersDataService';
+import {
+  LimitOrdersDataService,
+  type LimitOrdersDataServiceActions,
+  type LimitOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/LimitOrdersDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -716,6 +731,9 @@ export type GlobalActions =
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
+  | PredictOrderPreviewServiceActions
+  | RecurringOrdersDataServiceActions
+  | LimitOrdersDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -838,6 +856,9 @@ export type GlobalEvents =
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
+  | PredictOrderPreviewServiceEvents
+  | RecurringOrdersDataServiceEvents
+  | LimitOrdersDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -999,6 +1020,9 @@ export type MessengerClients = {
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
+  PredictOrderPreviewService: PredictOrderPreviewService;
+  RecurringOrdersDataService: RecurringOrdersDataService;
+  LimitOrdersDataService: LimitOrdersDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1212,6 +1236,9 @@ export type MessengerClientsToInitialize =
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
+  | 'PredictOrderPreviewService'
+  | 'RecurringOrdersDataService'
+  | 'LimitOrdersDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'

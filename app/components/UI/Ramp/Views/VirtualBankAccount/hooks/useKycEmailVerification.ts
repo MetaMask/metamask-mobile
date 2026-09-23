@@ -1,20 +1,12 @@
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type {
-  KycCatalogDocument,
-  KycConsentDocument,
-  KycConsentRecord,
-} from '@metamask/kyc-controller';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  VBA_KYC_COUNTRY_CODE,
-  VBA_KYC_PRODUCT,
-  VBA_KYC_VENDOR,
-} from '../constants';
+import { VBA_KYC_VENDOR } from '../constants';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -23,17 +15,15 @@ interface UseKycEmailVerificationResult {
   isContinueDisabled: boolean;
   goBack: () => void;
   startVerification: () => Promise<void>;
+  resetKyc: () => Promise<void>;
 }
 
-const toAcceptedDisclaimerKeys = (
-  documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
-): KycConsentRecord[] =>
-  (documents ?? []).map(({ key, version }) => ({ key, version }));
-
-/** Creates the KYC customer, posts catalog consents, and starts SumSub. */
+/** Starts or resumes the KYC session, then continues to Get Pix Key. */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(
+    () => Engine.context.KycController?.state.email?.trim() ?? '',
+  );
   const [isVerifying, setIsVerifying] = useState(false);
 
   const trimmedEmail = email.trim();
@@ -48,41 +38,12 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
 
     setIsVerifying(true);
     try {
-      await Engine.context.KycController.createVendorCustomer({
+      await Engine.context.KycController.startSession({
         vendor: VBA_KYC_VENDOR,
         email: trimmedEmail,
       });
 
-      if (Engine.context.KycController.state.vendorDisclaimers.length === 0) {
-        throw new Error(
-          strings('virtual_bank_account.kyc_email.terms_not_loaded_error'),
-        );
-      }
-
-      // Pre-session catalog: `state.sessionDisclaimers` is only populated once a
-      // UKYC session exists, which `acceptTermsAndStartSession` creates below.
-      const catalog =
-        await Engine.context.KycController.fetchSessionDisclaimers({
-          country: VBA_KYC_COUNTRY_CODE,
-        });
-
-      await Engine.context.KycController.acceptTermsAndStartSession({
-        email: trimmedEmail,
-        product: VBA_KYC_PRODUCT,
-        providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
-          catalog.kycProvider,
-        ),
-        idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
-      });
-
-      if (Engine.context.KycController.state.sumsub.status === 'abandoned') {
-        Logger.log('[VBA KYC] Sumsub SDK abandoned');
-        return;
-      }
-
-      Logger.log('[VBA KYC] Sumsub SDK closed', {
-        status: Engine.context.KycController.state.sumsub.status,
-      });
+      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -97,7 +58,24 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, trimmedEmail]);
+  }, [isVerifying, navigation, trimmedEmail]);
+
+  const resetKyc = useCallback(async () => {
+    try {
+      await Engine.context.KycController.reset();
+      setEmail('');
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-kyc', provider: 'sumsub' },
+      });
+      Alert.alert(
+        strings('virtual_bank_account.kyc_email.error_title'),
+        error instanceof Error
+          ? error.message
+          : strings('virtual_bank_account.kyc_email.error_description'),
+      );
+    }
+  }, []);
 
   return {
     email,
@@ -106,5 +84,6 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     isContinueDisabled,
     goBack,
     startVerification,
+    resetKyc,
   };
 };

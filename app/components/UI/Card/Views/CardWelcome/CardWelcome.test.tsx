@@ -150,7 +150,10 @@ jest.mock('../../../../../util/theme', () => {
 });
 
 const createTestStore = (
-  initialState: { cardholderAccounts?: string[] } = {},
+  initialState: {
+    cardholderAccounts?: string[];
+    signInLink?: Record<string, unknown> | null;
+  } = {},
 ) =>
   configureStore({
     reducer: {
@@ -159,6 +162,7 @@ const createTestStore = (
           backgroundState: {
             CardController: {
               cardholderAccounts: initialState.cardholderAccounts ?? [],
+              signInLink: initialState.signInLink ?? null,
             },
           },
         },
@@ -557,6 +561,30 @@ describe('CardWelcome', () => {
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+    });
+
+    it('navigates to authentication when a sign-in link exists (non-cardholder)', () => {
+      store = createTestStore({
+        cardholderAccounts: [],
+        signInLink: {
+          providerId: 'immersve',
+          status: 'linked',
+          address: '0xabc',
+          updatedAt: Date.now(),
+        },
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
       );
     });
 
