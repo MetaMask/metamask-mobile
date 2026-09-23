@@ -352,6 +352,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
             accountType,
             authConnection,
             hasSeedlessVault,
+            false,
           ),
         ).toBe(true);
       },
@@ -363,8 +364,20 @@ describe('basicFunctionalityConsolidation selectors', () => {
           AccountType.Metamask,
           undefined,
           false,
+          false,
         ),
       ).toBe(false);
+    });
+
+    it('detects a social wallet from a linked profile marker', () => {
+      expect(
+        selectIsBasicFunctionalitySocialLoginUser.resultFunc(
+          AccountType.Imported,
+          undefined,
+          false,
+          true,
+        ),
+      ).toBe(true);
     });
   });
 
@@ -419,6 +432,9 @@ describe('basicFunctionalityConsolidation selectors', () => {
           true,
           false,
           true,
+          false,
+          null,
+          false,
         ),
       ).toBe(true);
     });
@@ -429,6 +445,9 @@ describe('basicFunctionalityConsolidation selectors', () => {
           true,
           true,
           true,
+          false,
+          null,
+          false,
         ),
       ).toBe(false);
     });
@@ -438,6 +457,9 @@ describe('basicFunctionalityConsolidation selectors', () => {
         selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
           true,
           false,
+          false,
+          false,
+          null,
           false,
         ),
       ).toBe(false);
@@ -449,6 +471,9 @@ describe('basicFunctionalityConsolidation selectors', () => {
           false,
           false,
           true,
+          true,
+          null,
+          false,
         ),
       ).toBe(false);
     });
@@ -459,8 +484,50 @@ describe('basicFunctionalityConsolidation selectors', () => {
           true,
           false,
           true,
+          false,
+          null,
+          false,
         ),
       ).toBe(true);
+    });
+
+    it('repairs a consolidated linked-social wallet missing its notice', () => {
+      expect(
+        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
+          true,
+          true,
+          true,
+          true,
+          null,
+          false,
+        ),
+      ).toBe(true);
+    });
+
+    it('does not repair a linked-social wallet after notice dismissal', () => {
+      expect(
+        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
+          true,
+          true,
+          true,
+          true,
+          null,
+          true,
+        ),
+      ).toBe(false);
+    });
+
+    it('does not repair a linked-social wallet with a scheduled notice', () => {
+      expect(
+        selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
+          true,
+          true,
+          true,
+          true,
+          'bottom-sheet',
+          false,
+        ),
+      ).toBe(false);
     });
   });
 });

@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import {
   selectBasicFunctionalityEnabled,
+  selectHasLinkedSocialLoginProfile,
   selectIsBasicFunctionalityConsolidatedEnabled,
 } from '../../settings';
 import { RootState } from '../../../reducers';
@@ -202,11 +203,18 @@ export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
   selectOnboardingAccountType,
   selectSeedlessAuthConnection,
   selectHasSeedlessVault,
-  (accountType, authConnection, hasSeedlessVault) =>
+  selectHasLinkedSocialLoginProfile,
+  (
+    accountType,
+    authConnection,
+    hasSeedlessVault,
+    hasLinkedSocialLoginProfile,
+  ) =>
     isBasicFunctionalitySocialLoginUser({
       accountType,
       authConnection,
       hasSeedlessVault,
+      hasLinkedSocialLoginProfile,
     }),
 );
 
@@ -228,17 +236,28 @@ export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
 );
 
 /**
- * True when an already-consolidated social-login wallet still has Basic
- * Functionality off. Consolidation re-runs for these wallets to put them back
- * on, covering a failed migration or an off state written before the cohort
- * marker landed.
+ * True when an already-consolidated social-login wallet needs repair:
+ * Basic Functionality is off, or a linked-social profile was detected after
+ * migration and its one-time notice was never scheduled.
  */
 export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
   selectIsBasicFunctionalityConsolidatedEnabled,
   selectBasicFunctionalityEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
-  (isPersistedConsolidated, isBasicFunctionalityEnabled, isSocialLoginUser) =>
-    isPersistedConsolidated &&
-    !isBasicFunctionalityEnabled &&
+  selectHasLinkedSocialLoginProfile,
+  selectBasicFunctionalityMigrationNotification,
+  selectIsBasicFunctionalityMigrationNotificationDismissed,
+  (
+    isPersistedConsolidated,
+    isBasicFunctionalityEnabled,
     isSocialLoginUser,
+    hasLinkedSocialLoginProfile,
+    migrationNotification,
+    isMigrationNotificationDismissed,
+  ) =>
+    isPersistedConsolidated &&
+    ((!isBasicFunctionalityEnabled && isSocialLoginUser) ||
+      (hasLinkedSocialLoginProfile === true &&
+        !isMigrationNotificationDismissed &&
+        migrationNotification === null)),
 );

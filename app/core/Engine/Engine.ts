@@ -35,6 +35,11 @@ import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import {
+  consolidateBasicFunctionality,
+  setHasLinkedSocialLoginProfile,
+} from '../../actions/settings';
+import { registerLinkedSocialLoginProfileSync } from '../../util/basicFunctionality/linkedSocialLoginProfile';
+import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
@@ -1030,6 +1035,20 @@ export class Engine {
           .catch((error) => Logger.log('Feature flags update failed: ', error));
       },
     );
+
+    registerLinkedSocialLoginProfileSync(this.controllerMessenger, () => {
+      if (store.getState().settings?.hasLinkedSocialLoginProfile !== true) {
+        store.dispatch(setHasLinkedSocialLoginProfile(true));
+      }
+      consolidateBasicFunctionality()(store.dispatch, store.getState).catch(
+        (error: unknown) => {
+          Logger.error(
+            error as Error,
+            'Engine: Failed to repair linked-social Basic Functionality migration',
+          );
+        },
+      );
+    });
 
     Engine.instance = this;
   }
