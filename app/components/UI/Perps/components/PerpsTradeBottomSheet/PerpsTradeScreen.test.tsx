@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
@@ -57,12 +58,15 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   oiCapSymbol: 'SOL',
   direction: 'long',
   leverage: 3,
+  maxLeverage: 40,
   currentPrice: 98.5,
   percentChange24h: 3.02,
   orderType: 'market',
   autoCloseText: 'TP Off, SL Off',
   showAutoClose: true,
   margin: '$3.41',
+  liquidationPrice: '$68.29',
+  liquidationDistance: '30.05%',
   amount: '10',
   tokenAmount: '0.11',
   sliderMaximum: 100,
@@ -71,6 +75,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   isHeaderLoading: false,
   isPayWithLoading: false,
   isMarginLoading: false,
+  isLiquidationLoading: false,
   isFeeLoading: false,
   isOrderTypeDisabled: false,
   areLimitPricePresetsDisabled: false,
@@ -101,11 +106,6 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   onLimitPricePresetPress: jest.fn(),
   onLimitPriceDonePress: jest.fn(),
   onPayWithPress: jest.fn(),
-  onMarginInfoPress: jest.fn(),
-  showSlippage: true,
-  slippageText: 'Est: 0.12% / Max: 3%',
-  exceedsMaxSlippage: false,
-  onSlippagePress: jest.fn(),
   onSubmit: jest.fn(),
 };
 
@@ -141,13 +141,11 @@ describe('PerpsTradeScreen errors', () => {
     const onSubmit = jest.fn();
     const onPayWithPress = jest.fn();
     const onOrderTypeToggle = jest.fn();
-    const onMarginInfoPress = jest.fn();
     render(
       <PerpsTradeScreen
         {...defaultProps}
         onOrderTypeToggle={onOrderTypeToggle}
         onPayWithPress={onPayWithPress}
-        onMarginInfoPress={onMarginInfoPress}
         onSubmit={onSubmit}
       />,
     );
@@ -172,13 +170,13 @@ describe('PerpsTradeScreen errors', () => {
     );
     expect(mockNavigateTo).toHaveBeenCalledWith('tpsl');
 
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW),
-    );
-    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
-
     fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW));
-    expect(onMarginInfoPress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('marginInfo');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
+    );
+    expect(mockNavigateTo).toHaveBeenCalledWith('liquidationInfo');
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
@@ -186,7 +184,72 @@ describe('PerpsTradeScreen errors', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
 
     expect(screen.getByLabelText('Market order type')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Margin, Isolated, $3.41')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the market maximum leverage in the header, not the selected one', () => {
+    render(
+      <PerpsTradeScreen {...defaultProps} leverage={3} maxLeverage={40} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG),
+    ).toHaveTextContent('40x');
+    expect(screen.getByLabelText('Up to 40x leverage')).toBeOnTheScreen();
+    // The selected leverage still lives in the Leverage row.
+    expect(screen.getByLabelText('Leverage, 3x')).toBeOnTheScreen();
+  });
+
+  it('omits the max leverage tag until market data resolves', () => {
+    render(<PerpsTradeScreen {...defaultProps} maxLeverage={null} />);
+
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the liquidation price with its distance and a trend icon', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        liquidationPrice="$68.29"
+        liquidationDistance="30.05%"
+      />,
+    );
+
+    expect(screen.getByText('$68.29')).toBeOnTheScreen();
+    expect(screen.getByText('30.05%')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        'Liquidation price, $68.29, 30.05%. About liquidation price',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows only the fallback when no liquidation price is available', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        liquidationPrice="--"
+        liquidationDistance={undefined}
+      />,
+    );
+
+    expect(screen.getByText('--')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('never shows a slippage row in the Trade sheet', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
   });
 
   it('opens Auto close for a limit order that has no limit price yet', () => {
@@ -210,35 +273,6 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('opens nested slippage settings from the market order row', () => {
-    const onSlippagePress = jest.fn();
-
-    render(
-      <PerpsTradeScreen {...defaultProps} onSlippagePress={onSlippagePress} />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW),
-    );
-
-    expect(onSlippagePress).toHaveBeenCalledTimes(1);
-    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
-  });
-
-  it('hides slippage for limit orders', () => {
-    render(
-      <PerpsTradeScreen
-        {...defaultProps}
-        orderType="limit"
-        showSlippage={false}
-      />,
-    );
-
-    expect(
-      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW),
     ).not.toBeOnTheScreen();
   });
 
@@ -282,6 +316,7 @@ describe('PerpsTradeScreen errors', () => {
         isHeaderLoading
         isPayWithLoading
         isMarginLoading
+        isLiquidationLoading
         isFeeLoading
       />,
     );
@@ -294,6 +329,11 @@ describe('PerpsTradeScreen errors', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON,
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
@@ -413,16 +453,28 @@ describe('PerpsTradeScreen errors', () => {
     expect(onLimitPricePresetPress).toHaveBeenCalledWith(preset);
   });
 
-  it('propagates an order execution error to the footer', () => {
+  it('tightens the padding of the five-button limit price preset row so labels are not clipped', () => {
     render(
       <PerpsTradeScreen
         {...defaultProps}
-        errorMessages={[
-          { key: 'execution', message: 'Order could not be submitted' },
-        ]}
+        orderType="limit"
+        isLimitPriceFocused
       />,
     );
 
-    expect(screen.getByText('Order could not be submitted')).toBeOnTheScreen();
+    const doneButton = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON,
+    );
+    const midButton = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.LIMIT_PRICE_PRESET_MID,
+    );
+
+    // The design system button applies `px-4` by default; the override must
+    // win so five buttons fit their labels side by side.
+    [doneButton, midButton].forEach((button) => {
+      const style = StyleSheet.flatten(button.props.style);
+      expect(style).toMatchObject({ flexGrow: 1 });
+      expect(style.paddingLeft ?? style.paddingHorizontal).toBe(4);
+    });
   });
 });

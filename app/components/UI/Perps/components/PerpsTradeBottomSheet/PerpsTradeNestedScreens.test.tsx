@@ -6,13 +6,24 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
   getPerpsTPSLViewSelector,
   PerpsTPSLViewSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
-import { PerpsTradeTPSLScreen } from './PerpsTradeNestedScreens';
+import {
+  PerpsTradeInfoScreen,
+  PerpsTradeLeverageScreen,
+  PerpsTradeTPSLScreen,
+} from './PerpsTradeNestedScreens';
 
 const mockGoBack = jest.fn();
+const mockClose = jest.fn();
+const mockTrack = jest.fn();
+let mockLeverageSheetProps: Record<string, unknown> | undefined;
 const mockHandleTakeProfitOff = jest.fn();
 const mockHandleStopLossOff = jest.fn();
 const mockHandleTakeProfitPercentageButton = jest.fn();
@@ -40,10 +51,20 @@ let mockExpectedStopLossPnL: number | undefined;
 jest.mock('./PerpsTradeBottomSheet', () => ({
   usePerpsTradeSheet: () => ({
     goBack: mockGoBack,
+    close: mockClose,
   }),
 }));
 
-jest.mock('../PerpsLeverageBottomSheet', () => () => null);
+jest.mock('../PerpsLeverageBottomSheet', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => {
+    mockLeverageSheetProps = props;
+    return null;
+  },
+}));
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
 jest.mock('../../hooks/usePerpsTPSLForm', () => ({
   usePerpsTPSLForm: () => ({
     formState: {
@@ -116,6 +137,133 @@ describe('PerpsTradeNestedScreens', () => {
     mockStopLossLiquidationError = '';
     mockExpectedTakeProfitPnL = undefined;
     mockExpectedStopLossPnL = undefined;
+    mockLeverageSheetProps = undefined;
+  });
+
+  describe('PerpsTradeLeverageScreen', () => {
+    it('embeds the leverage sheet as a nested screen wired to the sheet navigation', () => {
+      const onConfirm = jest.fn();
+
+      render(
+        <PerpsTradeLeverageScreen
+          onConfirm={onConfirm}
+          leverage={3}
+          minLeverage={1}
+          maxLeverage={40}
+          currentPrice={100}
+          direction="long"
+          asset="SOL"
+          orderType="market"
+        />,
+      );
+
+      expect(mockLeverageSheetProps).toEqual(
+        expect.objectContaining({
+          isVisible: true,
+          presentation: 'screen',
+          onBack: mockGoBack,
+          onClose: mockClose,
+          onConfirmComplete: mockGoBack,
+          onConfirm,
+          leverage: 3,
+          maxLeverage: 40,
+        }),
+      );
+    });
+  });
+
+  describe('PerpsTradeInfoScreen', () => {
+    it('renders the margin explainer inline with a back button and Got it', () => {
+      render(<PerpsTradeInfoScreen contentKey="margin" />);
+
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Margin')).toBeOnTheScreen();
+      expect(
+        screen.getByText(/Margin is the money you put in to open a trade/),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('renders the liquidation price explainer', () => {
+      render(<PerpsTradeInfoScreen contentKey="liquidation_price" />);
+
+      expect(screen.getByText('Liquidation price')).toBeOnTheScreen();
+      expect(
+        screen.getByText(/If the price hits this point/),
+      ).toBeOnTheScreen();
+    });
+
+    it('tracks the tooltip interaction and returns to Trade from Got it', () => {
+      render(<PerpsTradeInfoScreen contentKey="margin" />);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          interaction_type: 'button_clicked',
+          button_clicked: 'tooltip',
+          button_location: 'perps_asset_screen',
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('shows the liquidation distance and a trend icon next to the liquidation price', () => {
+    render(
+      <PerpsTradeTPSLScreen
+        {...defaultProps}
+        currentPrice={100}
+        liquidationPrice="70"
+        direction="long"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_ROW),
+    ).toHaveAccessibleName('Liquidation price, $70, 30.00%');
+    expect(screen.getByText('30.00%')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_TREND_ICON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows only the fallback when the liquidation price is unknown', () => {
+    render(
+      <PerpsTradeTPSLScreen {...defaultProps} liquidationPrice={undefined} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_ROW),
+    ).toHaveAccessibleName('Liquidation price, --');
+    expect(
+      screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_TREND_ICON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders Clear as a primary-coloured text link', () => {
+    render(<PerpsTradeTPSLScreen {...defaultProps} />);
+
+    const clearButton = screen.getByTestId(
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON,
+    );
+
+    expect(clearButton).toHaveTextContent('Clear');
+    expect(clearButton.props.accessibilityRole).toBe('button');
+    expect(StyleSheet.flatten(clearButton.props.style)).toMatchObject({
+      color: lightTheme.colors.primary.default,
+    });
   });
 
   it('commits TP/SL before returning to Trade', async () => {

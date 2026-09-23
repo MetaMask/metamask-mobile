@@ -1552,7 +1552,10 @@
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
-      "show_fiat_value": "Show fiat value"
+      "show_fiat_value": "Show fiat value",
+      "max_leverage_accessibility_label": "Up to {{maxLeverage}}x leverage",
+      "margin_info_accessibility_label": "About margin",
+      "liquidation_price_info_accessibility_label": "About liquidation price"
     },
     "mode": {
       "lite": "Lite",
@@ -2082,7 +2085,8 @@
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "price_unavailable": "Price information unavailable"
+        "price_unavailable": "Price information unavailable",
+        "description": "If the price hits liquidation, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
       },
       "type": {
         "title": "Order type",

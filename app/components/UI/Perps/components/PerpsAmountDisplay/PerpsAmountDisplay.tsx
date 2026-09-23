@@ -1,5 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Platform,
+  Pressable,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import { useTheme } from '../../../../../util/theme';
@@ -14,16 +21,13 @@ import {
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
+import PerpsSwapIcon from '../PerpsSwapIcon';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
   FontWeight,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -69,6 +73,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   displayToggleTestID,
 }) => {
   const { colors } = useTheme();
+  const tw = useTailwind();
   const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -193,14 +198,23 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               {secondaryDisplayValue}
             </Text>
             {onDisplayToggle ? (
-              <ButtonIcon
-                iconName={IconName.SwapVertical}
-                size={ButtonIconSize.Sm}
-                variant={ButtonIconVariant.Filled}
+              // Mirrors MMDS `ButtonIcon` (Sm, Filled) but draws the Figma
+              // swap glyph, which MMDS does not publish under IconName.
+              <Pressable
+                accessibilityRole="button"
                 accessibilityLabel={displayToggleAccessibilityLabel}
                 testID={displayToggleTestID}
                 onPress={onDisplayToggle}
-              />
+                hitSlop={8}
+                style={({ pressed }) =>
+                  tw.style(
+                    'h-6 w-6 items-center justify-center rounded-full',
+                    pressed ? 'bg-muted-pressed' : 'bg-muted',
+                  )
+                }
+              >
+                <PerpsSwapIcon direction="vertical" />
+              </Pressable>
             ) : null}
           </Box>
         ) : null}

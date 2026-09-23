@@ -186,7 +186,7 @@ describe('PerpsSlider', () => {
       });
     });
 
-    it('wraps the compact variant in a single double-width, scaled-down container so the track still spans the full row', () => {
+    it('wraps the compact variant in a single over-wide, scaled-down container so the track still spans the full row', () => {
       const { toJSON } = render(
         <PerpsSlider
           {...defaultProps}
@@ -199,14 +199,35 @@ describe('PerpsSlider', () => {
         .children?.[0] as ReactTestRendererJSON;
       // A single View declares the post-scale height/width; the Slider child
       // renders at its natural (pre-scale) size and overflows it by exactly
-      // 2x, which `transform: scale(0.5)` (anchored top-left) shrinks back
-      // down to precisely fit — no separate clipping container needed.
+      // 1/0.75, which `transform: scale(0.75)` (anchored top-left) shrinks
+      // back down to precisely fit — no separate clipping container needed.
+      // 0.75 turns the design system's 32px thumb into Figma's 24px thumb.
       expect(wrapper.props.style).toMatchObject({
-        height: 17.5,
-        width: '200%',
-        transform: [{ scale: 0.5 }],
+        height: 26.25,
+        width: `${100 / 0.75}%`,
+        transform: [{ scale: 0.75 }],
         transformOrigin: 'left top',
       });
+    });
+
+    it('labels only the outer and middle compact marks with a percent sign, as in Figma', () => {
+      render(<PerpsSlider {...defaultProps} variant="compact" />);
+
+      expect(
+        screen.getByTestId(getPerpsSliderSelector.compactLabel(0)),
+      ).toHaveTextContent('0%');
+      expect(
+        screen.getByTestId(getPerpsSliderSelector.compactLabel(25)),
+      ).toHaveTextContent('25');
+      expect(
+        screen.getByTestId(getPerpsSliderSelector.compactLabel(50)),
+      ).toHaveTextContent('50%');
+      expect(
+        screen.getByTestId(getPerpsSliderSelector.compactLabel(75)),
+      ).toHaveTextContent('75');
+      expect(
+        screen.getByTestId(getPerpsSliderSelector.compactLabel(100)),
+      ).toHaveTextContent('100%');
     });
 
     it('does not wrap the default variant in a scaling container', () => {
