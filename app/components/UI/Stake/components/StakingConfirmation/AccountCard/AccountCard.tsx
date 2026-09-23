@@ -78,11 +78,7 @@ const AccountCard = ({
           }
         />
       </Card>
-      <Card
-        accessible
-        twClassName="bg-default"
-        style={styles.cardGroupBottom}
-      >
+      <Card accessible twClassName="bg-default" style={styles.cardGroupBottom}>
         <KeyValueRow
           twClassName={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('asset_details.network')}

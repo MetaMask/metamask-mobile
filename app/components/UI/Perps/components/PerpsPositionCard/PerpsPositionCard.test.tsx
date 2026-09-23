@@ -312,10 +312,7 @@ describe('PerpsPositionCard', () => {
       const onMarginPress = jest.fn();
 
       render(
-        <PerpsPositionCard
-          position={cross}
-          onMarginPress={onMarginPress}
-        />,
+        <PerpsPositionCard position={cross} onMarginPress={onMarginPress} />,
       );
 
       fireEvent.press(
