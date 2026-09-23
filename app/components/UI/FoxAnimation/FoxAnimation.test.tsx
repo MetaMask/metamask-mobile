@@ -106,9 +106,9 @@ describe('getSafeBottomPosition', () => {
   it('uses a small negative Android full-bleed offset when inset is missing', () => {
     setPlatformOS('android');
 
-    expect(
-      getSafeBottomPosition(false, 0, { fullBleedBottom: true }),
-    ).toBe(-20);
+    expect(getSafeBottomPosition(false, 0, { fullBleedBottom: true })).toBe(
+      -20,
+    );
   });
 
   it('returns 0 for Android when parent already applied bottom safe area', () => {
