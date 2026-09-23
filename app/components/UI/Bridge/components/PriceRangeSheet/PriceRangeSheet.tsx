@@ -37,6 +37,7 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  isInvertedPriceRange,
   isValidPriceRange,
   PRICE_RANGE_CURRENCY,
   PRICE_RANGE_MAX_PERCENTS,
@@ -188,6 +189,7 @@ const PriceRangeSheet = ({
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
+  const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
   const currencySymbol = getCurrencySymbol(PRICE_RANGE_CURRENCY);
   const isKeypadOpen = focusedField !== null;
 
@@ -498,6 +500,15 @@ const PriceRangeSheet = ({
                 testID={PriceRangeSheetSelectorsIDs.MAX_INPUT}
                 onPress={() => focusField('max')}
               />
+              {showInvertedRangeError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={PriceRangeSheetSelectorsIDs.MAX_ERROR}
+                >
+                  {strings('bridge.recurring.price_range.max_must_exceed_min')}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         </ScrollView>
