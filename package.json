@@ -268,7 +268,7 @@
   "previewBuilds": {
     "@metamask/social-controllers": {
       "type": "non-breaking",
-      "previewVersion": "3.0.2-preview-aecbce4ff"
+      "previewVersion": "3.0.2-preview-4f1bba2bd"
     }
   },
   "dependencies": {

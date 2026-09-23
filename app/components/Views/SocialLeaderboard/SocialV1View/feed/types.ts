@@ -122,7 +122,6 @@ export interface SocialV1FeedPost {
   id: string;
   authorHandle: string;
   authorImageUrl?: string | null;
-  winRateLabel?: string;
   timestampMs: number;
   likeCount: number;
   commentCount: number;
