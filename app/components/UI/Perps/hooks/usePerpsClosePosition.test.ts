@@ -416,7 +416,7 @@ describe('usePerpsClosePosition', () => {
       const { result } = renderHook(() => usePerpsClosePosition());
 
       // Start closing
-      let closePromise: Promise<OrderResult>;
+      let closePromise: Promise<OrderResult | undefined>;
       act(() => {
         closePromise = result.current.handleClosePosition({
           position: mockPosition,
@@ -1220,6 +1220,108 @@ describe('usePerpsClosePosition', () => {
           );
         });
       });
+    });
+  });
+
+  describe('in-flight close lock', () => {
+    it('ignores a close from a remounted hook while the same symbol is closing', async () => {
+      let resolveFirst: (value: OrderResult) => void = () => undefined;
+      mockClosePosition.mockReturnValueOnce(
+        new Promise<OrderResult>((resolve) => {
+          resolveFirst = resolve;
+        }),
+      );
+      const first = renderHook(() => usePerpsClosePosition());
+      const second = renderHook(() => usePerpsClosePosition());
+
+      let firstClose: Promise<unknown> = Promise.resolve();
+      let secondResult: unknown;
+      await act(async () => {
+        firstClose = first.result.current.handleClosePosition({
+          position: mockPosition,
+        });
+        secondResult = await second.result.current.handleClosePosition({
+          position: mockPosition,
+        });
+      });
+
+      expect(secondResult).toBeUndefined();
+      expect(mockClosePosition).toHaveBeenCalledTimes(1);
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'usePerpsClosePosition: Close already in flight',
+        { symbol: 'BTC' },
+      );
+
+      await act(async () => {
+        resolveFirst({ success: true, orderId: '1' });
+        await firstClose;
+      });
+    });
+
+    it('does not block a close on a different symbol', async () => {
+      let resolveFirst: (value: OrderResult) => void = () => undefined;
+      mockClosePosition
+        .mockReturnValueOnce(
+          new Promise<OrderResult>((resolve) => {
+            resolveFirst = resolve;
+          }),
+        )
+        .mockResolvedValueOnce({ success: true, orderId: '2' });
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      let firstClose: Promise<unknown> = Promise.resolve();
+      await act(async () => {
+        firstClose = result.current.handleClosePosition({
+          position: mockPosition,
+        });
+        await result.current.handleClosePosition({
+          position: { ...mockPosition, symbol: 'ETH' },
+        });
+      });
+
+      expect(mockClosePosition).toHaveBeenCalledTimes(2);
+      expect(mockClosePosition).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbol: 'ETH' }),
+      );
+
+      await act(async () => {
+        resolveFirst({ success: true, orderId: '1' });
+        await firstClose;
+      });
+    });
+
+    it('releases the lock after a successful close', async () => {
+      mockClosePosition.mockResolvedValue({ success: true, orderId: '1' });
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await result.current.handleClosePosition({ position: mockPosition });
+        await result.current.handleClosePosition({ position: mockPosition });
+      });
+
+      expect(mockClosePosition).toHaveBeenCalledTimes(2);
+    });
+
+    it('releases the lock after a thrown close so the user can retry', async () => {
+      mockClosePosition
+        .mockRejectedValueOnce(new Error('network down'))
+        .mockResolvedValueOnce({ success: true, orderId: '1' });
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      await act(async () => {
+        await expect(
+          result.current.handleClosePosition({ position: mockPosition }),
+        ).rejects.toThrow('network down');
+      });
+      let retryResult: unknown;
+      await act(async () => {
+        retryResult = await result.current.handleClosePosition({
+          position: mockPosition,
+        });
+      });
+
+      expect(mockClosePosition).toHaveBeenCalledTimes(2);
+      expect(retryResult).toEqual({ success: true, orderId: '1' });
     });
   });
 

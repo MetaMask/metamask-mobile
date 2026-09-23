@@ -1638,6 +1638,35 @@ describe('PerpsClosePositionView', () => {
       });
       selectLimitFlagMock.mockReturnValue(false);
     });
+
+    it('submits and dismisses once when confirm is double-tapped', async () => {
+      // Arrange - isClosing stays false, as it does for a second tap that
+      // lands before the first one re-renders
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+
+      // Act
+      fireEvent.press(confirmButton);
+      fireEvent.press(confirmButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Slider drag commit funnel', () => {

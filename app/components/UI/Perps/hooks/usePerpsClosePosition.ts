@@ -57,6 +57,13 @@ interface ClosePositionParams {
   };
 }
 
+// Symbols with a close request in flight. Module scope rather than component
+// state: the close screen dismisses itself before the request settles, and a
+// second tap in the same tick still sees the stale `isClosing`. Either path
+// would send another reduce-only order against a position the first close
+// already flattened, which the venue rejects as "would increase position".
+const closesInFlight = new Set<string>();
+
 export const usePerpsClosePosition = (
   options?: UsePerpsClosePositionOptions,
 ) => {
@@ -76,6 +83,12 @@ export const usePerpsClosePosition = (
         marketPrice,
         slippage,
       } = params;
+      if (closesInFlight.has(position.symbol)) {
+        DevLogger.log('usePerpsClosePosition: Close already in flight', {
+          symbol: position.symbol,
+        });
+        return undefined;
+      }
       const isFullClose = size === undefined || size === '';
 
       // Failure toast varies by order type and full/partial close. Shared so
@@ -153,6 +166,7 @@ export const usePerpsClosePosition = (
         PerpsCacheInvalidator.invalidate('accountState');
       };
 
+      closesInFlight.add(position.symbol);
       try {
         setIsClosing(true);
         setError(null);
@@ -382,6 +396,7 @@ export const usePerpsClosePosition = (
 
         throw closeError;
       } finally {
+        closesInFlight.delete(position.symbol);
         setIsClosing(false);
       }
     },

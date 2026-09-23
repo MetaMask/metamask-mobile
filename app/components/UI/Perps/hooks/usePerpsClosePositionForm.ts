@@ -633,7 +633,9 @@ export function usePerpsClosePositionForm(
   }, [calculatedUSDString, isUserInputActive]);
 
   const handleConfirm = useCallback(async () => {
-    if (isClosing || isPositionGone) {
+    // The ref is synchronous: a second tap in the same tick still sees the
+    // stale `isClosing` and would dismiss (goBack) a second time.
+    if (hasConfirmedCloseRef.current || isClosing || isPositionGone) {
       return;
     }
 
