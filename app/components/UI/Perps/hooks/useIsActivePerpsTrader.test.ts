@@ -17,11 +17,44 @@ jest.mock('../utils/perpsActivityStorage', () => ({
 
 const mockPositionsSnapshot = jest.fn<Position[] | null, []>(() => null);
 const mockOrdersSnapshot = jest.fn<Order[] | null, []>(() => null);
+const mockStreamListeners = {
+  positions: new Set<(data: Position[] | null) => void>(),
+  orders: new Set<(data: Order[] | null) => void>(),
+};
 jest.mock('../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: () => ({
-    positions: { getSnapshot: () => mockPositionsSnapshot() },
-    orders: { getSnapshot: () => mockOrdersSnapshot() },
+    positions: {
+      getSnapshot: () => mockPositionsSnapshot(),
+      subscribe: ({
+        callback,
+      }: {
+        callback: (data: Position[] | null) => void;
+      }) => {
+        mockStreamListeners.positions.add(callback);
+        return () => {
+          mockStreamListeners.positions.delete(callback);
+        };
+      },
+    },
+    orders: {
+      getSnapshot: () => mockOrdersSnapshot(),
+      subscribe: ({
+        callback,
+      }: {
+        callback: (data: Order[] | null) => void;
+      }) => {
+        mockStreamListeners.orders.add(callback);
+        return () => {
+          mockStreamListeners.orders.delete(callback);
+        };
+      },
+    },
   }),
+}));
+
+const mockSelectedAddress = { current: '0xdev1' as string | undefined };
+jest.mock('react-redux', () => ({
+  useSelector: () => mockSelectedAddress.current,
 }));
 
 const mockFocusEffect = jest.fn();
@@ -64,8 +97,47 @@ describe('useIsActivePerpsTrader', () => {
     mockHasRecentPerpsAction.mockReturnValue(false);
     mockPositionsSnapshot.mockReturnValue(null);
     mockOrdersSnapshot.mockReturnValue(null);
+    mockSelectedAddress.current = '0xdev1';
+    mockStreamListeners.positions.clear();
+    mockStreamListeners.orders.clear();
     givenCache({});
   });
+
+  const runFocus = () => {
+    const [focusCallback] = mockFocusEffect.mock.calls.at(-1) as [
+      () => (() => void) | void,
+    ];
+    let cleanup: (() => void) | void;
+    act(() => {
+      cleanup = focusCallback();
+    });
+    return cleanup;
+  };
+
+  const emitStream = ({
+    positions,
+    orders,
+  }: {
+    positions?: Position[] | null;
+    orders?: Order[] | null;
+  }) => {
+    if (positions !== undefined) {
+      mockPositionsSnapshot.mockReturnValue(positions);
+    }
+    if (orders !== undefined) {
+      mockOrdersSnapshot.mockReturnValue(orders);
+    }
+    act(() => {
+      if (positions !== undefined) {
+        [...mockStreamListeners.positions].forEach((callback) =>
+          callback(positions),
+        );
+      }
+      if (orders !== undefined) {
+        [...mockStreamListeners.orders].forEach((callback) => callback(orders));
+      }
+    });
+  };
 
   describe('evaluateIsActivePerpsTrader', () => {
     it('is true with an open position', () => {
@@ -176,5 +248,83 @@ describe('useIsActivePerpsTrader', () => {
     act(() => focusCallback());
 
     expect(result.current).toBe(false);
+  });
+
+  it('does not subscribe on the first focus when the stream has not loaded', () => {
+    givenCache({ positions: null, orders: null });
+    const { result } = renderHook(() => useIsActivePerpsTrader());
+
+    runFocus();
+
+    expect(result.current).toBe(false);
+    expect(mockStreamListeners.positions.size).toBe(0);
+    expect(mockStreamListeners.orders.size).toBe(0);
+  });
+
+  it('subscribes for the next account when a later focus finds the stream cleared', () => {
+    givenCache({ positions: [], orders: [] });
+    const { result } = renderHook(() => useIsActivePerpsTrader());
+    runFocus();
+
+    givenCache({ positions: null, orders: null });
+    mockPositionsSnapshot.mockReturnValue(null);
+    mockOrdersSnapshot.mockReturnValue(null);
+    runFocus();
+
+    expect(result.current).toBe(false);
+    expect(mockStreamListeners.positions.size).toBe(1);
+    expect(mockStreamListeners.orders.size).toBe(1);
+  });
+
+  it('becomes eligible once the switched-back account positions load', () => {
+    givenCache({ positions: [], orders: [] });
+    const { result } = renderHook(() => useIsActivePerpsTrader());
+    runFocus();
+
+    givenCache({ positions: null, orders: null });
+    mockPositionsSnapshot.mockReturnValue(null);
+    mockOrdersSnapshot.mockReturnValue(null);
+    runFocus();
+    expect(result.current).toBe(false);
+
+    givenCache({ positions: null, orders: null });
+    emitStream({ positions: [aPosition], orders: [] });
+
+    expect(result.current).toBe(true);
+    expect(mockStreamListeners.positions.size).toBe(0);
+    expect(mockStreamListeners.orders.size).toBe(0);
+  });
+
+  it('stays eligible when a later tick empties the book after the stream has settled', () => {
+    givenCache({ positions: [], orders: [] });
+    const { result } = renderHook(() => useIsActivePerpsTrader());
+    runFocus();
+
+    givenCache({ positions: null, orders: null });
+    runFocus();
+    emitStream({ positions: [aPosition], orders: [] });
+    expect(result.current).toBe(true);
+
+    emitStream({ positions: [] });
+
+    expect(result.current).toBe(true);
+  });
+
+  it('applies a loaded account when the selected address changes without a new focus', () => {
+    givenCache({ positions: [], orders: [] });
+    const { result, rerender } = renderHook(() => useIsActivePerpsTrader());
+    runFocus();
+    expect(result.current).toBe(false);
+
+    mockSelectedAddress.current = '0xdev2';
+    givenCache({ positions: null, orders: null });
+    mockPositionsSnapshot.mockReturnValue(null);
+    mockOrdersSnapshot.mockReturnValue(null);
+    rerender({});
+
+    expect(result.current).toBe(false);
+    emitStream({ positions: [aPosition], orders: [] });
+
+    expect(result.current).toBe(true);
   });
 });
