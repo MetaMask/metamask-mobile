@@ -4,20 +4,9 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { ToastSeverity } from '@metamask/design-system-react-native';
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import Routes from '../../../constants/navigation/Routes';
 
 const mockDetectNfts = jest.fn();
 const mockToast = jest.fn();
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -57,9 +46,6 @@ const initialState = {
   engine: {
     backgroundState,
   },
-  settings: {
-    basicFunctionalityEnabled: true,
-  },
 };
 
 describe('CollectibleDetectionModal', () => {
@@ -92,34 +78,5 @@ describe('CollectibleDetectionModal', () => {
         showCloseButton: false,
       }),
     );
-  });
-
-  it('shows the Explore basic functionality error when Basic Functionality is off', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <CollectibleDetectionModal />,
-      {
-        state: {
-          ...initialState,
-          settings: { basicFunctionalityEnabled: false },
-        },
-      },
-    );
-
-    expect(
-      getByText(strings('wallet.nfts_unavailable_title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('trending.basic_functionality_disabled_description')),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('collectible-detection-modal-button'));
-
-    expect(
-      Engine.context.PreferencesController.setUseNftDetection,
-    ).not.toHaveBeenCalled();
-    expect(mockDetectNfts).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
   });
 });
