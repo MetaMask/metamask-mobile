@@ -125,6 +125,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         alert_direction: direction,
         alert_value: percentValue,
         alert_recurring: isRecurring,
+        alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
       },
     });
   }, [

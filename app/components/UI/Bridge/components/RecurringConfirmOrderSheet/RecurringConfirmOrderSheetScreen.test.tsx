@@ -8,6 +8,7 @@ import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702A
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import {
   showRecurringAutoUpgradeError,
+  showRecurringOrderCreatedToast,
   submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
 import { RecurringConfirmOrderSheetScreen } from './RecurringConfirmOrderSheetScreen';
@@ -32,10 +33,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(() => undefined),
-}));
-
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   BridgeQuoteDataProvider: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -51,6 +48,7 @@ jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
 
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
   showRecurringAutoUpgradeError: jest.fn(),
+  showRecurringOrderCreatedToast: jest.fn(),
   submitRecurringOrder: jest.fn(),
 }));
 
@@ -138,7 +136,7 @@ const configuredRecurringState = {
   repeatCount: '4',
   priceRange: {
     tokenSide: 'source' as const,
-    currency: 'usd',
+    currency: 'USD' as const,
     min: '1000',
     max: '2000',
   },
@@ -165,10 +163,12 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     jest.clearAllMocks();
     jest.mocked(useEIP7702UpgradeFee).mockReturnValue({
       status: 'not-required',
+      retry: jest.fn(),
     });
-    jest
-      .mocked(useAutoUpgradeEIP7702Account)
-      .mockReturnValue(mockAutoUpgradeEIP7702Account);
+    jest.mocked(useAutoUpgradeEIP7702Account).mockReturnValue({
+      autoUpgradeEIP7702Account: mockAutoUpgradeEIP7702Account,
+      getUpgradeStatus: jest.fn(),
+    });
     mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
     jest.mocked(submitRecurringOrder).mockResolvedValue(undefined);
   });
@@ -202,6 +202,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       status: 'ready',
       displayFee: '$1.23',
       preciseNativeFeeInHex: '0x1',
+      retry: jest.fn(),
     });
 
     const { getByTestId } = renderScreen();
@@ -237,6 +238,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
 
     await waitFor(() => {
       expect(submitRecurringOrder).toHaveBeenCalledTimes(1);
+      expect(showRecurringOrderCreatedToast).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
@@ -282,6 +284,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
     });
     expect(submitRecurringOrder).not.toHaveBeenCalled();
+    expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
     expect(store.getState().bridge.sourceAmount).toBe('1');
@@ -303,6 +306,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     });
     expect(store.getState().bridge.recurring).toEqual(configuredRecurringState);
     expect(store.getState().bridge.sourceAmount).toBe('1');
+    expect(showRecurringOrderCreatedToast).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 

@@ -226,22 +226,18 @@ describe('PredictMarketOutcomeResolved', () => {
     expect(getByText(/\$5\.0K.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('truncates long outcome titles with ellipsis', () => {
-    const outcome = createMockOutcome({
-      groupItemTitle:
-        'This is a very long title that should be truncated with ellipsis',
-    });
+  it('wraps long outcome titles instead of truncating them', () => {
+    const longTitle = 'Total Kills Over/Under 55.5 in Game 1?';
+    const outcome = createMockOutcome({ groupItemTitle: longTitle });
 
     const { getByText } = render(
       <PredictMarketOutcomeResolved outcome={outcome} />,
     );
 
-    const titleElement = getByText(
-      'This is a very long title that should be truncated with ellipsis',
-    );
+    const titleElement = getByText(longTitle);
     expect(titleElement).toBeOnTheScreen();
-    expect(titleElement.props.numberOfLines).toBe(1);
-    expect(titleElement.props.ellipsizeMode).toBe('tail');
+    expect(titleElement.props.numberOfLines).toBeUndefined();
+    expect(titleElement.props.ellipsizeMode).toBeUndefined();
   });
 
   it('handles very small price differences between tokens', () => {

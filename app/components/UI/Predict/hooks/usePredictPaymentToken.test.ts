@@ -4,6 +4,7 @@ import { usePredictPaymentToken } from './usePredictPaymentToken';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import Engine from '../../../../core/Engine';
 import type { AssetType } from '../../../Views/confirmations/types/token';
+import { useIsMoneyAccountPaymentOverride } from '../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 
 let mockSelectedPaymentToken: {
   address: string;
@@ -27,6 +28,9 @@ const createMockAsset = (overrides?: Partial<AssetType>): AssetType => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+jest.mock(
+  '../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+);
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -42,6 +46,7 @@ describe('usePredictPaymentToken', () => {
     jest.clearAllMocks();
     mockSelectedPaymentToken = null;
     jest.mocked(useSelector).mockImplementation(() => mockSelectedPaymentToken);
+    jest.mocked(useIsMoneyAccountPaymentOverride).mockReturnValue(false);
     jest
       .mocked(Engine.context.PredictController.setSelectedPaymentToken)
       .mockClear();
@@ -148,6 +153,15 @@ describe('usePredictPaymentToken', () => {
         address: '0xabcd',
         chainId: '0x1',
       };
+      const { result } = renderHook(() => usePredictPaymentToken());
+
+      expect(result.current.isPredictBalanceSelected).toBe(false);
+    });
+
+    it('returns false when Money Account payment override is active', () => {
+      mockSelectedPaymentToken = null;
+      jest.mocked(useIsMoneyAccountPaymentOverride).mockReturnValue(true);
+
       const { result } = renderHook(() => usePredictPaymentToken());
 
       expect(result.current.isPredictBalanceSelected).toBe(false);

@@ -23,7 +23,8 @@ import { usePerpsActivityQuery } from '../../ActivityDetails/hooks/usePerpsActiv
 
 export function usePerpsActivityItems({
   enabled = true,
-}: { enabled?: boolean } = {}) {
+  aggregateFills = true,
+}: { enabled?: boolean; aggregateFills?: boolean } = {}) {
   const { chainId, collateralAssetId } = getPerpsActivityMappingIds(
     useSelector(selectPerpsNetwork) === 'testnet',
   );
@@ -41,7 +42,9 @@ export function usePerpsActivityItems({
     isLoading,
     refetch,
     transactions,
-  } = usePerpsActivityQuery(accountId, enabled && isInitialized);
+  } = usePerpsActivityQuery(accountId, enabled && isInitialized, {
+    fillDisplay: aggregateFills ? 'aggregated' : 'individual',
+  });
 
   useFocusEffect(
     useCallback(() => {

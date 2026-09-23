@@ -2,6 +2,7 @@ import type { EarnExperience, EarnRate } from '../types/earnAssets';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import {
   createEarnRate,
+  formatEarnRatePercentage,
   getEarnRateCopy,
   getHighestReadyRateEntry,
   parseRatePercent,
@@ -132,10 +133,58 @@ describe('earnRate utilities', () => {
 
   describe('getEarnRateCopy', () => {
     it.each([
-      ['APR', '4.21% APR'],
-      ['APY', '4.21% APY'],
+      ['APR', '4.2% APR'],
+      ['APY', '4.2% APY'],
     ] as const)('formats %s copy', (rateType, expected) => {
       expect(getEarnRateCopy({ percentage: 4.219, rateType })).toBe(expected);
+    });
+  });
+
+  describe('formatEarnRatePercentage', () => {
+    it.each([
+      [0, '0'],
+      [0.04, '0'],
+      [0.05, '0.1'],
+      [4.219, '4.2'],
+      [4.249, '4.2'],
+      [4.25, '4.3'],
+      ['4.25', '4.3'],
+      [4.2, '4.2'],
+      [9.95, '10'],
+    ] as const)('formats %s to one decimal place', (value, expected) => {
+      const result = formatEarnRatePercentage(value);
+
+      expect(result).toBe(expected);
+    });
+
+    it('rounds halfway values up at one decimal place', () => {
+      const result = [4.25, 4.35].map(formatEarnRatePercentage);
+
+      expect(result).toEqual(['4.3', '4.4']);
+    });
+
+    it('removes trailing zero after rounding', () => {
+      const result = formatEarnRatePercentage('4.0');
+
+      expect(result).toBe('4');
+    });
+
+    it('returns NaN for a NaN input', () => {
+      const result = formatEarnRatePercentage(NaN);
+
+      expect(result).toBe('NaN');
+    });
+
+    it('returns NaN for a non-numeric input', () => {
+      const result = formatEarnRatePercentage('not-a-rate');
+
+      expect(result).toBe('NaN');
+    });
+
+    it('returns Infinity for an infinite input', () => {
+      const result = formatEarnRatePercentage(Infinity);
+
+      expect(result).toBe('Infinity');
     });
   });
 });

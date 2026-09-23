@@ -2032,7 +2032,7 @@ describe('EarnInputView', () => {
           symbol: 'USDC',
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            apr: '4.5',
+            apr: '4.25',
           },
         })),
         getOutputToken: jest.fn(() => ({
@@ -2071,7 +2071,7 @@ describe('EarnInputView', () => {
             tooltip_name: 'Lending Historic Market APY Graph',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             token: 'USDC',
-            apr: '4.5%',
+            apr: '4.3%',
           }),
         }),
       );

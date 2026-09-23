@@ -1,54 +1,45 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
-import {
-  PRODUCT_TYPES,
-  SUBSCRIPTION_STATUSES,
-  type Subscription,
-} from '@metamask/subscription-controller';
-import type { RootState } from '../reducers';
-import configureStore from '../util/test/configureStore';
+import { useSelector } from 'react-redux';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
+import useSubscriptionPolling from '../components/hooks/useSubscriptionPolling';
+import {
+  selectHasAnyMoneyAccountPlusEntitlement,
+  selectIsMoneyAccountPlusSubscriber,
+} from '../selectors/subscriptionController';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from './useMoneyAccountPlusAccess';
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 jest.mock('./useProSubscriptionEnabled');
+jest.mock('../components/hooks/useSubscriptionPolling', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
+const mockUseSubscriptionPolling = jest.mocked(useSubscriptionPolling);
 
-const createSubscription = (status: Subscription['status']) => ({
-  id: 'sub-plus',
-  status,
-  products: [
-    {
-      name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-      currency: 'usd',
-      unitAmount: 499,
-      unitDecimals: 2,
-    },
-  ],
-});
-
-const createState = (status?: Subscription['status']) =>
-  ({
-    engine: {
-      backgroundState: {
-        SubscriptionController: {
-          subscriptions: status ? [createSubscription(status)] : [],
-          trialedProducts: [],
-        },
-      },
-    },
-  }) as unknown as RootState;
-
-const renderAccess = (state: RootState) => {
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={configureStore(state)}>{children}</Provider>
-  );
-
-  return renderHook(() => useMoneyAccountPlusAccess(), { wrapper: Wrapper });
+const mockSubscriptionState = ({
+  isSubscriber = false,
+  hasEntitlement = false,
+}: {
+  isSubscriber?: boolean;
+  hasEntitlement?: boolean;
+} = {}) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsMoneyAccountPlusSubscriber) {
+      return isSubscriber;
+    }
+    if (selector === selectHasAnyMoneyAccountPlusEntitlement) {
+      return hasEntitlement;
+    }
+    throw new Error('Unexpected selector');
+  });
 };
 
 describe('useMoneyAccountPlusAccess', () => {
@@ -59,6 +50,10 @@ describe('useMoneyAccountPlusAccess', () => {
       variantName: 'treatment',
       isActive: true,
     });
+    mockUseSubscriptionPolling.mockReturnValue({
+      isLoading: false,
+    } as ReturnType<typeof useSubscriptionPolling>);
+    mockSubscriptionState();
   });
 
   it('is disabled when the Pro subscription flag is off', () => {
@@ -67,30 +62,44 @@ describe('useMoneyAccountPlusAccess', () => {
       variantName: 'control',
       isActive: false,
     });
+    mockSubscriptionState({ isSubscriber: true, hasEntitlement: true });
 
-    const { result } = renderAccess(createState(SUBSCRIPTION_STATUSES.active));
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Disabled);
   });
 
-  it.each([
-    SUBSCRIPTION_STATUSES.active,
-    SUBSCRIPTION_STATUSES.trialing,
-    SUBSCRIPTION_STATUSES.provisional,
-  ])('grants subscriber access for %s subscriptions', (status) => {
-    const { result } = renderAccess(createState(status));
+  it('keeps subscriber access when entitlements outlive an active status', () => {
+    mockSubscriptionState({ isSubscriber: false, hasEntitlement: true });
+
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Subscriber);
   });
 
-  it('treats a past-due subscription as eligible', () => {
-    const { result } = renderAccess(createState(SUBSCRIPTION_STATUSES.pastDue));
+  it('grants subscriber access even while the query is still loading', () => {
+    mockSubscriptionState({ isSubscriber: true });
+    mockUseSubscriptionPolling.mockReturnValue({
+      isLoading: true,
+    } as ReturnType<typeof useSubscriptionPolling>);
 
-    expect(result.current).toBe(MoneyAccountPlusAccess.Eligible);
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
+
+    expect(result.current).toBe(MoneyAccountPlusAccess.Subscriber);
   });
 
-  it('treats a user without an active subscription as eligible', () => {
-    const { result } = renderAccess(createState());
+  it('stays unknown while subscriptions are unresolved and empty', () => {
+    mockUseSubscriptionPolling.mockReturnValue({
+      isLoading: true,
+    } as ReturnType<typeof useSubscriptionPolling>);
+
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
+
+    expect(result.current).toBe(MoneyAccountPlusAccess.Unknown);
+  });
+
+  it('treats a resolved non-subscriber as eligible', () => {
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Eligible);
   });

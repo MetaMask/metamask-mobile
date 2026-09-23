@@ -34,6 +34,7 @@ import {
   getPlanSelectorCardCopy,
   resolveSelectedPlanId,
 } from './utils/getMoneyAccountPlusPricingCopy';
+import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 import {
   getSelectedPlusPlan,
   type SelectedPlusPlan,
@@ -58,7 +59,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
 
   const resolvedPlan = resolveSelectedPlanId(selectedPlan, plusPricing);
   const priceLine = getBenefitsPriceLine(plusPricing);
-  const isPricingReady = plusPricing.status === 'ready';
+  const isPricingReady = plusPricing.status === PLUS_PRICING_STATUS.ready;
 
   const visiblePlans = useMemo(
     () =>
@@ -189,7 +190,9 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           </Box>
         ) : null}
 
-        {!isLoading && !hasError && plusPricing.status === 'unavailable' ? (
+        {!isLoading &&
+        !hasError &&
+        plusPricing.status === PLUS_PRICING_STATUS.unavailable ? (
           <Box
             twClassName="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_UNAVAILABLE}
@@ -210,7 +213,9 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           </Box>
         ) : null}
 
-        {!isLoading && !hasError && plusPricing.status === 'malformed' ? (
+        {!isLoading &&
+        !hasError &&
+        plusPricing.status === PLUS_PRICING_STATUS.malformed ? (
           <Box
             twClassName="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_MALFORMED}

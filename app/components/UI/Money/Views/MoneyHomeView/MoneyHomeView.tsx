@@ -397,13 +397,32 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    navigation.navigate(
-      isProSubscriber ? Routes.PRO_HUB.ROOT : Routes.PRO_SUBSCRIPTION.ROOT,
-      {
-        source: 'money_header',
-      },
-    );
-  }, [navigation, isProSubscriber]);
+    const destination = isProSubscriber
+      ? {
+          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+          label_key: 'pro_subscription.pro',
+          redirect_target: SCREEN_NAMES.PRO_HUB,
+          route: Routes.PRO_HUB.ROOT,
+        }
+      : {
+          button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+          label_key: 'pro_subscription.join_pro',
+          redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+          route: Routes.PRO_SUBSCRIPTION.ROOT,
+        };
+
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      component_name: COMPONENT_NAMES.MONEY_HEADER,
+      button_intent: destination.button_intent,
+      label_key: destination.label_key,
+      redirect_target: destination.redirect_target,
+    });
+
+    navigation.navigate(destination.route, {
+      source: 'money_header',
+    });
+  }, [navigation, isProSubscriber, trackButtonClicked]);
 
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.

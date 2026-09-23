@@ -28,7 +28,13 @@ import {
 import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
-type ProSubscriptionScreen = 'benefits' | 'success';
+const ProSubscriptionScreen = {
+  Benefits: 'benefits',
+  Success: 'success',
+} as const;
+
+type ProSubscriptionScreen =
+  (typeof ProSubscriptionScreen)[keyof typeof ProSubscriptionScreen];
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -42,8 +48,9 @@ const ProSubscription = () => {
     >();
 
   const proAccess = useMoneyAccountPlusAccess();
-  const [currentScreen, setCurrentScreen] =
-    useState<ProSubscriptionScreen>('benefits');
+  const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
+    ProSubscriptionScreen.Benefits,
+  );
   const [selectedPlan, setSelectedPlan] = useState<PlanId>(
     (route.params?.initialPlan as PlanId | undefined) ?? DEFAULT_PLAN,
   );
@@ -64,11 +71,9 @@ const ProSubscription = () => {
     // yanking them to the hub.
     if (
       proAccess === MoneyAccountPlusAccess.Subscriber &&
-      currentScreen !== 'success'
+      currentScreen !== ProSubscriptionScreen.Success
     ) {
-      navigation.replace(Routes.PRO_HUB.ROOT, {
-        source: 'pro_subscription_already_subscribed',
-      });
+      navigation.replace(Routes.PRO_HUB.ROOT);
     }
   }, [proAccess, currentScreen, navigation]);
 
@@ -86,22 +91,23 @@ const ProSubscription = () => {
 
   const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
     setCheckoutPlan(plan);
-    setCurrentScreen('success');
+    setCurrentScreen(ProSubscriptionScreen.Success);
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(async () => {
-    // Card checkout completes outside the controller, so explicitly refresh
-    // its canonical state before opening the hub.
-    await Engine.context.SubscriptionController.getSubscriptions().catch(
-      () => undefined,
-    );
-    navigation.replace(Routes.PRO_HUB.ROOT, {
-      source: 'pro_subscription_success',
-    });
+    // Card checkout completes outside the controller, so wait for canonical
+    // state before opening the hub. Stay on success if the refresh fails:
+    // Pro Hub would otherwise treat empty state as non-subscriber and bounce.
+    try {
+      await Engine.context.SubscriptionController.getSubscriptions();
+    } catch {
+      return;
+    }
+    navigation.replace(Routes.PRO_HUB.ROOT);
   }, [navigation]);
 
   let screenContent: React.ReactNode = null;
-  if (currentScreen === 'benefits') {
+  if (currentScreen === ProSubscriptionScreen.Benefits) {
     screenContent = (
       <Benefits
         onSuccess={handleSuccess}
@@ -129,7 +135,7 @@ const ProSubscription = () => {
       </Box>
 
       {(proAccess === MoneyAccountPlusAccess.Eligible ||
-        currentScreen === 'success') &&
+        currentScreen === ProSubscriptionScreen.Success) &&
         screenContent}
     </SafeAreaView>
   );

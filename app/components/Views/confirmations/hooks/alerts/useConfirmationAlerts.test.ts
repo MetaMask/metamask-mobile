@@ -21,6 +21,7 @@ import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasLimitBelowMinimumAlert } from './useGasLimitBelowMinimumAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
@@ -31,6 +32,7 @@ import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
+jest.mock('./useGasLimitBelowMinimumAlert');
 jest.mock('./useGasSponsorshipWarningAlert');
 jest.mock('./useDomainMismatchAlerts');
 jest.mock('./useInsufficientBalanceAlert');
@@ -62,6 +64,15 @@ describe('useConfirmationAlerts', () => {
       message: ALERT_MESSAGE_MOCK,
       severity: Severity.Warning,
       alertDetails: ALERT_DETAILS_MOCK,
+    },
+  ];
+  const mockGasLimitBelowMinimumAlert: Alert[] = [
+    {
+      key: 'gasLimitBelowMinimum',
+      title: 'Low gas limit',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Warning,
+      isBlocking: true,
     },
   ];
   const mockDomainMisMatchAlerts: Alert[] = [
@@ -194,6 +205,7 @@ describe('useConfirmationAlerts', () => {
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
     (useDomainMismatchAlerts as jest.Mock).mockReturnValue([]);
     (useGasEstimateFailedAlert as jest.Mock).mockReturnValue([]);
+    (useGasLimitBelowMinimumAlert as jest.Mock).mockReturnValue([]);
     (useGasSponsorshipWarningAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientBalanceAlert as jest.Mock).mockReturnValue([]);
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue([]);
@@ -226,6 +238,15 @@ describe('useConfirmationAlerts', () => {
       state: siweSignatureConfirmationState,
     });
     expect(result.current).toEqual(mockBlockaidAlerts);
+  });
+
+  it('returns gas limit below minimum alerts', () => {
+    (useGasLimitBelowMinimumAlert as jest.Mock).mockReturnValue(
+      mockGasLimitBelowMinimumAlert,
+    );
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockGasLimitBelowMinimumAlert);
   });
 
   it('returns domain mismatch alerts', () => {

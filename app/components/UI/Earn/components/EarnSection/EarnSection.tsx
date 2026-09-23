@@ -44,7 +44,7 @@ import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
 import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import { truncateNumber } from '../../utils';
+import { formatEarnRatePercentage } from '../../utils';
 import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
 import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
 import useEarnOpportunityNavigation, {
@@ -571,7 +571,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     strings('earn_module.rate_unavailable')
                   ) : (
                     strings('earn_module.rate_apy', {
-                      percentage: truncateNumber(moneyApyPercent),
+                      percentage: formatEarnRatePercentage(moneyApyPercent),
                     })
                   )
                 }

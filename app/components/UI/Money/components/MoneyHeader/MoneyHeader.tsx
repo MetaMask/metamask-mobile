@@ -12,7 +12,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -52,7 +52,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
 const MoneyHeader = (props: MoneyHeaderProps) => {
   const { onMenuPress, onGetProPress } = props;
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const isProSubscriber = useIsProSubscriber();
+  const { isProSubscriber, isProAccessUnknown } = useProAccess();
 
   const proLabel = isProSubscriber
     ? strings('pro_subscription.pro')
@@ -68,19 +68,20 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   // "Get Pro" is a text button, so it can only go in the end accessory, which
   // takes the menu with it — the header slots the two ButtonIcon paths and the
   // accessory as alternatives rather than siblings.
-  const endAccessory = isProSubscriptionEnabled ? (
-    <Box twClassName="flex-row items-center gap-1">
-      <Button
-        size={ButtonSize.Md}
-        onPress={onGetProPress}
-        testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-        accessibilityLabel={proLabel}
-      >
-        {proLabel}
-      </Button>
-      <ButtonIcon {...menuButtonProps} />
-    </Box>
-  ) : undefined;
+  const endAccessory =
+    isProSubscriptionEnabled && !isProAccessUnknown ? (
+      <Box twClassName="flex-row items-center gap-1">
+        <Button
+          size={ButtonSize.Md}
+          onPress={onGetProPress}
+          testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
+          accessibilityLabel={proLabel}
+        >
+          {proLabel}
+        </Button>
+        <ButtonIcon {...menuButtonProps} />
+      </Box>
+    ) : undefined;
 
   if (props.onBack) {
     return (

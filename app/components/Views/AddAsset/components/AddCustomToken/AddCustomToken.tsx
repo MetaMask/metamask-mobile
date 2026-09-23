@@ -597,7 +597,7 @@ const AddCustomToken = ({
         ) : null}
       </KeyboardAwareScrollView>
 
-      <Box style={tw.style('pt-4 m-4', { paddingBottom: bottomInset })}>
+      <Box style={tw.style('pt-4 my-4', { paddingBottom: bottomInset })}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

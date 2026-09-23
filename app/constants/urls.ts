@@ -72,6 +72,33 @@ export const buildVipPrioritySupportUrl = (
   return `${baseUrl}${separator}priority=vip&address=${encodeURIComponent(account)}`;
 };
 
+export const buildCardSupportUrl = (
+  {
+    providerUserId,
+    providerName,
+  }: {
+    providerUserId?: string | null;
+    providerName?: string | null;
+  },
+  baseUrl: string = METAMASK_SUPPORT_URL,
+) => {
+  const params = [
+    ...(providerUserId
+      ? [`provider_user_id=${encodeURIComponent(providerUserId)}`]
+      : []),
+    ...(providerName
+      ? [`provider_name=${encodeURIComponent(providerName)}`]
+      : []),
+  ];
+
+  if (params.length === 0) {
+    return baseUrl;
+  }
+
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}${params.join('&')}`;
+};
+
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
 export const PERPS_ADL_URL = `https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/${MOBILE_UTM}#what-is-auto-deleveraging-adl`;

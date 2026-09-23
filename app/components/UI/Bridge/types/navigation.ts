@@ -24,6 +24,7 @@ import type { NetworkListModalParams } from '../components/BridgeTokenSelector/N
 import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
 import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
 import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
+import type { RecurringSwapDetailsRouteParams } from '../Views/RecurringSwapDetailsView/RecurringSwapDetailsView.types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -37,8 +38,12 @@ export type BridgeScreensStackParamList = {
   BatchSellReview: undefined;
   QuoteSelectorView: undefined;
   RecurringOrderDetails: RecurringOrderDetailsRouteParams;
+  RecurringSwapDetails: RecurringSwapDetailsRouteParams;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
+  BridgeModals:
+    | NavigatorScreenParams<BridgeModalsNavigationParamList>
+    | undefined;
 };
 
 /**
@@ -72,7 +77,10 @@ export type BridgeModalsNavigationParamList = {
     | undefined;
   BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
+  SwapsLimitOrderDefaultCostToleranceModal: undefined;
+  SwapsLimitOrderCustomCostToleranceModal: undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
+  LimitOrderCostToleranceInfoModal: undefined;
   RecurringIntervalModal: undefined;
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;

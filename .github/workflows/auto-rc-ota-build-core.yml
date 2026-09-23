@@ -48,6 +48,13 @@ on:
         required: false
         type: string
         default: ''
+      build_attribution:
+        description: >-
+          Analytics build attribution forwarded to build.yml as METAMASK_BUILD_ATTRIBUTION.
+          Official Auto RC callers pass 'official' so Mixpanel reports *-release-candidate.
+        required: false
+        type: string
+        default: ''
     outputs:
       semantic_version:
         description: 'package.json version at the built commit (empty when OTA bump skips the build)'
@@ -83,6 +90,7 @@ jobs:
       source_branch: ${{ inputs.source_branch || github.ref_name }}
       build_number: ${{ inputs.build_number }}
       upload_to_sentry: true
+      build_attribution: ${{ inputs.build_attribution }}
     secrets: inherit
 
   upload-ios-testflight:

@@ -6,6 +6,7 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -54,6 +55,7 @@ const MoneyBalanceInfoSheet = () => {
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={MoneyBalanceInfoSheetTestIds.BODY}
         >
           {strings('money.balance_card.info_sheet_body')}

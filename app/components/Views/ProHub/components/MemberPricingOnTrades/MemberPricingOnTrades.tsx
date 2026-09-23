@@ -4,7 +4,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   Skeleton,
   Text,
   TextColor,
@@ -20,7 +19,7 @@ import TradeAllowanceRow from './TradeAllowanceRow';
 
 const LoadingSkeletons = () => (
   <Box
-    twClassName="gap-y-6"
+    twClassName="gap-y-3"
     testID={MemberPricingOnTradesTestIds.LOADING_SKELETON}
   >
     <Skeleton height={72} twClassName="w-full rounded-xl" />
@@ -41,8 +40,7 @@ const MemberPricingOnTrades = () => {
   return (
     <Box twClassName="gap-y-6" testID={MemberPricingOnTradesTestIds.SECTION}>
       <Text
-        variant={TextVariant.HeadingMd}
-        fontWeight={FontWeight.Bold}
+        variant={TextVariant.SectionHeading}
         color={TextColor.TextDefault}
         testID={MemberPricingOnTradesTestIds.TITLE}
       >
@@ -68,7 +66,7 @@ const MemberPricingOnTrades = () => {
       ) : null}
 
       {showRows ? (
-        <Box twClassName="gap-y-6">
+        <Box twClassName="gap-y-3">
           {items.map((item) => (
             <TradeAllowanceRow key={item.id} item={item} />
           ))}

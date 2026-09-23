@@ -50,9 +50,12 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedir
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import {
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
+  SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -275,9 +278,13 @@ jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-const mockUseIsProSubscriber = jest.fn(() => false);
+const mockUseProAccess = jest.fn(() => ({
+  isProSubscriber: false,
+  isProAccessUnknown: false,
+}));
 jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
-  useIsProSubscriber: () => mockUseIsProSubscriber(),
+  useProAccess: () => mockUseProAccess(),
+  useIsProSubscriber: () => mockUseProAccess().isProSubscriber,
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -514,7 +521,10 @@ describe('MoneyHomeView', () => {
       variantName: 'control',
       isActive: false,
     });
-    mockUseIsProSubscriber.mockReturnValue(false);
+    mockUseProAccess.mockReturnValue({
+      isProSubscriber: false,
+      isProAccessUnknown: false,
+    });
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -2647,7 +2657,10 @@ describe('MoneyHomeView', () => {
         variantName: 'treatment',
         isActive: true,
       });
-      mockUseIsProSubscriber.mockReturnValue(false);
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: false,
+        isProAccessUnknown: false,
+      });
     });
 
     it('starts subscription polling while the Pro flow is enabled', () => {
@@ -2672,23 +2685,56 @@ describe('MoneyHomeView', () => {
       });
     });
 
+    it('hides the Pro entry point while Plus access is unresolved', () => {
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: false,
+        isProAccessUnknown: true,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+    });
+
     it('navigates to the subscription flow when the user is not subscribed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
 
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.MONEY_HEADER,
+        label_key: 'pro_subscription.join_pro',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
         source: 'money_header',
       });
     });
 
     it('navigates to the Pro hub when the user is already subscribed', () => {
-      mockUseIsProSubscriber.mockReturnValue(true);
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: true,
+        isProAccessUnknown: false,
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
 
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+        component_name: COMPONENT_NAMES.MONEY_HEADER,
+        label_key: 'pro_subscription.pro',
+        redirect_target: SCREEN_NAMES.PRO_HUB,
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
         source: 'money_header',
       });

@@ -2,7 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { ALSO_INCLUDED_ITEMS, MOCK_TRADE_ALLOWANCES } from './ProHub.constants';
+import {
+  ALSO_INCLUDED_ITEMS,
+  MOCK_PRO_HUB_STATS,
+  MOCK_TRADE_ALLOWANCES,
+} from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -99,6 +103,17 @@ describe('ProHub', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it('stays open while Plus access is unresolved', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
     it('stays open for an entitled subscriber', () => {
       renderProHub();
 
@@ -170,7 +185,7 @@ describe('ProHub', () => {
       const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
 
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_brand')),
+        toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
         toRegex(strings('pro_hub.membership_label')),
@@ -179,10 +194,18 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
       expect(moneyBalanceRow).toHaveTextContent(
-        toRegex(strings('pro_hub.money_balance')),
+        toRegex(
+          strings('pro_hub.money_balance', {
+            apy: `${MOCK_PRO_HUB_STATS.moneyBalanceApy}%`,
+          }),
+        ),
       );
       expect(musdBackRow).toHaveTextContent(
-        toRegex(strings('pro_hub.musd_back')),
+        toRegex(
+          strings('pro_hub.musd_back', {
+            rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+          }),
+        ),
       );
     });
 
