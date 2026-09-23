@@ -586,6 +586,45 @@ describe('CardAuthentication', () => {
       ).toBeOnTheScreen();
     });
 
+    it('shows identity as the current step while it is still in progress', () => {
+      setResolution({
+        kind: 'resume',
+        option: walletOption,
+        address: ADDR,
+        stage: 'identity',
+      });
+      render();
+
+      expect(screen.getByText('Verify your identity')).toBeOnTheScreen();
+      expect(screen.queryByText('Identity verified')).toBeNull();
+    });
+
+    it('shows identity as verified once spending setup is the current step', () => {
+      setResolution({
+        kind: 'resume',
+        option: walletOption,
+        address: ADDR,
+        stage: 'spending',
+      });
+      render();
+
+      expect(screen.getByText('Identity verified')).toBeOnTheScreen();
+      expect(screen.queryByText('Verify your identity')).toBeNull();
+    });
+
+    it('does not claim identity is verified when the stage is unknown', () => {
+      setResolution({
+        kind: 'resume',
+        option: walletOption,
+        address: ADDR,
+        stage: null,
+      });
+      render();
+
+      expect(screen.getByText('Verify your identity')).toBeOnTheScreen();
+      expect(screen.queryByText('Identity verified')).toBeNull();
+    });
+
     it('reveals the email form from the soft link', () => {
       setResolution({
         kind: 'resume',
@@ -1213,5 +1252,35 @@ describe('CardAuthentication', () => {
       expect(screen.getByText(/United States/)).toBeOnTheScreen();
       expect(screen.queryByText(/United Kingdom/)).toBeNull();
     });
+  });
+
+  describe('sign up link', () => {
+    it.each([
+      ['email sign-in', { kind: 'email' as const, option: emailOption }],
+      [
+        'fork',
+        {
+          kind: 'unresolved' as const,
+          options: [walletOption, emailOption],
+          reason: 'no_match' as const,
+        },
+      ],
+    ])(
+      'returns to the existing onboarding route from %s',
+      (_label, resolution) => {
+        setResolution(resolution);
+        render();
+
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          undefined,
+          { pop: true, merge: true },
+        );
+      },
+    );
   });
 });

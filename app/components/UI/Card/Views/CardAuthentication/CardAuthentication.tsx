@@ -71,7 +71,7 @@ import {
   type AuthView,
   type UkManualMode,
 } from './resolveAuthView';
-import SignInCountryField from './components/SignInCountryField';
+import CountrySelectField from '../../components/Onboarding/CountrySelectField';
 import SignInSkeleton from './components/SignInSkeleton';
 import SignInFork from './components/SignInFork';
 import SignInWalletFields from './components/SignInWalletFields';
@@ -605,6 +605,13 @@ const CardAuthentication = () => {
     createEventBuilder,
   ]);
 
+  const handleSignUpPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ONBOARDING.ROOT, undefined, {
+      pop: true,
+      merge: true,
+    });
+  }, [navigation]);
+
   const openAccountSelector = useCallback(() => {
     navigateWithDetails(
       navigation,
@@ -819,16 +826,20 @@ const CardAuthentication = () => {
           <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
         )}
 
-        <SignInCountryField
+        <CountrySelectField
+          label={strings('card.card_authentication.country_label')}
           selectedCountry={selectedCountry}
           isLoading={isLoadingRegions}
           onPress={handleCountrySelect}
+          testID={CardAuthenticationSelectors.COUNTRY_SELECT}
         />
 
         {view.mode === 'resolving' && <SignInSkeleton />}
 
         {view.mode === 'wallet' && view.origin === 'resume' && (
-          <SignInResumeProgress />
+          <SignInResumeProgress
+            stage={resolution?.kind === 'resume' ? resolution.stage : null}
+          />
         )}
 
         {view.mode === 'fork' && (
@@ -964,11 +975,7 @@ const CardAuthentication = () => {
                 {ctaLabel}
               </Button>
               {showSignupWithCta && (
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate(Routes.CARD.ONBOARDING.ROOT)
-                  }
-                >
+                <TouchableOpacity onPress={handleSignUpPress}>
                   <Text
                     testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
                     variant={TextVariant.BodyMd}
@@ -982,9 +989,7 @@ const CardAuthentication = () => {
             </Box>
           )}
         {view.mode === 'fork' && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
-          >
+          <TouchableOpacity onPress={handleSignUpPress}>
             <Text
               testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
               variant={TextVariant.BodyMd}
