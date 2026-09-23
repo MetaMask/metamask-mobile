@@ -81,6 +81,7 @@ const rootContainerStyle: ViewStyle = { flex: 1 };
 interface FullFeedListProps {
   feedId: SearchFeedId;
   searchQuery: string;
+  analyticsSearchQuery: string;
   data: unknown[];
   isLoading?: boolean;
   title: string;
@@ -94,6 +95,7 @@ interface FullFeedListProps {
 const FullFeedList: React.FC<FullFeedListProps> = ({
   feedId,
   searchQuery,
+  analyticsSearchQuery,
   data,
   isLoading,
   title,
@@ -127,7 +129,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
-    searchQuery,
+    analyticsSearchQuery,
     {
       tab_name: tabName,
       result_count: resultCount,
@@ -151,12 +153,20 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         item={item}
         index={index}
         searchQuery={searchQuery}
+        analyticsSearchQuery={analyticsSearchQuery}
         tabName={tabName}
         resultCount={resultCount}
         onQuickTrade={handleQuickTrade}
       />
     ),
-    [feedId, searchQuery, tabName, resultCount, handleQuickTrade],
+    [
+      feedId,
+      searchQuery,
+      analyticsSearchQuery,
+      tabName,
+      resultCount,
+      handleQuickTrade,
+    ],
   );
 
   const keyExtractor = useCallback(
@@ -219,6 +229,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 
 interface ExploreSearchContentProps {
   searchQuery: string;
+  redactSearchQuery: boolean;
 }
 
 /**
@@ -231,6 +242,7 @@ interface ExploreSearchContentProps {
  */
 const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   searchQuery,
+  redactSearchQuery,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
   const activePillRef = useRef(activePill);
@@ -267,26 +279,30 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   useInstrumentedSearchEffect({
     searchQuery,
+    redactSearchQuery,
     isLoading,
     getPill: getActivePill,
     getSections,
   });
 
-  const handlePillSelect = useCallback((key: string) => {
-    const targetSections = sectionsRef.current;
-    const resultCount = getExploreSearchResultCount(
-      key as SearchFeedPill,
-      targetSections,
-    );
-    trackExploreSearchEvent({
-      interaction_type: 'tab_switched',
-      search_query: searchQueryRef.current,
-      tab_name: key as SearchFeedPill,
-      previous_tab: activePillRef.current,
-      result_count: resultCount,
-    });
-    setActivePill(key as ActivePill);
-  }, []);
+  const handlePillSelect = useCallback(
+    (key: string) => {
+      const targetSections = sectionsRef.current;
+      const resultCount = getExploreSearchResultCount(
+        key as SearchFeedPill,
+        targetSections,
+      );
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
+        search_query: redactSearchQuery ? '' : searchQueryRef.current,
+        tab_name: key as SearchFeedPill,
+        previous_tab: activePillRef.current,
+        result_count: resultCount,
+      });
+      setActivePill(key as ActivePill);
+    },
+    [redactSearchQuery],
+  );
 
   // Used by ExploreSearchResults' "View all" button — the analytics event is
   // already fired inside handleViewMore there, so we only update state here.
@@ -316,6 +332,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
           key={activePill}
           feedId={activePill}
           searchQuery={searchQuery}
+          analyticsSearchQuery={redactSearchQuery ? '' : searchQuery}
           data={activeSection?.items ?? []}
           isLoading={activeSection?.isLoading}
           title={activeSection?.title ?? activePill}
@@ -328,6 +345,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
       ) : (
         <ExploreSearchResults
           searchQuery={searchQuery}
+          analyticsSearchQuery={redactSearchQuery ? '' : searchQuery}
           sections={sections}
           onViewMore={handleViewMoreSelect}
           emptyFeedTitle={emptyFeedTitle}
@@ -344,10 +362,13 @@ const ExploreSearchScreen: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
-  const [searchQuery, setSearchQuery] = useState(() =>
-    getTrimmedInitialQuery(route.params?.initialQuery),
-  );
   const routeParams = route.params;
+  const [searchQuery, setSearchQuery] = useState(() =>
+    getTrimmedInitialQuery(routeParams?.initialQuery),
+  );
+  const [isClipboardQuery, setIsClipboardQuery] = useState(
+    () => routeParams?.initialQuerySource === 'clipboard',
+  );
   const isHomepageSearch = routeParams?.entryPoint === 'home';
   const searchOrigin = routeParams?.searchOrigin;
   const [homeSearchExpanded, setHomeSearchExpanded] = useState(false);
@@ -385,10 +406,18 @@ const ExploreSearchScreen: React.FC = () => {
         : undefined,
     [homeSearchExpanded, screenWidth, searchOrigin],
   );
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    setIsClipboardQuery(false);
+  }, []);
+  const handleHomepagePaste = useCallback((query: string) => {
+    setSearchQuery(query);
+    setIsClipboardQuery(true);
+  }, []);
   const { showPastePill, handlePastePress } = useHomepageSearchPaste({
     enabled: isHomepageSearch,
     initiallyAvailable: routeParams?.pastePillVisible,
-    onPaste: setSearchQuery,
+    onPaste: handleHomepagePaste,
   });
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
@@ -410,6 +439,7 @@ const ExploreSearchScreen: React.FC = () => {
     }
 
     setSearchQuery(getTrimmedInitialQuery(routeParams.initialQuery));
+    setIsClipboardQuery(routeParams.initialQuerySource === 'clipboard');
     trackExploreSearchOpened(routeParams.entryPoint);
   }, [routeParams]);
 
@@ -435,7 +465,7 @@ const ExploreSearchScreen: React.FC = () => {
     <ExploreSearchBar
       type="interactive"
       searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
+      onSearchChange={handleSearchChange}
       onCancel={handleSearchCancel}
       placeholder={
         routeParams?.entryPoint === 'home'
@@ -522,7 +552,10 @@ const ExploreSearchScreen: React.FC = () => {
 
         {isTransitionComplete ? (
           <PerpsSectionProvider>
-            <ExploreSearchContent searchQuery={searchQuery} />
+            <ExploreSearchContent
+              searchQuery={searchQuery}
+              redactSearchQuery={isClipboardQuery}
+            />
           </PerpsSectionProvider>
         ) : null}
       </Box>

@@ -1,8 +1,12 @@
 import type { SearchEntryPoint } from '../../search/analytics';
 
+export type ExploreSearchQuerySource = 'clipboard';
+
 export interface ExploreSearchRouteParams {
   /** Prefills the search input (e.g. from a deeplink). */
   initialQuery?: string;
+  /** Identifies prefilled clipboard queries so analytics can redact them. */
+  initialQuerySource?: ExploreSearchQuerySource;
   /** Attributes Search opens initiated outside its in-app tap handlers. */
   entryPoint?: SearchEntryPoint;
   /** Header search field bounds used for the home-to-search handoff. */

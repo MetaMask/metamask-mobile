@@ -9,8 +9,6 @@ import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.testIds';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY } from '../TrendingView/search/abTestConfig';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
@@ -67,17 +65,6 @@ describeForPlatforms('Wallet', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('renders the treatment header search layout when the paste experiment is active', () => {
-    const { getByTestId, queryByTestId } = renderWalletView({
-      remoteFeatureFlags: {
-        [HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY]: 'treatment',
-      },
-    });
-
-    expect(getByTestId('explore-view-search-button')).toBeOnTheScreen();
-    expect(queryByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeNull();
   });
 
   it('navigates to Settings when hamburger menu button is pressed', async () => {

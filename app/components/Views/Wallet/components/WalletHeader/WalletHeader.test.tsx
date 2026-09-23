@@ -62,7 +62,9 @@ describe('WalletHeader', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
     ).toBeOnTheScreen();
-    expect(getByTestId('explore-view-search-button')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('preserves the legacy header layout for control users', () => {
@@ -81,7 +83,7 @@ describe('WalletHeader', () => {
       <WalletHeader {...defaultProps} />,
     );
 
-    fireEvent.press(getByTestId('explore-view-search-button'));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON));
 
     expect(defaultProps.handleSearchPress).toHaveBeenCalledTimes(1);
   });

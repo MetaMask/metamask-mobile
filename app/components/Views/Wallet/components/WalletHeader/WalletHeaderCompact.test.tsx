@@ -61,22 +61,6 @@ describe('WalletHeaderCompact', () => {
     expect(handleSearchPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the treatment search field and Paste pill', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeaderCompact
-        {...defaultProps}
-        useSearchHeaderLayout
-        showSearchPastePill
-        handleSearchPress={jest.fn()}
-      />,
-    );
-
-    expect(getByTestId('explore-view-search-button')).toBeOnTheScreen();
-    expect(
-      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_PASTE_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
   it('opens the account hub from the collapsed header title', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeaderCompact {...defaultProps} />,

@@ -105,7 +105,7 @@ export const useHomepageSearchPaste = ({
         consumedClipboardRevisions.add(ClipboardManager.getRevision());
         setClipboardContentAvailable(false);
         consumedClipboardListeners.forEach((listener) => listener());
-        trackHomepageSearchPaste(clipboardContent);
+        trackHomepageSearchPaste();
         onPaste(clipboardContent, origin);
       } catch {
         setClipboardContentAvailable(false);

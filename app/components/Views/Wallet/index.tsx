@@ -893,6 +893,7 @@ const Wallet = ({
       navigation.navigate(Routes.EXPLORE_SEARCH, {
         entryPoint: 'home',
         initialQuery,
+        initialQuerySource: 'clipboard',
         ...(searchOrigin ? { searchOrigin } : {}),
       });
     },

@@ -9,15 +9,15 @@ jest.mock('./analytics', () => ({
 }));
 
 describe('trackHomepageSearchPaste', () => {
-  it('tracks the homepage paste interaction with the search query', () => {
-    trackHomepageSearchPaste('0xabc');
+  it('tracks the homepage paste interaction without the clipboard value', () => {
+    trackHomepageSearchPaste();
 
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
         properties: {
           interaction_type: 'paste',
-          search_query: '0xabc',
+          search_query: '',
           entry_point: 'home',
         },
       }),
