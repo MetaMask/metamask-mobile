@@ -11320,9 +11320,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^17.3.0":
-  version: 17.3.0
-  resolution: "@metamask/perps-controller@npm:17.3.0"
+"@metamask/perps-controller@npm:^17.4.0":
+  version: 17.4.0
+  resolution: "@metamask/perps-controller@npm:17.4.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -11334,7 +11334,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
-  checksum: 10/cffe29b9913582424ee4861100051cbdd8059170e49eacb414de88c15ff72f7be701d0f9dfa430251afdd0cbfe19dfdf2024533c562b30ccaccf5d1ae7390bd4
+  checksum: 10/8f65c1531beadd1b95eb7337a955a99ec03195b01f951d42f905cb2a0bd79cb461d02c3bc637f9fe93a996d481f0b143627a6e28238e3d01b2006b48bbabaf41
   languageName: node
   linkType: hard
 
@@ -12158,17 +12158,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@metamask/social-controllers@npm:3.0.2"
+"@metamask/social-controllers@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/social-controllers@npm:3.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
+    "@metamask/profile-sync-controller": "npm:^32.2.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/cbc9b5ac4dc1faa62bc7357d6d9f6aaca838142b5c79ac51dba0d2c3d657f40e5cdd4e4c34c40b0d679558077721a30ad92c971ecc16c89ec623680ed805e4c4
+  checksum: 10/31dcfa19cb00bf8cbc27b5b17ae12b8311e6c512d1ea43050ee356b84e44a5d83db61df54c1bd50372d904864c3db30fbb0186fc0d135a5a987a48b00625dcbc
   languageName: node
   linkType: hard
 
@@ -39438,7 +39438,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^17.3.0"
+    "@metamask/perps-controller": "npm:^17.4.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -39474,7 +39474,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.0"
-    "@metamask/social-controllers": "npm:^3.0.2"
+    "@metamask/social-controllers": "npm:3.1.0"
     "@metamask/solana-wallet-snap": "npm:^5.0.1"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"

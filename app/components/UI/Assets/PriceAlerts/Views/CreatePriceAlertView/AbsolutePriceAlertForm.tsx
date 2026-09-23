@@ -22,6 +22,7 @@ import {
   PriceAlertAnalytics,
 } from '../../constants';
 import { useSubmitPriceAlert } from '../../api';
+import { useSubmitPerpAlert } from '../../perpApi';
 import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
 import { getKeypadDecimalPlaces, KEYPAD_EMPTY, toKeypadString } from './utils';
 
@@ -33,6 +34,11 @@ interface AbsolutePriceAlertFormProps {
   saveAlert: SaveAlert;
   editingAlert?: AbsolutePriceAlert;
   existingAbsoluteAlerts?: AbsolutePriceAlert[];
+  /**
+   * When provided the form submits to the perpetuals price-alerts endpoint
+   * using this market identifier instead of the CAIP-19 `assetId`.
+   */
+  marketId?: string;
 }
 
 const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
@@ -43,6 +49,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   saveAlert,
   editingAlert,
   existingAbsoluteAlerts,
+  marketId,
 }) => {
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(() =>
@@ -95,33 +102,60 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
     ? currencySymbol
     : `${currencySymbol}${targetAmount}`;
 
-  const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
+  // Always call both hooks; only one will be active depending on mode.
+  const { submit: spotSubmit, isSubmitting: isSpotSubmitting } =
+    useSubmitPriceAlert(editingAlert);
+  const { submit: perpSubmit, isSubmitting: isPerpSubmitting } =
+    useSubmitPerpAlert(editingAlert);
+  const isSubmitting = marketId ? isPerpSubmitting : isSpotSubmitting;
 
   const handleSave = useCallback(async () => {
     if (!hasValidTarget) return;
 
-    await saveAlert({
-      submit: () =>
-        submit({
-          asset: assetId,
-          threshold: targetPrice,
-          recurring: isRecurring,
-        }),
-      editingAlert,
-      patch: { threshold: targetPrice, recurring: isRecurring },
-      analyticsProperties: {
-        alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-        alert_value: targetPrice,
-        alert_recurring: isRecurring,
-      },
-    });
+    const analyticsProperties = {
+      alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+      alert_value: targetPrice,
+      alert_recurring: isRecurring,
+      alert_market_type: marketId
+        ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+        : PriceAlertAnalytics.MARKET_TYPE.SPOT,
+    };
+    const patch = { threshold: targetPrice, recurring: isRecurring };
+
+    if (marketId) {
+      await saveAlert({
+        submit: () =>
+          perpSubmit({
+            marketId,
+            threshold: targetPrice,
+            recurring: isRecurring,
+          }),
+        editingAlert,
+        patch,
+        analyticsProperties,
+      });
+    } else {
+      await saveAlert({
+        submit: () =>
+          spotSubmit({
+            asset: assetId,
+            threshold: targetPrice,
+            recurring: isRecurring,
+          }),
+        editingAlert,
+        patch,
+        analyticsProperties,
+      });
+    }
   }, [
     assetId,
+    marketId,
     editingAlert,
     hasValidTarget,
     isRecurring,
     saveAlert,
-    submit,
+    spotSubmit,
+    perpSubmit,
     targetPrice,
   ]);
 

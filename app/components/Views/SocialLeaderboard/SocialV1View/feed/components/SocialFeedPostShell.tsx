@@ -7,18 +7,24 @@ import {
   Icon,
   IconName,
   IconSize,
-  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import { formatFeedTimestamp } from '../../../utils/formatters';
+import { MOCK_MARKER } from '../mockMarker';
 import type { SocialV1FeedPost } from '../types';
+import {
+  buildTraderStatLabels,
+  resolveTraderCohort,
+  traderCohortEmoji,
+} from '../utils/traderStats';
+import RotatingTraderStat from './RotatingTraderStat';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
@@ -31,6 +37,9 @@ const AVATAR_SIZE = 32;
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
+  const author = post.item.author;
+  const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
+  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
 
   return (
     <Box
@@ -59,17 +68,53 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
             recyclingKey={post.id}
             testID={`${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`}
           />
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-          >
-            {post.authorHandle}
-          </Text>
-          {post.winRateLabel ? (
-            <Tag style={tw.style('mt-2')}>{post.winRateLabel}</Tag>
-          ) : null}
+          {/* The name row and the stat line share a column so the stats sit
+              under the name rather than under the avatar. */}
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {post.authorHandle}
+              </Text>
+              {/* Nothing reports verification yet, so the badge is invented
+                  and carries the mock marker every fabricated value does. */}
+              <Icon
+                name={IconName.VerifiedFilled}
+                size={IconSize.Sm}
+                twClassName="text-info-default shrink-0"
+                testID={SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE}
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextMuted}
+                twClassName="shrink-0"
+              >
+                {MOCK_MARKER}
+              </Text>
+              {cohortEmoji ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="shrink-0"
+                  testID={SocialFeedPostShellSelectorsIDs.COHORT}
+                >
+                  {cohortEmoji}
+                </Text>
+              ) : null}
+            </Box>
+            <RotatingTraderStat
+              labels={statLabels}
+              testID={SocialFeedPostShellSelectorsIDs.TRADER_STAT}
+            />
+          </Box>
         </Box>
         <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
           {formatFeedTimestamp(post.timestampMs)}
