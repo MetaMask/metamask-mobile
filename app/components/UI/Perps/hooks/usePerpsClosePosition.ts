@@ -66,8 +66,6 @@ interface ClosePositionParams {
     priceAtCalculation?: number;
     maxSlippageBps?: number;
   };
-  onAdjustSlippage?: () => void;
-  onReviewPrice?: () => void;
 }
 
 // Closes in flight per account, provider, network and symbol. Module scope: the
@@ -169,7 +167,7 @@ export const usePerpsClosePosition = (
   const stream = usePerpsStream();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { showToast, closeToast, PerpsToastOptions } = usePerpsToasts();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleClosePosition = useCallback(
     async (params: ClosePositionParams) => {
@@ -181,8 +179,6 @@ export const usePerpsClosePosition = (
         trackingData,
         marketPrice,
         slippage,
-        onAdjustSlippage,
-        onReviewPrice,
       } = params;
       const closeKey = getCloseKey(
         accountAddress,
@@ -218,41 +214,19 @@ export const usePerpsClosePosition = (
                 .partial.partialPositionCloseFailed;
         }
 
-        let recovery:
-          | {
-              action: () => void;
-              label: string;
-            }
-          | undefined;
-        if (
+        const shouldExplainFailure =
           orderType === 'market' &&
-          onReviewPrice &&
-          isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED)
-        ) {
-          recovery = {
-            action: onReviewPrice,
-            label: strings('perps.order.review_updated_price'),
-          };
-        } else if (
-          orderType === 'market' &&
-          onAdjustSlippage &&
-          (isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
-            isPerpsErrorCode(failure, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED))
-        ) {
-          recovery = {
-            action: onAdjustSlippage,
-            label: strings('perps.order.adjust_slippage'),
-          };
-        }
+          (isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED) ||
+            isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
+            isPerpsErrorCode(failure, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED));
 
-        if (!recovery) {
+        if (!shouldExplainFailure) {
           showToast(toast);
           return;
         }
 
         showToast({
           ...toast,
-          hasNoTimeout: true,
           labelOptions: [
             {
               label: strings('perps.close_position.failed_to_close_position'),
@@ -268,13 +242,6 @@ export const usePerpsClosePosition = (
               }),
             },
           ],
-          linkButtonOptions: {
-            label: recovery.label,
-            onPress: () => {
-              closeToast();
-              recovery.action();
-            },
-          },
         });
       };
       // Guard against double-toasting: the { success: false } branch shows the
@@ -575,7 +542,6 @@ export const usePerpsClosePosition = (
       PerpsToastOptions.positionManagement,
       accountAddress,
       closePosition,
-      closeToast,
       network,
       options,
       provider,

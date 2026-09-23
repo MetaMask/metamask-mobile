@@ -35,15 +35,12 @@ import PerpsSlider from '../../components/PerpsSlider';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
-import PerpsSlippageRow from '../../components/PerpsSlippageRow';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const [isSlippageVisible, setIsSlippageVisible] = useState(false);
 
   const {
     position,
@@ -78,9 +75,6 @@ const PerpsClosePositionView: React.FC = () => {
     receiveAmount,
     filteredErrors,
     isClosing,
-    shouldOpenSlippage,
-    maxSlippageBps,
-    setMaxSlippage,
   } = usePerpsClosePositionForm({
     confirmButtonTestID:
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -95,12 +89,6 @@ const PerpsClosePositionView: React.FC = () => {
       setIsLimitPriceVisible(true);
     }
   }, [effectiveOrderType, limitPrice]);
-
-  useEffect(() => {
-    if (shouldOpenSlippage) {
-      setIsSlippageVisible(true);
-    }
-  }, [shouldOpenSlippage]);
 
   const Summary = (
     <PerpsCloseSummary
@@ -214,15 +202,6 @@ const PerpsClosePositionView: React.FC = () => {
           </Box>
         )}
 
-        {/* Slippage - market closes use the same persisted setting as trades. */}
-        {effectiveOrderType === 'market' && !isInputFocused && (
-          <PerpsSlippageRow
-            maxSlippageBps={maxSlippageBps}
-            onPress={() => setIsSlippageVisible(true)}
-            testID={PerpsClosePositionViewSelectorsIDs.SLIPPAGE_ROW}
-          />
-        )}
-
         {/* Order Details moved to footer summary */}
 
         {/* Validation Messages - keep visible while typing */}
@@ -316,13 +295,6 @@ const PerpsClosePositionView: React.FC = () => {
         currentPrice={currentPrice}
         direction={isLong ? 'short' : 'long'} // Opposite direction for closing
         isClosingPosition
-      />
-
-      <PerpsSlippageBottomSheet
-        isVisible={isSlippageVisible && effectiveOrderType === 'market'}
-        currentValueBps={maxSlippageBps}
-        onClose={() => setIsSlippageVisible(false)}
-        onSave={setMaxSlippage}
       />
 
       {/* Order Type Bottom Sheet - gated behind feature flag */}

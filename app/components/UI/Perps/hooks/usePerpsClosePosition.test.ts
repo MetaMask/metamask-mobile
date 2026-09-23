@@ -73,7 +73,6 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 // Create stable mock references for usePerpsToasts
 const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
 const mockPerpsToastOptions = {
   positionManagement: {
     closePosition: {
@@ -109,7 +108,6 @@ jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
   default: () => ({
     showToast: mockShowToast,
-    closeToast: mockCloseToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
 }));
@@ -852,6 +850,7 @@ describe('usePerpsClosePosition', () => {
               result.current.handleClosePosition({
                 position: mockPosition,
                 orderType: 'market',
+                slippage: { maxSlippageBps: 300 },
               }),
             ).rejects.toThrow();
           });
@@ -865,13 +864,12 @@ describe('usePerpsClosePosition', () => {
           );
         });
 
-        it('dismisses a persistent IOC failure toast before recovery', async () => {
+        it('shows passive IOC failure copy without an action', async () => {
           mockClosePosition.mockResolvedValue({
             success: false,
             error: PERPS_ERROR_CODES.IOC_CANCEL,
             errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
           });
-          const onAdjustSlippage = jest.fn();
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
@@ -879,25 +877,16 @@ describe('usePerpsClosePosition', () => {
               result.current.handleClosePosition({
                 position: mockPosition,
                 orderType: 'market',
-                onAdjustSlippage,
+                slippage: { maxSlippageBps: 300 },
               }),
             ).rejects.toThrow();
           });
 
           const failureToast = mockShowToast.mock.calls[1][0];
-          expect(failureToast).toMatchObject({
-            hasNoTimeout: true,
-            linkButtonOptions: {
-              label: 'perps.order.adjust_slippage',
-            },
-          });
-
-          act(() => failureToast.linkButtonOptions.onPress());
-
-          expect(mockCloseToast).toHaveBeenCalledTimes(1);
-          expect(onAdjustSlippage).toHaveBeenCalledTimes(1);
-          expect(mockCloseToast.mock.invocationCallOrder[0]).toBeLessThan(
-            onAdjustSlippage.mock.invocationCallOrder[0],
+          expect(failureToast).not.toHaveProperty('linkButtonOptions');
+          expect(failureToast).not.toHaveProperty('hasNoTimeout', true);
+          expect(failureToast.labelOptions).toContainEqual(
+            expect.objectContaining({ label: 'perps.errors.iocCancel' }),
           );
         });
 
@@ -929,7 +918,7 @@ describe('usePerpsClosePosition', () => {
           );
         });
 
-        it('offers fresh-price review for PRICE_MOVED partial closes', async () => {
+        it('shows passive PRICE_MOVED copy without an action', async () => {
           mockClosePosition.mockResolvedValue({
             success: false,
             error: 'Price moved too much',
@@ -942,7 +931,6 @@ describe('usePerpsClosePosition', () => {
               currentPrice: 815.22,
             },
           });
-          const onReviewPrice = jest.fn();
           const { result } = renderHook(() => usePerpsClosePosition());
 
           await act(async () => {
@@ -951,20 +939,15 @@ describe('usePerpsClosePosition', () => {
                 position: mockPosition,
                 size: '0.05',
                 orderType: 'market',
-                onReviewPrice,
               }),
             ).rejects.toThrow();
           });
 
           const failureToast = mockShowToast.mock.calls[1][0];
-          expect(failureToast.linkButtonOptions.label).toBe(
-            'perps.order.review_updated_price',
+          expect(failureToast).not.toHaveProperty('linkButtonOptions');
+          expect(failureToast.labelOptions).toContainEqual(
+            expect.objectContaining({ label: 'perps.errors.priceMoved' }),
           );
-
-          act(() => failureToast.linkButtonOptions.onPress());
-
-          expect(mockCloseToast).toHaveBeenCalledTimes(1);
-          expect(onReviewPrice).toHaveBeenCalledTimes(1);
         });
 
         it('should show failure toast when size is empty string (treated as full close)', async () => {

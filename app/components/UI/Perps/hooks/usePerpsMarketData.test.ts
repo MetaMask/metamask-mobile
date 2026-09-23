@@ -205,7 +205,6 @@ describe('usePerpsMarketData', () => {
       const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
       mockedUsePerpsToasts.mockReturnValue({
         showToast: mockShowToast,
-        closeToast: jest.fn(),
         PerpsToastOptions: {
           dataFetching: {
             market: {
@@ -240,7 +239,6 @@ describe('usePerpsMarketData', () => {
       const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
       mockedUsePerpsToasts.mockReturnValue({
         showToast: mockShowToast,
-        closeToast: jest.fn(),
         PerpsToastOptions: {
           dataFetching: {
             market: {
@@ -270,7 +268,6 @@ describe('usePerpsMarketData', () => {
       const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
       mockedUsePerpsToasts.mockReturnValue({
         showToast: mockShowToast,
-        closeToast: jest.fn(),
         PerpsToastOptions: {
           dataFetching: {
             market: {

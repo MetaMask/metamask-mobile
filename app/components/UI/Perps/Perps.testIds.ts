@@ -1119,7 +1119,6 @@ export const PerpsClosePositionViewSelectorsIDs = {
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
   LIMIT_PRICE_ROW: 'close-position-limit-price-row',
-  SLIPPAGE_ROW: 'close-position-slippage-row',
   FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
   POINTS_TOOLTIP_BUTTON: 'close-position-points-tooltip-button',
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
@@ -1137,7 +1136,6 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_LIMIT: 'close-position-bottom-sheet-order-type-limit',
   LIMIT_PRICE_INPUT: 'close-position-bottom-sheet-limit-price-input',
   LIMIT_PRICE_ROW: 'close-position-bottom-sheet-limit-price-row',
-  SLIPPAGE_ROW: 'close-position-bottom-sheet-slippage-row',
   LIMIT_PRICE_CURSOR: 'close-position-bottom-sheet-limit-price-cursor',
   LIMIT_PRESET_MID: 'close-position-bottom-sheet-limit-preset-mid',
   LIMIT_PRESET_TOP_OF_BOOK:
