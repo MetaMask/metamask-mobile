@@ -24,10 +24,6 @@ import {
   setupPerpsOutreachApiMock,
 } from '../../../../../tests/component-view/api-mocking/perpsOutreach';
 import { PerpsPositionsViewSelectorsIDs } from '../Perps.testIds';
-import {
-  clearPerpsOutreachApiMocks,
-  setupPerpsOutreachApiMock,
-} from '../../../../../tests/component-view/api-mocking/perpsOutreach';
 
 const TIMEOUT_MS = 3000;
 
