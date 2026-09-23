@@ -4,7 +4,7 @@ Renders a Braze-managed HTML banner for a given placement ID. Visibility is driv
 
 ## Prerequisites
 
-`setBrazeUser()` must be called before this component is mounted. It identifies the current user with Braze and calls `requestBannersRefresh`, which causes the SDK to emit `bannerCardsUpdated` with fresh server data.
+`setBrazeUser()` re-enables the SDK, identifies the current user with Braze, and calls `requestBannersRefresh`, which causes the SDK to emit `bannerCardsUpdated` with fresh server data. Home does not mount this component until a canonical profile ID exists, so a wallet reset cannot show the previous user's cached campaign.
 
 Returning users with a cached banner will see it immediately via the warm-cache probe regardless of `setBrazeUser()` timing. First-time users with no local cache will see nothing until a `bannerCardsUpdated` event arrives; without `setBrazeUser()`, the component stays invisible until the 5-second timeout elapses and transitions to `empty`.
 
