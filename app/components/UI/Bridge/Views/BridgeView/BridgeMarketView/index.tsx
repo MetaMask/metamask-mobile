@@ -118,6 +118,7 @@ import {
 } from '../../../components/SwapsBanners';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError/index.ts';
+import { getQuoteEventWarningState } from './BridgeMarketView.utils';
 import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable/index.ts';
 import {
   hidePostTradeNotificationSurface,
@@ -401,6 +402,11 @@ const BridgeMarketViewContent = () => {
   const hasInsufficientNativeReserveError = Boolean(
     insufficientNativeReserveError,
   );
+  const quoteEventWarningState = getQuoteEventWarningState({
+    hasInsufficientGas,
+    hasInsufficientNativeReserveError,
+    sourceToken,
+  });
 
   const isSubmitDisabled =
     (isLoading && !activeQuote) ||
@@ -420,9 +426,10 @@ const BridgeMarketViewContent = () => {
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
-    hasInsufficientNativeReserveError,
+    hasInsufficientNativeReserveError:
+      quoteEventWarningState.hasInsufficientNativeReserveError,
     hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas,
+    hasInsufficientGas: quoteEventWarningState.hasInsufficientGas,
     hasTxAlert: Boolean(blockaidError),
     isNetworkFeeUnavailable,
     isSubmitDisabled,

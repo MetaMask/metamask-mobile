@@ -117,9 +117,11 @@ import { getLimitPriceFarFromMarketWarning } from '../../../../utils/limitPriceF
 import {
   canonicalizeOrderPrice,
   getLimitPriceCrossingWarning,
+  getLimitVsTriggerWarning,
   getOrderFormFieldIssueMessage,
   getOrderFormFieldIssues,
   getScalePriceCrossingWarning,
+  isAdvisoryOrderFormFieldIssue,
 } from '../../../../utils/triggerOrderValidation';
 import {
   CHASE_ORDER_UI_CONFIG,
@@ -244,6 +246,18 @@ const INSUFFICIENT_BALANCE_PREFIX = strings(
   'perps.order.validation.insufficient_balance',
   { required: '__REQ__', available: '__AVAIL__' },
 ).split('__REQ__')[0];
+
+/**
+ * Order types that build their own price inputs and therefore throw away any
+ * limit/trigger price already typed. Both the price reset and the
+ * committed-price reset below are derived from this one list so they cannot
+ * drift apart.
+ *
+ * @param type - Order type being switched to.
+ * @returns `true` when switching to this type discards the typed prices.
+ */
+const discardsPriceDrafts = (type: OrderType): boolean =>
+  type === 'twap' || type === 'scale' || type === 'chase';
 
 const TWAP_OWNED_PROTOCOL_ERROR_CODES = [
   PERPS_ERROR_CODES.ORDER_TWAP_DURATION_REQUIRED,
@@ -2100,10 +2114,13 @@ export const usePerpsProOrderForm = ({
           midPrice: assetData.price,
           szDecimals,
         });
-    if (currentFieldIssues.length > 0) {
-      const firstIssue = currentFieldIssues[0];
-      const message = getOrderFormFieldIssueMessage(firstIssue);
-      reportValidationFailure(message);
+    const currentBlockingIssue = currentFieldIssues.find(
+      (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+    );
+    if (currentBlockingIssue) {
+      reportValidationFailure(
+        getOrderFormFieldIssueMessage(currentBlockingIssue),
+      );
       return;
     }
 
@@ -2253,7 +2270,9 @@ export const usePerpsProOrderForm = ({
         return;
       }
       if (!validationResult.isValid) {
-        const firstFieldIssue = validationResult.fieldIssues[0];
+        const firstFieldIssue = validationResult.fieldIssues.find(
+          (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+        );
         const firstError =
           validationResult.errors[0] ||
           (firstFieldIssue
@@ -2303,9 +2322,12 @@ export const usePerpsProOrderForm = ({
         midPrice: latestMidPriceRef.current,
         szDecimals,
       });
-      if (latestFieldIssues.length > 0) {
+      const latestBlockingIssue = latestFieldIssues.find(
+        (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+      );
+      if (latestBlockingIssue) {
         reportValidationFailure(
-          getOrderFormFieldIssueMessage(latestFieldIssues[0]),
+          getOrderFormFieldIssueMessage(latestBlockingIssue),
         );
         return;
       }
@@ -2363,7 +2385,9 @@ export const usePerpsProOrderForm = ({
         }
         if (!latestScaleValidation.validationResult.isValid) {
           const firstFieldIssue =
-            latestScaleValidation.validationResult.fieldIssues[0];
+            latestScaleValidation.validationResult.fieldIssues.find(
+              (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+            );
           const firstError =
             latestScaleValidation.validationResult.errors[0] ||
             (firstFieldIssue
@@ -2925,11 +2949,17 @@ export const usePerpsProOrderForm = ({
           setIsOrderTypeVisible(false);
           return;
         }
-        if (type !== orderForm.type) {
+        // Only forget that a price was committed when its value is actually
+        // discarded. Switching between trigger types (stop market to stop
+        // limit) carries the prices over untouched, so treating them as
+        // freshly typed would silently drop guidance the user has already
+        // earned about a price that has not changed.
+        const discardsPrices = discardsPriceDrafts(type);
+        if (type !== orderForm.type && discardsPrices) {
           resetPriceInputInteraction();
         }
         setOrderType(type);
-        if (type === 'twap' || type === 'scale' || type === 'chase') {
+        if (discardsPrices) {
           setLimitPrice(undefined);
           setTriggerPrice(undefined);
           setTakeProfitPrice(undefined);
@@ -3579,29 +3609,54 @@ export const usePerpsProOrderForm = ({
         : undefined;
     }
 
-    const fieldIssues = orderValidation.fieldIssues;
-    const triggerIssue = fieldIssues.find(
-      (fieldIssue) => fieldIssue.field === 'triggerPrice',
+    // Only a field the user has finished editing may speak, so a half-typed
+    // price is not judged mid-keystroke.
+    const visibleIssues = orderValidation.fieldIssues.filter((fieldIssue) =>
+      fieldIssue.field === 'triggerPrice'
+        ? hasBlurredTriggerPrice
+        : hasBlurredLimitPrice,
     );
-    if (triggerIssue && hasBlurredTriggerPrice) {
+    // A blocking issue explains why the order cannot be placed, so it outranks
+    // advice about a price that would place fine. Ordering by field instead
+    // would let a trigger warning hide the empty limit price holding the CTA
+    // down, leaving the form disabled with nothing on screen explaining it.
+    const blockingIssue = visibleIssues.find(
+      (fieldIssue) => !isAdvisoryOrderFormFieldIssue(fieldIssue),
+    );
+    if (blockingIssue) {
       return {
         severity: 'error' as const,
-        message: getOrderFormFieldIssueMessage(triggerIssue),
+        message: getOrderFormFieldIssueMessage(blockingIssue),
       };
     }
 
-    const limitIssue = fieldIssues.find(
-      (fieldIssue) => fieldIssue.field === 'limitPrice',
-    );
-    if (limitIssue && hasBlurredLimitPrice) {
+    const advisoryIssue = visibleIssues[0];
+    if (advisoryIssue) {
       return {
-        severity: 'error' as const,
-        message: getOrderFormFieldIssueMessage(limitIssue),
+        severity: 'warning' as const,
+        message: getOrderFormFieldIssueMessage(advisoryIssue),
       };
     }
 
     if (!hasBlurredLimitPrice) {
       return undefined;
+    }
+
+    // This rule reads both prices, so it waits for both to be committed. The
+    // trigger updates on every keystroke, and most prefixes of a number land on
+    // the wrong side of an already-set limit ('3' and '30' on the way to 3000),
+    // which would flash a fill warning about a price the user is still typing.
+    const limitVsTriggerWarning = hasBlurredTriggerPrice
+      ? getLimitVsTriggerWarning({
+          orderType: orderForm.type,
+          direction: orderForm.direction,
+          limitPrice: normalizedLimitPrice,
+          triggerPrice: normalizedTriggerPrice,
+          szDecimals,
+        })
+      : undefined;
+    if (limitVsTriggerWarning) {
+      return { severity: 'warning' as const, message: limitVsTriggerWarning };
     }
 
     const warning = getLimitPriceCrossingWarning({
@@ -3628,6 +3683,7 @@ export const usePerpsProOrderForm = ({
     isScaleOrder,
     orderForm.direction,
     normalizedLimitPrice,
+    normalizedTriggerPrice,
     orderForm.type,
     orderValidation.fieldIssues,
     scaleCrossingReferencePrice,

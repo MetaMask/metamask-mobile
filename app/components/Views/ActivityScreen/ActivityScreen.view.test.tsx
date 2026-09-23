@@ -465,6 +465,29 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('shows the Aggregated checkbox on Perps Trades and hides it on Deposits', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderActivityScreenView();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(perpsOptionTestId(PerpsActivityFilter.Deposits)),
+    );
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeNull();
+    });
+  });
+
   it('navigates back to home tabs when opened as the root activity route', async () => {
     const { getByTestId, findByTestId } = renderActivityScreenViewWithRoutes({
       extraRoutes: [{ name: Routes.HOME_TABS }],

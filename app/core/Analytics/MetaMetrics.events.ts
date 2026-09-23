@@ -588,7 +588,7 @@ enum EVENT_NAME {
   NOTIFICATIONS_MENU_OPENED = 'InApp Notifications Menu Opened',
   NOTIFICATION_CLICKED = 'InApp Notification Clicked',
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'InApp Notifications Marked All as Read',
-  NOTIFICATION_DETAIL_CLICKED = 'InApp Notification Detail Clicked',
+  NOTIFICATION_DETAIL_ITEM_CLICKED = 'InApp Notification Detail Item Clicked',
 
   // Push Notifications
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
@@ -1596,8 +1596,8 @@ const events = {
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
     EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
   ),
-  NOTIFICATION_DETAIL_CLICKED: generateOpt(
-    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
+  NOTIFICATION_DETAIL_ITEM_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_ITEM_CLICKED,
   ),
 
   // Push Notifications Flow
