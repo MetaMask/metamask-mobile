@@ -333,8 +333,11 @@ describe('usePerpsAdjustMarginData', () => {
 
       // marginUsed = 8000
       // transferMarginRequired = 5000 (same as before)
-      // maxRemovable = 8000 - 5000 = 3000
-      expect(result.current.maxAmount).toBe(3000);
+      // priceMoveBuffer = 50000 * 0.01 = 500
+      // maxRemovable = 8000 - 5000 - 500 = 2500
+      expect(result.current.maxAmount).toBe(2500);
+      // The exchange itself accepts up to 8000 - 5000 = 3000
+      expect(result.current.exchangeMaxAmount).toBe(3000);
     });
   });
 

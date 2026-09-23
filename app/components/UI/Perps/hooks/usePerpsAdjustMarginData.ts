@@ -39,6 +39,11 @@ export interface UsePerpsAdjustMarginDataReturn {
   positionValue: number;
   /** Max amount that can be added/removed */
   maxAmount: number;
+  /**
+   * Largest amount the exchange accepts right now. For remove mode this has no
+   * price-move headroom, so a tick after choosing Max does not invalidate it.
+   */
+  exchangeMaxAmount: number;
   /** Current liquidation price */
   currentLiquidationPrice: number;
   /** New liquidation price after adjustment */
@@ -198,6 +203,30 @@ export function usePerpsAdjustMarginData(
     positionValue,
   ]);
 
+  const exchangeMaxAmount = useMemo(() => {
+    if (isAddMode) {
+      return maxAmount;
+    }
+    return calculateMaxRemovableMargin({
+      currentMargin,
+      positionSize,
+      entryPrice,
+      currentPrice,
+      positionLeverage,
+      notionalValue: positionValue,
+      priceMoveBufferRatio: 0,
+    });
+  }, [
+    isAddMode,
+    maxAmount,
+    currentMargin,
+    positionSize,
+    entryPrice,
+    currentPrice,
+    positionLeverage,
+    positionValue,
+  ]);
+
   // Calculate new margin after adjustment
   const newMargin = useMemo(() => {
     if (isAddMode) {
@@ -255,6 +284,7 @@ export function usePerpsAdjustMarginData(
     newMargin,
     positionValue,
     maxAmount,
+    exchangeMaxAmount,
     currentLiquidationPrice,
     newLiquidationPrice,
     currentLiquidationDistance,

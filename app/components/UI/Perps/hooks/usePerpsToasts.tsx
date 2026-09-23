@@ -228,6 +228,7 @@ export interface PerpsToastOptionsConfig {
     margin: {
       addSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
       removeSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
+      removeAmountChanged: (maxAmount: string) => PerpsToastOptions;
       adjustmentFailed: (error?: string) => PerpsToastOptions;
     };
   };
@@ -1195,6 +1196,17 @@ const usePerpsToasts = (): {
                 amount,
                 asset: assetSymbol,
               }),
+            ),
+          }),
+          removeAmountChanged: (maxAmount: string) => ({
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.remove_amount_changed_title'),
+              Number(maxAmount) > 0
+                ? strings('perps.position.margin.remove_amount_changed', {
+                    amount: maxAmount,
+                  })
+                : strings('perps.adjust_margin.no_removable_margin'),
             ),
           }),
           adjustmentFailed: (error?: string) => ({

@@ -323,6 +323,22 @@ describe('PerpsAdjustMarginView', () => {
   });
 
   describe('remove mode', () => {
+    const removeModeData = {
+      position: mockPosition,
+      isLoading: false,
+      currentMargin: 500,
+      positionValue: 5000,
+      maxAmount: 200, // Max removable margin
+      currentLiquidationPrice: 1900,
+      newLiquidationPrice: 1900,
+      currentLiquidationDistance: 5,
+      newLiquidationDistance: 5,
+      spendableBalance: 1000,
+      currentPrice: 2000,
+      isAddMode: false,
+      positionLeverage: 10,
+    };
+
     beforeEach(() => {
       mockRouteParams = {
         position: mockPosition,
@@ -330,21 +346,7 @@ describe('PerpsAdjustMarginView', () => {
       };
 
       // Override mock for remove mode
-      mockUsePerpsAdjustMarginData.mockReturnValue({
-        position: mockPosition,
-        isLoading: false,
-        currentMargin: 500,
-        positionValue: 5000,
-        maxAmount: 200, // Max removable margin
-        currentLiquidationPrice: 1900,
-        newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
-        spendableBalance: 1000,
-        currentPrice: 2000,
-        isAddMode: false,
-        positionLeverage: 10,
-      });
+      mockUsePerpsAdjustMarginData.mockReturnValue(removeModeData);
     });
 
     it('renders remove margin title', () => {
@@ -376,6 +378,98 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
       ).toHaveTextContent('perps.adjust_margin.reduce_margin');
+    });
+
+    it('hides the zero-state explanation while margin can be removed', () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.queryByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('explains and disables removal when no margin can be removed', () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+        maxAmount: 0.004,
+      });
+
+      render(<PerpsAdjustMarginView />);
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
+        ),
+      ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+      expect(screen.queryByTestId('mock-keypad')).not.toBeOnTheScreen();
+      expect(
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { isDisabled?: boolean }
+        ).isDisabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('keeps a Max amount submittable after the offered max ticks down within the exchange limit', async () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        exchangeMaxAmount: 250,
+      });
+      const { rerender } = render(<PerpsAdjustMarginView />);
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(100);
+      });
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        maxAmount: 199.99,
+        exchangeMaxAmount: 249.99,
+      });
+
+      rerender(<PerpsAdjustMarginView />);
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(
+        screen.queryByText('perps.errors.marginValidation.exceedsMaxRemovable'),
+      ).not.toBeOnTheScreen();
+      expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 200);
+    });
+
+    it('sets the amount to the new safe max when removable margin shrank before submit', () => {
+      render(<PerpsAdjustMarginView />);
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onAmountChanged?: (maxAmount: number) => void;
+      };
+
+      act(() => {
+        options.onAmountChanged?.(150);
+      });
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('150.00');
     });
   });
 

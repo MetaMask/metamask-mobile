@@ -3,12 +3,14 @@ import Logger from '../../../../util/Logger';
 import { usePerpsMarginAdjustment } from './usePerpsMarginAdjustment';
 
 const mockUpdateMargin = jest.fn();
+const mockGetPositions = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
     updateMargin: mockUpdateMargin,
+    getPositions: mockGetPositions,
   }),
 }));
 
@@ -32,6 +34,10 @@ jest.mock('./usePerpsToasts', () => ({
             type: 'remove_success',
             symbol,
             amount,
+          })),
+          removeAmountChanged: jest.fn((maxAmount) => ({
+            type: 'remove_amount_changed',
+            maxAmount,
           })),
           adjustmentFailed: jest.fn((error) => ({
             type: 'error',
@@ -69,7 +75,12 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+jest.mock('../constants/perpsConfig', () => ({
+  MARGIN_REMOVAL_PRICE_MOVE_BUFFER: 0.01,
+}));
+
 jest.mock('@metamask/perps-controller', () => ({
+  MARGIN_ADJUSTMENT_CONFIG: { MarginRemovalSafetyBuffer: 0.1 },
   PERPS_CONSTANTS: { FeatureName: 'perps' },
   PERPS_EVENT_PROPERTY: {
     ACTION: 'action',
@@ -86,6 +97,7 @@ jest.mock('@metamask/perps-controller', () => ({
 describe('usePerpsMarginAdjustment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetPositions.mockResolvedValue([]);
   });
 
   it('returns handleAddMargin, handleRemoveMargin functions and isAdjusting state', () => {
@@ -287,6 +299,128 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnError).toHaveBeenCalledWith('Cannot reduce below minimum');
+    });
+  });
+
+  describe('handleRemoveMargin re-validation', () => {
+    // 10x on $300 notional: required = max($30, 10% = $30) = $30, so the
+    // exchange accepts up to $10 and the 1% headroom leaves $7 safe to offer.
+    const freshPosition = {
+      symbol: 'ETH',
+      size: '0.1',
+      entryPrice: '3000',
+      positionValue: '300',
+      marginUsed: '40',
+      leverage: { type: 'isolated', value: 10 },
+    };
+
+    it('reads a fresh position before submitting a removal', async () => {
+      mockGetPositions.mockResolvedValue([freshPosition]);
+      mockUpdateMargin.mockResolvedValue({ success: true });
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 5);
+      });
+
+      expect(mockGetPositions).toHaveBeenCalledWith({ skipCache: true });
+      expect(mockUpdateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '-5',
+      });
+    });
+
+    it('stops a removal the fresh position no longer covers and reports the new safe max', async () => {
+      mockGetPositions.mockResolvedValue([freshPosition]);
+      const mockOnAmountChanged = jest.fn();
+      const mockOnError = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsMarginAdjustment({
+          onAmountChanged: mockOnAmountChanged,
+          onError: mockOnError,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 12);
+      });
+
+      expect(mockUpdateMargin).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith({
+        type: 'remove_amount_changed',
+        maxAmount: '7.00',
+      });
+      expect(mockOnAmountChanged).toHaveBeenCalledWith(7);
+      expect(mockOnError).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalled();
+      expect(result.current.isAdjusting).toBe(false);
+    });
+
+    it('submits a removal above the safe max that the exchange still accepts', async () => {
+      mockGetPositions.mockResolvedValue([freshPosition]);
+      mockUpdateMargin.mockResolvedValue({ success: true });
+      const mockOnAmountChanged = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsMarginAdjustment({ onAmountChanged: mockOnAmountChanged }),
+      );
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 9);
+      });
+
+      expect(mockOnAmountChanged).not.toHaveBeenCalled();
+      expect(mockUpdateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '-9',
+      });
+    });
+
+    it('submits the removal when the fresh position read fails', async () => {
+      mockGetPositions.mockRejectedValue(new Error('network down'));
+      mockUpdateMargin.mockResolvedValue({ success: true });
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 12);
+      });
+
+      expect(mockUpdateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '-12',
+      });
+    });
+
+    it.each([
+      ['leverage is missing', { leverage: undefined }],
+      ['marginUsed is not a number', { marginUsed: 'NaN' }],
+      ['positionValue is zero', { positionValue: '0' }],
+    ])(
+      'submits the removal when the fresh position is unusable (%s)',
+      async (_label, override) => {
+        mockGetPositions.mockResolvedValue([{ ...freshPosition, ...override }]);
+        mockUpdateMargin.mockResolvedValue({ success: true });
+        const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+        await act(async () => {
+          await result.current.handleRemoveMargin('ETH', 12);
+        });
+
+        expect(mockUpdateMargin).toHaveBeenCalledWith({
+          symbol: 'ETH',
+          amount: '-12',
+        });
+      },
+    );
+
+    it('does not read positions when adding margin', async () => {
+      mockUpdateMargin.mockResolvedValue({ success: true });
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
+
+      await act(async () => {
+        await result.current.handleAddMargin('ETH', 12);
+      });
+
+      expect(mockGetPositions).not.toHaveBeenCalled();
     });
   });
 
