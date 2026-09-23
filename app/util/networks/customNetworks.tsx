@@ -400,6 +400,7 @@ export const NETWORK_CHAIN_ID: {
   readonly APECHAIN_MAINNET: '0x8173';
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly GRAVITY: '0x1f019';
+  readonly HYVECHAIN: '0x1ea7';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
   readonly SONEIUM_MAINNET: '0x74c';
@@ -453,6 +454,7 @@ export const NETWORK_CHAIN_ID: {
   APECHAIN_MAINNET: '0x8173',
   GRAVITY_ALPHA_MAINNET: '0x659',
   GRAVITY: '0x1f019',
+  HYVECHAIN: '0x1ea7',
   KAIA_MAINNET: '0x2019',
   KAIA_KAIROS_TESTNET: '0x3e9',
   SONEIUM_MAINNET: '0x74c',
@@ -509,6 +511,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.APECHAIN_MAINNET]: require('../../images/apechain.png'),
   [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
   [NETWORK_CHAIN_ID.GRAVITY]: require('../../images/gravity.png'),
+  [NETWORK_CHAIN_ID.HYVECHAIN]: require('../../images/hyvechain.png'),
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
