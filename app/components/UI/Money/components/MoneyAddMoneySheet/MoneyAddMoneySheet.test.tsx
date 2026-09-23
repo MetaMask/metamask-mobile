@@ -18,6 +18,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -30,6 +31,16 @@ const mockTrackSurfaceClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
+
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    useOpenVbaOnboarding: jest.fn(),
+  }),
+);
+
+const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
+const mockOpenVbaOnboarding = jest.fn();
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -152,6 +163,8 @@ describe('MoneyAddMoneySheet', () => {
     (
       selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
     ).mockReturnValue(true);
+    mockOpenVbaOnboarding.mockResolvedValue(undefined);
+    mockUseOpenVbaOnboarding.mockReturnValue(mockOpenVbaOnboarding);
   });
 
   it('renders all options', () => {
@@ -202,9 +215,11 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
+    // Opening hydrates onboarding and lands on the first incomplete screen.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
+    expect(mockUseOpenVbaOnboarding).toHaveBeenCalled();
+    expect(mockOpenVbaOnboarding).toHaveBeenCalled();
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {

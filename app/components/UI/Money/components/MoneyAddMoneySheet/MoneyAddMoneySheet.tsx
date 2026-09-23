@@ -38,7 +38,7 @@ import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDeposi
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -61,6 +61,7 @@ const log = createProjectLogger('money-add-money-sheet');
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
+  const openVbaOnboarding = useOpenVbaOnboarding();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
@@ -166,10 +167,12 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
+    // Hydrate VBA onboarding and open the first incomplete screen (fresh
+    // users land on Terms 1; returning users resume).
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
+      openVbaOnboarding().catch(() => undefined);
     });
-  }, [navigation, trackSurfaceClicked]);
+  }, [openVbaOnboarding, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
     trackSurfaceClicked({
