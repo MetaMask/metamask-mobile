@@ -796,7 +796,9 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName="overflow-hidden rounded-xl bg-muted"
+            twClassName={`overflow-hidden bg-muted ${
+              orderType === 'market' ? 'rounded-full' : 'rounded-xl'
+            }`}
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
