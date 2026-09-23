@@ -176,6 +176,8 @@ const config = {
     '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
     '^react-native-video$': '<rootDir>/app/__mocks__/react-native-video.tsx',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
+    'wasm-wrapper\\.standalone\\.html$':
+      '<rootDir>/app/__mocks__/lighterSignerHtml.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
