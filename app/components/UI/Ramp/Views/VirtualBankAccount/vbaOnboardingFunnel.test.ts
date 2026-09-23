@@ -62,7 +62,7 @@ describe('getVbaRouteForSnapshot', () => {
       {
         "autoramp ready": "MoneyHome",
         "email and vendor terms done": "RampVbaVerifyIdentity",
-        "empty": "RampGetPixKey",
+        "empty": "RampCreateVirtualBankAccount",
         "kyc rejected": "RampVbaKycRejected",
         "provider done": "RampVbaSumSubKyc",
         "sumsub submitted": "RampVbaKycPending",

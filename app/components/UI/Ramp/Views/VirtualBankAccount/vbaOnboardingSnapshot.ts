@@ -1,30 +1,11 @@
+import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
+
 /**
- * VBA onboarding facts returned by {@link RampsController.hydrateVbaOnboarding}
- * plus the client-local pre-email Terms 1 acceptance.
+ * {@link RampsVbaOnboardingSnapshot} plus client-local pre-email Terms 1.
  */
-export type VbaKycStatus =
-  | 'none'
-  | 'new'
-  | 'retry'
-  | 'pending'
-  | 'approved'
-  | 'rejected';
-
-export type VbaAutorampStatus =
-  | 'not_ready'
-  | 'in_progress'
-  | 'ready'
-  | 'retryable_failure';
-
-export interface VbaOnboardingSnapshot {
-  /** Client-local acceptance of the pre-email MoonPay links. */
+export type VbaOnboardingSnapshot = RampsVbaOnboardingSnapshot & {
   termsOneAccepted: boolean;
-  sessionExists: boolean;
-  vendorDisclaimersComplete: boolean;
-  sessionDisclaimersComplete: boolean;
-  kycStatus: VbaKycStatus;
-  autorampStatus: VbaAutorampStatus;
-}
+};
 
 export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
   termsOneAccepted: false,

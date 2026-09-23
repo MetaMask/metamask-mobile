@@ -11,6 +11,7 @@ import {
   getVbaRouteForSnapshot,
   type VbaOnboardingRoute,
 } from '../vbaOnboardingFunnel';
+import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import { hasAcceptedVbaTermsOne } from '../vbaTermsOneStorage';
 
@@ -56,10 +57,10 @@ export const useOpenVbaOnboarding = (
           return;
         }
 
-        const accountSnapshot =
-          (await Engine.context.RampsController.hydrateVbaOnboarding({
+        const accountSnapshot: RampsVbaOnboardingSnapshot =
+          await Engine.context.RampsController.hydrateVbaOnboarding({
             walletAddress,
-          })) as Omit<VbaOnboardingSnapshot, 'termsOneAccepted'>;
+          });
         const snapshot: VbaOnboardingSnapshot = {
           ...accountSnapshot,
           termsOneAccepted:

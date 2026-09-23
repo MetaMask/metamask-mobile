@@ -70,7 +70,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHydrate).toHaveBeenCalledWith({ walletAddress: '0xabc' });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.GET_PIX_KEY);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT);
   });
 
   it('opens at email when Terms 1 is accepted locally', async () => {
@@ -143,7 +143,7 @@ describe('useOpenVbaOnboarding', () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 
     const { result } = renderHook(() =>
-      useOpenVbaOnboarding('get-pix-key-continue'),
+      useOpenVbaOnboarding('create-virtual-bank-account-continue'),
     );
 
     await result.current();
@@ -151,7 +151,7 @@ describe('useOpenVbaOnboarding', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
-        context: expect.objectContaining({ source: 'get-pix-key-continue' }),
+        context: expect.objectContaining({ source: 'create-virtual-bank-account-continue' }),
       }),
     );
   });
@@ -172,8 +172,8 @@ describe('useOpenVbaOnboarding', () => {
   });
 
   it('navigates to a provided VBA route', () => {
-    navigateToVbaOnboardingRoute(navigation, Routes.RAMP.GET_PIX_KEY);
+    navigateToVbaOnboardingRoute(navigation, Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.GET_PIX_KEY);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT);
   });
 });

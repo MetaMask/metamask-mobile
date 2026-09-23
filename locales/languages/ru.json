@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Банковский счет",
       "title": "Получить ключ Pix",
       "description": "Отправляйте средства напрямую на свой счет Money account с любого банковского счета.",

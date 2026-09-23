@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Tài khoản ngân hàng",
       "title": "Nhận Khóa Pix của bạn",
       "description": "Gửi tiền trực tiếp vào Money Account của bạn từ bất kỳ tài khoản ngân hàng nào.",

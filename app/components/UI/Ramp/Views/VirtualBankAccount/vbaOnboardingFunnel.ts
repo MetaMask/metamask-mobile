@@ -6,7 +6,7 @@ import {
 
 export type VbaOnboardingRoute =
   | typeof Routes.RAMP.VBA_KYC_EMAIL
-  | typeof Routes.RAMP.GET_PIX_KEY
+  | typeof Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT
   | typeof Routes.RAMP.VBA_VERIFY_IDENTITY
   | typeof Routes.RAMP.VBA_SUMSUB_KYC
   | typeof Routes.RAMP.VBA_KYC_PENDING
@@ -32,7 +32,7 @@ interface VbaFunnelStep {
 export const VBA_FUNNEL: readonly VbaFunnelStep[] = [
   {
     id: 'termsOne',
-    route: Routes.RAMP.GET_PIX_KEY,
+    route: Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
     isComplete: (snapshot) =>
       snapshot.termsOneAccepted || snapshot.vendorDisclaimersComplete,
   },

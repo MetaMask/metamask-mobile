@@ -1117,7 +1117,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Activate your Virtual Bank Account",
       "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",

@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Rekening bank",
       "title": "Dapatkan Kunci Pix Anda",
       "description": "Kirim dana langsung ke Money account dari rekening bank mana pun.",

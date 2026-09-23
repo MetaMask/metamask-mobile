@@ -749,12 +749,12 @@ describe('MainNavigator', () => {
         state: initialRootState,
       });
 
-      const group = findGroupContaining(root, Routes.RAMP.GET_PIX_KEY);
+      const group = findGroupContaining(root, Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT);
 
       expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
       expect(groupedScreenNames(group)).toEqual([
         Routes.RAMP.VBA_KYC_EMAIL,
-        Routes.RAMP.GET_PIX_KEY,
+        Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
         Routes.RAMP.VBA_VERIFY_IDENTITY,
       ]);
       expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);

@@ -2,8 +2,8 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import GetPixKey from './GetPixKey';
-import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
+import CreateVirtualBankAccount from './CreateVirtualBankAccount';
+import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -34,7 +34,7 @@ const termsDisclaimer = {
   display_name: "MoonPay's Terms and Conditions",
 };
 
-describe('GetPixKey', () => {
+describe('CreateVirtualBankAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
@@ -50,29 +50,29 @@ describe('GetPixKey', () => {
   });
 
   it('renders the activation design', () => {
-    const { getByText, getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByText, getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
     expect(getByText('Activate your Virtual Bank Account')).toBeOnTheScreen();
     expect(getByText('Receive money locally')).toBeOnTheScreen();
     expect(getByText('Add money with ease')).toBeOnTheScreen();
     expect(getByText('Manage multiple currencies')).toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeOnTheScreen();
   });
 
   it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
-    fireEvent.press(getByTestId(GetPixKeySelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('stores Terms 1 locally before advancing to email', async () => {
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
-    const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
+    const button = getByTestId(CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
@@ -93,13 +93,13 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
     expect(
-      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeDisabled();
   });
 
@@ -113,22 +113,22 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
 
-    const { queryByTestId, getByTestId } = renderWithProvider(<GetPixKey />);
+    const { queryByTestId, getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
     expect(
-      queryByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+      queryByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
+      queryByTestId(`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-d-1`),
     ).not.toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeDisabled();
   });
 
   it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
     const spy = jest.spyOn(Linking, 'openURL');
-    const { getByText } = renderWithProvider(<GetPixKey />);
+    const { getByText } = renderWithProvider(<CreateVirtualBankAccount />);
 
     expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
 
@@ -147,13 +147,13 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId, getByText } = renderWithProvider(<GetPixKey />);
+    const { getByTestId, getByText } = renderWithProvider(<CreateVirtualBankAccount />);
 
     expect(
-      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_ERROR),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
     ).toBeDisabled();
 
     fireEvent.press(getByText('Try again'));
