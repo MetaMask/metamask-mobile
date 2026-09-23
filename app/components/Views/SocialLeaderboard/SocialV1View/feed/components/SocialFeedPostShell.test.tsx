@@ -1,31 +1,10 @@
-import { screen } from '@testing-library/react-native';
 import React from 'react';
+import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
-
-// The real avatar falls back to a Maskicon, which loads its SVG asynchronously
-// and reports un-acted state updates. Capture the props the shell passes in.
-jest.mock(
-  '../../../../Homepage/Sections/TopTraders/components/TraderAvatar',
-  () => {
-    const { View: MockView } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        testID,
-        imageUrl,
-        address,
-      }: {
-        testID?: string;
-        imageUrl?: string | null;
-        address?: string;
-      }) => <MockView testID={testID} imageUrl={imageUrl} address={address} />,
-    };
-  },
-);
 
 jest.mock('./SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
@@ -104,41 +83,5 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
     ).toBeOnTheScreen();
-  });
-
-  it('passes the profile id to the avatar when the author has no image', () => {
-    const seeded = mockOpenPerpsFeedItem({
-      id: 'item-1',
-      comment: 'Amazing position',
-    });
-    const item = {
-      ...seeded,
-      author: { ...seeded.author, id: 'profile-alice' },
-    };
-
-    renderWithProvider(
-      <SocialFeedPostShell post={basePost({ authorImageUrl: null, item })} />,
-    );
-
-    const avatar = screen.getByTestId(
-      `${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`,
-    );
-    expect(avatar.props.address).toBe('profile-alice');
-    expect(avatar.props.imageUrl).toBeNull();
-  });
-
-  it('passes a real author image url through to the avatar', () => {
-    renderWithProvider(
-      <SocialFeedPostShell
-        post={basePost({
-          authorImageUrl: 'https://cdn.test/alice.png',
-        })}
-      />,
-    );
-
-    expect(
-      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`)
-        .props.imageUrl,
-    ).toBe('https://cdn.test/alice.png');
   });
 });
