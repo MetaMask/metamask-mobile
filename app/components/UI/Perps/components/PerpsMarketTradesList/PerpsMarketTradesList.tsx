@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   SectionHeader,
   Text,
@@ -39,6 +41,7 @@ import {
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { PerpsMarketTradesListSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
+import PerpsAggregatedFillsCheckbox from '../PerpsAggregatedFillsCheckbox';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -53,6 +56,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const [aggregateFills, setAggregateFills] = useState(true);
 
   // Fetch order fills via WebSocket + REST API for complete history
   // WebSocket provides instant updates, REST provides complete historical data
@@ -65,9 +69,11 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   // Transform fills to transactions and limit to 3
   // Note: marketFills is already filtered by symbol and sorted by the hook
   const trades = useMemo(() => {
-    const transactions = transformFillsToTransactions(marketFills);
+    const transactions = transformFillsToTransactions(marketFills, {
+      aggregate: aggregateFills,
+    });
     return transactions.slice(0, PERPS_CONSTANTS.RecentActivityLimit);
-  }, [marketFills]);
+  }, [marketFills, aggregateFills]);
 
   const handleSeeAll = useCallback(() => {
     // Navigate to Activity > Trades tab
@@ -170,6 +176,30 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
   const recentTradesTitle = strings('perps.market.recent_trades');
 
+  const renderSectionHeader = (isInteractive: boolean) => (
+    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+      <Box twClassName="flex-1">
+        {isInteractive ? (
+          <SectionHeader
+            title={recentTradesTitle}
+            isInteractive
+            onPress={handleSeeAll}
+            testID="see-all-button"
+          />
+        ) : (
+          <SectionHeader title={recentTradesTitle} />
+        )}
+      </Box>
+      <Box twClassName="pr-4">
+        <PerpsAggregatedFillsCheckbox
+          isSelected={aggregateFills}
+          onChange={setAggregateFills}
+          testID="perps-market-trades-aggregated-checkbox"
+        />
+      </Box>
+    </Box>
+  );
+
   const renderContent = () => {
     if (trades.length === 0) {
       return (
@@ -197,7 +227,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   if (isLoading) {
     return (
       <Box paddingBottom={3}>
-        <SectionHeader title={recentTradesTitle} />
+        {renderSectionHeader(false)}
         <PerpsRowSkeleton count={3} />
       </Box>
     );
@@ -205,12 +235,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
   return (
     <Box paddingBottom={3}>
-      <SectionHeader
-        title={recentTradesTitle}
-        isInteractive
-        onPress={handleSeeAll}
-        testID="see-all-button"
-      />
+      {renderSectionHeader(true)}
       {renderContent()}
     </Box>
   );
