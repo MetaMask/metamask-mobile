@@ -9,15 +9,21 @@ import {
   ACTIVITY_CV_ACCOUNT,
   ACTIVITY_CV_PERPS_ORDER_FEE,
   buildActivityCvPerpsCompletedDepositItem,
+  buildActivityCvPerpsCompletedDepositTransaction,
   buildActivityCvPerpsCompletedWithdrawalItem,
+  buildActivityCvPerpsCompletedWithdrawalTransaction,
   buildActivityCvPerpsFailedDepositItem,
+  buildActivityCvPerpsFailedDepositTransaction,
   buildActivityCvPerpsFundingItem,
+  buildActivityCvPerpsFundingTransaction,
   buildActivityCvPerpsOrderFill,
   buildActivityCvPerpsOrderItem,
   buildActivityCvPerpsOrderTransaction,
   buildActivityCvPerpsPayTransaction,
   buildActivityCvPerpsPendingDepositItem,
+  buildActivityCvPerpsPendingDepositTransaction,
   buildActivityCvPerpsTradeItem,
+  buildActivityCvPerpsTradeTransaction,
   initialStateActivityWithPerpsDetails,
 } from '../../../../tests/component-view/presets/activity';
 import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
@@ -27,6 +33,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { usePerpsActivityQuery } from './hooks/usePerpsActivityQuery';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import {
+  type PerpsTransaction,
   formatPerpsOrderFee,
   formatSignedPerpsFiat,
   formatPerpsTransactionDate,
@@ -89,8 +96,42 @@ const {
   DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
 
+const perpsTransactionRegistry = new Map<string, PerpsTransaction>(
+  ((): [string, PerpsTransaction][] => {
+    const pairs: [string, PerpsTransaction][] = [];
+    const register = (tx: PerpsTransaction) => {
+      const hash = tx.depositWithdrawal?.txHash ?? tx.id;
+      if (hash) pairs.push([hash, tx]);
+    };
+    register(buildActivityCvPerpsCompletedDepositTransaction());
+    register(buildActivityCvPerpsPendingDepositTransaction());
+    register(buildActivityCvPerpsFailedDepositTransaction());
+    register(buildActivityCvPerpsCompletedWithdrawalTransaction());
+    for (const kind of [
+      'openShort',
+      'openLong',
+      'closeShort',
+      'closeLong',
+    ] as const) {
+      register(buildActivityCvPerpsTradeTransaction(kind));
+    }
+    for (const kind of [
+      'marketCloseShort',
+      'stopMarketCloseShort',
+      'takeProfitCanceled',
+      'takeProfitFilled',
+    ] as const) {
+      register(buildActivityCvPerpsOrderTransaction(kind));
+    }
+    for (const kind of ['received', 'paid'] as const) {
+      register(buildActivityCvPerpsFundingTransaction(kind));
+    }
+    return pairs;
+  })(),
+);
+
 function getPerpsTransaction(item: ActivityListItem) {
-  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
+  return item.hash ? perpsTransactionRegistry.get(item.hash) : undefined;
 }
 
 function seedPerpsHistory(item: ActivityListItem) {
