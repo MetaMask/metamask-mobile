@@ -236,14 +236,6 @@ describe('BaseWalletAdapter', () => {
       expect(result.recommendedAction).toBe('add_card');
     });
 
-    it('keeps the PAN suffix lookup when a primary account identifier is passed', async () => {
-      mockGetCardStatusBySuffix.mockResolvedValue('not found');
-
-      await adapter.getEligibility('1234', '91ad6fea3b52ca58d60d7fd310f789ec');
-
-      expect(mockGetCardStatusBySuffix).toHaveBeenCalledWith('1234');
-    });
-
     it('returns none when card is active', async () => {
       mockGetCardStatusBySuffix.mockResolvedValue('active');
 

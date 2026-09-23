@@ -40,47 +40,53 @@ export function useCardWalletProvisioning(
     );
   }, [data?.account?.shippingAddress, walletProvisioning]);
 
-  const { initiateProvisioning, isProvisioning, isLoading, canAddToWallet } =
-    usePushProvisioning({
-      cardId: data?.card?.id,
-      walletProvisioning,
-      userAddress: userAddressForProvisioning,
-      onSuccess: () => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('card.push_provisioning.success_message', {
-                walletName: getWalletName(),
-              }),
-            },
-          ],
-          iconName: IconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          hasNoTimeout: false,
-        });
-      },
-      onError: (provisioningError: ProvisioningError) => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label:
-                provisioningError.message ||
-                strings('card.push_provisioning.error_unknown'),
-            },
-          ],
-          iconName: IconName.Danger,
-          iconColor: theme.colors.error.default,
-          hasNoTimeout: false,
-        });
-      },
-    });
+  const {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading,
+    canAddToWallet,
+    isCardInWallet,
+  } = usePushProvisioning({
+    cardId: data?.card?.id,
+    walletProvisioning,
+    userAddress: userAddressForProvisioning,
+    onSuccess: () => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.push_provisioning.success_message', {
+              walletName: getWalletName(),
+            }),
+          },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    onError: (provisioningError: ProvisioningError) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label:
+              provisioningError.message ||
+              strings('card.push_provisioning.error_unknown'),
+          },
+        ],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        hasNoTimeout: false,
+      });
+    },
+  });
 
   return {
     initiateProvisioning,
     isProvisioning,
     isLoading,
     canAddToWallet,
+    isCardInWallet,
   };
 }

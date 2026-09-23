@@ -112,6 +112,15 @@ const linkableCardHomeOverrides = {
   },
 } satisfies DeepPartial<RootState>;
 
+const provisionedCardHomeData = {
+  walletProvisioning: {
+    eligible: true,
+    cardholderName: 'Test User',
+    lastFour: '1234',
+    network: 'MASTERCARD',
+  },
+};
+
 describe('CardHome', () => {
   afterEach(() => {
     mockGetCapabilities.mockReturnValue(defaultCapabilities);
@@ -249,6 +258,31 @@ describe('CardHome', () => {
                   providerData: {
                     immersve: { location: 'international' },
                   },
+                },
+              },
+            },
+          },
+        });
+
+        expect(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      it('shows digital wallet instructions when the wallet does not report the card as provisioned', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          pushProvisioning: { applePay: true, googlePay: true },
+        });
+
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  cardHomeData: provisionedCardHomeData,
                 },
               },
             },

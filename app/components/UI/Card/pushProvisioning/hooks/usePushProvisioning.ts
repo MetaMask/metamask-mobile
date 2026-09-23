@@ -103,7 +103,6 @@ export function usePushProvisioning(
     useState(true);
 
   const lastFourDigits = walletProvisioning?.lastFour;
-  const primaryAccountIdentifier = walletProvisioning?.primaryAccountIdentifier;
 
   useEffect(() => {
     let isMounted = true;
@@ -124,10 +123,7 @@ export function usePushProvisioning(
       }
 
       try {
-        const result = await walletAdapter.getEligibility(
-          lastFourDigits,
-          primaryAccountIdentifier,
-        );
+        const result = await walletAdapter.getEligibility(lastFourDigits);
         if (isMounted) {
           setEligibility(result);
           setIsEligibilityCheckLoading(false);
@@ -149,7 +145,7 @@ export function usePushProvisioning(
     return () => {
       isMounted = false;
     };
-  }, [walletAdapter, lastFourDigits, primaryAccountIdentifier]);
+  }, [walletAdapter, lastFourDigits]);
 
   useEffect(() => {
     if (status !== 'success') {
@@ -164,10 +160,7 @@ export function usePushProvisioning(
       }
 
       try {
-        const result = await walletAdapter.getEligibility(
-          lastFourDigits,
-          primaryAccountIdentifier,
-        );
+        const result = await walletAdapter.getEligibility(lastFourDigits);
         if (isMounted) {
           setEligibility(result);
         }
@@ -187,7 +180,7 @@ export function usePushProvisioning(
     return () => {
       isMounted = false;
     };
-  }, [status, walletAdapter, lastFourDigits, primaryAccountIdentifier]);
+  }, [status, walletAdapter, lastFourDigits]);
 
   // Create service with adapters
   const service = useMemo(
@@ -456,6 +449,13 @@ export function usePushProvisioning(
     eligibility?.canAddCard === true &&
     status !== 'success';
 
+  const existingCardStatus = eligibility?.existingCardStatus;
+  const isCardInWallet =
+    status === 'success' ||
+    (existingCardStatus !== undefined &&
+      existingCardStatus !== 'not_found' &&
+      existingCardStatus !== 'requires_activation');
+
   return {
     status,
     error,
@@ -466,5 +466,6 @@ export function usePushProvisioning(
     isError: status === 'error',
     isLoading,
     canAddToWallet,
+    isCardInWallet,
   };
 }
