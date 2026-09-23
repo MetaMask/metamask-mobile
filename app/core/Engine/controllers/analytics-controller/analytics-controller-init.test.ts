@@ -17,6 +17,7 @@ import Logger from '../../../../util/Logger';
 import { syncBrazeEventBlocklist } from '../../../Braze';
 import { BRAZE_EVENT_BLOCKLIST_FLAG_KEY } from '../../../../selectors/featureFlagController/brazeEventBlocklist';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -125,16 +126,24 @@ function getAccountsSubscribeCallback(
 
 function getRemoteFeatureFlagSubscribeCallback(
   initMessengerMock: jest.Mocked<AnalyticsControllerInitMessenger>,
-): (state: { remoteFeatureFlags: Record<string, unknown> }) => void {
+): (state: RemoteFeatureFlagControllerState) => void {
   const subscribeCall = initMessengerMock.subscribe.mock.calls.find(
     ([event]) => event === 'RemoteFeatureFlagController:stateChange',
   );
   if (!subscribeCall) {
     throw new Error('RemoteFeatureFlagController subscribe not found');
   }
-  return subscribeCall[1] as (state: {
-    remoteFeatureFlags: Record<string, unknown>;
-  }) => void;
+  return subscribeCall[1] as (state: RemoteFeatureFlagControllerState) => void;
+}
+
+function buildRemoteFeatureFlagState(
+  remoteFeatureFlags: RemoteFeatureFlagControllerState['remoteFeatureFlags'] = {},
+): RemoteFeatureFlagControllerState {
+  return {
+    remoteFeatureFlags,
+    localOverrides: {},
+    cacheTimestamp: 0,
+  };
 }
 
 function buildMockAccounts(
@@ -237,11 +246,11 @@ describe('analyticsControllerInit', () => {
 
     it('syncs the current remote flag value on init', () => {
       const initMessenger = buildInitMessengerMock();
-      initMessenger.call.mockReturnValue({
-        remoteFeatureFlags: {
+      initMessenger.call.mockReturnValue(
+        buildRemoteFeatureFlagState({
           [BRAZE_EVENT_BLOCKLIST_FLAG_KEY]: flagValue,
-        },
-      });
+        }),
+      );
 
       analyticsControllerInit(getInitRequestMock({ initMessenger }));
 
@@ -268,11 +277,11 @@ describe('analyticsControllerInit', () => {
       mockSyncBrazeEventBlocklist.mockClear();
 
       const callback = getRemoteFeatureFlagSubscribeCallback(initMessenger);
-      callback({
-        remoteFeatureFlags: {
+      callback(
+        buildRemoteFeatureFlagState({
           [BRAZE_EVENT_BLOCKLIST_FLAG_KEY]: flagValue,
-        },
-      });
+        }),
+      );
 
       expect(mockSyncBrazeEventBlocklist).toHaveBeenCalledWith(flagValue);
     });
