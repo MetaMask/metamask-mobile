@@ -147,6 +147,8 @@ interface PriceRowProps {
   distance?: string;
   distanceDirection?: 'long' | 'short';
   testID?: string;
+  valueTestID?: string;
+  distanceTestID?: string;
 }
 
 const PriceRow: React.FC<PriceRowProps> = ({
@@ -155,6 +157,8 @@ const PriceRow: React.FC<PriceRowProps> = ({
   distance,
   distanceDirection,
   testID,
+  valueTestID,
+  distanceTestID,
 }) => (
   <Box
     accessible
@@ -175,7 +179,9 @@ const PriceRow: React.FC<PriceRowProps> = ({
       alignItems={BoxAlignItems.Center}
       gap={1}
     >
-      <Text variant={TextVariant.BodyMd}>{value}</Text>
+      <Text variant={TextVariant.BodyMd} testID={valueTestID}>
+        {value}
+      </Text>
       {distance ? (
         <>
           <Icon
@@ -188,7 +194,11 @@ const PriceRow: React.FC<PriceRowProps> = ({
             color={IconColor.IconAlternative}
             testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_TREND_ICON}
           />
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={distanceTestID}
+          >
             {distance}
           </Text>
         </>
@@ -609,6 +619,10 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
             distance={liquidationDistanceDisplay}
             distanceDirection={direction}
             testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_ROW}
+            valueTestID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+            distanceTestID={
+              PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+            }
           />
         </Box>
 

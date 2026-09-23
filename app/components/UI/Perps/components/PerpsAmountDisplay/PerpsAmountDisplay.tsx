@@ -21,13 +21,16 @@ import {
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
-import PerpsSwapIcon from '../PerpsSwapIcon';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -51,6 +54,12 @@ interface PerpsAmountDisplayProps {
   onDisplayToggle?: () => void;
   displayToggleAccessibilityLabel?: string;
   displayToggleTestID?: string;
+  /**
+   * Custom glyph for the `tradeSheet` fiat/token toggle. When omitted the
+   * toggle is the MMDS `ButtonIcon` with `IconName.SwapVertical`; callers
+   * whose design uses a glyph MMDS does not publish pass their own.
+   */
+  displayToggleIcon?: React.ReactNode;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -71,6 +80,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   onDisplayToggle,
   displayToggleAccessibilityLabel,
   displayToggleTestID,
+  displayToggleIcon,
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -197,9 +207,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
             >
               {secondaryDisplayValue}
             </Text>
-            {onDisplayToggle ? (
-              // Mirrors MMDS `ButtonIcon` (Sm, Filled) but draws the Figma
-              // swap glyph, which MMDS does not publish under IconName.
+            {onDisplayToggle && displayToggleIcon ? (
+              // Mirrors MMDS `ButtonIcon` (Sm, Filled) around a caller-supplied
+              // glyph that MMDS does not publish under IconName.
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={displayToggleAccessibilityLabel}
@@ -213,8 +223,18 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
                   )
                 }
               >
-                <PerpsSwapIcon direction="vertical" />
+                {displayToggleIcon}
               </Pressable>
+            ) : null}
+            {onDisplayToggle && !displayToggleIcon ? (
+              <ButtonIcon
+                iconName={IconName.SwapVertical}
+                size={ButtonIconSize.Sm}
+                variant={ButtonIconVariant.Filled}
+                accessibilityLabel={displayToggleAccessibilityLabel}
+                testID={displayToggleTestID}
+                onPress={onDisplayToggle}
+              />
             ) : null}
           </Box>
         ) : null}

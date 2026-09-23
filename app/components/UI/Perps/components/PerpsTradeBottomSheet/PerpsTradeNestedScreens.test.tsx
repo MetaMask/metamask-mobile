@@ -233,7 +233,12 @@ describe('PerpsTradeNestedScreens', () => {
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_ROW),
     ).toHaveAccessibleName('Liquidation price, $70, 30.00%');
-    expect(screen.getByText('30.00%')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+    ).toHaveTextContent('$70');
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE),
+    ).toHaveTextContent('30.00%');
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_TREND_ICON),
     ).toBeOnTheScreen();
@@ -247,6 +252,11 @@ describe('PerpsTradeNestedScreens', () => {
     expect(
       screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_ROW),
     ).toHaveAccessibleName('Liquidation price, --');
+    expect(
+      screen.queryByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_TREND_ICON),
     ).not.toBeOnTheScreen();

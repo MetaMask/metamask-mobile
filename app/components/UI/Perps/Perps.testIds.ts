@@ -384,6 +384,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   TAKE_PROFIT_ROE_SIGN_BADGE: 'perps-tpsl-tp-roe-sign-badge',
   STOP_LOSS_ROE_SIGN_BADGE: 'perps-tpsl-sl-roe-sign-badge',
   LIQUIDATION_PRICE_ROW: 'perps-tpsl-liquidation-price-row',
+  LIQUIDATION_PRICE_VALUE: 'perps-tpsl-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-tpsl-liquidation-distance-value',
   LIQUIDATION_TREND_ICON: 'perps-tpsl-liquidation-trend-icon',
 } as const;
 
@@ -1038,6 +1040,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   MARGIN_ROW: 'perps-trade-sheet-margin-row',
   LIQUIDATION_PRICE_ROW: 'perps-trade-sheet-liquidation-price-row',
   LIQUIDATION_PRICE_SKELETON: 'perps-trade-sheet-liquidation-price-skeleton',
+  LIQUIDATION_PRICE_VALUE: 'perps-trade-sheet-liquidation-price-value',
+  LIQUIDATION_DISTANCE_VALUE: 'perps-trade-sheet-liquidation-distance-value',
   LIQUIDATION_TREND_ICON: 'perps-trade-sheet-liquidation-trend-icon',
   INFO_SCREEN: 'perps-trade-sheet-info-screen',
   INFO_BACK_BUTTON: 'perps-trade-sheet-info-back-button',

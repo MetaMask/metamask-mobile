@@ -49,6 +49,7 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
+  usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderForm,
   usePerpsOrderValidation,
@@ -79,6 +80,7 @@ import {
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -625,12 +627,21 @@ jest.mock(
 
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
+let mockTradeWithAnyTokenEnabled = false;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn((selector) => {
+    // reselect selectors do not carry their export name in `toString()`, so
+    // match this one by identity.
+    const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
+      '../../selectors/featureFlags',
+    );
+    if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
+      return mockTradeWithAnyTokenEnabled;
+    }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
       selector.toString().includes('perpsAdvancedChart')
@@ -1291,6 +1302,13 @@ describe('PerpsOrderView', () => {
     mockMarginInfoScreenProps = undefined;
     mockLiquidationInfoScreenProps = undefined;
     mockTradeSheetContentSizedScreens = undefined;
+    mockTradeWithAnyTokenEnabled = false;
+    (useTransactionConfirm as jest.Mock).mockReturnValue({
+      onConfirm: jest.fn(),
+    });
+    (usePerpsOrderDepositTracking as jest.Mock).mockReturnValue({
+      handleDepositConfirm: jest.fn(),
+    });
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1917,64 +1935,229 @@ describe('PerpsOrderView', () => {
     );
   });
 
-  it('does not place an order if the Trade sheet is dismissed while validation is pending', async () => {
-    let resolveValidation: (result: {
+  describe('when the Trade sheet is dismissed while validation is pending', () => {
+    interface ValidationResult {
       isValid: boolean;
       errors: string[];
       warnings: string[];
       fieldIssues: never[];
-    }) => void = () => undefined;
-    const validateNow = jest.fn(
-      () =>
-        new Promise<{
-          isValid: boolean;
-          errors: string[];
-          warnings: string[];
-          fieldIssues: never[];
-        }>((resolve) => {
-          resolveValidation = resolve;
-        }),
-    );
-    (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+    }
+    const validResult: ValidationResult = {
       isValid: true,
       errors: [],
       warnings: [],
       fieldIssues: [],
-      isValidating: true,
-      insufficientBalanceErrors: [],
-      validateNow,
-    });
-    const placeOrder = jest.fn().mockResolvedValue({ success: true });
-    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-      placeOrder,
-      isPlacing: false,
-      error: undefined,
-    });
-    useTradeSheetRoute();
-    const { unmount } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    };
 
-    let submission: void | Promise<void>;
-    act(() => {
-      submission = getMockTradeScreenProps().onSubmit();
-    });
-    expect(validateNow).toHaveBeenCalledTimes(1);
-
-    unmount();
-    await act(async () => {
-      resolveValidation({
-        isValid: true,
-        errors: [],
-        warnings: [],
-        fieldIssues: [],
+    const arrangePendingValidation = () => {
+      let resolveValidation: (result: ValidationResult) => void = () =>
+        undefined;
+      const validateNow = jest.fn(
+        () =>
+          new Promise<ValidationResult>((resolve) => {
+            resolveValidation = resolve;
+          }),
+      );
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        ...validResult,
+        isValidating: true,
+        insufficientBalanceErrors: [],
+        validateNow,
       });
-      await submission;
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+        error: undefined,
+      });
+      useTradeSheetRoute();
+      const rendered = render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      let submission: void | Promise<void>;
+      act(() => {
+        submission = getMockTradeScreenProps().onSubmit();
+      });
+      expect(validateNow).toHaveBeenCalledTimes(1);
+
+      const settleValidation = () =>
+        act(async () => {
+          resolveValidation(validResult);
+          await submission;
+        });
+
+      return { ...rendered, placeOrder, settleValidation };
+    };
+
+    const expectNoOrder = (placeOrder: jest.Mock) => {
+      expect(placeOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({ screen: Routes.PERPS.MARKET_DETAILS }),
+      );
+    };
+
+    // Swiping the sheet away runs its exit animation and `onClose` before the
+    // navigation transition unmounts this view, so the dismissal itself must
+    // stop the pending submit — not only the eventual unmount.
+    it('does not place an order once the sheet reported it closed, even before unmount', async () => {
+      const { placeOrder, settleValidation } = arrangePendingValidation();
+
+      act(() => {
+        mockTradeSheetOnClose?.();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await settleValidation();
+
+      expectNoOrder(placeOrder);
     });
 
-    expect(placeOrder).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.ROOT,
-      expect.objectContaining({ screen: Routes.PERPS.MARKET_DETAILS }),
-    );
+    it('does not place an order once the view unmounted', async () => {
+      const { placeOrder, settleValidation, unmount } =
+        arrangePendingValidation();
+
+      unmount();
+      await settleValidation();
+
+      expectNoOrder(placeOrder);
+    });
+  });
+
+  describe('pay-with-token deposit confirmation lock', () => {
+    const transactionMeta = {
+      id: 'test-transaction-id',
+      type: 'perpsDepositAndOrder',
+    };
+
+    const arrangeDepositFlow = () => {
+      mockTradeWithAnyTokenEnabled = true;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      const { useTransactionMetadataRequest } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+      ) as { useTransactionMetadataRequest: jest.Mock };
+      useTransactionMetadataRequest.mockReturnValue(transactionMeta);
+
+      let resolveConfirm: () => void = () => undefined;
+      let confirmOptions: { onError?: (error: unknown) => void } | undefined;
+      const onConfirm = jest.fn(
+        (options?: { onError?: (error: unknown) => void }) =>
+          new Promise<void>((resolve) => {
+            confirmOptions = options;
+            resolveConfirm = resolve;
+          }),
+      );
+      (useTransactionConfirm as jest.Mock).mockReturnValue({ onConfirm });
+
+      let onDepositConfirmed: (() => void) | undefined;
+      const handleDepositConfirm = jest.fn(
+        (_meta: unknown, callback: () => void) => {
+          onDepositConfirmed = callback;
+        },
+      );
+      (usePerpsOrderDepositTracking as jest.Mock).mockReturnValue({
+        handleDepositConfirm,
+      });
+
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+        error: undefined,
+      });
+
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const submit = () =>
+        act(async () => {
+          getMockTradeScreenProps().onSubmit();
+          await Promise.resolve();
+        });
+      const settleConfirm = (error?: unknown) =>
+        act(async () => {
+          if (error !== undefined) {
+            confirmOptions?.onError?.(error);
+          }
+          resolveConfirm();
+          await Promise.resolve();
+        });
+      const confirmDepositOnChain = () =>
+        act(async () => {
+          onDepositConfirmed?.();
+          await Promise.resolve();
+        });
+
+      return {
+        onConfirm,
+        handleDepositConfirm,
+        placeOrder,
+        submit,
+        settleConfirm,
+        confirmDepositOnChain,
+      };
+    };
+
+    it('starts a single deposit confirmation when submit is tapped twice while it is pending', async () => {
+      const { onConfirm, handleDepositConfirm, placeOrder, submit } =
+        arrangeDepositFlow();
+
+      await submit();
+      await submit();
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+      expect(handleDepositConfirm).toHaveBeenCalledTimes(1);
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('releases the lock after a failed confirmation so the trader can retry', async () => {
+      const { onConfirm, submit, settleConfirm } = arrangeDepositFlow();
+
+      await submit();
+      await settleConfirm(new Error('User rejected'));
+      expect(mockGoBack).not.toHaveBeenCalled();
+
+      await submit();
+
+      expect(onConfirm).toHaveBeenCalledTimes(2);
+    });
+
+    it('leaves the sheet after a confirmed deposit and releases the lock', async () => {
+      const { onConfirm, submit, settleConfirm } = arrangeDepositFlow();
+
+      await submit();
+      await settleConfirm();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      await submit();
+
+      expect(onConfirm).toHaveBeenCalledTimes(2);
+    });
+
+    // With `waitForResult` confirmations the transaction-confirmed event fires
+    // while `onConfirm` is still awaited, so the tracker's forced re-entry must
+    // not be treated as a double tap.
+    it('still places the order when the deposit confirms while the confirmation is awaited', async () => {
+      const { placeOrder, submit, settleConfirm, confirmDepositOnChain } =
+        arrangeDepositFlow();
+
+      await submit();
+      await confirmDepositOnChain();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          pop: true,
+        }),
+      );
+
+      await settleConfirm();
+
+      // The forced re-entry already left the sheet; the deposit branch must
+      // not pop the market screen it landed on.
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
   });
 
   it('passes validation, payment and TP/SL errors to the Trade sheet and leaves execution errors to the toast', () => {

@@ -364,16 +364,32 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
-  // Lets `handlePlaceOrder` bail after an `await` if the user dismissed the
-  // screen (e.g. swiped the Trade sheet away) while validation was in flight,
-  // instead of placing an order the user can no longer see.
-  const isUnmountedRef = useRef(false);
-  useEffect(
-    () => () => {
-      isUnmountedRef.current = true;
-    },
-    [],
-  );
+  // Held only while the pay-with-token deposit confirmation is awaited, so a
+  // second tap cannot start a parallel confirmation. It is separate from
+  // `isSubmittingRef` because the deposit tracker re-enters
+  // `handlePlaceOrder(true)` from the transaction-confirmed event, which can
+  // fire while that await is still pending (`waitForResult` confirmations);
+  // that programmatic re-entry must place the order, not be treated as a
+  // double tap.
+  const isConfirmingDepositRef = useRef(false);
+  // Set by that forced re-entry once it has placed the order and navigated
+  // away, so the deposit branch does not navigate a second time when its own
+  // await settles.
+  const hasPlacedOrderAfterDepositRef = useRef(false);
+  // Set once the Trade sheet has been dismissed (`handleTradeSheetClose`) or
+  // the view unmounts, so `handlePlaceOrder` can bail after an `await` (e.g.
+  // validation still in flight) instead of placing an order the user can no
+  // longer see. The sheet's exit animation and `navigation.goBack()` run
+  // before the unmount, so an unmount-only flag would miss a validation that
+  // settles in that window. Reset in the effect body so a Fast Refresh effect
+  // re-run does not leave it stuck at `true`.
+  const isDismissedRef = useRef(false);
+  useEffect(() => {
+    isDismissedRef.current = false;
+    return () => {
+      isDismissedRef.current = true;
+    };
+  }, []);
   const inputMethodRef = useRef<InputMethod>('default');
   const tradeSheetLimitPriceInputMethodRef = useRef<string | null>(null);
   const tradeSheetPayTokenIdentityRef = useRef<string | null>(null);
@@ -1544,7 +1560,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
-      if (isSubmittingRef.current) {
+      if (
+        isSubmittingRef.current ||
+        (!forceTrade && isConfirmingDepositRef.current)
+      ) {
         return;
       }
 
@@ -1614,7 +1633,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         } finally {
           isSubmittingRef.current = false;
         }
-        if (isUnmountedRef.current) {
+        if (isDismissedRef.current) {
           return;
         }
       }
@@ -1664,9 +1683,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
         // useTransactionConfirm swallows confirm errors and reports them via
         // onError, so capture failure explicitly instead of assuming success.
-        // Hold the submission lock across the await so a second tap cannot
-        // start a parallel deposit confirmation.
-        isSubmittingRef.current = true;
+        // Hold the deposit lock across the await so a second tap cannot start
+        // a parallel deposit confirmation.
+        isConfirmingDepositRef.current = true;
         let depositConfirmError: unknown;
         try {
           await onDepositConfirm({
@@ -1675,12 +1694,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             },
           });
         } finally {
-          isSubmittingRef.current = false;
+          isConfirmingDepositRef.current = false;
         }
         if (depositConfirmError) {
           // A cancelled/failed deposit confirmation is not a commitment: keep
           // abandon tracking armed and stay on the screen so the user can retry
           // (leaving later then correctly counts as an abandon).
+          return;
+        }
+        if (hasPlacedOrderAfterDepositRef.current) {
+          // The deposit confirmed while this await was still pending and the
+          // tracker already re-entered `handlePlaceOrder(true)`, which placed
+          // the order and navigated away; a second navigation here would pop
+          // the market screen it just landed on.
           return;
         }
         // Deposit confirmed: the order is placed once funds arrive, so leaving
@@ -1754,6 +1780,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Monitoring both ensures we route to the correct tab regardless of execution speed
         // Real placement is underway; leaving now is not an abandon.
         hasPlacedOrderRef.current = true;
+        if (forceTrade) {
+          hasPlacedOrderAfterDepositRef.current = true;
+        }
 
         // Both the full-screen form and the Trade sheet leave as soon as the
         // order is submitted; the "submitted" / "confirmed" / "failed" toasts
@@ -2144,6 +2173,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const handleTradeSheetClose = useCallback(() => {
+    // The sheet is gone from the user's point of view even though this view
+    // stays mounted until the navigation transition finishes; stop any submit
+    // that is still awaiting validation from placing an order.
+    isDismissedRef.current = true;
     if (fromTokenDetails) {
       const parentNavigation = navigation.getParent();
       if (parentNavigation?.canGoBack()) {

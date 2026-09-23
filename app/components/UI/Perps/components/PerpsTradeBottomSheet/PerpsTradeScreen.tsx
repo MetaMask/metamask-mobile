@@ -402,6 +402,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 : 'perps.trade_sheet.show_asset_value',
             )}
             displayToggleTestID={PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE}
+            // Figma uses the Material swap glyph here, which MMDS does not
+            // publish; other Trade-sheet-style callers keep the MMDS icon.
+            displayToggleIcon={<PerpsSwapIcon direction="vertical" />}
             isActive={isInputFocused}
             isLoading={isAmountLoading}
             hasError={hasAmountError}
@@ -642,6 +645,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                         <Text
                           variant={TextVariant.BodyMd}
                           fontWeight={FontWeight.Medium}
+                          testID={
+                            PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE
+                          }
                         >
                           {liquidationPrice}
                         </Text>
@@ -662,6 +668,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                             <Text
                               variant={TextVariant.BodyMd}
                               color={TextColor.TextAlternative}
+                              testID={
+                                PerpsTradeSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                              }
                             >
                               {liquidationDistance}
                             </Text>

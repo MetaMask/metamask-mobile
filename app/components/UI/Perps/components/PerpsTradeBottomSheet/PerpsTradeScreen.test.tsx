@@ -229,8 +229,16 @@ describe('PerpsTradeScreen errors', () => {
       />,
     );
 
-    expect(screen.getByText('$68.29')).toBeOnTheScreen();
-    expect(screen.getByText('30.05%')).toBeOnTheScreen();
+    // Value IDs let device recipes read the numbers without parsing the row's
+    // accessibility label.
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+    ).toHaveTextContent('$68.29');
+    expect(
+      screen.getByTestId(
+        PerpsTradeSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).toHaveTextContent('30.05%');
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON),
     ).toBeOnTheScreen();
@@ -250,10 +258,30 @@ describe('PerpsTradeScreen errors', () => {
       />,
     );
 
-    expect(screen.getByText('--')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+    ).toHaveTextContent('--');
+    expect(
+      screen.queryByTestId(
+        PerpsTradeSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('draws the Figma swap glyph in the fiat/token toggle', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    const toggle = screen.getByTestId(
+      PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE,
+    );
+
+    expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
   });
 
   it('never shows a slippage row in the Trade sheet', () => {
