@@ -81,6 +81,15 @@ export function isValidPriceRange(min: string, max: string): boolean {
   );
 }
 
+export function isInvertedPriceRange(min: string, max: string): boolean {
+  const parsedMin = parsePriceInput(min);
+  const parsedMax = parsePriceInput(max);
+
+  return (
+    parsedMin !== undefined && parsedMax !== undefined && parsedMin >= parsedMax
+  );
+}
+
 export function matchingPricePercent(
   value: string,
   currentPrice: number | undefined,
