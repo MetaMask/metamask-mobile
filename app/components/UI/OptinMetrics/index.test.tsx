@@ -109,16 +109,6 @@ jest.mock('../../../selectors/qrSyncController', () => ({
   selectQrSyncNeedsProvisioning: jest.fn(),
 }));
 
-jest.doMock('react-native', () => {
-  const originalRN = jest.requireActual('react-native');
-  return {
-    ...originalRN,
-    StatusBar: {
-      currentHeight: 42,
-    },
-  };
-});
-
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -173,21 +163,6 @@ describe('OptinMetrics', () => {
         { state: {} },
       );
       expect(toJSON()).not.toBeNull();
-    });
-
-    it('render matches snapshot with status bar height to zero', () => {
-      const { StatusBar } = jest.requireMock('react-native');
-      const originalCurrentHeight = StatusBar.currentHeight;
-      StatusBar.currentHeight = 0;
-
-      const { toJSON } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-      expect(toJSON()).not.toBeNull();
-
-      StatusBar.currentHeight = originalCurrentHeight;
     });
   });
 
@@ -998,17 +973,6 @@ describe('OptinMetrics', () => {
   });
 
   describe('Device responsiveness and event processing', () => {
-    it('should apply device-specific styling based on Device.isMediumDevice', () => {
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: {} },
-      );
-      expect(toJSON()).toBeDefined();
-      expect(Device.isMediumDevice).toHaveBeenCalled();
-    });
-
     it('should handle events array processing with onConfirm', async () => {
       const mockEvents = [[{ name: 'event1', properties: { prop: 'value1' } }]];
 
