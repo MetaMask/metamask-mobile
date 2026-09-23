@@ -41,6 +41,7 @@ import {
   usePerpsLiveOrderBook,
   type OrderBookLevel,
 } from '../../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGrouping';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsOrderBookPreferences } from '../../../hooks/usePerpsOrderBookPreferences';
@@ -49,7 +50,7 @@ import {
   type PerpsProOrderBookPosition,
 } from '../../../hooks/usePerpsProOrderBookPosition';
 import {
-  formatPerpsFiat,
+  formatProPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import {
@@ -129,6 +130,7 @@ interface OrderBookRowProps {
   depthBarColor: string;
   szDecimals?: number;
   priceFormat: OrderBookPriceFormat | null;
+  locale: string;
   onSelectPrice?: (price: string) => void;
   /** Side the order-book column is pinned to; mirrors the row when 'left'. */
   layout: PerpsProOrderBookPosition;
@@ -144,6 +146,7 @@ const OrderBookRow = ({
   depthBarColor,
   szDecimals,
   priceFormat,
+  locale,
   onSelectPrice,
   layout,
   testID,
@@ -166,7 +169,7 @@ const OrderBookRow = ({
     width: `${depthWidthSv.value}%`,
   }));
 
-  const priceLabel = formatOrderBookPrice(level.price, priceFormat);
+  const priceLabel = formatOrderBookPrice(level.price, priceFormat, locale);
 
   const priceCell = (
     <Text
@@ -195,7 +198,7 @@ const OrderBookRow = ({
       }
       testID={`${testID}-value`}
     >
-      {formatColumnValue(level, currency, metric, szDecimals)}
+      {formatColumnValue(level, currency, metric, szDecimals, locale)}
     </Text>
   );
   const cells = isMirrored ? [valueCell, priceCell] : [priceCell, valueCell];
@@ -431,6 +434,7 @@ const PerpsProOrderBookPanel = ({
 }: PerpsProOrderBookPanelProps) => {
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
+  const locale = usePerpsLocale();
   const { colors } = useTheme();
   const { playSelection } = useHaptics();
   const buyColor = colors.success.default;
@@ -640,10 +644,12 @@ const PerpsProOrderBookPanel = ({
     if (!Number.isFinite(spread) || !Number.isFinite(spreadPercent)) {
       return null;
     }
-    return `${formatPerpsFiat(spread, {
-      ranges: PRICE_RANGES_UNIVERSAL,
-    })} (${formatSpreadPercent(spreadPercent)})`;
-  }, [rawOrderBook, rawOrderBookSymbol, symbol]);
+    return `${formatProPerpsFiat(
+      spread,
+      { ranges: PRICE_RANGES_UNIVERSAL },
+      locale,
+    )} (${formatSpreadPercent(spreadPercent)})`;
+  }, [locale, rawOrderBook, rawOrderBookSymbol, symbol]);
 
   const handleApplyConfig = useCallback(
     (next: {
@@ -889,6 +895,7 @@ const PerpsProOrderBookPanel = ({
                   priceFormat={priceFormat}
                   onSelectPrice={rowSelectPrice}
                   layout={orderBookPosition}
+                  locale={locale}
                   testID={`${testID}-ask-row-${index}`}
                 />
               ))}
@@ -937,6 +944,7 @@ const PerpsProOrderBookPanel = ({
                   priceFormat={priceFormat}
                   onSelectPrice={rowSelectPrice}
                   layout={orderBookPosition}
+                  locale={locale}
                   testID={`${testID}-bid-row-${index}`}
                 />
               ))}

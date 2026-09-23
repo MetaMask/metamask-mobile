@@ -14,12 +14,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
+import {
+  formatPerpsInput,
+  normalizePerpsNumericInput,
+} from '../../../../utils/formatUtils';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import type {
   PerpsProSizeDenomination,
@@ -72,8 +77,13 @@ const PerpsProSizeInput = ({
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
+  const locale = usePerpsLocale();
   const internalInputRef = useRef<TextInput>(null);
   const inputRef = externalInputRef ?? internalInputRef;
+  const [isFocused, setIsFocused] = useState(false);
+  const [displayValue, setDisplayValue] = useState(() =>
+    formatPerpsInput(value, locale),
+  );
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
@@ -106,23 +116,38 @@ const PerpsProSizeInput = ({
   const handleChangeText = useCallback(
     (nextValue: string) => {
       if (!isDisabled) {
-        onChangeText(nextValue);
+        setDisplayValue(nextValue);
+        onChangeText(normalizePerpsNumericInput(nextValue, locale));
       }
     },
-    [isDisabled, onChangeText],
+    [isDisabled, locale, onChangeText],
   );
 
   const handleFocus = useCallback(() => {
     if (!isDisabled) {
+      setIsFocused(true);
       onFocus?.();
     }
   }, [isDisabled, onFocus]);
 
   const handleBlur = useCallback(() => {
     if (!isDisabled) {
+      const canonicalValue = normalizePerpsNumericInput(displayValue, locale);
+      setIsFocused(false);
+      setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
+
+      if (canonicalValue !== value) {
+        onChangeText(canonicalValue);
+      }
     }
-  }, [isDisabled, onBlur]);
+  }, [displayValue, isDisabled, locale, onBlur, onChangeText, value]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setDisplayValue(formatPerpsInput(value, locale));
+    }
+  }, [isFocused, locale, value]);
 
   const handleFieldPress = useCallback(() => {
     if (!isDisabled) {
@@ -204,7 +229,7 @@ const PerpsProSizeInput = ({
             ) : null}
             <Input
               ref={inputRef}
-              value={value}
+              value={displayValue}
               onChangeText={handleChangeText}
               onFocus={handleFocus}
               onBlur={handleBlur}
