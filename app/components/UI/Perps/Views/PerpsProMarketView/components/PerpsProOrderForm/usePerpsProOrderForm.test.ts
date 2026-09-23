@@ -9,6 +9,7 @@ import {
   computeScalePriceLadder,
   formatHyperLiquidPrice,
   type PerpsMarketData,
+  type OrderResult,
   type PerpsProviderType,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
@@ -80,7 +81,7 @@ let mockComplianceActionDuringRender: (() => void) | undefined;
 let mockIsEligible = true;
 
 let mockExecutionOptions: {
-  onSuccess?: (position?: unknown) => void;
+  onSuccess?: (position?: unknown, result?: OrderResult) => void;
   onError?: (error: unknown) => void;
 } = {};
 
@@ -3575,6 +3576,19 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('execution toasts', () => {
+    it('shows the accepted size when the provider rounds the requested size', () => {
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.(undefined, {
+          success: true,
+          orderId: 'rounded-lighter-order',
+          submittedSize: '0.00013',
+        });
+      });
+
+      expect(confirmed).toHaveBeenCalledWith('long', '0.00013', 'BTC');
+    });
     it('shows the confirmed toast on success', () => {
       // Arrange
       renderProForm();

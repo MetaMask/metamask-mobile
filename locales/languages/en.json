@@ -12012,10 +12012,13 @@
       "stay_question_placeholder": "Describe what would have made you stay",
       "keep_membership": "Keep membership",
       "cancel": "Cancel",
+      "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
+      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
       "success": {
         "title": "Plan canceled",
         "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
         "description_suffix": ".",
+        "immediate_description": "Your Pro plan was canceled successfully and your benefits have ended.",
         "done": "Done"
       }
     }
