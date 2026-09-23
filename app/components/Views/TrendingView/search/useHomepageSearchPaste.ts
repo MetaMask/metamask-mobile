@@ -1,5 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { useABTest } from '../../../../hooks/useABTest';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { trackHomepageSearchPaste } from '../../../../util/analytics/homepageSearchPasteTracking';
@@ -12,6 +13,7 @@ import {
 interface UseHomepageSearchPasteOptions {
   enabled: boolean;
   onPaste: (query: string, origin?: SearchOrigin) => void;
+  initiallyAvailable?: boolean;
 }
 
 export interface SearchOrigin {
@@ -22,6 +24,7 @@ export interface SearchOrigin {
 }
 
 const consumedClipboardRevisions = new Set<number>();
+const consumedClipboardListeners = new Set<() => void>();
 
 export const isNewHomepageClipboardRevision = (
   hasClipboardString: boolean,
@@ -32,15 +35,18 @@ export const isNewHomepageClipboardRevision = (
 export const useHomepageSearchPaste = ({
   enabled,
   onPaste,
+  initiallyAvailable = false,
 }: UseHomepageSearchPasteOptions) => {
   const { variant } = useABTest(
     HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY,
     HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS,
     HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isTreatment = __DEV__ || variant.showPastePill;
+  const isTreatment =
+    (process.env.NODE_ENV !== 'test' && __DEV__) || variant.showPastePill;
+  const previousAppState = useRef(AppState.currentState);
   const [clipboardContentAvailable, setClipboardContentAvailable] =
-    useState(false);
+    useState(initiallyAvailable);
 
   const refreshClipboardAvailability = useCallback(async () => {
     if (!enabled || !isTreatment) {
@@ -72,13 +78,40 @@ export const useHomepageSearchPaste = ({
       return;
     }
 
+    const handleClipboardConsumed = () => {
+      setClipboardContentAvailable(false);
+    };
+    consumedClipboardListeners.add(handleClipboardConsumed);
     const subscription = ClipboardManager.addListener(() => {
       consumedClipboardRevisions.clear();
       refreshClipboardAvailability();
     });
 
     return () => {
+      consumedClipboardListeners.delete(handleClipboardConsumed);
       subscription?.remove?.();
+    };
+  }, [enabled, refreshClipboardAvailability]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      const returnedToForeground =
+        previousAppState.current !== 'active' && nextAppState === 'active';
+      previousAppState.current = nextAppState;
+
+      if (returnedToForeground) {
+        consumedClipboardRevisions.clear();
+        setClipboardContentAvailable(false);
+        refreshClipboardAvailability();
+      }
+    });
+
+    return () => {
+      subscription.remove();
     };
   }, [enabled, refreshClipboardAvailability]);
 
@@ -96,6 +129,7 @@ export const useHomepageSearchPaste = ({
 
         consumedClipboardRevisions.add(ClipboardManager.getRevision());
         setClipboardContentAvailable(false);
+        consumedClipboardListeners.forEach((listener) => listener());
         trackHomepageSearchPaste(clipboardContent);
         onPaste(clipboardContent, origin);
       } catch {

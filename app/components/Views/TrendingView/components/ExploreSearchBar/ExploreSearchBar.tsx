@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, type TextInput } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   Box,
   BoxFlexDirection,
@@ -179,15 +179,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
         justifyContent={BoxJustifyContent.Center}
         twClassName="h-8"
       >
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonBaseSize.Sm}
-          twClassName="h-8 w-20"
-          onPress={props.onPastePress}
-          testID={props.pasteButtonTestID ?? 'explore-search-paste-button'}
-        >
-          {strings('send.paste')}
-        </Button>
+        <Animated.View entering={FadeInDown.duration(180)}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonBaseSize.Sm}
+            twClassName="h-8 w-20"
+            onPress={props.onPastePress}
+            testID={props.pasteButtonTestID ?? 'explore-search-paste-button'}
+          >
+            {strings('send.paste')}
+          </Button>
+        </Animated.View>
       </Box>
     ) : null;
 

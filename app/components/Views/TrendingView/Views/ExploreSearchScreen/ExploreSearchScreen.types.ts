@@ -12,6 +12,8 @@ export interface ExploreSearchRouteParams {
     width: number;
     height: number;
   };
+  /** Keeps the homepage Paste pill visible during the initial handoff. */
+  pastePillVisible?: boolean;
 }
 
 export const getTrimmedInitialQuery = (initialQuery: unknown): string =>

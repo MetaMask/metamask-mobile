@@ -387,6 +387,7 @@ const ExploreSearchScreen: React.FC = () => {
   );
   const { showPastePill, handlePastePress } = useHomepageSearchPaste({
     enabled: isHomepageSearch,
+    initiallyAvailable: routeParams?.pastePillVisible,
     onPaste: setSearchQuery,
   });
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results

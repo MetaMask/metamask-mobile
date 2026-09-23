@@ -900,7 +900,11 @@ const Wallet = ({
   });
 
   const handleSearchPress = useCallback(
-    (initialQuery?: string, searchOrigin?: SearchOrigin) => {
+    (
+      initialQuery?: string,
+      searchOrigin?: SearchOrigin,
+      pastePillVisible?: boolean,
+    ) => {
       if (!isSearchHeaderEnabled) {
         trackExploreSearchOpened('home');
         navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -911,6 +915,7 @@ const Wallet = ({
         entryPoint: 'home',
         ...(initialQuery ? { initialQuery } : {}),
         ...(searchOrigin ? { searchOrigin } : {}),
+        ...(pastePillVisible ? { pastePillVisible } : {}),
       });
     },
     [isSearchHeaderEnabled, navigation],
