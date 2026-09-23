@@ -2,18 +2,13 @@ import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 
 /**
- * Whether the Ledger DMK stack is enabled, read fresh from the merged feature
- * flags. Pure — no caching; callers pass the current flag state.
+ * Whether the Ledger DMK stack is enabled for the given merged feature flags.
+ * Pure — no caching.
  *
- * Resolution: `LEDGER_FORCE_DMK=true` env var (build-time override) takes
- * precedence; otherwise the `ledgerDmk` flag is resolved — a boolean value is
- * used directly (dev-tool override), otherwise the version-gated remote flag is
- * evaluated via `validatedVersionGatedFeatureFlag`. Defaults to `false`. Mirrors
- * the `selectLedgerDmkEnabled` Redux selector.
- *
- * Both the keyring (at engine init, reading persisted state) and the adapter
- * factory (in `useAdapterLifecycle`, reading live state) call this, so they
- * agree as long as the flag is stable across the two reads.
+ * Resolution: `LEDGER_FORCE_DMK=true` (build-time env) wins; otherwise a
+ * boolean `ledgerDmk` flag is used directly and a version-gated flag is
+ * evaluated via `validatedVersionGatedFeatureFlag`. Defaults to `false`.
+ * Mirrors the `selectLedgerDmkEnabled` Redux selector.
  */
 export const isDmkEnabled = (
   flags: Record<string, unknown> | null | undefined = {},
@@ -24,4 +19,40 @@ export const isDmkEnabled = (
   return typeof raw === 'boolean'
     ? raw
     : (validatedVersionGatedFeatureFlag(raw) ?? false);
+};
+
+/**
+ * Module-level singleton for the Ledger DMK mode. Engine initializes it
+ * before constructing the keyring; adapter creation reads the same value.
+ * `undefined` until initialization.
+ */
+let ledgerDmkEnabled: boolean | undefined;
+
+/**
+ * Seed the process mode from merged persisted feature flags (remote flags
+ * overlaid by local overrides; `LEDGER_FORCE_DMK` is honored). Only Engine
+ * initialization should call this; tests call it with `{}` to reset.
+ *
+ * @param flags - Merged persisted feature flags.
+ * @returns Whether the DMK stack is active.
+ */
+export const initializeLedgerDmkMode = (
+  flags: Record<string, unknown> | null | undefined,
+): boolean => {
+  ledgerDmkEnabled = isDmkEnabled(flags);
+  return ledgerDmkEnabled;
+};
+
+/**
+ * Read the mode seeded at Engine initialization.
+ *
+ * @throws If read before initialization — no silent fallback, since guessing
+ * could put the keyring and adapter on different Ledger stacks.
+ * @returns Whether the DMK stack is active.
+ */
+export const getLedgerDmkMode = (): boolean => {
+  if (ledgerDmkEnabled === undefined) {
+    throw new Error('Ledger DMK mode accessed before Engine initialization');
+  }
+  return ledgerDmkEnabled;
 };

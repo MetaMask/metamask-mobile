@@ -8,6 +8,11 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
+import {
+  getLedgerDmkMode,
+  initializeLedgerDmkMode,
+} from '../../Ledger/dmk';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
 jest.mock('@metamask/wallet', () => ({
@@ -75,6 +80,7 @@ describe('initializeWallet', () => {
   const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
   beforeEach(() => {
     jest.clearAllMocks();
+    initializeLedgerDmkMode({});
   });
 
   it('constructs a Wallet, wiring each builder output to its instanceOptions slot', () => {
@@ -138,5 +144,58 @@ describe('initializeWallet', () => {
       jest.mocked(Wallet).mock.invocationCallOrder[0];
 
     expect(setupListenersCallOrder).toBeLessThan(walletConstructorCallOrder);
+  });
+
+  it('seeds the process-lifetime Ledger transport mode from the persisted ledgerDmk flag and threads it to the keyring builders', () => {
+    const stateWithDmkEnabled = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: true },
+      },
+    };
+
+    initializeWallet({ messenger, state: stateWithDmkEnabled });
+
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      true,
+    );
+    // Adapter creation reads this same value.
+    expect(getLedgerDmkMode()).toBe(true);
+  });
+
+  it('lets localOverrides win over remoteFeatureFlags when seeding the Ledger transport mode', () => {
+    const stateWithConflictingFlags = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: true },
+        localOverrides: { [FeatureFlagNames.ledgerDmk]: false },
+      },
+    };
+
+    initializeWallet({ messenger, state: stateWithConflictingFlags });
+
+    expect(getLedgerDmkMode()).toBe(false);
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      false,
+    );
+  });
+
+  it('re-seeds the Ledger transport mode from fresh persisted state on a subsequent Engine initialization', () => {
+    const stateWithDmkEnabled = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: true },
+      },
+    };
+    const stateWithDmkDisabled = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: false },
+      },
+    };
+
+    initializeWallet({ messenger, state: stateWithDmkEnabled });
+    expect(getLedgerDmkMode()).toBe(true);
+
+    initializeWallet({ messenger, state: stateWithDmkDisabled });
+    expect(getLedgerDmkMode()).toBe(false);
   });
 });

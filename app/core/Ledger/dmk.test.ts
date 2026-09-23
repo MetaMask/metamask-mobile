@@ -1,4 +1,4 @@
-import { isDmkEnabled } from './dmk';
+import { getLedgerDmkMode, isDmkEnabled } from './dmk';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 
@@ -56,4 +56,14 @@ describe('isDmkEnabled', () => {
 
   // LEDGER_FORCE_DMK is inlined by babel-plugin-transform-inline-environment-variables
   // at compile time, so its true branch cannot be exercised via runtime env mutation.
+});
+
+describe('getLedgerDmkMode', () => {
+  it('throws before Engine initialization has seeded the mode', () => {
+    // Never seeded in this file: reading must fail loudly instead of
+    // silently guessing a stack.
+    expect(() => getLedgerDmkMode()).toThrow(
+      'Ledger DMK mode accessed before Engine initialization',
+    );
+  });
 });
