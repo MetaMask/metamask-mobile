@@ -9,6 +9,7 @@ import {
   type SortDirection,
   type SortOptionId,
   type MarketTypeFilter,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
@@ -25,6 +26,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
+  PerpsOutreachDetails: undefined;
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;
@@ -58,6 +60,7 @@ export type PerpsClosePositionModalsNavigationParamList = {
 export type PerpsOrderRouteParams = {
   direction: 'long' | 'short';
   asset: string;
+  providerId?: PerpsProviderType;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
   leverage?: number;
@@ -85,6 +88,7 @@ export type PerpsOrderRouteParams = {
 export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: PerpsOrderRouteParams;
+  PerpsBalanceOrder: PerpsOrderRouteParams;
 
   PerpsOrderSuccess: {
     orderId: string;
@@ -207,6 +211,8 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes

@@ -230,18 +230,6 @@ function localPerpsFundsItem(
     status,
     timestamp: 1_765_361_640_000,
     hash: '0xperpsdeposit',
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: {
-          id: 'perps-deposit-tx',
-          chainId: '0xa4b1',
-          metamaskPay: PAY_METADATA,
-        },
-        initialTransaction: { id: 'perps-deposit-tx', chainId: '0xa4b1' },
-        transactions: [],
-      },
-    },
     data: {
       token: {
         amount: '100000',

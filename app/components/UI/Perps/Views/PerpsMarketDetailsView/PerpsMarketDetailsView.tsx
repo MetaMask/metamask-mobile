@@ -111,7 +111,10 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
-import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
+import {
+  PERPS_MIN_BALANCE_THRESHOLD,
+  PROVIDER_CONFIG,
+} from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
@@ -186,7 +189,10 @@ import {
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { useABTest } from '../../../../../hooks/useABTest';
@@ -285,8 +291,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
   // Use centralized navigation hook for all Perps navigation
-  const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
-    usePerpsNavigation();
+  const {
+    navigateToOrder,
+    navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+  } = usePerpsNavigation();
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   // Use position management hook for bottom sheet state and handlers
@@ -321,6 +331,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const activeProvider = useSelector(selectPerpsProvider);
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
@@ -342,10 +353,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     // If route market already has all required fields, use it directly
     if (!needsEnrichment) return routeMarket;
 
-    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
+    const defaultCandidateProvider =
+      activeProvider !== undefined &&
+      activeProvider !== PROVIDER_CONFIG.AggregatedProvider
+        ? activeProvider
+        : PROVIDER_CONFIG.DefaultProvider;
+    const preferredProvider =
+      routeMarket?.providerId ?? defaultCandidateProvider;
+    const fullMarket = markets.find(
+      (candidate) =>
+        candidate.symbol === routeMarket?.symbol &&
+        (candidate.providerId ?? defaultCandidateProvider) ===
+          preferredProvider,
+    );
 
     return fullMarket || routeMarket;
-  }, [markets, routeMarket, needsEnrichment]);
+  }, [activeProvider, markets, routeMarket, needsEnrichment]);
 
   // About section: fires displayed (on render) + viewed (on scroll into view)
   // analytics and gates the section's visibility on an available description.
@@ -1192,6 +1215,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         navigateToOrder({
           direction,
           asset: market.symbol,
+          ...(market.providerId ? { providerId: market.providerId } : {}),
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
           ...(source_section ? { source_section } : {}),
           chartLibrary,
@@ -1213,6 +1237,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       source_section,
       transactionActiveAbTests,
       market?.symbol,
+      market?.providerId,
       marketData,
       isButtonColorTestEnabled,
       chartLibrary,
@@ -1317,9 +1342,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
+      // The bottom sheet treatment carries its own add/remove toggle, so the
+      // separate action-choice sheet is redundant there.
+      if (useBottomSheet) {
+        navigateToAdjustMargin(existingPosition, 'add', {
+          useBottomSheet: true,
+        });
+        return;
+      }
+
       openAdjustMarginSheet();
     });
-  }, [gate, existingPosition, openAdjustMarginSheet, isEligible, track]);
+  }, [
+    gate,
+    existingPosition,
+    openAdjustMarginSheet,
+    isEligible,
+    track,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
@@ -1424,10 +1466,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         return;
       }
 
-      // Navigate directly to PerpsAdjustMarginView with mode='add'
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
-        position: existingPosition,
-        mode: 'add',
+      navigateToAdjustMargin(existingPosition, 'add', {
+        useBottomSheet,
       });
 
       // Track the interaction - use ADD_MARGIN interaction type for banner clicks
@@ -1439,7 +1479,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
       });
     });
-  }, [gate, existingPosition, navigation, track, isEligible]);
+  }, [
+    gate,
+    existingPosition,
+    track,
+    isEligible,
+    navigateToAdjustMargin,
+    useBottomSheet,
+  ]);
 
   // Handler for "Set Stop Loss" from stop loss prompt banner
   const handleSetStopLossFromBanner = useCallback(() => {
@@ -2040,19 +2087,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (
-            perpsInsightsReport ? (
-              <MarketInsightsEntryCard
-                report={perpsInsightsReport}
-                timeAgo={perpsInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                traceId={perpsInsightsEntryTraceId}
-                source="perps"
-                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-              />
-            ) : (
-              <MarketInsightsEntryCardSkeleton />
-            )
+            <Box twClassName="mb-4">
+              {perpsInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={perpsInsightsReport}
+                  timeAgo={perpsInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                  traceId={perpsInsightsEntryTraceId}
+                  source="perps"
+                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
+            </Box>
           ) : null}
 
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
@@ -2284,6 +2333,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           sheetRef={adjustMarginActionSheetRef}
           position={existingPosition ?? undefined}
           onClose={closeAdjustMarginSheet}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

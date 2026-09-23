@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { NetworkConfiguration } from '@metamask/network-controller';
 import {
   GasFeeEstimateLevel,
@@ -19,6 +19,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { hexToDecimal } from '../../../../../util/conversions';
+import Logger from '../../../../../util/Logger';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import {
@@ -49,7 +50,13 @@ type FeeEstimateState = FeeState<{ inputs: FeeCalculationInputs }>;
 export type EIP7702UpgradeFee = FeeState<{
   displayFee: string;
   preciseNativeFeeInHex: Hex;
-}>;
+}> & {
+  /**
+   * Runs the whole estimate again. Estimation depends on several RPC calls, so
+   * an `error` status is often transient and worth retrying.
+   */
+  retry: () => void;
+};
 
 function getNetworkClientId(
   networkConfiguration: NetworkConfiguration | undefined,
@@ -126,6 +133,14 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
   const [feeEstimateState, setFeeEstimateState] = useState<FeeEstimateState>({
     status: 'loading',
   });
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(async () => {
+    setFeeEstimateState({ status: 'loading' });
+    // Add small delay to prevent UI flash. Fee calculation happen
+    // almost instantly and we want to keep the loading state for a bit.
+    await new Promise((resolve) => setTimeout(resolve, 125));
+    setAttempt((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -200,7 +215,11 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
             },
           });
         }
-      } catch {
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to estimate the EIP-7702 account upgrade fee',
+        );
         if (isActive) setFeeEstimateState({ status: 'error' });
       }
     }
@@ -212,13 +231,16 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
     };
   }, [
     address,
+    attempt,
     networkClientId,
     networkConfiguration,
     shouldUseEIP1559FeeLogic,
   ]);
 
-  return useMemo(() => {
-    if (feeEstimateState.status !== 'ready') return feeEstimateState;
+  return useMemo((): EIP7702UpgradeFee => {
+    if (feeEstimateState.status !== 'ready') {
+      return { status: feeEstimateState.status, retry };
+    }
 
     const shouldHideFiat =
       (isStrictHexString(sourceChainId) &&
@@ -238,19 +260,21 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
         }),
     });
     if (!isStrictHexString(fees.preciseNativeFeeInHex)) {
-      return { status: 'error' };
+      return { status: 'error', retry };
     }
 
     return {
       status: 'ready',
       displayFee: fees.currentCurrencyFee ?? fees.nativeCurrencyFee ?? '--',
       preciseNativeFeeInHex: fees.preciseNativeFeeInHex,
+      retry,
     };
   }, [
     feeEstimateState,
     fiatFormatter,
     nativeConversionRate,
     networkConfiguration?.nativeCurrency,
+    retry,
     showFiatOnTestnets,
     sourceChainId,
   ]);

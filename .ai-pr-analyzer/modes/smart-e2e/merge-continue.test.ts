@@ -26,11 +26,20 @@ describe('smart-e2e mergeContinueResult', () => {
       'SmokeAccounts',
       'SmokeConfirmations',
     ]);
-    assert.equal(merged.confidence, 80);
+    assert.equal(merged.confidence, 95);
     assert.deepEqual(
       (merged.performance_tests as { selected_tags: string[] }).selected_tags,
       ['@PerformanceLogin'],
     );
+  });
+
+  it('uses higher AI confidence without lowering the hard-rule floor', () => {
+    const merged = mergeContinueResult(
+      { selected_tags: ['SmokeAccounts'], confidence: 88 },
+      { selected_tags: [], confidence: 96 },
+    );
+
+    assert.equal(merged.confidence, 96);
   });
 
   it('keeps ALL when the hard-rule seed already selected ALL', () => {

@@ -14,13 +14,17 @@ import {
   loginToAppPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../../flows/wallet.flow.js';
-import { navigateToBrowserView } from '../../../flows/browser.flow.js';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../../flows/browser.flow.js';
 import BrowserView from '../../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
 import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
+import { openConnectedAccountsAfterConnect } from './helpers/open-connected-accounts.helpers.js';
 
 async function setupAndNavigateToTestDapp(): Promise<void> {
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
@@ -28,6 +32,10 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await navigateToBrowserView();
   await dismissPushNotificationExistingUserSheet();
   await BrowserView.navigateToTestDApp();
+  // On Android the WebView container and heading text must appear before
+  // requestPermissions fires — window.ethereum may not yet be injected if we
+  // proceed immediately. evaluateInWebView swallows the error silently.
+  await waitForTestDappToLoad();
 }
 
 /**
@@ -88,7 +96,7 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // Only the already-permitted EVM account should remain connected
-            await openConnectedAccountsSheet();
+            await openConnectedAccountsAfterConnect();
             await Assertions.expectTextDisplayed('Account 2');
           },
         );
@@ -115,7 +123,7 @@ appiumTest.describe(
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
-            await openConnectedAccountsSheet();
+            await openConnectedAccountsAfterConnect();
             await Assertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
@@ -163,7 +171,7 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // EVM account should be connected
-            await openConnectedAccountsSheet();
+            await openConnectedAccountsAfterConnect();
             await Assertions.expectTextDisplayed('Account 1');
           },
         );

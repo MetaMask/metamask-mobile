@@ -15,13 +15,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
-import { MOCK_CANCELLATION_END_DATE } from '../CancelMembership.constants';
+import {
+  CANCELLATION_TIMINGS,
+  type CancellationTiming,
+} from '../CancelMembership.utils';
 
 export interface CancelSuccessStepProps {
   onDone: () => void;
+  timing: CancellationTiming;
+  cancellationEndDate: string;
 }
 
-const CancelSuccessStep = ({ onDone }: CancelSuccessStepProps) => (
+const CancelSuccessStep = ({
+  onDone,
+  timing,
+  cancellationEndDate,
+}: CancelSuccessStepProps) => (
   <>
     {/* ── Centered content ──────────────────────────────────────────────── */}
     <Box twClassName="flex-1 items-center justify-center px-8 gap-y-6">
@@ -55,15 +64,21 @@ const CancelSuccessStep = ({ onDone }: CancelSuccessStepProps) => (
         twClassName="text-center"
         testID={CancelMembershipTestIds.SUCCESS_DESCRIPTION}
       >
-        {strings('pro_hub.cancel_membership.success.description_prefix')}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-        >
-          {MOCK_CANCELLATION_END_DATE}
-        </Text>
-        {strings('pro_hub.cancel_membership.success.description_suffix')}
+        {timing === CANCELLATION_TIMINGS.PERIOD_END ? (
+          <>
+            {strings('pro_hub.cancel_membership.success.description_prefix')}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {cancellationEndDate}
+            </Text>
+            {strings('pro_hub.cancel_membership.success.description_suffix')}
+          </>
+        ) : (
+          strings('pro_hub.cancel_membership.success.immediate_description')
+        )}
       </Text>
     </Box>
 

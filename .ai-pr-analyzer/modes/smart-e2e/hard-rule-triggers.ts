@@ -106,6 +106,12 @@ export function mergeContinueResult(
       asStringArray(aiResult.selected_tags),
     );
   }
+  if (
+    typeof seed.confidence === 'number' &&
+    typeof aiResult.confidence === 'number'
+  ) {
+    merged.confidence = Math.max(seed.confidence, aiResult.confidence);
+  }
   return merged;
 }
 

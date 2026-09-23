@@ -23,6 +23,8 @@ interface KeyringBackupResponse {
   success: boolean;
   vault?: string;
   error?: string;
+  skipped?: boolean;
+  skipReason?: 'identical_keychain';
 }
 
 /**
@@ -61,7 +63,7 @@ export async function clearAllVaultBackups() {
 export async function backupVault(
   keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
-  const keyringVault = keyringState.vault as string;
+  const keyringVault = keyringState.vault;
 
   try {
     // Does a primary backup exist?
@@ -78,6 +80,20 @@ export async function backupVault(
         readError,
         'backupVault: failed to read existing backup, proceeding with fresh backup',
       );
+    }
+
+    // Keychain already holds this exact vault — nothing changed, skip the rewrite.
+    if (
+      keyringVault &&
+      existingBackup &&
+      existingBackup.password === keyringVault
+    ) {
+      return {
+        success: true,
+        vault: keyringVault,
+        skipped: true,
+        skipReason: 'identical_keychain',
+      };
     }
 
     // An existing backup exists, backup it to the temp key
@@ -108,7 +124,7 @@ export async function backupVault(
     const backupResult = await setInternetCredentials(
       VAULT_BACKUP_KEY,
       VAULT_BACKUP_KEY,
-      keyringVault,
+      keyringVault as string,
       options,
     );
 
@@ -122,7 +138,7 @@ export async function backupVault(
 
     return {
       success: true,
-      vault: keyringState.vault,
+      vault: keyringVault,
     };
   } catch (error) {
     Logger.error(error as Error, 'Vault backup failed');

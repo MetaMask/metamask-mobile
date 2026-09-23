@@ -234,6 +234,7 @@ import type {
   ShareAddressParams,
   ShareAddressQRParams,
   DeleteAccountParams,
+  RemoveAccountParams,
   SmartAccountParams,
   MultichainAccountDetailsParams,
   MultichainAccountGroupDetailsParams,
@@ -481,6 +482,7 @@ export type RootStackParamList = {
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
+  ManageAccountsView: undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -820,6 +822,7 @@ export type RootStackParamList = {
   ShareAddress: ShareAddressParams | undefined;
   ShareAddressQR: ShareAddressQRParams | undefined;
   DeleteAccount: DeleteAccountParams | undefined;
+  RemoveAccount: RemoveAccountParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
   RevealSRPCredential: RevealSRPCredentialParams | undefined;
   SRPRevealQuizInMultichainAccountDetails: SRPRevealQuizParams | undefined;
@@ -892,6 +895,7 @@ export type RootStackParamList = {
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
   RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
+  RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -929,6 +933,7 @@ export type RootStackParamList = {
   Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
+  PerpsBalanceOrder: PerpsNavigationParamList['PerpsBalanceOrder'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
@@ -1000,7 +1005,10 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  SocialPostComposerView: undefined;
   MyProfileView: undefined;
+  FollowConnectionsView: { initialTab: 'followers' | 'following' };
+  ProfilesToFollowView: undefined;
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {
     field: 'displayName' | 'handle' | 'bio' | 'socials';
