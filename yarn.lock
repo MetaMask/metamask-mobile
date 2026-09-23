@@ -10790,6 +10790,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/mfa-wallet-cl24@file:./vendor/mfa-wallet-sdk/mfa-wallet-cl24-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-cl24@file:./vendor/mfa-wallet-sdk/mfa-wallet-cl24-0.0.0.tgz#./vendor/mfa-wallet-sdk/mfa-wallet-cl24-0.0.0.tgz::hash=251a28&locator=metamask%40workspace%3A."
+  dependencies:
+    "@msgpack/msgpack": "npm:^3.1.2"
+    "@noble/curves": "npm:^1.9.2"
+    "@noble/hashes": "npm:^1.8.0"
+  checksum: 10/1d2ac327467868369a6bcac3195649b40694255ba04712c4437e4d8e4c9acd7d5debf622c0ab29922f798aded2f479d8e9d6e55171796562378cb573c0b958cb
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-wallet-interface@file:./vendor/mfa-wallet-sdk/mfa-wallet-interface-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-wallet-interface@file:./vendor/mfa-wallet-sdk/mfa-wallet-interface-0.0.0.tgz#./vendor/mfa-wallet-sdk/mfa-wallet-interface-0.0.0.tgz::hash=3314b1&locator=metamask%40workspace%3A."
+  checksum: 10/0fcabd3d8c0ab7feeaeddd9b8d4a8ceeecfc306f79eeec46a520ca53724393ea833cd9de23b83c40bb9c71b59d71ce56fc040d1048fcc1ca9e4bab60d3d9640e
+  languageName: node
+  linkType: hard
+
 "@metamask/mobile-provider@npm:^3.0.0":
   version: 3.0.0
   resolution: "@metamask/mobile-provider@npm:3.0.0"
@@ -12492,7 +12510,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@msgpack/msgpack@npm:3.1.3":
+"@msgpack/msgpack@npm:3.1.3, @msgpack/msgpack@npm:^3.1.2":
   version: 3.1.3
   resolution: "@msgpack/msgpack@npm:3.1.3"
   checksum: 10/cf597b7ed1fcedc2101b145885e7da591c5ed8aeba3a2579b99da8dd15ef13595c807f64f052da0a0dd74704097f6299fc2e2fb4165029a60a1d1df3843c03ce
@@ -39337,6 +39355,8 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
+    "@metamask/mfa-wallet-cl24": "file:./vendor/mfa-wallet-sdk/mfa-wallet-cl24-0.0.0.tgz"
+    "@metamask/mfa-wallet-interface": "file:./vendor/mfa-wallet-sdk/mfa-wallet-interface-0.0.0.tgz"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
