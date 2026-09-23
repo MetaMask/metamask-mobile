@@ -39,16 +39,21 @@ const CancelMembership = () => {
     endDate: string;
   } | null>(null);
   const isNavigatingRef = useRef(false);
+  const isSubmittingRef = useRef(false);
 
   const handleBack = useCallback(() => {
+    if (isSubmittingRef.current) return;
     navigation.goBack();
   }, [navigation]);
 
   const handleKeepMembership = useCallback(() => {
+    if (isSubmittingRef.current) return;
     navigation.goBack();
   }, [navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
+    if (isSubmittingRef.current) return;
+
     const controller = Engine.context.SubscriptionController;
     const subscription: Subscription | undefined =
       controller.getSubscriptionByProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
@@ -64,6 +69,7 @@ const CancelMembership = () => {
     }
 
     setErrorMessage(null);
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -89,6 +95,7 @@ const CancelMembership = () => {
       });
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [selectedReasonId]);
@@ -121,41 +128,50 @@ const CancelMembership = () => {
     );
   }, [cancelledSubscription?.timing, navigation]);
 
-  // Once the membership is cancelled (success step), disable iOS swipe-back
-  // so the user cannot accidentally return to the now-stale Membership screen.
-  useEffect(() => {
-    navigation.setOptions({ gestureEnabled: step !== 'success' });
-  }, [navigation, step]);
+  // Leaving is blocked while the cancel request is in flight (it would still
+  // cancel the membership but skip the success step) and once the membership
+  // is cancelled (the Membership screen below is now stale).
+  const isLeaveBlocked = isSubmitting || step === 'success';
 
-  // Intercept any navigation attempt that would remove this screen while
-  // on the success step. Covers programmatic goBack() and acts as
-  // defense-in-depth alongside the disabled gesture.
+  // Disable iOS swipe-back so the user cannot leave by gesture.
   useEffect(() => {
-    if (step !== 'success') {
+    navigation.setOptions({ gestureEnabled: !isLeaveBlocked });
+  }, [navigation, isLeaveBlocked]);
+
+  // Intercept any navigation attempt that would remove this screen. Covers
+  // programmatic goBack() and acts as defense-in-depth alongside the disabled
+  // gesture.
+  useEffect(() => {
+    if (!isLeaveBlocked) {
       return undefined;
     }
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (isNavigatingRef.current) return;
       e.preventDefault();
-      handleDone();
+      if (step === 'success') {
+        handleDone();
+      }
     });
     return () => unsubscribe();
-  }, [step, navigation, handleDone]);
+  }, [isLeaveBlocked, step, navigation, handleDone]);
 
-  // Android hardware back button: redirect to handleDone on the success step.
+  // Android hardware back button: swallow it while submitting, and redirect to
+  // handleDone on the success step.
   useEffect(() => {
-    if (step !== 'success') {
+    if (!isLeaveBlocked) {
       return undefined;
     }
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        handleDone();
+        if (step === 'success') {
+          handleDone();
+        }
         return true;
       },
     );
     return () => subscription.remove();
-  }, [step, handleDone]);
+  }, [isLeaveBlocked, step, handleDone]);
 
   return (
     <SafeAreaView

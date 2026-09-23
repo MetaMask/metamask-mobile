@@ -191,6 +191,7 @@ const CancelSurveyStep = ({
             onPress={onBack}
             accessibilityLabel={strings('navigation.back')}
             testID={CancelMembershipTestIds.BACK_BUTTON}
+            isDisabled={isSubmitting}
           />
         }
       />

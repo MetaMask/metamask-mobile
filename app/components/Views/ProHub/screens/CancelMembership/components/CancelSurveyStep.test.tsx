@@ -571,5 +571,11 @@ describe('CancelSurveyStep', () => {
       expect(getByTestId(CancelMembershipTestIds.KEEP_BUTTON)).toBeDisabled();
       expect(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON)).toBeDisabled();
     });
+
+    it('disables the back button while cancellation is submitting', () => {
+      const { getByTestId } = renderStep({ isSubmitting: true });
+
+      expect(getByTestId(CancelMembershipTestIds.BACK_BUTTON)).toBeDisabled();
+    });
   });
 });

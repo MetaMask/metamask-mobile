@@ -1,6 +1,6 @@
 import React from 'react';
 import { BackHandler } from 'react-native';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   CANCEL_TYPES,
   PAYMENT_TYPES,
@@ -399,6 +399,140 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
+  // ── In-flight cancellation ────────────────────────────────────────────────
+
+  describe('while the cancellation request is in flight', () => {
+    let resolveCancel: () => void;
+    let rejectCancel: (error: Error) => void;
+
+    const startCancel = async () => {
+      mockCancelSubscription.mockImplementation(
+        () =>
+          new Promise<void>((resolve, reject) => {
+            resolveCancel = resolve;
+            rejectCancel = reject;
+          }),
+      );
+      const screen = renderScreen();
+      fireEvent.press(
+        screen.getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
+      );
+      await waitFor(() => expect(mockCancelSubscription).toHaveBeenCalled());
+      return screen;
+    };
+
+    // Lets the pending request settle so the resulting state updates happen
+    // inside act(), rather than after the test ends.
+    const finishCancel = async () => {
+      await act(async () => {
+        resolveCancel();
+      });
+    };
+
+    const failCancel = async () => {
+      await act(async () => {
+        rejectCancel(new Error('Request failed'));
+      });
+    };
+
+    it('ignores the header back button', async () => {
+      const { getByTestId } = await startCancel();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      await finishCancel();
+    });
+
+    it('ignores keep membership', async () => {
+      const { getByTestId } = await startCancel();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      await finishCancel();
+    });
+
+    it('does not start a second cancellation request', async () => {
+      const { getByTestId } = await startCancel();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+      await finishCancel();
+    });
+
+    it('disables the iOS swipe-back gesture', async () => {
+      await startCancel();
+
+      expect(mockSetOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: false,
+      });
+      await finishCancel();
+    });
+
+    it('blocks programmatic navigation away without resetting the stack', async () => {
+      let beforeRemoveHandler:
+        | ((e: { preventDefault: () => void }) => void)
+        | undefined;
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          handler: (e: { preventDefault: () => void }) => void,
+        ) => {
+          if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler;
+          }
+          return jest.fn();
+        },
+      );
+
+      await startCancel();
+      await waitFor(() => expect(beforeRemoveHandler).toBeDefined());
+
+      const mockPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
+
+      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalled();
+      await finishCancel();
+    });
+
+    it('swallows the Android hardware back button', async () => {
+      let backPressHandler: (() => boolean) | undefined;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          backPressHandler = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+
+      await startCancel();
+      await waitFor(() => expect(backPressHandler).toBeDefined());
+
+      expect(backPressHandler?.()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      await finishCancel();
+    });
+
+    it('re-enables leaving after the request fails', async () => {
+      const { getByTestId } = await startCancel();
+
+      await failCancel();
+
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
+        ).toBeOnTheScreen(),
+      );
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
   // ── Gesture / navigation interception ─────────────────────────────────────
 
   describe('gesture and navigation interception', () => {
@@ -434,7 +568,12 @@ describe('CancelMembership', () => {
       const { getByTestId } = renderScreen();
       fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
-      await waitFor(() => expect(beforeRemoveHandler).toBeDefined());
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+        ).toBeOnTheScreen(),
+      );
+      expect(beforeRemoveHandler).toBeDefined();
 
       const mockPreventDefault = jest.fn();
       beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
@@ -481,7 +620,11 @@ describe('CancelMembership', () => {
       const { getByTestId } = renderScreen();
       fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
-      await waitFor(() => expect(backPressHandler).toBeDefined());
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+        ).toBeOnTheScreen(),
+      );
       const handled = backPressHandler?.();
 
       expect(handled).toBe(true);
