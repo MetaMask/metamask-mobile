@@ -239,6 +239,7 @@ const PerpsProOrderFormPanel = ({
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
     marginMode,
+    isCrossMarginAvailableForMarket,
     isMarginModeLocked,
     onMarginModeSelect,
   } = usePerpsProOrderForm({
@@ -524,7 +525,7 @@ const PerpsProOrderFormPanel = ({
             isVisible
             onClose={closeMarginMode}
             selectedMarginMode={marginMode}
-            isCrossMarginAvailable={isCrossMarginAvailable}
+            isCrossMarginAvailable={isCrossMarginAvailableForMarket}
             isMarginModeLocked={isMarginModeLocked}
             onMarginModeSelect={onMarginModeSelect}
           />

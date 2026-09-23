@@ -167,11 +167,18 @@ const DEFAULT_MOCK_HOOK_RESULT = {
 // no property mutation leaks across tests. The mock closure below captures this
 // reference, so it must never be reassigned.
 const mockHookResult = { ...DEFAULT_MOCK_HOOK_RESULT };
+// Mirrors the hook contract: Cross is available for the market only when the
+// panel gate passes and the asset is not restricted to isolated margin.
+let mockIsCrossAllowedByMarket = true;
 
 jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
-  usePerpsProOrderForm: (params: unknown) => {
+  usePerpsProOrderForm: (params: { isCrossMarginAvailable?: boolean }) => {
     mockUsePerpsProOrderForm(params);
-    return mockHookResult;
+    return {
+      ...mockHookResult,
+      isCrossMarginAvailableForMarket:
+        Boolean(params.isCrossMarginAvailable) && mockIsCrossAllowedByMarket,
+    };
   },
 }));
 
@@ -292,6 +299,7 @@ describe('PerpsProOrderFormPanel', () => {
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
+    mockIsCrossAllowedByMarket = true;
   });
 
   it('renders the order form panel and presentational form', () => {
@@ -849,6 +857,16 @@ describe('PerpsProOrderFormPanel', () => {
     it('keeps Cross unselectable when Pro mode is inactive', () => {
       selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
       mockUseIsPerpsProModeActive.mockReturnValue(false);
+      renderPanel();
+
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
+    });
+
+    it('keeps Cross unselectable on assets restricted to isolated margin', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+      mockIsCrossAllowedByMarket = false;
       renderPanel();
 
       pickCrossFromMarginSheet();

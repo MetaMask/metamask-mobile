@@ -263,7 +263,12 @@ jest.mock('../../../../../../../util/Logger', () => ({
 let mockPositionStreamLoading = false;
 let mockMarketDataLoading = false;
 let mockMarketDataError: string | null = null;
-let mockMarketData: { szDecimals: number; maxLeverage: number } | null = {
+let mockMarketData: {
+  szDecimals: number;
+  maxLeverage: number;
+  onlyIsolated?: true;
+  marginMode?: 'strictIsolated' | 'noCross';
+} | null = {
   szDecimals: 3,
   maxLeverage: 40,
 };
@@ -3683,6 +3688,47 @@ describe('usePerpsProOrderForm', () => {
       expect(
         result.current.notices.find((n) => n.id === 'sl-liq-risk'),
       ).toBeUndefined();
+    });
+
+    it.each([
+      ['onlyIsolated', { onlyIsolated: true as const }],
+      [
+        'a strictIsolated margin mode',
+        { marginMode: 'strictIsolated' as const },
+      ],
+      ['a noCross margin mode', { marginMode: 'noCross' as const }],
+    ])(
+      'keeps Cross unavailable on an asset with %s',
+      async (_label, restriction) => {
+        mockMarketData = { szDecimals: 3, maxLeverage: 40, ...restriction };
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('cross');
+        });
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(result.current.isCrossMarginAvailableForMarket).toBe(false);
+        expect(result.current.marginMode).toBe('isolated');
+        expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
+          'marginMode',
+        );
+      },
+    );
+
+    it('still shows the unsupported warning for a cross position on an isolated-only asset', async () => {
+      mockMarketData = { szDecimals: 3, maxLeverage: 40, onlyIsolated: true };
+      mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
+      const { result } = renderWithCrossMargin();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     describe('existing cross position', () => {

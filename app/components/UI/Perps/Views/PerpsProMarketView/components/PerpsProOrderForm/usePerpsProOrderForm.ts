@@ -532,6 +532,7 @@ export interface UsePerpsProOrderFormResult {
   onPlaceOrderPress: () => Promise<void>;
   // Margin mode sheet
   marginMode: MarginMode;
+  isCrossMarginAvailableForMarket: boolean;
   isMarginModeLocked: boolean;
   onMarginModeSelect: (marginMode: MarginMode) => void;
   // Leverage sheet
@@ -879,20 +880,26 @@ export const usePerpsProOrderForm = ({
   });
   const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
+  // The venue also refuses Cross on assets restricted to isolated margin.
+  const isCrossMarginAvailableForMarket =
+    isCrossMarginAvailable &&
+    !marketData?.onlyIsolated &&
+    !marketData?.marginMode;
   const [selectedMarginMode, setSelectedMarginMode] =
     useState<MarginMode>('isolated');
   // The venue refuses a mode change while a position is open, so an open
   // position's mode wins over the picker. Undefined keeps the isolated default.
   const resolveOrderMarginMode = useCallback(
     (position?: Position | null): MarginMode | undefined =>
-      isCrossMarginAvailable
+      isCrossMarginAvailableForMarket
         ? (position?.leverage?.type ?? selectedMarginMode)
         : undefined,
-    [isCrossMarginAvailable, selectedMarginMode],
+    [isCrossMarginAvailableForMarket, selectedMarginMode],
   );
   const marginMode =
     resolveOrderMarginMode(currentMarketPosition) ?? 'isolated';
-  const isMarginModeLocked = isCrossMarginAvailable && !!currentMarketPosition;
+  const isMarginModeLocked =
+    isCrossMarginAvailableForMarket && !!currentMarketPosition;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -1985,7 +1992,10 @@ export const usePerpsProOrderForm = ({
       : PERPS_EVENT_VALUE.DIRECTION.SHORT;
   const rejectCrossMarginPosition = useCallback(
     (position?: Position | null) => {
-      if (isCrossMarginAvailable || position?.leverage?.type !== 'cross') {
+      if (
+        isCrossMarginAvailableForMarket ||
+        position?.leverage?.type !== 'cross'
+      ) {
         return false;
       }
 
@@ -2003,7 +2013,7 @@ export const usePerpsProOrderForm = ({
       });
       return true;
     },
-    [isCrossMarginAvailable, navigation, track],
+    [isCrossMarginAvailableForMarket, navigation, track],
   );
 
   const handlePlaceOrder = async (
@@ -4008,6 +4018,7 @@ export const usePerpsProOrderForm = ({
     onPlaceOrderPress,
     // Margin mode sheet
     marginMode,
+    isCrossMarginAvailableForMarket,
     isMarginModeLocked,
     onMarginModeSelect: setSelectedMarginMode,
     // Leverage sheet
