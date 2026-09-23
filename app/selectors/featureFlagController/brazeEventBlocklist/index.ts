@@ -1,5 +1,3 @@
-import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 /**
@@ -60,14 +58,3 @@ function readBlockedEvents(remoteFlag: unknown): string[] | undefined {
 
   return blockedEvents;
 }
-
-/**
- * Blocked Braze event names from the current remote feature flags.
- */
-export const selectBrazeBlockedEventNames = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string[] =>
-    getBrazeBlockedEventNames(
-      remoteFeatureFlags?.[BRAZE_EVENT_BLOCKLIST_FLAG_KEY],
-    ),
-);

@@ -1,8 +1,4 @@
-import {
-  BRAZE_EVENT_BLOCKLIST_FLAG_KEY,
-  getBrazeBlockedEventNames,
-  selectBrazeBlockedEventNames,
-} from '.';
+import { BRAZE_EVENT_BLOCKLIST_FLAG_KEY, getBrazeBlockedEventNames } from '.';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
@@ -48,13 +44,11 @@ describe('brazeEventBlocklist', () => {
   });
 
   it('reads blocked event names from a progressive-rollout wrapper', () => {
-    const result = selectBrazeBlockedEventNames.resultFunc({
-      [BRAZE_EVENT_BLOCKLIST_FLAG_KEY]: {
-        value: {
-          enabled: true,
-          minimumVersion: '8.14.0',
-          blockedEvents: ['App Opened'],
-        },
+    const result = getBrazeBlockedEventNames({
+      value: {
+        enabled: true,
+        minimumVersion: '8.14.0',
+        blockedEvents: ['App Opened'],
       },
     });
 
@@ -85,7 +79,6 @@ describe('brazeEventBlocklist', () => {
 
   it('returns an empty list when the flag is missing', () => {
     expect(getBrazeBlockedEventNames(undefined)).toEqual([]);
-    expect(selectBrazeBlockedEventNames.resultFunc({})).toEqual([]);
   });
 
   it('returns an empty list when blockedEvents is not an array of strings', () => {
