@@ -100,16 +100,14 @@ const PasswordResetWarningSheet = ({
           onPress: handleConfirm,
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
-          style: { marginTop: 0 },
         }}
         secondaryButtonProps={{
           children: strings('choose_password.password_warning_cancel'),
           onPress: handleClose,
           size: ButtonSize.Lg,
           testID: PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON,
-          twClassName: 'mt-4',
         }}
-        twClassName="pt-4 flex-col-reverse"
+        twClassName="flex-col-reverse gap-4"
       />
     </BottomSheet>
   );
