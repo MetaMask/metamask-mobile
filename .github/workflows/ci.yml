@@ -1265,10 +1265,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        # Restored to 3 shards (pre-#36684). Peak memory is now bounded by
-        # workerIdleMemoryLimit in jest.config.view.js rather than by files
-        # per shard; this CI run is the check that three still finish.
-        shard: [1, 2, 3]
+        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
+        # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
+        shard: [1, 2, 3, 4]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1294,7 +1293,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/3 \
+            --shard=${{ matrix.shard }}/4 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
