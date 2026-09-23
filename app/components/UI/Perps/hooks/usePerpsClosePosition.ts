@@ -73,7 +73,7 @@ let closeLockVersion = 0;
 
 const getCloseKey = (
   accountAddress: string | undefined,
-  provider: string,
+  provider: string | undefined,
   network: string,
   symbol: string,
 ) => [accountAddress, provider, network, symbol].join(':');
@@ -122,6 +122,9 @@ function releaseCloseLockOnPositionChange(
   handles.timeout = setTimeout(release, PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS);
   handles.unsubscribe = stream.positions.subscribe({
     callback: (positions) => {
+      if (positions === null) {
+        return;
+      }
       const livePosition = positions.find(
         (item) => item.symbol === position.symbol,
       );

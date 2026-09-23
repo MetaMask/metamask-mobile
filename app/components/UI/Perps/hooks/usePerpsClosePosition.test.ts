@@ -1355,9 +1355,14 @@ describe('usePerpsClosePosition', () => {
     });
 
     it('keeps a filled market close locked until the positions stream updates', async () => {
-      let emitPositions: (positions: Position[]) => void = () => undefined;
+      let emitPositions: (positions: Position[] | null) => void = () =>
+        undefined;
       mockPositionsSubscribe.mockImplementation(
-        ({ callback }: { callback: (positions: Position[]) => void }) => {
+        ({
+          callback,
+        }: {
+          callback: (positions: Position[] | null) => void;
+        }) => {
           emitPositions = callback;
           callback([mockPosition]);
           return jest.fn();
@@ -1376,6 +1381,12 @@ describe('usePerpsClosePosition', () => {
       expect(inFlight.result.current).toBe(true);
 
       act(() => {
+        emitPositions(null);
+      });
+
+      expect(inFlight.result.current).toBe(true);
+
+      act(() => {
         emitPositions([]);
       });
 
@@ -1384,6 +1395,10 @@ describe('usePerpsClosePosition', () => {
         await result.current.handleClosePosition({ position: mockPosition });
       });
       expect(mockClosePosition).toHaveBeenCalledTimes(2);
+
+      act(() => {
+        emitPositions([]);
+      });
     });
 
     it('releases a filled market close after the stream confirmation timeout', async () => {
