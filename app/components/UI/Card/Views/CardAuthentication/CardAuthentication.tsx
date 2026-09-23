@@ -45,6 +45,7 @@ import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import NavigationService from '../../../../../core/NavigationService';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
@@ -63,10 +64,11 @@ import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import {
-  isCountryLocked,
   resolveActiveBanner,
   resolveAuthView,
+  resolveDisplayedWalletAddress,
   type AuthBanner,
+  type AuthView,
   type UkManualMode,
 } from './resolveAuthView';
 import SignInCountryField from './components/SignInCountryField';
@@ -89,6 +91,56 @@ type CardAuthenticationParams = {
       }
     | undefined;
 };
+
+function resolveSignInAccountPresentation({
+  view,
+  selectedAddress,
+  seenLinkedAddress,
+  accountsByAddress,
+  accountToGroupMap,
+  fallbackAccountName,
+}: {
+  view: AuthView;
+  selectedAddress: string | undefined;
+  seenLinkedAddress: string | null;
+  accountsByAddress: ReturnType<typeof selectInternalAccountByAddresses>;
+  accountToGroupMap: ReturnType<typeof selectAccountToGroupMap>;
+  fallbackAccountName: string | null;
+}) {
+  const pinnedDisplayAddress =
+    view.mode === 'wallet' && view.address ? view.address : null;
+  const linkedPinnedKey =
+    view.mode === 'wallet' && view.origin === 'linked' && view.address
+      ? view.address.toLowerCase()
+      : null;
+  const nextSeenLinkedAddress =
+    linkedPinnedKey && selectedAddress?.toLowerCase() === linkedPinnedKey
+      ? linkedPinnedKey
+      : seenLinkedAddress;
+  const displayAccountAddress = resolveDisplayedWalletAddress({
+    origin: view.mode === 'wallet' ? view.origin : null,
+    pinnedAddress: pinnedDisplayAddress,
+    selectedAddress,
+    hasShownPinnedSelection:
+      linkedPinnedKey !== null && nextSeenLinkedAddress === linkedPinnedKey,
+  });
+  const displayAccount = displayAccountAddress
+    ? accountsByAddress([displayAccountAddress])[0]
+    : undefined;
+  const displayAccountLabel =
+    (displayAccount
+      ? accountToGroupMap[displayAccount.id]?.metadata?.name ||
+        displayAccount.metadata?.name
+      : undefined) ||
+    fallbackAccountName ||
+    undefined;
+
+  return {
+    displayAccountAddress,
+    displayAccountLabel,
+    nextSeenLinkedAddress,
+  };
+}
 
 const CardAuthentication = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -129,7 +181,6 @@ const CardAuthentication = () => {
   const [ukMode, setUkMode] = useState<UkManualMode>(null);
   const [resumeEmail, setResumeEmail] = useState(false);
   const [banner, setBanner] = useState<AuthBanner>(null);
-  const [accountMismatch, setAccountMismatch] = useState(false);
   const [walletSubmitting, setWalletSubmitting] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [confirmCode, setConfirmCode] = useState('');
@@ -139,6 +190,7 @@ const CardAuthentication = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const dispatch = useDispatch();
   const lastTrackedAuthView = useRef<string | null>(null);
+  const seenLinkedAddressRef = useRef<string | null>(null);
 
   const accountName = useAccountGroupName();
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -149,6 +201,7 @@ const CardAuthentication = () => {
     selectAccountByScope('eip155:0')?.address,
   );
   const accountsByAddress = useSelector(selectInternalAccountByAddresses);
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
 
   const {
     currentStep,
@@ -179,11 +232,6 @@ const CardAuthentication = () => {
     resolution,
     ukMode,
     resumeEmail,
-  });
-
-  const countryLocked = isCountryLocked(view, {
-    countryKey,
-    migrationPhase: ukMigrationState.phase,
   });
 
   const activeBanner = resolveActiveBanner({ banner, view });
@@ -221,18 +269,16 @@ const CardAuthentication = () => {
     return undefined;
   }, [resolution, countryKey]);
 
-  const pinnedAddress =
-    view.mode === 'wallet' || view.mode === 'account_missing'
-      ? view.address
-      : null;
-  const pinnedAccount = pinnedAddress
-    ? accountsByAddress([pinnedAddress])[0]
-    : undefined;
-  const displayAccountLabel =
-    pinnedAccount?.metadata?.name ?? accountName ?? undefined;
-  const displayAccountAddress =
-    (view.mode === 'wallet' && view.address ? view.address : selectedAddress) ??
-    undefined;
+  const { displayAccountAddress, displayAccountLabel, nextSeenLinkedAddress } =
+    resolveSignInAccountPresentation({
+      view,
+      selectedAddress,
+      seenLinkedAddress: seenLinkedAddressRef.current,
+      accountsByAddress,
+      accountToGroupMap,
+      fallbackAccountName: accountName,
+    });
+  seenLinkedAddressRef.current = nextSeenLinkedAddress;
 
   useEffect(() => {
     if (!allRegions.length || hasAutoSelectedCountry.current) {
@@ -255,7 +301,6 @@ const CardAuthentication = () => {
     setUkMode(null);
     setResumeEmail(false);
     setBanner(null);
-    setAccountMismatch(false);
     setWalletError(null);
   }, []);
 
@@ -489,20 +534,26 @@ const CardAuthentication = () => {
 
   const handleWalletSignIn = useCallback(async () => {
     if (walletSignInLock.current) return;
-    if (!walletOption || !countryKey) return;
-    const address =
-      view.mode === 'wallet' && view.address ? view.address : selectedAddress;
-    if (!address) return;
 
-    if (view.mode === 'wallet' && view.origin === 'linked' && accountMismatch) {
-      return;
-    }
+    const signInAddress = displayAccountAddress;
+    if (!walletOption || !countryKey || !signInAddress) return;
+
+    const pinnedAddress =
+      view.mode === 'wallet' && view.address ? view.address : null;
+    const signingAwayFromLinked =
+      view.mode === 'wallet' &&
+      view.origin === 'linked' &&
+      pinnedAddress !== null &&
+      signInAddress.toLowerCase() !== pinnedAddress.toLowerCase();
+    const shouldVerifyAccount =
+      view.mode === 'wallet' &&
+      (view.origin === 'manual' || signingAwayFromLinked);
 
     walletSignInLock.current = true;
     setWalletSubmitting(true);
     try {
-      if (view.mode === 'wallet' && view.origin === 'manual') {
-        const verify = await verifyAccount(address, walletOption);
+      if (shouldVerifyAccount) {
+        const verify = await verifyAccount(signInAddress, walletOption);
         if (verify === 'not_found') {
           setBanner('no_card');
           return;
@@ -527,7 +578,7 @@ const CardAuthentication = () => {
       );
       await signInWithWallet({
         option: walletOption,
-        address,
+        address: signInAddress,
         country: countryKey,
       });
     } catch (err) {
@@ -547,8 +598,7 @@ const CardAuthentication = () => {
     walletOption,
     countryKey,
     view,
-    selectedAddress,
-    accountMismatch,
+    displayAccountAddress,
     verifyAccount,
     signInWithWallet,
     trackEvent,
@@ -566,25 +616,40 @@ const CardAuthentication = () => {
     );
   }, [navigation]);
 
+  const switchedForAddressRef = useRef<string | null>(null);
   useEffect(() => {
     if (
       view.mode !== 'wallet' ||
-      view.origin !== 'linked' ||
-      !selectedAddress ||
+      (view.origin !== 'linked' && view.origin !== 'resume') ||
       !view.address
     ) {
-      setAccountMismatch(false);
       return;
     }
-    if (selectedAddress.toLowerCase() === view.address.toLowerCase()) {
-      setAccountMismatch(false);
+
+    const pinned = view.address.toLowerCase();
+    if (switchedForAddressRef.current === pinned) {
       return;
     }
-    setAccountMismatch(true);
-  }, [view, selectedAddress]);
+
+    if (selectedAddress?.toLowerCase() === pinned) {
+      switchedForAddressRef.current = pinned;
+      return;
+    }
+
+    const pinnedAccount = accountsByAddress([view.address])[0];
+    const groupId = pinnedAccount
+      ? accountToGroupMap[pinnedAccount.id]?.id
+      : undefined;
+    if (!groupId) {
+      return;
+    }
+
+    switchedForAddressRef.current = pinned;
+    Engine.context.AccountTreeController.setSelectedAccountGroup(groupId);
+  }, [view, selectedAddress, accountsByAddress, accountToGroupMap]);
 
   const handleCountrySelect = useCallback(() => {
-    if (countryLocked || isLoadingRegions) return;
+    if (isLoadingRegions) return;
     setOnValueChange((region) => {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(region);
@@ -599,13 +664,7 @@ const CardAuthentication = () => {
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
-  }, [
-    countryLocked,
-    isLoadingRegions,
-    navigation,
-    allRegions,
-    selectedCountry?.key,
-  ]);
+  }, [isLoadingRegions, navigation, allRegions, selectedCountry?.key]);
 
   const handleResendOtp = useCallback(() => {
     if (resendCooldown > 0 || otpLoading) return;
@@ -709,12 +768,7 @@ const CardAuthentication = () => {
       return confirmCode.length < CODE_LENGTH || loading;
     }
     if (view.mode === 'wallet') {
-      return (
-        walletSubmitting ||
-        accountMismatch ||
-        !displayAccountAddress ||
-        !walletOption
-      );
+      return walletSubmitting || !displayAccountAddress || !walletOption;
     }
     if (view.mode === 'email') {
       return (
@@ -731,7 +785,6 @@ const CardAuthentication = () => {
     confirmCode,
     loading,
     walletSubmitting,
-    accountMismatch,
     displayAccountAddress,
     walletOption,
     error,
@@ -768,7 +821,6 @@ const CardAuthentication = () => {
 
         <SignInCountryField
           selectedCountry={selectedCountry}
-          isLocked={countryLocked}
           isLoading={isLoadingRegions}
           onPress={handleCountrySelect}
         />
@@ -840,7 +892,6 @@ const CardAuthentication = () => {
             displayAccountLabel={displayAccountLabel}
             displayAccountAddress={displayAccountAddress}
             avatarAccountType={avatarAccountType}
-            accountMismatch={accountMismatch}
             walletError={walletError}
             showSoftLink={
               view.origin === 'resume' && ukMigrationState.phase === 'soft'
