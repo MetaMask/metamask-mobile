@@ -64,15 +64,13 @@ const DISPLAY_TICKER = 'BTC';
 
 const editingAlert: AbsolutePriceAlert = {
   id: 'alert-99',
+  userId: 'user-1',
+  asset: MARKET_ID,
   threshold: 50000,
   recurring: false,
   active: true,
-  type: PriceAlertAnalytics.TYPE.THRESHOLD as 'threshold',
-  assetId: MARKET_ID,
-  chainId: '',
-  direction: 'above',
-  createdAt: 0,
-  updatedAt: 0,
+  type: 'absolute_price',
+  createdAt: '2026-01-01T00:00:00Z',
 };
 
 const baseAnalyticsProperties = {
