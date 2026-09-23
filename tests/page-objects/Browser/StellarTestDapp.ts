@@ -1,312 +1,290 @@
 import { dataTestIds } from '@metamask/test-dapp-stellar';
-import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
-import Matchers from '../../framework/Matchers';
-import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import Gestures from '../../framework/Gestures';
-import Browser from './BrowserView';
-import Utilities, { BASE_DEFAULTS } from '../../framework/Utilities';
-import { StellarTestDappSelectorsWebIDs } from '../../selectors/Browser/StellarTestDapp.selectors';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
+import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
+import Gestures from '../../framework/Gestures.js';
+import Matchers from '../../framework/Matchers.js';
+import { navigateToBrowserView } from '../../flows/browser.flow.js';
+import { dismissPushNotificationExistingUserSheet } from '../../flows/wallet.flow.js';
+import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
+import BrowserView from './BrowserView.js';
 
-function getTestElement(
-  dataTestId: string,
-  options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement> {
-  const { tag = 'div', extraXPath = '' } = options;
-  const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
+export const STELLAR_DAPP_PORT = 8096;
 
-  return Matchers.getElementByXPath(
-    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-    xpath,
-  );
+const DAPP_LOAD_TIMEOUT_MS = 30_000;
+const CONNECT_TIMEOUT_MS = 30_000;
+const CLICK_TIMEOUT_MS = 15_000;
+const POLL_MS = 300;
+
+const { header, signAuthEntry, signMessage, signTransaction } =
+  dataTestIds.testPage;
+
+function getStellarTestDappBaseUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  return localDappBrowserUrl(STELLAR_DAPP_PORT, env);
 }
 
+function sel(testId: string): string {
+  return `[data-testid="${testId}"]`;
+}
+
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 class StellarTestDapp {
-  get connectButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.connect, {
-      tag: 'button',
-    });
-  }
-
-  get disconnectButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.disconnect, {
-      tag: 'button',
-    });
-  }
-
-  get networkSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.network, {
-      tag: 'select',
-    });
-  }
-
-  get metaMaskWalletOptionSelector(): WebElement {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      StellarTestDappSelectorsWebIDs.METAMASK_WALLET_OPTION_XPATH,
-    );
-  }
-
-  get signMessageButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.signMessage.signMessage, {
-      tag: 'button',
-    });
-  }
-
-  get loadExampleXdrButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.signTransaction.loadExampleXdr, {
-      tag: 'button',
-    });
-  }
-
-  get signTransactionButtonSelector(): WebElement {
-    return getTestElement(
-      dataTestIds.testPage.signTransaction.signTransaction,
-      {
-        tag: 'button',
-      },
-    );
-  }
-
-  get signAuthEntryButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.signAuthEntry.signAuthEntry, {
-      tag: 'button',
-    });
-  }
-
-  get authEntryTextareaSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.signAuthEntry.authEntry, {
-      tag: 'textarea',
-    });
-  }
-
-  get confirmApproveButtonSelector(): WebElement {
-    return Matchers.getElementByText('Approve');
-  }
-
-  async navigateToStellarTestDApp(): Promise<void> {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(getDappUrl(0));
-
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
-
+  async navigateToDapp(): Promise<void> {
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    await navigateToBrowserView();
+    await dismissPushNotificationExistingUserSheet();
+    await BrowserView.tapUrlInputBox();
+    await BrowserView.navigateToURL(getStellarTestDappBaseUrl());
     await this.waitForDappLoaded();
   }
 
-  async reloadStellarTestDApp(): Promise<void> {
-    await Browser.reloadTab();
+  private async evaluate<T>(expression: string): Promise<T | null> {
+    return ChromeCdpHelpers.evaluateInWebView<T>(
+      getStellarTestDappBaseUrl(),
+      expression,
+    );
+  }
+
+  private async getConnectionStatus(): Promise<string | null> {
+    return this.evaluate<string>(
+      `document.querySelector(${JSON.stringify(
+        sel(header.connectionStatus),
+      )})?.textContent?.trim() || null`,
+    ).catch(() => null);
+  }
+
+  private async waitForDappLoaded(
+    timeoutMs = DAPP_LOAD_TIMEOUT_MS,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (await this.getConnectionStatus()) {
+        return;
+      }
+      await wait(POLL_MS);
+    }
+    throw new Error(
+      `Timed out waiting for Stellar test dapp to load within ${timeoutMs}ms`,
+    );
+  }
+
+  private async waitForElement(
+    cssSelector: string,
+    timeoutMs = 10_000,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const exists = await this.evaluate<boolean>(
+        `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
+      );
+      if (exists) {
+        return;
+      }
+      await wait(POLL_MS);
+    }
+    throw new Error(`Timed out waiting for "${cssSelector}" to appear`);
+  }
+
+  private async click(
+    cssSelector: string,
+    timeoutMs = CLICK_TIMEOUT_MS,
+  ): Promise<void> {
+    await this.waitForElement(cssSelector, timeoutMs);
+    const clicked = await this.evaluate<boolean>(
+      `(() => {
+        const element = document.querySelector(${JSON.stringify(cssSelector)});
+        if (!(element instanceof HTMLElement)) return false;
+        element.click();
+        return true;
+      })()`,
+    );
+    if (!clicked) {
+      throw new Error(`Element not found in WebView: ${cssSelector}`);
+    }
+  }
+
+  private async clickButtonByText(
+    text: string,
+    timeoutMs = CLICK_TIMEOUT_MS,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const clicked = await this.evaluate<boolean>(
+        `(() => {
+          const element = Array.from(document.querySelectorAll('button')).find(
+            (button) => button.textContent?.includes(${JSON.stringify(text)}),
+          );
+          if (!(element instanceof HTMLElement)) return false;
+          element.click();
+          return true;
+        })()`,
+      );
+      if (clicked) {
+        return;
+      }
+      await wait(POLL_MS);
+    }
+    throw new Error(`Timed out waiting for button containing "${text}"`);
+  }
+
+  private async pollForText(
+    cssSelector: string,
+    expected: string,
+    timeoutMs = 10_000,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let actual: string | null = null;
+    while (Date.now() < deadline) {
+      actual = await this.evaluate<string>(
+        `document.querySelector(${JSON.stringify(
+          cssSelector,
+        )})?.textContent?.trim() || null`,
+      ).catch(() => null);
+      if (actual === expected) {
+        return;
+      }
+      await wait(POLL_MS);
+    }
+    throw new Error(`Timed out: expected "${expected}", got "${actual}"`);
+  }
+
+  private async pollForPattern(
+    cssSelector: string,
+    pattern: RegExp,
+    timeoutMs = 30_000,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let actual: string | null = null;
+    while (Date.now() < deadline) {
+      actual = await this.evaluate<string>(
+        `document.querySelector(${JSON.stringify(
+          cssSelector,
+        )})?.textContent?.trim() || null`,
+      ).catch(() => null);
+      if (actual && pattern.test(actual)) {
+        return;
+      }
+      await wait(POLL_MS);
+    }
+    throw new Error(
+      `Timed out waiting for ${cssSelector} to match ${pattern}; got "${actual}"`,
+    );
+  }
+
+  async connect(): Promise<void> {
+    await this.click(`button${sel(header.connect)}`);
+    await this.clickButtonByText('MetaMask');
+    await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
+    await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
+  }
+
+  async disconnect(): Promise<void> {
+    await this.click(`button${sel(header.disconnect)}`);
+  }
+
+  async reload(): Promise<void> {
+    await this.evaluate('(() => { location.reload(); return true; })()');
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await this.waitForDappLoaded();
-  }
-
-  async tapButton(webElement: WebElement): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-        await (expect(await webElement) as any).toExist();
-        await (await webElement).tap();
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Tap Stellar test dapp button',
-      },
-    );
-  }
-
-  async waitForDappLoaded(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await this.getHeader().getConnectionStatus();
-      },
-      {
-        timeout: 30_000,
-        description: 'Stellar test dapp to load',
-      },
-    );
-  }
-
-  async waitForWalletOption(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const walletOption = await this.metaMaskWalletOptionSelector;
-        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-        await (expect(walletOption) as any).toExist();
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Stellar test dapp MetaMask wallet option to appear',
-      },
-    );
-  }
-
-  async openWalletSelectionModal(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await this.tapButton(this.connectButtonSelector);
-        await this.waitForWalletOption();
-      },
-      {
-        timeout: 30_000,
-        description: 'Open Stellar dapp wallet selection modal',
-      },
-    );
-  }
-
-  getHeader() {
-    return {
-      connect: async () => {
-        await this.openWalletSelectionModal();
-      },
-      disconnect: async () => {
-        await this.tapButton(this.disconnectButtonSelector);
-      },
-      selectMetaMask: async () => {
-        await this.tapButton(this.metaMaskWalletOptionSelector);
-      },
-      getConnectionStatus: async () => {
-        const connectionStatusDiv = await getTestElement(
-          dataTestIds.testPage.header.connectionStatus,
-        );
-        return await connectionStatusDiv.getText();
-      },
-      getAccount: async () => {
-        const account = await getTestElement(
-          dataTestIds.testPage.header.account,
-          { extraXPath: '/a' },
-        );
-        return await account.getText();
-      },
-    };
+    await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
   }
 
   async selectNetwork(networkKey: string): Promise<void> {
-    const select = await this.networkSelector;
-    await select.runScript(`
-      (el) => {
-        el.value = ${JSON.stringify(networkKey)};
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    `);
+    const selector = `select${sel(header.network)}`;
+    const selected = await this.evaluate<boolean>(
+      `(() => {
+        const element = document.querySelector(${JSON.stringify(selector)});
+        if (!(element instanceof HTMLSelectElement)) return false;
+        const valueDescriptor = Object.getOwnPropertyDescriptor(
+          window.HTMLSelectElement.prototype,
+          'value',
+        );
+        valueDescriptor?.set?.call(element, ${JSON.stringify(networkKey)});
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        return element.value === ${JSON.stringify(networkKey)};
+      })()`,
+    );
+    if (!selected) {
+      throw new Error(`Could not select Stellar network "${networkKey}"`);
+    }
   }
 
-  async signMessage(): Promise<void> {
-    await this.tapButton(this.signMessageButtonSelector);
+  async verifyAccount(expected: string, timeoutMs = 10_000): Promise<void> {
+    await this.pollForText(`${sel(header.account)} a`, expected, timeoutMs);
   }
 
-  async loadExampleXdr(): Promise<void> {
-    await this.tapButton(this.loadExampleXdrButtonSelector);
-  }
-
-  async signTransaction(): Promise<void> {
-    await this.tapButton(this.signTransactionButtonSelector);
+  async verifyConnectionStatus(
+    expected: string,
+    timeoutMs = 10_000,
+  ): Promise<void> {
+    await this.pollForText(sel(header.connectionStatus), expected, timeoutMs);
   }
 
   async fillAuthEntry(authEntryXdr: string): Promise<void> {
-    const textarea = await this.authEntryTextareaSelector;
-    await textarea.runScript(`
-      (el) => {
-        Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')
-          .set.call(el, ${JSON.stringify(authEntryXdr)});
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    `);
+    const selector = `textarea${sel(signAuthEntry.authEntry)}`;
+    const filled = await this.evaluate<boolean>(
+      `(() => {
+        const element = document.querySelector(${JSON.stringify(selector)});
+        if (!(element instanceof HTMLTextAreaElement)) return false;
+        const valueDescriptor = Object.getOwnPropertyDescriptor(
+          window.HTMLTextAreaElement.prototype,
+          'value',
+        );
+        valueDescriptor?.set?.call(element, ${JSON.stringify(authEntryXdr)});
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        return element.value === ${JSON.stringify(authEntryXdr)};
+      })()`,
+    );
+    if (!filled) {
+      throw new Error('Could not fill Stellar auth entry');
+    }
   }
 
   async signAuthEntry(): Promise<void> {
-    await this.tapButton(this.signAuthEntryButtonSelector);
+    await this.click(`button${sel(signAuthEntry.signAuthEntry)}`);
   }
 
-  private async verifyElementText(
-    dataTestId: string,
-    expected: string,
-    description: string,
-    options: { extraXPath?: string; tag?: string } = {},
-  ): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const testElement = await getTestElement(dataTestId, options);
-        const actualText = await testElement.getText();
-
-        if (actualText !== expected) {
-          throw new Error(
-            `Expected "${expected}" but got "${actualText}" (${description})`,
-          );
-        }
-      },
-      { timeout: BASE_DEFAULTS.timeout, description },
-    );
+  async signMessage(): Promise<void> {
+    await this.click(`button${sel(signMessage.signMessage)}`);
   }
 
-  private async verifyPreTextMatches(
-    dataTestId: string,
-    pattern: RegExp,
-    description: string,
-  ): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const testElement = await getTestElement(dataTestId, { tag: 'pre' });
-        const actualText = await testElement.getText();
-
-        if (!pattern.test(actualText)) {
-          throw new Error(`${description}: ${actualText}`);
-        }
-      },
-      { timeout: BASE_DEFAULTS.timeout, description },
-    );
+  async loadExampleXdr(): Promise<void> {
+    await this.click(`button${sel(signTransaction.loadExampleXdr)}`);
   }
 
-  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
-    await this.verifyElementText(
-      dataTestIds.testPage.header.account,
-      connectionStatus,
-      'Verify connected account',
-      { extraXPath: '/a' },
-    );
+  async signTransaction(): Promise<void> {
+    await this.click(`button${sel(signTransaction.signTransaction)}`);
   }
 
-  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
-    await this.verifyElementText(
-      dataTestIds.testPage.header.connectionStatus,
-      connectionStatus,
-      'Verify connection status',
-    );
+  async confirm(): Promise<void> {
+    await Gestures.waitAndTap(Matchers.getElementByText('Approve'), {
+      checkForDisplayed: false,
+      timeout: 30_000,
+      elemDescription: 'Approve Stellar request',
+    });
   }
 
-  async verifySignedMessageMatches(pattern: RegExp): Promise<void> {
-    await this.verifyPreTextMatches(
-      dataTestIds.testPage.signMessage.signedMessage,
+  async verifySignedAuthEntry(pattern: RegExp): Promise<void> {
+    await this.pollForPattern(
+      `pre${sel(signAuthEntry.signedAuthEntry)}`,
       pattern,
-      'Verify signed message',
     );
   }
 
-  async verifySignedTransactionMatches(pattern: RegExp): Promise<void> {
-    await this.verifyPreTextMatches(
-      dataTestIds.testPage.signTransaction.signedTransaction,
+  async verifySignedMessage(pattern: RegExp): Promise<void> {
+    await this.pollForPattern(`pre${sel(signMessage.signedMessage)}`, pattern);
+  }
+
+  async verifySignedTransaction(pattern: RegExp): Promise<void> {
+    await this.pollForPattern(
+      `pre${sel(signTransaction.signedTransaction)}`,
       pattern,
-      'Verify signed transaction',
     );
-  }
-
-  async verifySignedAuthEntryMatches(pattern: RegExp): Promise<void> {
-    await this.verifyPreTextMatches(
-      dataTestIds.testPage.signAuthEntry.signedAuthEntry,
-      pattern,
-      'Verify signed auth entry',
-    );
-  }
-
-  async confirmSignMessage(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmApproveButtonSelector);
-  }
-
-  async confirmTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmApproveButtonSelector);
-  }
-
-  async confirmSignAuthEntry(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmApproveButtonSelector);
   }
 }
 

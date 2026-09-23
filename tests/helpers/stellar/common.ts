@@ -1,8 +1,8 @@
 import { AccountListBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { DappVariants } from '../../framework/Constants';
-import { loginToApp } from '../../flows/wallet.flow';
+import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -95,7 +95,7 @@ const createStellarSnapAccountManually = async (): Promise<void> => {
 
 /**
  * The account-list sheet can cover the tab bar after snap account creation.
- * Dismiss in-place — never reload (reload crashes Detox sync on Android).
+ * Dismiss in-place so the tab bar is available for the browser flow.
  */
 const returnToWalletAfterStellarAccountSetup = async (): Promise<void> => {
   if (
@@ -146,21 +146,17 @@ const ensureStellarSnapAccount = async (): Promise<void> => {
 };
 
 export const withStellarAccountSnap = async (
+  currentDeviceDetails: CurrentDeviceDetails,
   testFn: () => Promise<void>,
 ): Promise<void> => {
   await withFixtures(
     {
       fixture: new FixtureBuilder().withStellarEnabled().build(),
       restartDevice: true,
-      skipReactNativeReload: true,
-      dapps: [
-        {
-          dappVariant: DappVariants.STELLAR_TEST_DAPP,
-        },
-      ],
+      currentDeviceDetails,
     },
     async () => {
-      await loginToApp();
+      await loginToAppPlaywright({ scenarioType: 'e2e' });
       await ensureStellarSnapAccount();
       await testFn();
     },
