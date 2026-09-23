@@ -9939,7 +9939,7 @@ __metadata:
   version: 0.50.0
   resolution: "@metamask/design-system-react-native@npm:0.50.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.38.0"
+    "@metamask/design-system-shared": "npm:^0.39.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.12.0
@@ -9957,14 +9957,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.38.0":
-  version: 0.38.0
-  resolution: "@metamask/design-system-shared@npm:0.38.0"
+"@metamask/design-system-shared@npm:^0.39.0":
+  version: 0.39.0
+  resolution: "@metamask/design-system-shared@npm:0.39.0"
   dependencies:
     "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/51dd301fbf8c6d7928e6db2dc93f7c337e31175c2e2e13981a176e65d03e71035ad6a6c54a98f536985b11347220095c27f94002af6e09ea008afae1058fe722
+  checksum: 10/9f09c129326d2acd7d7d5c1b74843fa3bd5af8cf891affaeda56d02a3e24d6f1be761b75e2e1623b83d60165ebab99245cdaa3c14ee4c28041ba3206d47a2b32
   languageName: node
   linkType: hard
 
