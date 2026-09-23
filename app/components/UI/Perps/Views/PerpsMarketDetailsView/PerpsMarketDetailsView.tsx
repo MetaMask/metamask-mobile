@@ -1295,6 +1295,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         position: existingPosition,
         initialTakeProfitPrice: existingPosition.takeProfitPrice,
         initialStopLossPrice: existingPosition.stopLossPrice,
+        ...(useBottomSheet ? { useBottomSheet: true } : {}),
         onConfirm: async (
           positionFromRoute?: Position,
           takeProfitPrice?: string,
@@ -1324,6 +1325,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     handleUpdateTPSL,
     isEligible,
     track,
+    useBottomSheet,
   ]);
 
   const handleMarginPress = useCallback(() => {
