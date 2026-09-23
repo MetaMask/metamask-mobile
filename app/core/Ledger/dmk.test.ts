@@ -1,4 +1,4 @@
-import { isDmkEnabled } from './dmk';
+import { getLedgerDmkMode, initializeLedgerDmkMode, isDmkEnabled } from './dmk';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 
@@ -59,15 +59,20 @@ describe('isDmkEnabled', () => {
 });
 
 describe('getLedgerDmkMode', () => {
-  it('throws before Engine initialization has seeded the mode', () => {
-    // The global test setup seeds the singleton, so isolate a fresh module
-    // instance to exercise the unseeded contract.
+  it('returns the legacy stack (false) before Engine initialization has seeded the mode', () => {
+    // Isolate a fresh module instance so the unseeded state is exercised
+    // regardless of test order within this file.
     jest.isolateModules(() => {
       const { getLedgerDmkMode: freshGetLedgerDmkMode } =
         jest.requireActual('./dmk');
-      expect(() => freshGetLedgerDmkMode()).toThrow(
-        'Ledger DMK mode accessed before Engine initialization',
-      );
+
+      expect(freshGetLedgerDmkMode()).toBe(false);
     });
+  });
+
+  it('reads back the mode seeded by initializeLedgerDmkMode', () => {
+    initializeLedgerDmkMode({ [FeatureFlagNames.ledgerDmk]: true });
+
+    expect(getLedgerDmkMode()).toBe(true);
   });
 });

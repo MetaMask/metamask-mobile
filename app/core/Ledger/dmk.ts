@@ -22,16 +22,16 @@ export const isDmkEnabled = (
 };
 
 /**
- * Module-level singleton for the Ledger DMK mode. Engine initializes it
- * before constructing the keyring; adapter creation reads the same value.
- * `undefined` until initialization.
+ * Module-level holder for the Ledger DMK mode. Engine initialization seeds
+ * it before constructing the keyring; adapter creation reads the same value.
+ * `undefined` until the first Engine initialization; re-seeded on re-init.
  */
 let ledgerDmkEnabled: boolean | undefined;
 
 /**
- * Seed the process mode from merged persisted feature flags (remote flags
- * overlaid by local overrides; `LEDGER_FORCE_DMK` is honored). Only Engine
- * initialization should call this; tests call it with `{}` to reset.
+ * Seed the mode from merged persisted feature flags (remote flags overlaid
+ * by local overrides; `LEDGER_FORCE_DMK` is honored). Engine initialization
+ * calls this before constructing the keyring.
  *
  * @param flags - Merged persisted feature flags.
  * @returns Whether the DMK stack is active.
@@ -46,13 +46,11 @@ export const initializeLedgerDmkMode = (
 /**
  * Read the mode seeded at Engine initialization.
  *
- * @throws If read before initialization — no silent fallback, since guessing
- * could put the keyring and adapter on different Ledger stacks.
+ * Defaults to `false` (the legacy Ledger stack) if read before any Engine
+ * initialization: adapter creation cannot happen before Engine exists, so
+ * the default never selects a stack for an actual adapter, and it matches
+ * the flag-off resolution of `isDmkEnabled`.
+ *
  * @returns Whether the DMK stack is active.
  */
-export const getLedgerDmkMode = (): boolean => {
-  if (ledgerDmkEnabled === undefined) {
-    throw new Error('Ledger DMK mode accessed before Engine initialization');
-  }
-  return ledgerDmkEnabled;
-};
+export const getLedgerDmkMode = (): boolean => ledgerDmkEnabled ?? false;

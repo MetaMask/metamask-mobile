@@ -1151,13 +1151,6 @@ afterEach(() => {
   global.gc && global.gc(true);
 });
 
-// Seed the Ledger DMK mode before each test, mirroring Engine initializing it
-// before the app renders. Lazy require so per-file jest.mock hoisting applies.
-beforeEach(() => {
-  // eslint-disable-next-line global-require
-  require('../../core/Ledger/dmk').initializeLedgerDmkMode({});
-});
-
 global.crypto = {
   getRandomValues: (arr) => {
     const uint8Max = 255;
