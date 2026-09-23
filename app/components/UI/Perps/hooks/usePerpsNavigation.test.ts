@@ -2,7 +2,11 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { PerpsMode } from '@metamask/perps-controller';
+import {
+  PerpsMode,
+  PERPS_EVENT_VALUE,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -11,6 +15,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -39,6 +47,11 @@ jest.mock('./usePerpsToasts', () => ({
 
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
+}));
+
+jest.mock('../utils/perpsTradeSheetInteractiveTrace', () => ({
+  startPerpsTradeSheetInteractiveTrace: jest.fn(),
+  failPerpsTradeSheetInteractiveTrace: jest.fn(),
 }));
 
 jest.mock(
@@ -72,7 +85,6 @@ describe('usePerpsNavigation', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
@@ -378,6 +390,31 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('opens order confirmation as a headerless bottom sheet for treatment', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'SOL',
+        useBottomSheet: true,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            useBottomSheet: true,
+            showPerpsHeader: false,
+          },
+        );
+      });
+      expect(startPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      );
+    });
+
     it('wraps order creation with transaction active A/B tests when provided', async () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const transactionActiveAbTests = [
@@ -428,6 +465,25 @@ describe('usePerpsNavigation', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
+    it('ends the Trade sheet interactive span when bottom-sheet order creation fails', async () => {
+      mockDepositWithOrder.mockRejectedValue(new Error('Deposit failed'));
+
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'BTC',
+        useBottomSheet: true,
+      });
+
+      await waitFor(() => {
+        expect(failPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+          'transaction_creation_failed',
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('does not navigate when depositWithOrder rejects', async () => {
       const depositError = new Error('Deposit failed');
       mockDepositWithOrder.mockRejectedValue(depositError);
@@ -463,6 +519,36 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToTutorial(params);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, params);
+    });
+
+    it('opens the adjust margin screen for control', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'add');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'add',
+        enableHaptics: undefined,
+      });
+    });
+
+    it('opens the adjust margin bottom sheet for treatment', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'remove', {
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'remove',
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
     });
   });
 

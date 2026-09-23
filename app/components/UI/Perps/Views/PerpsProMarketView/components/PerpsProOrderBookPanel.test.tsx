@@ -45,9 +45,10 @@ jest.mock('../../../hooks/usePerpsProOrderBookPosition', () => ({
 }));
 
 const mockSetOrderBookPreferences = jest.fn();
+let mockOrderBookMetric: 'size' | 'total' = 'total';
 jest.mock('../../../hooks/usePerpsOrderBookPreferences', () => ({
   usePerpsOrderBookPreferences: () => ({
-    preferences: { currency: 'usd', metric: 'total' },
+    preferences: { currency: 'usd', metric: mockOrderBookMetric },
     setOrderBookPreferences: mockSetOrderBookPreferences,
   }),
 }));
@@ -144,6 +145,7 @@ describe('PerpsProOrderBookPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrderBookPosition = 'right';
+    mockOrderBookMetric = 'total';
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -717,6 +719,63 @@ describe('PerpsProOrderBookPanel', () => {
       left: undefined,
       right: 0,
     });
+  });
+
+  const getDepthBarWidth = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) =>
+    StyleSheet.flatten(view.getByTestId(`${rowTestID}-depth-bar`).props.style)
+      .width;
+
+  // TAT-3966: the bar has to measure whatever the value column is showing.
+  // The ask rows are the ones that can tell the two apart. Asks render
+  // reversed, so ask-row-0 is the fixture's deeper ask (size 1.8, total 3.0)
+  // and ask-row-1 the shallower one (size 1.2, total 1.2). Both differ under
+  // the two numerators, so swapping either the numerator or the denominator
+  // moves these numbers. The bid rows cannot: bid-0 has size === total, and
+  // bid-1 is 100% either way.
+  it('sizes the depth bar from the cumulative total when listing by total', () => {
+    mockOrderBookMetric = 'total';
+    const view = renderLadder('right');
+
+    // Cumulative totals 3.0 and 1.2 against the ladder's 3.5 maximum total.
+    expect(getDepthBarWidth(view, `${testID}-ask-row-0`)).toBe(
+      `${(3.0 / 3.5) * 100}%`,
+    );
+    expect(getDepthBarWidth(view, `${testID}-ask-row-1`)).toBe(
+      `${(1.2 / 3.5) * 100}%`,
+    );
+  });
+
+  it('sizes the depth bar from the level size when listing by size', () => {
+    mockOrderBookMetric = 'size';
+    const view = renderLadder('right');
+
+    // Own sizes 1.8 and 1.2 against the largest single size, 2.0 — not the
+    // 3.0/3.5 and 1.2/3.5 their cumulative totals would give.
+    expect(getDepthBarWidth(view, `${testID}-ask-row-0`)).toBe(
+      `${(1.8 / 2.0) * 100}%`,
+    );
+    expect(getDepthBarWidth(view, `${testID}-ask-row-1`)).toBe(
+      `${(1.2 / 2.0) * 100}%`,
+    );
+  });
+
+  it('draws different bars for the same level in each listing mode', () => {
+    mockOrderBookMetric = 'total';
+    const byTotal = getDepthBarWidth(
+      renderLadder('right'),
+      `${testID}-ask-row-0`,
+    );
+
+    mockOrderBookMetric = 'size';
+    const bySize = getDepthBarWidth(
+      renderLadder('right'),
+      `${testID}-ask-row-0`,
+    );
+
+    expect(bySize).not.toBe(byTotal);
   });
 
   it('shows the spread value alone, keeping the label for screen readers', () => {

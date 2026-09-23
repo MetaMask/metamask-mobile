@@ -10,6 +10,7 @@ export const ActivityScreenSelectorsIDs = {
   TYPE_FILTER_SHEET: 'activity-screen-type-filter-sheet',
   TYPE_FILTER_OPTION_PREFIX: 'activity-screen-type-filter-option-',
   PERPS_FILTER_CHIP: 'activity-screen-perps-filter-chip',
+  AGGREGATED_CHECKBOX: 'activity-screen-aggregated-checkbox',
   PERPS_FILTER_SHEET: 'activity-screen-perps-filter-sheet',
   PERPS_FILTER_OPTION_PREFIX: 'activity-screen-perps-filter-option-',
   LIST: 'activity-screen-list',

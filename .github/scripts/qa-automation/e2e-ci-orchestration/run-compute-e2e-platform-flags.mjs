@@ -42,6 +42,8 @@ const { ignorableOnly, testOnlyChanges } = classifyE2EChanges({
 });
 
 const skipSmartSelection = readBool(process.env.SKIP_SMART_SELECTION);
+const githubRefName =
+  process.env.CI_REF_NAME || process.env.GITHUB_REF_NAME || '';
 
 const labelOverrideInput = {
   runAppiumIosLabel: readBool(process.env.RUN_APPIUM_IOS_LABEL),
@@ -56,6 +58,7 @@ const labelOverrideInput = {
 const flags = resolveE2EPlatformRequirements({
   pathFilterInput: {
     githubEventName: process.env.GITHUB_EVENT_NAME || '',
+    githubRefName,
     prBaseRef: process.env.PR_BASE_REF || '',
     isFork: readBool(process.env.IS_FORK),
     shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),

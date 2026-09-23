@@ -51,6 +51,32 @@ export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
 );
 
+/**
+ * Nested navigation to the Token Selection leaf while already inside the
+ * Ramp buy stack (e.g. dismissing Token Not Available / Provider Selection).
+ * Mirrors {@link createBuildQuoteNavDetails}: outer TokenListRoutes mount →
+ * RootStack `TOKEN_SELECTION_ROOT` → MainRoutes leaf `TOKEN_SELECTION`.
+ * Omitting the leaf leaves MainRoutes on Amount Input after the modal closes.
+ */
+export const createNestedTokenSelectionNavDetails = (): readonly [
+  string,
+  {
+    screen: string;
+    params: {
+      screen: string;
+    };
+  },
+] =>
+  [
+    Routes.RAMP.TOKEN_SELECTION,
+    {
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+      params: {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      },
+    },
+  ] as const;
+
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
   const [searchString, setSearchString] = useState('');

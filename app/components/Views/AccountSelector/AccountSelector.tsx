@@ -301,7 +301,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
                 testID={
                   AccountListBottomSheetSelectorsIDs.MANAGE_ACCOUNTS_BUTTON
                 }
-                accessibilityLabel="Manage accounts"
+                accessibilityLabel={strings(
+                  'multichain_accounts.manage_accounts.title',
+                )}
                 accessibilityRole="button"
               />
             }

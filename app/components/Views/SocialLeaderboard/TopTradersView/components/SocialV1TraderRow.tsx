@@ -3,9 +3,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  IconName,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -14,6 +11,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
+import WinRateTag from '../../components/WinRateTag';
 import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
@@ -34,8 +32,6 @@ const AVATAR_SIZE = 40;
 // corner rather than dominating it (the default 30 is sized for a standalone
 // podium).
 const MEDAL_HEIGHT = 24;
-// At or above this win rate the tag switches to the highlighted treatment.
-const ELITE_WIN_RATE_PERCENT = 90;
 /**
  * Fixed row height so the skeleton placeholder can match it exactly without
  * drifting due to font-scale differences.
@@ -63,15 +59,8 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
   const metricText = metric?.label ?? formatSignedUsd(trader.pnlValue);
   const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
   const showMedal = isTopRank(trader.rank);
-  const isEliteWinRate = (trader.winRatePercent ?? 0) >= ELITE_WIN_RATE_PERCENT;
   const rankChangeStyle = useRankChangeAnimation(trader.rank);
 
-  const winRateLabel = strings('social_leaderboard.win_rate_tag', {
-    winRate: formatPercent(trader.winRatePercent, {
-      showSign: false,
-      decimals: 0,
-    }),
-  });
   const followerLabel = strings(
     trader.followerCount === 1
       ? 'social_leaderboard.trader_profile.followers_count'
@@ -131,17 +120,7 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
               >
                 {trader.username}
               </Text>
-              {trader.winRatePercent !== null && (
-                <Tag
-                  severity={
-                    isEliteWinRate ? TagSeverity.Warning : TagSeverity.Neutral
-                  }
-                  startIconName={isEliteWinRate ? IconName.Trophy : undefined}
-                  twClassName="shrink-0"
-                >
-                  {winRateLabel}
-                </Tag>
-              )}
+              <WinRateTag winRatePercent={trader.winRatePercent} />
             </Box>
             <Text
               variant={TextVariant.BodyMd}

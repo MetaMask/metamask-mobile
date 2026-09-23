@@ -20,6 +20,12 @@ const baseConfig = require('./jest.config.js');
 // feature already does.
 process.env.HAS_TEST_OVERRIDES = 'true';
 
+// The Predict Order Flow transport bakes its base URL at first compile via
+// babel's inline-environment-variables plugin. Provide a deterministic origin
+// for every run (CI included); component-view tests stub global fetch.
+process.env.MM_PREDICT_API_URL =
+  process.env.MM_PREDICT_API_URL || 'https://predict.api.test';
+
 module.exports = {
   ...baseConfig,
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetupView.js'],

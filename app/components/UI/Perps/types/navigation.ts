@@ -25,8 +25,10 @@ export type PerpsModalsNavigationParamList = {
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
+  PerpsOutreachDetails: undefined;
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
   PerpsSelectAdjustMarginAction: {
     position: Position;
@@ -75,6 +77,8 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  useBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -204,11 +208,14 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
 
   PerpsSelectAdjustMarginAction: {

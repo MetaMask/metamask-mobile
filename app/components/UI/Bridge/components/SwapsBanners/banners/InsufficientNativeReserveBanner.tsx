@@ -14,19 +14,17 @@ import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficien
 import { WARNING_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { useSwapsBannersContext } from '../SwapsBannersContext';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 /**
  * Warns when the entered amount would spend the native balance that has to stay
  * in the account, and offers to lower it to the maximum swappable amount.
  */
 export const InsufficientNativeReserveBanner = () => {
-  const {
-    sourceAmount,
-    sourceToken,
-    walletAddress,
-    latestSourceAtomicBalance,
-    onAdjustSourceAmount,
-  } = useSwapsBannersContext();
+  const { sourceAmount, sourceToken, walletAddress, onAdjustSourceAmount } =
+    useSwapsBannersContext();
+  const { latestSourceBalance } = useBridgeSession();
+  const latestSourceAtomicBalance = latestSourceBalance?.atomicBalance;
   const { activeQuote } = useBridgeQuoteDataContext();
 
   const hasInsufficientBalance = useIsInsufficientBalance({

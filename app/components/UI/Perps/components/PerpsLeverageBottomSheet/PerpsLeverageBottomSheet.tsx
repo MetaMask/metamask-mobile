@@ -66,6 +66,9 @@ import {
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
+  onBack?: () => void;
+  onConfirmComplete?: () => void;
+  presentation?: 'bottomSheet' | 'screen';
   onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
   leverage: number;
   minLeverage: number;
@@ -96,6 +99,9 @@ const clampLeverage = (
 const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   isVisible,
   onClose,
+  onBack,
+  onConfirmComplete,
+  presentation = 'bottomSheet',
   onConfirm,
   leverage: initialLeverage,
   minLeverage,
@@ -419,11 +425,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       playSelection().catch(() => undefined);
     }
     onConfirm(leverageToConfirm, inputMethod);
-    onClose();
+    (onConfirmComplete ?? onClose)();
   }, [
     enableConfirmHaptics,
     isScrolling,
     onClose,
+    onConfirmComplete,
     onConfirm,
     previewLeverage,
     tempLeverage,
@@ -453,9 +460,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   if (!isVisible) return null;
 
-  return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-      <BottomSheetHeader onClose={onClose}>
+  const content = (
+    <>
+      <BottomSheetHeader
+        onBack={presentation === 'screen' ? onBack : undefined}
+        onClose={onClose}
+      >
         {strings('perps.order.leverage_modal.title')}
       </BottomSheetHeader>
 
@@ -635,6 +645,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           twClassName: 'mb-4',
         }}
       />
+    </>
+  );
+
+  if (presentation === 'screen') {
+    return <Box twClassName="flex-1">{content}</Box>;
+  }
+
+  return (
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+      {content}
     </BottomSheet>
   );
 };

@@ -22,6 +22,8 @@ import { readSnapshot } from './leaderboardSnapshot';
 import { REVEAL_DWELL_MS } from './components/useLeaderboardReveal';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
+  getCohortFilterOptionTestId,
+  getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,
   getTypeFilterOptionTestId,
@@ -775,6 +777,65 @@ describe('TopTradersView', () => {
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
         expect.objectContaining({ chain_filter: 'all' }),
       );
+    });
+  });
+
+  describe('Social V1 filters', () => {
+    it('shows type, cohort, date range, and ranking chips', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.SORT_SELECTOR),
+      ).toBeNull();
+    });
+
+    it('starts on the all-types query', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('keeps the API sort on pnl when Volume is selected', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.RANKING_SELECTOR),
+      );
+      fireEvent.press(
+        screen.getByTestId(getRankingFilterOptionTestId('volume')),
+      );
+
+      const latestCalls = mockUseTopTradersHook.mock.calls.slice(-3);
+      latestCalls.forEach(([options]) => {
+        expect(options).toEqual(expect.objectContaining({ sort: 'pnl' }));
+      });
+    });
+
+    it('selects a trader cohort without changing the fetch sort', () => {
+      renderWithProvider(<TopTradersView useV1Filters />);
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
+      );
+      fireEvent.press(screen.getByTestId(getCohortFilterOptionTestId('whale')));
+
+      expect(screen.getByText('Whale')).toBeOnTheScreen();
     });
   });
 

@@ -13,10 +13,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
-  selectBridgeBalanceRefreshKey,
   selectLimitOrderCostTolerance,
-  selectSourceToken,
   setLimitOrderCostTolerance,
+  setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs from '../../../components/OrdersTabs';
@@ -30,7 +29,6 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
@@ -62,19 +60,14 @@ import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/ge
 import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-interface BridgeLimitOrderViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeLimitOrderViewContent = ({
-  latestSourceBalance,
-}: BridgeLimitOrderViewContentProps) => {
+const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -83,6 +76,7 @@ const BridgeLimitOrderViewContent = ({
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
+  const { latestSourceBalance } = useBridgeSession();
   const {
     destToken,
     enabledChainIds,
@@ -96,7 +90,7 @@ const BridgeLimitOrderViewContent = ({
     sourceToken,
     sourceAmount,
     isSourceNetworkGasSponsored,
-  } = useLimitOrderSwapInputs({ latestSourceBalance });
+  } = useLimitOrderSwapInputs();
   const {
     commitCustomPercent,
     counterFiatRate,
@@ -295,19 +289,14 @@ const BridgeLimitOrderViewContent = ({
         destToken,
         payingAmount: formatTokenAmountValue(sourceAmount, sourceToken?.symbol),
         triggerPrice,
-        triggerComparison: marketComparison,
         triggerToken: quotedToken,
         expiry: expiration,
-        networkFee: '0',
-        feeToken: sourceToken,
-        feeDisclaimer: '',
       },
     });
   }, [
     destToken,
     dismissInputAndKeypad,
     expiration,
-    marketComparison,
     navigation,
     quotedToken,
     sourceAmount,
@@ -320,6 +309,14 @@ const BridgeLimitOrderViewContent = ({
     dispatch(setLimitOrderCostTolerance(LIMIT_ORDER_DEFAULT_COST_TOLERANCE));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keeps the market-comparison label in sync everywhere it's shown: this
+  // screen keeps running (and this effect keeps firing) behind the
+  // confirmation modal, which reads the same Redux value instead of
+  // deriving its own, so the two surfaces never disagree.
+  useEffect(() => {
+    dispatch(setLimitOrderMarketComparison(marketComparison));
+  }, [dispatch, marketComparison]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -344,7 +341,6 @@ const BridgeLimitOrderViewContent = ({
               inputRef={inputRef}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
-              latestSourceBalance={latestSourceBalance}
               destToken={destToken}
               destTokenAmount={destTokenAmount}
               isDestAmountLoading={false}
@@ -404,7 +400,6 @@ const BridgeLimitOrderViewContent = ({
             >
               <Box onLayout={handleBannersLayout}>
                 <SwapsBanners
-                  latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
                   onAdjustSourceAmount={handleSourcePresetAmountSelect}
                 >
                   <HardwareWalletUnsupportedBanner />
@@ -467,20 +462,4 @@ const BridgeLimitOrderViewContent = ({
   );
 };
 
-const BridgeLimitOrderView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeLimitOrderViewContent latestSourceBalance={latestSourceBalance} />
-  );
-};
-
-export default BridgeLimitOrderView;
+export default BridgeLimitOrderViewContent;

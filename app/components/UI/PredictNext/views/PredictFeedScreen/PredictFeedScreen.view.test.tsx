@@ -22,6 +22,7 @@ import {
   NFL_WIN_TOTALS_FEED_ID,
 } from '../../navigation/feedScreens';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
+import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
 
 const makeOutcome = (
@@ -545,6 +546,60 @@ describe('PredictFeedScreen', () => {
     expect(within(propsCard).getByText('$1.5M Vol')).toBeOnTheScreen();
   });
 
+  it('opens the Order flow from a tradeable Outcome row', async () => {
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [propsEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    fireEvent.press(
+      await view.findByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'yes')),
+    );
+
+    expect(
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps a quote-less Outcome row unpressable', async () => {
+    const [yesOutcome, noOutcome] = propsEvent.markets[0].outcomes;
+    const quoteLessEvent: PredictEvent = {
+      ...propsEvent,
+      markets: [
+        {
+          ...propsEvent.markets[0],
+          outcomes: [
+            { ...yesOutcome, askPrice: undefined },
+            { ...noOutcome, askPrice: undefined },
+          ],
+        },
+      ],
+    };
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [quoteLessEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    // The row stays visible (a missing Ask Price is not a zero price) but
+    // cannot start the Order flow.
+    const row = await view.findByTestId(
+      PredictHomeTestIds.outcome(quoteLessEvent.id, 'yes'),
+    );
+    expect(row).toBeDisabled();
+    fireEvent.press(row);
+    expect(
+      view.queryByTestId(PredictOrderFlowTestIds.SHEET),
+    ).not.toBeOnTheScreen();
+  });
+
   it('applies live Game updates to a Feed card', async () => {
     configureFeeds({ [NFL_GAMES_FEED_ID]: [gameEvent] });
     const view = renderPredictFeedScreen({
@@ -560,13 +615,11 @@ describe('PredictFeedScreen', () => {
         venueId: KALSHI_VENUE_ID,
         eventId: gameEvent.id,
         type: 'football_game',
-        details: {
-          status: 'live',
-          away_points: 28,
-          home_points: 24,
-          quarter: 4,
-          clock: '01:12',
-        },
+        status: 'in_progress',
+        score: { away: '28', home: '24' },
+        period: 'Q4',
+        clock: '01:12',
+        observedAt: '2026-09-11T03:00:00.000Z' as PredictTimestamp,
       });
     });
 
