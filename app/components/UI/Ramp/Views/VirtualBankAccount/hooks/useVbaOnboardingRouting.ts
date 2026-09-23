@@ -75,7 +75,7 @@ export const useOpenVbaOnboarding = (
           tags: { feature: 'vba-onboarding' },
           context: {
             name: 'useOpenVbaOnboarding',
-            source,
+            data: { source },
           },
         });
         openRecoverableError(navigation);

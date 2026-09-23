@@ -136,7 +136,10 @@ describe('useOpenVbaOnboarding', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
-        context: expect.objectContaining({ source: 'unspecified' }),
+        context: expect.objectContaining({
+          name: 'useOpenVbaOnboarding',
+          data: { source: 'unspecified' },
+        }),
       }),
     );
   });
@@ -154,7 +157,8 @@ describe('useOpenVbaOnboarding', () => {
       expect.any(Error),
       expect.objectContaining({
         context: expect.objectContaining({
-          source: 'create-virtual-bank-account-continue',
+          name: 'useOpenVbaOnboarding',
+          data: { source: 'create-virtual-bank-account-continue' },
         }),
       }),
     );
@@ -170,7 +174,10 @@ describe('useOpenVbaOnboarding', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
-        context: expect.objectContaining({ source: 'call-override' }),
+        context: expect.objectContaining({
+          name: 'useOpenVbaOnboarding',
+          data: { source: 'call-override' },
+        }),
       }),
     );
   });
