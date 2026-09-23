@@ -13,6 +13,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 
 // Legacy deposit lifecycle cases retain the Hyperliquid route. Lighter routing
 // is covered with real Redux state in PerpsOrderRedirect.view.test.tsx.
@@ -44,6 +49,11 @@ jest.mock('../hooks/usePerpsToasts', () => ({
 
 jest.mock('../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
   usePerpsScreenVsBottomSheetAbTest: jest.fn(),
+}));
+
+jest.mock('../utils/perpsTradeSheetInteractiveTrace', () => ({
+  startPerpsTradeSheetInteractiveTrace: jest.fn(),
+  failPerpsTradeSheetInteractiveTrace: jest.fn(),
 }));
 
 const MockPerpsLoader = jest.fn((_props: Record<string, unknown>) => null);
@@ -307,6 +317,29 @@ describe('PerpsOrderRedirect', () => {
         }),
       );
     });
+    expect(startPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+    );
+  });
+
+  it('ends the Trade sheet interactive span when depositWithOrder fails under treatment', async () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: true,
+    });
+    mockDepositWithOrder.mockRejectedValue(new Error('Failed to create order'));
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(failPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+        'transaction_creation_failed',
+      );
+    });
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('does not call depositWithOrder twice on re-render', async () => {

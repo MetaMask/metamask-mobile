@@ -1314,19 +1314,11 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:137',
       status: 'success',
       timestamp: 1_700_000_000_000,
-      raw: {
-        type: 'predictActivity',
-        data: {
-          id: 'p1',
-          providerId: 'polymarket',
-          title: 'Will Spain win the 2026 FIFA World Cup?',
-          icon: 'https://example.com/spain.png',
-          entry: { type: 'buy', timestamp: 1, amount: 3 },
-        },
-      },
       hash: 'predict-1',
       data: {
         token: { amount: '3', symbol: 'USDC', direction: 'out' },
+        eventTitle: 'Will Spain win the 2026 FIFA World Cup?',
+        icon: 'https://example.com/spain.png',
       },
     } as unknown as ActivityListItem;
 
@@ -1416,8 +1408,8 @@ describe('ActivityListItemRow — row content', () => {
       type: 'approveSpendingCap',
       status: 'success',
       token: {
-        amount: '115792089237316195423570985.639935',
-        isUnlimitedApproval: true,
+        amount:
+          '115792089237316195423570985008687907853269984665640564039457584007913129639935',
         symbol: 'USDT',
         direction: 'out',
       },
