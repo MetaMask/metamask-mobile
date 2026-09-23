@@ -832,6 +832,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
         (child): child is ReactTestInstance =>
@@ -1810,6 +1811,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 

@@ -137,6 +137,31 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(Text, props, children),
+    TextField: ({
+      value,
+      onChangeText,
+      onBlur,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 

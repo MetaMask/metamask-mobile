@@ -88,6 +88,25 @@ jest.mock(
     },
 );
 
+jest.mock('../PerpsAggregatedFillsCheckbox', () => {
+  const { Pressable, Text: RNText } = jest.requireActual('react-native');
+  return function MockPerpsAggregatedFillsCheckbox({
+    testID,
+    onChange,
+    isSelected,
+  }: {
+    testID?: string;
+    onChange?: (next: boolean) => void;
+    isSelected?: boolean;
+  }) {
+    return (
+      <Pressable testID={testID} onPress={() => onChange?.(!isSelected)}>
+        <RNText>Aggregated</RNText>
+      </Pressable>
+    );
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {

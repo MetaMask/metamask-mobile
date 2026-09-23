@@ -1,65 +1,81 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsAggregatedFillsCheckbox from './PerpsAggregatedFillsCheckbox';
 
-const TEST_ID = 'aggregated-checkbox';
-
 describe('PerpsAggregatedFillsCheckbox', () => {
-  it('exposes the checkbox role and its checked state when selected', () => {
-    const { getByTestId } = renderWithProvider(
+  it('renders the Aggregated label and selected state', () => {
+    render(
       <PerpsAggregatedFillsCheckbox
         isSelected
         onChange={jest.fn()}
-        testID={TEST_ID}
+        testID="aggregated-checkbox"
       />,
     );
 
-    const control = getByTestId(TEST_ID);
-    expect(control.props.accessibilityRole).toBe('checkbox');
-    expect(control.props.accessibilityState).toMatchObject({ checked: true });
+    expect(
+      screen.getByText(strings('perps.transactions.aggregated')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('aggregated-checkbox')).toBeOnTheScreen();
+    expect(screen.getByTestId('aggregated-checkbox')).toHaveProp(
+      'role',
+      'checkbox',
+    );
+    expect(screen.getByTestId('aggregated-checkbox')).toHaveProp(
+      'accessibilityState',
+      { checked: true },
+    );
+    expect(
+      screen.getByTestId('aggregated-checkbox-check-icon'),
+    ).toBeOnTheScreen();
   });
 
-  it('exposes the checkbox role and its unchecked state when not selected', () => {
-    const { getByTestId } = renderWithProvider(
+  it('renders the unselected state without the check icon', () => {
+    render(
       <PerpsAggregatedFillsCheckbox
         isSelected={false}
         onChange={jest.fn()}
-        testID={TEST_ID}
+        testID="aggregated-checkbox"
       />,
     );
 
-    const control = getByTestId(TEST_ID);
-    expect(control.props.accessibilityRole).toBe('checkbox');
-    expect(control.props.accessibilityState).toMatchObject({ checked: false });
+    expect(screen.getByTestId('aggregated-checkbox')).toHaveProp(
+      'accessibilityState',
+      { checked: false },
+    );
+    expect(
+      screen.queryByTestId('aggregated-checkbox-check-icon'),
+    ).not.toBeOnTheScreen();
   });
 
-  it('turns aggregation off when a selected pill is pressed', () => {
+  it('calls onChange with the next selected value when pressed', () => {
     const onChange = jest.fn();
 
-    const { getByTestId } = renderWithProvider(
+    render(
       <PerpsAggregatedFillsCheckbox
         isSelected
         onChange={onChange}
-        testID={TEST_ID}
+        testID="aggregated-checkbox"
       />,
     );
-    fireEvent.press(getByTestId(TEST_ID));
+
+    fireEvent.press(screen.getByTestId('aggregated-checkbox'));
 
     expect(onChange).toHaveBeenCalledWith(false);
   });
 
-  it('turns aggregation on when an unselected pill is pressed', () => {
+  it('selects when the unselected pill is pressed', () => {
     const onChange = jest.fn();
 
-    const { getByTestId } = renderWithProvider(
+    render(
       <PerpsAggregatedFillsCheckbox
         isSelected={false}
         onChange={onChange}
-        testID={TEST_ID}
+        testID="aggregated-checkbox"
       />,
     );
-    fireEvent.press(getByTestId(TEST_ID));
+
+    fireEvent.press(screen.getByTestId('aggregated-checkbox'));
 
     expect(onChange).toHaveBeenCalledWith(true);
   });
