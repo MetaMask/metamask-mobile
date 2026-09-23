@@ -2022,6 +2022,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2060,6 +2061,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2093,6 +2095,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2239,6 +2242,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2262,10 +2266,8 @@ describe('SwapsMarketOrderConfirmButton', () => {
       );
     });
 
-    it('reads the danger threshold from bridge feature flags state', async () => {
-      // priceImpact raw value 0.25 exactly meets the danger threshold configured
-      // in mockState (defaultBridgeConfigV2.priceImpactThreshold.error = 0.25),
-      // confirming the component reads bridgeFeatureFlags from the Redux store.
+    it('navigates to PriceImpactModal when shouldShowPriceImpactError is true', async () => {
+      // 0.25 >= 0.25, so the modal IS shown and the transaction is not submitted
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -2274,13 +2276,14 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: { amount: '0.25' } }, // 0.25 >= 0.25 → modal shown
+              priceData: { priceImpact: { amount: '0.25' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(

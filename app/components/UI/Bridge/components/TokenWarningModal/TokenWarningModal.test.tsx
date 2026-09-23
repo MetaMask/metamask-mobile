@@ -104,6 +104,7 @@ const defaultBridgeQuoteData: ReturnType<typeof useBridgeQuoteDataContext> = {
   isExpired: false,
   blockaidError: null,
   shouldShowPriceImpactWarning: false,
+  shouldShowPriceImpactError: false,
   validQuotes: [],
   needsNewQuote: false,
   isActiveQuoteForCurrentTokenPair: false,
@@ -400,13 +401,14 @@ describe('TokenWarningModal', () => {
       expect(mockConfirmBridge).not.toHaveBeenCalled();
     });
 
-    it('navigates to PriceImpactModal when price impact meets error threshold', async () => {
+    it('navigates to PriceImpactModal when shouldShowPriceImpactError is true', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
           quote: {
             priceData: { priceImpact: { amount: '0.25' } }, // exactly at threshold
           },
         },
+        shouldShowPriceImpactError: true,
       } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
@@ -423,13 +425,14 @@ describe('TokenWarningModal', () => {
       });
     });
 
-    it('does not call confirmBridge when price impact exceeds threshold', async () => {
+    it('does not call confirmBridge when shouldShowPriceImpactError is true', async () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
           quote: {
             priceData: { priceImpact: { amount: '0.90' } },
           },
         },
+        shouldShowPriceImpactError: true,
       } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
