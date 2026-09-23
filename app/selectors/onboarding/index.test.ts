@@ -42,6 +42,10 @@ describe('Onboarding selectors', () => {
     ).toBeUndefined();
   });
 
+  it('returns undefined for selectOnboardingAccountType when onboarding is missing', () => {
+    expect(selectOnboardingAccountType({} as RootState)).toBeUndefined();
+  });
+
   it('returns null for selectPendingSocialLoginMarketingConsentBackfill when not set', () => {
     const state = {
       onboarding: {

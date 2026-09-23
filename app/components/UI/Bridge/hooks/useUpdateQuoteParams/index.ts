@@ -94,14 +94,38 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     walletAddress,
   } = genericQuoteRequest ?? {};
 
-  // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
-    let traceId: string | undefined;
-    let requestDispatched = false;
-    const debounced = debounce((requestOptions: UpdateQuoteParamsOptions) => {
-      requestDispatched = true;
-      return updateQuoteParams(requestOptions);
-    }, debounceWait);
+    const debounced = debounce(
+      (requestOptions: UpdateQuoteParamsOptions = {}) => {
+        if (
+          !srcTokenAddress ||
+          !destTokenAddress ||
+          srcAmount === undefined ||
+          !destChainId ||
+          !walletAddress
+        ) {
+          return updateQuoteParams(requestOptions);
+        }
+
+        const traceId =
+          srcAmount && srcAmount !== '.'
+            ? swapQuoteFetchTrace.start({
+                srcChainId,
+                destChainId,
+                isRefresh: requestOptions.isRefresh ?? false,
+              })
+            : undefined;
+
+        if (!traceId) {
+          cancelOwnedTrace();
+        } else {
+          ownedTraceId.current = traceId;
+        }
+
+        return updateQuoteParams({ ...requestOptions, traceId });
+      },
+      debounceWait,
+    );
 
     const debouncedWithTrace = (
       requestOptions: UpdateQuoteParamsOptions = {},
@@ -116,38 +140,16 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
       ) {
         debounced.cancel();
         cancelOwnedTrace();
-        traceId = undefined;
         return;
       }
 
-      traceId =
-        srcAmount && srcAmount !== '.'
-          ? swapQuoteFetchTrace.start({
-              srcChainId,
-              destChainId,
-              isRefresh: requestOptions.isRefresh ?? false,
-            })
-          : undefined;
-      requestDispatched = false;
+      cancelOwnedTrace();
 
-      if (!traceId) {
-        cancelOwnedTrace();
-      } else {
-        ownedTraceId.current = traceId;
-      }
-
-      debounced({
-        ...requestOptions,
-        traceId,
-      });
+      debounced(requestOptions);
     };
 
     debouncedWithTrace.cancel = () => {
       debounced.cancel();
-      if (!requestDispatched && traceId) {
-        swapQuoteFetchTrace.finish('cancelled', traceId);
-      }
-      traceId = undefined;
     };
     debouncedWithTrace.flush = () => debounced.flush();
 

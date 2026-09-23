@@ -6,6 +6,7 @@ const Routes = {
   BROWSER_VIEW: 'BrowserView',
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   ACCOUNT_HUB_VIEW: 'AccountHubView',
+  MANAGE_ACCOUNTS_VIEW: 'ManageAccountsView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -156,7 +157,6 @@ const Routes = {
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
   TRENDING_VIEW: 'TrendingView',
-  TRENDING_FEED: 'TrendingFeed',
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
@@ -305,6 +305,7 @@ const Routes = {
       SHARE_ADDRESS: 'ShareAddress',
       SHARE_ADDRESS_QR: 'ShareAddressQR',
       DELETE_ACCOUNT: 'DeleteAccount',
+      REMOVE_ACCOUNT: 'RemoveAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
       SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
@@ -348,6 +349,7 @@ const Routes = {
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
+    RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -380,6 +382,7 @@ const Routes = {
       SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
+      LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
       RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
@@ -420,6 +423,7 @@ const Routes = {
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
       SELECT_PROVIDER: 'PerpsSelectProvider',
       MODE_SELECTION: 'PerpsModeSelection',
+      OUTREACH_DETAILS: 'PerpsOutreachDetails',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -435,6 +439,8 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    FOLLOW_CONNECTIONS: 'FollowConnectionsView',
+    PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
@@ -442,6 +448,7 @@ const Routes = {
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
+    POST_COMPOSER: 'SocialPostComposerView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
@@ -577,6 +584,7 @@ const Routes = {
     TRANSACTION_HISTORY: 'CardTransactionHistory',
     TRANSACTION_DETAILS: 'CardTransactionDetails',
     REPORT_TRANSACTION: 'CardReportTransaction',
+    CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
@@ -612,7 +620,10 @@ const Routes = {
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
+      DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
   SEND: {

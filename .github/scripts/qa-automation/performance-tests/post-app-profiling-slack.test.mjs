@@ -50,6 +50,18 @@ test('buildText appends the run link and truncates long input', () => {
   assert.match(long, /Truncated for Slack\./);
 });
 
+test('buildText labels the run link so a failure notice names its target', () => {
+  assert.equal(
+    buildText('hello', 'https://example.com/run', 'Failed performance run'),
+    'hello\n<https://example.com/run|Failed performance run>',
+  );
+  // An empty label must not produce an unclickable empty link text.
+  assert.equal(
+    buildText('hello', 'https://example.com/run', ''),
+    'hello\n<https://example.com/run|GitHub run>',
+  );
+});
+
 test('postSummary addresses a user id directly, without needing im:write', async () => {
   const calls = [];
   const fetchFn = async (url, init) => {

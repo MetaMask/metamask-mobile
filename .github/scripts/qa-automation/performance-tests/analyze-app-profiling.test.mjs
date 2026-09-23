@@ -22,6 +22,7 @@ import {
   buildAiBriefing,
   buildMarkdown,
   buildSlack,
+  buildConclusions,
   median,
   scenarioFrameTotals,
   aggregateWindow,
@@ -583,7 +584,7 @@ test('Slack leads with a testing disclaimer and keeps sourcemaps as a caveat', (
   };
   const slack = buildSlack(report);
   const [, disclaimer] = slack.split('\n');
-  assert.match(disclaimer, /testing experiment, not a production alert/);
+  assert.match(disclaimer, /Testing experiment, not a production alert/);
   assert.match(
     slack,
     /2\/2 profiles had no matching sourcemap, so frame names cannot be traced/,
@@ -657,6 +658,146 @@ test('Slack suppresses frames below five percent of JS work', () => {
   };
   assert.match(buildSlack(report), /No single frame reached 5% of JS work/);
   assert.doesNotMatch(buildSlack(report), /Top JS contributor: `smallFrame`/);
+});
+
+test('Slack conclusions name a repeated frame once instead of listing every scenario', () => {
+  const modFrame = {
+    name: 'mod',
+    selfMs: 2000,
+    url: '/node_modules/@metamask/key-tree/node_modules/@noble/curves/abstract/modular.js',
+    line: 39,
+  };
+  const files = [
+    'browserstack-android-Asset_View.cpuprofile',
+    'browserstack-android-Swap_flow.cpuprofile',
+    'browserstack-android-Predict_Deposit.cpuprofile',
+    'browserstack-android-Perps_add_funds.cpuprofile',
+    'browserstack-android-Money_Home_empty.cpuprofile',
+  ];
+  const profiles = files.map((fileName, index) =>
+    profile(fileName, {
+      symbolicated: true,
+      skillAudit: {
+        captureLengthMs: index === 4 ? 115000 : 40000,
+        jsWorkMs: index === 4 ? 60000 : 20000,
+        runtimeAndIdleMs: index === 4 ? 55000 : 20000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [
+          {
+            ...modFrame,
+            selfMs: index === 4 ? 18000 : 2000,
+          },
+        ],
+      },
+    }),
+  );
+  profiles.push(
+    profile('browserstack-android-Aggregated_Balance.cpuprofile', {
+      symbolicated: true,
+      skillAudit: {
+        captureLengthMs: 38000,
+        jsWorkMs: 23000,
+        runtimeAndIdleMs: 15000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [
+          {
+            name: 'isPropertyEqual',
+            selfMs: 2100,
+            url: '/node_modules/fast-equals/dist/cjs/index.cjs',
+            line: 281,
+          },
+        ],
+      },
+    }),
+  );
+  profiles.push(
+    profile('android-onboarding-Cold_Start_To_Onboarding.cpuprofile', {
+      symbolicated: true,
+      skillAudit: {
+        captureLengthMs: 17000,
+        jsWorkMs: 1200,
+        runtimeAndIdleMs: 16000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ ...modFrame, selfMs: 50 }],
+      },
+    }),
+  );
+  const report = {
+    meta: {
+      runId: '1',
+      profileCount: profiles.length,
+      symbolicatedProfileCount: profiles.length,
+      ai: false,
+    },
+    scenarios: groupProfiles(profiles),
+    aiAnalysis: null,
+  };
+  const slack = buildSlack(report);
+  const markdown = buildMarkdown(report);
+  const conclusions = buildConclusions(report).join('\n');
+
+  assert.match(slack, /\*Conclusions\*/);
+  assert.match(conclusions, /`mod`.*is the top JS contributor in 5\/7 scenarios/);
+  assert.match(conclusions, /`isPropertyEqual`/);
+  assert.match(conclusions, /Low JS duty/);
+  assert.match(markdown, /## Conclusions/);
+  assert.doesNotMatch(slack, /\*Highest-signal scenarios/);
+  const topContributorHits = slack.split('Top JS contributor: `mod`').length - 1;
+  assert.ok(
+    topContributorHits <= 5,
+    `expected at most 5 repeated mod outcome lines, got ${topContributorHits}`,
+  );
+});
+
+test('conclusions still name the leading hotspot when it is not dominant', () => {
+  const profiles = [
+    profile('browserstack-android-Wallet.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 40000,
+        jsWorkMs: 20000,
+        runtimeAndIdleMs: 20000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'mod', selfMs: 4000 }],
+      },
+    }),
+    profile('browserstack-android-Send.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 35000,
+        jsWorkMs: 18000,
+        runtimeAndIdleMs: 17000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'mod', selfMs: 3500 }],
+      },
+    }),
+    profile('browserstack-android-Perps.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 50000,
+        jsWorkMs: 30000,
+        runtimeAndIdleMs: 20000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'isPropertyEqual', selfMs: 2100 }],
+      },
+    }),
+    profile('browserstack-android-Swap.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 22000,
+        jsWorkMs: 12000,
+        runtimeAndIdleMs: 10000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'renderRow', selfMs: 900 }],
+      },
+    }),
+  ];
+  const conclusions = buildConclusions({
+    meta: { runId: '2', profileCount: 4, symbolicatedProfileCount: 0, ai: false },
+    scenarios: groupProfiles(profiles),
+    aiAnalysis: null,
+  }).join('\n');
+
+  assert.match(conclusions, /`mod` leads 2 scenarios/);
+  assert.doesNotMatch(conclusions, /is the top JS contributor/);
+  assert.match(conclusions, /`isPropertyEqual`/);
+  assert.match(conclusions, /`renderRow`/);
 });
 
 function windowScenario(

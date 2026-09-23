@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   type LayoutChangeEvent,
   ScrollView,
@@ -114,7 +114,8 @@ const CancelSurveyStep = ({
 }: CancelSurveyStepProps) => {
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
-  const hasScrolledToRevealedFieldRef = useRef(false);
+  const lastScrolledReasonIdRef = useRef<string | null>(null);
+  const stayQuestionYRef = useRef<number | null>(null);
   const showStayQuestion = selectedReasonId !== null;
   const showOtherReasonInput = selectedReasonId === OTHER_REASON_ID;
   const orderedReasons = useMemo(
@@ -123,19 +124,62 @@ const CancelSurveyStep = ({
   );
 
   // Selecting a reason reveals fields below the stats card and six reason
-  // rows, so on shorter devices they appear off-screen. Scroll to the topmost
-  // revealed field once: onLayout also fires as the multiline inputs grow, and
+  // rows, so on shorter devices they appear off-screen. Scroll once per
+  // selected reason: onLayout also fires as the multiline inputs grow, and
   // re-scrolling mid-typing would yank the field out from under the user.
-  const handleRevealedFieldLayout = useCallback((event: LayoutChangeEvent) => {
-    if (hasScrolledToRevealedFieldRef.current) {
-      return;
-    }
-    hasScrolledToRevealedFieldRef.current = true;
+  // Changing the reason (including among non-Other options) scrolls again,
+  // because the user typically scrolled back up to pick a different reason.
+  const scrollToRevealedFieldY = useCallback((y: number) => {
     scrollViewRef.current?.scrollTo({
-      y: Math.max(0, event.nativeEvent.layout.y - REVEALED_FIELD_SCROLL_INSET),
+      y: Math.max(0, y - REVEALED_FIELD_SCROLL_INSET),
       animated: true,
     });
   }, []);
+
+  const scrollRevealedFieldForReason = useCallback(
+    (y: number) => {
+      if (
+        selectedReasonId === null ||
+        lastScrolledReasonIdRef.current === selectedReasonId
+      ) {
+        return;
+      }
+      lastScrolledReasonIdRef.current = selectedReasonId;
+      scrollToRevealedFieldY(y);
+    },
+    [selectedReasonId, scrollToRevealedFieldY],
+  );
+
+  const handleOtherReasonLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      scrollRevealedFieldForReason(event.nativeEvent.layout.y);
+    },
+    [scrollRevealedFieldForReason],
+  );
+
+  const handleStayQuestionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const y = event.nativeEvent.layout.y;
+      stayQuestionYRef.current = y;
+      scrollRevealedFieldForReason(y);
+    },
+    [scrollRevealedFieldForReason],
+  );
+
+  useEffect(() => {
+    if (selectedReasonId === null || showOtherReasonInput) {
+      return;
+    }
+    if (lastScrolledReasonIdRef.current === selectedReasonId) {
+      return;
+    }
+    const stayQuestionY = stayQuestionYRef.current;
+    if (stayQuestionY === null) {
+      return;
+    }
+    lastScrolledReasonIdRef.current = selectedReasonId;
+    scrollToRevealedFieldY(stayQuestionY);
+  }, [selectedReasonId, showOtherReasonInput, scrollToRevealedFieldY]);
 
   return (
     <>
@@ -255,7 +299,7 @@ const CancelSurveyStep = ({
             style={tw.style(
               'mt-3 min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-body-md text-default',
             )}
-            onLayout={handleRevealedFieldLayout}
+            onLayout={handleOtherReasonLayout}
             testID={CancelMembershipTestIds.OTHER_REASON_INPUT}
           />
         )}
@@ -266,7 +310,7 @@ const CancelSurveyStep = ({
             // When "Other" is selected its input sits above and owns the
             // scroll, so anchoring here would push that input off-screen.
             onLayout={
-              showOtherReasonInput ? undefined : handleRevealedFieldLayout
+              showOtherReasonInput ? undefined : handleStayQuestionLayout
             }
             testID={CancelMembershipTestIds.STAY_QUESTION}
           >

@@ -360,6 +360,43 @@ describe('CancelSurveyStep', () => {
       expect(scrollToSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('scrolls the stay question into view again after switching to another non-other reason', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId, rerender, props } = renderStep({
+        selectedReasonId: CANCEL_REASONS[0].id,
+      });
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+        'layout',
+        createLayoutEvent(320),
+      );
+
+      rerender(
+        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[1].id} />,
+      );
+
+      expect(scrollToSpy).toHaveBeenCalledTimes(2);
+      expect(scrollToSpy).toHaveBeenLastCalledWith({ y: 304, animated: true });
+    });
+
+    it('does not scroll again when the same reason remains selected', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId, rerender, props } = renderStep({
+        selectedReasonId: CANCEL_REASONS[0].id,
+      });
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+        'layout',
+        createLayoutEvent(320),
+      );
+
+      rerender(
+        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[0].id} />,
+      );
+
+      expect(scrollToSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('calls onStayFeedbackChange when the stay input text changes', () => {
       const firstReason = CANCEL_REASONS[0];
       const { getByTestId, props } = renderStep({
@@ -454,6 +491,52 @@ describe('CancelSurveyStep', () => {
 
       expect(scrollToSpy).toHaveBeenCalledTimes(1);
       expect(scrollToSpy).toHaveBeenCalledWith({ y: 304, animated: true });
+    });
+
+    it('scrolls the other reason input into view after switching from another reason', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId, rerender, props } = renderStep({
+        selectedReasonId: CANCEL_REASONS[0].id,
+      });
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+        'layout',
+        createLayoutEvent(320),
+      );
+
+      rerender(
+        <CancelSurveyStep {...props} selectedReasonId={OTHER_REASON_ID} />,
+      );
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+        'layout',
+        createLayoutEvent(280),
+      );
+
+      expect(scrollToSpy).toHaveBeenLastCalledWith({ y: 264, animated: true });
+    });
+
+    it('does not scroll again when the other reason input grows after switching reasons', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId, rerender, props } = renderStep({
+        selectedReasonId: CANCEL_REASONS[0].id,
+      });
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+        'layout',
+        createLayoutEvent(320),
+      );
+      rerender(
+        <CancelSurveyStep {...props} selectedReasonId={OTHER_REASON_ID} />,
+      );
+      const otherReasonInput = getByTestId(
+        CancelMembershipTestIds.OTHER_REASON_INPUT,
+      );
+
+      fireEvent(otherReasonInput, 'layout', createLayoutEvent(280));
+      fireEvent(otherReasonInput, 'layout', createLayoutEvent(340));
+
+      expect(scrollToSpy).toHaveBeenCalledTimes(2);
     });
 
     it('does not scroll to the stay question when it lays out before the other reason input', () => {

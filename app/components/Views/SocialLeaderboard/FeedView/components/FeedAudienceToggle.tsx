@@ -42,7 +42,7 @@ const SPRING_CONFIG = {
  * Extra horizontal padding vs. the previous `px-4` so Android has room for
  * the full "Following" / "All" glyphs. Do not shrink the font to fit.
  */
-const SEGMENT_TW_CLASS = 'rounded-xl px-6 h-8 items-center justify-center';
+const SEGMENT_TW_CLASS = 'rounded-full px-6 h-8 items-center justify-center';
 
 const AUDIENCE_LABEL_KEYS: Record<FeedAudience, string> = {
   following: 'social_leaderboard.feed.following',
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    borderRadius: 12,
+    borderRadius: 999,
   },
   labelWrap: {
     position: 'relative',
@@ -278,7 +278,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="shrink-0 border border-muted rounded-2xl p-1"
+      twClassName="shrink-0 border border-muted rounded-full p-1"
       style={styles.container}
       testID={testID}
     >

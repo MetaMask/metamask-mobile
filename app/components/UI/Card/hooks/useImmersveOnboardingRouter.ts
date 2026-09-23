@@ -10,6 +10,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Engine from '../../../../core/Engine';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import type { ImmersveNextAction } from '../util/immersvePrerequisites';
@@ -22,9 +23,19 @@ interface RouteContext {
   showAccountExistsToast?: boolean;
   /** Callers outside the OnboardingNavigator (CardAuthentication) hop via ONBOARDING.ROOT. */
   navigateFromRoot?: boolean;
+  /**
+   * Returning users with a card and a `funding` next-action land on Card Home
+   * (Enable card / transaction history) instead of onboarding funding approval.
+   */
+  hasExistingCard?: boolean;
+  /** Authenticated SIWE / funding wallet to use for approval transactions. */
+  fundingAddress?: string;
 }
 
-function destinationForAction(action: ImmersveNextAction): string {
+function destinationForAction(
+  action: ImmersveNextAction,
+  hasExistingCard?: boolean,
+): string {
   switch (action.type) {
     case 'contact':
       return Routes.CARD.ONBOARDING.SIGN_UP;
@@ -33,7 +44,9 @@ function destinationForAction(action: ImmersveNextAction): string {
     case 'expected_spend':
       return Routes.CARD.ONBOARDING.KYC_PROCESSING;
     case 'funding':
-      return Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
+      return hasExistingCard
+        ? Routes.CARD.HOME
+        : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
       return Routes.CARD.ONBOARDING.KYC_FAILED;
     case 'active':
@@ -52,6 +65,10 @@ function destinationForAction(action: ImmersveNextAction): string {
  * Note: `kyc` and `pending` are handled in-screen by ImmersveKYCProcessing
  * (open the webview / keep polling); it must not pass those here or it would
  * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
+ *
+ * Returning users with an existing card and a `funding` next-action are sent
+ * to Card Home so Enable card / transaction history remain available; first-time
+ * funding still opens FUNDING_APPROVAL.
  */
 export const useImmersveOnboardingRouter = () => {
   const navigation = useNavigation();
@@ -61,7 +78,13 @@ export const useImmersveOnboardingRouter = () => {
 
   return useCallback(
     (action: ImmersveNextAction, ctx: RouteContext = {}) => {
-      const { countryKey, showAccountExistsToast, navigateFromRoot } = ctx;
+      const {
+        countryKey,
+        showAccountExistsToast,
+        navigateFromRoot,
+        hasExistingCard,
+        fundingAddress,
+      } = ctx;
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -69,7 +92,7 @@ export const useImmersveOnboardingRouter = () => {
             withCardProvider(CardProviderIds.Immersve, {
               action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
               next_action: action.type,
-              destination: destinationForAction(action),
+              destination: destinationForAction(action, hasExistingCard),
             }),
           )
           .build(),
@@ -86,6 +109,13 @@ export const useImmersveOnboardingRouter = () => {
         }
       };
 
+      const goToCardHome = () => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      };
+
       switch (action.type) {
         case 'contact':
           goToOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {});
@@ -93,14 +123,21 @@ export const useImmersveOnboardingRouter = () => {
         case 'kyc':
         case 'pending':
         case 'expected_spend':
+          Engine.context.CardController.setSignInLinkStage('identity');
           goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
             countryKey,
             kycUrl: action.type === 'kyc' ? action.url : undefined,
           });
           break;
         case 'funding':
+          Engine.context.CardController.setSignInLinkStage('spending');
+          if (hasExistingCard) {
+            goToCardHome();
+            break;
+          }
           goToOnboarding(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
             countryKey,
+            ...(fundingAddress ? { fundingAddress } : {}),
           });
           break;
         case 'rejected':
@@ -116,6 +153,9 @@ export const useImmersveOnboardingRouter = () => {
           }
           break;
         case 'active':
+          Engine.context.CardController.markMigrationCompleted().catch(
+            () => undefined,
+          );
           if (showAccountExistsToast !== false) {
             toastRef?.current?.showToast({
               variant: ToastVariants.Icon,
@@ -131,10 +171,7 @@ export const useImmersveOnboardingRouter = () => {
               hasNoTimeout: false,
             });
           }
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.CARD.HOME }],
-          });
+          goToCardHome();
           break;
         default:
           break;

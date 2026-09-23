@@ -1,7 +1,8 @@
-import type { RefObject } from 'react';
+import { createElement, type ReactNode, type RefObject } from 'react';
 import type { View } from 'react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import useHomeViewedEvent, { HomeSectionNames } from './useHomeViewedEvent';
+import { PerpsPriorityEligibilityContext } from '../context/PerpsPriorityEligibilityContext';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // --- Analytics mock ---
@@ -757,6 +758,87 @@ describe('useHomeViewedEvent', () => {
       );
 
       expect(mockSubscribeToScroll).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('perps priority eligibility', () => {
+    const withEligibility = (eligible: boolean | undefined) =>
+      function Wrapper({ children }: { children: ReactNode }) {
+        return createElement(
+          PerpsPriorityEligibilityContext.Provider,
+          { value: eligible },
+          children,
+        );
+      };
+
+    it.each([[true], [false]])(
+      'reports perps_priority_eligible=%p from context',
+      (isActivePerpsTrader) => {
+        renderHook(
+          () =>
+            useHomeViewedEvent({
+              ...defaultParams,
+              sectionName: HomeSectionNames.PERPS,
+              sectionRef: null,
+              isLoading: false,
+            }),
+          { wrapper: withEligibility(isActivePerpsTrader) },
+        );
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            perps_priority_eligible: isActivePerpsTrader,
+          }),
+        );
+      },
+    );
+
+    // The measurement contract: in control, Perps sits below Tokens, so an
+    // eligible user may never scroll to it. Eligibility must still be
+    // observable from a section they do see, otherwise the eligible control
+    // group is restricted to users who already performed the behaviour the
+    // experiment measures.
+    it('reports eligibility on a non-Perps section when Perps is never viewed', () => {
+      renderHook(
+        () =>
+          useHomeViewedEvent({
+            ...defaultParams,
+            sectionName: HomeSectionNames.TOKENS,
+            sectionRef: null,
+            isLoading: false,
+          }),
+        { wrapper: withEligibility(true) },
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          section_name: HomeSectionNames.TOKENS,
+          perps_priority_eligible: true,
+        }),
+      );
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          section_name: HomeSectionNames.PERPS,
+        }),
+      );
+    });
+
+    it('omits the property when eligibility is unresolved', () => {
+      renderHook(
+        () =>
+          useHomeViewedEvent({
+            ...defaultParams,
+            sectionRef: null,
+            isLoading: false,
+          }),
+        { wrapper: withEligibility(undefined) },
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          perps_priority_eligible: expect.anything(),
+        }),
+      );
     });
   });
 });
