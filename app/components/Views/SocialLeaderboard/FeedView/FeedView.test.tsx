@@ -191,6 +191,32 @@ describe('FeedView', () => {
     expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
   });
 
+  it('renders a hairline above later date headers but not the first', () => {
+    mockFeedResult = buildResult({
+      items: [spotItem, perpItem],
+      sections: [
+        { dateLabel: 'Today', data: [spotItem] },
+        { dateLabel: 'Yesterday', data: [perpItem] },
+      ],
+    });
+
+    renderWithProvider(<FeedView />);
+
+    expect(screen.getByText('Today')).toBeOnTheScreen();
+    expect(screen.getByText('Yesterday')).toBeOnTheScreen();
+    expect(
+      screen.getAllByTestId(FeedViewSelectorsIDs.SECTION_SEPARATOR),
+    ).toHaveLength(1);
+  });
+
+  it('does not render a date hairline when the feed has a single day', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(
+      screen.queryByTestId(FeedViewSelectorsIDs.SECTION_SEPARATOR),
+    ).not.toBeOnTheScreen();
+  });
+
   it('does not offer a time frame filter', () => {
     renderWithProvider(<FeedView />);
 

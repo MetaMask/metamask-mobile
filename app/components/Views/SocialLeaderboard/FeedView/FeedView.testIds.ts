@@ -11,6 +11,7 @@ export const FeedViewSelectorsIDs = {
   AUDIENCE_TOGGLE: 'feed-view-audience-toggle',
   TRADE_BUTTON: 'feed-view-trade-button',
   TRADE_CARD: 'feed-view-trade-card',
+  SECTION_SEPARATOR: 'feed-view-section-separator',
 } as const;
 
 export const getFeedItemTestId = (id: string) => `feed-item-${id}`;
