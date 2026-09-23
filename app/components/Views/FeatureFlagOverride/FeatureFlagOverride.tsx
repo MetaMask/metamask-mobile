@@ -28,7 +28,9 @@ import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
   FeatureFlagType,
+  isAbTestOptionsArray,
   isMinimumRequiredVersionSupported,
+  resolveVersionedFlagValue,
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
@@ -186,16 +188,18 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           />
         );
       case FeatureFlagType.FeatureFlagAbTest: {
-        const abTestOptions = rawRemoteFeatureFlags[flag.key] as unknown as
-          | AbTestType[]
-          | undefined;
-        const isOptionsAvailable =
-          abTestOptions && Array.isArray(abTestOptions);
+        const rawValue = resolveVersionedFlagValue(
+          rawRemoteFeatureFlags[flag.key],
+        );
+        const abTestOptions = isAbTestOptionsArray(rawValue)
+          ? rawValue
+          : undefined;
+        const isOptionsAvailable = abTestOptions !== undefined;
 
         const handleSelectOption = (name: string) => {
-          if (!isOptionsAvailable) return;
+          if (!abTestOptions) return;
           const selectedOption = abTestOptions.find(
-            (option: { name: string }) => option.name === name,
+            (option) => option.name === name,
           );
           if (selectedOption === undefined) {
             return;
@@ -222,8 +226,8 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           >
             <SelectOptionSheet
               options={
-                isOptionsAvailable
-                  ? abTestOptions.map((option: AbTestType) => ({
+                abTestOptions
+                  ? abTestOptions.map((option) => ({
                       label: option.name,
                       value: option.name,
                     }))

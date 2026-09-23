@@ -1,14 +1,20 @@
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 
+import { getBaseSemVerVersion } from '../version';
 import {
   getFeatureFlagType,
   isAbTestOptionsArray,
   isMinimumRequiredVersionSupported,
+  resolveVersionedFlagValue,
 } from './index';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
+}));
+
+jest.mock('../version', () => ({
+  getBaseSemVerVersion: jest.fn(),
 }));
 
 jest.mock('compare-versions', () => ({
@@ -269,6 +275,60 @@ describe('Feature Flags Utility Functions', () => {
       expect(isAbTestOptionsArray('control')).toBe(false);
       expect(isAbTestOptionsArray(null)).toBe(false);
       expect(isAbTestOptionsArray(undefined)).toBe(false);
+    });
+  });
+
+  describe('resolveVersionedFlagValue', () => {
+    const mockedGetBaseSemVerVersion = jest.mocked(getBaseSemVerVersion);
+    const arms = [{ name: 'control', scope: { type: 'threshold', value: 1 } }];
+
+    beforeEach(() => {
+      mockedGetBaseSemVerVersion.mockReturnValue('8.13.0');
+    });
+
+    it('returns non-versioned values unchanged', () => {
+      expect(resolveVersionedFlagValue(arms)).toBe(arms);
+      expect(resolveVersionedFlagValue(true)).toBe(true);
+      expect(resolveVersionedFlagValue(null)).toBeNull();
+      expect(resolveVersionedFlagValue(undefined)).toBeUndefined();
+    });
+
+    it('returns the entry for the highest version the build satisfies', () => {
+      const older = [{ name: 'old', scope: { type: 'threshold', value: 1 } }];
+
+      expect(
+        resolveVersionedFlagValue({
+          versions: { '8.10.0': older, '8.13.0': arms, '8.20.0': older },
+        }),
+      ).toBe(arms);
+    });
+
+    it('returns undefined when the build is below every version', () => {
+      mockedGetBaseSemVerVersion.mockReturnValue('8.12.0');
+
+      expect(
+        resolveVersionedFlagValue({ versions: { '8.13.0': arms } }),
+      ).toBeUndefined();
+    });
+
+    it('returns the value unchanged when a version key is not semver', () => {
+      const value = { versions: { latest: arms } };
+
+      expect(resolveVersionedFlagValue(value)).toBe(value);
+    });
+
+    it('returns the value unchanged when versions is not an object', () => {
+      const value = { versions: [arms] };
+
+      expect(resolveVersionedFlagValue(value)).toBe(value);
+    });
+
+    it('returns undefined when the build version is unknown', () => {
+      mockedGetBaseSemVerVersion.mockReturnValue('unknown');
+
+      expect(
+        resolveVersionedFlagValue({ versions: { '8.13.0': arms } }),
+      ).toBeUndefined();
     });
   });
 
