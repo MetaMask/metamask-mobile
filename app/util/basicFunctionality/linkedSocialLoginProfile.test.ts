@@ -1,12 +1,8 @@
-import type {
-  AuthenticationControllerState,
-  ProfileSignInInfo,
-} from '@metamask/profile-sync-controller/auth';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 
 import type { RootExtendedMessenger } from '../../core/Engine/types';
 import {
   authenticationStateIncludesLinkedSocialLogin,
-  profileAliasesIncludeSocialLogin,
   registerLinkedSocialLoginProfileSync,
 } from './linkedSocialLoginProfile';
 
@@ -33,44 +29,14 @@ const createAuthenticationState = (
     },
   }) as AuthenticationControllerState;
 
-const createProfileSignInInfo = (
-  identifierTypes: string[],
-): ProfileSignInInfo => ({
-  profileId: 'profile-id',
-  profileIdChanged: false,
-  profileAliases: [
-    {
-      aliasProfileId: 'alias-profile-id',
-      canonicalProfileId: 'profile-id',
-      identifierIds: identifierTypes.map((type) => ({
-        id: `${type}-identifier`,
-        type,
-      })),
-    },
-  ],
-});
+const createMessenger = (initialAuthState: AuthenticationControllerState) => {
+  const subscribe = jest.fn();
+  const call = jest.fn().mockReturnValue(initialAuthState);
+  const messenger = { call, subscribe } as unknown as RootExtendedMessenger;
+  return { messenger, call, subscribe };
+};
 
 describe('linkedSocialLoginProfile', () => {
-  it('detects social identifiers in profile aliases', () => {
-    const profileSignInInfo = createProfileSignInInfo(['SRP', 'GOOGLE']);
-
-    const result = profileAliasesIncludeSocialLogin(
-      profileSignInInfo.profileAliases,
-    );
-
-    expect(result).toBe(true);
-  });
-
-  it('ignores aliases containing only SRP identifiers', () => {
-    const profileSignInInfo = createProfileSignInInfo(['SRP']);
-
-    const result = profileAliasesIncludeSocialLogin(
-      profileSignInInfo.profileAliases,
-    );
-
-    expect(result).toBe(false);
-  });
-
   it('detects social identifiers in authentication state', () => {
     const authState = createAuthenticationState(['APPLE']);
 
@@ -87,24 +53,32 @@ describe('linkedSocialLoginProfile', () => {
     expect(result).toBe(false);
   });
 
-  it('reports linked social aliases from profile sign-in events', () => {
-    const subscribe = jest.fn();
+  it('reports linked social identifiers already persisted in authentication state', () => {
     const onLinkedSocialLoginProfile = jest.fn();
-    const messenger = { subscribe } as unknown as RootExtendedMessenger;
+    const { messenger, call } = createMessenger(
+      createAuthenticationState(['GOOGLE']),
+    );
+
     registerLinkedSocialLoginProfileSync(messenger, onLinkedSocialLoginProfile);
-    const profileSignInHandler = subscribe.mock.calls.find(
-      ([eventName]) => eventName === 'AuthenticationController:profileSignIn',
-    )?.[1] as (profileSignInInfo: ProfileSignInInfo) => void;
 
-    profileSignInHandler(createProfileSignInInfo(['TELEGRAM']));
-
+    expect(call).toHaveBeenCalledWith('AuthenticationController:getState');
     expect(onLinkedSocialLoginProfile).toHaveBeenCalledTimes(1);
   });
 
-  it('reports linked social identifiers from authentication state changes', () => {
-    const subscribe = jest.fn();
+  it('does not report when persisted authentication state has no social identifier', () => {
     const onLinkedSocialLoginProfile = jest.fn();
-    const messenger = { subscribe } as unknown as RootExtendedMessenger;
+    const { messenger } = createMessenger(createAuthenticationState(['SRP']));
+
+    registerLinkedSocialLoginProfileSync(messenger, onLinkedSocialLoginProfile);
+
+    expect(onLinkedSocialLoginProfile).not.toHaveBeenCalled();
+  });
+
+  it('reports linked social identifiers from authentication state changes', () => {
+    const onLinkedSocialLoginProfile = jest.fn();
+    const { messenger, subscribe } = createMessenger(
+      createAuthenticationState([]),
+    );
     registerLinkedSocialLoginProfileSync(messenger, onLinkedSocialLoginProfile);
     const stateChangeHandler = subscribe.mock.calls.find(
       ([eventName]) => eventName === 'AuthenticationController:stateChange',

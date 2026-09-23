@@ -1,7 +1,4 @@
-import type {
-  AuthenticationControllerState,
-  ProfileSignInInfo,
-} from '@metamask/profile-sync-controller/auth';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 
 import type { RootExtendedMessenger } from '../../core/Engine/types';
 
@@ -9,24 +6,6 @@ const SOCIAL_LOGIN_IDENTIFIER_TYPES = new Set(['GOOGLE', 'APPLE', 'TELEGRAM']);
 
 interface PairedIdentifier {
   type: string;
-}
-
-/**
- * Returns whether profile aliases include a social-login identifier.
- *
- * @param profileAliases - Aliases returned after profile sign-in or pairing.
- * @returns Whether at least one alias is linked to a social provider.
- */
-export function profileAliasesIncludeSocialLogin(
-  profileAliases: ProfileSignInInfo['profileAliases'] | undefined,
-): boolean {
-  return Boolean(
-    profileAliases?.some((alias) =>
-      alias.identifierIds.some((identifier) =>
-        SOCIAL_LOGIN_IDENTIFIER_TYPES.has(identifier.type),
-      ),
-    ),
-  );
 }
 
 /**
@@ -56,7 +35,8 @@ export function authenticationStateIncludesLinkedSocialLogin(
 
 /**
  * Mirrors AuthenticationController social-profile signals into a client-owned
- * persisted marker.
+ * persisted marker. Checks the current state first because subscriptions do
+ * not replay persisted state.
  *
  * @param messenger - Root Engine messenger.
  * @param onLinkedSocialLoginProfile - Called when linked social metadata is
@@ -66,14 +46,13 @@ export function registerLinkedSocialLoginProfileSync(
   messenger: RootExtendedMessenger,
   onLinkedSocialLoginProfile: () => void,
 ): void {
-  messenger.subscribe(
-    'AuthenticationController:profileSignIn',
-    ({ profileAliases }) => {
-      if (profileAliasesIncludeSocialLogin(profileAliases)) {
-        onLinkedSocialLoginProfile();
-      }
-    },
-  );
+  if (
+    authenticationStateIncludesLinkedSocialLogin(
+      messenger.call('AuthenticationController:getState'),
+    )
+  ) {
+    onLinkedSocialLoginProfile();
+  }
 
   messenger.subscribe('AuthenticationController:stateChange', (authState) => {
     if (authenticationStateIncludesLinkedSocialLogin(authState)) {
