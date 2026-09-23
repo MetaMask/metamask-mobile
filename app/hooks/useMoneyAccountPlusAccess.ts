@@ -1,5 +1,8 @@
 import { useSelector } from 'react-redux';
-import { selectIsMoneyAccountPlusSubscriber } from '../selectors/subscriptionController';
+import {
+  selectHasAnyMoneyAccountPlusEntitlement,
+  selectIsMoneyAccountPlusSubscriber,
+} from '../selectors/subscriptionController';
 import useSubscriptionPolling from '../components/hooks/useSubscriptionPolling';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
@@ -29,6 +32,12 @@ export enum MoneyAccountPlusAccess {
  * SubscriptionController's active-subscriber selector, but only after the
  * initial subscriptions query has settled.
  *
+ * Entitlements are checked alongside subscription status: the server keeps
+ * paid features on through recoverable states such as `past_due`, which the
+ * active-subscriber selector fails closed on. Either signal grants
+ * {@link MoneyAccountPlusAccess.Subscriber} so a paying user is never shown
+ * the upsell or bounced from the hub.
+ *
  * @returns The access state for the current user.
  */
 export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
@@ -37,12 +46,13 @@ export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
     enabled: isProSubscriptionEnabled,
   });
   const isSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
+  const hasEntitlement = useSelector(selectHasAnyMoneyAccountPlusEntitlement);
 
   if (!isProSubscriptionEnabled) {
     return MoneyAccountPlusAccess.Disabled;
   }
 
-  if (isSubscriber) {
+  if (isSubscriber || hasEntitlement) {
     return MoneyAccountPlusAccess.Subscriber;
   }
 

@@ -15,6 +15,7 @@ import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
+const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
  * Core's entitlement selectors require a defined controller state, but the
@@ -155,6 +156,29 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
     selectIsActiveSubscriber(
       subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
       PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    ),
+);
+
+/**
+ * Selects whether the user still holds any Money Account Plus entitlement.
+ *
+ * Entitlements are granted by the server independently of subscription
+ * status, so a `past_due` or `paused` subscriber keeps paid access until the
+ * server revokes it. Omitted entitlements are stored as an empty map, so this
+ * fails closed once access ends.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether at least one Plus feature entitlement is granted.
+ */
+export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    MONEY_ACCOUNT_PLUS_FEATURES.some((feature) =>
+      selectHasEntitlement(
+        subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+        PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+        feature,
+      ),
     ),
 );
 

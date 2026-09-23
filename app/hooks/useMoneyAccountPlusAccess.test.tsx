@@ -3,6 +3,10 @@ import { useSelector } from 'react-redux';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 import useSubscriptionPolling from '../components/hooks/useSubscriptionPolling';
 import {
+  selectHasAnyMoneyAccountPlusEntitlement,
+  selectIsMoneyAccountPlusSubscriber,
+} from '../selectors/subscriptionController';
+import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from './useMoneyAccountPlusAccess';
@@ -20,6 +24,24 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
 const mockUseSubscriptionPolling = jest.mocked(useSubscriptionPolling);
 
+const mockSubscriptionState = ({
+  isSubscriber = false,
+  hasEntitlement = false,
+}: {
+  isSubscriber?: boolean;
+  hasEntitlement?: boolean;
+} = {}) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsMoneyAccountPlusSubscriber) {
+      return isSubscriber;
+    }
+    if (selector === selectHasAnyMoneyAccountPlusEntitlement) {
+      return hasEntitlement;
+    }
+    throw new Error('Unexpected selector');
+  });
+};
+
 describe('useMoneyAccountPlusAccess', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -31,7 +53,7 @@ describe('useMoneyAccountPlusAccess', () => {
     mockUseSubscriptionPolling.mockReturnValue({
       isLoading: false,
     } as ReturnType<typeof useSubscriptionPolling>);
-    mockUseSelector.mockReturnValue(false);
+    mockSubscriptionState();
   });
 
   it('is disabled when the Pro subscription flag is off', () => {
@@ -40,15 +62,23 @@ describe('useMoneyAccountPlusAccess', () => {
       variantName: 'control',
       isActive: false,
     });
-    mockUseSelector.mockReturnValue(true);
+    mockSubscriptionState({ isSubscriber: true, hasEntitlement: true });
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Disabled);
   });
 
+  it('keeps subscriber access when entitlements outlive an active status', () => {
+    mockSubscriptionState({ isSubscriber: false, hasEntitlement: true });
+
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
+
+    expect(result.current).toBe(MoneyAccountPlusAccess.Subscriber);
+  });
+
   it('grants subscriber access even while the query is still loading', () => {
-    mockUseSelector.mockReturnValue(true);
+    mockSubscriptionState({ isSubscriber: true });
     mockUseSubscriptionPolling.mockReturnValue({
       isLoading: true,
     } as ReturnType<typeof useSubscriptionPolling>);
