@@ -40,6 +40,7 @@ const mockData: CardHomeData = {
   availableFundingAssets: [],
   card: null,
   account: null,
+  walletProvisioning: null,
   alerts: [],
   actions: [],
   delegationSettings: null,
