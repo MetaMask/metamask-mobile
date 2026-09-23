@@ -199,7 +199,7 @@ describe('getTransactionControllerHooks', () => {
       ).resolves.toStrictEqual({ isSponsored: true });
     });
 
-    it('uses refreshed unavailability over legacy sponsorship metadata', async () => {
+    it('preserves explicit sponsorship when refreshed availability is false', async () => {
       const hooks = getTransactionControllerHooks(buildRequest());
       const transactionMeta = {
         ...MOCK_TRANSACTION_META,
@@ -209,7 +209,7 @@ describe('getTransactionControllerHooks', () => {
 
       await expect(
         hooks.isSponsored?.({ transactionMeta }),
-      ).resolves.toStrictEqual({ isSponsored: false });
+      ).resolves.toStrictEqual({ isSponsored: true });
     });
 
     it('does not sponsor revoke delegation transactions', async () => {
