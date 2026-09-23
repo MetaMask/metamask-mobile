@@ -348,10 +348,24 @@ describe('CardWelcome', () => {
       store = createTestStore({ cardholderAccounts: [] });
     });
 
+    /**
+     * Animated.View order: title, description, footer.
+     */
+    const getRevealContainers = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) => UNSAFE_getAllByType(Animated.View);
+
+    const getTitleRevealStyleEntries = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) =>
+      getRevealContainers(UNSAFE_getAllByType)[0].props.style as ViewStyle[];
+
+    const getDescriptionRevealStyleEntries = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) =>
+      getRevealContainers(UNSAFE_getAllByType)[1].props.style as ViewStyle[];
+
+    const getFooterRevealStyleEntries = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) =>
+      getRevealContainers(UNSAFE_getAllByType)[2].props.style as ViewStyle[];
+
     it('releases the hidden text reveal style when the cards animation reports a Rive error while animating', () => {
       mockUseCardEducationAnimationState.mockReturnValue('animate');
 
-      const { getByTestId, queryByTestId, UNSAFE_getByType } = render(
+      const { getByTestId, queryByTestId, UNSAFE_getAllByType } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
@@ -367,53 +381,68 @@ describe('CardWelcome', () => {
         });
       });
 
-      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
-        .style as ViewStyle[];
-      const textContainerStyle = StyleSheet.flatten(textContainerStyleEntries);
+      const titleStyleEntries = getTitleRevealStyleEntries(UNSAFE_getAllByType);
+      const descriptionStyleEntries =
+        getDescriptionRevealStyleEntries(UNSAFE_getAllByType);
 
-      expect(textContainerStyle.opacity).not.toBe(0);
+      expect(StyleSheet.flatten(titleStyleEntries).opacity).not.toBe(0);
+      expect(StyleSheet.flatten(descriptionStyleEntries).opacity).not.toBe(0);
       // The error resolves the state to 'static', which attaches neither the
       // hidden style nor the animated reveal style: an empty style array is
       // what proves the copy is not left waiting on a reveal that never runs.
-      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(0);
+      expect(titleStyleEntries.filter(Boolean)).toHaveLength(0);
+      expect(descriptionStyleEntries.filter(Boolean)).toHaveLength(0);
       expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
       expect(
         queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
       ).not.toBeOnTheScreen();
     });
 
-    it('holds the copy hidden and unrevealed while the cards entrance has not started', () => {
+    it('holds the copy hidden until the cards entrance starts; buttons begin revealing on animate', () => {
       mockUseCardEducationAnimationState.mockReturnValue('animate');
       mockViewReady = false;
 
-      const { UNSAFE_getByType } = render(
+      const { UNSAFE_getAllByType } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
-        .style as ViewStyle[];
+      const titleStyleEntries = getTitleRevealStyleEntries(UNSAFE_getAllByType);
+      const descriptionStyleEntries =
+        getDescriptionRevealStyleEntries(UNSAFE_getAllByType);
+      const footerContainerStyleEntries =
+        getFooterRevealStyleEntries(UNSAFE_getAllByType);
 
-      expect(StyleSheet.flatten(textContainerStyleEntries).opacity).toBe(0);
-      // Only the plain hidden style is attached: the reveal is timed from the
-      // entrance, and the entrance has not started yet.
-      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(1);
+      expect(StyleSheet.flatten(titleStyleEntries).opacity).toBe(0);
+      expect(StyleSheet.flatten(descriptionStyleEntries).opacity).toBe(0);
+      // Only the plain hidden style is attached on the copy: the title
+      // reveal is timed from the entrance, and the entrance has not started.
+      expect(titleStyleEntries.filter(Boolean)).toHaveLength(1);
+      expect(descriptionStyleEntries.filter(Boolean)).toHaveLength(1);
+      // Buttons fade on mount: footerContent + hidden + buttons reveal style.
+      expect(footerContainerStyleEntries.filter(Boolean)).toHaveLength(3);
     });
 
-    it('attaches the reveal style once the cards entrance starts', () => {
+    it('attaches the title and description reveal styles once the cards entrance starts', () => {
       mockUseCardEducationAnimationState.mockReturnValue('animate');
 
-      const { UNSAFE_getByType } = render(
+      const { UNSAFE_getAllByType } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
-        .style as ViewStyle[];
-
-      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(2);
+      expect(
+        getTitleRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+      ).toHaveLength(2);
+      expect(
+        getDescriptionRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+      ).toHaveLength(2);
+      // footerContent + hidden + buttons reveal (independent of entrance)
+      expect(
+        getFooterRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+      ).toHaveLength(3);
     });
 
     it('reveals the copy anyway when the entrance never reports it started', () => {
@@ -422,27 +451,35 @@ describe('CardWelcome', () => {
       mockViewReady = false;
 
       try {
-        const { UNSAFE_getByType } = render(
+        const { UNSAFE_getAllByType } = render(
           <Provider store={store}>
             <CardWelcome />
           </Provider>,
         );
 
         expect(
-          (UNSAFE_getByType(Animated.View).props.style as ViewStyle[]).filter(
-            Boolean,
-          ),
+          getTitleRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
         ).toHaveLength(1);
+        expect(
+          getDescriptionRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+        ).toHaveLength(1);
+        expect(
+          getFooterRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+        ).toHaveLength(3);
 
         act(() => {
           jest.advanceTimersByTime(CARDS_ENTRANCE_START_TIMEOUT_MS);
         });
 
         expect(
-          (UNSAFE_getByType(Animated.View).props.style as ViewStyle[]).filter(
-            Boolean,
-          ),
+          getTitleRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
         ).toHaveLength(2);
+        expect(
+          getDescriptionRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+        ).toHaveLength(2);
+        expect(
+          getFooterRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
+        ).toHaveLength(3);
       } finally {
         jest.useRealTimers();
       }
@@ -451,43 +488,64 @@ describe('CardWelcome', () => {
     it("attaches neither the hidden nor the animated reveal style on the first render in 'static' mode", () => {
       mockUseCardEducationAnimationState.mockReturnValue('static');
 
-      const { UNSAFE_getByType } = render(
+      const { UNSAFE_getAllByType } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
-        .style as ViewStyle[];
-      const textContainerStyle = StyleSheet.flatten(textContainerStyleEntries);
+      const titleStyleEntries = getTitleRevealStyleEntries(UNSAFE_getAllByType);
+      const descriptionStyleEntries =
+        getDescriptionRevealStyleEntries(UNSAFE_getAllByType);
+      const footerContainerStyleEntries =
+        getFooterRevealStyleEntries(UNSAFE_getAllByType);
 
-      expect(textContainerStyle.opacity).toBeUndefined();
+      expect(StyleSheet.flatten(titleStyleEntries).opacity).toBeUndefined();
+      expect(
+        StyleSheet.flatten(descriptionStyleEntries).opacity,
+      ).toBeUndefined();
       // An empty style array is the real signal here: a bare (unattached)
       // animated-style handle also flattens to `opacity: undefined`, so only
       // the absence of any truthy entry proves no reveal style was attached.
-      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(0);
+      expect(titleStyleEntries.filter(Boolean)).toHaveLength(0);
+      expect(descriptionStyleEntries.filter(Boolean)).toHaveLength(0);
+      // Footer still has footerContent layout style, but no reveal chrome.
+      expect(
+        footerContainerStyleEntries.filter(
+          (entry) =>
+            Boolean(entry) && StyleSheet.flatten(entry).opacity != null,
+        ),
+      ).toHaveLength(0);
     });
 
-    it("hides the text while the animation state is 'pending'", () => {
+    it("hides the text and buttons while the animation state is 'pending'", () => {
       mockUseCardEducationAnimationState.mockReturnValue('pending');
 
-      const { UNSAFE_getByType } = render(
+      const { UNSAFE_getAllByType } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      const textContainerStyle = StyleSheet.flatten(
-        UNSAFE_getByType(Animated.View).props.style,
-      );
-
-      expect(textContainerStyle.opacity).toBe(0);
+      expect(
+        StyleSheet.flatten(getTitleRevealStyleEntries(UNSAFE_getAllByType))
+          .opacity,
+      ).toBe(0);
+      expect(
+        StyleSheet.flatten(
+          getDescriptionRevealStyleEntries(UNSAFE_getAllByType),
+        ).opacity,
+      ).toBe(0);
+      expect(
+        StyleSheet.flatten(getFooterRevealStyleEntries(UNSAFE_getAllByType))
+          .opacity,
+      ).toBe(0);
     });
 
-    it('keeps the text hidden on the render where the state first transitions from pending to animate', () => {
+    it('keeps the text and buttons hidden on the render where the state first transitions from pending to animate', () => {
       mockUseCardEducationAnimationState.mockReturnValue('pending');
 
-      const { rerender, UNSAFE_getByType } = render(
+      const { rerender, UNSAFE_getAllByType } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
@@ -500,11 +558,19 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      const textContainerStyle = StyleSheet.flatten(
-        UNSAFE_getByType(Animated.View).props.style,
-      );
-
-      expect(textContainerStyle.opacity).toBe(0);
+      expect(
+        StyleSheet.flatten(getTitleRevealStyleEntries(UNSAFE_getAllByType))
+          .opacity,
+      ).toBe(0);
+      expect(
+        StyleSheet.flatten(
+          getDescriptionRevealStyleEntries(UNSAFE_getAllByType),
+        ).opacity,
+      ).toBe(0);
+      expect(
+        StyleSheet.flatten(getFooterRevealStyleEntries(UNSAFE_getAllByType))
+          .opacity,
+      ).toBe(0);
     });
   });
 
