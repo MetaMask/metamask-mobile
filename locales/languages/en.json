@@ -9198,12 +9198,18 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expiry: {{timeLeft}}",
+      "days_left": "{{count}}d left",
+      "hours_left": "{{count}}h left",
+      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
       "expired_after": "Expired after {{duration}}",
+      "duration_days": "{{count}}d",
+      "duration_hours": "{{count}}h",
+      "duration_minutes": "{{count}}m",
       "canceled": "Canceled",
       "canceled_at": "Canceled at {{date}}",
       "failed": "Failed",
@@ -9238,7 +9244,8 @@
       "confirm_order": "Confirm order",
       "edit_cost_tolerance": "Edit cost tolerance",
       "try_again": "Try again",
-      "error_calculation_network_fees": "Couldn't calculate the network fee."
+      "error_calculation_network_fees": "Couldn't calculate the network fee.",
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
     },
     "recurring": {
       "you_get": "You get",
