@@ -41,13 +41,6 @@ const Routes = {
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-    CREATE_VIRTUAL_BANK_ACCOUNT: 'RampCreateVirtualBankAccount',
-    VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
-    VBA_KYC_EMAIL: 'RampVbaKycEmail',
-    VBA_SUMSUB_KYC: 'RampVbaSumSubKyc',
-    VBA_KYC_PENDING: 'RampVbaKycPending',
-    VBA_KYC_REJECTED: 'RampVbaKycRejected',
-    VBA_ONBOARDING_ERROR: 'RampVbaOnboardingError',
     VBA_ONBOARDING: 'RampVbaOnboarding',
     MODALS: {
       ID: 'RampModals',

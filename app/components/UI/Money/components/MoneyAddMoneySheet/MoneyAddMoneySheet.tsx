@@ -163,12 +163,12 @@ const MoneyAddMoneySheet: React.FC = () => {
   const handleBankAccount = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
-      redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
-    // Hydrate VBA onboarding and open the first incomplete screen (fresh
-    // users land on Terms 1; returning users resume).
+    // Open the first incomplete VBA module (fresh users land on Terms 1;
+    // returning users resume from durable controller facts).
     sheetRef.current?.onCloseBottomSheet(() => {
       openVbaOnboarding().catch(() => undefined);
     });

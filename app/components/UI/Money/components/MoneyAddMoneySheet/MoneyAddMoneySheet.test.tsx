@@ -700,7 +700,7 @@ describe('MoneyAddMoneySheet', () => {
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
-        redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
       });
     });
 
