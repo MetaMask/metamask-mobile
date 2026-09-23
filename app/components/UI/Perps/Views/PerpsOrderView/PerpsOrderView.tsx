@@ -1633,7 +1633,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         } finally {
           isSubmittingRef.current = false;
         }
-        if (isDismissedRef.current) {
+        // Only a user-initiated submit is abandoned with the sheet. The
+        // post-deposit re-entry (`forceTrade`) runs by design after the user
+        // has left — the deposit branch itself navigates away once the
+        // confirmation resolves — and the confirmed deposit is a commitment
+        // that must still produce the order.
+        if (!forceTrade && isDismissedRef.current) {
           return;
         }
       }
@@ -1712,6 +1717,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // Deposit confirmed: the order is placed once funds arrive, so leaving
         // now is a real commitment, not an abandoned order.
         hasPlacedOrderRef.current = true;
+        if (isDismissedRef.current) {
+          // The user already swiped the sheet away while the confirmation was
+          // pending, so `handleTradeSheetClose` has navigated; a second
+          // `goBack` here would pop whatever screen is now on top.
+          return;
+        }
         if (fromTokenDetails) {
           navigation.dispatch(
             CommonActions.reset({

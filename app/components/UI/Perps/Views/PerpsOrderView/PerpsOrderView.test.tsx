@@ -2028,9 +2028,30 @@ describe('PerpsOrderView', () => {
       type: 'perpsDepositAndOrder',
     };
 
-    const arrangeDepositFlow = () => {
+    // Flushes the microtask chains behind `await validateOrderNow()` and
+    // `await onDepositConfirm()` so each helper returns with the flow settled.
+    const flushAsync = () =>
+      new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    const arrangeDepositFlow = (options?: { validationPending?: boolean }) => {
       mockTradeWithAnyTokenEnabled = true;
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      if (options?.validationPending) {
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValidating: true,
+          insufficientBalanceErrors: [],
+          validateNow: jest.fn().mockResolvedValue({
+            isValid: true,
+            errors: [],
+            warnings: [],
+            fieldIssues: [],
+          }),
+        });
+      }
       const { useTransactionMetadataRequest } = jest.requireMock(
         '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
       ) as { useTransactionMetadataRequest: jest.Mock };
@@ -2039,9 +2060,9 @@ describe('PerpsOrderView', () => {
       let resolveConfirm: () => void = () => undefined;
       let confirmOptions: { onError?: (error: unknown) => void } | undefined;
       const onConfirm = jest.fn(
-        (options?: { onError?: (error: unknown) => void }) =>
+        (confirmCallOptions?: { onError?: (error: unknown) => void }) =>
           new Promise<void>((resolve) => {
-            confirmOptions = options;
+            confirmOptions = confirmCallOptions;
             resolveConfirm = resolve;
           }),
       );
@@ -2070,7 +2091,7 @@ describe('PerpsOrderView', () => {
       const submit = () =>
         act(async () => {
           getMockTradeScreenProps().onSubmit();
-          await Promise.resolve();
+          await flushAsync();
         });
       const settleConfirm = (error?: unknown) =>
         act(async () => {
@@ -2078,12 +2099,16 @@ describe('PerpsOrderView', () => {
             confirmOptions?.onError?.(error);
           }
           resolveConfirm();
-          await Promise.resolve();
+          await flushAsync();
         });
       const confirmDepositOnChain = () =>
         act(async () => {
           onDepositConfirmed?.();
-          await Promise.resolve();
+          await flushAsync();
+        });
+      const dismissSheet = () =>
+        act(() => {
+          mockTradeSheetOnClose?.();
         });
 
       return {
@@ -2093,6 +2118,7 @@ describe('PerpsOrderView', () => {
         submit,
         settleConfirm,
         confirmDepositOnChain,
+        dismissSheet,
       };
     };
 
@@ -2157,6 +2183,52 @@ describe('PerpsOrderView', () => {
       // The forced re-entry already left the sheet; the deposit branch must
       // not pop the market screen it landed on.
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    // A confirmed deposit is a commitment: the tracker places the order after
+    // the user has left by design, so neither the sheet being swiped away nor
+    // a validation still in flight at submit time may abandon it.
+    it('still places the order after a swiped-away sheet when validation was in flight', async () => {
+      const {
+        placeOrder,
+        submit,
+        settleConfirm,
+        confirmDepositOnChain,
+        dismissSheet,
+      } = arrangeDepositFlow({ validationPending: true });
+
+      await submit();
+      dismissSheet();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+
+      await settleConfirm();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate again when the confirmation settles after the sheet was swiped away', async () => {
+      const {
+        placeOrder,
+        submit,
+        settleConfirm,
+        confirmDepositOnChain,
+        dismissSheet,
+      } = arrangeDepositFlow();
+
+      await submit();
+      dismissSheet();
+      await settleConfirm();
+
+      // Only the dismissal itself navigated.
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
     });
   });
 
