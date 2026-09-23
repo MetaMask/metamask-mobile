@@ -4,6 +4,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
@@ -134,6 +135,7 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
+          recordPerpsAction();
           await handlers.onSuccess(result);
         } else {
           handlers.onFailure?.();

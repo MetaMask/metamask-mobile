@@ -9,19 +9,19 @@ import Engine from '../../../../core/Engine';
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 export const CARD_DETAILS_CSS = {
   [CardType.VIRTUAL]: {
-    cardBackgroundColor: '#FF5C16',
+    cardBackgroundColor: '#FA4B00',
     cardTextColor: '#FFFFFF',
     panBackgroundColor: '#EFEFEF',
     panTextColor: '#000000',
   },
   [CardType.PHYSICAL]: {
-    cardBackgroundColor: '#3D065F',
+    cardBackgroundColor: '#360853',
     cardTextColor: '#FFFFFF',
     panBackgroundColor: '#EFEFEF',
     panTextColor: '#000000',
   },
   [CardType.METAL]: {
-    cardBackgroundColor: '#3D065F',
+    cardBackgroundColor: '#360853',
     cardTextColor: '#FFFFFF',
     panBackgroundColor: '#EFEFEF',
     panTextColor: '#000000',

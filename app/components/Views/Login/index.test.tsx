@@ -29,6 +29,10 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
+  trackAppUnlocked,
+  trackAppUnlockedFailed,
+} from './loginUnlockAnalytics';
+import {
   PASSCODE_NOT_SET_ERROR,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
@@ -250,6 +254,22 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
+jest.mock('./loginUnlockAnalytics', () => {
+  const actual = jest.requireActual('./loginUnlockAnalytics');
+  return {
+    ...actual,
+    trackAppUnlocked: jest.fn(),
+    trackAppUnlockedFailed: jest.fn(),
+  };
+});
+
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   const traceCallbackPromiseRef: { current: Promise<unknown> | null } = {
@@ -347,6 +367,8 @@ describe('Login', () => {
   const mockTrackOnboarding = jest.mocked(
     jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
   );
+  const mockTrackAppUnlocked = jest.mocked(trackAppUnlocked);
+  const mockTrackAppUnlockedFailed = jest.mocked(trackAppUnlockedFailed);
   const mockTrackErrorAsAnalytics =
     trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
   const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
@@ -462,6 +484,9 @@ describe('Login', () => {
         <Login />,
       );
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
+      expect(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+      ).toBeOnTheScreen();
       expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
       expect(queryByTestId(LoginViewSelectors.TITLE_ID)).not.toBeOnTheScreen();
       expect(
@@ -569,10 +594,14 @@ describe('Login', () => {
       ['Decrypt failed', 'generic decryption failure'],
       [
         'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
-        'Android BAD_DECRYPT',
+        'Android legacy OPENSSL BAD_DECRYPT',
+      ],
+      [
+        'Cipher.final(...): Cipher final failed: error:1C800064:Provider routines::bad decrypt',
+        'Android Provider routines bad decrypt',
       ],
       ['error in DoCipher, status: 2', 'Android DoCipher'],
-      ['Password is incorrect, try again.', 'incorrect password'],
+      ['Incorrect password. Try again.', 'incorrect password'],
     ])('displays invalid password error for %s', async (errorMessage) => {
       mockUnlockWallet.mockRejectedValueOnce(new Error(errorMessage));
       const { getByTestId } = renderWithProvider(<Login />);
@@ -1014,6 +1043,42 @@ describe('Login', () => {
       );
     });
 
+    it('tracks App Unlocked on password unlock', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackAppUnlocked).toHaveBeenCalledWith(
+        expect.objectContaining({ unlockType: 'password' }),
+      );
+    });
+
+    it('tracks App Unlocked Failed on incorrect password', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackAppUnlockedFailed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          unlockType: 'password',
+          reason: 'incorrect_password',
+        }),
+      );
+    });
+
     it('tracks FORGOT_PASSWORD_CLICKED when reset wallet is pressed', () => {
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -1027,14 +1092,11 @@ describe('Login', () => {
 
     it('tracks LOGIN_DOWNLOAD_LOGS and calls downloadStateLogs on long press', () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      const foxAnimationMock = getByTestId('fox-animation-mock');
-      const foxWrapper = foxAnimationMock.parent;
 
-      if (!foxWrapper) {
-        throw new Error('Fox animation wrapper not found');
-      }
-
-      fireEvent(foxWrapper, 'longPress');
+      fireEvent(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+        'longPress',
+      );
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,
@@ -2026,12 +2088,11 @@ describe('Login', () => {
 
     it('tracks LOGIN_DOWNLOAD_LOGS on long press', () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      const foxAnimationMock = getByTestId('fox-animation-mock');
-      const foxWrapper = foxAnimationMock.parent;
-      if (!foxWrapper) {
-        throw new Error('Fox animation wrapper not found');
-      }
-      fireEvent(foxWrapper, 'longPress');
+
+      fireEvent(
+        getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
+        'longPress',
+      );
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,

@@ -169,6 +169,60 @@ describe('OrdersTabs', () => {
     expect(queryByText(strings('bridge.orders.empty.history'))).toBeNull();
   });
 
+  it('notifies the consumer when the selected tab changes', () => {
+    const onTabChange = jest.fn();
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: { items: [] },
+      history: { items: [] },
+      onTabChange,
+    });
+
+    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB));
+
+    expect(onTabChange).toHaveBeenCalledWith(OrdersTabKey.History);
+  });
+
+  it('renders the initial loading state', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: { items: [], isLoading: true },
+      history: { items: [] },
+    });
+
+    expect(getByTestId(OrdersTabsSelectorsIDs.LOADING)).toBeOnTheScreen();
+  });
+
+  it('renders the next-page loading state below existing items', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: ['order-1'],
+        renderItem: (item) => <Text>{item}</Text>,
+        isFetchingNextPage: true,
+      },
+      history: { items: [] },
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.NEXT_PAGE_LOADING),
+    ).toBeOnTheScreen();
+  });
+
+  it('retries after an initial error', () => {
+    const onRetry = jest.fn();
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: [],
+        isError: true,
+        onRetry,
+      },
+      history: { items: [] },
+    });
+
+    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.RETRY_BUTTON));
+
+    expect(getByTestId(OrdersTabsSelectorsIDs.ERROR_STATE)).toBeOnTheScreen();
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
   it('renders items without a keyExtractor using the row index as the key', () => {
     const { getByTestId } = renderOrdersTabs({
       openOrders: {

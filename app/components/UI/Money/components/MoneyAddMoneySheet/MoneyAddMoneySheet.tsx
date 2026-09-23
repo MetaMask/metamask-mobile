@@ -39,6 +39,8 @@ import { selectHasUnapprovedTransactions } from '../../../../../selectors/transa
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../MoneySheetOptionsList';
@@ -59,6 +61,7 @@ const log = createProjectLogger('money-add-money-sheet');
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
+  const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
   const {
@@ -116,15 +119,20 @@ const MoneyAddMoneySheet: React.FC = () => {
   // letting it race the unmount.
   const startDeposit = useCallback(
     (options?: InitiateDepositOptions) => {
+      // Applied here rather than per row so every funding method inherits the
+      // caller's launch source.
+      const depositOptions = launchedFrom
+        ? { ...options, launchedFrom }
+        : options;
       if (hasPendingTransaction) {
         log('Rejecting pending transaction before starting deposit');
         rejectPendingTransactions();
-        setDeferredDeposit({ options });
+        setDeferredDeposit({ options: depositOptions });
         return;
       }
-      closeAndStartDeposit(options);
+      closeAndStartDeposit(depositOptions);
     },
-    [hasPendingTransaction, closeAndStartDeposit],
+    [hasPendingTransaction, closeAndStartDeposit, launchedFrom],
   );
 
   useEffect(() => {
@@ -154,12 +162,12 @@ const MoneyAddMoneySheet: React.FC = () => {
   const handleBankAccount = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
-      redirect_target: SCREEN_NAMES.VBA_GET_PIX_KEY,
+      redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
+      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
     });
   }, [navigation, trackSurfaceClicked]);
 

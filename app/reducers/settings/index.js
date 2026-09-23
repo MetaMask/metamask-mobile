@@ -1,5 +1,6 @@
 import AppConstants from '../../core/AppConstants';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+import { CLEAR_ONBOARDING } from '../../actions/onboarding';
 
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
@@ -9,6 +10,8 @@ const initialState = {
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
   isBasicFunctionalityConsolidatedEnabled: false,
+  basicFunctionalityMigrationNotification: null,
+  basicFunctionalityMigrationNotificationDismissed: false,
   deepLinkModalDisabled: false,
   hapticsEnabled: true,
   // Whether this account is shown on the Top Traders leaderboard. Local mirror
@@ -17,6 +20,11 @@ const initialState = {
   // Perps chart preferences
   perpsChartPreferences: {
     preferredCandlePeriod: '15m', // Default to 15 minutes
+  },
+  // Perps market list category / watchlist filter (TAT-3706 / TAT-3736)
+  perpsMarketListPreferences: {
+    marketTypeFilter: 'all',
+    showFavoritesOnly: false,
   },
 };
 
@@ -68,6 +76,32 @@ const settingsReducer = (state = initialState, action) => {
         isBasicFunctionalityConsolidatedEnabled:
           action.isBasicFunctionalityConsolidatedEnabled,
       };
+    case 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION':
+      return {
+        ...state,
+        basicFunctionalityMigrationNotification:
+          action.basicFunctionalityMigrationNotification,
+      };
+    case 'DISMISS_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION':
+      return {
+        ...state,
+        basicFunctionalityMigrationNotification: null,
+        basicFunctionalityMigrationNotificationDismissed: true,
+      };
+    // Cohort membership and its notice belong to the wallet that migrated, but
+    // this slice outlives it: deleting a wallet leaves them behind, so the next
+    // wallet restored on this install reads as already migrated and is never
+    // offered the notice. `CLEAR_ONBOARDING` is the wallet-delete signal.
+    case CLEAR_ONBOARDING:
+      return {
+        ...state,
+        isBasicFunctionalityConsolidatedEnabled:
+          initialState.isBasicFunctionalityConsolidatedEnabled,
+        basicFunctionalityMigrationNotification:
+          initialState.basicFunctionalityMigrationNotification,
+        basicFunctionalityMigrationNotificationDismissed:
+          initialState.basicFunctionalityMigrationNotificationDismissed,
+      };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {
         ...state,
@@ -96,6 +130,22 @@ const settingsReducer = (state = initialState, action) => {
           preferredCandlePeriod: action.preferredCandlePeriod,
         },
       };
+    case 'SET_PERPS_MARKET_LIST_PREFERENCES': {
+      const next = action.preferences ?? {};
+      return {
+        ...state,
+        perpsMarketListPreferences: {
+          marketTypeFilter:
+            typeof next.marketTypeFilter === 'string'
+              ? next.marketTypeFilter
+              : (state.perpsMarketListPreferences?.marketTypeFilter ?? 'all'),
+          showFavoritesOnly:
+            typeof next.showFavoritesOnly === 'boolean'
+              ? next.showFavoritesOnly
+              : (state.perpsMarketListPreferences?.showFavoritesOnly ?? false),
+        },
+      };
+    }
     default:
       return state;
   }

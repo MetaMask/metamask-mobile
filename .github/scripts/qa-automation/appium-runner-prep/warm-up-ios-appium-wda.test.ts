@@ -1,6 +1,6 @@
 import {
   buildWarmUpCapabilities,
-  warmUpIosAppiumWdaSequentially,
+  warmUpIosAppiumWdaPool,
 } from './warm-up-ios-appium-wda.mjs';
 
 const BASE_OPTIONS = {
@@ -29,8 +29,8 @@ describe('buildWarmUpCapabilities', () => {
   });
 });
 
-describe('warmUpIosAppiumWdaSequentially', () => {
-  it('does not start the next shared-Appium warm-up until the prior one resolves', async () => {
+describe('warmUpIosAppiumWdaPool', () => {
+  it('starts all warm-ups concurrently — second begins before first resolves', async () => {
     let resolveFirstWarmUp: (() => void) | undefined;
     const firstWarmUp = new Promise<void>((resolve) => {
       resolveFirstWarmUp = resolve;
@@ -44,31 +44,46 @@ describe('warmUpIosAppiumWdaSequentially', () => {
       return true;
     });
 
-    const completion = warmUpIosAppiumWdaSequentially({
+    const completion = warmUpIosAppiumWdaPool({
       udids: ['first-udid', 'second-udid'],
       wdaBundleIdBase: BASE_OPTIONS.wdaBundleIdBase,
       simulatorName: BASE_OPTIONS.simulatorName,
       warmUp,
     });
 
+    // Both UDIDs should be started before any resolves (parallel, not sequential).
     await Promise.resolve();
-    expect(startedUdids).toEqual(['first-udid']);
+    expect(startedUdids).toEqual(['first-udid', 'second-udid']);
 
     resolveFirstWarmUp?.();
     await completion;
 
-    expect(startedUdids).toEqual(['first-udid', 'second-udid']);
-    expect(warmUp).toHaveBeenNthCalledWith(1, {
+    expect(warmUp).toHaveBeenCalledWith({
       ...BASE_OPTIONS,
       udid: 'first-udid',
       wdaLocalPort: 8100,
       mjpegServerPort: 9100,
     });
-    expect(warmUp).toHaveBeenNthCalledWith(2, {
+    expect(warmUp).toHaveBeenCalledWith({
       ...BASE_OPTIONS,
       udid: 'second-udid',
       wdaLocalPort: 8101,
       mjpegServerPort: 9101,
     });
+  });
+
+  it('assigns distinct ports to each pool index', async () => {
+    const warmUp = jest.fn().mockResolvedValue(true);
+
+    await warmUpIosAppiumWdaPool({
+      udids: ['udid-0', 'udid-1', 'udid-2'],
+      wdaBundleIdBase: BASE_OPTIONS.wdaBundleIdBase,
+      simulatorName: BASE_OPTIONS.simulatorName,
+      warmUp,
+    });
+
+    expect(warmUp).toHaveBeenCalledWith(expect.objectContaining({ udid: 'udid-0', wdaLocalPort: 8100, mjpegServerPort: 9100 }));
+    expect(warmUp).toHaveBeenCalledWith(expect.objectContaining({ udid: 'udid-1', wdaLocalPort: 8101, mjpegServerPort: 9101 }));
+    expect(warmUp).toHaveBeenCalledWith(expect.objectContaining({ udid: 'udid-2', wdaLocalPort: 8102, mjpegServerPort: 9102 }));
   });
 });

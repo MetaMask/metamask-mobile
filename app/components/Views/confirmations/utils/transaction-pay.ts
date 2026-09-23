@@ -372,3 +372,33 @@ export function getTotalPayFeesUsd(
     .plus(fees.targetNetwork?.usd ?? 0)
     .plus(fees.metaMask?.usd ?? 0);
 }
+
+/**
+ * Truncates a fiat amount to two decimals for rendering and for the keypad
+ * buffer, since the stored amount carries full precision so that Max spends
+ * the entire balance.
+ *
+ * Truncates rather than rounds because the result is re-typable: the user can
+ * read the value off the screen and enter it back through the keypad, and
+ * rounding up would produce an amount greater than the balance.
+ *
+ * Amounts already within two decimals are returned as-is, so keypad input
+ * renders exactly as typed and a mid-edit `12.` is never rewritten to `12.00`.
+ */
+export function formatAmountForDisplay(amountFiat: string): string {
+  const separatorIndex = amountFiat.search(/[.,]/u);
+
+  if (separatorIndex === -1) {
+    return amountFiat;
+  }
+
+  const decimalCount = amountFiat.length - separatorIndex - 1;
+
+  if (decimalCount <= 2) {
+    return amountFiat;
+  }
+
+  const value = new BigNumber(amountFiat.replace(',', '.'));
+
+  return value.isFinite() ? value.toFixed(2, BigNumber.ROUND_DOWN) : amountFiat;
+}

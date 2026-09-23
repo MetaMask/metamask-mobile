@@ -236,6 +236,9 @@ describe('PredictTransactionsView', () => {
     );
 
     expect(screen.getByText('Prediction won')).toBeOnTheScreen();
+    expect(screen.getByText('Prediction won')).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
     expect(
       screen.getByTestId(
         PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR,

@@ -124,8 +124,6 @@ const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
 };
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
-const COMPACT_PROGRESS_RING_SIZE = 40;
-const COMPACT_PROGRESS_RING_STROKE_WIDTH = 2;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -176,7 +174,6 @@ interface PredictCryptoUpDownMarketCardProps {
    * output isn't displayed.
    */
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -814,19 +811,15 @@ const ProgressLogo = React.memo(
     progress,
     color,
     trackColor,
-    compact,
   }: {
     imageUrl?: string;
     progress: number;
     color: string;
     trackColor: string;
-    compact?: boolean;
   }) => {
     const tw = useTailwind();
-    const ringSize = compact ? COMPACT_PROGRESS_RING_SIZE : PROGRESS_RING_SIZE;
-    const strokeWidth = compact
-      ? COMPACT_PROGRESS_RING_STROKE_WIDTH
-      : PROGRESS_RING_STROKE_WIDTH;
+    const ringSize = PROGRESS_RING_SIZE;
+    const strokeWidth = PROGRESS_RING_STROKE_WIDTH;
     const radius = (ringSize - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference * (1 - progress);
@@ -865,11 +858,7 @@ const ProgressLogo = React.memo(
             />
           </Svg>
         </Box>
-        <Box
-          twClassName={`${
-            compact ? 'h-8 w-8' : 'h-10 w-10'
-          } overflow-hidden rounded-full bg-default`}
-        >
+        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
@@ -918,7 +907,6 @@ const LiveStatus = React.memo(
         progress={progressRemaining}
         color={accentColor}
         trackColor={trackColor}
-        compact={compact}
       />
     );
 
@@ -1024,7 +1012,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-success-muted"
+          twClassName="h-10 flex-1 bg-success-muted"
           disabled={!upToken || !isMarketOpen}
         >
           <Text
@@ -1038,7 +1026,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-error-muted"
+          twClassName="h-10 flex-1 bg-error-muted"
           disabled={!downToken || !isMarketOpen}
         >
           <Text
@@ -1115,7 +1103,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
-  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -1247,10 +1234,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
       : undefined;
 
   const handleCardPress = useCallback(() => {
-    if (cardPressDisabled) {
-      return;
-    }
-
     onCardPress?.();
     navigateToMarketDetails(
       {
@@ -1266,7 +1249,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
       { throughRoot: true },
     );
   }, [
-    cardPressDisabled,
     cardTitle,
     imageUrl,
     navigateToMarketDetails,
@@ -1289,15 +1271,11 @@ const PredictCryptoUpDownMarketCard: React.FC<
         return;
       }
 
-      const handledExternally =
-        onBuyButtonPress?.({
-          market: selectedMarket,
-          outcome: selectedOutcome,
-          outcomeToken: token,
-        }) === true;
-      if (handledExternally) {
-        return;
-      }
+      onBuyButtonPress?.({
+        market: selectedMarket,
+        outcome: selectedOutcome,
+        outcomeToken: token,
+      });
 
       executeGuardedAction(
         () => {

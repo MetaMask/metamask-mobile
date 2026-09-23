@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsCrossLiquidationInfoSelector,
+  getPerpsCrossMarginTagSelector,
+  PerpsPositionCardSelectorsIDs,
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
@@ -25,11 +29,13 @@ import {
   SectionHeader,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -45,6 +51,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
+import PerpsCrossMarginInfoButton from '../PerpsCrossMarginInfoButton';
 
 /**
  * PerpsPositionCard Component
@@ -55,12 +62,12 @@ import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
  *
  * @remarks
  * **Callback Requirements by Context:**
- * - **View-Only Mode** (no callbacks): Shows position data only, no interactive elements
+ * - **View-Only Mode** (no callbacks): Shows position data and cross liquidation information
  * - **Interactive Mode** (with callbacks): Enables position management actions
  *
  * **Interactive Callbacks:**
  * - `onAutoClosePress`: Required for TP/SL configuration - opens auto-close settings
- * - `onMarginPress`: Required for margin adjustment - opens add/remove margin flow
+ * - `onMarginPress`: Opens add/remove margin for isolated positions only
  * - `onSharePress`: Optional - enables sharing position P&L card
  * - `onFlipPress`: Not currently used (flip handled via modify action sheet)
  *
@@ -108,6 +115,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 }) => {
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
   const privacyMode = useSelector(selectPrivacyMode);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
+  const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
+  const marginPress = isCross ? undefined : onMarginPress;
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -207,26 +217,44 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
   };
 
-  const sectionTitle = onSharePress ? (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full"
-    >
-      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-        {strings('perps.position.card.position_title')}
-      </Text>
-      <ButtonIcon
-        size={ButtonIconSize.Sm}
-        iconName={IconName.Share}
-        onPress={onSharePress}
-        testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-      />
-    </Box>
-  ) : (
-    strings('perps.position.card.position_title')
-  );
+  const sectionTitle =
+    onSharePress || isCross ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="w-full"
+        accessible={false}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          accessible={false}
+        >
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('perps.position.card.position_title')}
+          </Text>
+          {isCross && (
+            <Tag
+              testID={getPerpsCrossMarginTagSelector('lite', position.symbol)}
+            >
+              {strings('perps.cross_position.badge')}
+            </Tag>
+          )}
+        </Box>
+        {onSharePress && (
+          <ButtonIcon
+            size={ButtonIconSize.Sm}
+            iconName={IconName.Share}
+            onPress={onSharePress}
+            testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+          />
+        )}
+      </Box>
+    ) : (
+      strings('perps.position.card.position_title')
+    );
 
   const autoCloseDescription = (() => {
     const { takeProfitSummary, stopLossSummary } = resolvedTPSL;
@@ -263,7 +291,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   })();
 
   const liquidationValue = (
-    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName={isCross ? 'shrink' : undefined}
+      accessible={false}
+    >
       <SensitiveText
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -271,13 +304,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         isHidden={privacyMode}
         length={SensitiveTextLength.Short}
         testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+        twClassName={isCross ? 'shrink text-right' : undefined}
       >
         {position.liquidationPrice !== undefined &&
         position.liquidationPrice !== null
           ? formatPerpsFiat(position.liquidationPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             })
-          : PERPS_CONSTANTS.FallbackPriceDisplay}
+          : isCross
+            ? strings('perps.cross_position.no_liquidation_price')
+            : PERPS_CONSTANTS.FallbackPriceDisplay}
       </SensitiveText>
       {liquidationDistance !== null && !privacyMode && (
         <>
@@ -307,7 +343,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
-            onSharePress ? { twClassName: 'w-full' } : undefined
+            onSharePress || isCross ? { twClassName: 'w-full' } : undefined
           }
           testID={PerpsPositionCardSelectorsIDs.HEADER}
         />
@@ -409,17 +445,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Card>
 
             <Card
-              onPress={onMarginPress}
+              onPress={marginPress}
               twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
-              touchableOpacityProps={{ disabled: !onMarginPress }}
+              touchableOpacityProps={{ disabled: !marginPress }}
             >
               <Box twClassName="flex-1 gap-1">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
-                  {strings('perps.position.card.margin_label')}
+                  {strings(
+                    isCross
+                      ? 'perps.cross_position.margin_used'
+                      : 'perps.position.card.margin_label',
+                  )}
                 </Text>
                 <SensitiveText
                   variant={TextVariant.BodyMd}
@@ -433,12 +473,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   })}
                 </SensitiveText>
               </Box>
-              {onMarginPress && (
+              {marginPress && (
                 <ButtonIcon
                   iconName={IconName.ArrowRight}
                   size={ButtonIconSize.Sm}
                   variant={ButtonIconVariant.Filled}
-                  onPress={onMarginPress}
+                  onPress={marginPress}
                   testID={PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON}
                 />
               )}
@@ -517,6 +557,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
             keyLabel={strings('perps.position.card.liquidation_price_label')}
+            twClassName={isCross ? 'h-auto min-h-10 py-2' : undefined}
+            keyEndAccessory={
+              isCross ? (
+                <PerpsCrossMarginInfoButton
+                  hasLiquidationPrice={position.liquidationPrice != null}
+                  testID={getPerpsCrossLiquidationInfoSelector(
+                    'lite',
+                    position.symbol,
+                  )}
+                />
+              ) : undefined
+            }
             value={liquidationValue}
           />
 

@@ -1,6 +1,7 @@
 import {
   selectVisibleAccountGroupsByWallet,
   selectAccountGroupHidden,
+  selectHiddenAccountGroupIds,
 } from './manageAccounts';
 import { RootState } from '../../reducers';
 import {
@@ -184,6 +185,41 @@ describe('manageAccounts selectors', () => {
         'keyring:nonexistent/0' as AccountGroupId,
       )(mockState);
       expect(isHidden).toBe(false);
+    });
+  });
+
+  describe('selectHiddenAccountGroupIds', () => {
+    it('returns only hidden group IDs in tree order', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: wallet1,
+            [WALLET_ID_2]: wallet2,
+          },
+        },
+      });
+
+      const result = selectHiddenAccountGroupIds(mockState);
+      expect(result).toEqual([GROUP_ID_2]);
+    });
+
+    it('returns an empty array when no groups are hidden', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_2]: wallet2,
+          },
+        },
+      });
+
+      const result = selectHiddenAccountGroupIds(mockState);
+      expect(result).toEqual([]);
+    });
+
+    it('returns an empty array when accountTree is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectHiddenAccountGroupIds(mockState);
+      expect(result).toEqual([]);
     });
   });
 });

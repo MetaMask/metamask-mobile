@@ -7,33 +7,50 @@ import {
 
 describe('gas-validations', () => {
   describe('validateGas', () => {
-    it('return error message when gas is empty', () => {
-      expect(validateGas('')).toBe('Gas limit is required');
+    it('returns an error message for empty gas', () => {
+      const result = validateGas('');
+
+      expect(result).toBe('Gas limit is required');
     });
 
-    it('return error message when gas is not a number', () => {
-      expect(validateGas('abc')).toBe('Only numbers are allowed');
+    it('returns an error message for nonnumeric gas', () => {
+      const result = validateGas('abc');
+
+      expect(result).toBe('Only numbers are allowed');
     });
 
-    it('return error message when gas is zero', () => {
-      expect(validateGas('0')).toBe('Gas limit must be greater than 0');
+    it('returns an error message for zero gas', () => {
+      const result = validateGas('0');
+
+      expect(result).toBe('Gas limit must be greater than 0');
     });
 
-    it('return error message when gas is negative', () => {
-      expect(validateGas('-1')).toBe('Only numbers are allowed');
+    it('returns an error message for negative gas', () => {
+      const result = validateGas('-1');
+
+      expect(result).toBe('Only numbers are allowed');
     });
 
-    it('return error message when gas is less than 21000', () => {
-      expect(validateGas('20000')).toBe('Gas limit must be greater than 21000');
+    it('returns an error message for fractional gas', () => {
+      const result = validateGas('12000.5');
+
+      expect(result).toBe('Only whole numbers are allowed');
     });
 
-    it('return error message when gas is not an integer', () => {
-      expect(validateGas('21000.5')).toBe('Only whole numbers are allowed');
+    it('returns an error message below the EIP-2780 transaction base cost', () => {
+      const result = validateGas('11999');
+
+      expect(result).toBe('Gas limit must be at least 12000');
     });
 
-    it('return false when gas is valid', () => {
-      expect(validateGas('21000')).toBe(false);
-      expect(validateGas('30000')).toBe(false);
+    it.each([
+      ['the EIP-2780 transaction base cost', '12000'],
+      ['a legacy-node response', '21000'],
+      ['a value above the Ethereum mainnet EIP-7825 cap', '16777217'],
+    ])('returns false for %s', (_description, gas) => {
+      const result = validateGas(gas);
+
+      expect(result).toBe(false);
     });
   });
 

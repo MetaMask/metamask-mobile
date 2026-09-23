@@ -61,7 +61,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       currencyRates: {
         ETH: {
           conversionRate: 2000,
-          conversionDate: Date.now(),
+          conversionDate: 1700000000000,
         },
       },
     },
@@ -127,6 +127,7 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
 const mockUseParams = jest.mocked(useParams);
+const mockUpdateValue = jest.fn();
 const mockAmountSelectionMetrics = {
   captureAmountSelected: jest.fn(),
   setAmountInputMethodManual: jest.fn(),
@@ -157,7 +158,7 @@ describe('Amount', () => {
         symbol: 'ETH',
         decimals: 18,
       },
-      updateValue: jest.fn(),
+      updateValue: mockUpdateValue,
     } as unknown as ReturnType<typeof useSendContext>);
     mockUseCurrencyConversion.mockReturnValue({
       conversionSupportedForAsset: true,
@@ -182,6 +183,44 @@ describe('Amount', () => {
     expect(getByTestId('send_amount').children[0]).toEqual('0');
     fireEvent.press(getByTestId('fiat_toggle'));
     expect(getByTestId('send_amount').children[0]).toEqual('0.00');
+  });
+
+  it('seeds display and send-context value from predefinedAmount', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
+  });
+
+  it('switches predefinedAmount entry to token mode', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    renderComponent();
+
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalled();
+  });
+
+  it('does not restore predefinedAmount after the user clears the field', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+
+    // Clear every digit until the keypad reports an empty value.
+    const deleteButton = getByTestId('keypad-delete-button');
+    for (let i = 0; i < 10; i++) {
+      fireEvent.press(deleteButton);
+    }
+
+    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('asset passed in nav params should be used if present', () => {

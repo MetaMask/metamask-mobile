@@ -173,6 +173,34 @@ describe('BridgeFeeRow', () => {
     expect(getByText('$1.23')).toBeOnTheScreen();
   });
 
+  it('shows direct mUSD provider and network fees in separate tooltip rows', async () => {
+    useTransactionTotalsMock.mockReturnValue({
+      fees: {
+        provider: { fiat: '0.5', usd: '0.5' },
+        providerFiat: { fiat: '0.7', usd: '0.7' },
+        sourceNetwork: {
+          estimate: { fiat: '0.2', usd: '0.2', raw: '0', human: '0' },
+          max: { fiat: '0.2', usd: '0.2', raw: '0', human: '0' },
+        },
+        targetNetwork: { fiat: '0', usd: '0' },
+        metaMask: { fiat: '0', usd: '0' },
+      },
+    } as TransactionPayTotals);
+
+    const { getByTestId, getByText } = render({
+      type: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByText('$0.70')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByText('$0.20')).toBeOnTheScreen();
+    expect(getByText('$0.50')).toBeOnTheScreen();
+  });
+
   it('renders tooltip for perps withdraw', async () => {
     const { getByTestId } = render({
       type: TransactionType.perpsWithdraw,

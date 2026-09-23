@@ -109,8 +109,19 @@ jest.mock('../../components/PerpsModeToggle', () => {
 
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
+// Individual tests replace mockUseSelector wholesale with boolean-returning
+// implementations, so selectors that must yield a collection are answered here
+// rather than in each override.
+const mockRewardsCampaigns: unknown[] = [];
 jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockUseSelector(selector),
+  useSelector: (selector: unknown) => {
+    const { selectCampaigns } = jest.requireActual(
+      '../../../../../reducers/rewards/selectors',
+    );
+    return selector === selectCampaigns
+      ? mockRewardsCampaigns
+      : mockUseSelector(selector);
+  },
   useDispatch: () => jest.fn(),
 }));
 
@@ -219,6 +230,24 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+const mockUsePerpsOutreachCampaign = jest.fn(
+  (): {
+    campaign: {
+      id: string;
+      title: string;
+      body: string;
+      imageUrl: string;
+    } | null;
+    dismiss: () => void;
+  } => ({
+    campaign: null,
+    dismiss: jest.fn(),
+  }),
+);
+jest.mock('../../hooks/usePerpsOutreachCampaign', () => ({
+  usePerpsOutreachCampaign: () => mockUsePerpsOutreachCampaign(),
+}));
+
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
   usePerpsNetworkManagement: jest.fn(() => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
@@ -276,6 +305,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (className: string) => ({ testID: className }),
   }),
+  Theme: { Light: 'light', Dark: 'dark' },
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock design system - needed because real module requires tailwind setup
@@ -606,6 +637,10 @@ describe('PerpsHomeView', () => {
     // Pin the default inset so a mockReturnValue set by one test cannot leak
     // into later ones (clearAllMocks resets call state, not return values).
     mockUseBottomSafeAreaInset.mockReturnValue(0);
+    mockUsePerpsOutreachCampaign.mockReturnValue({
+      campaign: null,
+      dismiss: jest.fn(),
+    });
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
@@ -658,6 +693,35 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+  });
+
+  it('gives the header the status-bar inset when no outreach banner is shown', () => {
+    // Arrange & Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(flattenStyle(getByTestId('perps-home'))).toHaveProperty('marginTop');
+  });
+
+  it('hands the status-bar inset to the outreach banner above the header', () => {
+    // Arrange
+    mockUsePerpsOutreachCampaign.mockReturnValue({
+      campaign: {
+        id: 'mobile-outreach-2026-09',
+        title: "You're a top perp trader",
+        body: 'Shape what we build next.',
+        imageUrl: 'https://metamask.io/images/mobile-perps-outreach.png',
+      },
+      dismiss: jest.fn(),
+    });
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
+      'marginTop',
+    );
   });
 
   it('enables mode-toggle haptics for the Lite mode header', () => {

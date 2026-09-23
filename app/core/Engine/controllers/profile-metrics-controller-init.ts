@@ -4,6 +4,7 @@ import {
 } from '@metamask/profile-metrics-controller';
 import { analyticsControllerSelectors } from '@metamask/analytics-controller';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { MessengerClientInitFunction } from '../types';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
@@ -31,12 +32,13 @@ export const profileMetricsControllerInit: MessengerClientInitFunction<
   const assertUserOptedIn = () => {
     const analyticsState = initMessenger.call('AnalyticsController:getState');
     const state = getState();
-    const isEnabled =
+    const isAnalyticsEnabled =
       analyticsControllerSelectors.selectEnabled(analyticsState);
+    const isBftcGateOn = selectIsBasicFunctionalityConsolidationEnabled(state);
     return (
-      isEnabled === true &&
       state.legalNotices.isPna25Acknowledged === true &&
-      selectBasicFunctionalityEnabled(state) === true
+      selectBasicFunctionalityEnabled(state) === true &&
+      (isBftcGateOn || isAnalyticsEnabled === true)
     );
   };
 

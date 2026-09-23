@@ -349,4 +349,36 @@ describe('useViewportTracking', () => {
       }),
     );
   });
+
+  it('skips Sentry viewport spans when emitTrace is false', () => {
+    const onVisible = jest.fn();
+    const { result, unmount } = renderHook(() =>
+      useViewportTracking(onVisible, 0.5, {
+        source: 'unknown',
+        stage: 'entry_card',
+        emitTrace: false,
+      }),
+    );
+
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, 100, 300, 100);
+      },
+    );
+    (result.current.ref as { current: unknown }).current = {
+      measureInWindow: mockMeasureInWindow,
+    };
+
+    act(() => {
+      result.current.onLayout();
+    });
+
+    expect(onVisible).toHaveBeenCalledTimes(1);
+    expect(mockTrace).not.toHaveBeenCalled();
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
 });

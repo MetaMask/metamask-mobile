@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 
-import { APPROVAL_4BYTE_SELECTORS, ZERO_AMOUNT } from '../constants/approve';
+import {
+  APPROVAL_4BYTE_SELECTORS,
+  APPROVAL_SELECTORS,
+  ZERO_AMOUNT,
+} from '../constants/approve';
 import {
   get4ByteCode,
   parseStandardTokenTransactionData,
@@ -93,20 +97,31 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
   const tokenStandard = details?.standard?.toUpperCase();
 
   // Memoize parsing operations
-  const { fourByteCode, parsedData } = useMemo(() => {
+  const { fourByteCode, isApproval, parsedData } = useMemo(() => {
     if (!data) {
-      return { fourByteCode: undefined, parsedData: undefined };
+      return {
+        fourByteCode: undefined,
+        isApproval: false,
+        parsedData: undefined,
+      };
     }
 
     const code = get4ByteCode(data);
-    const parsed = parseStandardTokenTransactionData(data);
 
-    return { fourByteCode: code, parsedData: parsed };
+    if (!APPROVAL_SELECTORS.has(code)) {
+      return { fourByteCode: code, isApproval: false, parsedData: undefined };
+    }
+
+    return {
+      fourByteCode: code,
+      isApproval: true,
+      parsedData: parseStandardTokenTransactionData(data),
+    };
   }, [data]);
 
   // Memoize the entire parsed approval data
   const parsedApproveData = useMemo((): ApproveTransactionData => {
-    if (!transactionMetadata || isTokenStandardPending || !parsedData) {
+    if (!transactionMetadata || isTokenStandardPending || !data) {
       return {
         isLoading: true,
       };
@@ -121,6 +136,16 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       tokenBalance: undefined,
       tokenSymbol: details?.symbol as string,
     };
+
+    if (!isApproval) {
+      return result;
+    }
+
+    if (!parsedData) {
+      return {
+        isLoading: true,
+      };
+    }
 
     switch (fourByteCode) {
       case APPROVAL_4BYTE_SELECTORS.APPROVE: {
@@ -207,11 +232,13 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
     return result;
   }, [
+    data,
     details.decimalsNumber,
     details.symbol,
     isTokenStandardPending,
     tokenStandard,
     fourByteCode,
+    isApproval,
     parsedData,
     transactionMetadata,
     tokenBalance,

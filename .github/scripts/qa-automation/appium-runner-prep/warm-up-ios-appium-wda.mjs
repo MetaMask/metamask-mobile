@@ -123,7 +123,9 @@ export function buildWarmUpCapabilities({
 }
 
 /**
- * Warm every simulator in a pool.
+ * Warm every simulator in a pool concurrently. Each simulator gets a distinct
+ * wdaLocalPort (8100+index) and mjpegServerPort (9100+index), so sessions can
+ * start in parallel without port conflicts on the shared Appium server.
  *
  * @param {{
  *   udids: string[];
@@ -132,21 +134,23 @@ export function buildWarmUpCapabilities({
  *   warmUp?: typeof warmUpIosAppiumWda;
  * }} options
  */
-export async function warmUpIosAppiumWdaSequentially({
+export async function warmUpIosAppiumWdaPool({
   udids,
   wdaBundleIdBase,
   simulatorName,
   warmUp = warmUpIosAppiumWda,
 }) {
-  for (const [workerIndex, udid] of udids.entries()) {
-    await warmUp({
-      udid,
-      wdaBundleIdBase,
-      simulatorName,
-      wdaLocalPort: 8100 + workerIndex,
-      mjpegServerPort: 9100 + workerIndex,
-    });
-  }
+  await Promise.all(
+    udids.map((udid, workerIndex) =>
+      warmUp({
+        udid,
+        wdaBundleIdBase,
+        simulatorName,
+        wdaLocalPort: 8100 + workerIndex,
+        mjpegServerPort: 9100 + workerIndex,
+      }),
+    ),
+  );
 }
 
 /**

@@ -363,8 +363,12 @@ export function isCardUkMigrationEligible(
     providerId: CardProviderId | null | undefined;
     /** ISO country/region (Baanx `countryOfResidence` or Immersve `regionCode`). */
     regionCode: string | null | undefined;
+    hasCompletedMigration?: boolean;
   },
 ): boolean {
+  if (params.hasCompletedMigration) {
+    return false;
+  }
   if (!state.isActive) {
     return false;
   }
@@ -372,4 +376,60 @@ export function isCardUkMigrationEligible(
     return false;
   }
   return params.regionCode?.toUpperCase() === CARD_UK_MIGRATION_COUNTRY_CODE;
+}
+
+export function readCardUkMigrationSignInRoutingEnabled(
+  flags: CardRemoteFeatureFlags,
+): boolean {
+  const gated = validatedVersionGatedFeatureFlag(
+    flags?.cardUkMigrationSignInRouting,
+  );
+  if (gated !== undefined) {
+    return gated;
+  }
+  return process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED === 'true';
+}
+
+/** Soft-period window that elevates the Accounts menu badge to warning. */
+export const CARD_UK_MIGRATION_UPDATE_BADGE_WARNING_DAYS = 7;
+
+export type CardUkMigrationUpdateBadgeSeverity = 'info' | 'warning' | 'danger';
+
+/**
+ * Accounts menu "Update" badge severity for eligible Baanx UK users:
+ * - `info` while soft migration has started (more than 7 days before end)
+ * - `warning` within 7 days of `endDate`
+ * - `danger` once the soft period has ended (`forced`)
+ */
+export function getCardUkMigrationUpdateBadgeSeverity(
+  state: CardUkMigrationState,
+  now: Date = new Date(),
+): CardUkMigrationUpdateBadgeSeverity | null {
+  if (!state.isActive) {
+    return null;
+  }
+
+  // The phase can remain `soft` while a focused screen is mounted across the
+  // deadline. Let the current clock take precedence over that cached phase.
+  if (state.deadline && now >= state.deadline) {
+    return 'danger';
+  }
+
+  if (state.phase === 'forced') {
+    return 'danger';
+  }
+
+  if (state.phase !== 'soft' || !state.deadline) {
+    return null;
+  }
+
+  const msUntilDeadline = state.deadline.getTime() - now.getTime();
+  const warningWindowMs =
+    CARD_UK_MIGRATION_UPDATE_BADGE_WARNING_DAYS * 24 * 60 * 60 * 1000;
+
+  if (msUntilDeadline <= warningWindowMs) {
+    return 'warning';
+  }
+
+  return 'info';
 }

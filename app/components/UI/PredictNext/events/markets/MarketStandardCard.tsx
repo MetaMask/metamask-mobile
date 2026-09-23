@@ -13,12 +13,14 @@ import {
   formatVolume,
   getAskPricePercent,
 } from '../shared/formatting';
+import { isOutcomeTradeable } from '../shared/tradeable';
 import { MarketStandardCardTestIds } from './MarketStandardCard.testIds';
 import { MarketCard } from './internal/MarketCard';
 
 export interface MarketStandardCardProps {
   market: PredictMarket;
   onRulesPress: (market: PredictMarket) => void;
+  onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
 }
 
 const findOutcome = (
@@ -28,7 +30,7 @@ const findOutcome = (
   market.outcomes.find((outcome) => outcome.side === side);
 
 export const MarketStandardCard = React.memo(
-  ({ market, onRulesPress }: MarketStandardCardProps) => {
+  ({ market, onRulesPress, onOrder }: MarketStandardCardProps) => {
     const rules = market.rules?.trim();
     const yesOutcome = findOutcome(market, 'yes');
     const noOutcome = findOutcome(market, 'no');
@@ -98,12 +100,16 @@ export const MarketStandardCard = React.memo(
             price={yesPrice}
             side="yes"
             testID={MarketStandardCardTestIds.yesButton(market.id)}
+            onPress={() => onOrder?.(market, yesOutcome)}
+            isDisabled={!isOutcomeTradeable(market, yesOutcome)}
           />
           <MarketCard.OutcomeButton
             label="No"
             price={noPrice}
             side="no"
             testID={MarketStandardCardTestIds.noButton(market.id)}
+            onPress={() => onOrder?.(market, noOutcome)}
+            isDisabled={!isOutcomeTradeable(market, noOutcome)}
           />
         </MarketCard.Actions>
       </MarketCard.Root>

@@ -6,18 +6,21 @@ import {
   isValidQuoteRequest,
   type FeatureId,
 } from '@metamask/bridge-controller';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
-import type { UseSwapQuotesParams } from '../useSwapQuotes/types';
 
-export interface UseDebouncedUpdateParams extends UseSwapQuotesParams {
+export interface UseDebouncedUpdateParams {
   featureId: FeatureId;
   debounceWait: number;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
   genericQuoteRequest?: GenericQuoteRequest;
+  /**
+   * The raw source input amount before normalization into {@link GenericQuoteRequest.srcTokenAmount}
+   */
+  rawSrcAmount?: string;
 }
 
 interface UpdateQuoteParamsOptions {
@@ -30,13 +33,23 @@ interface UpdateQuoteParamsOptions {
  * @returns A debounced function to update quote parameters
  */
 export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
+  const ownedTraceId = useRef<string | undefined>(undefined);
+  const cancelOwnedTrace = useCallback(() => {
+    if (ownedTraceId.current) {
+      swapQuoteFetchTrace.finish('cancelled', ownedTraceId.current);
+      ownedTraceId.current = undefined;
+    }
+  }, []);
+
+  useEffect(() => cancelOwnedTrace, [cancelOwnedTrace]);
+
   const {
     genericQuoteRequest,
     featureId,
     quoteRequestIndex = 0,
     quoteRequestCount = 1,
     debounceWait,
-    quoteParams,
+    rawSrcAmount: srcAmount,
   } = params;
 
   const metricsContext = useUnifiedSwapBridgeContext(featureId);
@@ -45,7 +58,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
    * Updates quote parameters in the bridge controller
    */
   const updateQuoteParams = useCallback(
-    async (options?: UpdateQuoteParamsOptions) => {
+    async (options: UpdateQuoteParamsOptions = {}) => {
       if (!genericQuoteRequest) {
         return;
       }
@@ -73,59 +86,80 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
   );
 
-  const { srcToken, destToken, srcAmount } = quoteParams;
-  const { destChainId, walletAddress } = genericQuoteRequest ?? {};
+  const {
+    srcChainId,
+    destChainId,
+    srcTokenAddress,
+    destTokenAddress,
+    walletAddress,
+  } = genericQuoteRequest ?? {};
 
-  // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
-    const debounced = debounce(updateQuoteParams, debounceWait);
+    const debounced = debounce(
+      (requestOptions: UpdateQuoteParamsOptions = {}) => {
+        if (
+          !srcTokenAddress ||
+          !destTokenAddress ||
+          srcAmount === undefined ||
+          !destChainId ||
+          !walletAddress
+        ) {
+          return updateQuoteParams(requestOptions);
+        }
+
+        const traceId =
+          srcAmount && srcAmount !== '.'
+            ? swapQuoteFetchTrace.start({
+                srcChainId,
+                destChainId,
+                isRefresh: requestOptions.isRefresh ?? false,
+              })
+            : undefined;
+
+        if (!traceId) {
+          cancelOwnedTrace();
+        } else {
+          ownedTraceId.current = traceId;
+        }
+
+        return updateQuoteParams({ ...requestOptions, traceId });
+      },
+      debounceWait,
+    );
 
     const debouncedWithTrace = (
       requestOptions: UpdateQuoteParamsOptions = {},
     ) => {
       if (
-        !srcToken ||
-        !destToken ||
+        !srcTokenAddress ||
+        !destTokenAddress ||
+        // Checks if the input field has been cleared
         srcAmount === undefined ||
         !destChainId ||
-        !destToken?.chainId ||
         !walletAddress
       ) {
         debounced.cancel();
-        swapQuoteFetchTrace.finish('cancelled');
+        cancelOwnedTrace();
         return;
       }
 
-      const traceId =
-        srcAmount && srcAmount !== '.'
-          ? swapQuoteFetchTrace.start({
-              sourceToken: srcToken,
-              destToken,
-              isRefresh: requestOptions.isRefresh ?? false,
-            })
-          : undefined;
+      cancelOwnedTrace();
 
-      if (!traceId) {
-        swapQuoteFetchTrace.finish('cancelled');
-      }
-
-      debounced({
-        ...requestOptions,
-        traceId,
-      });
+      debounced(requestOptions);
     };
 
     debouncedWithTrace.cancel = () => {
       debounced.cancel();
-      swapQuoteFetchTrace.finish('cancelled');
     };
     debouncedWithTrace.flush = () => debounced.flush();
 
     return debouncedWithTrace;
   }, [
+    cancelOwnedTrace,
     destChainId,
-    destToken,
-    srcToken,
+    srcChainId,
+    destTokenAddress,
+    srcTokenAddress,
     srcAmount,
     updateQuoteParams,
     walletAddress,

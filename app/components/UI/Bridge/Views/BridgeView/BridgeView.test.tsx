@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -15,7 +16,6 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -46,6 +46,8 @@ import {
 import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import BridgeViewContent from '.';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -110,7 +112,9 @@ jest.mock('../../../../../core/Engine', () => {
   );
   return {
     controllerMessenger: {
-      call: jest.fn(),
+      // Messenger actions the tabs call are async, e.g. the limit tab's
+      // OHLCV subscribe, so this has to hand back a promise.
+      call: jest.fn().mockResolvedValue(undefined),
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
     },
@@ -287,6 +291,18 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+jest.mock('../../hooks/useRecurringOrders', () => ({
+  useRecurringOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',
@@ -405,6 +421,12 @@ jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
   useIsGasIncluded7702Supported: (chainId?: string) =>
     mockUseIsGasIncluded7702Supported(chainId),
 }));
+
+const BridgeView = () => (
+  <BridgeSessionProvider>
+    <BridgeViewContent />
+  </BridgeSessionProvider>
+);
 
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;

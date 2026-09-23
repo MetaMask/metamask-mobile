@@ -19,7 +19,12 @@ const MOCK_DEST_TOKEN: BridgeToken = {
   name: 'USD Coin',
 };
 
-const MOCK_LIMIT_HISTORY_VARIANTS = ['filled', 'expired'] as const;
+const MOCK_LIMIT_HISTORY_VARIANTS = [
+  'filled',
+  'expired',
+  'canceled',
+  'failed',
+] as const;
 
 export const MOCK_LIMIT_HISTORY_ORDERS = MOCK_LIMIT_HISTORY_VARIANTS.map(
   (variant) => ({
@@ -66,6 +71,28 @@ function getLimitHistorySlots(
         titleEndAccessory: (
           <Tag severity={TagSeverity.Neutral}>
             {strings('bridge.limit.expired')}
+          </Tag>
+        ),
+      };
+    case 'canceled':
+      return {
+        subtitle: strings('bridge.limit.canceled_at', { date: 'Mar 12' }),
+        primaryValue: '$208.99',
+        secondaryValue: limitPrice,
+        titleEndAccessory: (
+          <Tag severity={TagSeverity.Neutral}>
+            {strings('bridge.limit.canceled')}
+          </Tag>
+        ),
+      };
+    case 'failed':
+      return {
+        subtitle: strings('bridge.limit.failed_at', { date: 'Mar 12' }),
+        primaryValue: '$208.99',
+        secondaryValue: limitPrice,
+        titleEndAccessory: (
+          <Tag severity={TagSeverity.Danger}>
+            {strings('bridge.limit.failed')}
           </Tag>
         ),
       };

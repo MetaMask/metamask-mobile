@@ -75,6 +75,13 @@ jest.mock('../../../core/Performance/unlockTraces', () => ({
 
 jest.mock('../../../util/Logger');
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     identify: (...args: unknown[]) => mockAnalyticsIdentify(...args),

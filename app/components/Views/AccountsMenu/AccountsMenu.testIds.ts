@@ -14,6 +14,7 @@ export const AccountsMenuSelectorsIDs = {
 
   // Manage Card
   MANAGE_CARD: 'manage-card',
+  MANAGE_CARD_UPDATE_BADGE: 'card-uk-migration-update-badge',
 
   // Settings Link
   SETTINGS: 'settings-link',

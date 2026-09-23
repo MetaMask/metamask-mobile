@@ -28,6 +28,14 @@ const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
 
 // Mock navigation
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => false);
+// The navigator Rewards is mounted under: a tab in control, the root stack once
+// treatment hands the tab slot to Social and reaches Rewards by a push.
+let mockParentNavigatorType = 'tab';
+const mockGetParent = jest.fn(() => ({
+  getState: () => ({ type: mockParentNavigatorType }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -36,6 +44,9 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
+      getParent: mockGetParent,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -55,6 +66,7 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
   selectPendingDeeplink: jest.fn(),
+  selectCampaignsFetching: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -81,6 +93,7 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectPendingDeeplink,
+  selectCampaignsFetching,
 } from '../../../../reducers/rewards/selectors';
 // Real action creator (the rewards reducer module is intentionally not mocked),
 // so the deeplink tests can assert the exact clear action dispatched.
@@ -283,10 +296,6 @@ jest.mock('../hooks/useMoneyAccountSweepstakesSeries', () => ({
   useMoneyAccountSweepstakesSeries: jest.fn(),
 }));
 
-jest.mock('../hooks/useMoneyAccountSweepstakesParticipation', () => ({
-  useMoneyAccountSweepstakesParticipation: jest.fn(),
-}));
-
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
@@ -294,7 +303,6 @@ import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
-import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import {
   CampaignType,
@@ -333,10 +341,6 @@ const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
 const mockUseMoneyAccountSweepstakesSeries =
   useMoneyAccountSweepstakesSeries as jest.MockedFunction<
     typeof useMoneyAccountSweepstakesSeries
-  >;
-const mockUseMoneyAccountSweepstakesParticipation =
-  useMoneyAccountSweepstakesParticipation as jest.MockedFunction<
-    typeof useMoneyAccountSweepstakesParticipation
   >;
 const emptyMoneyAccountSeries: MoneyAccountSweepstakesSeries = {
   campaigns: [],
@@ -481,12 +485,6 @@ describe('RewardsDashboard', () => {
     mockUseMoneyAccountSweepstakesSeries.mockReturnValue(
       emptyMoneyAccountSeries,
     );
-    mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-      optedInAny: false,
-      optedInByCampaignId: {},
-      isLoading: false,
-      refetch: jest.fn(),
-    });
 
     // Setup default modal hook behavior - return false for all modal types by default
     mockHasShownModal.mockReturnValue(false);
@@ -572,6 +570,58 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(getByText('Rewards')).toBeOnTheScreen();
+    });
+
+    it('renders no back button as a tab, even though canGoBack is true', () => {
+      // Arrange - the tab navigator's default `firstRoute` back behaviour makes
+      // `canGoBack()` true on any non-first tab, so it cannot gate the header.
+      mockCanGoBack.mockReturnValue(true);
+
+      // Act
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      mockCanGoBack.mockReturnValue(false);
+    });
+
+    describe('when pushed onto the stack instead of shown as a tab', () => {
+      beforeEach(() => {
+        mockParentNavigatorType = 'stack';
+      });
+      afterEach(() => {
+        mockParentNavigatorType = 'tab';
+      });
+
+      it('renders a back button that pops the screen', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON));
+
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+
+      it('keeps the header action icons alongside the back button', () => {
+        const { getByTestId } = render(<RewardsDashboard />);
+
+        expect(
+          getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
+        ).toBeOnTheScreen();
+        expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      });
+    });
+
+    it('renders no back button as a tab, where there is nothing to pop', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders settings button in header', () => {
@@ -827,15 +877,25 @@ describe('RewardsDashboard', () => {
     // into the corresponding rewards sub-page, then clears it so it does not
     // re-fire. navigateToRewardsRoute (not mocked) forwards through the
     // REWARDS_FLOW host, so mockNavigate receives that wrapper shape.
-    const renderWithPendingDeeplink = (
+    interface DeeplinkSelectorOverrides {
+      subscriptionId?: string | null;
+      campaignsFetching?: boolean;
+    }
+
+    const setDeeplinkSelectors = (
       pendingDeeplink: Record<string, unknown> | null,
+      selectorOverrides: DeeplinkSelectorOverrides = {},
     ) => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPendingDeeplink) return pendingDeeplink;
+        if (selector === selectCampaignsFetching)
+          return selectorOverrides.campaignsFetching ?? false;
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
+          return 'subscriptionId' in selectorOverrides
+            ? selectorOverrides.subscriptionId
+            : defaultSelectorValues.subscriptionId;
         if (selector === selectIsCurrentSubscriptionVipEnabled)
           return defaultSelectorValues.isVipEnabled;
         if (selector === selectHideUnlinkedAccountsBanner)
@@ -847,7 +907,36 @@ describe('RewardsDashboard', () => {
         if (selector === mockHasAcceptedVipInviteSelector) return false;
         return undefined;
       });
+    };
+
+    const renderWithPendingDeeplink = (
+      pendingDeeplink: Record<string, unknown> | null,
+      selectorOverrides: DeeplinkSelectorOverrides = {},
+    ) => {
+      setDeeplinkSelectors(pendingDeeplink, selectorOverrides);
       return render(<RewardsDashboard />);
+    };
+
+    /**
+     * Renders through the real fetch sequence: the focus effect starts a
+     * campaigns fetch, then it settles. Deeplink resolution deliberately waits
+     * for a fetch to have been observed, so a single static render can never
+     * resolve one — a plain render only ever reproduces the pre-fetch commit.
+     */
+    const renderAfterSettledFetch = (
+      pendingDeeplink: Record<string, unknown> | null,
+      selectorOverrides: DeeplinkSelectorOverrides = {},
+    ) => {
+      const view = renderWithPendingDeeplink(pendingDeeplink, {
+        ...selectorOverrides,
+        campaignsFetching: true,
+      });
+      setDeeplinkSelectors(pendingDeeplink, {
+        ...selectorOverrides,
+        campaignsFetching: false,
+      });
+      view.rerender(<RewardsDashboard />);
+      return view;
     };
 
     const activeMoneyCampaign: CampaignDto = {
@@ -910,11 +999,6 @@ describe('RewardsDashboard', () => {
       ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
       [
         'campaign',
-        'perps-comp',
-        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-      ],
-      [
-        'campaign',
         'predict-the-pitch',
         Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
       ],
@@ -930,6 +1014,162 @@ describe('RewardsDashboard', () => {
         expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
       },
     );
+
+    describe('campaign=perps-comp', () => {
+      const buildPerpsCampaign = (
+        overrides: Partial<CampaignDto> = {},
+      ): CampaignDto => ({
+        id: 'perps-active',
+        type: CampaignType.PERPS_TRADING,
+        name: 'Perps Competition',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-01-01T00:00:00.000Z',
+        termsAndConditions: null,
+        excludedRegions: [],
+        details: null,
+        featured: false,
+        showUpcomingDate: false,
+        ...overrides,
+      });
+
+      const mockCampaigns = (
+        campaigns: CampaignDto[],
+        overrides: { isLoading?: boolean; hasError?: boolean } = {},
+      ) => {
+        mockUseRewardCampaigns.mockReturnValue({
+          campaigns,
+          categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+          isLoading: overrides.isLoading ?? false,
+          hasError: overrides.hasError ?? false,
+          hasLoaded: true,
+          fetchCampaigns: jest.fn(),
+        });
+      };
+
+      it('navigates to the active perps campaign with its id', () => {
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+          buildPerpsCampaign({ id: 'perps-active' }),
+        ]);
+
+        renderAfterSettledFetch({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+          params: { campaignId: 'perps-active' },
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('stays on the dashboard when only a past perps campaign exists', () => {
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderAfterSettledFetch({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('stays on the dashboard when only an upcoming perps campaign exists', () => {
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-upcoming',
+            startDate: '2098-01-01T00:00:00.000Z',
+            endDate: '2099-01-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderAfterSettledFetch({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending while campaigns are still loading', () => {
+        mockCampaigns([], { isLoading: true });
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending when the campaigns fetch failed', () => {
+        mockCampaigns([], { hasError: true });
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending on the commit before a fetch starts', () => {
+        // The focus effect dispatches campaignsFetching, so it is not readable
+        // until the next render. On the first commit after a remount the
+        // campaigns list in Redux is whatever the previous fetch left behind —
+        // resolving against it here would drop the deeplink for good.
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderWithPendingDeeplink(
+          { campaign: 'perps-comp' },
+          { campaignsFetching: false },
+        );
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending when there is no subscription yet', () => {
+        // fetchCampaigns short-circuits to an empty list without a
+        // subscription, and still marks campaigns loaded — so an empty list
+        // here means "not signed in", not "no campaigns exist".
+        mockCampaigns([]);
+
+        renderWithPendingDeeplink(
+          { campaign: 'perps-comp' },
+          { subscriptionId: null },
+        );
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending while a refresh runs over a stale list', () => {
+        // campaignsLoading is suppressed once campaigns exist, so only the
+        // fetching flag catches a refresh that may add the active campaign.
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderWithPendingDeeplink(
+          { campaign: 'perps-comp' },
+          { campaignsFetching: true },
+        );
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+    });
 
     it('opens the Money deeplink and clears the pending deeplink for page=musd', () => {
       renderWithPendingDeeplink({ page: 'musd' });
@@ -1065,32 +1305,8 @@ describe('RewardsDashboard', () => {
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
     });
 
-    it('routes campaign=money to tour when active, not opted in, and tour exists', () => {
+    it('routes campaign=money to details when series is active, even if a tour exists', () => {
       mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-        optedInAny: false,
-        optedInByCampaignId: { 'week-2': false },
-        isLoading: false,
-        refetch: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
-        params: { campaignId: 'week-2' },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('routes campaign=money to details when already opted in', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-        optedInAny: true,
-        optedInByCampaignId: { 'week-2': true },
-        isLoading: false,
-        refetch: jest.fn(),
-      });
 
       renderWithPendingDeeplink({ campaign: 'money' });
 
@@ -1098,22 +1314,13 @@ describe('RewardsDashboard', () => {
         screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
         params: { campaignId: 'week-2' },
       });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.REWARDS_FLOW,
+        expect.objectContaining({
+          screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        }),
+      );
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-
-    it('waits for participation statuses before handling active campaign=money', () => {
-      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
-      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
-        optedInAny: false,
-        optedInByCampaignId: {},
-        isLoading: true,
-        refetch: jest.fn(),
-      });
-
-      renderWithPendingDeeplink({ campaign: 'money' });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
     });
   });
 

@@ -123,17 +123,18 @@ describe('useArcUsageNoticeToast', () => {
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.ARC_USAGE_NOTICE_TOAST_VIEWED,
+      MetaMetricsEvents.NETWORK_USAGE_NOTICE_TOAST_VIEWED,
     );
     expect(builder.addProperties).toHaveBeenCalledWith({
+      network_name: 'arc',
       chain_id_caip: 'eip155:5042',
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith(built);
   });
 
-  it('tracks Dismissed and closes the toast when the close button is pressed', () => {
-    const { showToast, closeToast, built } = renderWithToast({
+  it('tracks Interacted and closes the toast when the close button is pressed', () => {
+    const { showToast, closeToast, built, builder } = renderWithToast({
       shouldShow: true,
       isFocused: true,
     });
@@ -143,8 +144,13 @@ describe('useArcUsageNoticeToast', () => {
     showToast.mock.calls[0][0].closeButtonOptions.onPress();
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.ARC_USAGE_NOTICE_TOAST_DISMISSED,
+      MetaMetricsEvents.NETWORK_USAGE_NOTICE_TOAST_INTERACTED,
     );
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      network_name: 'arc',
+      interaction_type: 'dismissed',
+      chain_id_caip: 'eip155:5042',
+    });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith(built);
     expect(closeToast).toHaveBeenCalledTimes(1);

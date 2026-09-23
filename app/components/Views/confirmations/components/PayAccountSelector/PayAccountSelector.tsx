@@ -1,17 +1,29 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
+import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import AccountSelector from '../AccountSelector';
+
+const HARDWARE_KEYRING_TYPES: string[] = [
+  ExtendedKeyringTypes.ledger,
+  ExtendedKeyringTypes.qr,
+  ExtendedKeyringTypes.oneKey,
+];
+
+const isNotHardwareAccount = (account: InternalAccount) =>
+  !HARDWARE_KEYRING_TYPES.includes(account.metadata.keyring.type);
 
 const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   style,
@@ -26,6 +38,33 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
+
+  useEffect(() => {
+    if (
+      !transactionId ||
+      !isMoneyAccountWithdraw ||
+      !accountOverride ||
+      !isHardwareAccount(accountOverride)
+    ) {
+      return;
+    }
+
+    if (transactionMeta?.txParams?.from) {
+      replaceAccountInNestedTransactions({
+        transactionId,
+        nestedTransactions: transactionMeta.nestedTransactions,
+        oldAddress: accountOverride,
+        newAddress: transactionMeta.txParams.from,
+      });
+    }
+
+    Engine.context.TransactionPayController.setTransactionConfig(
+      transactionId,
+      (config) => {
+        config.accountOverride = undefined;
+      },
+    );
+  }, [accountOverride, isMoneyAccountWithdraw, transactionId, transactionMeta]);
 
   const handleAccountSelected = useCallback(
     (address: string) => {
@@ -68,6 +107,9 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
       selectorTitle={selectorTitle}
       selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
+      isAccountAllowed={
+        isMoneyAccountWithdraw ? isNotHardwareAccount : undefined
+      }
       style={style}
     />
   );

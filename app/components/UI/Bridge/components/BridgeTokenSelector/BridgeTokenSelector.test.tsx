@@ -4,15 +4,19 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { CaipChainId } from '@metamask/utils';
 import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+import {
   createMockToken,
   createMockPopularToken,
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 import {
   setIsSelectingToken,
-  setSourceAmount,
   setTokenSelectorNetworkFilter,
   setSourceToken,
   setDestToken,
@@ -145,6 +149,7 @@ let mockRouteParams: {
   type: 'source' | 'dest';
   enabledChainIds?: CaipChainId[];
   excludeRwaTokens?: boolean;
+  featureId?: FeatureId;
 } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
@@ -249,6 +254,12 @@ const mockUsePopularTokens = jest.fn((_: unknown) => mockPopularTokensState);
 jest.mock('../../hooks/usePopularTokens', () => ({
   usePopularTokens: (params: unknown) => mockUsePopularTokens(params),
 }));
+
+jest.mock('../../hooks/useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 
 let mockBalancesByAssetIdState = {
   tokensWithBalance: [] as ReturnType<typeof createMockToken>[],
@@ -624,15 +635,23 @@ jest.mock(
   '../../../../../component-library/components-temp/TabEmptyState',
   () => {
     const { createElement } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+    const { View, Text } = jest.requireActual('react-native');
     return {
       TabEmptyState: ({
         testID,
+        description,
         children,
       }: {
         testID?: string;
+        description?: React.ReactNode;
         children?: React.ReactNode;
-      }) => createElement(View, { testID }, children),
+      }) =>
+        createElement(
+          View,
+          { testID },
+          description ? createElement(Text, null, description) : null,
+          children,
+        ),
     };
   },
 );
@@ -844,6 +863,7 @@ describe('BridgeTokenSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
   });
 
   describe('rendering', () => {
@@ -1016,10 +1036,11 @@ describe('BridgeTokenSelector', () => {
         renderWithReduxProvider(<BridgeTokenSelector />);
 
         await waitFor(() => {
-          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-            MOCK_CHAIN_IDS.ethereum,
-            MOCK_CHAIN_IDS.polygon,
-          ]);
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
           expect(mockUseSearchTokens).toHaveBeenCalledWith(
             expect.objectContaining({
               chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
@@ -1036,9 +1057,11 @@ describe('BridgeTokenSelector', () => {
       renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() => {
-        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
       });
     });
 
@@ -1088,13 +1111,17 @@ describe('BridgeTokenSelector', () => {
 
       try {
         await waitFor(() => {
-          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-            MOCK_CHAIN_IDS.ethereum,
-          ]);
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum],
+            }),
+          );
         });
-        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
       } finally {
         restoreDefaultAllowedChainRankingMock();
       }
@@ -1472,9 +1499,11 @@ describe('BridgeTokenSelector', () => {
       expect(mockResetSearch).toHaveBeenCalled();
 
       await waitFor(() => {
-        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
         expect(mockUseSearchTokens).toHaveBeenCalledWith(
           expect.objectContaining({
             chainIds: [MOCK_CHAIN_IDS.polygon],
@@ -1724,6 +1753,22 @@ describe('BridgeTokenSelector', () => {
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
+
+    it('tracks the info button press with the feature id of the flow that opened the picker', async () => {
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
+      mockRouteParams = { type: 'source' };
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+
+      await act(async () => {
+        fireEvent.press(getByTestId('button-icon-info'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+        expect.objectContaining({ feature_id: FeatureId.LIMIT_ORDER }),
+      );
+    });
   });
 
   describe('watchlist filter', () => {
@@ -1758,6 +1803,103 @@ describe('BridgeTokenSelector', () => {
 
       expect(getByTestId('watchlist-empty-cta-container')).toBeTruthy();
       expect(queryByTestId('bridge-token-list')).toBeNull();
+    });
+
+    it('shows the watchlist empty state when favorites exist but none are on the enabled chains', () => {
+      mockIsWatchlistEnabled = true;
+      // Picker is scoped to Ethereum only (e.g. a Limit order dest picker).
+      // selectAllowedChainRanking is mocked to read directly off
+      // bridgeFeatureFlags.chainRanking (see the module mock above), so
+      // narrowing that array is how this picker's enabled-chains scope is
+      // simulated here.
+      mockBridgeFeatureFlags = {
+        chainRanking: [{ chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' }],
+        chains: {},
+      };
+      // The user's only watchlist item is on Polygon, outside this picker's
+      // enabled chains, so it must not surface under "All".
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:137/slip44:60',
+            name: 'Polygon',
+            symbol: 'POL',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+
+      const { getByTestId, getByText, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+      expect(getByTestId('bridge-watchlist-empty-state')).toBeTruthy();
+      // strings() is mocked to return the raw key in this test file.
+      expect(getByText('bridge.no_watchlist_tokens_found')).toBeTruthy();
+      expect(
+        getByText('bridge.no_watchlist_tokens_found_description'),
+      ).toBeTruthy();
+      expect(queryByTestId('token-POL')).toBeNull();
+    });
+
+    it('shows watchlist tokens whose chain is within the enabled chains and hides the rest', () => {
+      mockIsWatchlistEnabled = true;
+      mockBridgeFeatureFlags = {
+        chainRanking: [{ chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' }],
+        chains: {},
+      };
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+          {
+            assetId: 'eip155:137/slip44:60',
+            name: 'Polygon',
+            symbol: 'POL',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockBalancesByAssetIdState = {
+        tokensWithBalance: [],
+        balancesByAssetId: {
+          'eip155:1/slip44:60': {
+            balance: '1.5',
+            balanceFiat: '$3,000.00',
+            tokenFiatAmount: 3000,
+          },
+        },
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+      expect(getByTestId('token-ETH')).toBeTruthy();
+      expect(queryByTestId('token-POL')).toBeNull();
+      expect(queryByTestId('bridge-watchlist-empty-state')).toBeNull();
     });
 
     it('shows watchlist tokens for source picker when bridge balances are available', async () => {
