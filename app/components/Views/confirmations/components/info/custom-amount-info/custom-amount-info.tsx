@@ -237,6 +237,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // later is never dismissed from under them.
     const wasPrefillSkippedRef = useRef(skipDepositPrefill);
     const isPrefillSkipReleasedRef = useRef(false);
+
+    // Tapping the amount is an explicit request to edit, which the user can
+    // make as soon as the prefilled value renders — long before quotes arrive.
+    // A prefill landing or re-running afterwards must not auto-submit that
+    // keypad closed, which left the amount unresponsive until quotes settled.
+    const hasUserOpenedKeypadRef = useRef(false);
+
+    // Only a commit the user made freezes the amount while the request
+    // prepares. An amount committed on their behalf by a prefill stays
+    // tappable, so editing it never waits on quotes.
+    const hasUserCommittedAmountRef = useRef(false);
+
     useEffect(() => {
       if (wasPrefillSkippedRef.current && !skipDepositPrefill) {
         isPrefillSkipReleasedRef.current = true;
@@ -310,7 +322,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
-      if (wasPrefillPending.current && !isPrefillPending) {
+      if (
+        wasPrefillPending.current &&
+        !isPrefillPending &&
+        !hasUserOpenedKeypadRef.current
+      ) {
         handleDone();
       }
       wasPrefillPending.current = isPrefillPending;
@@ -328,10 +344,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      // A keypad opened only because the prefill was skipped is not editing.
+      // A keypad opened only because the prefill was skipped is not editing;
+      // one the user opened by tapping the amount is.
       if (
         stage === CustomAmountStage.AmountInput &&
-        (hasUserEditedAmountRef.current || !isPrefillSkipReleasedRef.current)
+        (hasUserEditedAmountRef.current ||
+          hasUserOpenedKeypadRef.current ||
+          !isPrefillSkipReleasedRef.current)
       ) {
         return;
       }
@@ -349,6 +368,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       stage,
     ]);
 
+    const handleDonePress = useCallback(() => {
+      hasUserCommittedAmountRef.current = true;
+      handleDone();
+    }, [handleDone]);
+
     const isMaxAutoSubmitPending = useRef(false);
 
     const handlePercentagePress = useCallback(
@@ -358,6 +382,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // withdraw — the amount stays $0, so leave the keyboard open instead of
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
+          hasUserCommittedAmountRef.current = true;
           isMaxAutoSubmitPending.current = true;
           // Max defers the commit to the effect below once the amount lands;
           // show the loading skeleton through that gap rather than the derived
@@ -383,6 +408,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone, stage]);
 
     const handleAmountPress = useCallback(() => {
+      hasUserOpenedKeypadRef.current = true;
       setStage(CustomAmountStage.AmountInput);
     }, [setStage]);
 
@@ -406,11 +432,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
-    const canEditZeroAmount =
-      !isPrefillPending &&
-      !isDepositPrefillLoading &&
-      (amountFiat === '0' || amountFiat === '');
-
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
     // Keep payment details fixed while the amount update prepares the request.
@@ -427,13 +448,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
+              stage !== CustomAmountStage.AmountInput &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            onPress={
-              stage === CustomAmountStage.Loading && !canEditZeroAmount
-                ? undefined
-                : handleAmountPress
-            }
+            // Always pressable: tapping the amount is the escape hatch from a
+            // prefill or quote that never resolves.
+            onPress={handleAmountPress}
             disabled={!hasPaymentOption}
             showCursor={stage === CustomAmountStage.AmountInput}
           />
@@ -506,7 +526,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
-                onDonePress={handleDone}
+                onDonePress={handleDonePress}
                 onPercentagePress={handlePercentagePress}
                 hasInput={hasInput}
                 hasMax={

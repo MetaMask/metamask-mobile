@@ -2012,6 +2012,7 @@ describe('handleUniversalLink', () => {
         AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
       ];
 
       // All in-app sources except the trusted ones (excluding ORIGIN_DEEPLINK which is external)

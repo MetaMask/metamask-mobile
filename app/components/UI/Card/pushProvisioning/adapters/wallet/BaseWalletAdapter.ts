@@ -6,6 +6,7 @@
  */
 
 import { Platform, PlatformOSType } from 'react-native';
+import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import {
   WalletType,
   WalletEligibility,
@@ -37,7 +38,14 @@ export abstract class BaseWalletAdapter {
 
   protected abstract getAdapterName(): string;
   protected abstract getExpectedPlatform(): PlatformOSType;
-  protected abstract handleNativeActivationEvent(data: unknown): void;
+
+  protected handleNativeActivationEvent(data: onCardActivatedPayload): void {
+    const event: CardActivationEvent = {
+      tokenId: data.tokenId,
+      status: data.status,
+    };
+    this.notifyActivationListeners(event);
+  }
 
   protected async initializeWalletModule(): Promise<void> {
     if (Platform.OS !== this.getExpectedPlatform()) {
@@ -271,7 +279,7 @@ export abstract class BaseWalletAdapter {
 
       this.listenerSubscription = wallet.addListener(
         'onCardActivated',
-        (data: unknown) => {
+        (data) => {
           Logger.log(`${this.getAdapterName()}: onCardActivated`, data);
           this.handleNativeActivationEvent(data);
         },

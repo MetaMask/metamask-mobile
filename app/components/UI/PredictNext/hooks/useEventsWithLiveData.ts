@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PredictGameLive, PredictQuote } from '../contracts/v1/liveData';
+import { getEventCardLiveMarketIds } from '../events/cards';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type {
   PredictEntityId,
@@ -40,13 +41,25 @@ export const getLiveGameWatchIds = (
     .filter((event) => event.sports?.game)
     .map((event) => event.id);
 
+/** Which Markets a screen should subscribe to for live prices. */
+export type LiveMarketWatchScope = 'all' | 'card';
+
+export interface UseEventsWithLiveDataOptions {
+  watchEventIds?: readonly PredictEntityId[];
+  /** Defaults to `all`. Home and Feed use `card` so hidden lines stay off the wire. */
+  marketScope?: LiveMarketWatchScope;
+}
+
 /** Market ids that can receive live price patches. */
 export const getLiveMarketWatchIds = (
   events: readonly PredictEvent[],
   watchEventIds?: readonly PredictEntityId[],
+  marketScope: LiveMarketWatchScope = 'all',
 ): PredictEntityId[] =>
   requestedEvents(events, watchEventIds).flatMap((event) =>
-    event.markets.map((market) => market.id),
+    marketScope === 'card'
+      ? getEventCardLiveMarketIds(event)
+      : event.markets.map((market) => market.id),
   );
 
 type Listener<TLive> = (live: TLive) => void;
@@ -237,11 +250,53 @@ const patchMarkets = (
     if (!quote) {
       return market;
     }
-    changed = true;
-    return mergeMarketQuote(market, quote);
+    const next = mergeMarketQuote(market, quote);
+    if (next !== market) {
+      changed = true;
+    }
+    return next;
   });
   return changed ? patched : markets;
 };
+
+const applyLiveData = (
+  event: PredictEvent,
+  gameUpdates: ReadonlyMap<PredictEntityId, PredictGameLive>,
+  quoteUpdates: ReadonlyMap<PredictEntityId, PredictQuote>,
+): PredictEvent => {
+  const sports = event.sports;
+  const currentGame = sports?.game;
+  const gameUpdate = gameUpdates.get(event.id);
+  const game =
+    sports && currentGame && gameUpdate
+      ? mergeGameLiveUpdate(currentGame, gameUpdate)
+      : undefined;
+  const markets = patchMarkets(event.markets, quoteUpdates);
+
+  if (!game && markets === event.markets) {
+    return event;
+  }
+
+  return {
+    ...event,
+    ...(game && sports ? { sports: { ...sports, game } } : {}),
+    markets,
+  };
+};
+
+const eventLiveInputsUnchanged = (
+  event: PredictEvent,
+  previousRest: PredictEvent | undefined,
+  previousQuotes: ReadonlyMap<PredictEntityId, PredictQuote>,
+  nextQuotes: ReadonlyMap<PredictEntityId, PredictQuote>,
+  previousGames: ReadonlyMap<PredictEntityId, PredictGameLive>,
+  nextGames: ReadonlyMap<PredictEntityId, PredictGameLive>,
+): boolean =>
+  previousRest === event &&
+  previousGames.get(event.id) === nextGames.get(event.id) &&
+  event.markets.every(
+    (market) => previousQuotes.get(market.id) === nextQuotes.get(market.id),
+  );
 
 /**
  * Watches live Game and market-price updates for the given Events and returns
@@ -249,24 +304,26 @@ const patchMarkets = (
  *
  * `watchEventIds` narrows which Events are subscribed (the viewport); every
  * Event in `events` can still receive a frame it already has.
+ * `marketScope: 'card'` watches only Markets a list card prices.
  */
 export const useEventsWithLiveData = (
   venueId: PredictVenueId,
   events: readonly PredictEvent[],
-  watchEventIds?: readonly PredictEntityId[],
+  options: UseEventsWithLiveDataOptions = {},
 ): readonly PredictEvent[] => {
+  const { watchEventIds, marketScope = 'all' } = options;
   const gameIdsToWatch = useMemo(
     () => getLiveGameWatchIds(events, watchEventIds),
     [events, watchEventIds],
   );
   const marketIdsToWatch = useMemo(
-    () => getLiveMarketWatchIds(events, watchEventIds),
-    [events, watchEventIds],
+    () => getLiveMarketWatchIds(events, watchEventIds, marketScope),
+    [events, watchEventIds, marketScope],
   );
   const presentEventIds = useMemo(() => events.map(({ id }) => id), [events]);
   const presentMarketIds = useMemo(
-    () => getLiveMarketWatchIds(events),
-    [events],
+    () => getLiveMarketWatchIds(events, undefined, marketScope),
+    [events, marketScope],
   );
 
   const gameUpdates = useLiveTopicUpdates(
@@ -281,29 +338,64 @@ export const useEventsWithLiveData = (
     marketIdsToWatch,
     presentMarketIds,
   );
+  const previousLiveRef = useRef<{
+    events: readonly PredictEvent[];
+    gameUpdates: ReadonlyMap<PredictEntityId, PredictGameLive>;
+    quoteUpdates: ReadonlyMap<PredictEntityId, PredictQuote>;
+    result: readonly PredictEvent[];
+  }>({
+    events,
+    gameUpdates: new Map<PredictEntityId, PredictGameLive>(),
+    quoteUpdates: new Map<PredictEntityId, PredictQuote>(),
+    result: events,
+  });
 
-  return useMemo(
-    () =>
-      events.map((event) => {
-        const sports = event.sports;
-        const currentGame = sports?.game;
-        const gameUpdate = gameUpdates.get(event.id);
-        const game =
-          sports && currentGame && gameUpdate
-            ? mergeGameLiveUpdate(currentGame, gameUpdate)
-            : undefined;
-        const markets = patchMarkets(event.markets, quoteUpdates);
+  return useMemo(() => {
+    const previous = previousLiveRef.current;
+    const previousRestById = new Map(
+      previous.events.map((event) => [event.id, event]),
+    );
+    const previousResultById = new Map(
+      previous.result.map((event) => [event.id, event]),
+    );
 
-        if (!game && markets === event.markets) {
-          return event;
-        }
+    let changed = false;
+    const next = events.map((event) => {
+      const previousLive = previousResultById.get(event.id);
+      if (
+        previousLive &&
+        eventLiveInputsUnchanged(
+          event,
+          previousRestById.get(event.id),
+          previous.quoteUpdates,
+          quoteUpdates,
+          previous.gameUpdates,
+          gameUpdates,
+        )
+      ) {
+        return previousLive;
+      }
 
-        return {
-          ...event,
-          ...(game && sports ? { sports: { ...sports, game } } : {}),
-          markets,
-        };
-      }),
-    [events, gameUpdates, quoteUpdates],
-  );
+      const patched = applyLiveData(event, gameUpdates, quoteUpdates);
+      if (patched !== previousLive) {
+        changed = true;
+      }
+      return patched;
+    });
+
+    const result =
+      !changed &&
+      next.length === previous.result.length &&
+      next.every((event, index) => event === previous.result[index])
+        ? previous.result
+        : next;
+
+    previousLiveRef.current = {
+      events,
+      gameUpdates,
+      quoteUpdates,
+      result,
+    };
+    return result;
+  }, [events, gameUpdates, quoteUpdates]);
 };
