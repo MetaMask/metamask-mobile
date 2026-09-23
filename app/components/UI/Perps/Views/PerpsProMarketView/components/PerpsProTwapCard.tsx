@@ -27,6 +27,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 import {
   getPerpsProTwapMarketSelector,
   getPerpsProTwapTerminateSelector,
@@ -35,8 +36,8 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import {
-  formatPerpsFiat,
-  formatPositionSize,
+  formatProPerpsFiat,
+  formatProPositionSize,
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -102,10 +103,17 @@ const STATUS_SEVERITIES: Record<TwapOrder['status'], TagSeverity> = {
   failed: TagSeverity.Danger,
 };
 
-const formatOptionalPrice = (price?: string): string => {
+const formatOptionalPrice = (
+  price: string | undefined,
+  locale: string,
+): string => {
   const parsedPrice = Number.parseFloat(price ?? '');
   return Number.isFinite(parsedPrice) && parsedPrice > 0
-    ? formatPerpsFiat(parsedPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+    ? formatProPerpsFiat(
+        parsedPrice,
+        { ranges: PRICE_RANGES_UNIVERSAL },
+        locale,
+      )
     : PERPS_CONSTANTS.FallbackPriceDisplay;
 };
 
@@ -123,6 +131,7 @@ const PerpsProTwapCard = ({
   isTerminateDisabled = false,
 }: PerpsProTwapCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
+  const locale = usePerpsLocale();
   const displaySymbol = getPerpsDisplaySymbol(twapOrder.symbol);
   const isBuySide = twapOrder.side === 'buy';
   const directionLabel = strings(getTwapDirectionLabelKey(twapOrder));
@@ -133,8 +142,12 @@ const PerpsProTwapCard = ({
   const statusLabel = strings(STATUS_LABEL_KEYS[twapOrder.status]);
   const providerId = getTwapOrderProviderId(twapOrder);
 
-  const totalSize = formatPositionSize(twapOrder.size);
-  const executedSize = formatPositionSize(twapOrder.executedSize);
+  const totalSize = formatProPositionSize(twapOrder.size, undefined, locale);
+  const executedSize = formatProPositionSize(
+    twapOrder.executedSize,
+    undefined,
+    locale,
+  );
 
   const handlePress = onPress ? () => onPress(twapOrder) : undefined;
   const getValueTestID = (baseTestID: string) =>
@@ -276,7 +289,7 @@ const PerpsProTwapCard = ({
                 label={strings(
                   'perps.pro_positions_panel.twap_card.average_price',
                 )}
-                value={formatOptionalPrice(twapOrder.averagePrice)}
+                value={formatOptionalPrice(twapOrder.averagePrice, locale)}
                 isHidden={privacyMode}
                 testID={getValueTestID(
                   PerpsProMarketViewSelectorsIDs.TWAP_AVERAGE_PRICE,

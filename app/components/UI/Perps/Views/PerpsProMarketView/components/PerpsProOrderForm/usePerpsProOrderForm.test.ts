@@ -16,7 +16,7 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { formatPerpsPrice } from '../../../../utils/formatUtils';
+import { formatProPerpsPrice } from '../../../../utils/formatUtils';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
@@ -1040,7 +1040,7 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.chaseReferencePrice).toBe(
-        formatPerpsPrice(77288.5, { szDecimals: 5 }),
+        formatProPerpsPrice(77288.5, { szDecimals: 5 }),
       );
     });
 
@@ -1055,7 +1055,7 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.chaseReferencePrice).toBe(
-        formatPerpsPrice(0.001234, { szDecimals: 0 }),
+        formatProPerpsPrice(0.001234, { szDecimals: 0 }),
       );
       expect(result.current.chaseReferencePrice).not.toMatch(/<\s*\$0\.01/u);
     });

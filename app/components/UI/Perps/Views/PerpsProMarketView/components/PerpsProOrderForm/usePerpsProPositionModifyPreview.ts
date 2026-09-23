@@ -5,8 +5,9 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { usePerpsPositionModifyPreview } from '../../../../hooks';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import {
-  formatPerpsFiat,
+  formatProPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../../utils/formatUtils';
@@ -45,6 +46,7 @@ export const usePerpsProPositionModifyPreview = ({
   hasValidAmount,
   enabled,
 }: UsePerpsProPositionModifyPreviewParams) => {
+  const locale = usePerpsLocale();
   const { preview, isAwaitingFirstPreview } = usePerpsPositionModifyPreview(
     {
       position,
@@ -68,12 +70,16 @@ export const usePerpsProPositionModifyPreview = ({
       getPositionModifySummaryDisplay({
         preview,
         formatMargin: (value) =>
-          formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW }),
+          formatProPerpsFiat(
+            value,
+            { ranges: PRICE_RANGES_MINIMAL_VIEW },
+            locale,
+          ),
         formatLiquidation: (value) =>
-          formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }),
+          formatProPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }, locale),
         hasValidAmount,
       }),
-    [hasValidAmount, preview],
+    [hasValidAmount, locale, preview],
   );
 
   return {

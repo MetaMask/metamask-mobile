@@ -39,8 +39,9 @@ import {
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import {
-  formatPerpsFiat,
+  formatProPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../../utils/formatUtils';
 import {
@@ -64,8 +65,8 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
-const formatScalePrice = (price: string) =>
-  formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
+const formatScalePrice = (price: string, locale: string) =>
+  formatProPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL }, locale);
 
 const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
   ({
@@ -408,6 +409,7 @@ const ScalePreview = ({
   model: PerpsProScaleOrderModel;
   summary: PerpsProOrderSummaryProps;
 }) => {
+  const locale = usePerpsLocale();
   const first = model.rungs[0];
   const last = model.rungs[model.rungs.length - 1];
   return (
@@ -416,7 +418,7 @@ const ScalePreview = ({
         keyLabel={strings('perps.pro_order_form.scale.start')}
         value={
           first
-            ? formatScalePrice(first.price)
+            ? formatScalePrice(first.price, locale)
             : PERPS_CONSTANTS.FallbackPriceDisplay
         }
         keyTextProps={summaryKeyTextProps}
@@ -431,7 +433,7 @@ const ScalePreview = ({
         keyLabel={strings('perps.pro_order_form.scale.end')}
         value={
           last
-            ? formatScalePrice(last.price)
+            ? formatScalePrice(last.price, locale)
             : PERPS_CONSTANTS.FallbackPriceDisplay
         }
         keyTextProps={summaryKeyTextProps}

@@ -479,6 +479,23 @@ describe('orderBookGrouping', () => {
         ),
       ).toContain('300');
     });
+
+    it('uses locale separators for order-book prices and sizes', () => {
+      const level = {
+        price: '76000',
+        size: '1200',
+        total: '1200',
+        notional: '1200',
+        totalNotional: '1200',
+      };
+
+      expect(formatColumnValue(level, 'usd', 'total', undefined, 'de-DE')).toBe(
+        '$1,2K',
+      );
+      expect(
+        formatColumnValue(level, 'base', 'total', undefined, 'de-DE'),
+      ).toBe('1,2K');
+    });
   });
 
   describe('formatColumnValue compact notation', () => {
