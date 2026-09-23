@@ -106,7 +106,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
       testID={testID}
     >
       <Box
-        twClassName={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
+        twClassName={`h-12 flex-row items-center justify-between rounded-full bg-muted px-3${
           isDisabled ? ' opacity-50' : ''
         }`}
       >
@@ -796,13 +796,15 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName="overflow-hidden rounded-xl bg-muted"
+            twClassName={`overflow-hidden bg-muted ${
+              orderType === 'market' ? 'rounded-full' : 'rounded-xl'
+            }`}
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
               isDisabled={isScaleFormLocked}
-              twClassName="h-[54px] w-full bg-transparent px-3"
+              twClassName="h-[54px] w-full rounded-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
@@ -981,7 +983,7 @@ const PerpsProOrderForm = ({
           />
           <Box
             testID={ids.REDUCE_ONLY_CONTAINER}
-            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+            twClassName="h-12 justify-center rounded-full bg-muted px-3"
           >
             <Checkbox
               label={strings('perps.order.reduce_only')}
