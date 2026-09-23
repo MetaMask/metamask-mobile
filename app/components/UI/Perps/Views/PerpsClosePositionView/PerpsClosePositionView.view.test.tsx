@@ -84,6 +84,52 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
+  it('sends one close order when confirm is double-tapped', async () => {
+    const position = createLongPositionForViews();
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2500',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    // One act: both taps land before the first re-render disables the button.
+    act(() => {
+      fireEvent.press(confirmButton);
+      fireEvent.press(confirmButton);
+    });
+
+    await waitFor(() => {
+      expect(closePosition).toHaveBeenCalled();
+    });
+    expect(closePosition).toHaveBeenCalledTimes(1);
+  });
+
   it('uses the latest live position when take profit partially fills before manual close', async () => {
     const routePosition: Position = {
       ...createLongPositionForViews(),

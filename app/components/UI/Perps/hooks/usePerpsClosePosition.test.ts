@@ -11,8 +11,20 @@ import { usePerpsTrading } from './usePerpsTrading';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { endPerpsCufTrace } from '../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 
 const mockNavigate = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn((selector: () => unknown) => selector()),
+}));
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsProvider: jest.fn(() => 'hyperliquid'),
+  selectPerpsNetwork: jest.fn(() => 'testnet'),
+}));
+jest.mock('../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -114,6 +126,7 @@ describe('usePerpsClosePosition', () => {
     (usePerpsTrading as jest.Mock).mockReturnValue({
       closePosition: mockClosePosition,
     });
+    jest.mocked(selectPerpsSelectedAccountAddress).mockReturnValue('0xabc');
     // Reset toast mocks
     mockShowToast.mockClear();
     mockPerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionInProgress.mockClear();
@@ -1283,6 +1296,37 @@ describe('usePerpsClosePosition', () => {
       expect(mockClosePosition).toHaveBeenLastCalledWith(
         expect.objectContaining({ symbol: 'ETH' }),
       );
+
+      await act(async () => {
+        resolveFirst({ success: true, orderId: '1' });
+        await firstClose;
+      });
+    });
+
+    it('does not block the same symbol after the account changes', async () => {
+      let resolveFirst: (value: OrderResult) => void = () => undefined;
+      mockClosePosition
+        .mockReturnValueOnce(
+          new Promise<OrderResult>((resolve) => {
+            resolveFirst = resolve;
+          }),
+        )
+        .mockResolvedValueOnce({ success: true, orderId: '2' });
+      const first = renderHook(() => usePerpsClosePosition());
+      jest.mocked(selectPerpsSelectedAccountAddress).mockReturnValue('0xdef');
+      const second = renderHook(() => usePerpsClosePosition());
+
+      let firstClose: Promise<unknown> = Promise.resolve();
+      await act(async () => {
+        firstClose = first.result.current.handleClosePosition({
+          position: mockPosition,
+        });
+        await second.result.current.handleClosePosition({
+          position: mockPosition,
+        });
+      });
+
+      expect(mockClosePosition).toHaveBeenCalledTimes(2);
 
       await act(async () => {
         resolveFirst({ success: true, orderId: '1' });

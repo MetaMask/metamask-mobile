@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -15,6 +16,11 @@ import {
   isNoPositionFoundError,
 } from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
@@ -57,17 +63,17 @@ interface ClosePositionParams {
   };
 }
 
-// Symbols with a close request in flight. Module scope rather than component
-// state: the close screen dismisses itself before the request settles, and a
-// second tap in the same tick still sees the stale `isClosing`. Either path
-// would send another reduce-only order against a position the first close
-// already flattened, which the venue rejects as "would increase position".
+// Closes in flight per account, provider, network and symbol. Module scope: the
+// close screen dismisses before the request settles, so screen state can't guard it.
 const closesInFlight = new Set<string>();
 
 export const usePerpsClosePosition = (
   options?: UsePerpsClosePositionOptions,
 ) => {
   const { closePosition } = usePerpsTrading();
+  const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const provider = useSelector(selectPerpsProvider);
+  const network = useSelector(selectPerpsNetwork);
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -83,7 +89,13 @@ export const usePerpsClosePosition = (
         marketPrice,
         slippage,
       } = params;
-      if (closesInFlight.has(position.symbol)) {
+      const closeKey = [
+        accountAddress,
+        provider,
+        network,
+        position.symbol,
+      ].join(':');
+      if (closesInFlight.has(closeKey)) {
         DevLogger.log('usePerpsClosePosition: Close already in flight', {
           symbol: position.symbol,
         });
@@ -166,7 +178,7 @@ export const usePerpsClosePosition = (
         PerpsCacheInvalidator.invalidate('accountState');
       };
 
-      closesInFlight.add(position.symbol);
+      closesInFlight.add(closeKey);
       try {
         setIsClosing(true);
         setError(null);
@@ -396,11 +408,19 @@ export const usePerpsClosePosition = (
 
         throw closeError;
       } finally {
-        closesInFlight.delete(position.symbol);
+        closesInFlight.delete(closeKey);
         setIsClosing(false);
       }
     },
-    [PerpsToastOptions.positionManagement, closePosition, options, showToast],
+    [
+      PerpsToastOptions.positionManagement,
+      accountAddress,
+      closePosition,
+      network,
+      options,
+      provider,
+      showToast,
+    ],
   );
 
   return {

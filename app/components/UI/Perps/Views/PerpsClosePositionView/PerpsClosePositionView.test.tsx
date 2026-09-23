@@ -1639,9 +1639,10 @@ describe('PerpsClosePositionView', () => {
       selectLimitFlagMock.mockReturnValue(false);
     });
 
-    it('submits and dismisses once when confirm is double-tapped', async () => {
-      // Arrange - isClosing stays false, as it does for a second tap that
-      // lands before the first one re-renders
+    it('dismisses once when confirm is double-tapped', async () => {
+      // Arrange - the view renderer mounts this screen as the initial route, so
+      // a single goBack is only observable here. isClosing stays false, as it
+      // does for a second tap that lands before the first re-render.
       const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({
         handleClosePosition,
