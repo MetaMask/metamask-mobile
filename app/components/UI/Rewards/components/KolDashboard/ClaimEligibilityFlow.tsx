@@ -1,13 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import ClaimResidencySheet from './ClaimResidencySheet';
-import RewardsLocationSheet from './RewardsLocationSheet';
+import TaxFormPendingSheet from './TaxFormPendingSheet';
 import TaxFormRequiredSheet from './TaxFormRequiredSheet';
+import { markTaxFormPending, useIsTaxFormPending } from './rewardsClaimStore';
 
 type ClaimEligibilitySheet =
   | 'hidden'
-  | 'residency'
-  | 'usActivity'
-  | 'externalProvider';
+  | 'eligibility'
+  | 'externalProvider'
+  | 'pendingReview';
 
 interface UseClaimEligibilityFlowResult {
   startClaimFlow: () => void;
@@ -15,58 +16,56 @@ interface UseClaimEligibilityFlowResult {
 }
 
 /**
- * Shared US / non-US claim gate used by the Claims tab and the Money card.
- * US persons and anyone with US activity are sent to the external tax
- * provider; everyone else can claim in-app.
+ * Shared claim gate used by the Claims tab and the Money card. Anyone with a
+ * US connection is sent to the external tax provider, and claiming again while
+ * that form is under review reports pending review; everyone else claims
+ * in-app.
  */
 export const useClaimEligibilityFlow = (
   onEligibleClaim: () => void,
 ): UseClaimEligibilityFlowResult => {
   const [sheet, setSheet] = useState<ClaimEligibilitySheet>('hidden');
+  const isTaxFormPending = useIsTaxFormPending();
 
   const startClaimFlow = useCallback(() => {
-    setSheet('residency');
-  }, []);
+    setSheet(isTaxFormPending ? 'pendingReview' : 'eligibility');
+  }, [isTaxFormPending]);
 
   const handleClose = useCallback(() => {
     setSheet('hidden');
   }, []);
 
-  const handleConfirmUs = useCallback(() => {
+  const handleConfirmYes = useCallback(() => {
     setSheet('externalProvider');
   }, []);
 
-  const handleConfirmNonUs = useCallback(() => {
-    setSheet('usActivity');
-  }, []);
-
-  const handleConfirmUsActivity = useCallback(() => {
-    setSheet('externalProvider');
-  }, []);
-
-  const handleConfirmNoUsActivity = useCallback(() => {
+  const handleConfirmNo = useCallback(() => {
     setSheet('hidden');
     onEligibleClaim();
   }, [onEligibleClaim]);
+
+  const handleContinueToProvider = useCallback(() => {
+    markTaxFormPending();
+    setSheet('hidden');
+  }, []);
 
   return {
     startClaimFlow,
     claimEligibilitySheets: (
       <>
         <ClaimResidencySheet
-          isVisible={sheet === 'residency'}
+          isVisible={sheet === 'eligibility'}
           onClose={handleClose}
-          onConfirmUs={handleConfirmUs}
-          onConfirmNonUs={handleConfirmNonUs}
-        />
-        <RewardsLocationSheet
-          isVisible={sheet === 'usActivity'}
-          onClose={handleClose}
-          onConfirmYes={handleConfirmUsActivity}
-          onConfirmNo={handleConfirmNoUsActivity}
+          onConfirmUs={handleConfirmYes}
+          onConfirmNonUs={handleConfirmNo}
         />
         <TaxFormRequiredSheet
           isVisible={sheet === 'externalProvider'}
+          onClose={handleClose}
+          onContinue={handleContinueToProvider}
+        />
+        <TaxFormPendingSheet
+          isVisible={sheet === 'pendingReview'}
           onClose={handleClose}
         />
       </>

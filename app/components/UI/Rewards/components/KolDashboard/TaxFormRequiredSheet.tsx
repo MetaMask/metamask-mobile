@@ -21,11 +21,14 @@ import KolDashboardSheet from './KolDashboardSheet';
 interface TaxFormRequiredSheetProps {
   isVisible: boolean;
   onClose: () => void;
+  /** Runs once the user leaves for the partner tax form. */
+  onContinue: () => void;
 }
 
 const TaxFormRequiredSheet: React.FC<TaxFormRequiredSheetProps> = ({
   isVisible,
   onClose,
+  onContinue,
 }) => {
   const tw = useTailwind();
 
@@ -33,8 +36,8 @@ const TaxFormRequiredSheet: React.FC<TaxFormRequiredSheetProps> = ({
     Linking.openURL(KOL_TAX_FORM_URL).catch((error) => {
       Logger.log('Error while opening tax form URL', error);
     });
-    onClose();
-  }, [onClose]);
+    onContinue();
+  }, [onContinue]);
 
   return (
     <KolDashboardSheet

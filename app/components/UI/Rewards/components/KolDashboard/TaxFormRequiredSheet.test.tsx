@@ -11,7 +11,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 const renderSheet = (
   props: Partial<React.ComponentProps<typeof TaxFormRequiredSheet>> = {},
-) => render(<TaxFormRequiredSheet isVisible onClose={jest.fn()} {...props} />);
+) =>
+  render(
+    <TaxFormRequiredSheet
+      isVisible
+      onClose={jest.fn()}
+      onContinue={jest.fn()}
+      {...props}
+    />,
+  );
 
 describe('TaxFormRequiredSheet', () => {
   beforeEach(() => {
@@ -57,7 +65,7 @@ describe('TaxFormRequiredSheet', () => {
     expect(modal.props.visible).toBe(true);
   });
 
-  it('closes without opening the tax form when Remind me later is pressed', () => {
+  it('closes without opening the tax form when Not now is pressed', () => {
     const onClose = jest.fn();
     const { getByTestId } = renderSheet({ onClose });
 
@@ -67,13 +75,13 @@ describe('TaxFormRequiredSheet', () => {
     expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
-  it('opens the partner tax form and closes when Continue is pressed', () => {
-    const onClose = jest.fn();
-    const { getByTestId } = renderSheet({ onClose });
+  it('opens the partner tax form and reports the hand-off when Continue is pressed', () => {
+    const onContinue = jest.fn();
+    const { getByTestId } = renderSheet({ onContinue });
 
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_CONTINUE));
 
     expect(Linking.openURL).toHaveBeenCalledWith(KOL_TAX_FORM_URL);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onContinue).toHaveBeenCalledTimes(1);
   });
 });

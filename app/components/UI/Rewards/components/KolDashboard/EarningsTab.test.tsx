@@ -10,7 +10,9 @@ import {
 } from './rewardsUiFixtures';
 import {
   getClaimableRewards,
+  getIsTaxFormPending,
   resetClaimableRewards,
+  resetTaxFormPending,
 } from './rewardsClaimStore';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -74,14 +76,14 @@ const completeEligibleClaim = (
 ) => {
   openResidency(getByTestId);
   fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
-  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
 };
 
 describe('EarningsTab', () => {
   beforeEach(() => {
-    // The claim balance is shared with the Money tab card, so it has to start
-    // each test at the fixture amount.
+    // The claim balance and tax form state are shared with the Money tab card,
+    // so each test has to start from the fixture amount and no pending form.
     resetClaimableRewards();
+    resetTaxFormPending();
     mockShowToast.mockClear();
     mockCloseToast.mockClear();
     mockSuccessToast.mockClear();
@@ -109,7 +111,7 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the tax form sheet when the user is a US person', () => {
+  it('opens the tax form sheet when the user answers Yes', () => {
     const { getByTestId, queryByTestId } = render(<EarningsTab />);
 
     openResidency(getByTestId);
@@ -123,18 +125,7 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the US-activity sheet when the user is not a US person', () => {
-    const { getByTestId } = render(<EarningsTab />);
-
-    openResidency(getByTestId);
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
-
-    expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_SHEET),
-    ).toBeOnTheScreen();
-  });
-
-  it('runs the claim animation when no US activity is confirmed with reduce motion', async () => {
+  it('runs the claim animation when the user answers No with reduce motion', async () => {
     const { getByTestId, getByText } = render(<EarningsTab />);
 
     completeEligibleClaim(getByTestId);
@@ -180,19 +171,44 @@ describe('EarningsTab', () => {
     expect(mockCloseToast).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the tax form sheet when US activity is confirmed', () => {
+  it('asks about eligibility again when the tax form is dismissed with Not now', () => {
     const { getByTestId } = render(<EarningsTab />);
 
     openResidency(getByTestId);
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_REMIND_LATER));
+
+    expect(getIsTaxFormPending()).toBe(false);
+
+    openResidency(getByTestId);
 
     expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
     ).toBeOnTheScreen();
   });
 
-  it('claims when all activity is confirmed as outside the US', async () => {
+  it('opens the pending review sheet when claiming after leaving for the tax form', () => {
+    const { getByTestId, queryByTestId } = render(<EarningsTab />);
+
+    openResidency(getByTestId);
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_CONTINUE));
+
+    expect(getIsTaxFormPending()).toBe(true);
+    expect(queryByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET)).toBeNull();
+
+    openResidency(getByTestId);
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_PENDING_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeNull();
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('claims when the user answers No', async () => {
     const { getByTestId, getByText } = render(<EarningsTab />);
 
     completeEligibleClaim(getByTestId);

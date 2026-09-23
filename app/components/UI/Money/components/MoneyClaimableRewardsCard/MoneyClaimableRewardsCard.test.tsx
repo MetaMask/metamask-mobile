@@ -9,7 +9,10 @@ import {
 import {
   claimAllRewards,
   getClaimableRewards,
+  getIsTaxFormPending,
+  markTaxFormPending,
   resetClaimableRewards,
+  resetTaxFormPending,
 } from '../../../Rewards/components/KolDashboard/rewardsClaimStore';
 import { KOL_DASHBOARD_SELECTORS } from '../../../Rewards/components/KolDashboard/KolDashboard.testIds';
 import MoneyClaimableRewardsCard from './MoneyClaimableRewardsCard';
@@ -33,14 +36,14 @@ const completeEligibleClaim = (
 ) => {
   fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
   fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
-  fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_NO));
 };
 
 describe('MoneyClaimableRewardsCard', () => {
   beforeEach(() => {
-    // The claim balance is shared with the Rewards Claims tab, so it has to
-    // start each test at the fixture amount.
+    // The claim balance and tax form state are shared with the Rewards Claims
+    // tab, so each test starts at the fixture amount with no pending form.
     resetClaimableRewards();
+    resetTaxFormPending();
     mockShowToast.mockClear();
     mockClaimSuccess.mockClear();
     jest
@@ -93,7 +96,7 @@ describe('MoneyClaimableRewardsCard', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('opens the tax form sheet when the user is a US person', () => {
+  it('opens the tax form sheet when the user answers Yes', () => {
     const { getByTestId } = render(<MoneyClaimableRewardsCard />);
 
     fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
@@ -105,20 +108,57 @@ describe('MoneyClaimableRewardsCard', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('opens the tax form sheet when US activity is confirmed', () => {
-    const { getByTestId } = render(<MoneyClaimableRewardsCard />);
+  it('opens the pending review sheet when claiming after leaving for the tax form', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyClaimableRewardsCard />,
+    );
 
     fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO));
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.REWARDS_LOCATION_YES));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_CONTINUE));
+
+    expect(getIsTaxFormPending()).toBe(true);
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
 
     expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_SHEET),
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_PENDING_SHEET),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeNull();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('shows the success toast when a non-US user confirms no US activity', async () => {
+  it('asks about eligibility again when the tax form is dismissed with Not now', () => {
+    const { getByTestId } = render(<MoneyClaimableRewardsCard />);
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES));
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_REMIND_LATER));
+
+    expect(getIsTaxFormPending()).toBe(false);
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('reports pending review after the Claims tab sent the user to the tax form', () => {
+    markTaxFormPending();
+
+    const { getByTestId } = render(<MoneyClaimableRewardsCard />);
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.TAX_FORM_PENDING_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the success toast when the user answers No', async () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyClaimableRewardsCard />,
     );
