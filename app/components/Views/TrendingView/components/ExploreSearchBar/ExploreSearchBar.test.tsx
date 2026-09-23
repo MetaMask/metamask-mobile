@@ -78,6 +78,26 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('textfieldsearch')).toBeDefined();
     });
 
+    it('renders and handles the paste pill when enabled', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId, getByText } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          pasteButtonTestID="homepage-search-paste-button"
+        />,
+      );
+
+      expect(getByText('Paste')).toBeDefined();
+      fireEvent.press(getByTestId('homepage-search-paste-button'));
+      expect(mockOnPastePress).toHaveBeenCalledTimes(1);
+    });
+
     it('calls onSearchChange when text is entered', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();

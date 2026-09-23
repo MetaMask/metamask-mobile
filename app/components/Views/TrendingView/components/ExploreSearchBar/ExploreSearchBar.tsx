@@ -1,11 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, type TextInput } from 'react-native';
+import Animated from 'react-native-reanimated';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
   Text,
   TextVariant,
   TextFieldSearch,
@@ -24,11 +29,15 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+import { useSearchAccessoryAnimation } from './ExploreSearchBar.animations';
 
 interface ExploreSearchBarButtonProps {
   type: 'button';
   onPress: () => void;
   placeholder?: string;
+  showPastePill?: boolean;
+  onPastePress?: () => void;
+  pasteButtonTestID?: string;
   /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
   rowTwClassName?: string;
 }
@@ -39,6 +48,10 @@ interface ExploreSearchBarInteractiveProps {
   onSearchChange: (query: string) => void;
   onCancel: () => void;
   placeholder?: string;
+  showPastePill?: boolean;
+  onPastePress?: () => void;
+  pasteButtonTestID?: string;
+  hideDismissButton?: boolean;
   /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
   rowTwClassName?: string;
   /**
@@ -55,6 +68,72 @@ type ExploreSearchBarProps =
   | ExploreSearchBarButtonProps
   | ExploreSearchBarInteractiveProps;
 
+interface SearchEndAccessoryProps {
+  showPastePill: boolean;
+  hasSearchQuery: boolean;
+  onPastePress: () => void;
+  onClearPress: () => void;
+  pasteButtonTestID?: string;
+}
+
+const SearchEndAccessory = ({
+  showPastePill,
+  hasSearchQuery,
+  onPastePress,
+  onClearPress,
+  pasteButtonTestID,
+}: SearchEndAccessoryProps) => {
+  const tw = useTailwind();
+  const shouldShowPastePill = showPastePill && !hasSearchQuery;
+  const { containerStyle, pasteStyle, clearStyle } =
+    useSearchAccessoryAnimation(shouldShowPastePill);
+
+  if (!shouldShowPastePill && !hasSearchQuery) {
+    return null;
+  }
+
+  return (
+    <Animated.View
+      style={[
+        tw.style('h-8 items-center justify-center overflow-hidden'),
+        containerStyle,
+      ]}
+    >
+      <Animated.View
+        pointerEvents={shouldShowPastePill ? 'auto' : 'none'}
+        style={[
+          tw.style('absolute inset-0 items-center justify-center'),
+          pasteStyle,
+        ]}
+      >
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonBaseSize.Sm}
+          twClassName="h-8 w-20"
+          onPress={onPastePress}
+          testID={pasteButtonTestID ?? 'explore-search-paste-button'}
+        >
+          {strings('send.paste')}
+        </Button>
+      </Animated.View>
+      <Animated.View
+        pointerEvents={shouldShowPastePill ? 'none' : 'auto'}
+        style={[
+          tw.style('absolute inset-0 items-center justify-center'),
+          clearStyle,
+        ]}
+      >
+        <ButtonIcon
+          iconName={IconName.CircleX}
+          size={ButtonIconSize.Md}
+          onPress={onClearPress}
+          testID="explore-search-clear-button"
+        />
+      </Animated.View>
+    </Animated.View>
+  );
+};
+
 const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   const tw = useTailwind();
   const theme = useTheme();
@@ -65,7 +144,8 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     selectBasicFunctionalityEnabled,
   );
   const isButtonMode = props.type === 'button';
-  const rowTwClassName = props.rowTwClassName ?? 'gap-2';
+  const rowTwClassName =
+    props.rowTwClassName ?? (isButtonMode ? 'flex-1 gap-2' : 'gap-2');
   const shouldFocus = props.type === 'interactive' && (props.autoFocus ?? true);
   const isBackVariant =
     props.type === 'interactive' && props.dismissVariant === 'back';
@@ -92,13 +172,27 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       ? strings('trending.search_placeholder')
       : strings('trending.search_sites'));
 
-  // Button mode: tappable faux search bar (no text input).
-  const searchBarStatic = (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="h-12 gap-3 rounded-full border border-border-muted bg-muted px-4"
-    >
+  const buttonPastePill =
+    props.type === 'button' && props.showPastePill && props.onPastePress ? (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="h-8"
+      >
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonBaseSize.Sm}
+          twClassName="h-8 w-20"
+          onPress={props.onPastePress}
+          testID={props.pasteButtonTestID ?? 'explore-search-paste-button'}
+        >
+          {strings('send.paste')}
+        </Button>
+      </Box>
+    ) : null;
+
+  const searchBarContent = (
+    <>
       <Icon
         name={IconName.Search}
         size={IconSize.Md}
@@ -112,8 +206,40 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       >
         {placeholder}
       </Text>
+    </>
+  );
+
+  // Button mode: tappable faux search bar (no text input).
+  const searchBarStatic = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="h-12 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
+    >
+      <TouchableOpacity
+        onPress={props.type === 'button' ? props.onPress : undefined}
+        testID="explore-view-search-button"
+        activeOpacity={0.7}
+        style={tw.style('flex-1 flex-row items-center gap-3')}
+      >
+        {searchBarContent}
+      </TouchableOpacity>
+      {buttonPastePill}
     </Box>
   );
+
+  const hasSearchQuery =
+    props.type === 'interactive' && props.searchQuery.length > 0;
+  const showPastePill =
+    props.type === 'interactive' &&
+    Boolean(props.showPastePill) &&
+    !hasSearchQuery;
+  const onPastePress =
+    props.type === 'interactive' ? props.onPastePress : undefined;
+  const shouldRenderEndAccessory =
+    props.type === 'interactive' &&
+    Boolean(props.showPastePill) &&
+    (showPastePill || hasSearchQuery);
 
   return (
     <Box
@@ -122,14 +248,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       twClassName={rowTwClassName}
     >
       {isButtonMode ? (
-        <TouchableOpacity
-          onPress={props.onPress}
-          testID="explore-view-search-button"
-          activeOpacity={0.7}
-          style={tw.style('flex-1')}
-        >
-          {searchBarStatic}
-        </TouchableOpacity>
+        searchBarStatic
       ) : (
         <>
           <Box
@@ -137,6 +256,19 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT}
           >
             <TextFieldSearch
+              {...(shouldRenderEndAccessory
+                ? {
+                    endAccessory: (
+                      <SearchEndAccessory
+                        showPastePill={showPastePill}
+                        hasSearchQuery={hasSearchQuery}
+                        onPastePress={onPastePress ?? (() => undefined)}
+                        onClearPress={() => props.onSearchChange('')}
+                        pasteButtonTestID={props.pasteButtonTestID}
+                      />
+                    ),
+                  }
+                : {})}
               value={props.searchQuery}
               onChangeText={props.onSearchChange}
               placeholder={placeholder}
@@ -164,7 +296,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               }}
             />
           </Box>
-          {!isBackVariant && (
+          {!isBackVariant && !props.hideDismissButton && (
             <TouchableOpacity
               onPress={dismissSearch}
               testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}

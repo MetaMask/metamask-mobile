@@ -5,7 +5,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, Keyboard, Platform } from 'react-native';
+import {
+  ActivityIndicator,
+  Keyboard,
+  LayoutAnimation,
+  Platform,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+  useWindowDimensions,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from '../../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
@@ -17,13 +26,15 @@ import {
 } from '../../search/abTestConfig';
 import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
@@ -55,10 +66,17 @@ import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
-import type { ExploreSearchRouteParams } from './ExploreSearchScreen.types';
+import {
+  getTrimmedInitialQuery,
+  type ExploreSearchRouteParams,
+} from './ExploreSearchScreen.types';
+import { useHomepageSearchPaste } from '../../search/useHomepageSearchPaste';
+import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
+
+const rootContainerStyle: ViewStyle = { flex: 1 };
 
 interface FullFeedListProps {
   feedId: SearchFeedId;
@@ -322,13 +340,55 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
-  const [searchQuery, setSearchQuery] = useState(
-    () => route.params?.initialQuery?.trim() ?? '',
+  const [searchQuery, setSearchQuery] = useState(() =>
+    getTrimmedInitialQuery(route.params?.initialQuery),
   );
   const routeParams = route.params;
+  const isHomepageSearch = routeParams?.entryPoint === 'home';
+  const searchOrigin = routeParams?.searchOrigin;
+  const [homeSearchExpanded, setHomeSearchExpanded] = useState(false);
+  const homeSearchOriginStyle = useMemo<ViewStyle | undefined>(
+    () =>
+      searchOrigin
+        ? {
+            height: searchOrigin.height,
+            left: homeSearchExpanded ? 16 : searchOrigin.x,
+            position: 'absolute',
+            top: searchOrigin.y,
+            width: homeSearchExpanded
+              ? screenWidth - 16 - 72 - 8 - 16
+              : searchOrigin.width,
+            zIndex: 10,
+          }
+        : undefined,
+    [homeSearchExpanded, screenWidth, searchOrigin],
+  );
+  const homeSearchCancelStyle = useMemo<ViewStyle | undefined>(
+    () =>
+      searchOrigin
+        ? {
+            alignItems: 'center',
+            height: searchOrigin.height,
+            justifyContent: 'center',
+            left: homeSearchExpanded
+              ? screenWidth - 88
+              : searchOrigin.x + searchOrigin.width + 8,
+            position: 'absolute',
+            top: searchOrigin.y,
+            width: 72,
+            zIndex: 10,
+          }
+        : undefined,
+    [homeSearchExpanded, screenWidth, searchOrigin],
+  );
+  const { showPastePill, handlePastePress } = useHomepageSearchPaste({
+    enabled: isHomepageSearch,
+    onPaste: setSearchQuery,
+  });
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
   const isTransitionComplete = useScreenTransitionComplete();
@@ -337,11 +397,18 @@ const ExploreSearchScreen: React.FC = () => {
   const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
 
   useEffect(() => {
+    if (isHomepageSearch && searchOrigin && !homeSearchExpanded) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setHomeSearchExpanded(true);
+    }
+  }, [homeSearchExpanded, isHomepageSearch, searchOrigin]);
+
+  useEffect(() => {
     if (!routeParams?.entryPoint) {
       return;
     }
 
-    setSearchQuery(routeParams.initialQuery?.trim() ?? '');
+    setSearchQuery(getTrimmedInitialQuery(routeParams.initialQuery));
     trackExploreSearchOpened(routeParams.entryPoint);
   }, [routeParams]);
 
@@ -363,42 +430,102 @@ const ExploreSearchScreen: React.FC = () => {
     });
   }, [navigation]);
 
-  return (
-    <Box
-      style={{ paddingTop: insets.top + (Platform.OS === 'android' ? 16 : 0) }}
-      twClassName="flex-1 bg-default"
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2 px-4 pb-3"
-      >
-        <Box twClassName="flex-1">
-          <ExploreSearchBar
-            type="interactive"
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onCancel={handleSearchCancel}
-            autoFocus={isTransitionComplete}
-            dismissVariant={isHeaderRefreshEnabled ? 'back' : 'cancel'}
-          />
-        </Box>
+  const exploreSearchBar = (
+    <ExploreSearchBar
+      type="interactive"
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      onCancel={handleSearchCancel}
+      placeholder={
+        routeParams?.entryPoint === 'home'
+          ? strings('wallet.homepage_search_placeholder')
+          : undefined
+      }
+      autoFocus={isTransitionComplete}
+      dismissVariant={
+        isHomepageSearch ? 'cancel' : isHeaderRefreshEnabled ? 'back' : 'cancel'
+      }
+      hideDismissButton={isHomepageSearch}
+      showPastePill={showPastePill && !searchQuery}
+      onPastePress={handlePastePress}
+      pasteButtonTestID="homepage-search-paste-button"
+      rowTwClassName={isHomepageSearch ? 'flex-1' : undefined}
+    />
+  );
 
-        {showBrowserTabsButton ? (
-          <BrowserTabsButton
-            tabCount={browserTabsCount}
-            onPress={handleBrowserTabsPress}
-            testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
-          />
+  return (
+    <View style={rootContainerStyle}>
+      <Box
+        style={{
+          paddingTop: insets.top + (Platform.OS === 'android' ? 16 : 0),
+        }}
+        twClassName="flex-1 bg-default"
+      >
+        {isHomepageSearch && searchOrigin ? (
+          <>
+            <Box style={homeSearchOriginStyle}>{exploreSearchBar}</Box>
+            <Box style={homeSearchCancelStyle}>
+              <TouchableOpacity
+                onPress={handleSearchCancel}
+                testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-default font-medium"
+                >
+                  {strings('transaction.cancel')}
+                </Text>
+              </TouchableOpacity>
+            </Box>
+            <Box twClassName="h-12" />
+          </>
+        ) : isHomepageSearch ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="h-12 px-4"
+          >
+            <Box twClassName="h-12 w-8" />
+            <Box twClassName="ml-2 flex-1">{exploreSearchBar}</Box>
+            <Box twClassName="w-[72px] items-center justify-center">
+              <TouchableOpacity
+                onPress={handleSearchCancel}
+                testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-default font-medium"
+                >
+                  {strings('transaction.cancel')}
+                </Text>
+              </TouchableOpacity>
+            </Box>
+          </Box>
+        ) : (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 px-4 pb-3"
+          >
+            <Box twClassName="flex-1">{exploreSearchBar}</Box>
+
+            {showBrowserTabsButton ? (
+              <BrowserTabsButton
+                tabCount={browserTabsCount}
+                onPress={handleBrowserTabsPress}
+                testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
+              />
+            ) : null}
+          </Box>
+        )}
+
+        {isTransitionComplete ? (
+          <PerpsSectionProvider>
+            <ExploreSearchContent searchQuery={searchQuery} />
+          </PerpsSectionProvider>
         ) : null}
       </Box>
-
-      {isTransitionComplete ? (
-        <PerpsSectionProvider>
-          <ExploreSearchContent searchQuery={searchQuery} />
-        </PerpsSectionProvider>
-      ) : null}
-    </Box>
+    </View>
   );
 };
 

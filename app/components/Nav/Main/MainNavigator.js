@@ -1340,6 +1340,12 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
+          options={({ route }) => ({
+            headerShown: false,
+            ...(route.params?.entryPoint === 'home'
+              ? { animation: 'none' }
+              : slideFromRightNativeOptions),
+          })}
         />
         <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}

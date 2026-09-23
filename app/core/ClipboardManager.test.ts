@@ -6,6 +6,8 @@ import ClipboardManager from './ClipboardManager';
 // Mock dependencies
 jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn(),
+  hasString: jest.fn(),
+  addListener: jest.fn(),
   setString: jest.fn(),
   setStringExpire: jest.fn(),
   clearString: jest.fn(),
@@ -30,6 +32,13 @@ describe('ClipboardManager', () => {
   });
 
   describe('Basic clipboard operations', () => {
+    it('checks whether the clipboard has string content', async () => {
+      mockClipboard.hasString.mockResolvedValue(true);
+
+      await expect(ClipboardManager.hasString()).resolves.toBe(true);
+      expect(mockClipboard.hasString).toHaveBeenCalledTimes(1);
+    });
+
     it('get and set clipboard strings', async () => {
       // Arrange
       const testString = 'test clipboard content';
