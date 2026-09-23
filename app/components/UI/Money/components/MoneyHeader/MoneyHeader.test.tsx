@@ -5,13 +5,13 @@ import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
 
 jest.mock('../../../../../hooks/useProSubscriptionEnabled');
 jest.mock('../../../../../hooks/useIsProSubscriber');
 
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
-const mockUseIsProSubscriber = jest.mocked(useIsProSubscriber);
+const mockUseProAccess = jest.mocked(useProAccess);
 
 const sharedValue = (value: number): SharedValue<number> =>
   ({ value }) as unknown as SharedValue<number>;
@@ -30,7 +30,10 @@ describe('MoneyHeader', () => {
       variantName: 'control',
       isActive: false,
     });
-    mockUseIsProSubscriber.mockReturnValue(false);
+    mockUseProAccess.mockReturnValue({
+      isProSubscriber: false,
+      isProAccessUnknown: false,
+    });
   });
 
   it('renders the menu button', () => {
@@ -183,19 +186,19 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
     });
 
-    it('is hidden while subscriptions are initially loading', () => {
+    it('is hidden while Plus access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
         variantName: 'treatment',
         isActive: true,
       });
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: false,
+        isProAccessUnknown: true,
+      });
 
       const { getByTestId, queryByTestId } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          onGetProPress={jest.fn()}
-          isSubscriptionLoading
-        />,
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
       expect(
@@ -210,7 +213,10 @@ describe('MoneyHeader', () => {
         variantName: 'treatment',
         isActive: true,
       });
-      mockUseIsProSubscriber.mockReturnValue(false);
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: false,
+        isProAccessUnknown: false,
+      });
 
       const { getByTestId, getByLabelText } = render(
         <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
@@ -230,7 +236,10 @@ describe('MoneyHeader', () => {
         variantName: 'treatment',
         isActive: true,
       });
-      mockUseIsProSubscriber.mockReturnValue(true);
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: true,
+        isProAccessUnknown: false,
+      });
 
       const { getByTestId, getByLabelText } = render(
         <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,

@@ -90,11 +90,14 @@ const ProSubscription = () => {
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(async () => {
-    // Card checkout completes outside the controller, so explicitly refresh
-    // its canonical state before opening the hub.
-    await Engine.context.SubscriptionController.getSubscriptions().catch(
-      () => undefined,
-    );
+    // Card checkout completes outside the controller, so wait for canonical
+    // state before opening the hub. Stay on success if the refresh fails:
+    // Pro Hub would otherwise treat empty state as non-subscriber and bounce.
+    try {
+      await Engine.context.SubscriptionController.getSubscriptions();
+    } catch {
+      return;
+    }
     navigation.replace(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_success',
     });

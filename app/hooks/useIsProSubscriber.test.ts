@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { useIsProSubscriber } from './useIsProSubscriber';
+import { useIsProSubscriber, useProAccess } from './useIsProSubscriber';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -30,6 +30,10 @@ describe('useIsProSubscriber', () => {
       access: MoneyAccountPlusAccess.Disabled,
       expected: false,
     },
+    {
+      access: MoneyAccountPlusAccess.Unknown,
+      expected: false,
+    },
   ])(
     'returns $expected when Plus access is $access',
     ({ access, expected }) => {
@@ -40,4 +44,19 @@ describe('useIsProSubscriber', () => {
       expect(result.current).toBe(expected);
     },
   );
+});
+
+describe('useProAccess', () => {
+  it('marks unresolved access as unknown rather than subscribed', () => {
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Unknown,
+    );
+
+    const { result } = renderHook(() => useProAccess());
+
+    expect(result.current).toEqual({
+      isProSubscriber: false,
+      isProAccessUnknown: true,
+    });
+  });
 });

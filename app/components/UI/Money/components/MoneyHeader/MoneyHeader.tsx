@@ -12,7 +12,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -25,8 +25,6 @@ interface MoneyHeaderCommonProps {
    * Only fired when the Pro subscription flow flag is enabled.
    */
   onGetProPress: () => void;
-  /** Whether the initial subscription request is still loading. */
-  isSubscriptionLoading?: boolean;
 }
 
 /**
@@ -54,7 +52,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
 const MoneyHeader = (props: MoneyHeaderProps) => {
   const { onMenuPress, onGetProPress } = props;
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const isProSubscriber = useIsProSubscriber();
+  const { isProSubscriber, isProAccessUnknown } = useProAccess();
 
   const proLabel = isProSubscriber
     ? strings('pro_subscription.pro')
@@ -71,7 +69,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   // takes the menu with it — the header slots the two ButtonIcon paths and the
   // accessory as alternatives rather than siblings.
   const endAccessory =
-    isProSubscriptionEnabled && !props.isSubscriptionLoading ? (
+    isProSubscriptionEnabled && !isProAccessUnknown ? (
       <Box twClassName="flex-row items-center gap-1">
         <Button
           size={ButtonSize.Md}

@@ -117,6 +117,18 @@ describe('ProSubscription', () => {
         source: 'pro_subscription_already_subscribed',
       });
     });
+
+    it('does not send an unresolved user to the hub', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { queryByTestId } = render(<ProSubscription />);
+
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId('mock-benefits')).toBeNull();
+    });
   });
 
   describe('screen rendering', () => {
@@ -167,6 +179,19 @@ describe('ProSubscription', () => {
         source: 'pro_subscription_success',
       });
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('keeps the success screen when the post-checkout refresh fails', async () => {
+      mockGetSubscriptions.mockRejectedValue(new Error('request failed'));
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
+
+      expect(getByTestId('mock-success')).toBeOnTheScreen();
+      expect(mockReplace).not.toHaveBeenCalled();
     });
 
     it('keeps the success screen visible once the user becomes a subscriber', () => {

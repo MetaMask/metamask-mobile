@@ -79,6 +79,17 @@ describe('ProHub', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it('stays open while Plus access is unresolved', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
     it('stays open for an entitled subscriber', () => {
       renderProHub();
 

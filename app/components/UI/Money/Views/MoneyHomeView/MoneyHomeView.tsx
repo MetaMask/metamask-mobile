@@ -140,9 +140,7 @@ const MoneyHomeView = () => {
   // enabled so we do not generate API traffic for users without the flow.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const isProSubscriber = useIsProSubscriber();
-  const { isLoading: isSubscriptionLoading } = useSubscriptionPolling({
-    enabled: isProSubscriptionEnabled,
-  });
+  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
@@ -445,7 +443,6 @@ const MoneyHomeView = () => {
     ? {
         onMenuPress: handleMenuPress,
         onGetProPress: handleGetProPress,
-        isSubscriptionLoading,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
@@ -453,7 +450,6 @@ const MoneyHomeView = () => {
     : {
         onMenuPress: handleMenuPress,
         onGetProPress: handleGetProPress,
-        isSubscriptionLoading,
       };
 
   const handleAddPress = useCallback(

@@ -278,9 +278,13 @@ jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-const mockUseIsProSubscriber = jest.fn(() => false);
+const mockUseProAccess = jest.fn(() => ({
+  isProSubscriber: false,
+  isProAccessUnknown: false,
+}));
 jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
-  useIsProSubscriber: () => mockUseIsProSubscriber(),
+  useProAccess: () => mockUseProAccess(),
+  useIsProSubscriber: () => mockUseProAccess().isProSubscriber,
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -517,8 +521,10 @@ describe('MoneyHomeView', () => {
       variantName: 'control',
       isActive: false,
     });
-    mockUseIsProSubscriber.mockReturnValue(false);
-    mockUseSubscriptionPolling.mockReturnValue({ isLoading: false });
+    mockUseProAccess.mockReturnValue({
+      isProSubscriber: false,
+      isProAccessUnknown: false,
+    });
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -2651,7 +2657,10 @@ describe('MoneyHomeView', () => {
         variantName: 'treatment',
         isActive: true,
       });
-      mockUseIsProSubscriber.mockReturnValue(false);
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: false,
+        isProAccessUnknown: false,
+      });
     });
 
     it('starts subscription polling while the Pro flow is enabled', () => {
@@ -2676,8 +2685,11 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('hides the Pro entry point while subscriptions are initially loading', () => {
-      mockUseSubscriptionPolling.mockReturnValue({ isLoading: true });
+    it('hides the Pro entry point while Plus access is unresolved', () => {
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: false,
+        isProAccessUnknown: true,
+      });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyHomeView />,
@@ -2707,7 +2719,10 @@ describe('MoneyHomeView', () => {
     });
 
     it('navigates to the Pro hub when the user is already subscribed', () => {
-      mockUseIsProSubscriber.mockReturnValue(true);
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: true,
+        isProAccessUnknown: false,
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

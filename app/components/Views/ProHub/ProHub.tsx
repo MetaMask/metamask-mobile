@@ -111,9 +111,13 @@ const ProHub = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // The hub is subscriber-only.
+  // The hub is subscriber-only. Wait while subscriptions are unresolved so an
+  // empty controller slice does not bounce a paid user before the first fetch.
   useEffect(() => {
-    if (proAccess !== MoneyAccountPlusAccess.Subscriber) {
+    if (
+      proAccess !== MoneyAccountPlusAccess.Subscriber &&
+      proAccess !== MoneyAccountPlusAccess.Unknown
+    ) {
       navigation.goBack();
     }
   }, [proAccess, navigation]);
