@@ -1,8 +1,7 @@
 /* eslint-disable dot-notation */
 import {
   Scope,
-  UserFeedback,
-  captureUserFeedback,
+  captureFeedback,
   getClient,
   getGlobalScope,
   init as sentryInit,
@@ -35,7 +34,7 @@ import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
-const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
@@ -346,19 +345,16 @@ describe('captureSentryFeedback', () => {
   it('captures Sentry user feedback', async () => {
     const mockSentryId = '123';
     const mockComments = 'Comment';
-    const expectedUserFeedback: UserFeedback = {
-      event_id: mockSentryId,
+    captureSentryFeedback({
+      sentryId: mockSentryId,
+      comments: mockComments,
+    });
+    expect(mockedCaptureFeedback).toHaveBeenCalledWith({
+      associatedEventId: mockSentryId,
+      message: mockComments,
       name: '',
       email: '',
-      comments: mockComments,
-    };
-    captureSentryFeedback({
-      sentryId: expectedUserFeedback.event_id,
-      comments: expectedUserFeedback.comments,
     });
-    expect(mockedCaptureUserFeedback).toHaveBeenCalledWith(
-      expectedUserFeedback,
-    );
   });
 
   describe('maskObject', () => {

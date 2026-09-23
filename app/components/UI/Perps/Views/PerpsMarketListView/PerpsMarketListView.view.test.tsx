@@ -181,8 +181,11 @@ describe('PerpsMarketListView', () => {
       });
 
       expect(
-        await screen.findByText(strings('perps.watchlist.empty_subtitle')),
+        await screen.findByTestId('perps-watchlist-suggested-section'),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('perps-watchlist-suggested-header'),
+      ).not.toBeOnTheScreen();
     });
   });
 

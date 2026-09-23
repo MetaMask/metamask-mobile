@@ -1,7 +1,12 @@
 export type { BenefitItem } from '../../../shared/pro/benefits.constants';
 export { BENEFITS } from '../../../shared/pro/benefits.constants';
 
-export type PlanId = 'annual' | 'monthly';
+export const PLAN_IDS = {
+  annual: 'annual',
+  monthly: 'monthly',
+} as const;
+
+export type PlanId = (typeof PLAN_IDS)[keyof typeof PLAN_IDS];
 
 export interface PlanOption {
   /** Unique key — matches the `membership.plans` i18n namespace segment. */
@@ -27,20 +32,20 @@ export const ANNUAL_SAVINGS_COPY = {
 
 export const PLANS: PlanOption[] = [
   {
-    id: 'annual',
+    id: PLAN_IDS.annual,
     label: 'pro_subscription.plans.annual.label',
     price: 'pro_subscription.plans.annual.price',
     ctaLabel: 'pro_subscription.plans.annual.cta',
   },
   {
-    id: 'monthly',
+    id: PLAN_IDS.monthly,
     label: 'pro_subscription.plans.monthly.label',
     price: 'pro_subscription.plans.monthly.price',
     ctaLabel: 'pro_subscription.plans.monthly.cta',
   },
 ];
 
-export const DEFAULT_PLAN: PlanId = 'annual';
+export const DEFAULT_PLAN: PlanId = PLAN_IDS.annual;
 
 export interface BenefitDetailItem {
   /** Unique key — matches the `benefits_description` i18n namespace segment. */

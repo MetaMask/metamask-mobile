@@ -5,8 +5,12 @@ export interface ProHubStats {
   lifetimeEarnings: string;
   /** Formatted currency string for Money balance earnings. */
   moneyBalance: string;
+  /** Annual percentage yield earned on the Money balance, as a percentage. */
+  moneyBalanceApy: number;
   /** Formatted currency string for mUSD back earnings. */
   musdBack: string;
+  /** Share of spend returned as mUSD, as a percentage. */
+  musdBackRate: number;
 }
 
 export interface AlsoIncludedItem {
@@ -21,7 +25,9 @@ export interface AlsoIncludedItem {
 export const MOCK_PRO_HUB_STATS: ProHubStats = {
   lifetimeEarnings: '$86.42',
   moneyBalance: '+$48.92',
+  moneyBalanceApy: 7,
   musdBack: '$0.00',
+  musdBackRate: 3,
 };
 
 export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [

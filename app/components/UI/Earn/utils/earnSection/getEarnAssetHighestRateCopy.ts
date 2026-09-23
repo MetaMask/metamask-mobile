@@ -1,5 +1,5 @@
 import { strings } from '../../../../../../locales/i18n';
-import { truncateNumber } from '../../utils';
+import { formatEarnRatePercentage } from '../../utils';
 import { getReadyEarnDepositExperiences } from '../earnAssets';
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
@@ -37,6 +37,6 @@ export const getEarnAssetHighestRateCopy = ({
   }
 
   return strings(key, {
-    percentage: truncateNumber(asset.highestRatePercent),
+    percentage: formatEarnRatePercentage(asset.highestRatePercent),
   });
 };

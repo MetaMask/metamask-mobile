@@ -1,9 +1,21 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -66,6 +78,17 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
   const contactAddressToRemoveRef = useRef<string | null>(null);
   const reloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousAddressBookRef = useRef(addressBook);
+
+  // Mirrors the entries AddressList renders in `onlyRenderAddressBook` mode:
+  // every chain's contacts except the wildcard bucket.
+  const hasContacts = useMemo(
+    () =>
+      Object.entries(addressBook ?? {}).some(
+        ([addressBookChainId, entries]) =>
+          addressBookChainId !== '*' && Object.keys(entries).length > 0,
+      ),
+    [addressBook],
+  );
 
   const updateAddressList = useCallback(() => {
     setReloadAddressList(true);
@@ -147,14 +170,29 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
           testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
         }}
       />
-      <AddressList
-        chainId={chainId}
-        onlyRenderAddressBook
-        reloadAddressList={reloadAddressList}
-        onAccountPress={onAddressPress}
-        onIconPress={onIconPress}
-        onAccountLongPress={onAddressLongPress}
-      />
+      {hasContacts ? (
+        <AddressList
+          chainId={chainId}
+          onlyRenderAddressBook
+          reloadAddressList={reloadAddressList}
+          onAccountPress={onAddressPress}
+          onIconPress={onIconPress}
+          onAccountLongPress={onAddressLongPress}
+        />
+      ) : (
+        <Box
+          twClassName="flex-1 items-center justify-center gap-4 px-6"
+          testID={ContactsViewSelectorIDs.EMPTY_STATE}
+        >
+          <Icon name={IconName.Bookmark} size={IconSize.Xl} />
+          <Text variant={TextVariant.HeadingSm}>
+            {strings('address_book.no_contacts')}
+          </Text>
+          <Text variant={TextVariant.BodyMd} twClassName="text-center">
+            {strings('address_book.no_contacts_desc')}
+          </Text>
+        </Box>
+      )}
       <View style={styles.addContact}>
         <Button
           variant={ButtonVariant.Primary}

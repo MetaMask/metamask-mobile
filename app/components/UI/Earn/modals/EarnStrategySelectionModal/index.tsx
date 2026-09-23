@@ -40,7 +40,7 @@ import useEarnToasts from '../../hooks/useEarnToasts';
 import {
   isMoneyAccountDepositExperience,
   isNonMoneyAccountExperience,
-  truncateNumber,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { getEarnInputExperiences } from '../../utils/earnAssets';
 import useEarnOpportunityNavigation, {
@@ -101,7 +101,7 @@ const renderMoneyStrategyCard = (
   const row1Text =
     strategy.rate.status === 'ready'
       ? strings('earn.strategy_selection.strategies.money.info_rows.row_1', {
-          percentage: truncateNumber(strategy.rate.percentage),
+          percentage: formatEarnRatePercentage(strategy.rate.percentage),
         })
       : strings('earn.strategy_selection.strategies.rate_unavailable_subtitle');
 
@@ -154,7 +154,7 @@ const renderNonMoneyStrategyCard = (
     strategy.rate.status === 'ready'
       ? strings(
           `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
-          { percentage: truncateNumber(strategy.rate.percentage) },
+          { percentage: formatEarnRatePercentage(strategy.rate.percentage) },
         )
       : strings('earn.strategy_selection.strategies.rate_unavailable_subtitle');
 
@@ -316,7 +316,7 @@ const EarnStrategySelectionModal = () => {
       ...(selectedStrategy.rate.status === 'ready'
         ? {
             selected_strategy_rate_percentage: Number(
-              truncateNumber(selectedStrategy.rate.percentage),
+              formatEarnRatePercentage(selectedStrategy.rate.percentage),
             ),
           }
         : {}),

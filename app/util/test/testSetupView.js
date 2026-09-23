@@ -628,7 +628,9 @@ jest.mock('@sentry/react-native', () => ({
   wrap: (component) => component,
   captureException: jest.fn(),
   captureMessage: jest.fn(),
-  captureUserFeedback: jest.fn(),
+  captureFeedback: jest.fn(),
+  dedupeIntegration: jest.fn(() => ({ name: 'Dedupe' })),
+  extraErrorDataIntegration: jest.fn(() => ({ name: 'ExtraErrorData' })),
   addBreadcrumb: jest.fn(),
   configureScope: jest.fn(),
   setContext: jest.fn(),
@@ -986,6 +988,7 @@ jest.mock('@braze/react-native-sdk', () => ({
   default: {
     changeUser: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)

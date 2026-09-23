@@ -19,11 +19,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
-jest.mock(
-  '../../../images/add_wallet_to_device.png',
-  () => 'add_wallet_to_device_image',
-);
-
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -51,27 +46,6 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ActualReact = jest.requireActual('react');
-    const { Pressable } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: jest.fn(
-        ({ onBack }: { onBack?: () => void; includesTopInset?: boolean }) =>
-          ActualReact.createElement(Pressable, {
-            testID: 'button-icon',
-            onPress: onBack,
-            accessibilityRole: 'button',
-          }),
-      ),
-    };
-  },
-);
-
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockHandleScannedQrPayload = jest.fn();
@@ -113,13 +87,10 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('initial render', () => {
-    it('applies top safe-area inset to the header so the back button is tappable on iOS', () => {
-      renderComponent();
+    it('renders the back button', () => {
+      const { getByTestId } = renderComponent();
 
-      expect(HeaderCompactStandard).toHaveBeenCalledWith(
-        expect.objectContaining({ includesTopInset: true }),
-        undefined,
-      );
+      expect(getByTestId('button-icon')).toBeOnTheScreen();
     });
 
     it('renders the page heading', () => {

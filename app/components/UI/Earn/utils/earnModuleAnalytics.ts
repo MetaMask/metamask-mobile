@@ -8,7 +8,7 @@ import type {
 import { formatChainIdForAnalytics } from './analytics';
 import { hasEarnAssetBalance } from './earnAssets';
 import { getEarnInputExperiences } from './earnAssets/earnExperience';
-import { truncateNumber } from './number';
+import { formatEarnRatePercentage } from './earnRate';
 
 export const getEarnModuleAssetProperties = (
   earnAsset: EarnAsset,
@@ -35,7 +35,7 @@ export const getEarnModuleAssetProperties = (
     inputExperiences[0]?.rate?.status === 'ready'
       ? {
           rate_percentage: Number(
-            truncateNumber(inputExperiences[0].rate.percentage),
+            formatEarnRatePercentage(inputExperiences[0].rate.percentage),
           ),
         }
       : {}),

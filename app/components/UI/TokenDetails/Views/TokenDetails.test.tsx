@@ -14,7 +14,10 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
-import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
+import {
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+} from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
@@ -396,6 +399,13 @@ const defaultUseABTestImpl = (key: string) => {
       isActive: true,
     };
   }
+  if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
+    return {
+      variant: { showMoneyDepositFooterCta: false },
+      variantName: 'control',
+      isActive: false,
+    };
+  }
   return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
@@ -445,7 +455,7 @@ describe('TokenDetails', () => {
     jest.clearAllMocks();
     mockUseMoneyAssetOverviewCtas.mockReturnValue({
       apyPercent: undefined,
-      footerLabel: undefined,
+      footerLabelLocalized: undefined,
       isBalanceCtaLoading: false,
       isBalanceCtaVisible: false,
       isFooterCtaEligible: false,
@@ -631,6 +641,56 @@ describe('TokenDetails', () => {
   });
 
   describe('Swap/Buy sticky buttons', () => {
+    it('does not render Money Earn CTA in the control variant', () => {
+      mockUseMoneyAssetOverviewCtas.mockReturnValue({
+        apyPercent: 4,
+        footerLabelLocalized: 'Earn 4% APY',
+        isBalanceCtaLoading: false,
+        isBalanceCtaVisible: false,
+        isFooterCtaEligible: true,
+        isFooterCtaLoading: false,
+        isFooterCtaVisible: true,
+        onBalancePress: jest.fn(),
+        onFooterPress: jest.fn(),
+        projectedEarningsFormatted: '$4.00',
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(
+        queryByTestId('money-asset-overview-footer-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders Money Earn CTA in the treatment variant when eligible', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
+          return {
+            variant: { showMoneyDepositFooterCta: true },
+            variantName: 'treatment',
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImpl(key);
+      });
+      mockUseMoneyAssetOverviewCtas.mockReturnValue({
+        apyPercent: 4,
+        footerLabelLocalized: 'Earn 4% APY',
+        isBalanceCtaLoading: false,
+        isBalanceCtaVisible: false,
+        isFooterCtaEligible: true,
+        isFooterCtaLoading: false,
+        isFooterCtaVisible: true,
+        onBalancePress: jest.fn(),
+        onFooterPress: jest.fn(),
+        projectedEarningsFormatted: '$4.00',
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+    });
+
     it('shows sticky buttons when token is loaded', () => {
       const { getByTestId, getByText } = render(<TokenDetails />);
 
@@ -723,7 +783,7 @@ describe('TokenDetails', () => {
     it('opens AssetDetailsQuickBuy when an eligible token has unresolved APY', () => {
       mockUseMoneyAssetOverviewCtas.mockReturnValue({
         apyPercent: undefined,
-        footerLabel: undefined,
+        footerLabelLocalized: undefined,
         isBalanceCtaLoading: false,
         isBalanceCtaVisible: false,
         isFooterCtaEligible: true,

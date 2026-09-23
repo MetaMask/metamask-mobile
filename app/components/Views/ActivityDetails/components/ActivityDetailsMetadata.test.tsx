@@ -49,13 +49,8 @@ describe('ActivityDetailsMetadata', () => {
   it('defaults to a single Account row (no From/To) when addressRows is omitted, e.g. swaps', () => {
     const item = makeItem({
       type: 'swap',
-      data: {},
-      raw: {
-        type: 'apiEvmTransaction',
-        // A swap sends to a router but settles back into the same account; the
-        // Account row keys on `from`, not the router `to`.
-        data: { from: '0xacct', to: '0xrouter' },
-      },
+      // Account row keys on `data.from`, not a router `to`.
+      data: { from: '0xacct' },
     } as unknown as ActivityListItem);
 
     const { getByTestId, queryByTestId } = renderWithProvider(

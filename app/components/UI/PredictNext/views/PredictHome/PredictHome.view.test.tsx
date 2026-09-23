@@ -6,11 +6,13 @@ import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import type {
   PredictEntityId,
   PredictFeedId,
+  PredictTimestamp,
   PredictVenueId,
 } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
@@ -50,6 +52,36 @@ describe('PredictHome', () => {
     expect(view.getByText('Available balance')).toBeOnTheScreen();
     expect(
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the scroll-linked compact header title', async () => {
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent(view.getByTestId(PredictHomeTestIds.TITLE_SECTION), 'layout', {
+      nativeEvent: { layout: { height: 48 } },
+    });
+
+    expect(view.getByTestId(PredictHomeTestIds.HEADER_TITLE)).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
+    ).toBeOnTheScreen();
+    expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+  });
+
+  it('keeps the compact header title and feed mounted after scrolling past the title section', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.scroll(view.getByTestId(PredictHomeTestIds.SCROLL), {
+      nativeEvent: { contentOffset: { y: 1000 } },
+    });
+
+    expect(view.getByTestId(PredictHomeTestIds.HEADER_TITLE)).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
     ).toBeOnTheScreen();
   });
 
@@ -290,13 +322,11 @@ describe('PredictHome', () => {
         venueId: 'kalshi' as PredictVenueId,
         eventId: 'nfl-1' as PredictEntityId,
         type: 'football_game',
-        details: {
-          status: 'live',
-          away_points: 28,
-          home_points: 24,
-          quarter: 4,
-          clock: '01:12',
-        },
+        status: 'in_progress',
+        score: { away: '28', home: '24' },
+        period: 'Q4',
+        clock: '01:12',
+        observedAt: '2026-09-11T03:00:00.000Z' as PredictTimestamp,
       });
     });
 
@@ -506,7 +536,7 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('does not navigate when a disabled Outcome is pressed', async () => {
+  it('opens the Order flow when a Home game quote is pressed', async () => {
     const view = renderPredictNext();
     const card = await view.findByTestId(
       PredictHomeTestIds.event('kalshi', 'nfl-1'),
@@ -516,6 +546,8 @@ describe('PredictHome', () => {
       within(card).getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
     );
 
+    // The Order flow opens in place; the Home screen does not navigate.
+    expect(view.getByTestId(PredictOrderFlowTestIds.SHEET)).toBeOnTheScreen();
     expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictEventScreenTestIds.VIEW),
