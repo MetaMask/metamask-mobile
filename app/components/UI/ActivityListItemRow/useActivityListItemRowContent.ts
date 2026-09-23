@@ -538,7 +538,7 @@ function resolveCoreContent(
           ? 'Receive failed'
           : 'Send failed';
       const cancelledLabel = isMoneyDeposit
-        ? 'Deposit cancelled'
+        ? 'Add funds cancelled'
         : item.type === 'receive'
           ? 'Receive cancelled'
           : 'Send cancelled';
