@@ -39228,7 +39228,7 @@ __metadata:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
-    "@expensify/react-native-wallet": "npm:^0.1.24"
+    "@expensify/react-native-wallet": "npm:0.1.24"
     "@expo/fingerprint": "npm:~0.20.13"
     "@expo/metro-config": "npm:~57.0.0"
     "@expo/repack-app": "npm:^0.2.9"
