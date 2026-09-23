@@ -1008,6 +1008,7 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: undefined;
+  SocialProfileOnboardingView: undefined;
   MyProfileView: undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;
