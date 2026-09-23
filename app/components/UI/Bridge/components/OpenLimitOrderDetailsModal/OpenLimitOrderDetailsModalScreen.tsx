@@ -1,42 +1,20 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
-import type { BridgeToken } from '../../types';
-import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
+import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
+import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
+import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { OpenLimitOrderDetailsModal } from './OpenLimitOrderDetailsModal';
-
-// MOCK DATA: the open orders list does not carry order details yet, so the
-// sheet is fed a fixed order until it is wired to a real limit order.
-const MOCK_SOURCE_TOKEN: BridgeToken = {
-  address: '0x0000000000000000000000000000000000000000',
-  chainId: '0x1' as Hex,
-  decimals: 18,
-  image: '',
-  name: 'Ethereum',
-  symbol: 'ETH',
-};
-
-const MOCK_DEST_TOKEN: BridgeToken = {
-  address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-  chainId: '0x1' as Hex,
-  decimals: 8,
-  image: '',
-  name: 'Wrapped Bitcoin',
-  symbol: 'WBTC',
-};
-
-const MOCK_SUBMITTED_AMOUNT = '0.1 ETH';
-const MOCK_TRIGGER_LIMIT_FIAT = '3412.20';
-const MOCK_TRIGGER_MARKET_FIAT = 3590;
-const MOCK_TRIGGER_PRICE = '@ $3,412.20';
-const MOCK_EXPIRY = '7 days';
+import type { OpenLimitOrderDetailsModalParams } from './types';
 
 export const OpenLimitOrderDetailsModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { order } = useParams<OpenLimitOrderDetailsModalParams>();
+  const { sourceToken, destinationToken } = getLimitOrderTokens(order);
 
   // STUB FOR LIMIT ORDER CANCELLATION: the order still needs to be cancelled
   // through the limit orders service.
@@ -51,23 +29,32 @@ export const OpenLimitOrderDetailsModalScreen = () => {
     });
   }, [handleCancelConfirmed, navigation]);
 
-  const triggerComparison = getSwapsLimitOrderPriceMarketComparison({
-    limitFiat: MOCK_TRIGGER_LIMIT_FIAT,
-    marketFiat: MOCK_TRIGGER_MARKET_FIAT,
-    executionType: LimitOrderExecutionType.BUY,
-    threshold: 0,
-  });
-
   return (
     <OpenLimitOrderDetailsModal
-      sourceToken={MOCK_SOURCE_TOKEN}
-      destToken={MOCK_DEST_TOKEN}
+      sourceToken={sourceToken}
+      destToken={destinationToken}
+      // Only an open order can be cancelled, which is the sole action this
+      // sheet offers, so it is the only status the tab row opens it for.
       status={strings('bridge.limit.in_progress')}
-      submittedAmount={MOCK_SUBMITTED_AMOUNT}
-      triggerPrice={MOCK_TRIGGER_PRICE}
-      triggerToken={MOCK_DEST_TOKEN}
-      triggerComparison={triggerComparison}
-      expiry={MOCK_EXPIRY}
+      submittedAmount={strings('bridge.limit.quote_unit', {
+        amount: formatLimitOrderAmount(
+          order.src.amount,
+          order.src.asset.decimals,
+        ),
+        symbol: sourceToken.symbol,
+      })}
+      // `limitPrice` is quoted as destination token per unit of source token,
+      // so it reads as an amount of the destination token.
+      triggerPrice={strings('bridge.limit.quote_unit', {
+        amount:
+          formatLimitOrderQuickPrice(order.limitPrice) ?? order.limitPrice,
+        symbol: destinationToken.symbol,
+      })}
+      triggerToken={destinationToken}
+      // `triggerComparison` is left unset on purpose: the order carries neither
+      // a market price nor the side its trigger was quoted on, so the
+      // "% from market" line stays hidden until the response can support it.
+      expiry={formatLimitOrderDate(order.expiresAt)}
       onCancelOrder={handleCancelOrder}
       goBack={navigation.goBack}
     />

@@ -1,7 +1,20 @@
+import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import type { BridgeToken } from '../../types';
 import type { LimitOrderConfirmationMarketComparison } from '../LimitOrderConfirmationModal/types';
 
+/**
+ * Route params for the open limit order details modal. The sheet is opened
+ * from a row of the limit orders tab, which is where the order comes from:
+ * every value shown is derived from it by the host screen.
+ */
 export interface OpenLimitOrderDetailsModalParams {
+  /**
+   * The order the sheet shows the details of.
+   */
+  order: LimitOrder;
+}
+
+export interface OpenLimitOrderDetailsModalProps {
   /**
    * Source token, used for the sheet title and the submitted row avatar.
    */
@@ -20,7 +33,7 @@ export interface OpenLimitOrderDetailsModalParams {
    */
   submittedAmount: string;
   /**
-   * Limit price the order triggers at, e.g. "@ $3,412.20".
+   * Limit price the order triggers at, e.g. "2200 USDC".
    */
   triggerPrice: string;
   /**
@@ -28,13 +41,9 @@ export interface OpenLimitOrderDetailsModalParams {
    */
   triggerToken?: BridgeToken;
   /**
-   * Expiration label, e.g. "7 days".
+   * Expiration label, e.g. "Sep 27".
    */
   expiry: string;
-}
-
-export interface OpenLimitOrderDetailsModalProps
-  extends OpenLimitOrderDetailsModalParams {
   /**
    * Comparison of the trigger price against the current market price, shown
    * under the trigger price the same way the confirmation modal shows it.

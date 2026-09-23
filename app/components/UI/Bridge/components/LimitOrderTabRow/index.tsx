@@ -131,8 +131,9 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL,
+      params: { order },
     });
-  }, [navigation]);
+  }, [navigation, order]);
 
   return (
     <OpenOrderRow

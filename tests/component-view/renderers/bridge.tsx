@@ -249,11 +249,18 @@ export function renderRecurringOrderDetailsView({
   );
 }
 
-export function renderOpenLimitOrderDetailsModal(
-  options: RenderBridgeViewOptions = {},
-): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+interface RenderOpenLimitOrderDetailsModalOptions
+  extends RenderBridgeViewOptions {
+  order: LimitOrder;
+}
 
+export function renderOpenLimitOrderDetailsModal({
+  order,
+  overrides,
+  deterministicFiat,
+}: RenderOpenLimitOrderDetailsModalOptions): ReturnType<
+  typeof renderScreenWithRoutes
+> {
   const builder = initialStateBridge({ deterministicFiat });
   if (overrides) {
     builder.withOverrides(overrides);
@@ -270,6 +277,7 @@ export function renderOpenLimitOrderDetailsModal(
       },
     ],
     { state },
+    { order },
   );
 }
 
