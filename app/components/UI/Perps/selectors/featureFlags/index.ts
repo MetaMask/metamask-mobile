@@ -566,3 +566,13 @@ export const selectPerpsLighterProviderEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+export const selectPerpsPriceAlertsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsPriceAlertsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
