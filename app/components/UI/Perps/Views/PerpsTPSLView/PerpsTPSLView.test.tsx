@@ -1149,6 +1149,36 @@ describe('PerpsTPSLView', () => {
       expect(mockOnConfirm).toHaveBeenCalled();
     });
 
+    // Cancel starts the close; the sheet then drops Save's close callback, so
+    // without a guard Save would fall through to the timeout and submit the
+    // edit the user just discarded.
+    it('does not confirm when Save is pressed after Cancel started the close', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
+
+      renderSheet({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+        },
+        validation: { ...defaultMockReturn.validation, hasChanges: true },
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+        );
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+
     // The real sheet drops its close callback when a close is already in
     // flight, and returns before storing it. Neither BottomSheet mock
     // reproduces that, so the guarantee is asserted on the helper directly.

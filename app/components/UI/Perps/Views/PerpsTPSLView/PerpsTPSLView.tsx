@@ -79,33 +79,38 @@ import {
 } from '../../utils/formatUtils';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
+  calculateLiquidationDistance,
+  clampLiquidationDistance,
+} from '../../utils/liquidationDistance';
+import {
   LIQUIDATION_DISTANCE_DECIMALS,
   TP_SL_VIEW_CONFIG,
 } from '../../constants/perpsConfig';
 
 /**
- * Longest wait for a sheet close animation before confirming anyway. Comfortably
- * past the animation, short enough not to read as a hang.
- */
-const DISMISS_TIMEOUT_MS = 1000;
-
-/**
  * Await a dismissal that may never call back.
  *
- * Resolves on the dismissal callback, or on {@link DISMISS_TIMEOUT_MS},
- * whichever lands first, and only ever once.
+ * Resolves on the dismissal callback, or on
+ * {@link TP_SL_VIEW_CONFIG.DismissTimeoutMs}, whichever lands first, and only
+ * ever once. The timer is cleared when the dismissal wins so a confirmed edit
+ * does not leave it pending.
  *
  * @param dismiss - Dismissal that takes a post-dismiss callback.
  * @returns Resolves once the route has dismissed, or the wait has expired.
  */
 export function waitForDismissal(dismiss: (afterDismiss: () => void) => void) {
+  let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+
   const dismissed = new Promise<void>((resolve) => {
     dismiss(resolve);
   });
   const expired = new Promise<void>((resolve) => {
-    setTimeout(resolve, DISMISS_TIMEOUT_MS);
+    expiryTimer = setTimeout(resolve, TP_SL_VIEW_CONFIG.DismissTimeoutMs);
   });
-  return Promise.race([dismissed, expired]);
+
+  return Promise.race([dismissed, expired]).finally(() => {
+    clearTimeout(expiryTimer);
+  });
 }
 
 /** ButtonBase resolves `textClassName` per press state, so it takes a function. */
@@ -262,12 +267,17 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
   const isSheet = variant === 'sheet';
   const sheetRef = useRef<BottomSheetRef>(null);
+  // A close already in flight makes BottomSheet drop any later close callback,
+  // so a second dismissal would never settle and would fall through to the
+  // timeout. Tracked here so Save cannot submit an edit Cancel already discarded.
+  const closingRef = useRef(false);
 
   // The sheet plays its close animation before the route pops; the screen pops
   // straight away. Both paths must dismiss before `onConfirm` runs — see the
   // Android Fabric note in handleConfirm.
   const dismiss = useCallback(
     (afterDismiss?: () => void) => {
+      closingRef.current = true;
       // The sheet pops the route from its close-animation callback, so work
       // that must not race the transition has to run from there rather than
       // beside it. With no ref attached there is no animation to wait on, so
@@ -499,6 +509,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
   // Handle back button press
   const handleBack = useCallback(() => {
+    if (closingRef.current) {
+      return;
+    }
     if (enableHaptics) {
       playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     }
@@ -672,7 +685,13 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   }, [focusedInput]);
 
   const handleConfirm = useCallback(async () => {
-    if (!hasChanges || !isValid || isUpdating || isPositionGone) {
+    if (
+      closingRef.current ||
+      !hasChanges ||
+      !isValid ||
+      isUpdating ||
+      isPositionGone
+    ) {
       return;
     }
 
@@ -990,12 +1009,11 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       return undefined;
     }
 
-    const distance =
-      (Math.abs(currentPrice - parsedLiquidationPrice) / currentPrice) * 100;
+    const distance = clampLiquidationDistance(
+      calculateLiquidationDistance(currentPrice, parsedLiquidationPrice),
+    );
 
-    return `${(distance >= 99.9 ? 100 : distance).toFixed(
-      LIQUIDATION_DISTANCE_DECIMALS,
-    )}%`;
+    return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
   }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice, isSheet]);
 
   const takeProfitHasError = !isValid && Boolean(takeProfitError);

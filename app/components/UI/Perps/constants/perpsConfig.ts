@@ -223,6 +223,10 @@ export const TP_SL_VIEW_CONFIG = {
   // default USD configuration which only allows 2 decimal places
   KeypadCurrencyCode: 'USD_PERPS' as const,
   KeypadDecimals: 5,
+
+  // Longest wait for a sheet close animation before confirming anyway.
+  // Comfortably past the animation, short enough not to read as a hang.
+  DismissTimeoutMs: 1000,
 } as const;
 
 /**
