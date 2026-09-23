@@ -351,16 +351,29 @@ describe('CardWelcome', () => {
     /**
      * Animated.View order: title, description, footer.
      */
-    const getRevealContainers = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) => UNSAFE_getAllByType(Animated.View);
+    const getRevealContainers = (
+      UNSAFE_getAllByType: (
+        type: typeof Animated.View,
+      ) => { props: { style: ViewStyle[] } }[],
+    ) => UNSAFE_getAllByType(Animated.View);
 
-    const getTitleRevealStyleEntries = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) =>
-      getRevealContainers(UNSAFE_getAllByType)[0].props.style as ViewStyle[];
+    const getTitleRevealStyleEntries = (
+      UNSAFE_getAllByType: (
+        type: typeof Animated.View,
+      ) => { props: { style: ViewStyle[] } }[],
+    ) => getRevealContainers(UNSAFE_getAllByType)[0].props.style as ViewStyle[];
 
-    const getDescriptionRevealStyleEntries = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) =>
-      getRevealContainers(UNSAFE_getAllByType)[1].props.style as ViewStyle[];
+    const getDescriptionRevealStyleEntries = (
+      UNSAFE_getAllByType: (
+        type: typeof Animated.View,
+      ) => { props: { style: ViewStyle[] } }[],
+    ) => getRevealContainers(UNSAFE_getAllByType)[1].props.style as ViewStyle[];
 
-    const getFooterRevealStyleEntries = (UNSAFE_getAllByType: (type: typeof Animated.View) => { props: { style: ViewStyle[] } }[]) =>
-      getRevealContainers(UNSAFE_getAllByType)[2].props.style as ViewStyle[];
+    const getFooterRevealStyleEntries = (
+      UNSAFE_getAllByType: (
+        type: typeof Animated.View,
+      ) => { props: { style: ViewStyle[] } }[],
+    ) => getRevealContainers(UNSAFE_getAllByType)[2].props.style as ViewStyle[];
 
     it('releases the hidden text reveal style when the cards animation reports a Rive error while animating', () => {
       mockUseCardEducationAnimationState.mockReturnValue('animate');
