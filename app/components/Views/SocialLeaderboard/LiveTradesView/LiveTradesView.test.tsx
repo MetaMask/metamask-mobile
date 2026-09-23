@@ -2,7 +2,9 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { getFeedItemTestId } from '../FeedView/FeedView.testIds';
 import LiveTradesView from './LiveTradesView';
+import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -10,7 +12,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('LiveTradesView', () => {
-  it('renders a single Live stream toggle above an empty scroll surface', () => {
+  it('renders a single Live stream toggle above the mock feed list', () => {
     renderWithProvider(<LiveTradesView />);
 
     expect(
@@ -20,6 +22,9 @@ describe('LiveTradesView', () => {
       screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
     expect(
@@ -27,6 +32,17 @@ describe('LiveTradesView', () => {
     ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders compact V0 feed rows for mocked live trades', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    MOCK_LIVE_TRADES_ITEMS.forEach((item) => {
+      expect(screen.getByTestId(getFeedItemTestId(item.id))).toBeOnTheScreen();
+    });
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-live-trades-1'),
     ).toBeOnTheScreen();
   });
 

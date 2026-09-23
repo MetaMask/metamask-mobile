@@ -124,6 +124,10 @@ const AccountHub = () => {
     navigation.navigate(Routes.SETTINGS_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
 
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW);
+  }, [navigation]);
+
   const handleInfoPress = useCallback(() => {
     if (!selectedAccountGroup) {
       return;
@@ -258,6 +262,13 @@ const AccountHub = () => {
                 />
               </BadgeWrapper>
             )}
+            <ButtonIcon
+              iconName={IconName.Setting}
+              size={ButtonIconSize.Md}
+              onPress={handleManageAccountsPress}
+              testID={AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON}
+            />
+
             <BadgeWrapper
               position={BadgeWrapperPosition.TopRight}
               positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}

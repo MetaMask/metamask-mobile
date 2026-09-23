@@ -14,32 +14,37 @@ export interface ForgotHardwareDeviceInfo {
 }
 
 /**
- * Result of removing a hardware account from the keyring.
+ * Result of removing an account from its keyring.
  */
-export interface RemoveHardwareAccountResult {
+export interface RemoveAccountResult {
   didReselectAccount: boolean;
   forgotDevice?: ForgotHardwareDeviceInfo;
 }
 
 /**
- * Parameters for removing a hardware account.
+ * Parameters for removing an account.
  */
-export interface RemoveHardwareAccountParams {
+export interface RemoveAccountParams {
   address: string;
   keyringType: string;
 }
 
 /**
- * Removes a hardware account, clears permissions, updates the selected account
- * when needed, and forgets the device if no accounts remain on the keyring.
+ * Removes an account from its keyring, clears its permissions, and re-selects
+ * another account when the removed one was selected.
+ *
+ * Covers every removable keyring type — hardware (Ledger / QR) and imported
+ * private keys. When the removed account was the last one on a hardware
+ * keyring, the device is forgotten so the user is not left with a dangling
+ * device entry.
  *
  * @param options - Account address and keyring type.
  * @returns Whether the selected account changed and optional device-forget metadata.
  */
-export const removeHardwareAccount = async ({
+export const removeAccount = async ({
   address,
   keyringType,
-}: RemoveHardwareAccountParams): Promise<RemoveHardwareAccountResult> => {
+}: RemoveAccountParams): Promise<RemoveAccountResult> => {
   const { AccountsController, KeyringController } = Engine.context;
   const hexAddress = toHex(address);
   const selectedAccountId =

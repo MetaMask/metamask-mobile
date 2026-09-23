@@ -172,7 +172,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  return Reanimated;
+  return {
+    ...Reanimated,
+    useReducedMotion: jest.fn(() => false),
+  };
 });
 
 jest.mock('react-native-gesture-handler', () => {

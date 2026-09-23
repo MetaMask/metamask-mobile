@@ -8,14 +8,7 @@ import React, {
 import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
+import { useNavigation } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -26,9 +19,13 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BottomSheet,
   HeaderStandard,
+  ListItemSelect,
   Text,
+  TextFieldSearch,
   TextVariant,
+  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { Region } from '../../types';
 
@@ -60,6 +57,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
   const { regions, renderAreaCode, selectedRegionKey } =
@@ -140,8 +138,7 @@ function RegionSelectorModal() {
           accessibilityRole="button"
           accessible
           testID="region-selector-item"
-        >
-          <ListItemColumn widthType={WidthType.Fill}>
+          title={
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -159,8 +156,8 @@ function RegionSelectorModal() {
                 </Box>
               )}
             </Box>
-          </ListItemColumn>
-        </ListItemSelect>
+          }
+        />
       );
     },
     [selectedRegionKey, renderAreaCode, handleOnRegionPressCallback],
@@ -204,7 +201,7 @@ function RegionSelectorModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
@@ -220,8 +217,11 @@ function RegionSelectorModal() {
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
-          autoComplete="one-time-code"
-          testID="region-selector-search-input"
+          clearButtonProps={{ testID: 'search-clear-button' }}
+          inputProps={{
+            autoComplete: 'one-time-code',
+            testID: 'region-selector-search-input',
+          }}
         />
       </Box>
       <FlatList

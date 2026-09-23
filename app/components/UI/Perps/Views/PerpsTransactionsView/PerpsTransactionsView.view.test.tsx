@@ -4,7 +4,7 @@
  * Run with: yarn test:view --testPathPattern="PerpsTransactionsView.view.test"
  */
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsTransactionsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 
@@ -68,5 +68,23 @@ describe('PerpsTransactionsView', () => {
     expect(
       screen.getByText(strings('perps.transactions.tabs.trades')),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the Aggregated checkbox on Trades and hides it on Orders', async () => {
+    renderPerpsTransactionsView();
+
+    expect(
+      await screen.findByText(strings('perps.transactions.aggregated')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByText(strings('perps.transactions.tabs.orders')),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(strings('perps.transactions.aggregated')),
+      ).toBeNull();
+    });
   });
 });

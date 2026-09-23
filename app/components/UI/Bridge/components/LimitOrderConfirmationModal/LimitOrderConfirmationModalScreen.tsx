@@ -1,13 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import Logger from '../../../../../util/Logger';
 import {
   selectLimitOrderCostTolerance,
   selectLimitOrderMarketComparison,
 } from '../../../../../core/redux/slices/bridge';
 import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
+import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
@@ -26,6 +28,13 @@ export const LimitOrderConfirmationModalScreen = () => {
     [sourceChainId],
   );
 
+  const [hasDelegationsError, setHasDelegationsError] = useState(false);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const { fetchLimitOrdersDelegations } = useFetchLimitOrdersDelegations({
+    ...params.order,
+    costTolerance: costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  });
+
   const error = useMemo(() => {
     if (delegationFee.status === 'error') {
       return {
@@ -33,17 +42,40 @@ export const LimitOrderConfirmationModalScreen = () => {
         primaryButtonLabel: strings('bridge.limit.try_again'),
       };
     }
-  }, [delegationFee]);
 
-  const handleConfirm = useCallback(() => {
+    if (hasDelegationsError) {
+      return {
+        bannerMessage: strings('bridge.limit.error_fetching_delegations'),
+        primaryButtonLabel: strings('bridge.limit.try_again'),
+      };
+    }
+  }, [delegationFee, hasDelegationsError]);
+
+  const handleConfirm = useCallback(async () => {
     if (delegationFee.status === 'error') {
       delegationFee.retry();
       return;
     }
 
-    // STUB FOR LIMIT ORDER CREATION
-    console.warn('Confirm limit order');
-  }, [delegationFee]);
+    setHasDelegationsError(false);
+    setIsCreatingOrder(true);
+
+    try {
+      const delegations = await fetchLimitOrdersDelegations();
+
+      // STUB FOR LIMIT ORDER CREATION: the delegations still need to be
+      // signed and submitted.
+      console.warn('Limit order delegations', delegations);
+    } catch (fetchError) {
+      Logger.error(
+        fetchError as Error,
+        'LimitOrderConfirmationModalScreen: Failed to fetch limit order delegations',
+      );
+      setHasDelegationsError(true);
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  }, [delegationFee, fetchLimitOrdersDelegations]);
 
   return (
     <LimitOrderConfirmationModal
@@ -58,7 +90,7 @@ export const LimitOrderConfirmationModalScreen = () => {
         onPress: handleConfirm,
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
-        isLoading: delegationFee.status === 'loading',
+        isLoading: delegationFee.status === 'loading' || isCreatingOrder,
       }}
     />
   );
