@@ -9,6 +9,7 @@ import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { StackActions } from '@react-navigation/native';
+import { selectTransactions } from '../../../../selectors/transactionController';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -22,33 +23,30 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../core/Engine', () => ({
-  context: {
-    ApprovalController: {
-      rejectRequest: jest.fn(),
-    },
-  },
+  state: { TransactionController: { transactions: [] } },
+  context: { ApprovalController: { rejectRequest: jest.fn() } },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../selectors/transactionController'),
+  selectTransactions: jest.fn(),
 }));
 
 const STACK_MOCK = 'SomeStack';
 const TRANSACTION_ID_MOCK = '123-456';
 
 function runHook({ transactions }: { transactions?: TransactionMeta[] } = {}) {
+  jest.mocked(selectTransactions).mockReturnValue(transactions ?? []);
+
   return renderHookWithProvider(useConfirmNavigation, {
-    state: {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: transactions ?? [],
-          },
-        },
-      },
-    },
+    state: {},
   });
 }
 
 describe('useConfirmNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectTransactions).mockReturnValue([]);
   });
 
   it('navigates to confirmation with stack', () => {
@@ -126,6 +124,49 @@ describe('useConfirmNavigation', () => {
       Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
       {},
     );
+  });
+
+  it('navigates forced bottom sheets directly instead of through the parent stack', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      forceBottomSheet: true,
+      bottomSheetHeightPercentage: 72,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_REQUEST_MODAL,
+      {
+        bottomSheetHeightPercentage: 72,
+        forceBottomSheet: true,
+        loader: ConfirmationLoader.CustomAmount,
+      },
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      STACK_MOCK,
+      expect.any(Object),
+    );
+  });
+
+  it('replaces forced bottom sheet route without nesting it in the parent stack', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      forceBottomSheet: true,
+      replace: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.CONFIRMATION_REQUEST_MODAL, {
+        forceBottomSheet: true,
+        loader: ConfirmationLoader.CustomAmount,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('rejects pending transactions before navigating if custom amount loader', async () => {

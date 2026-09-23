@@ -23,7 +23,6 @@ const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
 const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 export type ConfirmNavigateOptions = {
-  amount?: string;
   headerShown?: boolean;
   replace?: boolean;
   stack?: string;
@@ -65,11 +64,16 @@ export function useConfirmNavigation() {
         return;
       }
 
-      const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
+      const isForceBottomSheet = params.forceBottomSheet === true;
+      const route = isForceBottomSheet
+        ? Routes.CONFIRMATION_REQUEST_MODAL
+        : headerShown === false
+          ? ROUTE_NO_HEADER
+          : ROUTE;
 
       log('Navigating', { route, params, stack });
 
-      if (stack) {
+      if (stack && !isForceBottomSheet) {
         if (replace) {
           navigation.dispatch(
             StackActions.replace(stack, { screen: route, params }),
