@@ -905,11 +905,5 @@
       }
     },
     "version": "v0.3.0"
-  },
-  "previewBuilds": {
-    "@metamask/transaction-pay-controller": {
-      "type": "non-breaking",
-      "previewVersion": "29.0.1-preview-d3f9964be"
-    }
   }
 }
