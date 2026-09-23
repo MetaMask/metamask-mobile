@@ -1,0 +1,12 @@
+{
+  "name": "MetaMask Mobile (Expo / JS dev)",
+  "user": "ubuntu",
+  "install": "export NVM_DIR=\"$HOME/.nvm\"; . \"$NVM_DIR/nvm.sh\"; nvm install 24.16.0; nvm alias default 24.16.0; corepack enable; export PATH=\"$NVM_DIR/versions/node/v24.16.0/bin:$PATH\"; node --version && yarn --version && git submodule update --init && yarn install --immutable && node scripts/setup.mjs --no-build-ios --no-build-android",
+  "terminals": [
+    {
+      "name": "metro",
+      "command": "export NVM_DIR=\"$HOME/.nvm\"; . \"$NVM_DIR/nvm.sh\"; export PATH=\"$NVM_DIR/versions/node/v24.16.0/bin:$PATH\"; export NODE_OPTIONS=\"--max-old-space-size=8192\"; yarn watch"
+    }
+  ],
+  "ports": [{ "port": 8081, "name": "metro" }]
+}
