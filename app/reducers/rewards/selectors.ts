@@ -21,6 +21,7 @@ import type {
   PredictThePitchPrizePoolDto,
   MoneyAccountSweepstakesStatsMeDto,
   MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
   MoneyAccountSweepstakesDrawProofDto,
   SubscriptionBenefitDto,
   VipTransactionType,
@@ -858,6 +859,31 @@ export const selectMoneyAccountSweepstakesPrizePoolErrorByCampaignId =
   (state: RootState): boolean =>
     campaignId
       ? (state.rewards.moneyAccountSweepstakesPrizePools[campaignId]?.error ??
+        false)
+      : false;
+
+// Money Account Sweepstakes volume stats selectors
+export const selectMoneyAccountSweepstakesVolumeStatsByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesVolumeStatsDto | null =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesVolumeStats[campaignId]?.data ??
+        null)
+      : null;
+
+export const selectMoneyAccountSweepstakesVolumeStatsLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesVolumeStats[campaignId]
+          ?.loading ?? false)
+      : false;
+
+export const selectMoneyAccountSweepstakesVolumeStatsErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.moneyAccountSweepstakesVolumeStats[campaignId]?.error ??
         false)
       : false;
 

@@ -585,6 +585,21 @@ describe('SignUp Component', () => {
   });
 
   describe('Email Input', () => {
+    it('uses the email keyboard and autofill hints', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      expect(emailInput.props.keyboardType).toBe('email-address');
+      expect(emailInput.props.autoComplete).toBe('email');
+      expect(emailInput.props.textContentType).toBe('emailAddress');
+      expect(emailInput.props.autoCapitalize).toBe('none');
+      expect(emailInput.props.autoCorrect).toBe(false);
+    });
+
     it('allows text input', () => {
       const { getByTestId } = render(
         <Provider store={store}>
@@ -792,7 +807,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('Canada')).toBeOnTheScreen();
+      expect(getByText('Canada', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
@@ -843,7 +858,7 @@ describe('SignUp Component', () => {
       );
 
       // GB is now pre-selected
-      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
       // Button is enabled (country is selected) and shows waitlist label
       expect(getByTestId('signup-continue-button')).toBeEnabled();
       // Country not available info text shown
@@ -884,7 +899,7 @@ describe('SignUp Component', () => {
       );
 
       // GB is pre-selected but treated as supported (Immersve), not waitlist
-      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
@@ -1160,7 +1175,7 @@ describe('SignUp Component', () => {
       );
 
       // US was auto-selected on first render
-      expect(getByText('United States')).toBeOnTheScreen();
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
       expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
 
       // Simulate background refetch: new function identity, same data
@@ -1180,7 +1195,7 @@ describe('SignUp Component', () => {
 
       // hasAutoSelectedCountry ref must have blocked the second run
       expect(secondGetRegionByCode).not.toHaveBeenCalled();
-      expect(getByText('United States')).toBeOnTheScreen();
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
     });
   });
 
@@ -1414,7 +1429,11 @@ describe('SignUp Component', () => {
       );
       fireEvent.press(alreadyHaveAccountButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+        { pop: true, merge: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -1429,9 +1448,11 @@ describe('SignUp Component', () => {
 
       fireEvent.press(getByTestId('signup-i-already-have-an-account-text'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        { pop: true, merge: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
@@ -1457,7 +1478,7 @@ describe('SignUp Component', () => {
       );
 
       expect(getByTestId('signup-country-select')).toHaveTextContent(
-        'United Kingdom',
+        /United Kingdom/,
       );
       expect(mockSetSelectedCountry).not.toHaveBeenCalled();
       expect(mockSetUserLocation).not.toHaveBeenCalled();

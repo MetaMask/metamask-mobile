@@ -223,6 +223,10 @@ export const TP_SL_VIEW_CONFIG = {
   // default USD configuration which only allows 2 decimal places
   KeypadCurrencyCode: 'USD_PERPS' as const,
   KeypadDecimals: 5,
+
+  // Longest wait for a sheet close animation before confirming anyway.
+  // Comfortably past the animation, short enough not to read as a hang.
+  DismissTimeoutMs: 1000,
 } as const;
 
 /**
@@ -252,6 +256,10 @@ export const LIMIT_PRICE_CONFIG = {
   // Warn when a limit/scale price is more than 5% from the near-touch
   // (best bid long, best ask short). Equal to 5% does not warn.
   FarFromMarketThreshold: 0.05,
+
+  // Keypad decimal places for the shared USD_PERPS currency override used by
+  // both the full-screen limit-price sheet and the Trade sheet editor.
+  KeypadDecimals: 5,
 } as const;
 
 // Local warning-type literal. PERPS_EVENT_VALUE.WARNING_TYPE has no

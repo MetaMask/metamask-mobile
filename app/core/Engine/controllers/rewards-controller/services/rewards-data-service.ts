@@ -45,6 +45,7 @@ import type {
   PredictThePitchPrizePoolDto,
   MoneyAccountSweepstakesStatsMeDto,
   MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
   MoneyAccountSweepstakesDrawProofDto,
   MoneyAccountSweepstakesOutcomeDto,
   VipDashboardDto,
@@ -337,6 +338,11 @@ export interface RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction {
   handler: RewardsDataService['getMoneyAccountSweepstakesPrizePool'];
 }
 
+export interface RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesVolumeStats'];
+}
+
 export interface RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction {
   type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`;
   handler: RewardsDataService['getMoneyAccountSweepstakesDrawProof'];
@@ -477,6 +483,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
@@ -697,6 +704,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getMoneyAccountSweepstakesPrizePool`,
       this.getMoneyAccountSweepstakesPrizePool.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`,
+      this.getMoneyAccountSweepstakesVolumeStats.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`,
@@ -2300,6 +2311,23 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as MoneyAccountSweepstakesPrizePoolDto;
+  }
+
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/stats/volume`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes volume stats failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesVolumeStatsDto;
   }
 
   async getMoneyAccountSweepstakesDrawProof(
