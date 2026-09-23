@@ -213,9 +213,6 @@ const createStyles = ({ colors }: Theme) =>
       gap: 16,
       paddingBottom: 12,
     },
-    postOnboardingPortfolioHeaderSpacing: {
-      paddingTop: 16,
-    },
     treatmentBannerContainer: {
       paddingBottom: 16,
     },
@@ -1186,7 +1183,7 @@ const Wallet = ({
       ) : null}
       {compactHeaderAccountName}
       {isSearchHeaderEnabled && inWalletHomePostOnboardingFlow && (
-        <View style={styles.postOnboardingPortfolioHeaderSpacing} />
+        <Box paddingTop={4} twClassName="flex-none" />
       )}
     </>
   ) : (
@@ -1195,20 +1192,18 @@ const Wallet = ({
         <View style={styles.treatmentBannerContainer}>{bannerContent}</View>
       ) : null}
       {compactHeaderAccountName}
-      <View
-        style={[
-          styles.portfolioHeaderCluster,
-          isSearchHeaderEnabled &&
-            inWalletHomePostOnboardingFlow &&
-            styles.postOnboardingPortfolioHeaderSpacing,
-        ]}
+      <Box
+        style={styles.portfolioHeaderCluster}
+        paddingTop={
+          isSearchHeaderEnabled && inWalletHomePostOnboardingFlow ? 4 : 0
+        }
       >
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
         {walletHomeMainAssetDetailsActions}
         {growthBanner}
         {homepageDiscoveryPills}
         {showMoneyBalanceCard && <MoneyBalanceCard />}
-      </View>
+      </Box>
     </>
   );
 
