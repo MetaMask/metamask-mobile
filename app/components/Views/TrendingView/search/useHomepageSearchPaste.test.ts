@@ -64,10 +64,16 @@ describe('useHomepageSearchPaste', () => {
     mockClipboardManager.getString.mockResolvedValue('0xabc');
     mockClipboardManager.getRevision.mockReturnValue(mockClipboardRevision);
     mockClipboardManager.addListener.mockImplementation((listener) => {
-      activeClipboardListeners.add(listener);
+      if (listener) {
+        activeClipboardListeners.add(listener);
+      }
       return {
-        remove: () => activeClipboardListeners.delete(listener),
-      };
+        remove: () => {
+          if (listener) {
+            activeClipboardListeners.delete(listener);
+          }
+        },
+      } as ReturnType<typeof ClipboardManager.addListener>;
     });
   });
 
