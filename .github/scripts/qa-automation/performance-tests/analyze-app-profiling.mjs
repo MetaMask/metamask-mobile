@@ -38,6 +38,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import transformerModule from '@margelo/hermes-profile-transformer';
+import { proposeProfilingGroundedActions } from './profiling-regression-actions.mjs';
 import {
   SCHEDULED_BASELINE_HOURS,
   buildScheduledException,
@@ -188,7 +189,6 @@ function parseArgs(argv) {
       case '--scheduled-exception':
         args.scheduledException = true;
         args.collectOnly = true;
-        args.skipAi = true;
         args.skipScenarioArtifacts = true;
         break;
       case '--skip-scenario-artifacts':
@@ -2102,7 +2102,7 @@ function writeScheduledExceptionOutputs(
   );
 }
 
-async function callClaude(briefing) {
+async function callClaude(briefing, { system } = {}) {
   const apiKey = process.env.E2E_CLAUDE_API_KEY;
   if (!apiKey) {
     return null;
@@ -2118,6 +2118,7 @@ async function callClaude(briefing) {
       model: process.env.APP_PROFILING_ANALYSIS_MODEL || DEFAULT_MODEL,
       max_tokens: 800,
       system:
+        system ||
         'You are a MetaMask Mobile performance engineer analyzing Hermes CPU sampling profiles.',
       messages: [{ role: 'user', content: briefing }],
     }),
@@ -2441,6 +2442,7 @@ async function analyzeRun({
         args.repo,
         process.env.GITHUB_RUN_ID,
       ),
+      headSha: resolvedRun?.headSha || null,
       ai: false,
     },
     scenarios,
@@ -2558,6 +2560,20 @@ async function runScheduledExceptionAnalysis({
     .filter(Boolean);
   const exception = buildScheduledException(currentReport, baselineReports);
   writeScheduledExceptionOutputs(outputDirectory, currentReport, exception);
+  if (exception.meta.hasFindings && !args.skipAi && !args.dryRun) {
+    await proposeProfilingGroundedActions({
+      exception,
+      currentReport,
+      previousRun: scheduledRuns[0] || null,
+      currentSha: currentReport.meta.headSha || null,
+      previousSha: scheduledRuns[0]?.headSha || null,
+      repo: args.repo,
+      outputDirectory,
+      skipAi: args.skipAi,
+      runGh,
+      callClaude,
+    });
+  }
   console.log(
     `✅ Checked run ${currentReport.meta.runId} against ${baselineReports.length} collected runs: ${exception.findings.length} finding(s)`,
   );

@@ -20,6 +20,7 @@ type WorkflowStep = {
 type Workflow = {
   concurrency?: { group: string; 'cancel-in-progress'?: boolean };
   env?: Record<string, string>;
+  permissions?: Record<string, string>;
   on: {
     schedule?: { cron: string }[];
     pull_request?: unknown;
@@ -134,6 +135,47 @@ describe('Analyze App Profiling triggers', () => {
     expect(command).toContain('ARGS+=(--lookback-hours \"${LOOKBACK_HOURS}\")');
     expect(command).toContain('elif [ -n \"${RUN_ID}\" ]; then');
     expect(command).toContain('ARGS+=(--run \"${RUN_ID}\")');
+  });
+
+  it('does not skip the findings proposal on a scheduled chain', () => {
+    const workflow = loadWorkflow();
+    const analysisStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Analyze app profiling',
+    );
+    const command = analysisStep?.run ?? '';
+
+    expect(command).toContain(
+      'if [ "${SKIP_AI}" = "true" ] || [ "${WEEKLY}" = "true" ]; then',
+    );
+    expect(command).not.toContain(
+      '|| [ "${SCHEDULED_EXCEPTION}" = "true" ]; then',
+    );
+  });
+
+  it('pins the profiling proposal skill from MetaMask/skills', () => {
+    const workflow = loadWorkflow();
+    const pin = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Pin profiling regression proposal skill',
+    );
+
+    expect(pin?.['continue-on-error']).toBe(true);
+    expect(pin?.env?.SKILLS_REF).toBe(
+      'd384dd6713c575be5201aab29b542ed358949ab3',
+    );
+    expect(pin?.run).toContain('performance/profiling-regression-proposal');
+    expect(pin?.run).toContain('github.com/MetaMask/skills.git');
+  });
+
+  it('can list merged pull files for the proposal overlap', () => {
+    const workflow = loadWorkflow();
+
+    expect(workflow).toMatchObject({
+      permissions: expect.objectContaining({
+        contents: 'read',
+        actions: 'read',
+        'pull-requests': 'read',
+      }),
+    });
   });
 
   it('bounds the weekly rebuild by time instead of by run count', () => {

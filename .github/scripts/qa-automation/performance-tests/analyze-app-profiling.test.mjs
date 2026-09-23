@@ -88,9 +88,13 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
   const scheduled = parseArgs(['--scheduled-exception', '--run', '100']);
   assert.equal(scheduled.scheduledException, true);
   assert.equal(scheduled.collectOnly, true);
-  assert.equal(scheduled.skipAi, true);
+  assert.equal(scheduled.skipAi, false);
   assert.equal(scheduled.skipScenarioArtifacts, true);
   assert.equal(scheduled.run, '100');
+  assert.equal(
+    parseArgs(['--scheduled-exception', '--skip-ai', '--run', '100']).skipAi,
+    true,
+  );
 });
 
 test('resolveRunsInRange keeps a half-open scheduled window', () => {

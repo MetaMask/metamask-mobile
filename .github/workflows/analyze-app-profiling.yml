@@ -11,6 +11,9 @@
 #   the run with the prior 7-day median, and post either the scenarios that
 #   crossed the 1.5× threshold or a one-line all-clear, so a quiet channel
 #   always means the check stopped running. No per-scenario profile zips.
+#   Findings also get an optional Slack proposal from the pinned
+#   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
+#   only sees Evidence JSON from this job; it does not classify.
 # - After a *manually dispatched* performance run: full digest + Slack
 #   (#metamask-performance on main; personal DM on a branch).
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
@@ -81,6 +84,7 @@ on:
 permissions:
   contents: read
   actions: read
+  pull-requests: read
 
 env:
   # A workflow_run listener always runs from the default branch, so
@@ -163,6 +167,25 @@ jobs:
       - name: Load MetaMask performance analysis skills
         run: yarn skills
 
+      # Decision rules for the optional findings proposal live in
+      # MetaMask/skills, not in this repo. Pin the SHA so a skills `main`
+      # bump cannot change Slack copy until we review it.
+      # https://github.com/MetaMask/skills/pull/179
+      - name: Pin profiling regression proposal skill
+        continue-on-error: true
+        env:
+          SKILLS_REF: d384dd6713c575be5201aab29b542ed358949ab3
+        run: |
+          set -euo pipefail
+          SKILLS_DIR="$RUNNER_TEMP/metamask-skills"
+          git clone --filter=blob:none https://github.com/MetaMask/skills.git "$SKILLS_DIR"
+          git -C "$SKILLS_DIR" checkout "$SKILLS_REF"
+          "$SKILLS_DIR/tools/install" \
+            --repo metamask-mobile \
+            --target "$GITHUB_WORKSPACE" \
+            --source "$SKILLS_DIR" \
+            --include performance/profiling-regression-proposal
+
       - name: Analyze app profiling
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -204,7 +227,7 @@ jobs:
           if [ -n "${SCENARIO}" ] && [ "${WEEKLY}" != "true" ]; then
             ARGS+=(--scenario "${SCENARIO}")
           fi
-          if [ "${SKIP_AI}" = "true" ] || [ "${WEEKLY}" = "true" ] || [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
+          if [ "${SKIP_AI}" = "true" ] || [ "${WEEKLY}" = "true" ]; then
             ARGS+=(--skip-ai)
           fi
           "${ARGS[@]}"
