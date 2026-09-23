@@ -595,15 +595,22 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             paddingHorizontal={6}
             twClassName="flex-1 w-full pt-20"
           >
-            <Image
-              source={METAMASK_NAME}
-              style={[
-                tw.style('w-40 h-20 self-center mt-[60px] mb-[60px]'),
-                { tintColor: colors.icon.default },
-              ]}
-              resizeMode="contain"
-              resizeMethod={'auto'}
-            />
+            <TouchableOpacity
+              testID={LoginViewSelectors.DOWNLOAD_LOGS_BUTTON}
+              delayLongPress={10 * 1000}
+              onLongPress={handleDownloadStateLogs}
+              activeOpacity={1}
+            >
+              <Image
+                source={METAMASK_NAME}
+                style={[
+                  tw.style('w-40 h-20 self-center mt-[60px] mb-[60px]'),
+                  { tintColor: colors.icon.default },
+                ]}
+                resizeMode="contain"
+                resizeMethod={'auto'}
+              />
+            </TouchableOpacity>
             <Box
               flexDirection={BoxFlexDirection.Column}
               justifyContent={BoxJustifyContent.Start}
@@ -698,14 +705,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
         {!hasTestOverrides && (
-          <TouchableOpacity
-            style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
-            delayLongPress={10 * 1000} // 10 seconds
-            onLongPress={handleDownloadStateLogs}
-            activeOpacity={1}
-          >
-            <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
-          </TouchableOpacity>
+          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
         <ScreenshotDeterrent enabled isSRP={false} />
       </SafeAreaView>

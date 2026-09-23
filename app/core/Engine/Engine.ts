@@ -135,9 +135,11 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
+  predictOrderPreviewServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
+import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -394,7 +396,9 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
+        PredictOrderPreviewService: predictOrderPreviewServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
+        LimitOrdersDataService: limitOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         RewardsMoneyController: rewardsMoneyControllerInit,
@@ -699,8 +703,11 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      PredictOrderPreviewService:
+        messengerClientsByName.PredictOrderPreviewService,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
+      LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
       RewardsController: rewardsController,
       RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
@@ -1422,6 +1429,7 @@ export class Engine {
       SubscriptionController,
       ShieldController,
       ClaimsController,
+      KycController,
     } = this.context;
 
     // Remove all permissions.
@@ -1466,6 +1474,9 @@ export class Engine {
 
     // Claims:
     ClaimsController.clearState();
+
+    // KYC:
+    KycController.clearState();
   };
 
   removeAllListeners() {

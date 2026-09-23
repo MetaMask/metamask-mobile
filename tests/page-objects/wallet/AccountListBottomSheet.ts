@@ -347,6 +347,13 @@ class AccountListBottomSheet {
     await Gestures.waitAndTap(this.connectAccountsButton, {
       elemDescription: 'Connect accounts button',
     });
+    // The account-list bottom sheet closes after connecting. Wait for the
+    // connect button to disappear so subsequent taps on the Connected Accounts
+    // Modal don't fire while the sheet is still animating out.
+    await Utilities.waitForElementToDisappear(
+      this.connectAccountsButton,
+      5_000,
+    );
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
