@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
@@ -20,6 +20,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockRetry = jest.fn();
+const mockAcceptDisclaimers = jest.fn();
 
 const loadedDisclaimer = {
   id: 'd-1',
@@ -34,9 +35,12 @@ describe('GetPixKey', () => {
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [loadedDisclaimer],
       isLoading: false,
+      isAccepting: false,
       error: null,
+      acceptDisclaimers: mockAcceptDisclaimers,
       retry: mockRetry,
     });
+    mockAcceptDisclaimers.mockResolvedValue(true);
   });
 
   it('renders the title, benefits, and agree and continue button', () => {
@@ -62,21 +66,27 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
+  it('records vendor disclaimers before navigating to verify identity', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+
+    await waitFor(() => {
+      expect(mockAcceptDisclaimers).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+    });
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: null,
       isLoading: true,
+      isAccepting: false,
       error: null,
+      acceptDisclaimers: mockAcceptDisclaimers,
       retry: mockRetry,
     });
 
@@ -92,9 +102,11 @@ describe('GetPixKey', () => {
 
   it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: null,
       isLoading: false,
+      isAccepting: false,
       error: null,
+      acceptDisclaimers: mockAcceptDisclaimers,
       retry: mockRetry,
     });
 
@@ -124,9 +136,11 @@ describe('GetPixKey', () => {
 
   it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: null,
       isLoading: false,
+      isAccepting: false,
       error: 'Request timed out',
+      acceptDisclaimers: mockAcceptDisclaimers,
       retry: mockRetry,
     });
 

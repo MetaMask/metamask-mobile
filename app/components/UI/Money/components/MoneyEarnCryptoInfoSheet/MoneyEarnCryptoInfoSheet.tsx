@@ -10,6 +10,7 @@ import {
   ButtonVariant,
   FontWeight,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -99,6 +100,7 @@ const MoneyEarnCryptoInfoSheet = () => {
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={MoneyEarnCryptoInfoSheetTestIds.BODY}
         >
           {strings('money.earn_crypto_info_sheet.body', {

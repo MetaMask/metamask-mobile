@@ -1,84 +1,92 @@
 #!/usr/bin/env bash
-# Install ffmpeg for Appium XCUITest screen recording in CI.
-# Uses a cached Homebrew bottle dir + Cellar snapshot under ~/.cache/mms-ffmpeg
-# so subsequent runs skip downloading and compiling ffmpeg dependencies.
+# Install a pinned static ffmpeg for Appium XCUITest screen recording.
+# Avoids Homebrew: brew install / brew update can hang indefinitely on CI.
+# Failure is non-fatal — iOS recording is already best-effort in the test runner.
 set -euo pipefail
 
 CACHE_ROOT="${HOME}/.cache/mms-ffmpeg"
-BREW_CACHE_DIR="${CACHE_ROOT}/brew"
-CELLAR_CACHE_DIR="${CACHE_ROOT}/cellar"
+BIN_DIR="${CACHE_ROOT}/bin"
+BIN_PATH="${BIN_DIR}/ffmpeg"
+FFMPEG_VERSION='b6.1.1'
+DOWNLOAD_TIMEOUT_SEC="${FFMPEG_DOWNLOAD_TIMEOUT_SEC:-45}"
 
-export HOMEBREW_NO_AUTO_UPDATE=1
-export HOMEBREW_NO_INSTALL_CLEANUP=1
-export HOMEBREW_CACHE="${BREW_CACHE_DIR}"
+skip_without_ffmpeg() {
+  echo "::warning::ffmpeg unavailable — XCUITest failure videos will be skipped. $1"
+  exit 0
+}
 
-mkdir -p "${BREW_CACHE_DIR}" "${CELLAR_CACHE_DIR}"
-
-if ! command -v brew >/dev/null 2>&1; then
-  echo "Homebrew is required to install ffmpeg" >&2
-  exit 1
-fi
-
-restore_cached_cellars() {
-  local formula cellar_path
-  shopt -s nullglob
-  for cellar_path in "${CELLAR_CACHE_DIR}"/*; do
-    formula="$(basename "${cellar_path}")"
-    [[ "${formula}" == "ffmpeg" ]] && continue
-    mkdir -p "$(brew --cellar "${formula}")"
-    rsync -a "${cellar_path}/" "$(brew --cellar "${formula}")/"
-    brew link "${formula}" >/dev/null 2>&1 || true
-  done
-  if [[ -d "${CELLAR_CACHE_DIR}/ffmpeg" ]]; then
-    mkdir -p "$(brew --cellar ffmpeg)"
-    rsync -a "${CELLAR_CACHE_DIR}/ffmpeg/" "$(brew --cellar ffmpeg)/"
-    brew link ffmpeg >/dev/null 2>&1 || true
+export_bin_dir() {
+  if [[ -n "${GITHUB_PATH:-}" ]]; then
+    echo "${BIN_DIR}" >> "${GITHUB_PATH}"
   fi
-  shopt -u nullglob
+  export PATH="${BIN_DIR}:${PATH}"
 }
 
-cache_installed_cellars() {
-  local formula
-  for formula in ffmpeg $(brew deps --formula ffmpeg); do
-    if [[ ! -d "$(brew --cellar "${formula}")" ]]; then
-      continue
-    fi
-    mkdir -p "${CELLAR_CACHE_DIR}/${formula}"
-    rsync -a "$(brew --cellar "${formula}")/" "${CELLAR_CACHE_DIR}/${formula}/"
-  done
+ffmpeg_ok() {
+  command -v ffmpeg >/dev/null 2>&1 && ffmpeg -version >/dev/null 2>&1
 }
 
-if command -v ffmpeg >/dev/null 2>&1; then
+if ffmpeg_ok; then
   echo "ffmpeg already on PATH: $(command -v ffmpeg)"
   ffmpeg -version | head -1
   exit 0
 fi
 
-restore_cached_cellars
+mkdir -p "${BIN_DIR}"
 
-if command -v ffmpeg >/dev/null 2>&1; then
-  echo "ffmpeg restored from Cellar cache: $(command -v ffmpeg)"
-  ffmpeg -version | head -1
+if [[ -x "${BIN_PATH}" ]] && "${BIN_PATH}" -version >/dev/null 2>&1; then
+  echo "ffmpeg restored from cache: ${BIN_PATH}"
+  "${BIN_PATH}" -version | head -1
+  export_bin_dir
   exit 0
 fi
 
-echo "Installing ffmpeg via Homebrew (bottles cached under ${BREW_CACHE_DIR})..."
-if ! brew install ffmpeg; then
-  # A Homebrew older than the bottles it downloads cannot read their metadata and
-  # crashes (Utils::Bottles.load_tab NoMethodError) — brew's own error text says to
-  # run `brew update` and retry. Only reached when the plain install fails, so
-  # runners with a current brew never pay the update cost.
-  echo "brew install failed — updating Homebrew once and retrying..." >&2
-  brew update --quiet
-  brew install ffmpeg
+arch="$(uname -m)"
+case "${arch}" in
+  arm64)
+    asset='ffmpeg-darwin-arm64.gz'
+    sha256='8923876afa8db5585022d7860ec7e589af192f441c56793971276d450ed3bbfa'
+    ;;
+  x86_64)
+    asset='ffmpeg-darwin-x64.gz'
+    sha256='929b375c1182d956c51f7ac25e0b2b0411fb01f6f407aa15c9758efeb4242106'
+    ;;
+  *)
+    skip_without_ffmpeg "unsupported arch ${arch}"
+    ;;
+esac
+
+url="https://github.com/eugeneware/ffmpeg-static/releases/download/${FFMPEG_VERSION}/${asset}"
+archive="${CACHE_ROOT}/${asset}"
+
+echo "Downloading static ffmpeg ${FFMPEG_VERSION} (${asset})..."
+if ! curl --fail --location --silent --show-error \
+  --max-time "${DOWNLOAD_TIMEOUT_SEC}" \
+  --retry 2 \
+  --retry-delay 2 \
+  --output "${archive}" \
+  "${url}"; then
+  skip_without_ffmpeg "download failed or timed out after ${DOWNLOAD_TIMEOUT_SEC}s"
 fi
 
-if ! command -v ffmpeg >/dev/null 2>&1; then
-  echo "ffmpeg install finished but binary is not on PATH" >&2
-  exit 1
+actual="$(shasum -a 256 "${archive}" | awk '{print $1}')"
+if [[ "${actual}" != "${sha256}" ]]; then
+  rm -f "${archive}"
+  skip_without_ffmpeg "checksum mismatch (got ${actual})"
 fi
 
-cache_installed_cellars
+if ! gzip -dc "${archive}" > "${BIN_PATH}"; then
+  rm -f "${archive}" "${BIN_PATH}"
+  skip_without_ffmpeg "failed to decompress ffmpeg"
+fi
+chmod +x "${BIN_PATH}"
+rm -f "${archive}"
 
-echo "ffmpeg installed: $(command -v ffmpeg)"
-ffmpeg -version | head -1
+if ! "${BIN_PATH}" -version >/dev/null 2>&1; then
+  rm -f "${BIN_PATH}"
+  skip_without_ffmpeg "downloaded binary failed ffmpeg -version"
+fi
+
+echo "ffmpeg installed: ${BIN_PATH}"
+"${BIN_PATH}" -version | head -1
+export_bin_dir

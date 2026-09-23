@@ -231,8 +231,8 @@ interface PredictFeed {
 
 ### Field semantics
 
-- `volume` is total settlement currency traded for that Event or Market across all users.
-- `volume24h` is settlement currency traded during the trailing 24-hour window at the backend observation time.
+- `volume` is the total number of contracts (shares) traded for that Event or Market across all users. It is the backend's `shareVolume`, which Kalshi sources from `volume_fp`; streamed quotes report the same unit. Settlement-currency (dollar) volume is a separate backend field that this contract does not yet expose.
+- `volume24h` is the number of contracts traded during the trailing 24-hour window at the backend observation time.
 - Event and Market Volume are independent backend projections. Mobile must not sum Market Volume to invent Event Volume.
 - `rules` contains authoritative resolution criteria. Event rules apply to the Event, while Market rules refine one Market. Rules are not generated from descriptive copy.
 - If Event and Market rules are identical, the UI presents the content once. Missing rules are omitted.
@@ -432,11 +432,31 @@ GET /v1/venues/{venueId}/status
 GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}
 ```
 
-Supported ranges are `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response is Market-qualified and contains `venueId`, `marketId`, `range`, `observedAt`, and ordered `{ timestamp, yesPrice, noPrice }` points. `yesPrice` is the last traded Yes probability for the period, falling back to the previous trade when a period has no trade. For a binary Market, `noPrice` is the exact complementary representation of the same trade (`1 - yesPrice`), derived by the backend with fixed-point arithmetic. `LIVE` remains an authoritative REST snapshot through `observedAt`; continuous updates and client-generated points are not part of this route.
+Supported ranges are `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response is Market-qualified and contains `venueId`, `marketId`, `range`, `observedAt`, and ordered `{ timestamp, yesPrice, noPrice }` points. `yesPrice` is the last traded Yes probability for the period, falling back to the previous trade when a period has no trade. For a binary Market, `noPrice` is the exact complementary representation of the same trade (`1 - yesPrice`), derived by the backend with fixed-point arithmetic. Every range, including `LIVE`, is an authoritative REST snapshot through `observedAt`; continuous updates and client-generated points are not part of this route. Mobile extends the `LIVE` series on screen with streamed quote points (see [Live data stream](#live-data-stream)); those points come from the stream, not from this route.
 
 ### Refresh Game snapshots
 
-No Game-specific endpoint is required initially. Feed and immutable Event reads return the complete embedded Game snapshot. REST clients refresh the existing Feed or Event query according to the product's snapshot policy; a later live-data slice may patch the same canonical Game shape while REST remains the recovery path.
+No Game-specific endpoint is required initially. Feed and immutable Event reads return the complete embedded Game snapshot. REST clients refresh the existing Feed or Event query according to the product's snapshot policy. The live data stream patches the same canonical Game shape while REST remains the recovery path.
+
+### Live data stream
+
+```text
+WS /v1/stream/live-data
+```
+
+One authenticated WebSocket per client, on the REST base URL. Mobile subscribes per Venue to the `game` topic by Event id and the `market` topic by Market id. The server sends a snapshot on first subscription and then deltas. Frame payloads reuse the canonical field names above; nothing venue-native crosses the wire.
+
+- A **Game** frame carries `venueId`, `eventId`, `type`, `observedAt`, and any of `status`, `score`, `period`, `clock`. Omitted fields are unchanged. `status` is validated as a plain string and narrowed to `PredictGameStatus` at merge time so a new server status cannot reject the frame.
+- A **Quote** frame carries `venueId`, `marketId`, exactly two `outcomes` (`id`, `side`, optional `bidPrice`/`askPrice`), optional `lastPrice`, optional `volume`, and `updatedAt`. A quote is a full snapshot of the Market's prices: an omitted side means no current quote, matching REST's "missing means no quote, not zero".
+
+Field semantics added by the stream:
+
+- `PredictMarket.lastPrice` is the last traded Yes price as of the quote's `updatedAt`. It is stream-only; the REST read model does not carry it, and it is absent until the Market has traded.
+- `PredictOutcome.bidPrice` and `askPrice` on a live-patched Market are the streamed values, replacing REST's initial snapshot by Outcome id.
+- `PredictMarket.volume` on a live-patched Market is the streamed value when present, in the same contract-count unit as REST.
+- `PredictMarket.updatedAt` on a live-patched Market is the quote's observation time. On a REST-only Market it remains the Venue's market-metadata update time; see the type's JSDoc.
+
+The stream is a patch layer over the REST read model. Mobile never mutates the query cache from a frame, never invents points, and falls back to the REST value whenever a frame is older than what REST already shows. Wire-level detail, limits, and error codes are owned by the Predict API's `LIVE_DATA_STREAM*.md` documents; mobile validates frames in `contracts/v1/liveData.ts`.
 
 ## Backend normalization responsibilities
 
@@ -556,5 +576,5 @@ Until that implementation lands, code and tests remain the executable contract.
 - multi-Venue aggregated Feeds;
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;
-- continuous live updates and WebSockets;
+- live-data topics beyond Game state and Market quotes (order-book depth, trades, account-scoped streams);
 - play-by-play, possession, down and distance, per-period scores, player entities and statistics, Games with more than two competitors, independently cached Team resources, and account-scoped data.

@@ -10,6 +10,7 @@ import KeypadComponent from '../../Base/Keypad';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyEditAmountRow from './components/QuickBuyEditAmountRow';
 import { useQuickBuyEditAmountsForm } from './hooks/useQuickBuyEditAmountsForm';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 const QuickBuyEditQuickAmountsScreen: React.FC = () => {
@@ -114,7 +115,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
           isFullWidth
           isDisabled={!isValid}
           onPress={handleSave}
-          testID="quick-buy-edit-amounts-confirm"
+          testID={QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_CONFIRM}
         >
           {strings('social_leaderboard.quick_buy.edit_quick_amounts_confirm')}
         </Button>

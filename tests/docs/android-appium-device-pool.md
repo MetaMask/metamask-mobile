@@ -26,13 +26,13 @@ fixed so adb serials and Appium auxiliary ports never overlap:
 
 - Worker 0: `-port 5554`, `emulator-5554`, `systemPort=8200`,
   `chromedriverPort=9100`, `mjpegServerPort=7810`, Chrome CDP `9222`,
-  WebView CDP `9223`
+  WebView CDP `9223`, adb server `5037`
 - Worker 1: `-port 5556`, `emulator-5556`, `systemPort=8201`,
   `chromedriverPort=9101`, `mjpegServerPort=7811`, Chrome CDP `9232`,
-  WebView CDP `9233`
+  WebView CDP `9233`, adb server `5038`
 - Worker 2: `-port 5558`, `emulator-5558`, `systemPort=8202`,
   `chromedriverPort=9102`, `mjpegServerPort=7812`, Chrome CDP `9242`,
-  WebView CDP `9243`
+  WebView CDP `9243`, adb server `5039`
 
 Local test-dapp servers keep the **device** URL (`localhost:8093` and similar)
 and listen on a worker-offset **host** port (`8093` / `8193` / `8293`). `adb reverse`
@@ -108,12 +108,38 @@ device fails only its assigned Playwright worker; the provider does not kill
 or restart the sibling emulator. Appium retries use `parallelIndex`, so a
 replacement worker keeps the same serial and ports.
 
-Workers share one host `adb` server. `withFixtures` therefore skips
-`adb reverse --remove` when `ANDROID_DEVICE_POOL_SIZE >= 2`. Removing
-reverses from one worker can protocol-fault the daemon and restart it
-(`daemon not running; starting now`), which takes UiAutomator2 down on
-every emulator in the job. New tests overwrite the mappings they need
-via `adb reverse tcp:<fallback> tcp:<actual>`.
+## Per-worker adb servers
+
+Each worker gets its own host `adb` server (`5037` + worker index), started and
+verified during global setup. A single shared server was a job-wide single point
+of failure: uncoordinated adb traffic from the framework, Appium, and screen
+recording could protocol-fault the daemon, and the restart wiped every `adb
+forward` mapping, so one worker's fault surfaced as `instrumentation process is
+not running` on all emulators.
+
+Two mechanisms carry the port:
+
+- `applyAndroidDevicePoolToWorker` exports `ANDROID_ADB_SERVER_PORT`. `adb`
+  reads it natively, so every adb client the worker spawns inherits it and no
+  call site needs a `-P` flag.
+- `resolveWorkerAdbServerPort` covers the window before that export exists.
+  The `deviceProvider` fixture is lazy, so a `beforeAll` doing `adb reverse`
+  runs first; without the fallback it would carry the right `-s` serial to the
+  default 5037 server and put the worker straight back on worker 0's daemon.
+  `adbDeviceArgs()` therefore emits `-P <port> -s <serial>`, matching the
+  `TEST_PARALLEL_INDEX` fallback the serial and host ports already use.
+- `EmulatorConfigBuilder` sets `appium:adbPort`. Appium is a separate process
+  serving all sessions, so only a per-session capability can point its internal
+  adb calls at the right server.
+
+Every adb server still sees every emulator — adb always scans upward from port
+5555, so the range cannot be partitioned. That is fine: workers select their
+device with `-s`, and a fault only drops the transports and forwards owned by
+that one server.
+
+`withFixtures` still skips `adb reverse --remove` when
+`ANDROID_DEVICE_POOL_SIZE >= 2`. New tests overwrite the mappings they need via
+`adb reverse tcp:<fallback> tcp:<actual>`.
 
 ## Measuring impact
 

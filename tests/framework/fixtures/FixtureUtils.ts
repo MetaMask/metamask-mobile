@@ -21,7 +21,7 @@ import {
 import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
-import { resolveWorkerAndroidSerial } from '../e2eWorkerPorts.ts';
+import { adbDeviceArgs } from '../e2eWorkerPorts.ts';
 import {
   isAdbTransportFault,
   withAdbHostLock,
@@ -91,8 +91,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     return;
   }
 
-  const serial = resolveWorkerAndroidSerial();
-  const deviceFlag = serial ? `-s ${serial}` : '';
+  const deviceFlag = adbDeviceArgs().join(' ');
 
   // Clean up only the specific fallback ports we use
   // This prevents conflicts with Detox's own port management
@@ -207,8 +206,7 @@ async function setupAndroidPortForwarding(
     fallbackPort += instanceIndex;
   }
 
-  const serial = resolveWorkerAndroidSerial();
-  const deviceFlag = serial ? `-s ${serial}` : '';
+  const deviceFlag = adbDeviceArgs().join(' ');
 
   const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
 

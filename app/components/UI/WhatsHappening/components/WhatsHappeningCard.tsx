@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, memo } from 'react';
+import React, { useCallback, useEffect, useMemo, memo } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -16,8 +16,10 @@ import type { WhatsHappeningItem } from '../types';
 import { getImpactLabel, getImpactTagSeverity } from '../util/impact';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { endTrace, TraceName } from '../../../../util/trace';
 import { useViewportTracking } from '../../MarketInsights/hooks/useViewportTracking';
 import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
+import { getWhatsHappeningTraceEndData } from '../utils/whatsHappeningPerformance';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 import {
   WHATS_HAPPENING_CARD_MIN_HEIGHT,
@@ -30,6 +32,8 @@ interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
   cardIndex: number;
   source: WhatsHappeningSourceValue;
+  /** Carousel time-to-content id owned by the feed observer. */
+  carouselTraceId?: string;
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
@@ -37,6 +41,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
   cardIndex,
   source,
+  carouselTraceId,
   onPress,
 }) => {
   const tw = useTailwind();
@@ -49,6 +54,18 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
 
   const handlePress = () => onPress?.(item);
 
+  useEffect(() => {
+    if (cardIndex !== 0 || !carouselTraceId) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.WhatsHappeningCarouselLoad,
+      id: carouselTraceId,
+      data: getWhatsHappeningTraceEndData('success'),
+    });
+  }, [cardIndex, carouselTraceId]);
+
   const handleVisible = useCallback(() => {
     trackEvent(
       createEventBuilder(
@@ -59,8 +76,11 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
     );
   }, [trackEvent, createEventBuilder, item, cardIndex, source]);
 
-  const { ref: cardRef, onLayout: onVisibilityLayout } =
-    useViewportTracking(handleVisible);
+  const { ref: cardRef, onLayout: onVisibilityLayout } = useViewportTracking(
+    handleVisible,
+    undefined,
+    { source: 'unknown', stage: 'entry_card', emitTrace: false },
+  );
 
   return (
     <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>

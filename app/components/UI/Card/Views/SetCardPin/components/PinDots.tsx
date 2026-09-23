@@ -57,24 +57,16 @@ const PinDotSlot: React.FC<{
   // Delete/clear animation only. Digit ↔ fill is derived from props (instant).
   const [fading, setFading] = useState<FadeKind | null>(null);
   const [fadeDigit, setFadeDigit] = useState<string | null>(null);
-  const fillOpacity = useRef(new Animated.Value(1)).current;
-  const wasOccupiedRef = useRef(occupied);
-  const lastDigitRef = useRef<string | null>(revealedDigit);
-  const lastKindRef = useRef<FadeKind | null>(
+  // useState lazy init so React Compiler can optimize (useRef(...).current
+  // during render is a Rules-of-React violation).
+  const [fillOpacity] = useState(() => new Animated.Value(1));
+  const [wasOccupied, setWasOccupied] = useState(occupied);
+  const [lastDigit, setLastDigit] = useState<string | null>(revealedDigit);
+  const [lastKind, setLastKind] = useState<FadeKind | null>(
     revealedDigit != null ? 'digit' : filled ? 'fill' : null,
   );
-  const lastIsErrorRef = useRef(isError);
+  const [lastIsError, setLastIsError] = useState(isError);
   const fadeAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
-
-  if (occupied) {
-    lastIsErrorRef.current = isError;
-  }
-  if (revealedDigit != null) {
-    lastDigitRef.current = revealedDigit;
-    lastKindRef.current = 'digit';
-  } else if (filled) {
-    lastKindRef.current = 'fill';
-  }
 
   useLayoutEffect(() => {
     if (occupied) {
@@ -83,19 +75,26 @@ const PinDotSlot: React.FC<{
       setFading(null);
       setFadeDigit(null);
       fillOpacity.setValue(1);
-      wasOccupiedRef.current = true;
+      setWasOccupied(true);
+      setLastIsError(isError);
+      if (revealedDigit != null) {
+        setLastDigit(revealedDigit);
+        setLastKind('digit');
+      } else if (filled) {
+        setLastKind('fill');
+      }
       return;
     }
 
-    if (!wasOccupiedRef.current || fading != null) {
+    if (!wasOccupied || fading != null) {
       return;
     }
 
     // Occupied → empty (single delete, long-press clear, or error reset):
     // keep fill/digit over the empty ring and fade only that overlay.
-    wasOccupiedRef.current = false;
-    const kind = lastKindRef.current ?? 'fill';
-    setFadeDigit(kind === 'digit' ? lastDigitRef.current : null);
+    setWasOccupied(false);
+    const kind = lastKind ?? 'fill';
+    setFadeDigit(kind === 'digit' ? lastDigit : null);
     setFading(kind);
     fillOpacity.setValue(1);
 
@@ -114,16 +113,24 @@ const PinDotSlot: React.FC<{
       fillOpacity.setValue(1);
       fadeAnimationRef.current = null;
     });
-  }, [occupied, fading, fillOpacity]);
+  }, [
+    occupied,
+    fading,
+    fillOpacity,
+    wasOccupied,
+    lastKind,
+    lastDigit,
+    revealedDigit,
+    filled,
+    isError,
+  ]);
 
-  // First render after a clear still has wasOccupiedRef=true before layout
+  // First render after a clear still has wasOccupied=true before layout
   // effect runs — treat that as an in-progress fade so we never paint empty-only.
   const pendingFadeKind: FadeKind | null =
-    !occupied && wasOccupiedRef.current && fading == null
-      ? (lastKindRef.current ?? 'fill')
-      : null;
+    !occupied && wasOccupied && fading == null ? (lastKind ?? 'fill') : null;
   const activeFade = fading ?? pendingFadeKind;
-  const paintError = activeFade != null ? lastIsErrorRef.current : isError;
+  const paintError = activeFade != null ? lastIsError : isError;
 
   const colorClass = paintError ? 'bg-error-default' : 'bg-icon-default';
   const borderClass = paintError
@@ -161,7 +168,7 @@ const PinDotSlot: React.FC<{
       {showDigit ? (
         <Animated.View style={digitOverlayStyle}>
           <Text variant={TextVariant.HeadingMd} twClassName={digitColorClass}>
-            {revealedDigit ?? fadeDigit ?? lastDigitRef.current}
+            {revealedDigit ?? fadeDigit ?? lastDigit}
           </Text>
         </Animated.View>
       ) : null}

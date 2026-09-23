@@ -14,6 +14,11 @@ import {
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
+import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
+import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import { CardFlow } from '../../UI/Card/util/metrics';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -38,8 +43,9 @@ jest.mock('../../../util/theme', () => {
 });
 
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
 const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
+  addProperties: mockAddProperties,
   build: jest.fn(() => ({ name: 'test-event' })),
 }));
 
@@ -95,6 +101,25 @@ jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => false),
 }));
 
+jest.mock('../../UI/Card/hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
+}));
+
+jest.mock('../../UI/Card/hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'soft',
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+    },
+    refresh: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../selectors/cardController', () => ({
+  selectCardActiveProviderId: jest.fn(),
+}));
+
 jest.mock('../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: jest.fn(),
   getMetamaskNotificationsUnreadCount: jest.fn(),
@@ -112,11 +137,28 @@ const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
+
+const mockUseCardUkMigrationUpdateBadge = jest.mocked(
+  useCardUkMigrationUpdateBadge,
+);
+const mockUseCardUkMigrationState = jest.mocked(useCardUkMigrationState);
+
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
+  let mockActiveProviderId: ReturnType<typeof selectCardActiveProviderId>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
+    mockActiveProviderId = 'baanx';
+    mockUseCardUkMigrationState.mockReturnValue({
+      state: {
+        phase: 'soft',
+        isActive: true,
+        deadline: new Date('2026-09-30T23:59:59.999Z'),
+      },
+      refresh: jest.fn(),
+    });
     // Default to the beta branch so pre-existing tests that don't care about
     // support consent keep their prior (beta) behavior; consent tests below
     // override this to '' to exercise the non-beta branch.
@@ -126,6 +168,10 @@ describe('AccountsMenu', () => {
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectCardActiveProviderId) {
+        return mockActiveProviderId;
+      }
+
       const mockState = {
         engine: {
           backgroundState: {
@@ -173,15 +219,54 @@ describe('AccountsMenu', () => {
 
   describe('MetaMask Card Button', () => {
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
       const { getByTestId } = render(<AccountsMenu />);
       const cardButton = getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD);
 
       fireEvent.press(cardButton);
 
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        EVENT_NAME.CARD_HOME_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        update_label_visible: false,
+      });
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('CardScreens');
+    });
+
+    it('includes migration props when Update badge is visible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValue('warning');
+
+      const { getByTestId } = render(<AccountsMenu />);
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD));
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        update_label_visible: true,
+        flow: CardFlow.MIGRATION,
+        migration_phase: 'grace_window',
+      });
+    });
+
+    it('shows Update badge when user is UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce('warning');
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides Update badge when user is not UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce(null);
+
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeNull();
     });
   });
 

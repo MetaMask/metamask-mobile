@@ -36,6 +36,7 @@ import {
 } from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SPOT_PRICES_SUPPORT_INFO,
   TEST_ANALYTICS_ID,
 } from './constants.ts';
 import {
@@ -47,10 +48,10 @@ import { NetworkEnablementControllerState } from '@metamask/network-enablement-c
 import { RpcEndpointType } from '@metamask/network-controller';
 import { USDC_MAINNET } from '../../constants/musd-mainnet.ts';
 import {
+  ANVIL_LOCAL_ETH_HOLDING,
   toWeiHex,
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
-import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import type { CaipAssetType } from '@metamask/utils';
 import type {
@@ -300,6 +301,15 @@ class FixtureBuilder {
     };
 
     networkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Anvil / Localhost fixtures need a seeded native balance under
+    // assetsUnifyState; otherwise Confirm stays disabled with an empty pay
+    // balance. Not applied in withDefaultFixture() — that always registers
+    // 0x539 for RPC wiring and must not enable Anvil holdings globally.
+    if (providerConfig.chainId === '0x539') {
+      this.withAnvilLocalEthBalance();
+    }
+
     return this;
   }
 
@@ -1414,6 +1424,7 @@ class FixtureBuilder {
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     });
 
     // Enable basic functionality in settings (required for profile syncing)
@@ -1590,6 +1601,7 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     };
     return this;
   }
@@ -1977,6 +1989,25 @@ class FixtureBuilder {
   }
 
   /**
+   * Seeds Anvil / Localhost (`0x539`) native ETH into legacy + unified
+   * AssetsController state and enables the chain. Prefer calling
+   * `withNetworkController({ chainId: '0x539', ... })`, which applies this
+   * automatically. Use this explicitly with `withDefaultFixture()` when the
+   * local node is selected without reconfiguring NetworkController.
+   *
+   * @param amount - Whole ETH amount to seed (default `100`).
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withAnvilLocalEthBalance(amount: string = ANVIL_LOCAL_ETH_HOLDING.amount) {
+    return this.withTokenHoldings([
+      {
+        ...ANVIL_LOCAL_ETH_HOLDING,
+        amount,
+      },
+    ]);
+  }
+
+  /**
    * Seeds native and ERC20 balances (plus fiat rates and network enablement) so
    * each holding appears in both the wallet home Tokens list and the MM Pay
    * pay-token picker. Spread a PREDEFINED_TOKENS entry and supply only `amount`.
@@ -2079,8 +2110,13 @@ class FixtureBuilder {
   private applyUnifiedAssetHolding(holding: TokenHolding, account: string) {
     const engine = this.fixture.state.engine.backgroundState;
     const accountsController = engine.AccountsController;
+    const internalAccounts = accountsController?.internalAccounts?.accounts;
     const accountId =
       accountsController?.accountIdByAddress?.[account.toLowerCase()] ??
+      Object.values(internalAccounts ?? {}).find(
+        (internalAccount) =>
+          internalAccount?.address?.toLowerCase() === account.toLowerCase(),
+      )?.id ??
       accountsController?.internalAccounts?.selectedAccount;
     if (!accountId) {
       return;

@@ -607,13 +607,17 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         flexDirection={BoxFlexDirection.Column}
         twClassName="border-t border-muted"
       >
-        <PredictFeeSummary
-          disabled={false}
-          total={total}
-          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
-          rewardsLoadingOverride={isCalculating && isUserInputChange}
-          handleFeesInfoPress={handleFeesInfoPress}
-        />
+        {/* Padding lives here rather than on the parent so the top border
+            stays full-bleed while the rows line up with the action button. */}
+        <Box twClassName="px-4">
+          <PredictFeeSummary
+            disabled={false}
+            total={total}
+            rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+            rewardsLoadingOverride={isCalculating && isUserInputChange}
+            handleFeesInfoPress={handleFeesInfoPress}
+          />
+        </Box>
         <Box
           justifyContent={BoxJustifyContent.Center}
           twClassName="gap-2 px-4 pb-0"
@@ -632,6 +636,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
+              style={tw.style('text-center')}
             >
               {strings('predict.consent_sheet.disclaimer')}
             </Text>
@@ -652,7 +657,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
-    ? { twClassName: 'bg-background-default' }
+    ? {}
     : { style: tw.style('flex-1 bg-background-default') };
 
   return (

@@ -44,7 +44,10 @@ describe('PredictAnalytics', () => {
     jest.clearAllMocks();
 
     context = {
-      getEligibility: jest.fn(() => ({ eligible: false, country: 'US' })),
+      getEligibility: jest.fn(() => ({
+        status: 'ineligible' as const,
+        country: 'US',
+      })),
     };
     predictAnalytics = new PredictAnalytics(context);
   });

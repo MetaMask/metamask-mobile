@@ -4,12 +4,18 @@ const ANDROID_EMULATOR_SERIAL_PATTERN = /^emulator-\d+$/;
 const UIAUTOMATOR2_SYSTEM_PORT_BASE = 8200;
 const CHROMEDRIVER_PORT_BASE = 9100;
 const MJPEG_SERVER_PORT_BASE = 7810;
+/**
+ * Worker 0 keeps adb's default 5037 so global setup, local runs, and any
+ * tooling that shells out to a bare `adb` all target the same server.
+ */
+const ADB_SERVER_PORT_BASE = 5037;
 
 export interface AndroidWorkerDevice {
   serial: string;
   systemPort: number;
   chromedriverPort: number;
   mjpegServerPort: number;
+  adbServerPort: number;
 }
 
 /**
@@ -139,7 +145,19 @@ export function deviceForWorker(
     systemPort: UIAUTOMATOR2_SYSTEM_PORT_BASE + workerIndex,
     chromedriverPort: CHROMEDRIVER_PORT_BASE + workerIndex,
     mjpegServerPort: MJPEG_SERVER_PORT_BASE + workerIndex,
+    adbServerPort: ADB_SERVER_PORT_BASE + workerIndex,
   };
+}
+
+/**
+ * Host adb server ports backing a pool, ordered by worker index.
+ * Empty outside pool mode, where the default server is the only one.
+ */
+export function androidAdbServerPorts(
+  env: Record<string, string | undefined> = process.env,
+): number[] {
+  const serials = androidDevicePoolSerials(env);
+  return serials.map((_serial, index) => ADB_SERVER_PORT_BASE + index);
 }
 
 /**
@@ -164,5 +182,9 @@ export function applyAndroidDevicePoolToWorker(
   env.ANDROID_UIAUTOMATOR2_SYSTEM_PORT = String(assignment.systemPort);
   env.ANDROID_CHROMEDRIVER_PORT = String(assignment.chromedriverPort);
   env.ANDROID_MJPEG_SERVER_PORT = String(assignment.mjpegServerPort);
+  // Every adb client this worker spawns inherits the port, so the ~60 call
+  // sites across the framework need no `-P` flag. Appium is a separate
+  // process and gets the same value via the `appium:adbPort` capability.
+  env.ANDROID_ADB_SERVER_PORT = String(assignment.adbServerPort);
   return assignment;
 }

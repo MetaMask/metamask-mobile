@@ -2,9 +2,11 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import {
   TransactionType,
   hasTransactionType,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
@@ -45,7 +47,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectAllConfiguredNonEvmChainIds } from '../../../selectors/multichainNetworkController';
-import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
+import {
+  selectLocalTransactions,
+  selectRelatedChainIdsByTransactionId,
+} from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import {
@@ -55,7 +60,6 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
@@ -64,10 +68,6 @@ import {
   useBridgeHistoryItemBySrcTxHash,
   findBridgeHistoryItemBySrcTxHash,
 } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import {
-  handleUnifiedSwapsTxHistoryItemClick,
-  isBridgeTxHistoryItemBridge,
-} from '../../UI/Bridge/utils/transaction-history';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
@@ -79,7 +79,6 @@ import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ActivityEmptyState from '../ActivityScreen/components/ActivityEmptyState';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -96,36 +95,28 @@ import {
   preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
-  type TransactionGroup,
 } from '../../../util/activity-adapters';
+import { getLastEvmItemIndex } from '../../../util/activity-adapters/activity-list-helpers';
 import {
-  isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
   mapNonEvmTransactions,
 } from './helpers/transformations';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
+import { useRampsOrders } from '../../UI/Ramp/hooks/useRampsOrders';
+import { getOrders } from '../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../reducers/fiatOrders/types';
 import {
   navigateToRampOrderTarget,
   resolveRampOrderTarget,
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
-import {
-  INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-  PerpsActivitySource,
-  type PerpsActivitySourceState,
-} from './hooks/PerpsActivitySource';
-import {
-  INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
-  PredictActivitySource,
-  type PredictActivitySourceState,
-} from './hooks/PredictActivitySource';
+import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
+import { usePredictActivityItems } from './hooks/usePredictActivityItems';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToItem';
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
@@ -144,13 +135,6 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<ActivityFlashListProps>,
 ) as unknown as React.ComponentType<ActivityFlashListProps>;
 
-const updateIncomingTransactions = () =>
-  (
-    Engine.context.TransactionController as unknown as {
-      updateIncomingTransactions: () => Promise<void>;
-    }
-  ).updateIncomingTransactions();
-
 const generateGroupedKey = (
   item: GroupedActivityListItem,
   index: number = 0,
@@ -162,13 +146,10 @@ const PERPS_WALLET_TX_TYPES = [
   TransactionType.perpsWithdraw,
 ];
 
-const isPerpsWalletTransactionGroup = (group: TransactionGroup): boolean =>
-  [group.primaryTransaction, group.initialTransaction].some(
-    (meta) =>
-      hasTransactionType(meta, PERPS_WALLET_TX_TYPES) ||
-      (meta?.originalType !== undefined &&
-        PERPS_WALLET_TX_TYPES.includes(meta.originalType)),
-  );
+const isPerpsWalletTransaction = (tx: TransactionMeta) =>
+  hasTransactionType(tx, PERPS_WALLET_TX_TYPES) ||
+  (tx.originalType !== undefined &&
+    PERPS_WALLET_TX_TYPES.includes(tx.originalType));
 
 const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
@@ -189,6 +170,8 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
+  /** Collapse each Perps order's fills into one row. Defaults to on. */
+  aggregateFills?: boolean;
   trackScreenViewed?: boolean;
   entryPoint?: ActivityScreenEntryPoint;
 }
@@ -207,6 +190,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter,
       networkFilter,
       subFilterKinds,
+      aggregateFills = true,
       trackScreenViewed = false,
       entryPoint,
     },
@@ -243,35 +227,46 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const localActivityItems = useLocalActivityItems();
     const rampActivityItems = useRampActivityItems();
     const { goToBuy } = useRampNavigation();
+    const legacyFiatOrders = useSelector(getOrders);
+    const { orders: v2RampsOrders } = useRampsOrders();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
-      INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-    );
-    const [hasPerpsSourceReported, setHasPerpsSourceReported] = useState(false);
+    const perps = usePerpsActivityItems({
+      enabled:
+        isPerpsEnabled &&
+        (typeFilter === ActivityTypeFilter.Perps ||
+          typeFilter === ActivityTypeFilter.All),
+      aggregateFills,
+    });
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const [predictSource, setPredictSource] =
-      useState<PredictActivitySourceState>(
-        INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
-      );
-    const [hasPredictSourceReported, setHasPredictSourceReported] =
-      useState(false);
-
-    const handlePerpsSourceChange = useCallback(
-      (state: PerpsActivitySourceState) => {
-        setHasPerpsSourceReported(true);
-        setPerpsSource(state);
-      },
-      [],
-    );
-
-    const handlePredictSourceChange = useCallback(
-      (state: PredictActivitySourceState) => {
-        setHasPredictSourceReported(true);
-        setPredictSource(state);
-      },
-      [],
-    );
+    const predictFilterActive =
+      typeFilter === ActivityTypeFilter.Predictions ||
+      typeFilter === ActivityTypeFilter.All;
+    const predictActivatedRef = useRef(false);
+    if (isPredictEnabled && predictFilterActive) {
+      predictActivatedRef.current = true;
+    }
+    const shouldMountPredictSource =
+      isPredictEnabled && predictActivatedRef.current;
+    const predictSource = usePredictActivityItems({
+      enabled: shouldMountPredictSource,
+    });
+    const localTransactions = useSelector(selectLocalTransactions);
+    const localTransactionByLookupKey = useMemo(() => {
+      const byKey = new Map<string, TransactionMeta>();
+      for (const tx of localTransactions) {
+        if (!('id' in tx) || !('txParams' in tx) || !tx.txParams) {
+          continue;
+        }
+        if (tx.id) {
+          byKey.set(String(tx.id).toLowerCase(), tx);
+        }
+        if (tx.hash) {
+          byKey.set(tx.hash.toLowerCase(), tx);
+        }
+      }
+      return byKey;
+    }, [localTransactions]);
 
     const nonEvmState = useSelector(
       selectNonEvmTransactionsForSelectedAccountGroup,
@@ -327,8 +322,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       selectRelatedChainIdsByTransactionId,
     );
 
-    const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-
     /** Drop confirmed EVM rows not on a configured chain (guards stale query pages / removed networks). */
     const allConfirmedForConfiguredChains = useMemo<ActivityListItem[]>(() => {
       const chains = configuredEVMChainIds ?? [];
@@ -338,7 +331,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // chainId is a CaipChainId like eip155:1 — extract hex part
         const hexChainId = item.chainId.split(':')[1];
         if (!hexChainId) return false;
-        const hexFormatted = `0x${parseInt(hexChainId, 10).toString(16)}`;
+        const hexFormatted = `0x${Number.parseInt(hexChainId, 10).toString(16)}`;
         return allowed.has(hexFormatted.toLowerCase());
       });
     }, [allConfirmedFiltered, configuredEVMChainIds]);
@@ -356,10 +349,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       confirmedEvmItems: ActivityListItem[];
       nonEvmItems: ActivityListItem[];
     }>(() => {
-      const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
       const configuredEvmSet = new Set(
         (configuredEVMChainIds ?? []).map((id) => id.toLowerCase()),
       );
+      const configuredNonEvmSet = new Set(configuredNonEVMChainIds);
 
       // Filter local items to configured EVM chains only, also deduplicate against confirmed
       const confirmedHashes = new Set(
@@ -379,24 +372,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         localActivityItems
           .filter(
             (item) =>
-              (item.type === 'predictionsAddFunds' ||
-                item.type === 'predictionsWithdrawFunds' ||
-                item.type === 'deposit' ||
-                item.type === 'smartAccountUpgrade') &&
-              item.raw?.type === 'localTransaction',
+              item.type === 'predictionsAddFunds' ||
+              item.type === 'predictionsWithdrawFunds' ||
+              item.type === 'deposit' ||
+              item.type === 'smartAccountUpgrade',
           )
-          .map((item) =>
-            item.raw?.type === 'localTransaction'
-              ? item.raw.data.primaryTransaction.hash?.toLowerCase()
-              : undefined,
-          )
+          .map((item) => item.hash?.toLowerCase())
           .filter(Boolean) as string[],
       );
 
       const localWinsHashes = new Set(localDomainKindHashes);
       for (const localItem of localActivityItems) {
-        if (localItem.raw?.type !== 'localTransaction') continue;
-        const hash = localItem.raw.data.primaryTransaction.hash?.toLowerCase();
+        const hash = localItem.hash?.toLowerCase();
         if (!hash) continue;
         const confirmed = confirmedItemByHash.get(hash);
         if (!confirmed) continue;
@@ -408,78 +395,52 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       // localActivityItems are already mapped from TransactionMeta via the adapter;
       // here we apply the same chain-filter and EVM-confirmed dedup that existed before.
       const filteredLocalItems = localActivityItems.filter((item) => {
-        const raw = item.raw;
-        if (raw?.type !== 'localTransaction') return true;
-        const tx = raw.data.primaryTransaction;
+        const lookupKey = item.hash?.toLowerCase();
+        const tx = lookupKey
+          ? localTransactionByLookupKey.get(lookupKey)
+          : undefined;
 
-        if (isPerpsEnabled && isPerpsWalletTransactionGroup(raw.data)) {
+        if (tx && isPerpsEnabled && isPerpsWalletTransaction(tx)) {
           return false;
         }
 
-        const txChainId = tx.chainId?.toLowerCase() ?? '';
-        const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
-          txChainId,
-        ];
+        const hexChainId = item.chainId.split(':')[1]
+          ? `0x${Number.parseInt(item.chainId.split(':')[1], 10).toString(16)}`
+          : '';
+        const txChainId = (tx?.chainId ?? hexChainId).toLowerCase();
+        const relatedChainIds = tx
+          ? (relatedChainIdsByTransactionId.get(tx.id) ?? [txChainId])
+          : [txChainId];
 
         if (!relatedChainIds.some((id) => configuredEvmSet.has(id))) {
           return false;
         }
 
-        // Dedup against confirmed by hash — bridge txns are exempt from nonce dedup
-        const hash = tx.hash?.toLowerCase();
-        // Local copies that out-categorize their confirmed copy win over it.
+        const hash = item.hash?.toLowerCase() ?? tx?.hash?.toLowerCase();
         const localWins = !!hash && localWinsHashes.has(hash);
         if (hash && confirmedHashes.has(hash) && !localWins) return false;
-
-        // Nonce dedup: skip local if a confirmed tx has the same nonce+from+chain
-        // (bridge txns exempt, as they may have same nonce as their approval)
-        const isBridgeTx = isBridgeHistoryForEvmTransaction(
-          tx,
-          bridgeHistoryValues,
-        );
-        if (!isBridgeTx && !localWins) {
-          const nonce = tx.txParams?.nonce;
-          const from = tx.txParams?.from?.toLowerCase();
-          if (nonce !== undefined && nonce !== null && from) {
-            const matchedByNonce = allConfirmedForConfiguredChains.some(
-              (confirmed) => {
-                const confirmedRaw = confirmed.raw;
-                if (confirmedRaw?.type !== 'apiEvmTransaction') return false;
-                const confirmedApiTx = confirmedRaw.data;
-                const hexChainId = confirmed.chainId.split(':')[1]
-                  ? `0x${parseInt(confirmed.chainId.split(':')[1], 10).toString(16)}`
-                  : '';
-                return (
-                  confirmedApiTx.nonce === parseInt(String(nonce), 16) &&
-                  hexChainId.toLowerCase() === txChainId &&
-                  confirmedApiTx.from?.toLowerCase() === from
-                );
-              },
-            );
-            if (matchedByNonce) return false;
-          }
-        }
 
         return true;
       });
 
       // Non-EVM: filter to configured chains, include bridge txns whose dest chain is configured
-      const filteredNonEvmTransactions = nonEvmTransactions
-        .filter((tx) => {
-          if (configuredNonEVMChainIds.includes(tx.chain)) return true;
-          const bridge = Object.values(bridgeHistory ?? {}).find(
-            (item) => item.status?.srcChain?.txHash === tx.id,
-          );
-          return (
-            bridge?.quote?.destChainId !== undefined &&
-            configuredEVMChainIds.includes(
-              numberToHex(bridge.quote.destChainId),
-            )
-          );
-        })
-        .filter(
-          (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
-        );
+      const seenNonEvmTransactionIds = new Set<string>();
+      const filteredNonEvmTransactions = nonEvmTransactions.filter((tx) => {
+        if (seenNonEvmTransactionIds.has(tx.id)) return false;
+
+        const bridge = getBridgeHistoryItemByHash(tx.id);
+        const shouldInclude =
+          configuredNonEvmSet.has(tx.chain) ||
+          (bridge?.quote?.destChainId !== undefined &&
+            configuredEvmSet.has(
+              numberToHex(bridge.quote.destChainId).toLowerCase(),
+            ));
+
+        if (shouldInclude) {
+          seenNonEvmTransactionIds.add(tx.id);
+        }
+        return shouldInclude;
+      });
 
       const filteredNonEvmForMalicious =
         filterMultichainTransactionsExcludingMaliciousTokenActivity(
@@ -487,13 +448,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           maliciousTokenKeys,
         );
 
+      const accountAddressById = new Map(
+        selectedAccountGroupInternalAccounts.map((account) => [
+          account.id,
+          account.address,
+        ]),
+      );
       const nonEvmItems = mapNonEvmTransactions(
         filteredNonEvmForMalicious,
         getBridgeHistoryItemByHash,
-        (transaction) =>
-          selectedAccountGroupInternalAccounts.find(
-            (account) => account.id === transaction.account,
-          )?.address,
+        (transaction) => accountAddressById.get(transaction.account),
       );
 
       // Drop confirmed copies whose local copy won above, so the winning local
@@ -517,12 +481,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       nonEvmTransactions,
       configuredEVMChainIds,
       configuredNonEVMChainIds,
-      bridgeHistory,
       getBridgeHistoryItemByHash,
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
       isPerpsEnabled,
       selectedAccountGroupInternalAccounts,
+      localTransactionByLookupKey,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {
@@ -532,7 +496,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         localItems,
         confirmedEvmItems,
         nonEvmItems,
-        isPerpsEnabled ? perpsSource.items : [],
+        isPerpsEnabled ? perps.items : [],
         isPredictEnabled ? predictSource.items : [],
         rampActivityItems,
       );
@@ -562,7 +526,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       subFilterKinds,
       networkFilter,
       isPerpsEnabled,
-      perpsSource.items,
+      perps.items,
       isPredictEnabled,
       predictSource.items,
       rampActivityItems,
@@ -716,30 +680,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.All ||
       typeFilter === ActivityTypeFilter.Predictions;
 
-    const perpsFilterActive =
-      typeFilter === ActivityTypeFilter.Perps ||
-      typeFilter === ActivityTypeFilter.All;
-    const predictFilterActive =
-      typeFilter === ActivityTypeFilter.Predictions ||
-      typeFilter === ActivityTypeFilter.All;
-
-    const perpsActivatedRef = useRef(false);
-    const predictActivatedRef = useRef(false);
-    if (isPerpsEnabled && perpsFilterActive) {
-      perpsActivatedRef.current = true;
-    }
-    if (isPredictEnabled && predictFilterActive) {
-      predictActivatedRef.current = true;
-    }
-    const shouldMountPerpsSource = isPerpsEnabled && perpsActivatedRef.current;
-    const shouldMountPredictSource =
-      isPredictEnabled && predictActivatedRef.current;
-
     const isFetchingMoreActivity =
       isFetchingNextPage ||
       (isPerpsEnabled &&
         perpsRelevantForFilter &&
-        Boolean(perpsSource.isFetchingMore)) ||
+        Boolean(perps.isFetchingMore)) ||
       (isPredictEnabled &&
         predictRelevantForFilter &&
         Boolean(predictSource.isFetchingMore));
@@ -814,17 +759,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       cancelUnsignedQRTransaction,
     } = useUnifiedTxActions();
 
-    const perpsRefetch = perpsSource.refetch;
+    const perpsRefetch = perps.refetch;
     const predictRefetch = predictSource.refetch;
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
       try {
-        await Promise.all([
-          updateIncomingTransactions(),
-          refetch(),
-          perpsRefetch?.(),
-          predictRefetch?.(),
-        ]);
+        await Promise.all([refetch(), perpsRefetch?.(), predictRefetch?.()]);
       } finally {
         setRefreshing(false);
       }
@@ -832,134 +772,73 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
-        const { raw } = item;
-        if (!raw) return;
-
         // Ramp rows own their redesign gate: flag ON → ActivityDetails /
         // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
         // shared redesign early-return so CREATED deposits always resume buy and
         // flag-OFF never accidentally hits ActivityDetails.
         // Sell/offramp always uses legacy OrderDetails — that screen owns the
         // Continue → Send Transaction flow which ActivityDetails does not.
-        if (raw.type === 'rampOrder') {
-          if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
-            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
-            return;
-          }
+        if (item.type === 'buy' || item.type === 'sell') {
+          const hash = item.hash?.toLowerCase();
+          const rawOrder:
+            | FiatOrder
+            | (typeof v2RampsOrders)[number]
+            | undefined =
+            (legacyFiatOrders as FiatOrder[]).find(
+              (o) =>
+                // Sell orders key their on-chain hash under sellTxHash, not txHash.
+                // Check every candidate because placeholders such as `0x` are
+                // truthy but are rejected by the activity mapper.
+                o.sellTxHash?.toLowerCase() === hash ||
+                o.txHash?.toLowerCase() === hash ||
+                o.id?.toLowerCase() === hash,
+            ) ??
+            v2RampsOrders.find(
+              (o) =>
+                o.txHash?.toLowerCase() === hash ||
+                o.id?.toLowerCase() === hash,
+            );
 
-          if (item.type === 'sell') {
-            navigateToRampOrderTarget({
-              data: raw.data,
-              navigation,
-              goToBuy,
-            });
-            return;
+          if (rawOrder) {
+            if (resolveRampOrderTarget(rawOrder) === 'deposit-resume-buy') {
+              goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
+              return;
+            }
+
+            if (item.type === 'sell') {
+              navigateToRampOrderTarget({
+                data: rawOrder,
+                navigation,
+                goToBuy,
+              });
+              return;
+            }
           }
 
           const detailsRoute = getActivityDetailsRoute(item);
           if (detailsRoute) {
             navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-            return;
           }
-          // Mappers always set hash (txHash || id); keep the pre-native
-          // fallback keyed by order id if a row somehow lacks hash.
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash ?? raw.data.id,
-          });
           return;
         }
 
         const detailsRoute = getActivityDetailsRoute(item);
         if (detailsRoute) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-          return;
-        }
-
-        // Flag off: non-EVM cross-chain bridges keep the bridge-status screen.
-        if (raw.type === 'keyringTransaction') {
-          const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
-            item.hash,
-          );
-          if (
-            keyringBridgeHistoryItem &&
-            isBridgeTxHistoryItemBridge(keyringBridgeHistoryItem)
-          ) {
-            handleUnifiedSwapsTxHistoryItemClick({
-              navigation,
-              multiChainTx: raw.data,
-              bridgeTxHistoryItem: keyringBridgeHistoryItem,
-            });
-            return;
-          }
-        }
-
-        // Perps rows route to the dedicated perps detail screens, mirroring the
-        // legacy perps transactions view (trade → position, funding → funding,
-        // order → order). Deposits/withdrawals have no detail screen.
-        if (raw.type === 'perpsTransaction') {
-          const perpsTx = raw.data;
-          if (perpsTx.type === 'trade') {
-            navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          } else if (perpsTx.type === 'funding') {
-            navigation.navigate(Routes.PERPS.FUNDING_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          } else if (perpsTx.type === 'order') {
-            navigation.navigate(Routes.PERPS.ORDER_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          }
-          return;
-        }
-
-        if (raw.type === 'predictActivity') {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.ACTIVITY_DETAIL,
-            params: { activity: predictActivityToItem(raw.data) },
-          });
-          return;
-        }
-
-        if (raw.type === 'localTransaction') {
-          const tx = raw.data.primaryTransaction;
-          if (tx.type === TransactionType.bridge) {
-            const bridgeTxHistoryItem =
-              bridgeHistory[tx.id] ??
-              // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
-              (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
-              Object.values(bridgeHistory).find(
-                (itemValue) =>
-                  (itemValue as unknown as { originalTransactionId?: string })
-                    .originalTransactionId === tx.id,
-              );
-
-            handleUnifiedSwapsTxHistoryItemClick({
-              navigation,
-              evmTxMeta: tx,
-              bridgeTxHistoryItem,
-            });
-          }
         }
       },
-      [bridgeHistory, getBridgeHistoryItemByHash, goToBuy, navigation],
+      [goToBuy, legacyFiatOrders, navigation, v2RampsOrders],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.
-    const lastConfirmedEvmIndex = useMemo(() => {
-      for (let index = groupedData.length - 1; index >= 0; index -= 1) {
-        const item = groupedData[index];
-        if (
-          item.type === 'item' &&
-          item.item.raw?.type === 'apiEvmTransaction'
-        ) {
-          return index;
-        }
-      }
-      return -1;
-    }, [groupedData]);
+    const lastConfirmedEvmIndex = useMemo(
+      () =>
+        getLastEvmItemIndex(
+          groupedData,
+          unifiedTransactionSource.confirmedEvmItems,
+        ),
+      [groupedData, unifiedTransactionSource.confirmedEvmItems],
+    );
 
     const lastConfirmedEvmKey =
       lastConfirmedEvmIndex >= 0
@@ -1002,10 +881,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (
           isPerpsEnabled &&
           perpsRelevantForFilter &&
-          perpsSource.hasMore &&
-          !perpsSource.isFetchingMore
+          perps.hasMore &&
+          !perps.isFetchingMore
         ) {
-          perpsSource.loadMore?.();
+          perps.loadMore();
         }
         if (
           isPredictEnabled &&
@@ -1025,7 +904,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         groupedData.length,
         isPerpsEnabled,
         perpsRelevantForFilter,
-        perpsSource,
+        perps,
         isPredictEnabled,
         predictRelevantForFilter,
         predictSource,
@@ -1036,17 +915,17 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const { bottom: bottomInset } = useSafeAreaInsets();
     const tabBarHeight = useContext(BottomTabBarHeightContext);
+    const floatingTabBarInset = useFloatingTabBarInset();
     const listContentStyle = useMemo(
-      () => ({ paddingBottom: tabBarHeight ? 0 : bottomInset }),
-      [tabBarHeight, bottomInset],
+      () => ({
+        paddingBottom: floatingTabBarInset || (tabBarHeight ? 0 : bottomInset),
+      }),
+      [floatingTabBarInset, tabBarHeight, bottomInset],
     );
 
-    const isPerpsLoading =
-      shouldMountPerpsSource &&
-      (!hasPerpsSourceReported || perpsSource.isLoading);
+    const isPerpsLoading = perps.isLoading;
     const isPredictLoading =
-      shouldMountPredictSource &&
-      (!hasPredictSourceReported || predictSource.isLoading);
+      shouldMountPredictSource && predictSource.isLoading;
     const isRelevantActivityLoading = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
@@ -1116,7 +995,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.Perps &&
       Boolean(subFilterKinds) &&
       isPerpsEnabled &&
-      perpsSource.items.length > 0;
+      perps.items.length > 0;
 
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
@@ -1143,15 +1022,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const haveRelevantSourcesReported = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
-          return !isPerpsEnabled || hasPerpsSourceReported;
+          return true;
         case ActivityTypeFilter.Predictions:
-          return !isPredictEnabled || hasPredictSourceReported;
+          return !isPredictEnabled || shouldMountPredictSource;
         case undefined:
         case ActivityTypeFilter.All:
-          return (
-            (!isPerpsEnabled || hasPerpsSourceReported) &&
-            (!isPredictEnabled || hasPredictSourceReported)
-          );
+          return !isPredictEnabled || shouldMountPredictSource;
         default:
           return true;
       }
@@ -1247,12 +1123,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               />
             )}
           </PriceChartContext.Consumer>
-          {shouldMountPerpsSource ? (
-            <PerpsActivitySource onChange={handlePerpsSourceChange} />
-          ) : null}
-          {shouldMountPredictSource ? (
-            <PredictActivitySource onChange={handlePredictSourceChange} />
-          ) : null}
           {/* Speed up / Cancel modals */}
           <CancelSpeedupModal
             isVisible={speedUpIsOpen || cancelIsOpen}

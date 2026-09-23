@@ -19,6 +19,13 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { remoteFeatureEip7702 } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { isHexString } from '@metamask/utils';
 
+function buildAnvilLocalEthFixture() {
+  return new FixtureBuilder()
+    .withDefaultFixture()
+    .withAnvilLocalEthBalance()
+    .build();
+}
+
 const ANVIL_NODE_OPTIONS_WITH_GATOR: AnvilNodeOptions = {
   hardfork: 'prague' as Hardfork,
   loadState: './tests/seeder/network-states/7702/withDelegatorContracts.json',
@@ -168,7 +175,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
-            fixture: new FixtureBuilder().withDefaultFixture().build(),
+            fixture: buildAnvilLocalEthFixture(),
             restartDevice: true,
             currentDeviceDetails,
             localNodeOptions: [
@@ -213,7 +220,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
-            fixture: new FixtureBuilder().withDefaultFixture().build(),
+            fixture: buildAnvilLocalEthFixture(),
             restartDevice: true,
             currentDeviceDetails,
             localNodeOptions: [

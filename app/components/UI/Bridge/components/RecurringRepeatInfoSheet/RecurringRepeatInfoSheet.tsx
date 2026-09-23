@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import {
+  BottomSheet,
   BottomSheetHeader,
   Box,
   Text,
@@ -7,14 +8,12 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import RecurringBottomSheet from '../RecurringBottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { RecurringRepeatInfoSheetSelectorsIDs } from './RecurringRepeatInfoSheet.testIds';
 import type { RecurringRepeatInfoSheetProps } from './RecurringRepeatInfoSheet.types';
 
 const RecurringRepeatInfoSheet = ({
-  isVisible,
-  onClose,
+  goBack,
 }: RecurringRepeatInfoSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -22,15 +21,11 @@ const RecurringRepeatInfoSheet = ({
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <RecurringBottomSheet
+    <BottomSheet
       ref={sheetRef}
       testID={RecurringRepeatInfoSheetSelectorsIDs.SHEET}
-      onClose={onClose}
+      goBack={goBack}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -50,7 +45,7 @@ const RecurringRepeatInfoSheet = ({
           {strings('bridge.recurring.repeat_info_body')}
         </Text>
       </Box>
-    </RecurringBottomSheet>
+    </BottomSheet>
   );
 };
 

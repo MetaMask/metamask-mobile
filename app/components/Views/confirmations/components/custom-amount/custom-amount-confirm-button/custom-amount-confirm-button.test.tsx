@@ -14,6 +14,7 @@ import {
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert } from '../../../types/alerts';
@@ -23,6 +24,7 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/pay/useTransactionPayData');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -58,6 +60,9 @@ describe('CustomAmountConfirmButton', () => {
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
+  );
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
   );
   const useRouteMock = jest.mocked(useRoute);
   const setIsConfirmationSubmittingMock = jest.fn();
@@ -98,6 +103,7 @@ describe('CustomAmountConfirmButton', () => {
       onConfirm: jest.fn(),
       onReject: jest.fn(),
     });
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.contractInteraction,
@@ -181,6 +187,19 @@ describe('CustomAmountConfirmButton', () => {
       fieldAlerts: [],
       hasBlockingAlerts: true,
     } as unknown as AlertsContextParams);
+
+    const { getByTestId } = render({
+      isDisabled: false,
+      stage: CustomAmountStage.ShowTotals,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('button is disabled when pay data is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { getByTestId } = render({
       isDisabled: false,

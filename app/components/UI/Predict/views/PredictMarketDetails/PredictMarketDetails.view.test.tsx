@@ -65,7 +65,7 @@ const ELIGIBLE_USER = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
     },
   },
@@ -79,7 +79,7 @@ const ELIGIBLE_USER_WITH_BUY_SHEET = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
@@ -156,6 +156,11 @@ describe('PredictMarketDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    controllerMock('getMarket').mockReset();
+    controllerMock('getPositions').mockReset();
+    controllerMock('getPriceHistory').mockReset();
+    controllerMock('getMarketSeries').mockReset();
+    controllerMock('claimWithConfirmation').mockReset();
     givenMarket(MOCK_PREDICT_MARKET);
     givenPositions([]);
     givenPriceHistory([]);
@@ -291,6 +296,15 @@ describe('PredictMarketDetails', () => {
         renderPredictMarketDetailsViewWithRoutes({
           initialParams: { marketId: MARKET_ID },
           extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+          overrides: {
+            engine: {
+              backgroundState: {
+                PredictController: {
+                  eligibility: { status: 'ineligible' as const, country: 'US' },
+                },
+              },
+            },
+          },
         });
 
       fireEvent.press(await findByText(/Yes.*¢/));
@@ -306,21 +320,15 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows the share button once the market has loaded', async () => {
-      const { findByTestId, queryByTestId } = renderPredictMarketDetailsView({
+      const { queryByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
       await waitFor(() => {
         expect(
-          queryByTestId(
-            PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
-          ),
-        ).not.toBeOnTheScreen();
+          queryByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
+        ).toBeOnTheScreen();
       });
-
-      expect(
-        await findByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
-      ).toBeOnTheScreen();
     });
 
     it('resolves the market from the series in route params when no marketId is given', async () => {

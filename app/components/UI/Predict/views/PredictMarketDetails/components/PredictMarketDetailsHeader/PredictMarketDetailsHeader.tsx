@@ -1,21 +1,15 @@
 import React, { memo } from 'react';
-import { Pressable } from 'react-native';
 import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Text,
-  TextColor,
+  ButtonIcon,
+  ButtonIconSize,
+  HeaderSubpage,
+  IconName,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
 import PredictDetailsHeaderSkeleton from '../../../../components/PredictDetailsHeaderSkeleton';
@@ -27,8 +21,6 @@ export interface PredictMarketDetailsHeaderProps {
   market: PredictMarket | null;
   title: string | undefined;
   image: string | undefined;
-  titleLineCount: number;
-  insetsTop: number;
   onBackPress: () => void;
 }
 
@@ -38,62 +30,49 @@ const PredictMarketDetailsHeader = memo(
     market,
     title,
     image,
-    titleLineCount,
-    insetsTop,
     onBackPress,
   }: PredictMarketDetailsHeaderProps) => {
-    const { colors } = useTheme();
     const tw = useTailwind();
+    const insets = useSafeAreaInsets();
 
     if (isLoading) {
       return <PredictDetailsHeaderSkeleton />;
     }
 
+    const imageUri = image || market?.image;
+
     return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Start}
-        twClassName="gap-3 pb-4 px-3"
-        style={{ paddingTop: insetsTop + 12 }}
-      >
-        <Pressable
-          onPress={onBackPress}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={strings('predict.buttons.back')}
-          style={tw.style('items-center justify-center rounded-full')}
-          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={colors.icon.default}
+      <HeaderSubpage
+        twClassName="min-h-14 h-auto bg-default justify-center"
+        style={{ marginTop: insets.top }}
+        startAccessory={
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            onPress={onBackPress}
+            testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
+            accessibilityLabel={strings('predict.buttons.back')}
           />
-        </Pressable>
-        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-          {image || market?.image ? (
-            <Image
-              source={{ uri: image || market?.image }}
-              style={tw.style('w-full h-full')}
-              contentFit="cover"
-            />
-          ) : (
-            <Box twClassName="w-full h-full bg-muted" />
-          )}
-        </Box>
-        <Box
-          twClassName="flex-1 min-h-[40px]"
-          justifyContent={
-            titleLineCount >= 2 ? undefined : BoxJustifyContent.Center
-          }
-          style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
-        >
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {title || market?.title || ''}
-          </Text>
-        </Box>
-        <PredictShareButton marketId={market?.id} marketSlug={market?.slug} />
-      </Box>
+        }
+        endAccessory={
+          <PredictShareButton marketId={market?.id} marketSlug={market?.slug} />
+        }
+        avatar={
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+            {imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={tw.style('w-full h-full')}
+                contentFit="cover"
+              />
+            ) : (
+              <Box twClassName="w-full h-full bg-muted" />
+            )}
+          </Box>
+        }
+        title={title || market?.title || ''}
+        titleProps={{ variant: TextVariant.HeadingMd }}
+      />
     );
   },
 );

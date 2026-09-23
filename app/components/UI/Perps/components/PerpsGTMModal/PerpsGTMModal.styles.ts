@@ -95,8 +95,8 @@ const createStyles = (
         ? Platform.OS === 'ios'
           ? 'System'
           : 'Roboto'
-        : 'Geist-Regular',
-      fontWeight: '500',
+        : 'Inter-Regular',
+      fontWeight: '400',
     },
     footerContainer: {
       display: 'flex',

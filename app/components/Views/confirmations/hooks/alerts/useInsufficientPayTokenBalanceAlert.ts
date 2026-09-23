@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -29,6 +29,7 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -138,17 +139,13 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
-  // The source chain does not draw native gas from the user's EOA when any of:
-  // - it is inherently gasless (Monad),
-  // - the gas fee is explicitly sponsored for this transaction, or
-  // - the transaction is funded via a payment override in a deposit-direction
-  //   flow (`!isPostQuote`), where gas is sponsored by the override path rather
-  //   than paid from the user's native balance. Post-quote (withdrawal) flows
-  //   still pay gas on the source chain, so the override alone is not enough.
+  // Parent sponsorship does not cover hardware funding transactions.
+  const isHardwarePayer = isHardwareAccount(payingAccount ?? '');
   const isGaslessSourceChain =
-    sourceChainId === CHAIN_IDS.MONAD ||
-    isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
-    (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount);
+    !isHardwarePayer &&
+    (sourceChainId === CHAIN_IDS.MONAD ||
+      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
+      (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
 
   // A plain ERC-20 send also yields a required token, but it is not funded
   // through MetaMask Pay, so the pay balance check does not apply.
@@ -183,8 +180,12 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
-    if (selectedFiatPaymentMethod || !isMMPayTransaction) {
-      return [];
+    if (
+      selectedFiatPaymentMethod ||
+      !isMMPayTransaction ||
+      (!isPendingAlert && isLoading)
+    ) {
+      return NO_ALERTS;
     }
 
     if (isInsufficientForInput) {
@@ -228,8 +229,10 @@ export function useInsufficientPayTokenBalanceAlert({
       ];
     }
 
-    return [];
+    return NO_ALERTS;
   }, [
+    isLoading,
+    isPendingAlert,
     isMMPayTransaction,
     isInsufficientForInput,
     isInsufficientForFees,

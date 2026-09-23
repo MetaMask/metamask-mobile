@@ -4,9 +4,11 @@ import {
   Matchers,
   PlatformDetector,
   sleep,
+  Utilities,
   type AppiumElement,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -21,6 +23,8 @@ const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
   /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
   TOKEN_SEARCH_SETTLE: 1000,
+  /** Overall Android Activity → Quote → Wallet dismiss retry budget. */
+  ANDROID_SWAP_DISMISS: 12000,
 } as const;
 
 class QuoteView {
@@ -126,26 +130,38 @@ class QuoteView {
     return Matchers.getLazyElementByNativeXPath(`//*[@name='${testId}']`);
   }
 
-  async enterAmount(amount: string): Promise<void> {
+  getKeypadKey(digit: string): Promise<AppiumElement> {
+    const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     // iOS: keypad keys are not reliably found via accessibility-id / text;
     // use name XPath (same pattern as enterSourceTokenAmount).
-    const isAndroid = PlatformDetector.isAndroid();
-    for (const digit of amount.split('')) {
-      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-      const el = isAndroid
-        ? Matchers.getElementByID(keyName)
-        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
-      await Assertions.expectElementToBeVisible(el, {
-        timeout: TIMEOUT.KEYPAD_DIGIT,
-        description: `Keypad digit ${digit} should be visible`,
-      });
-      await Gestures.waitAndTap(el, {
-        checkForDisplayed: true,
-        checkEnabled: true,
-        delay: 1000,
-        elemDescription: `Tapping on keyboard digit ${digit}`,
-      });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(keyName);
     }
+    return Matchers.getElementByNativeXPath(
+      `//*[contains(@name,'${keyName}')]`,
+    );
+  }
+
+  async tapKeypadDigit(digit: string): Promise<void> {
+    await Gestures.waitAndTap(this.getKeypadKey(digit), {
+      checkEnabled: false,
+      elemDescription: `Keypad digit ${digit}`,
+    });
+  }
+
+  async enterAmount(amount: string): Promise<void> {
+    const digits = amount.split('');
+    await Assertions.expectElementToBeVisible(this.getKeypadKey(digits[0]), {
+      timeout: TIMEOUT.KEYPAD_DIGIT,
+      description: 'Swap keypad should be mounted',
+    });
+    // Sequential taps — keypad keys stay mounted, so do not re-assert
+    // displayed+enabled per digit (that costs ~15s each on a contended emulator).
+    await digits.reduce(
+      (previousTap, digit) =>
+        previousTap.then(() => this.tapKeypadDigit(digit)),
+      Promise.resolve(),
+    );
   }
 
   async tapSearchToken(): Promise<void> {
@@ -325,7 +341,46 @@ class QuoteView {
     });
   }
 
+  async dismissSwapOnAndroid(): Promise<void> {
+    const walletTab = Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    await Utilities.executeWithRetry(
+      async () => {
+        // Wallet chrome is the success signal — source-token-area can stay in
+        // the stack (displayed:true) after a missed back, which used to burn
+        // 8s per retry on expectElementToNotBeVisible.
+        if (await Utilities.isElementVisible(walletTab, 800)) {
+          return;
+        }
+        if (await Utilities.isElementVisible(this.backButton, 1500)) {
+          await Gestures.waitAndTap(this.backButton, {
+            timeout: 2500,
+            checkEnabled: false,
+            delay: 0,
+            elemDescription: 'Bridge header back (retry loop)',
+          });
+        }
+        if (await Utilities.isElementVisible(walletTab, 2500)) {
+          return;
+        }
+        throw new Error('Wallet tab not visible after Swap back');
+      },
+      {
+        timeout: TIMEOUT.ANDROID_SWAP_DISMISS,
+        description: 'dismiss Swap with back and verify wallet tab',
+        elemDescription: 'Wallet tab after Swap back',
+      },
+    );
+  }
+
   async tapOnBackButton(): Promise<void> {
+    // Prefer the dedicated `bridge-back-button` testID. On Android still retry
+    // + verify wallet chrome — post-trade Activity → Quote stacks can leave
+    // Swap up after a missed tap, and TabBar Wallet then hangs.
+    if (PlatformDetector.isAndroid()) {
+      await this.dismissSwapOnAndroid();
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Quote View',
     });

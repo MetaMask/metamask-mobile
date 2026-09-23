@@ -10,6 +10,11 @@ import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../../UI/Earn/constants/earnModuleEvents';
 
 const mockNavigate = jest.fn();
 const mockEarnSection = jest.fn((_props: Record<string, unknown>) => null);
@@ -169,6 +174,11 @@ describe('CryptoTab — Earn section', () => {
       enabled: false,
       refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 
@@ -195,6 +205,11 @@ describe('CryptoTab — Earn section', () => {
       enabled: false,
       refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 

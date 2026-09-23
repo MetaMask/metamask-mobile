@@ -181,6 +181,7 @@ const createCustomConfig = (
   mode: 'custom',
   title: 'Wimbledon',
   priorityOrder: [],
+  prioritySlots: [],
   contentSource: {
     composition: 'query-results',
     queryParams: 'tag_slug=tennis',
@@ -321,26 +322,6 @@ describe('PredictLiveNowSection', () => {
     expect(mockParseDeeplink).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockTrackHomeSectionInteraction).not.toHaveBeenCalled();
-  });
-
-  it('renders pagination dots when there are 2+ items after load', () => {
-    setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
-
-    const { getByTestId } = renderSection();
-
-    expect(
-      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not render pagination dots when there is fewer than 2 items', () => {
-    setSection({ items: [createLiveMarket('L1')] });
-
-    const { queryByTestId } = renderSection();
-
-    expect(
-      queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
-    ).not.toBeOnTheScreen();
   });
 
   it('updates the active card without crashing when the carousel is scrolled', () => {

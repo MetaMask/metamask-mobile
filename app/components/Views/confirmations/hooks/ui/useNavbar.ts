@@ -7,7 +7,7 @@ import {
   getNavbar,
   NavbarOverrides,
 } from '../../components/UI/navbar/navbar';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import { useConfirmationContext } from '../../context/confirmation-context';
 
@@ -17,7 +17,7 @@ const useNavbar = (
   overrides?: NavbarOverrides,
 ) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
@@ -50,7 +50,7 @@ const useNavbar = (
 export function useModalNavbar() {
   const navigation = useNavigation<AppNavigationProp>();
 
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
 
   useEffect(() => {
     navigation.setOptions(getModalNavigationOptions());

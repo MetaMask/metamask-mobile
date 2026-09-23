@@ -1,10 +1,11 @@
 import { createStateFixture } from '../stateFixture';
 
-export const initialStatePredictNext = () =>
+export const initialStatePredictNext = (privacyMode = false) =>
   createStateFixture()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalKeyringController()
+    .withPreferences({ privacyMode })
     .withRemoteFeatureFlags({
       predictTradingEnabled: {
         enabled: true,

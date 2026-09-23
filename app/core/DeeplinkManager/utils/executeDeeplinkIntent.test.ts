@@ -4,6 +4,7 @@ import {
   executeStartupDeeplinkIntent,
 } from './executeDeeplinkIntent';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+import { buildHomeNavResetState } from './resetToHomeNav';
 import {
   endDeeplinkProcessedTrace,
   getDeeplinkProcessedTraceContext,
@@ -138,34 +139,22 @@ describe('executeDeeplinkIntent', () => {
     ).resolves.toBe(true);
 
     expect(prepare).toHaveBeenCalledTimes(1);
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: {
-                  routes: [
-                    {
-                      name: Routes.HOME_TABS,
-                      state: {
-                        index: 1,
-                        routes: [
-                          { name: Routes.WALLET.HOME },
-                          { name: Routes.REWARDS_VIEW },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
-            ],
+    expect(mockReset).toHaveBeenCalledWith(
+      buildHomeNavResetState({
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.WALLET.HOME },
+                { name: Routes.REWARDS_VIEW },
+              ],
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
   });
 
   it('navigates to a main-stack target with nested params (warm)', async () => {
@@ -193,33 +182,21 @@ describe('executeDeeplinkIntent', () => {
 
     await expect(executeStartupDeeplinkIntent(intent)).resolves.toBe(true);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: {
-                  index: 1,
-                  routes: [
-                    {
-                      name: Routes.HOME_TABS,
-                      state: {
-                        index: 0,
-                        routes: [{ name: Routes.WALLET.HOME }],
-                      },
-                    },
-                    { name: Routes.PERPS.ROOT, params },
-                  ],
-                },
-              },
-            ],
+    expect(mockReset).toHaveBeenCalledWith(
+      buildHomeNavResetState({
+        index: 1,
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WALLET.HOME }],
+            },
           },
-        },
-      ],
-    });
+          { name: Routes.PERPS.ROOT, params },
+        ],
+      }),
+    );
   });
 
   it('resets a params-only main-stack target (no nested screen)', async () => {
@@ -233,36 +210,24 @@ describe('executeDeeplinkIntent', () => {
 
     await expect(executeStartupDeeplinkIntent(intent)).resolves.toBe(true);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: {
-                  index: 1,
-                  routes: [
-                    {
-                      name: Routes.HOME_TABS,
-                      state: {
-                        index: 0,
-                        routes: [{ name: Routes.WALLET.HOME }],
-                      },
-                    },
-                    {
-                      name: Routes.PERPS.TUTORIAL,
-                      params: { isFromDeeplink: true },
-                    },
-                  ],
-                },
-              },
-            ],
+    expect(mockReset).toHaveBeenCalledWith(
+      buildHomeNavResetState({
+        index: 1,
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WALLET.HOME }],
+            },
           },
-        },
-      ],
-    });
+          {
+            name: Routes.PERPS.TUTORIAL,
+            params: { isFromDeeplink: true },
+          },
+        ],
+      }),
+    );
   });
 
   it('activates backTab before navigating to the main-stack target (warm)', async () => {
@@ -294,36 +259,24 @@ describe('executeDeeplinkIntent', () => {
 
     await expect(executeStartupDeeplinkIntent(intent)).resolves.toBe(true);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: {
-                  index: 1,
-                  routes: [
-                    {
-                      name: Routes.HOME_TABS,
-                      state: {
-                        index: 1,
-                        routes: [
-                          { name: Routes.WALLET.HOME },
-                          { name: Routes.TRENDING_VIEW },
-                        ],
-                      },
-                    },
-                    { name: Routes.WALLET.RWA_TOKENS_FULL_VIEW },
-                  ],
-                },
-              },
-            ],
+    expect(mockReset).toHaveBeenCalledWith(
+      buildHomeNavResetState({
+        index: 1,
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.WALLET.HOME },
+                { name: Routes.TRENDING_VIEW },
+              ],
+            },
           },
-        },
-      ],
-    });
+          { name: Routes.WALLET.RWA_TOKENS_FULL_VIEW },
+        ],
+      }),
+    );
   });
 
   it('preserves nested params when resetting to a startup target tab', async () => {
@@ -345,36 +298,24 @@ describe('executeDeeplinkIntent', () => {
 
     await expect(executeStartupDeeplinkIntent(intent)).resolves.toBe(true);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: {
-                  routes: [
-                    {
-                      name: Routes.HOME_TABS,
-                      state: {
-                        index: 1,
-                        routes: [
-                          { name: Routes.WALLET.HOME },
-                          {
-                            name: Routes.BROWSER.HOME,
-                            params: browserParams,
-                          },
-                        ],
-                      },
-                    },
-                  ],
+    expect(mockReset).toHaveBeenCalledWith(
+      buildHomeNavResetState({
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.WALLET.HOME },
+                {
+                  name: Routes.BROWSER.HOME,
+                  params: browserParams,
                 },
-              },
-            ],
+              ],
+            },
           },
-        },
-      ],
-    });
+        ],
+      }),
+    );
   });
 });

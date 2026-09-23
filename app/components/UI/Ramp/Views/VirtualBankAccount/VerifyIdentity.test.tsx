@@ -4,14 +4,17 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import {
-  IDOS_PRIVACY_POLICY_URL,
-  IDOS_TERMS_URL,
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-  SUMSUB_PRIVACY_POLICY_URL,
-  SUMSUB_TERMS_URL,
-} from './constants';
+import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
+import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import { useKycStartSession } from './hooks/useKycStartSession';
+
+jest.mock('./hooks/useKycSessionDisclaimers');
+const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
+const mockRetry = jest.fn();
+const mockStartSession = jest.fn();
+
+jest.mock('./hooks/useKycStartSession');
+const mockUseKycStartSession = jest.mocked(useKycStartSession);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -24,9 +27,40 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const catalogDisclaimers = [
+  {
+    id: 'idOS:idos-privacy',
+    key: 'idos-privacy',
+    version: '1',
+    title: 'idOS Privacy Policy',
+    url: 'https://idos.example/privacy',
+  },
+  {
+    id: 'kycProvider:sumsub-terms',
+    key: 'sumsub-terms',
+    version: '2',
+    title: 'Sumsub T&C',
+    url: 'https://sumsub.example/terms',
+  },
+];
+
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: catalogDisclaimers,
+      isLoading: false,
+      error: null,
+      retry: mockRetry,
+    });
+    mockUseKycStartSession.mockReturnValue({
+      isStarting: false,
+      startSession: mockStartSession,
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
@@ -125,36 +159,78 @@ describe('VbaVerifyIdentity', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens each legal link with the expected URL', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+  it('opens MetaMask legal links and catalog disclaimer URLs when pressed', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId, getByText } = renderWithProvider(
+      <VbaVerifyIdentity />,
+    );
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
     );
-    expect(spy).toHaveBeenCalledWith(METAMASK_PRIVACY_POLICY_URL);
+    expect(openUrlSpy).toHaveBeenCalledWith(METAMASK_PRIVACY_POLICY_URL);
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
     );
-    expect(spy).toHaveBeenCalledWith(METAMASK_TERMS_URL);
+    expect(openUrlSpy).toHaveBeenCalledWith(METAMASK_TERMS_URL);
 
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK),
+    fireEvent.press(getByText('idOS Privacy Policy'));
+    expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/privacy');
+
+    fireEvent.press(getByText('Sumsub T&C'));
+    expect(openUrlSpy).toHaveBeenCalledWith('https://sumsub.example/terms');
+  });
+
+  it('shows a skeleton loader instead of catalog links while the fetch is in flight, and disables the CTA', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: true,
+      error: null,
+      retry: mockRetry,
+    });
+
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: false,
+      error: 'Request timed out',
+      retry: mockRetry,
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <VbaVerifyIdentity />,
     );
-    expect(spy).toHaveBeenCalledWith(IDOS_PRIVACY_POLICY_URL);
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK));
-    expect(spy).toHaveBeenCalledWith(IDOS_TERMS_URL);
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeDisabled();
 
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK),
-    );
-    expect(spy).toHaveBeenCalledWith(SUMSUB_PRIVACY_POLICY_URL);
+    fireEvent.press(getByText('Try again'));
+    expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
 
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK),
-    );
-    expect(spy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
+  it('starts the KYC session when continue is pressed', () => {
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    expect(mockStartSession).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

@@ -6,12 +6,11 @@ import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -224,13 +223,13 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           }
         >
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            style={styles.badgeWrapper}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+            twClassName="self-center"
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              <BadgeNetwork
+                src={NetworkBadgeSource(asset.chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
+                twClassName="h-5 w-5"
               />
             }
           >

@@ -681,6 +681,10 @@ export function usePerpsOrderValidation(
     // Pro intentionally maps its CTA spinner only to active placement.
     setValidation((prev) => ({
       ...prev,
+      // Values typed while validation is suspended have never been checked.
+      // Invalidate the previous result synchronously so the CTA cannot submit
+      // one render with stale validity when the keypad closes.
+      protocolValid: skipValidation ? false : prev.protocolValid,
       isValidating: !skipValidation,
     }));
 

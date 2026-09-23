@@ -4,6 +4,7 @@ import { DepositKeyboard, DepositKeyboardProps } from './deposit-keyboard';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 
 function render(props: Partial<DepositKeyboardProps> = {}) {
   return renderWithProvider(
@@ -33,6 +34,34 @@ describe('DepositKeyboard', () => {
     fireEvent.press(getByText('1'));
 
     expect(onChangeMock).toHaveBeenCalledWith('1');
+  });
+
+  it('edits from the amount as displayed when the value carries full precision', () => {
+    // Max stores the exact balance, so editing the raw value would make the
+    // user backspace away hidden decimals before the displayed amount moved.
+    const onChangeMock = jest.fn();
+
+    const { getByTestId } = render({
+      onChange: onChangeMock,
+      value: '50.389',
+    });
+
+    fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
+
+    expect(onChangeMock).toHaveBeenCalledWith('50.3');
+  });
+
+  it('drops the hidden decimals when a digit is rejected at the decimal cap', () => {
+    // The digit is still refused, since the displayed amount is already at
+    // two decimals, but the value it reports back no longer carries the
+    // precision the user cannot see.
+    const onChangeMock = jest.fn();
+
+    const { getByText } = render({ onChange: onChangeMock, value: '50.3891' });
+
+    fireEvent.press(getByText('7'));
+
+    expect(onChangeMock).toHaveBeenCalledWith('50.38');
   });
 
   it('hides done button if input is empty', () => {

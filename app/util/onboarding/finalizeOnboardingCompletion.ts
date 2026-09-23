@@ -1,6 +1,6 @@
 import type { Dispatch, AnyAction } from 'redux';
 import { setWalletHomeOnboardingStepsEligible } from '../../actions/onboarding';
-import type { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
+import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import Engine from '../../core/Engine/Engine';
@@ -19,8 +19,12 @@ import {
 } from '../../core/QrSync/qrSyncTelemetry';
 import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { isBasicFunctionalitySocialLoginUser } from '../basicFunctionality/getBasicFunctionalityConsolidationPlan';
 import { store } from '../../store';
-import { setBasicFunctionalityConsolidatedEnabled } from '../../actions/settings';
+import {
+  setBasicFunctionality,
+  setBasicFunctionalityConsolidatedEnabled,
+} from '../../actions/settings';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -67,20 +71,47 @@ export function finalizeOnboardingCompletion({
     const canReadRemoteFeatureFlags = Boolean(
       state?.engine?.backgroundState?.RemoteFeatureFlagController,
     );
+    let finalBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
     if (
       canReadRemoteFeatureFlags &&
       selectMobileUxBftcConsolidationFlagEnabled(state)
     ) {
+      const seedlessState =
+        state.engine.backgroundState.SeedlessOnboardingController;
+      // The success flow is available before SeedlessOnboardingController is
+      // guaranteed to finish hydrating. Treating it as an additional social
+      // signal prevents enrolling a new social wallet with BF off and then
+      // locking that off state when controller metadata arrives.
+      const isSocialLogin =
+        successFlow === ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING ||
+        isBasicFunctionalitySocialLoginUser({
+          accountType,
+          authConnection: seedlessState?.authConnection,
+          hasSeedlessVault: seedlessState?.vault != null,
+        });
+      finalBasicFunctionalityEnabled = isSocialLogin
+        ? true
+        : isBasicFunctionalityEnabled;
+
+      dispatch(setBasicFunctionality(finalBasicFunctionalityEnabled));
       dispatch(setBasicFunctionalityConsolidatedEnabled(true));
       syncConsolidatedBasicFunctionalityPreferences(
-        isBasicFunctionalityEnabled,
+        finalBasicFunctionalityEnabled,
       );
+      Engine.context.MultichainAccountService.setBasicFunctionality(
+        finalBasicFunctionalityEnabled,
+      ).catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'finalizeOnboardingCompletion: Failed to set Basic Functionality',
+        );
+      });
     }
 
     const onboardingCompletedProperties =
       getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
         accountType,
-        isBasicFunctionalityEnabled,
+        isBasicFunctionalityEnabled: finalBasicFunctionalityEnabled,
       });
 
     const onboardingCompletedEvent = AnalyticsEventBuilder.createEventBuilder(

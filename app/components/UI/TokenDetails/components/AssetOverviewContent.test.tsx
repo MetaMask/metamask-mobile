@@ -52,6 +52,23 @@ jest.mock('../../MarketInsights', () => ({
     testID?: string;
   }) => <MockPressable onPress={onPress} testID={testID} />,
   useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+  useMarketInsightsEntryTrace: () =>
+    'token_details:entry_card:eip155:1/erc20:0x123',
+  getMarketInsightsTraceId: (
+    assetIdentifier: string,
+    source: string,
+    stage: string,
+  ) => `${source}:${stage}:${assetIdentifier}`,
+  getMarketInsightsTraceTags: (
+    context: { source: string; stage: string; assetType: string },
+    cacheState: string,
+  ) => ({
+    feature: 'market_insights',
+    source: context.source,
+    stage: context.stage,
+    asset_type: context.assetType,
+    cache_state: cacheState,
+  }),
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
@@ -237,6 +254,7 @@ const defaultMarketInsightsResult = {
   isLoading: false,
   error: null,
   timeAgo: '5m ago',
+  cacheState: 'cold',
 };
 
 describe('AssetOverviewContent', () => {

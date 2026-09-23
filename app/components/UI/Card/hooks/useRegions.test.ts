@@ -203,6 +203,24 @@ describe('useRegions', () => {
     });
   });
 
+  describe('registration settings state', () => {
+    it('returns the registration error and refetch function', () => {
+      const error = new Error('settings unavailable');
+      const fetchData = jest.fn().mockResolvedValue(null);
+      mockUseRegistrationSettings.mockReturnValue({
+        data: null,
+        isLoading: false,
+        error,
+        fetchData,
+      } as ReturnType<typeof useRegistrationSettings>);
+
+      const { result } = renderHook(() => useRegions());
+
+      expect(result.current.error).toBe(error);
+      expect(result.current.refetch).toBe(fetchData);
+    });
+  });
+
   describe('regionsByCode', () => {
     it('provides Map for O(1) lookup', () => {
       const { result } = renderHook(() => useRegions());

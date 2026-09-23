@@ -22,6 +22,7 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 
 export function CustomAmountConfirmButton({
   isDisabled,
@@ -37,6 +38,7 @@ export function CustomAmountConfirmButton({
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
   const { onConfirm } = useConfirmActions();
+  const isPayLoading = useIsTransactionPayLoading();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
@@ -54,6 +56,7 @@ export function CustomAmountConfirmButton({
     isDisabled ||
     stage !== CustomAmountStage.ShowTotals ||
     hasBlockingAlerts ||
+    isPayLoading ||
     isHeadlessBuyInProgress;
 
   const buttonLabel = useButtonLabel();
