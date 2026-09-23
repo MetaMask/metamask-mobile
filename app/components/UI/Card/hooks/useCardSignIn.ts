@@ -88,9 +88,6 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
   const deviceAddressesRef = useRef(deviceAddresses);
   candidateAddressesRef.current = candidateAddresses;
   deviceAddressesRef.current = deviceAddresses;
-  // Selection order changes the candidate list without changing who is on the
-  // device. Re-resolving on that would flash the skeleton after we switch to
-  // the linked account, or after the user picks another one.
   const deviceAddressKey = useMemo(
     () =>
       deviceAddresses

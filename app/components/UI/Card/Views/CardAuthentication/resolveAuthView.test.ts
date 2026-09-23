@@ -3,7 +3,11 @@ import {
   type CardSignInOption,
   type CardSignInResolution,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { resolveActiveBanner, resolveAuthView } from './resolveAuthView';
+import {
+  resolveActiveBanner,
+  resolveAuthView,
+  resolveDisplayedWalletAddress,
+} from './resolveAuthView';
 
 const walletOption: CardSignInOption = {
   providerId: CardProviderIds.Immersve,
@@ -15,6 +19,7 @@ const emailOption: CardSignInOption = {
 };
 
 const ADDR = '0x1234567890123456789012345678901234567890';
+const OTHER_ADDR = '0x2222222222222222222222222222222222222222';
 
 const base = {
   isOtpStep: false,
@@ -191,6 +196,41 @@ describe('resolveAuthView', () => {
         reason: 'check_failed',
       });
     });
+  });
+});
+
+describe('resolveDisplayedWalletAddress', () => {
+  it('keeps the linked address until that account has been selected', () => {
+    expect(
+      resolveDisplayedWalletAddress({
+        origin: 'linked',
+        pinnedAddress: ADDR,
+        selectedAddress: OTHER_ADDR,
+        hasShownPinnedSelection: false,
+      }),
+    ).toBe(ADDR);
+  });
+
+  it('shows a later pick after the linked account was selected', () => {
+    expect(
+      resolveDisplayedWalletAddress({
+        origin: 'linked',
+        pinnedAddress: ADDR,
+        selectedAddress: OTHER_ADDR,
+        hasShownPinnedSelection: true,
+      }),
+    ).toBe(OTHER_ADDR);
+  });
+
+  it('keeps the resume address even after another account is selected', () => {
+    expect(
+      resolveDisplayedWalletAddress({
+        origin: 'resume',
+        pinnedAddress: ADDR,
+        selectedAddress: OTHER_ADDR,
+        hasShownPinnedSelection: true,
+      }),
+    ).toBe(ADDR);
   });
 });
 

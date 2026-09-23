@@ -2,6 +2,7 @@ import React from 'react';
 import { TextInput } from 'react-native';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { setAvatarAccountType } from '../../../../../actions/settings';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
@@ -380,6 +381,60 @@ describe('CardAuthentication', () => {
       expect(screen.getByText('Holiday fund')).toBeOnTheScreen();
     });
 
+    it('shows a later account pick after the linked account was selected', async () => {
+      mockSelectedAccount = { address: ADDR, id: 'acct-card' };
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      const { store } = render(
+        cardAccountState([
+          {
+            id: 'acct-card',
+            address: ADDR,
+            name: '',
+            groupId: 'group-card',
+            groupName: 'Holiday fund',
+          },
+          {
+            id: 'acct-other',
+            address: OTHER_ADDR,
+            name: '',
+            groupId: 'group-other',
+            groupName: 'Everyday',
+          },
+        ]),
+      );
+
+      expect(screen.getByText('Holiday fund')).toBeOnTheScreen();
+
+      mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
+      act(() => {
+        store.dispatch(setAvatarAccountType('Blockies'));
+      });
+
+      expect(screen.getByText('Everyday')).toBeOnTheScreen();
+      expect(screen.queryByText('Holiday fund')).toBeNull();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockVerifyAccount).toHaveBeenCalledWith(
+          OTHER_ADDR,
+          walletOption,
+        );
+      });
+      expect(mockSignInWithWallet).toHaveBeenCalledWith(
+        expect.objectContaining({ address: OTHER_ADDR }),
+      );
+    });
+
     it('switches to the linked account group when another account is selected', () => {
       mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
       setResolution({
@@ -403,9 +458,8 @@ describe('CardAuthentication', () => {
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith('group-card');
     });
 
-    it('checks a different selected account once and does not switch again', async () => {
+    it('signs the shown linked account before the selection switches', async () => {
       mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
-      mockVerifyAccount.mockResolvedValue('not_found');
       setResolution({
         kind: 'wallet',
         option: walletOption,
@@ -424,6 +478,7 @@ describe('CardAuthentication', () => {
         ]),
       );
 
+      expect(screen.getByText('Holiday fund')).toBeOnTheScreen();
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith('group-card');
 
@@ -434,13 +489,11 @@ describe('CardAuthentication', () => {
       });
 
       await waitFor(() => {
-        expect(mockVerifyAccount).toHaveBeenCalledWith(
-          OTHER_ADDR,
-          walletOption,
+        expect(mockSignInWithWallet).toHaveBeenCalledWith(
+          expect.objectContaining({ address: ADDR }),
         );
       });
-      expect(screen.getByText(/couldn.t find your card/i)).toBeOnTheScreen();
-      expect(mockSignInWithWallet).not.toHaveBeenCalled();
+      expect(mockVerifyAccount).not.toHaveBeenCalled();
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
     });
 
@@ -581,9 +634,8 @@ describe('CardAuthentication', () => {
       expect(screen.queryByText('Everyday')).toBeNull();
     });
 
-    it('verifies and signs the pinned account', async () => {
+    it('signs the pinned account without checking the other selection', async () => {
       mockSelectedAccount = { address: OTHER_ADDR, id: 'acct-other' };
-      mockVerifyAccount.mockResolvedValue('found');
       setResolution({
         kind: 'resume',
         option: walletOption,
@@ -609,11 +661,11 @@ describe('CardAuthentication', () => {
       });
 
       await waitFor(() => {
-        expect(mockVerifyAccount).toHaveBeenCalledWith(ADDR, walletOption);
+        expect(mockSignInWithWallet).toHaveBeenCalledWith(
+          expect.objectContaining({ address: ADDR }),
+        );
       });
-      expect(mockSignInWithWallet).toHaveBeenCalledWith(
-        expect.objectContaining({ address: ADDR }),
-      );
+      expect(mockVerifyAccount).not.toHaveBeenCalled();
     });
   });
 

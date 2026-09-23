@@ -111,6 +111,30 @@ export function resolveAuthView({
   }
 }
 
+export function resolveDisplayedWalletAddress({
+  origin,
+  pinnedAddress,
+  selectedAddress,
+  hasShownPinnedSelection,
+}: {
+  origin: 'linked' | 'resume' | 'manual' | null;
+  pinnedAddress: string | null;
+  selectedAddress: string | undefined;
+  hasShownPinnedSelection: boolean;
+}): string | undefined {
+  if (origin === 'resume' && pinnedAddress) {
+    return pinnedAddress;
+  }
+  if (origin === 'linked' && pinnedAddress) {
+    const selectedDiffers =
+      hasShownPinnedSelection &&
+      selectedAddress !== undefined &&
+      selectedAddress.toLowerCase() !== pinnedAddress.toLowerCase();
+    return selectedDiffers ? selectedAddress : pinnedAddress;
+  }
+  return selectedAddress;
+}
+
 export function resolveActiveBanner({
   banner,
   view,

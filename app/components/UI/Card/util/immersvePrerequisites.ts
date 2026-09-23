@@ -48,9 +48,6 @@ export function deriveNextImmersveAction(
     return { type: 'expected_spend' };
   }
 
-  // A rejected or still-pending identity check must hold the user even when
-  // Immersve already returned the USDC approval write. Approving first would
-  // leave an active allowance if KYC is later rejected.
   const rejected = prerequisites.find(
     (p) => p.status === 'blocked' || p.status === 'kyc_check_failed',
   );

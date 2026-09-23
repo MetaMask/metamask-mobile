@@ -66,6 +66,7 @@ import { selectInternalAccountByAddresses } from '../../../../../selectors/accou
 import {
   resolveActiveBanner,
   resolveAuthView,
+  resolveDisplayedWalletAddress,
   type AuthBanner,
   type UkManualMode,
 } from './resolveAuthView';
@@ -138,6 +139,7 @@ const CardAuthentication = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const dispatch = useDispatch();
   const lastTrackedAuthView = useRef<string | null>(null);
+  const seenLinkedAddressRef = useRef<string | null>(null);
 
   const accountName = useAccountGroupName();
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -218,8 +220,21 @@ const CardAuthentication = () => {
 
   const pinnedDisplayAddress =
     view.mode === 'wallet' && view.address ? view.address : null;
-  const displayAccountAddress =
-    pinnedDisplayAddress ?? selectedAddress ?? undefined;
+  const linkedPinnedKey =
+    view.mode === 'wallet' && view.origin === 'linked' && view.address
+      ? view.address.toLowerCase()
+      : null;
+  if (linkedPinnedKey && selectedAddress?.toLowerCase() === linkedPinnedKey) {
+    seenLinkedAddressRef.current = linkedPinnedKey;
+  }
+  const displayAccountAddress = resolveDisplayedWalletAddress({
+    origin: view.mode === 'wallet' ? view.origin : null,
+    pinnedAddress: pinnedDisplayAddress,
+    selectedAddress,
+    hasShownPinnedSelection:
+      linkedPinnedKey !== null &&
+      seenLinkedAddressRef.current === linkedPinnedKey,
+  });
   const displayAccount = displayAccountAddress
     ? accountsByAddress([displayAccountAddress])[0]
     : undefined;
@@ -486,22 +501,19 @@ const CardAuthentication = () => {
   const handleWalletSignIn = useCallback(async () => {
     if (walletSignInLock.current) return;
 
-    const pinnedAddress =
-      view.mode === 'wallet' && view.address ? view.address : null;
-    const usesPinnedAddress =
-      view.mode === 'wallet' &&
-      view.origin === 'resume' &&
-      Boolean(pinnedAddress);
-    const signInAddress = usesPinnedAddress ? pinnedAddress : selectedAddress;
+    const signInAddress = displayAccountAddress;
     if (!walletOption || !countryKey || !signInAddress) return;
 
-    const selectedDiffersFromPinned =
+    const pinnedAddress =
+      view.mode === 'wallet' && view.address ? view.address : null;
+    const signingAwayFromLinked =
+      view.mode === 'wallet' &&
+      view.origin === 'linked' &&
       pinnedAddress !== null &&
-      selectedAddress !== undefined &&
-      selectedAddress.toLowerCase() !== pinnedAddress.toLowerCase();
+      signInAddress.toLowerCase() !== pinnedAddress.toLowerCase();
     const shouldVerifyAccount =
       view.mode === 'wallet' &&
-      (view.origin === 'manual' || selectedDiffersFromPinned);
+      (view.origin === 'manual' || signingAwayFromLinked);
 
     walletSignInLock.current = true;
     setWalletSubmitting(true);
@@ -552,7 +564,7 @@ const CardAuthentication = () => {
     walletOption,
     countryKey,
     view,
-    selectedAddress,
+    displayAccountAddress,
     verifyAccount,
     signInWithWallet,
     trackEvent,

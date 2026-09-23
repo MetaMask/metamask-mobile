@@ -44,16 +44,6 @@ jest.mock('../../hooks/useImmersveOnboardingRouter');
 const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
 
-jest.mock('../../../AnimatedSpinner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(View, { testID: testID || 'animated-spinner' }),
-  };
-});
-
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
@@ -118,6 +108,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Lg: 'Lg' },
     TextVariant: { BodyMd: 'BodyMd' },
+    IconSize: { Xl: 'Xl' },
+    Spinner: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID }),
   };
 });
 
