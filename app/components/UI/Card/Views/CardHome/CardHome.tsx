@@ -106,7 +106,8 @@ import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
-import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
+import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
@@ -230,14 +231,16 @@ const CardHome = () => {
     isProvisioning,
     isLoading: isPushProvisioningLoading,
     canAddToWallet,
-  } = useCardProvisioning(data);
-  const isBaanxInternational =
-    activeProviderId === CardProviderIds.Baanx &&
-    userLocation === 'international';
+    isCardInWallet,
+  } = useCardWalletProvisioning(data);
+  const platformWallet = getWalletTypeForPlatform();
+  const platformWalletSupported =
+    platformWallet === 'apple_wallet'
+      ? capabilities?.pushProvisioning?.applePay === true
+      : capabilities?.pushProvisioning?.googlePay === true;
   const showDigitalWalletInstructions =
-    (isImmersve || isBaanxInternational) &&
-    !isPushProvisioningLoading &&
-    !canAddToWallet;
+    !platformWalletSupported ||
+    (!isPushProvisioningLoading && !canAddToWallet && !isCardInWallet);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);

@@ -7,12 +7,12 @@
  * ## Architecture
  *
  * The module uses an adapter pattern to support:
- * - Card providers (currently Galileo via CardController)
+ * - Card providers (Baanx and Immersve via CardController)
  * - Wallet providers (Google Wallet, Apple Wallet)
  *
- * Providers are selected automatically based on:
- * - User location: only 'us' users are eligible; other locations are not supported yet
- * - Platform OS: 'android' -> Google Wallet, 'ios' -> Apple Wallet
+ * The card adapter is created only when the active provider's
+ * `pushProvisioning` capability includes the platform wallet.
+ * The wallet adapter follows the platform: Android -> Google Wallet, iOS -> Apple Wallet.
  *
  * ## Usage
  *
@@ -20,7 +20,8 @@
  * import { usePushProvisioning } from '@app/components/UI/Card/pushProvisioning';
  *
  * const { initiateProvisioning, isProvisioning, canAddToWallet } = usePushProvisioning({
- *   cardDetails: { id: 'card-123', holderName: 'John Doe', panLast4: '1234', status: 'active' },
+ *   cardId: 'card-123',
+ *   walletProvisioning: cardHomeData.walletProvisioning,
  * });
  * ```
  */
