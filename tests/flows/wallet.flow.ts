@@ -547,8 +547,8 @@ export const CreateNewWallet = async ({
 
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   // Check that we are on the Manual Backup Step 1 screen
   await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {

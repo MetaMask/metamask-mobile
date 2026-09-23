@@ -19,7 +19,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
-import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
+import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -330,7 +330,7 @@ const getFormElements = (
   confirmPasswordInput: component.getByTestId(
     ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
   ),
-  checkbox: component.getByTestId(
+  checkbox: component.queryByTestId(
     ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
   ),
   submitButton: component.getByTestId(
@@ -340,7 +340,8 @@ const getFormElements = (
 
 /**
  * Fills the password form.
- * Pass `pressCheckbox = false` for OAuth flows where the checkbox is optional.
+ * Pass `pressCheckbox = false` for OAuth flows where the marketing opt-in
+ * checkbox should stay untouched. SRP flows have no checkbox at all.
  */
 const fillForm = async (
   component: ReturnType<typeof renderWithProviders>,
@@ -351,11 +352,24 @@ const fillForm = async (
   const { passwordInput, confirmPasswordInput, checkbox } =
     getFormElements(component);
   await act(async () => {
-    if (pressCheckbox) fireEvent.press(checkbox);
+    if (pressCheckbox && checkbox) fireEvent.press(checkbox);
     fireEvent.changeText(passwordInput, password);
   });
   await act(async () => {
     fireEvent.changeText(confirmPasswordInput, confirmPassword);
+  });
+};
+
+/** Confirms the SRP password warning sheet when it is open. */
+const confirmWarningSheet = async (
+  component: ReturnType<typeof renderWithProviders>,
+) => {
+  const confirmButton = component.queryByTestId(
+    PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
+  );
+  if (!confirmButton) return;
+  await act(async () => {
+    fireEvent.press(confirmButton);
   });
 };
 
@@ -374,6 +388,7 @@ const fillAndSubmitForm = async (
       component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
     );
   });
+  await confirmWarningSheet(component);
 };
 
 describe('ChoosePassword', () => {
@@ -1020,7 +1035,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('navigates to the support article when the learn more link is pressed', async () => {
+    it('does not render the password-loss acknowledgement checkbox for SRP users', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1029,25 +1044,16 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
-      const learnMoreLink = component.getByTestId(
-        ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
-      );
-      expect(learnMoreLink).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.press(learnMoreLink);
-      });
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: RESET_PASSWORD_GUIDE_URL,
-          title: 'support.metamask.io',
-        },
-      });
+      expect(
+        component.queryByTestId(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ),
+      ).toBeNull();
     });
+  });
 
-    it('does not accept the password-loss acknowledgement when the learn more link is pressed', async () => {
+  describe('Password Reset Warning Sheet', () => {
+    it('opens the warning sheet instead of creating the wallet when SRP users submit', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1056,17 +1062,121 @@ describe('ChoosePassword', () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
+      await fillForm(component);
       await act(async () => {
         fireEvent.press(
-          component.getByTestId(ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID),
+          component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
         );
       });
 
       expect(
-        component.getByTestId(
-          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-        ).props.accessibilityState?.checked,
-      ).toBe(false);
+        component.getByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
+    });
+
+    it('does not open the warning sheet when the passwords do not match', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      await fillForm(component, VALID_PASSWORD, 'DifferentPassword123!');
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+
+      expect(
+        component.queryByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
+      ).toBeNull();
+      expect(
+        component.getByText(strings('choose_password.password_error')),
+      ).toBeOnTheScreen();
+    });
+
+    it('creates the wallet when the warning sheet is confirmed', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      await fillForm(component);
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(
+            PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockNewWalletAndKeychain).toHaveBeenCalled();
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('closes the warning sheet without creating the wallet when cancelled', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: false,
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      await fillForm(component);
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          component.getByTestId(
+            PasswordResetWarningSheetSelectorsIDs.CANCEL_BUTTON,
+          ),
+        );
+      });
+
+      expect(
+        component.queryByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
+      ).toBeNull();
+      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
+    });
+
+    it('does not open the warning sheet for social login users', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
 
       await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
       await act(async () => {
@@ -1076,9 +1186,13 @@ describe('ChoosePassword', () => {
       });
 
       expect(
-        component.getByText(strings('choose_password.acknowledgement_error')),
-      ).toBeOnTheScreen();
-      expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
+        component.queryByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
+      ).toBeNull();
+      await waitFor(() => {
+        expect(mockNewWalletAndKeychain).toHaveBeenCalled();
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
     });
   });
 
@@ -1263,7 +1377,7 @@ describe('ChoosePassword', () => {
       expect(submitButton).toBeEnabled();
     });
 
-    it('shows an acknowledgement error on press for non-OAuth users', async () => {
+    it('shows the password warning sheet on press for non-OAuth users', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1279,7 +1393,7 @@ describe('ChoosePassword', () => {
 
       expect(submitButton).toBeEnabled();
       expect(
-        component.getByText(strings('choose_password.acknowledgement_error')),
+        component.getByTestId(PasswordResetWarningSheetSelectorsIDs.SHEET),
       ).toBeOnTheScreen();
       expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
     });
@@ -1508,7 +1622,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('keeps submit enabled when the acknowledgement checkbox is unchecked by default', async () => {
+    it('keeps submit enabled when the marketing opt-in checkbox is unchecked by default', async () => {
       store = mockStore(createInitialState('US'));
       ReduxService.store = store as unknown as ReduxStore;
       mockRoute.params = {
@@ -1930,18 +2044,12 @@ describe('ChoosePassword', () => {
       const confirmPasswordInput = component.getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      const checkbox = component.getByTestId(
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-      );
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
       });
       await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      });
-      await act(async () => {
-        fireEvent.press(checkbox);
       });
 
       const submitButton = component.getByTestId(
@@ -1950,6 +2058,7 @@ describe('ChoosePassword', () => {
       await act(async () => {
         fireEvent.press(submitButton);
       });
+      await confirmWarningSheet(component);
 
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalledWith(
