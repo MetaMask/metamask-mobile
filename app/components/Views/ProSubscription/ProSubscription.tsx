@@ -17,7 +17,11 @@ import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
-import type { PlanId } from './screens/Benefits/Benefits.constants';
+import {
+  DEFAULT_PLAN,
+  type PlanId,
+} from './screens/Benefits/Benefits.constants';
+import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
@@ -36,6 +40,12 @@ const ProSubscription = () => {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const [currentScreen, setCurrentScreen] =
     useState<ProSubscriptionScreen>('benefits');
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>(
+    (route.params?.initialPlan as PlanId | undefined) ?? DEFAULT_PLAN,
+  );
+  const [checkoutPlan, setCheckoutPlan] = useState<
+    SelectedPlusPlan | undefined
+  >();
 
   // Guard: dismiss immediately if the Pro feature flag is off.
   useEffect(() => {
@@ -48,7 +58,16 @@ const ProSubscription = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSuccess = useCallback(() => {
+  const handlePlanChange = useCallback(
+    (planId: PlanId) => {
+      setSelectedPlan(planId);
+      navigation.setParams({ initialPlan: planId });
+    },
+    [navigation],
+  );
+
+  const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
+    setCheckoutPlan(plan);
     setCurrentScreen('success');
   }, []);
 
@@ -57,6 +76,19 @@ const ProSubscription = () => {
       source: 'pro_subscription_success',
     });
   }, [navigation]);
+
+  let screenContent: React.ReactNode = null;
+  if (currentScreen === 'benefits') {
+    screenContent = (
+      <Benefits
+        onSuccess={handleSuccess}
+        onPlanChange={handlePlanChange}
+        initialPlan={selectedPlan}
+      />
+    );
+  } else if (checkoutPlan) {
+    screenContent = <Success onSuccess={handleSubscriptionOnSuccess} />;
+  }
 
   return (
     <SafeAreaView
@@ -73,14 +105,7 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {currentScreen === 'benefits' ? (
-        <Benefits
-          onSuccess={handleSuccess}
-          initialPlan={route.params?.initialPlan as PlanId | undefined}
-        />
-      ) : (
-        <Success onSuccess={handleSubscriptionOnSuccess} />
-      )}
+      {screenContent}
     </SafeAreaView>
   );
 };
