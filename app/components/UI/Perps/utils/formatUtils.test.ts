@@ -972,6 +972,22 @@ describe('formatUtils', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
     });
+
+    // A dust balance below 1e-6 serializes to exponential notation, whose
+    // exponent sign was being read as a negative amount.
+    it('reads exponential dust balances as small positives, not negatives', () => {
+      expect(parseCurrencyString('1.1e-7')).toBe(1.1e-7);
+      expect(parseCurrencyString('1e-7')).toBe(1e-7);
+      expect(parseCurrencyString('2.5e-8')).toBe(2.5e-8);
+    });
+
+    it('keeps a genuinely negative exponential negative', () => {
+      expect(parseCurrencyString('-1.1e-7')).toBe(-1.1e-7);
+    });
+
+    it('formats an exponential dust balance as zero rather than a negative', () => {
+      expect(formatPerpsBalance('1.1e-7')).toBe('$0');
+    });
   });
 
   describe('truncateToTwoDecimals', () => {
