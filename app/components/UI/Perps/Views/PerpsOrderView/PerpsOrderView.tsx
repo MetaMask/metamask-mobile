@@ -102,6 +102,7 @@ import {
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
+  PERPS_ERROR_CODES,
   calculatePositionSize,
   getPerpsDisplaySymbol,
   type InputMethod,
@@ -210,6 +211,7 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
+import { handlePerpsError } from '../../utils/translatePerpsError';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -1979,6 +1981,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             vipTier,
             hasCustomTokenSelected,
             payToken,
+            maxSlippageBps,
+            maxSlippageSource,
+            estimatedSlippageBps:
+              typeof estimatedSlippageBps === 'number'
+                ? estimatedSlippageBps
+                : undefined,
           }),
         });
 
@@ -2543,6 +2551,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     ? strings('perps.tpsl.below')
                     : strings('perps.tpsl.above'),
                 priceType: tpslPriceType,
+              }),
+            },
+          ]
+        : []),
+      ...(orderExecutionError
+        ? [
+            {
+              key: `execution-${
+                typeof orderExecutionError === 'string'
+                  ? orderExecutionError
+                  : (orderExecutionError.errorCode ??
+                    String(orderExecutionError.error ?? 'unknown'))
+              }`,
+              message: handlePerpsError({
+                error: orderExecutionError,
+                fallbackMessage: strings('perps.errors.unknownError'),
               }),
             },
           ]

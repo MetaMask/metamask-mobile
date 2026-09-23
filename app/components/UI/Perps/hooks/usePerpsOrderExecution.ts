@@ -33,6 +33,7 @@ import {
   PERPS_CUF_STREAM_TIMEOUT_MS,
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
+import type { PerpsErrorInput } from '../utils/translatePerpsError';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -41,14 +42,14 @@ interface UsePerpsOrderExecutionParams {
   onSubmitted?: () => void;
   /** Called when the position has rendered via the stream (or, on stream timeout, without it). */
   onSuccess?: (position?: Position, result?: OrderResult) => void;
-  onError?: (error: string) => void;
+  onError?: (error: PerpsErrorInput | string) => void;
 }
 
 interface UsePerpsOrderExecutionReturn {
   placeOrder: (params: OrderParams) => Promise<OrderResult | undefined>;
   isPlacing: boolean;
   lastResult?: OrderResult;
-  error?: string;
+  error?: PerpsErrorInput | string;
 }
 
 type PerpsOrderTrackingValue = string | number | boolean;
@@ -90,7 +91,7 @@ export function usePerpsOrderExecution(
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<PerpsErrorInput | string>();
 
   // Track order submission toast with unified measurement hook
   usePerpsMeasurement({
@@ -139,11 +140,23 @@ export function usePerpsOrderExecution(
           await handlers.onSuccess(result);
         } else {
           handlers.onFailure?.();
-          const errorMessage =
-            result.error || strings('perps.order.error.unknown');
-          setError(errorMessage);
-          DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
-          onError?.(errorMessage);
+          const errorInput: PerpsErrorInput = {
+            error: result.error || strings('perps.order.error.unknown'),
+            errorCode: result.errorCode,
+            errorDetails: result.errorDetails,
+            context: {
+              maxSlippageBps:
+                orderParams.maxSlippageBps ??
+                orderParams.trackingData?.maxSlippageBps,
+            },
+          };
+          const errorValue =
+            result.errorCode !== undefined || result.errorDetails !== undefined
+              ? errorInput
+              : String(errorInput.error);
+          setError(errorValue);
+          DevLogger.log('usePerpsOrderExecution: Order failed', errorValue);
+          onError?.(errorValue);
         }
 
         return result;
@@ -158,6 +171,14 @@ export function usePerpsOrderExecution(
           err instanceof Error
             ? err.message
             : strings('perps.order.error.unknown');
+        const errorInput: PerpsErrorInput = {
+          error: errorMessage,
+          context: {
+            maxSlippageBps:
+              orderParams.maxSlippageBps ??
+              orderParams.trackingData?.maxSlippageBps,
+          },
+        };
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
 

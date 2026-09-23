@@ -56,6 +56,9 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Pay-with-any-token context (lite only); omit for the direct Pro path. */
   hasCustomTokenSelected?: boolean;
   payToken?: { symbol?: string; chainId?: string | number } | null;
+  maxSlippageBps?: number;
+  maxSlippageSource?: string;
+  estimatedSlippageBps?: number;
 }
 
 /**
@@ -80,6 +83,9 @@ export const buildPerpsOrderTrackingData = ({
   vipTier,
   hasCustomTokenSelected,
   payToken,
+  maxSlippageBps,
+  maxSlippageSource,
+  estimatedSlippageBps,
 }: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
   marginUsed: Number(marginRequired),
   totalFee: feeResults.totalFee,
@@ -105,6 +111,9 @@ export const buildPerpsOrderTrackingData = ({
     : {}),
   vipTier: vipTier ?? undefined,
   vipDiscount: feeResults.feeDiscountPercentage,
+  ...(maxSlippageBps !== undefined ? { maxSlippageBps } : {}),
+  ...(maxSlippageSource !== undefined ? { maxSlippageSource } : {}),
+  ...(estimatedSlippageBps !== undefined ? { estimatedSlippageBps } : {}),
 });
 
 export interface BuildPerpsOrderParamsInput {

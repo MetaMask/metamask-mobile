@@ -120,7 +120,10 @@ import {
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
-import { translatePerpsError } from '../../../../utils/translatePerpsError';
+import {
+  isPerpsErrorCode,
+  translatePerpsError,
+} from '../../../../utils/translatePerpsError';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -2467,15 +2470,33 @@ export const usePerpsProOrderForm = ({
         return;
       if (
         isChaseExecutionRef.current &&
-        error === PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED)
       ) {
         trackChaseConcurrencyLimitHit();
       }
+      const onAdjustSlippage =
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.IOC_CANCEL) ||
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.PRICE_MOVED) ||
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED)
+          ? () => setIsSlippageVisible(true)
+          : undefined;
       const toast = isTwapOrder
-        ? PerpsToastOptions.orderManagement.twap.creationFailed(error)
+        ? onAdjustSlippage
+          ? PerpsToastOptions.orderManagement.twap.creationFailed(
+              error,
+              onAdjustSlippage,
+            )
+          : PerpsToastOptions.orderManagement.twap.creationFailed(error)
         : isChaseExecutionRef.current
-          ? PerpsToastOptions.orderManagement.chase.creationFailed(error)
-          : standardOrderToastOptions.creationFailed(error);
+          ? onAdjustSlippage
+            ? PerpsToastOptions.orderManagement.chase.creationFailed(
+                error,
+                onAdjustSlippage,
+              )
+            : PerpsToastOptions.orderManagement.chase.creationFailed(error)
+          : onAdjustSlippage
+            ? standardOrderToastOptions.creationFailed(error, onAdjustSlippage)
+            : standardOrderToastOptions.creationFailed(error);
       showToast(toast);
     },
   });
@@ -3035,6 +3056,8 @@ export const usePerpsProOrderForm = ({
           direction: latestScale.orderForm.direction,
           chartLibrary,
           vipTier,
+          maxSlippageBps: resolvedMaxSlippageBps,
+          maxSlippageSource,
         });
         const scaleOrderParams = buildPerpsScaleOrderParams({
           asset: latestScale.orderForm.asset,
@@ -3324,6 +3347,12 @@ export const usePerpsProOrderForm = ({
           direction: placementOrderForm.direction,
           chartLibrary,
           vipTier,
+          maxSlippageBps: resolvedMaxSlippageBps,
+          maxSlippageSource,
+          estimatedSlippageBps:
+            typeof estimatedSlippageBps === 'number'
+              ? estimatedSlippageBps
+              : undefined,
         }),
       });
 
