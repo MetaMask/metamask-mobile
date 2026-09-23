@@ -11480,21 +11480,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^23.0.0":
-  version: 23.0.0
-  resolution: "@metamask/ramps-controller@npm:23.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    bignumber.js: "npm:^9.1.2"
-    fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/5def986d4632048786eec2207afbc157cd61cbd7cf5ea2ca6351843f858615b0ca0f27694d74c8b850da3cdf0a515f334baa0f31800a0448108b5e1f87742b34
-  languageName: node
-  linkType: hard
-
 "@metamask/ramps-controller@npm:^24.0.0":
   version: 24.0.0
   resolution: "@metamask/ramps-controller@npm:24.0.0"
@@ -11507,6 +11492,21 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
   checksum: 10/3280b8362570428aca86058d5e1fa5e90ead803c0515c344ed878d150f6debc80354504e624799898a5cc34c6d6a4ceaf0502dbfad805ffcf474dad2f9b824a4
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:^25.0.0":
+  version: 25.0.0
+  resolution: "@metamask/ramps-controller@npm:25.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^32.2.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    bignumber.js: "npm:^9.1.2"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/3d9aea4cfb1c81b28de69b01f04788f21a95030dbed70d644fbbdfbbd28ad9017d96946e790b903f849a7bd19574b8e817b6d94d1f401c4b10077dbc79e09bcf
   languageName: node
   linkType: hard
 
@@ -39359,7 +39359,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^32.1.1"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^23.0.0"
+    "@metamask/ramps-controller": "npm:^25.0.0"
     "@metamask/react-data-query": "npm:^1.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
