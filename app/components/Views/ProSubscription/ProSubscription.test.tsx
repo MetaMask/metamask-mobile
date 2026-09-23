@@ -113,9 +113,7 @@ describe('ProSubscription', () => {
 
       render(<ProSubscription />);
 
-      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
-        source: 'pro_subscription_already_subscribed',
-      });
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
     });
 
     it('does not send an unresolved user to the hub', () => {
@@ -175,9 +173,7 @@ describe('ProSubscription', () => {
       });
 
       expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
-      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
-        source: 'pro_subscription_success',
-      });
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
