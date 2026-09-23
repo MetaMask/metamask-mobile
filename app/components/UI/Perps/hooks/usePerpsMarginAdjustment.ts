@@ -94,11 +94,6 @@ export function usePerpsMarginAdjustment(
           options?.onSuccess?.();
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
-          if (action === 'remove') {
-            DevLogger.log(
-              `[PR-TAT-3985] BUG_MARKER: remove margin rejected by exchange ${JSON.stringify({ symbol, amount, error: result.error })}`,
-            );
-          }
 
           const errorMessage = translatePerpsError(result.error);
           trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
