@@ -5,9 +5,7 @@ import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { useAdapterLifecycle } from './useAdapterLifecycle';
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter, HardwareWalletAdapterOptions } from '../types';
-import {
-  initializeLedgerDmkMode,
-} from '../../Ledger/dmk';
+import { initializeLedgerDmkMode } from '../../Ledger/dmk';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 jest.mock('react-redux', () => ({

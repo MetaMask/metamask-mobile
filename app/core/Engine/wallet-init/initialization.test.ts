@@ -8,10 +8,7 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
-import {
-  getLedgerDmkMode,
-  initializeLedgerDmkMode,
-} from '../../Ledger/dmk';
+import { getLedgerDmkMode, initializeLedgerDmkMode } from '../../Ledger/dmk';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
