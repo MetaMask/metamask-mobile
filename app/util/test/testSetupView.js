@@ -1006,3 +1006,12 @@ jest.mock('@braze/react-native-sdk', () => ({
     })),
   },
 }));
+
+// !!To be removed once legacy ledger library is removed.
+// Seed the Ledger DMK mode before each test, mirroring Engine initializing it
+// before the app renders (view tests never construct the real Engine).
+// Lazy require so per-file jest.mock hoisting applies.
+beforeEach(() => {
+  // eslint-disable-next-line global-require
+  require('../../core/Ledger/dmk').initializeLedgerDmkMode({});
+});
