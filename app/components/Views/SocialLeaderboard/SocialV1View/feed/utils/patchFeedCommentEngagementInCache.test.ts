@@ -1,11 +1,12 @@
 import { QueryClient } from '@tanstack/react-query';
 import type { FeedResponse } from '@metamask/social-controllers';
+import { mockPerpFeedItem } from '../../../FeedView/mocks/coreFeed.mock';
 import { buildTraderFeedQueryKey } from '../../../FeedView/hooks/traderFeedQueries';
+import { readAuthorComment } from '../reactions';
 import { patchFeedCommentEngagementInCache } from './patchFeedCommentEngagementInCache';
 
 const feedItem = (commentId: string, count: number) =>
-  ({
-    positionId: 'pos-1',
+  mockPerpFeedItem({
     authorComment: {
       uid: commentId,
       text: 'alpha',
@@ -15,7 +16,7 @@ const feedItem = (commentId: string, count: number) =>
         userReaction: null,
       },
     },
-  }) as FeedResponse['items'][number];
+  });
 
 describe('patchFeedCommentEngagementInCache', () => {
   it('updates authorComment engagement for the matching Call id', () => {
@@ -39,11 +40,10 @@ describe('patchFeedCommentEngagementInCache', () => {
     const cached = queryClient.getQueryData<{
       pages: FeedResponse[];
     }>(queryKey);
-    expect(
-      cached?.pages[0]?.items[0]?.authorComment?.engagement.reactions,
-    ).toStrictEqual([{ emotion: '👍', count: 5, profiles: [] }]);
-    expect(
-      cached?.pages[0]?.items[0]?.authorComment?.engagement.userReaction,
-    ).toBe('👍');
+    const authorComment = readAuthorComment(cached?.pages[0]?.items[0] ?? {});
+    expect(authorComment?.engagement.reactions).toStrictEqual([
+      { emotion: '👍', count: 5, profiles: [] },
+    ]);
+    expect(authorComment?.engagement.userReaction).toBe('👍');
   });
 });

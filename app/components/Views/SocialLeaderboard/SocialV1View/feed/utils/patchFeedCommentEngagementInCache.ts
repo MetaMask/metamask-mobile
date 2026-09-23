@@ -5,7 +5,7 @@ import {
   PREFETCH_FEED_AUDIENCES,
   toFeedScope,
 } from '../../../FeedView/hooks/traderFeedQueries';
-import type { CommentEngagement } from '../reactions';
+import { readAuthorComment, type CommentEngagement } from '../reactions';
 
 const patchPage = (
   page: FeedResponse,
@@ -14,7 +14,7 @@ const patchPage = (
 ): { page: FeedResponse; changed: boolean } => {
   let changed = false;
   const items = page.items.map((item) => {
-    const authorComment = item.authorComment;
+    const authorComment = readAuthorComment(item);
     if (!authorComment || authorComment.uid !== commentId) {
       return item;
     }
@@ -33,7 +33,7 @@ const patchPage = (
           userReaction: engagement.userReaction,
         },
       },
-    };
+    } as (typeof page.items)[number];
   });
   return changed ? { page: { ...page, items }, changed } : { page, changed };
 };

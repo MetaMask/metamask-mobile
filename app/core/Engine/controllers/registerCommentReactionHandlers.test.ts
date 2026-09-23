@@ -5,10 +5,31 @@ import type { SocialService } from '@metamask/social-controllers';
 const mockFetch = jest.fn();
 
 describe('registerCommentReactionHandlersIfNeeded', () => {
-  const handlers: Record<string, (...args: never[]) => unknown> = {};
+  type ReactToCommentHandler = (options: {
+    commentId: string;
+    emotion: string;
+  }) => Promise<unknown>;
+  type RemoveCommentReactionHandler = (options: {
+    commentId: string;
+  }) => Promise<unknown>;
+
+  const handlers: {
+    'SocialService:reactToComment'?: ReactToCommentHandler;
+    'SocialService:removeCommentReaction'?: RemoveCommentReactionHandler;
+  } = {};
   const registerActionHandler = jest.fn(
-    (action: string, handler: (...args: never[]) => unknown) => {
-      handlers[action] = handler;
+    (
+      action: string,
+      handler: ReactToCommentHandler | RemoveCommentReactionHandler,
+    ) => {
+      if (action === 'SocialService:reactToComment') {
+        handlers['SocialService:reactToComment'] =
+          handler as ReactToCommentHandler;
+      }
+      if (action === 'SocialService:removeCommentReaction') {
+        handlers['SocialService:removeCommentReaction'] =
+          handler as RemoveCommentReactionHandler;
+      }
     },
   );
   const messenger = {
@@ -16,11 +37,27 @@ describe('registerCommentReactionHandlersIfNeeded', () => {
     registerActionHandler,
   };
 
+  const requireReactToCommentHandler = (): ReactToCommentHandler => {
+    const handler = handlers['SocialService:reactToComment'];
+    if (!handler) {
+      throw new Error('Expected SocialService:reactToComment handler');
+    }
+    return handler;
+  };
+
+  const requireRemoveCommentReactionHandler =
+    (): RemoveCommentReactionHandler => {
+      const handler = handlers['SocialService:removeCommentReaction'];
+      if (!handler) {
+        throw new Error('Expected SocialService:removeCommentReaction handler');
+      }
+      return handler;
+    };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(handlers).forEach((key) => {
-      delete handlers[key];
-    });
+    delete handlers['SocialService:reactToComment'];
+    delete handlers['SocialService:removeCommentReaction'];
     global.fetch = mockFetch as unknown as typeof fetch;
   });
 
@@ -56,7 +93,7 @@ describe('registerCommentReactionHandlersIfNeeded', () => {
       }),
     });
 
-    const result = await handlers['SocialService:reactToComment']({
+    const result = await requireReactToCommentHandler()({
       commentId: 'comment-1',
       emotion: '🔥',
     });
@@ -91,7 +128,7 @@ describe('registerCommentReactionHandlersIfNeeded', () => {
       }),
     });
 
-    const result = await handlers['SocialService:removeCommentReaction']({
+    const result = await requireRemoveCommentReactionHandler()({
       commentId: 'comment-2',
     });
 
@@ -113,7 +150,7 @@ describe('registerCommentReactionHandlersIfNeeded', () => {
     mockFetch.mockResolvedValue({ ok: false, status: 503 });
 
     await expect(
-      handlers['SocialService:reactToComment']({
+      requireReactToCommentHandler()({
         commentId: 'comment-1',
         emotion: '👍',
       }),
@@ -128,7 +165,7 @@ describe('registerCommentReactionHandlersIfNeeded', () => {
     });
 
     await expect(
-      handlers['SocialService:removeCommentReaction']({
+      requireRemoveCommentReactionHandler()({
         commentId: 'comment-1',
       }),
     ).rejects.toThrow(
@@ -147,7 +184,7 @@ describe('registerCommentReactionHandlersIfNeeded', () => {
     });
 
     await expect(
-      handlers['SocialService:reactToComment']({
+      requireReactToCommentHandler()({
         commentId: 'comment-1',
         emotion: '🔥',
       }),
