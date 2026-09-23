@@ -767,6 +767,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),

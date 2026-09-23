@@ -11,6 +11,11 @@
 const { NativeModules } = require('react-native');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
+const { installTimerLeakGuard } = require('./timerLeakGuard');
+const { installSocketLeakGuard } = require('./socketLeakGuard');
+
+installTimerLeakGuard();
+installSocketLeakGuard();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>
@@ -994,6 +999,7 @@ jest.mock('@braze/react-native-sdk', () => ({
   default: {
     changeUser: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)

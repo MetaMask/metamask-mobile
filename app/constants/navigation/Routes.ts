@@ -395,6 +395,7 @@ const Routes = {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
     ORDER_REDIRECT: 'PerpsOrderRedirect', // Redirect for one-click trade from token details
+    BALANCE_ORDER: 'PerpsBalanceOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
@@ -428,6 +429,8 @@ const Routes = {
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
+    PRICE_ALERTS: 'PerpsPriceAlerts',
+    CREATE_PRICE_ALERT: 'PerpsCreatePriceAlert',
   },
   MARKET_INSIGHTS: {
     ROOT: 'MarketInsights',
@@ -449,6 +452,7 @@ const Routes = {
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
+    PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
