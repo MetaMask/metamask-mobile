@@ -6021,7 +6021,6 @@
       "only_numbers_allowed": "Mga numero lamang ang pinapayagan",
       "negative_values_not_allowed": "Hindi pinapayagan ang mga negatibong halaga",
       "max_base_fee_must_be_greater_than_priority_fee": "Ang pinakamataas na batayang babayaran o base fee ay mas malaki kaysa sa bayad sa priyoridad",
-      "gas_limit_too_low": "Ang limitasyon ng gas ay dapat na higit sa 21000",
       "priority_fee_too_high": "Ang bayad sa priyoridad ay mas mababa sa pinakamataas na batayang bayad o base fee",
       "no_zero_value": "Ang {{field}} ay dapat na mas malaki kaysa sa 0",
       "speed": "Bilis",
@@ -6538,35 +6537,7 @@
     "swap_completed": "Nag-swap ng {{from}} para sa {{to}}",
     "swap": "Nai-swap",
     "sent": "Ipinadala sa {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "Nai-swap ang {{symbolIn}} sa {{symbolOut}}",
-      "erc20_sent": "Ipinadala sa {{address}}",
-      "erc20_received": "Natanggap mula sa {{address}}",
-      "eth_sent": "Ipinadala sa {{address}}",
-      "eth_received": "Natanggap mula sa {{address}}",
-      "erc721_sent": "Ipinadala ang NFT sa {{address}}",
-      "erc1155_sent": "Ipinadala ang NFT sa {{address}}",
-      "erc721_received": "Natanggap ang NFT mula sa {{address}}",
-      "erc1155_received": "Natanggap ang NFT mula sa {{address}}",
-      "rocketpool_stake_completed": "Naka-stake",
-      "rocketpool_unstake_completed": "Nakumpleto ang pag-unstake",
-      "lido_stake_completed": "Naka-stake",
-      "lido_withdrawal_requested": "Hiniling ang pag-unstake",
-      "lido_withdrawal_completed": "Nakumpleto ang pag-unstake",
-      "lido_stake_ready_to_be_withdrawn": "Hiniling ang pag-withdraw"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Ang iyong hiling na i-unstake ang {{amount}} {{symbol}} ay naipadala na",
-      "lido_stake_ready_to_be_withdrawn": "Maaari mo ng i-withdraw ang iyong in-unstake na {{symbol}}"
-    },
     "modal": {
-      "title_sent": "Nagpadala ng {{symbol}}",
-      "title_received": "Nakatanggap ng {{symbol}}",
-      "title_unstake_requested": "Hiniling ang pag-unstake",
-      "title_untake_ready": "Handa na ang pag-withdraw",
-      "title_stake": "Nag-stake ng {{symbol}}",
-      "title_unstake_completed": "Nakumpleto ang pag-unstake",
-      "title_swapped": "Nai-swap ang {{symbolIn}} sa {{symbolOut}}",
       "label_address_to": "Sa/Kay",
       "label_address_from": "Mula sa",
       "label_address_to_you": "Sa (Iyo)",
@@ -9701,7 +9672,7 @@
       "view_on_block_explorer": "Tingnan sa block explorer"
     },
     "share_address_qr": {
-      "title": "address ng {{networkName}}",
+      "title": "Address ng {{networkName}}",
       "copy_address": "Kopyahin ang address",
       "description": "Gamitin ang address na ito para tumanggap ng mga token at collectible sa",
       "description_prefix": "Gamitin ito para makatanggap ng mga asset sa"

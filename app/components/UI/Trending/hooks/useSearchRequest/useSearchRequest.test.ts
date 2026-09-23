@@ -3,8 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { act, waitFor } from '@testing-library/react-native';
 import { useState } from 'react';
 import { CaipChainId } from '@metamask/utils';
-// eslint-disable-next-line import-x/no-namespace
-import * as assetsControllers from '@metamask/assets-controllers';
+import { searchTokens } from '@metamask/assets-controllers';
 
 const createMockSearchResult = (overrides = {}) => ({
   assetId: 'eip155:1/erc20:0x123' as CaipChainId,
@@ -18,11 +17,15 @@ const createMockSearchResult = (overrides = {}) => ({
   ...overrides,
 });
 
+jest.mock('@metamask/assets-controllers', () => ({
+  searchTokens: jest.fn(),
+}));
+
 describe('useSearchRequest', () => {
   let spySearchTokens: jest.SpyInstance;
 
   beforeEach(() => {
-    spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
+    spySearchTokens = jest.mocked(searchTokens);
     jest.clearAllMocks();
   });
 

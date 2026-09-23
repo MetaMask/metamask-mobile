@@ -883,8 +883,8 @@ function profileOutcome(profile) {
     ).toFixed(1)}%.`;
   }
   const share = (top.selfMs / Math.max(audit.jsWorkMs, 1)) * 100;
-  if (share < 5) {
-    return `No single frame reached 5% of JS work; JS duty cycle ${(
+  if (share < MIN_CONTRIBUTOR_SHARE_PCT) {
+    return `No single frame reached ${MIN_CONTRIBUTOR_SHARE_PCT}% of JS work; JS duty cycle ${(
       (audit.jsWorkMs /
         Math.max(audit.jsWorkMs + audit.runtimeAndIdleMs, 1)) *
       100
@@ -895,6 +895,203 @@ function profileOutcome(profile) {
       ? ` (${top.url}${top.line ? `:${top.line}` : ''})`
       : '';
   return `Top JS contributor: \`${top.name}\` ${formatMs(top.selfMs)} (${share.toFixed(1)}% of JS work)${location}.`;
+}
+
+function frameIdentity(frame) {
+  if (!frame?.name) {
+    return null;
+  }
+  return `${frame.name}|${frame.url || ''}|${frame.line || ''}`;
+}
+
+function formatFrameLabel(frame, { symbolicated } = {}) {
+  const location =
+    symbolicated && frame.url
+      ? ` (${frame.url}${frame.line ? `:${frame.line}` : ''})`
+      : '';
+  return `\`${frame.name}\`${location}`;
+}
+
+function hottestProfile(scenario) {
+  return [...(scenario.profiles || [])]
+    .filter((profile) => profile.skillAudit)
+    .sort(
+      (left, right) =>
+        (right.skillAudit?.jsWorkMs || 0) - (left.skillAudit?.jsWorkMs || 0),
+    )[0];
+}
+
+function scenarioTopHotFrame(scenario) {
+  const profile = hottestProfile(scenario);
+  if (!profile) {
+    return null;
+  }
+  const frame = topSkillFrame(profile);
+  if (!frame || !(profile.skillAudit.jsWorkMs > 0)) {
+    return null;
+  }
+  const share = (frame.selfMs / profile.skillAudit.jsWorkMs) * 100;
+  if (share < MIN_CONTRIBUTOR_SHARE_PCT) {
+    return null;
+  }
+  return { frame, share, selfMs: frame.selfMs, profile };
+}
+
+function scoredScenarios(report) {
+  return [...report.scenarios].sort(
+    (left, right) =>
+      right.averageJsWorkMs * (right.jsDutyPct / 100) -
+      left.averageJsWorkMs * (left.jsDutyPct / 100),
+  );
+}
+
+/**
+ * Cross-scenario facts the Slack and markdown digests lead with. One repeated
+ * top frame is stated once instead of under every scenario.
+ */
+function buildConclusions(report) {
+  const scenarios = report.scenarios.filter(
+    (scenario) => scenario.profiles?.some((profile) => profile.skillAudit),
+  );
+  if (scenarios.length === 0) {
+    return [];
+  }
+
+  const jsWorks = scenarios.map((scenario) => scenario.jsWorkMs);
+  const medianJs = median(jsWorks);
+  const groups = new Map();
+  const flatHighCost = [];
+  const cheap = scenarios.filter(
+    (scenario) => scenario.jsDutyPct < 15 && scenario.jsWorkMs < medianJs,
+  );
+
+  for (const scenario of scenarios) {
+    const hot = scenarioTopHotFrame(scenario);
+    if (hot) {
+      const key = frameIdentity(hot.frame);
+      const group = groups.get(key) || {
+        frame: hot.frame,
+        symbolicated: Boolean(hot.profile.symbolicated && hot.frame.url),
+        scenarios: [],
+        selfMs: [],
+      };
+      group.scenarios.push(scenario);
+      group.selfMs.push(hot.selfMs);
+      groups.set(key, group);
+      continue;
+    }
+    if (scenario.jsWorkMs >= medianJs && medianJs > 0) {
+      flatHighCost.push(scenario);
+    }
+  }
+
+  const conclusions = [];
+  const rankedGroups = [...groups.values()].sort(
+    (left, right) => right.scenarios.length - left.scenarios.length,
+  );
+  const dominant = rankedGroups[0];
+  const dominantThreshold = Math.min(3, scenarios.length);
+  const namedDominant =
+    Boolean(dominant) && dominant.scenarios.length >= dominantThreshold;
+  if (namedDominant) {
+    const minSelf = Math.min(...dominant.selfMs);
+    const maxSelf = Math.max(...dominant.selfMs);
+    const maxScenario = dominant.scenarios.reduce((best, scenario) =>
+      scenario.jsWorkMs > best.jsWorkMs ? scenario : best,
+    );
+    conclusions.push(
+      `${formatFrameLabel(dominant.frame, { symbolicated: dominant.symbolicated })} is the top JS contributor in ${dominant.scenarios.length}/${scenarios.length} scenarios (${formatMs(minSelf)}–${formatMs(maxSelf)} self). Highest JS work with this frame: *${displayName(maxScenario.scenario)}* (${formatMs(maxScenario.jsWorkMs)}, duty ${maxScenario.jsDutyPct}%).`,
+    );
+  }
+
+  // If the leading group was not named as dominant, still consider it as a
+  // secondary hotspot. Skipping it dropped the most common frame whenever it
+  // appeared in fewer than min(3, n) scenarios.
+  for (const group of namedDominant ? rankedGroups.slice(1) : rankedGroups) {
+    const maxSelf = Math.max(...group.selfMs);
+    if (group.scenarios.length < 2 && maxSelf < 500) {
+      continue;
+    }
+    const names = group.scenarios
+      .map((scenario) => `*${displayName(scenario.scenario)}*`)
+      .join(', ');
+    conclusions.push(
+      `${formatFrameLabel(group.frame, { symbolicated: group.symbolicated })} leads ${group.scenarios.length === 1 ? names : `${group.scenarios.length} scenarios (${names})`} — up to ${formatMs(maxSelf)} self.`,
+    );
+    if (conclusions.length >= 4) {
+      break;
+    }
+  }
+
+  if (flatHighCost.length > 0) {
+    const names = flatHighCost
+      .sort((left, right) => right.jsWorkMs - left.jsWorkMs)
+      .slice(0, 3)
+      .map(
+        (scenario) =>
+          `*${displayName(scenario.scenario)}* (${formatMs(scenario.jsWorkMs)} JS, duty ${scenario.jsDutyPct}%)`,
+      )
+      .join('; ');
+    conclusions.push(
+      `Cost is spread (no frame ≥ ${MIN_CONTRIBUTOR_SHARE_PCT}% of JS work) in ${names}.`,
+    );
+  }
+
+  if (cheap.length > 0) {
+    const names = cheap
+      .map((scenario) => displayName(scenario.scenario))
+      .slice(0, 4)
+      .join('; ');
+    conclusions.push(
+      `Low JS duty (<15%): ${names}.`,
+    );
+  }
+
+  return conclusions.slice(0, 4);
+}
+
+function outlierScenarios(report) {
+  const ranked = scoredScenarios(report);
+  const jsWorks = report.scenarios.map((scenario) => scenario.jsWorkMs);
+  const medianJs = median(jsWorks);
+  const dominantKey = (() => {
+    const counts = new Map();
+    for (const scenario of report.scenarios) {
+      const hot = scenarioTopHotFrame(scenario);
+      if (!hot) {
+        continue;
+      }
+      const key = frameIdentity(hot.frame);
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    let best = null;
+    let bestCount = 0;
+    for (const [key, count] of counts) {
+      if (count > bestCount) {
+        best = key;
+        bestCount = count;
+      }
+    }
+    return bestCount >= 3 ? best : null;
+  })();
+
+  const picked = [];
+  for (const scenario of ranked) {
+    const hot = scenarioTopHotFrame(scenario);
+    const key = hot ? frameIdentity(hot.frame) : null;
+    const isSpike = medianJs > 0 && scenario.jsWorkMs >= medianJs * SPIKE_RATIO;
+    const isDifferentFrame = key && key !== dominantKey;
+    const isFlatExpensive = !hot && scenario.jsWorkMs >= medianJs;
+    if (isSpike || isDifferentFrame || isFlatExpensive || picked.length === 0) {
+      picked.push(scenario);
+    }
+    if (picked.length === 5) {
+      break;
+    }
+  }
+  // If conclusions already named the dominant frame, skip repeating it on
+  // every leftover bullet that is not a spike.
+  return { picked, dominantKey };
 }
 
 function buildAiBriefing(report) {
@@ -956,9 +1153,18 @@ ${
   surrounding report already counts them.
 
 Output:
-Maximum 3 bullets, at most two sentences each. Mention only timing outliers or
-repeated contributors that are directly supported by the JSON. Omit a bullet if
-there is no useful cross-scenario observation.
+Maximum 3 bullets, at most two sentences each. Lead with cross-scenario
+patterns (a frame that leads many scenarios, one outlier, cheap vs expensive
+flows). Mention a frame only when its self time is at least 500 ms or at least
+5% of that scenario's JS work. Never mention a frame whose self time is under
+100 ms. Package names from a resolved path are allowed; do not invent causes,
+fixes, or what the function is doing beyond the path.
+
+Do not restate the deterministic conclusions if they already cover the same
+frame. Add only what those conclusions missed.
+
+Deterministic conclusions already in the digest:
+${buildConclusions(report).length > 0 ? buildConclusions(report).map((line) => `- ${line}`).join('\n') : '- none'}
 
 Metric definitions (do not rename or derive a second overlapping metric):
 - \`captureLengthMs\`: wall-clock capture length.
@@ -986,6 +1192,14 @@ function buildMarkdown(report) {
     `Optional agent context: ${report.meta.ai ? 'included' : 'not included'}`,
     '',
   ];
+  const conclusions = buildConclusions(report);
+  if (conclusions.length > 0) {
+    lines.push('## Conclusions', '');
+    for (const line of conclusions) {
+      lines.push(`- ${line}`);
+    }
+    lines.push('');
+  }
   lines.push('## Per-scenario skill analysis', '');
   for (const scenario of report.scenarios) {
     const hasRetries = scenario.attempts.length > 1;
@@ -1071,59 +1285,46 @@ function buildMarkdown(report) {
 }
 
 function buildSlack(report) {
+  const maps =
+    `${report.meta.symbolicatedProfileCount}/${report.meta.profileCount}`;
   const lines = [
     '*Hermes CPU-profile analysis*',
-    ':test_tube: *Disclaimer: this is a testing experiment, not a production alert.* Numbers are for evaluating the analysis itself; do not action or escalate them.',
+    ':test_tube: Testing experiment, not a production alert.',
     '',
-    `_Run:_ \`${report.meta.runId || 'local'}\``,
-    `_Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount}`,
-    '',
-    '*Highest-signal scenarios (skill timing)*',
+    `_Run:_ \`${report.meta.runId || 'local'}\` · _Scenarios:_ ${report.scenarios.length} · _Profiles:_ ${report.meta.profileCount} · _Maps:_ ${maps}`,
   ];
-  const scenarios = [...report.scenarios]
-    .sort(
-      (left, right) =>
-        right.averageJsWorkMs * (right.jsDutyPct / 100) -
-        left.averageJsWorkMs * (left.jsDutyPct / 100),
-    )
-    .slice(0, 12);
-  for (const scenario of scenarios) {
-    const highestSignalProfile = scenario.profiles
-      .filter((profile) => profile.skillAudit)
-      .sort(
-        (left, right) =>
-          (right.skillAudit?.jsWorkMs || 0) -
-          (left.skillAudit?.jsWorkMs || 0),
-      )[0];
-    const attemptLabel =
-      scenario.attempts.length > 1 ? `${attemptDescription(scenario)}, ` : '';
-    lines.push(
-      `• *${displayName(scenario.scenario)}* — ${attemptLabel}avg JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%`,
-      `  ${highestSignalProfile ? profileOutcome(highestSignalProfile) : 'No readable skill timing data.'}`,
-    );
+  const conclusions = buildConclusions(report);
+  if (conclusions.length > 0) {
+    lines.push('', '*Conclusions*');
+    for (const line of conclusions) {
+      lines.push(`• ${line}`);
+    }
   }
-  if (report.scenarios.length > scenarios.length) {
-    lines.push(
-      `_+${report.scenarios.length - scenarios.length} lower-signal scenarios in the workflow artifact._`,
-    );
+  const { picked } = outlierScenarios(report);
+  if (picked.length > 0) {
+    lines.push('', '*Outliers*');
+    for (const scenario of picked) {
+      const profile = hottestProfile(scenario);
+      const attemptLabel =
+        scenario.attempts.length > 1 ? `${attemptDescription(scenario)}, ` : '';
+      lines.push(
+        `• *${displayName(scenario.scenario)}* — ${attemptLabel}JS ${formatMs(scenario.averageJsWorkMs)}, duty ${scenario.jsDutyPct}%`,
+        `  ${profile ? profileOutcome(profile) : 'No readable skill timing data.'}`,
+      );
+    }
   }
   if (report.aiAnalysis) {
-    lines.push('', '*Optional context*', report.aiAnalysis.trim().slice(0, 2_000));
+    lines.push('', '*Notes*', report.aiAnalysis.trim().slice(0, 1_200));
   }
   lines.push(
     '',
-    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
+    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling excluded.',
   );
-  // Sourcemap coverage only matters here as a trust caveat: without a matching
-  // map the frame names above cannot be traced to a file, owner, or fix.
   if (report.meta.symbolicatedProfileCount < report.meta.profileCount) {
     lines.push(
       `_Caveat:_ ${report.meta.profileCount - report.meta.symbolicatedProfileCount}/${report.meta.profileCount} profiles had no matching sourcemap, so frame names cannot be traced to files or owners.`,
     );
   }
-  lines.push(
-    '_Disclaimer:_ Testing experiment only — not a production alert.',
-  );
   return lines.join('\n');
 }
 
@@ -1875,6 +2076,7 @@ export {
   buildAiBriefing,
   buildMarkdown,
   buildSlack,
+  buildConclusions,
   median,
   scenarioFrameTotals,
   aggregateWindow,

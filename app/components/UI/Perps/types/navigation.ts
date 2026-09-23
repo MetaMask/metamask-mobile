@@ -25,6 +25,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
+  PerpsOutreachDetails: undefined;
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;
@@ -207,6 +208,8 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes

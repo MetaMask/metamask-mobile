@@ -101,6 +101,11 @@ describe('PerpsMarketSortDropdowns', () => {
       );
 
       expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Volume')).toHaveStyle({
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+      });
       expect(
         screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();

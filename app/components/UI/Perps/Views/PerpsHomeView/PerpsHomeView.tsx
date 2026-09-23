@@ -125,6 +125,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -136,6 +137,7 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
@@ -305,6 +307,10 @@ const PerpsHomeView = () => {
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
 
+  // The banner sits above the header, so whichever of the two is at the top of
+  // the screen owns the status-bar inset.
+  const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
+
   const perpsScreenTitle = strings('perps.title');
 
   const perpsScrollHandler = useAnimatedScrollHandler({
@@ -330,6 +336,7 @@ const PerpsHomeView = () => {
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
+  const [aggregateFills, setAggregateFills] = useState(true);
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -350,7 +357,7 @@ const PerpsHomeView = () => {
     recentActivity,
     sortBy,
     isLoading,
-  } = usePerpsHomeData({});
+  } = usePerpsHomeData({ aggregateFills });
 
   // Independently gates the section from the Terminal backend flag that
   // supplies `listedAt` data, so it can be hidden even when that data flows.
@@ -956,6 +963,8 @@ const PerpsHomeView = () => {
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
+            aggregateFills={aggregateFills}
+            onAggregateFillsChange={setAggregateFills}
           />
         ),
       },
@@ -995,6 +1004,7 @@ const PerpsHomeView = () => {
       forexMarkets,
       sortBy,
       recentActivity,
+      aggregateFills,
       handleSectionLayout,
       moreItems,
     ],
@@ -1096,9 +1106,12 @@ const PerpsHomeView = () => {
 
   return (
     <View style={styles.container}>
+      {/* Perps Outreach Banner */}
+      <PerpsOutreachBanner includesTopInset location="perps_home" />
+
       {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
       <HeaderStandardAnimated
-        includesTopInset
+        includesTopInset={!outreachCampaign}
         // h-16 (64px) matches the Figma header when the Lite pill is shown
         // (HeaderBase defaults to 56px).
         twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}

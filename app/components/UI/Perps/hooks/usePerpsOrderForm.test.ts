@@ -262,6 +262,21 @@ describe('usePerpsOrderForm', () => {
       });
     });
 
+    it('skips the market lookup when route precision is available', () => {
+      renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'ETH',
+            initialSzDecimals: 4,
+          }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
+
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith('');
+    });
+
     it('keeps an empty surface fallback empty', () => {
       const { result } = renderHook(
         () => usePerpsOrderForm({ fallbackAmount: '' }),

@@ -188,7 +188,7 @@ const CardTransactionDetails = () => {
   }, [navigation]);
 
   const handleReportPress = useCallback(() => {
-    if (!transaction) {
+    if (!transaction || !displayTransactionId) {
       return;
     }
     trackEvent(
@@ -197,10 +197,16 @@ const CardTransactionDetails = () => {
       ).build(),
     );
     navigation.navigate(Routes.CARD.REPORT_TRANSACTION, {
-      transactionId: transaction.id,
+      transactionId: displayTransactionId,
       transaction,
     });
-  }, [createEventBuilder, navigation, trackEvent, transaction]);
+  }, [
+    createEventBuilder,
+    displayTransactionId,
+    navigation,
+    trackEvent,
+    transaction,
+  ]);
 
   const handleViewOnExplorer = useCallback(() => {
     if (!fundingSource?.txHash || !fundingSource.chainId) {

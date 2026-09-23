@@ -1,13 +1,18 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../../core/Engine';
 import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
+const mockGetGeoCountry = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
       fetchSessionDisclaimers: (...args: unknown[]) =>
         mockFetchSessionDisclaimers(...args),
+    },
+    KycService: {
+      getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
     },
   },
 }));
@@ -35,13 +40,15 @@ describe('useKycSessionDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockGetGeoCountry.mockResolvedValue('BRA');
   });
 
-  it('loads idOS and SumSub catalog documents for the given country via KycController', async () => {
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+  it('loads idOS and SumSub catalog documents for the geo country via KycController', async () => {
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    expect(mockGetGeoCountry).toHaveBeenCalled();
     expect(mockFetchSessionDisclaimers).toHaveBeenCalledWith({
       country: 'BRA',
     });
@@ -64,13 +71,31 @@ describe('useKycSessionDisclaimers', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('surfaces an error when KycService is unavailable', async () => {
+    const originalKycService = Engine.context.KycService;
+    (Engine.context as { KycService?: typeof originalKycService }).KycService =
+      undefined;
+
+    try {
+      const { result } = renderHook(() => useKycSessionDisclaimers());
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.disclaimers).toBeNull();
+      expect(result.current.error).toBe('KYC service is unavailable');
+      expect(mockFetchSessionDisclaimers).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.KycService = originalKycService;
+    }
+  });
+
   it('treats an empty catalog as an error so the CTA is not soft-locked', async () => {
     mockFetchSessionDisclaimers.mockResolvedValueOnce({
       idOS: [],
       kycProvider: [],
     });
 
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -85,7 +110,7 @@ describe('useKycSessionDisclaimers', () => {
         new Promise(() => undefined),
       );
 
-      const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+      const { result } = renderHook(() => useKycSessionDisclaimers());
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
@@ -104,7 +129,7 @@ describe('useKycSessionDisclaimers', () => {
       new Error('not signed in'),
     );
 
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -117,7 +142,7 @@ describe('useKycSessionDisclaimers', () => {
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(catalog);
 
-    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toBe('server error');
