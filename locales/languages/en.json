@@ -3982,6 +3982,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "homepage_search_placeholder": "Tokens, address, dApp",
     "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
