@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CommentEngagement, FeedReaction } from '../reactions';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { patchFeedCommentEngagementInCache } from '../utils/patchFeedCommentEngagementInCache';
+import { serializeFeedEngagementSeed } from '../utils/serializeFeedEngagementSeed';
 
 export interface UseFeedPostReactionResult {
   reactions: FeedReaction[];
@@ -53,16 +56,25 @@ export const useFeedPostReaction = (
   initialReactions: FeedReaction[],
   initialUserReaction: string | null = null,
 ): UseFeedPostReactionResult => {
+  const queryClient = useQueryClient();
   const [reactions, setReactions] = useState(initialReactions);
   const [userReaction, setUserReaction] = useState(initialUserReaction);
   const [isPending, setIsPending] = useState(false);
+  const engagementSeed = serializeFeedEngagementSeed(
+    commentId,
+    initialReactions,
+    initialUserReaction,
+  );
+  const lastPropsSeedRef = useRef(engagementSeed);
 
   useEffect(() => {
+    if (isPending || lastPropsSeedRef.current === engagementSeed) {
+      return;
+    }
+    lastPropsSeedRef.current = engagementSeed;
     setReactions(initialReactions);
     setUserReaction(initialUserReaction);
-    // Only re-seed when the Call id changes; the parent list recreates arrays.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commentId]);
+  }, [engagementSeed, initialReactions, initialUserReaction, isPending]);
 
   const pickEmotion = useCallback(
     async (emotion: string) => {
@@ -89,6 +101,7 @@ export const useFeedPostReaction = (
             : await reactToComment({ commentId, emotion });
         setReactions(metrics.reactions);
         setUserReaction(metrics.userReaction);
+        patchFeedCommentEngagementInCache(queryClient, commentId, metrics);
       } catch {
         setReactions(previous.reactions);
         setUserReaction(previous.userReaction);
@@ -96,7 +109,7 @@ export const useFeedPostReaction = (
         setIsPending(false);
       }
     },
-    [commentId, isPending, reactions, userReaction],
+    [commentId, isPending, queryClient, reactions, userReaction],
   );
 
   return { reactions, userReaction, isPending, pickEmotion };

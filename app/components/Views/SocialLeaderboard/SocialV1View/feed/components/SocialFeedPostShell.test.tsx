@@ -1,10 +1,21 @@
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import { View } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
+import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+
+jest.mock('../commentReactionApi', () => ({
+  reactToComment: jest.fn().mockResolvedValue({
+    reactions: [{ emotion: '🔥', count: 1 }],
+    userReaction: '🔥',
+  }),
+  removeCommentReaction: jest.fn(),
+}));
 
 // The real avatar falls back to a Maskicon, which loads its SVG asynchronously
 // and reports un-acted state updates. Capture the props the shell passes in.
@@ -58,9 +69,54 @@ const basePost = (
   ...overrides,
 });
 
+const renderShell = (post: SocialV1FeedPost) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return renderWithProvider(
+    <QueryClientProvider client={queryClient}>
+      <SocialFeedPostShell post={post} />
+    </QueryClientProvider>,
+  );
+};
+
 describe('SocialFeedPostShell', () => {
+  beforeEach(() => {
+    jest
+      .spyOn(View.prototype, 'measureInWindow')
+      .mockImplementation((cb) => {
+        cb(20, 100, 40, 24);
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('opens the balloon and adds a reaction chip when an emoji is picked', async () => {
+    renderShell(basePost({ reactions: [] }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('renders the author, win rate, comment, position card, and engagement row', () => {
-    renderWithProvider(<SocialFeedPostShell post={basePost()} />);
+    renderShell(basePost());
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CONTAINER}-post-1`),
@@ -80,14 +136,12 @@ describe('SocialFeedPostShell', () => {
   });
 
   it('omits optional chrome when win rate, comment, or gif are absent', () => {
-    renderWithProvider(
-      <SocialFeedPostShell
-        post={basePost({
-          winRateLabel: undefined,
-          gifUri: undefined,
-          item: mockOpenPerpsFeedItem({ id: 'item-2', comment: '' }),
-        })}
-      />,
+    renderShell(
+      basePost({
+        winRateLabel: undefined,
+        gifUri: undefined,
+        item: mockOpenPerpsFeedItem({ id: 'item-2', comment: '' }),
+      }),
     );
 
     expect(screen.queryByText('78% WR')).toBeNull();
@@ -98,11 +152,7 @@ describe('SocialFeedPostShell', () => {
   });
 
   it('renders an attached gif preview', () => {
-    renderWithProvider(
-      <SocialFeedPostShell
-        post={basePost({ gifUri: 'https://media.test/cat.gif' })}
-      />,
-    );
+    renderShell(basePost({ gifUri: 'https://media.test/cat.gif' }));
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
@@ -110,9 +160,7 @@ describe('SocialFeedPostShell', () => {
   });
 
   it('shows an empty heart and no zero when the Call has no reactions', () => {
-    renderWithProvider(
-      <SocialFeedPostShell post={basePost({ reactions: [] })} />,
-    );
+    renderShell(basePost({ reactions: [] }));
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
@@ -124,11 +172,7 @@ describe('SocialFeedPostShell', () => {
   });
 
   it('shows an empty heart when the post has no Call id', () => {
-    renderWithProvider(
-      <SocialFeedPostShell
-        post={basePost({ commentId: undefined, reactions: [] })}
-      />,
-    );
+    renderShell(basePost({ commentId: undefined, reactions: [] }));
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
@@ -148,9 +192,7 @@ describe('SocialFeedPostShell', () => {
       author: { ...seeded.author, id: 'profile-alice' },
     };
 
-    renderWithProvider(
-      <SocialFeedPostShell post={basePost({ authorImageUrl: null, item })} />,
-    );
+    renderShell(basePost({ authorImageUrl: null, item }));
 
     const avatar = screen.getByTestId(
       `${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`,
@@ -160,12 +202,10 @@ describe('SocialFeedPostShell', () => {
   });
 
   it('passes a real author image url through to the avatar', () => {
-    renderWithProvider(
-      <SocialFeedPostShell
-        post={basePost({
-          authorImageUrl: 'https://cdn.test/alice.png',
-        })}
-      />,
+    renderShell(
+      basePost({
+        authorImageUrl: 'https://cdn.test/alice.png',
+      }),
     );
 
     expect(
