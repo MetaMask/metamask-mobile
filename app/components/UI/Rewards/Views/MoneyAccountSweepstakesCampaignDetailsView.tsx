@@ -291,25 +291,28 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
               </MoneyAccountSweepstakesCampaignOverview>
 
               {showCampaignEndedStats && (
-                <Box twClassName="px-4">
-                  <MoneyAccountSweepstakesCampaignEndedStats
-                    volumeStats={volumeStats}
-                    prizePool={prizePool}
-                    isVolumeStatsLoading={isVolumeStatsLoading}
-                    isPrizePoolLoading={isPrizePoolLoading}
-                    hasVolumeStatsError={hasVolumeStatsError}
-                    hasPrizePoolError={hasPrizePoolError}
-                    onRetryVolumeStats={refetchVolumeStats}
-                    onRetryPrizePool={refetchPrizePool}
-                  />
-                </Box>
+                <>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <MoneyAccountSweepstakesCampaignEndedStats
+                      volumeStats={volumeStats}
+                      prizePool={prizePool}
+                      isVolumeStatsLoading={isVolumeStatsLoading}
+                      isPrizePoolLoading={isPrizePoolLoading}
+                      hasVolumeStatsError={hasVolumeStatsError}
+                      hasPrizePoolError={hasPrizePoolError}
+                      onRetryVolumeStats={refetchVolumeStats}
+                      onRetryPrizePool={refetchPrizePool}
+                    />
+                  </Box>
+                </>
               )}
 
               {showHowItWorksSection &&
                 displayCampaign?.details?.howItWorks && (
                   <>
                     <Box twClassName="border-b border-border-muted" />
-                    <Box twClassName="px-4 pt-4">
+                    <Box twClassName="p-4">
                       <CampaignHowItWorks
                         howItWorks={
                           displayCampaign.details
@@ -329,12 +332,12 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                         }
                       />
                     </Box>
-                    <Box twClassName="border-b border-border-muted" />
                   </>
                 )}
 
               {campaigns.length > 0 && (
                 <>
+                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <MoneyAccountSweepstakesDrawScheduleSection
                       campaigns={campaigns}
