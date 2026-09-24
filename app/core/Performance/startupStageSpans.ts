@@ -23,6 +23,8 @@ let splashRevealOpen = false;
 let splashRevealClosed = false;
 let rehydrationOpen = false;
 let rehydrationClosed = false;
+let rootNavigatorRenderOpen = false;
+let rootNavigatorRenderClosed = false;
 
 /**
  * Runs a tracing call so that it cannot alter the behaviour it measures.
@@ -122,6 +124,45 @@ export function endPostInitGap(): void {
 }
 
 /**
+ * Opens the span covering `AppFlow`'s first render — the synchronous navigator
+ * module-evaluation burst.
+ *
+ * Called from a lazy `useState` initialiser, i.e. during render, because that is
+ * the only point before children evaluate; every effect fires after the burst
+ * has already happened. That makes throw-safety load-bearing rather than
+ * defensive: an unguarded throw here would propagate out of `AppFlow`'s render
+ * and take the navigator down with it, turning a lost measurement into a blank
+ * app.
+ */
+export function startRootNavigatorFirstRender(): void {
+  if (rootNavigatorRenderOpen) {
+    return;
+  }
+  rootNavigatorRenderOpen = true;
+  safely(() =>
+    trace({
+      name: TraceName.RootNavigatorFirstRender,
+      op: TraceOperation.UIStartup,
+      parentContext: getUIStartupSpan(),
+    }),
+  );
+}
+
+/**
+ * Closes the navigator-render span from `AppFlow`'s mount effect.
+ *
+ * Its caller also closes `PostInitGap`, so a throw escaping here would skip
+ * that and leave `PostInitGap` to time out.
+ */
+export function endRootNavigatorFirstRender(): void {
+  if (!rootNavigatorRenderOpen || rootNavigatorRenderClosed) {
+    return;
+  }
+  rootNavigatorRenderClosed = true;
+  safely(() => endTrace({ name: TraceName.RootNavigatorFirstRender }));
+}
+
+/**
  * Opens the splash reveal-tax span the moment the gate unblocks.
  *
  * Neither `UIStartup` (ends at `App`'s first render) nor Sentry's
@@ -217,4 +258,6 @@ export function resetStartupStageSpansForTesting(): void {
   splashRevealClosed = false;
   rehydrationOpen = false;
   rehydrationClosed = false;
+  rootNavigatorRenderOpen = false;
+  rootNavigatorRenderClosed = false;
 }

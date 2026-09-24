@@ -133,16 +133,12 @@ import TooltipModal from '../../Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
-import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { endTrace, TraceName } from '../../../util/trace';
 import {
   endPostInitGap,
+  endRootNavigatorFirstRender,
   startAppStartToUnlockLaidOut,
+  startRootNavigatorFirstRender,
 } from '../../../core/Performance/startupStageSpans';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
@@ -1152,46 +1148,27 @@ const ModalSwitchAccountType = () => (
   </NativeStack.Navigator>
 );
 
-// Module-scoped so a remount cannot reopen the span. This is a once-per-launch
-// measurement, not a per-mount one.
-let hasMeasuredRootNavigatorRender = false;
-
 const AppFlow = () => {
   // A lazy `useState` initialiser rather than a ref write during render: the
   // initialiser runs exactly once, before children evaluate, and stays
   // compatible with React Compiler (this directory is opted in).
+  // `NavigationProvider` starts its `NavInit` span the same way, for the same
+  // reason, so this is the established shape here rather than a new one.
   //
   // This is deliberately a side effect during render, which React does not
   // formally permit, and the trade-off is accepted knowingly: the span exists to
   // measure the synchronous navigator module-evaluation burst that happens
   // *during* this render, and any effect — layout included — fires after it.
+  // Both calls are guarded and throw-safe inside `startupStageSpans`, which
+  // matters most here: a throw during render would take the navigator down.
   // Known cost: a render that is thrown away (StrictMode double-render, Suspense,
   // an error boundary, a concurrent interruption) opens a span the effect below
   // never closes, which the tracing layer then finishes at its cleanup cap with
   // `trace.timed_out: true`. Filter that attribute when dashboarding this span.
-  //
-  // `NavigationProvider` starts its `NavInit` span the same way for the same
-  // reason, so this is the established shape here rather than a new one.
-  // NOSONAR: the discarded return value and its constant result are inherent to
-  // using the initialiser purely as a run-once hook, as that precedent does.
-  useState(() => {
-    if (hasMeasuredRootNavigatorRender) {
-      return true;
-    }
-    trace({
-      name: TraceName.RootNavigatorFirstRender,
-      op: TraceOperation.UIStartup,
-      parentContext: getUIStartupSpan(),
-    });
-    return true;
-  });
+  useState(startRootNavigatorFirstRender);
 
   useEffect(() => {
-    if (hasMeasuredRootNavigatorRender) {
-      return;
-    }
-    hasMeasuredRootNavigatorRender = true;
-    endTrace({ name: TraceName.RootNavigatorFirstRender });
+    endRootNavigatorFirstRender();
     endPostInitGap();
   }, []);
 

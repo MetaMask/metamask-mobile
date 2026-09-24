@@ -4,11 +4,13 @@ import {
   endAppStartToUnlockLaidOut,
   endControllerStateRehydration,
   endPostInitGap,
+  endRootNavigatorFirstRender,
   endSplashRevealTax,
   resetStartupStageSpansForTesting,
   startAppStartToUnlockLaidOut,
   startControllerStateRehydration,
   startPostInitGap,
+  startRootNavigatorFirstRender,
   startSplashRevealTax,
 } from './startupStageSpans';
 
@@ -201,6 +203,34 @@ describe('startupStageSpans', () => {
     });
   });
 
+  describe('root navigator first render', () => {
+    it('opens and closes the span once, nested under UIStartup', () => {
+      startRootNavigatorFirstRender();
+      endRootNavigatorFirstRender();
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.RootNavigatorFirstRender,
+          parentContext: MOCK_UI_STARTUP_SPAN,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reopen on a second render', () => {
+      startRootNavigatorFirstRender();
+      startRootNavigatorFirstRender();
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close a span that never opened', () => {
+      endRootNavigatorFirstRender();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+  });
+
   describe('throw safety', () => {
     // These spans sit on the critical path: rehydration opens immediately
     // before `getAllPersistedState()`, and the splash span closes inside the
@@ -210,6 +240,9 @@ describe('startupStageSpans', () => {
       ['startControllerStateRehydration', startControllerStateRehydration],
       ['startPostInitGap', startPostInitGap],
       ['startSplashRevealTax', startSplashRevealTax],
+      // Load-bearing: this one runs during render, so an escaping throw would
+      // take AppFlow — and therefore the whole navigator — down with it.
+      ['startRootNavigatorFirstRender', startRootNavigatorFirstRender],
       ['startAppStartToUnlockLaidOut', startAppStartToUnlockLaidOut],
     ];
 
@@ -230,6 +263,11 @@ describe('startupStageSpans', () => {
       ],
       ['endPostInitGap', startPostInitGap, endPostInitGap],
       ['endSplashRevealTax', startSplashRevealTax, endSplashRevealTax],
+      [
+        'endRootNavigatorFirstRender',
+        startRootNavigatorFirstRender,
+        endRootNavigatorFirstRender,
+      ],
       [
         'endAppStartToUnlockLaidOut',
         startAppStartToUnlockLaidOut,

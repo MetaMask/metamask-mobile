@@ -40,10 +40,16 @@ jest.mock('../../../core/Performance/HomepageReady', () => ({
 
 const mockStartAppStartToUnlockLaidOut = jest.fn();
 const mockEndPostInitGap = jest.fn();
+const mockStartRootNavigatorFirstRender = jest.fn();
+const mockEndRootNavigatorFirstRender = jest.fn();
 jest.mock('../../../core/Performance/startupStageSpans', () => ({
   startAppStartToUnlockLaidOut: (...args: unknown[]) =>
     mockStartAppStartToUnlockLaidOut(...args),
   endPostInitGap: (...args: unknown[]) => mockEndPostInitGap(...args),
+  startRootNavigatorFirstRender: (...args: unknown[]) =>
+    mockStartRootNavigatorFirstRender(...args),
+  endRootNavigatorFirstRender: (...args: unknown[]) =>
+    mockEndRootNavigatorFirstRender(...args),
 }));
 
 const initialState: DeepPartial<RootState> = {
