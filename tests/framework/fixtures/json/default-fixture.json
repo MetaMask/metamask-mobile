@@ -917,6 +917,7 @@
       "moneyAccountSweepstakesDrawProofs": {},
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
+      "moneyAccountSweepstakesVolumeStats": {},
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
       "ondoCampaignActivity": {},

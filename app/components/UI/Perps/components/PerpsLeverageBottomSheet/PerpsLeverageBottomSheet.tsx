@@ -622,7 +622,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     testID={`${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${value}`}
                     style={({ pressed }) =>
                       tw.style(
-                        'h-10 items-center justify-center rounded-lg',
+                        'h-10 items-center justify-center rounded-full',
                         isSelected && 'bg-muted',
                         pressed && 'opacity-70',
                         { width: LEVERAGE_ITEM_WIDTH },
