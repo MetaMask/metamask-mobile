@@ -68,6 +68,7 @@ describe('useMoneyAccountPlusAccess', () => {
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Disabled);
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('keeps subscriber access when entitlements outlive an active status', () => {
@@ -116,5 +117,6 @@ describe('useMoneyAccountPlusAccess', () => {
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Eligible);
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
   });
 });
