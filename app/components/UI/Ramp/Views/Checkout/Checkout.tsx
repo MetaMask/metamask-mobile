@@ -36,10 +36,6 @@ import {
 import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
-  Box,
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
   HeaderStandard,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -295,7 +291,31 @@ const Checkout = () => {
 
   const hasTrackedScreenViewRef = useRef(false);
 
-  const webViewRef = useRef<WebView>(null);
+  // Callback-URL and embedded-page completions both end on order details.
+  const navigateToOrderDetails = useCallback(
+    (orderParams: {
+      callbackUrl?: string;
+      providerCode?: string;
+      walletAddress?: string;
+      orderId?: string;
+    }) => {
+      dispatch(protectWalletModalVisible());
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+            params: {
+              ...orderParams,
+              showCloseButton: true,
+              ...(cryptocurrency ? { cryptocurrency } : {}),
+            },
+          },
+        ],
+      });
+    },
+    [dispatch, navigation, cryptocurrency],
+  );
 
   useEffect(() => {
     if (!headlessSessionId) {
@@ -561,26 +581,14 @@ const Checkout = () => {
           return;
         }
 
-        dispatch(protectWalletModalVisible());
-
         closeSourceRef.current = 'callback_success';
 
         // Unified buy stack (non-headless): leave the WebView immediately; OrderDetails
         // resolves the order via callback params (same pattern as external-browser return).
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: {
-                callbackUrl: navState.url,
-                providerCode,
-                walletAddress,
-                showCloseButton: true,
-                ...(cryptocurrency ? { cryptocurrency } : {}),
-              },
-            },
-          ],
+        navigateToOrderDetails({
+          callbackUrl: navState.url,
+          providerCode,
+          walletAddress,
         });
       } catch (navError) {
         closeSourceRef.current = 'callback_error';
@@ -599,7 +607,7 @@ const Checkout = () => {
       providerCode,
       walletAddress,
       navigation,
-      cryptocurrency,
+      navigateToOrderDetails,
       addOrder,
       getOrderFromCallback,
       headlessSessionId,
@@ -730,27 +738,13 @@ const Checkout = () => {
       navigation.getParent()?.pop();
       return;
     }
-    dispatch(protectWalletModalVisible());
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-          params: {
-            orderId: effectiveOrderId,
-            showCloseButton: true,
-            ...(cryptocurrency ? { cryptocurrency } : {}),
-          },
-        },
-      ],
-    });
+    navigateToOrderDetails({ orderId: effectiveOrderId });
   }, [
     headlessSessionId,
     dismissActiveHeadlessFlow,
     navigation,
     effectiveOrderId,
-    dispatch,
-    cryptocurrency,
+    navigateToOrderDetails,
   ]);
 
   // A headless caller waits on session callbacks, not an in-app ErrorView,
@@ -859,71 +853,60 @@ const Checkout = () => {
     />
   );
 
+  const renderStatusSheet = (body: React.ReactNode) => (
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      isFullscreen
+      keyboardAvoidingViewEnabled={false}
+    >
+      {sharedHeader}
+      <ScreenLayout>
+        <ScreenLayout.Body>{body}</ScreenLayout.Body>
+      </ScreenLayout>
+    </BottomSheet>
+  );
+
+  // Remounts the WebView with every per-load tracking ref cleared.
+  const retryCheckout = () => {
+    setKey((prevKey) => prevKey + 1);
+    setError('');
+    setErrorCtaMode('retry');
+    isRedirectionHandledRef.current = false;
+    lastLoadCompleteUrlRef.current = null;
+    loadUrlErrorsRef.current.clear();
+    loadStartTimeRef.current = null;
+    closeSourceRef.current = null;
+    urlHistoryRef.current = { current: null, previous: null };
+    stepIndexRef.current = 0;
+    previousNavStateUrlRef.current = null;
+  };
+
   if (error) {
     const isGoBackError = errorCtaMode === 'go_back';
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        goBack={navigation.goBack}
-        isFullscreen
-        keyboardAvoidingViewEnabled={false}
-      >
-        {sharedHeader}
-        <ScreenLayout>
-          <ScreenLayout.Body>
-            <ErrorView
-              description={error}
-              ctaLabel={
-                isGoBackError
-                  ? strings('fiat_on_ramp_aggregator.checkout_link_expired_cta')
-                  : undefined
-              }
-              ctaOnPress={
-                isGoBackError
-                  ? () => navigation.goBack()
-                  : () => {
-                      setKey((prevKey) => prevKey + 1);
-                      setError('');
-                      setErrorCtaMode('retry');
-                      isRedirectionHandledRef.current = false;
-                      lastLoadCompleteUrlRef.current = null;
-                      loadUrlErrorsRef.current.clear();
-                      loadStartTimeRef.current = null;
-                      closeSourceRef.current = null;
-                      urlHistoryRef.current = { current: null, previous: null };
-                      stepIndexRef.current = 0;
-                      previousNavStateUrlRef.current = null;
-                    }
-              }
-              location="Provider Webview"
-            />
-          </ScreenLayout.Body>
-        </ScreenLayout>
-      </BottomSheet>
+    return renderStatusSheet(
+      <ErrorView
+        description={error}
+        ctaLabel={
+          isGoBackError
+            ? strings('fiat_on_ramp_aggregator.checkout_link_expired_cta')
+            : undefined
+        }
+        ctaOnPress={isGoBackError ? () => navigation.goBack() : retryCheckout}
+        location="Provider Webview"
+      />,
     );
   }
 
   // Per-user limit with a hosted-widget fallback: offer the provider
   // account flow instead of a fixed error.
   if (embeddedLimitErrorCode && fallbackBuyWidget) {
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        goBack={navigation.goBack}
-        isFullscreen
-        keyboardAvoidingViewEnabled={false}
-      >
-        {sharedHeader}
-        <ScreenLayout>
-          <ScreenLayout.Body>
-            <CheckoutLimitErrorView
-              providerName={providerName}
-              onContinuePress={handleFallbackPress}
-              isPending={isFallbackPending}
-            />
-          </ScreenLayout.Body>
-        </ScreenLayout>
-      </BottomSheet>
+    return renderStatusSheet(
+      <CheckoutLimitErrorView
+        providerName={providerName}
+        onContinuePress={handleFallbackPress}
+        isPending={isFallbackPending}
+      />,
     );
   }
 
@@ -939,7 +922,6 @@ const Checkout = () => {
       >
         {sharedHeader}
         <WebView
-          ref={webViewRef}
           key={key}
           style={styles.webview}
           source={{ uri }}

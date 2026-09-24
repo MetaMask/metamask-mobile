@@ -127,6 +127,7 @@ export const coinbaseCheckoutPageEventAdapter: ProviderCheckoutPageEventAdapter 
   {
     matches: isCoinbaseProviderId,
     isTrustedUrl: isCoinbaseCheckoutUrl,
+    requiresGooglePayPreflight: true,
     parse: (data) => {
       const parsed = parseCoinbaseCheckoutEvent(data);
       return parsed ? toCheckoutPageEvent(parsed) : undefined;

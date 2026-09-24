@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 
 import Device from '../../../../util/device';
-import { isCoinbaseProviderId } from './coinbaseEmbedded';
+import { getCheckoutPageEventAdapter } from './checkoutPageEvents';
 
 const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
 
@@ -10,15 +10,15 @@ export const GOOGLE_PAY_AVAILABILITY_TIMEOUT_MS = 3000;
 
 export type GooglePayAvailability = 'available' | 'unavailable' | 'unknown';
 
-// Android + Coinbase + Google Pay: the embedded page shows a dead "unavailable"
-// state with no event when Google Pay can't pay in the WebView.
 export function needsGooglePayPreflight(
   providerId: string | undefined,
   paymentMethodId: string | undefined,
 ): boolean {
   return (
     Device.isAndroid() &&
-    isCoinbaseProviderId(providerId) &&
+    Boolean(
+      getCheckoutPageEventAdapter(providerId)?.requiresGooglePayPreflight,
+    ) &&
     Boolean(paymentMethodId?.endsWith(GOOGLE_PAY_PAYMENT_METHOD_SUFFIX))
   );
 }

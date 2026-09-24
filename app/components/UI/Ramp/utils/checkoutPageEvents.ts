@@ -27,6 +27,8 @@ export interface CheckoutPageEventAdapter {
   /** Whether the message's posting-frame URL is a trusted origin for this provider. */
   isTrustedUrl: (url: string | undefined) => boolean;
   parse: (data: unknown) => CheckoutPageEvent | undefined;
+  /** The page goes silent when Google Pay can't pay, so Android must ask Play Services first. */
+  requiresGooglePayPreflight?: boolean;
 }
 
 export interface ProviderCheckoutPageEventAdapter

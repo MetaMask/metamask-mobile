@@ -294,7 +294,7 @@ export function useContinueWithQuote(
           },
         });
       };
-      // Coinbase's page emits nothing when Google Pay can't pay in the WebView,
+      // Some embedded pages go silent when Google Pay can't pay in the WebView,
       // so ask Play Services before reserving an order. Only an explicit "no" stops.
       const effectivePaymentMethodId =
         quote.quote?.paymentMethod ??
