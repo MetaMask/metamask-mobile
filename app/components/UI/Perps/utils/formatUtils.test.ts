@@ -520,6 +520,46 @@ describe('formatUtils', () => {
       expect(formatPerpsInput('1200.50', 'fr-FR')).toBe('1\u202f200,50');
     });
 
+    it('formats and normalizes input without formatToParts support', () => {
+      const numberFormatPrototype = Intl.NumberFormat.prototype;
+      const formatToPartsDescriptor = Object.getOwnPropertyDescriptor(
+        numberFormatPrototype,
+        'formatToParts',
+      );
+
+      Object.defineProperty(numberFormatPrototype, 'formatToParts', {
+        configurable: true,
+        value: undefined,
+      });
+
+      try {
+        const formattedEnglishInput = formatPerpsInput('1200.50', 'en-US');
+        const formattedGermanInput = formatPerpsInput('1200.50', 'de-DE');
+        const formattedFrenchInput = formatPerpsInput('1200.50', 'fr-FR');
+        const normalizedGermanInput = normalizePerpsNumericInput(
+          formattedGermanInput,
+          'de-DE',
+        );
+        const formattedPartialInput = formatPerpsInput('1000.', 'en-US');
+
+        expect(formattedEnglishInput).toBe('1,200.50');
+        expect(formattedGermanInput).toBe('1.200,50');
+        expect(formattedFrenchInput).toBe('1\u202f200,50');
+        expect(normalizedGermanInput).toBe('1200.50');
+        expect(formattedPartialInput).toBe('1,000.');
+      } finally {
+        if (formatToPartsDescriptor) {
+          Object.defineProperty(
+            numberFormatPrototype,
+            'formatToParts',
+            formatToPartsDescriptor,
+          );
+        } else {
+          Reflect.deleteProperty(numberFormatPrototype, 'formatToParts');
+        }
+      }
+    });
+
     it('normalizes grouped values to canonical decimal input', () => {
       expect(normalizePerpsNumericInput('1,200.50', 'en-US')).toBe('1200.50');
       expect(normalizePerpsNumericInput('1.200,50', 'de-DE')).toBe('1200.50');
