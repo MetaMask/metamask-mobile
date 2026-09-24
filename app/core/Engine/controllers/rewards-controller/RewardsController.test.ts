@@ -17697,6 +17697,7 @@ describe('RewardsController', () => {
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17739,6 +17740,7 @@ describe('RewardsController', () => {
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17786,6 +17788,7 @@ describe('RewardsController', () => {
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -21618,12 +21621,19 @@ describe('RewardsController', () => {
       expect(bindingMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('delegates to the data service and caches the bound result', async () => {
+    it('signs the binding message with the money account and caches the bound result', async () => {
+      const mockTimestamp = 1758700000000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
       const ctrl = new RewardsController({
         messenger: bindingMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      bindingMessenger.call.mockResolvedValue('bound');
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'bound',
+        )) as unknown as RewardsControllerMessenger['call']);
 
       const first = await ctrl.registerMoneyAccountBinding(
         mockAddress,
@@ -21634,14 +21644,118 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
+      const expectedMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${mockTimestamp}`;
       expect(first).toBe('bound');
       expect(second).toBe('bound');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+        mockTimestamp,
+        '0xsignature',
+      );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not call the data service when signing fails', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockRejectedValue(new Error('sign failed'));
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow('sign failed');
+
       expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({ from: mockAddress }),
+      );
+    });
+
+    it('retries once with the server timestamp when the first bind is out of window', async () => {
+      const clientTimestamp = 1758700000000;
+      const serverTimestamp = 1758700800000;
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(clientTimestamp);
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      let bindCalls = 0;
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        bindCalls += 1;
+        if (bindCalls === 1) {
+          return Promise.reject(
+            new InvalidTimestampError('Invalid timestamp', serverTimestamp),
+          );
+        }
+        return Promise.resolve('bound');
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      const result = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      const retryMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${serverTimestamp}`;
+      expect(result).toBe('bound');
+      expect(bindCalls).toBe(2);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(retryMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
       expect(bindingMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:registerMoneyAccountBinding',
         mockSubscriptionId,
         mockAddress,
+        serverTimestamp,
+        '0xsignature',
       );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not retry InvalidTimestampError beyond one attempt', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        return Promise.reject(
+          new InvalidTimestampError('Invalid timestamp', 1758700800000),
+        );
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow(InvalidTimestampError);
+
+      const bindCalls = bindingMessenger.call.mock.calls.filter(
+        (call) => call[0] === 'RewardsDataService:registerMoneyAccountBinding',
+      );
+      expect(bindCalls).toHaveLength(2);
     });
 
     it('caches conflict results so subsequent calls do not re-POST', async () => {
@@ -21649,7 +21763,12 @@ describe('RewardsController', () => {
         messenger: bindingMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      bindingMessenger.call.mockResolvedValue('conflict');
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'conflict',
+        )) as unknown as RewardsControllerMessenger['call']);
 
       const first = await ctrl.registerMoneyAccountBinding(
         mockAddress,
@@ -21662,7 +21781,7 @@ describe('RewardsController', () => {
 
       expect(first).toBe('conflict');
       expect(second).toBe('conflict');
-      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
     });
   });
 

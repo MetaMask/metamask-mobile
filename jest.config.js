@@ -76,6 +76,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
+  '@metamask/client-utils',
   '@metamask/config-registry-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',

@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Banka hesabı",
       "title": "Pix Anahtarınızı alın",
       "description": "Herhangi bir banka hesabından Money hesabınıza doğrudan fon gönderin.",

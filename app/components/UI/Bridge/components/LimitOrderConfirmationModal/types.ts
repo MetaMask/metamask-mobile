@@ -1,3 +1,4 @@
+import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
 import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
@@ -47,10 +48,19 @@ export interface LimitOrderConfirmationModalParams {
    * sheet is open.
    */
   order: Omit<LimitOrderDelegationsParams, 'costTolerance'>;
+  /**
+   * The condition that fills the order, in the shape `POST /v2/limit-orders`
+   * takes. Built by the caller, which is the only place holding the raw limit
+   * price and the side it is quoted on, and where a price shown in another
+   * display currency is converted to the USD equivalent the API requires.
+   * Left undefined when the price cannot be expressed as a trigger, which this
+   * screen surfaces rather than placing an order the API would reject.
+   */
+  trigger?: CreateLimitOrderParams['trigger'];
 }
 
 export interface LimitOrderConfirmationModalProps
-  extends Omit<LimitOrderConfirmationModalParams, 'order'> {
+  extends Omit<LimitOrderConfirmationModalParams, 'order' | 'trigger'> {
   /**
    * Cost tolerance label, e.g. "2%". Read from state by the host screen so
    * edits made in the cost tolerance modal are reflected here.
@@ -70,6 +80,12 @@ export interface LimitOrderConfirmationModalProps
    * Token the network fee is paid in, used for the network fee row avatar.
    */
   feeToken?: BridgeToken;
+  /**
+   * USD price the order triggers at, e.g. "$3,412.2". Set only for a price
+   * entered in fiat while the display currency is not USD, since the order is
+   * placed at this USD price rather than the one on screen.
+   */
+  usdTriggerPrice?: string;
   primaryButton: {
     onPress: () => void;
     label: string;
