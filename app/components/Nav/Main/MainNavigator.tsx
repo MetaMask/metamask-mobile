@@ -605,12 +605,14 @@ const SettingsFlow = () => {
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        CAN_INSTALL_THIRD_PARTY_SNAPS ? (
-          <NativeStack.Screen
-            name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-            component={SnapsSettingsStack}
-          />
-        ) : null
+      }
+      {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
+        <NativeStack.Screen
+          name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+          component={SnapsSettingsStack}
+        />
+      ) : null}
+      {
         ///: END:ONLY_INCLUDE_IF
       }
     </NativeStack.Navigator>
@@ -1443,10 +1445,12 @@ const MainNavigator = () => {
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-        <NativeStack.Screen
-          name={Routes.SAMPLE_FEATURE}
-          component={SampleFeature}
-        />
+      }
+      <NativeStack.Screen
+        name={Routes.SAMPLE_FEATURE}
+        component={SampleFeature}
+      />
+      {
         ///: END:ONLY_INCLUDE_IF
       }
       <NativeStack.Screen
