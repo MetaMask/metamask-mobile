@@ -505,27 +505,6 @@ describe('PerpsAdjustMarginView', () => {
       ).toHaveTextContent('150.00');
     });
 
-    it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
-      render(<PerpsAdjustMarginView />);
-      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
-        onAmountChanged?: (maxAmount: number) => void;
-      };
-      act(() => {
-        options.onAmountChanged?.(150);
-      });
-
-      act(() => {
-        (
-          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
-            .props as { onValueChange: (v: number) => void }
-        ).onValueChange(100);
-      });
-
-      expect(
-        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
-      ).toHaveTextContent('150.00');
-    });
-
     const setUpFreshLimit = () => {
       const { rerender } = render(<PerpsAdjustMarginView />);
       const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
@@ -554,6 +533,12 @@ describe('PerpsAdjustMarginView', () => {
       return { renderLive, amountAtMax };
     };
     const pnlTick = { ...mockPosition, unrealizedPnl: '90', marginUsed: '490' };
+
+    it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+      const { amountAtMax } = setUpFreshLimit();
+
+      expect(amountAtMax()).toHaveTextContent('150.00');
+    });
 
     it('keeps the fresh limit through PnL re-deliveries and drops it when the size changes', () => {
       const { renderLive, amountAtMax } = setUpFreshLimit();
