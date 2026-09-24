@@ -35,6 +35,12 @@ interface TestBenefit {
 
 let mockBenefits: TestBenefit[] = [];
 let mockLoading = false;
+let mockWindowWidth = 390;
+
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: () => ({ width: mockWindowWidth, height: 844 }),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -75,6 +81,8 @@ jest.mock('./BenefitCard', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
+    BENEFIT_PREVIEW_CARD_WIDTH: 210,
+    BENEFIT_PREVIEW_CARD_HEIGHT: 248,
     default: ({ benefit }: { benefit: TestBenefit }) =>
       ReactActual.createElement(
         Text,
@@ -105,6 +113,7 @@ describe('BenefitsPreview', () => {
     jest.clearAllMocks();
     mockBenefits = [];
     mockLoading = false;
+    mockWindowWidth = 390;
     mockUseBenefits.mockReturnValue({ getAllBenefits: jest.fn() });
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectBenefits) {
@@ -153,7 +162,9 @@ describe('BenefitsPreview', () => {
 
       const { getByTestId, queryByTestId } = render(<BenefitsPreview />);
 
-      expect(getByTestId('benefits-preview-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SKELETON),
+      ).toBeOnTheScreen();
       expect(queryByTestId('benefit-empty-list')).toBeNull();
     });
 
@@ -166,7 +177,9 @@ describe('BenefitsPreview', () => {
 
       const { getByTestId, queryByTestId } = render(<BenefitsPreview />);
 
-      expect(getByTestId('benefits-preview-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SKELETON),
+      ).toBeOnTheScreen();
       expect(queryByTestId('benefit-card-1')).toBeNull();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS),
@@ -221,6 +234,41 @@ describe('BenefitsPreview', () => {
       ).toBeOnTheScreen();
       expect(getByText('Benefit One')).toBeOnTheScreen();
       expect(getByText('Benefit Two')).toBeOnTheScreen();
+    });
+
+    it('lays the benefit cards out in a snapping horizontal carousel', () => {
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(carousel.props.horizontal).toBe(true);
+      // Two 210pt tiles plus gap and padding overflow a 390pt viewport by 74,
+      // which is where the trailing tile settles flush against the edge.
+      expect(carousel.props.snapToOffsets).toEqual([0, 74]);
+    });
+
+    it('lets the last of three tiles snap instead of springing back', () => {
+      mockBenefits = [
+        { id: 1, longTitle: 'B1', shortDescription: 'a' },
+        { id: 2, longTitle: 'B2', shortDescription: 'b' },
+        { id: 3, longTitle: 'B3', shortDescription: 'c' },
+      ];
+
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(carousel.props.snapToOffsets).toEqual([0, 222, 296]);
+    });
+
+    it('keeps snap offsets ascending when every tile already fits', () => {
+      mockWindowWidth = 1024;
+
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(carousel.props.snapToOffsets).toEqual([0, 0]);
     });
 
     it('limits preview to the first three benefits', () => {
