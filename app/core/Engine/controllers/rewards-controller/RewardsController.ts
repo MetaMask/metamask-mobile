@@ -41,6 +41,7 @@ import {
   type PredictThePitchPrizePoolDto,
   type MoneyAccountSweepstakesStatsMeDto,
   type MoneyAccountSweepstakesPrizePoolDto,
+  type MoneyAccountSweepstakesVolumeStatsDto,
   type MoneyAccountSweepstakesDrawProofDto,
   type MoneyAccountSweepstakesOutcomeDto,
   type OndoGmActivityState,
@@ -392,6 +393,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  moneyAccountSweepstakesVolumeStats: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   moneyAccountSweepstakesDrawProof: {
     includeInStateLogs: true,
     persist: true,
@@ -603,6 +610,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPrizePool',
   'getMoneyAccountSweepstakesStatsMe',
   'getMoneyAccountSweepstakesPrizePool',
+  'getMoneyAccountSweepstakesVolumeStats',
   'getMoneyAccountSweepstakesDrawProof',
   'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
@@ -5885,6 +5893,58 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         this.update((state) => {
           state.moneyAccountSweepstakesPrizePool[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes aggregate volume stats.
+   * Public endpoint — results are cached for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The volume stats DTO.
+   */
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        eligibleParticipantCount: 0,
+        yieldEarnedUsd: 0,
+      };
+    }
+
+    return await wrapWithCache<MoneyAccountSweepstakesVolumeStatsDto>({
+      key: campaignId,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesVolumeStats[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            eligibleParticipantCount: cached.eligibleParticipantCount,
+            yieldEarnedUsd: cached.yieldEarnedUsd,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Money Account Sweepstakes volume stats via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
+          campaignId,
+        )) as MoneyAccountSweepstakesVolumeStatsDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesVolumeStats[k] = {
             ...payload,
             lastFetched: Date.now(),
           };

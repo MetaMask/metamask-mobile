@@ -3938,7 +3938,7 @@ describe('PerpsMarketDetailsView', () => {
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.ERROR),
       ).toBeOnTheScreen();
       expect(
-        getByText('Market data not found. Please go back and try again.'),
+        getByText('Market data not found. Go back and try again.'),
       ).toBeOnTheScreen();
     });
 

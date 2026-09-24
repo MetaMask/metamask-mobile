@@ -33,7 +33,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
-import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsTPSLRouter from '../Views/PerpsTPSLRouter';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
 import PerpsAdjustMarginBottomSheet from '../components/PerpsAdjustMarginBottomSheet';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
@@ -137,6 +137,18 @@ export const shouldRenderPerpsConfirmationLoader = (
   approvalRequest: unknown,
 ) => Boolean(useBottomSheet && !approvalRequest);
 
+/**
+ * Back from a Lite market replaces the stack with Perps home
+ * (`resetToPerpsHomeTarget`) because the Lite -> Pro switch dropped Home from
+ * history. Native stack replaces screens with a push animation by default, so
+ * Back slid the market page left as if the user moved forward.
+ */
+export const getPerpsHomeScreenOptions = (): NativeStackNavigationOptions => ({
+  title: strings('perps.markets.title'),
+  headerShown: false,
+  animationTypeForReplace: 'pop',
+});
+
 export const getAdjustMarginOptions = (
   useBottomSheet: boolean | undefined,
 ): NativeStackNavigationOptions =>
@@ -148,6 +160,24 @@ export const getAdjustMarginOptions = (
       }
     : {
         title: strings('perps.adjust_margin.title'),
+        headerShown: false,
+      };
+
+export const getTpslOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        // The sheet draws its own backdrop fade and slide. Leaving the stack
+        // animation on would slide the whole transparent screen, backdrop
+        // included, which is what separates this from the modify modal.
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
+      }
+    : {
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
         headerShown: false,
       };
 
@@ -405,10 +435,7 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.PERPS_HOME}
                 component={PerpsHomeView}
-                options={{
-                  title: strings('perps.markets.title'),
-                  headerShown: false,
-                }}
+                options={getPerpsHomeScreenOptions}
               />
 
               <Stack.Screen
@@ -490,12 +517,10 @@ const PerpsScreenStack = () => {
               {/* TP/SL View - Regular screen */}
               <Stack.Screen
                 name={Routes.PERPS.TPSL}
-                component={PerpsTPSLView}
-                options={{
-                  ...transparentModalScreenOptions,
-                  title: strings('perps.tpsl.title'),
-                  headerShown: false,
-                }}
+                component={PerpsTPSLRouter}
+                options={({ route }) =>
+                  getTpslOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Adjust Margin View */}

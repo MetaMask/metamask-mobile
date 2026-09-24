@@ -51,17 +51,12 @@ jest.mock('./SocialFeedPositionCard', () => {
   };
 });
 
-jest.mock('../../../utils/formatters', () => ({
-  formatFeedTimestamp: () => 'Just now',
-}));
-
 const basePost = (
   overrides: Partial<SocialV1FeedPost> = {},
 ): SocialV1FeedPost => ({
   id: 'post-1',
   authorHandle: 'giga-whale',
   authorImageUrl: null,
-  winRateLabel: '78% WR',
   timestampMs: Date.now(),
   commentId: 'comment-1',
   reactions: [{ emotion: '🔥', count: 12 }],
@@ -78,6 +73,20 @@ const renderShell = (post: SocialV1FeedPost) => {
       <SocialFeedPostShell post={post} />
     </QueryClientProvider>,
   );
+};
+
+/** An item whose author reports nothing the stat line could show. */
+const itemWithoutStats = (id: string, comment: string) => {
+  const item = mockOpenPerpsFeedItem({ id, comment });
+  return {
+    ...item,
+    author: {
+      ...item.author,
+      winRatePercent: null,
+      pnl30d: null,
+      followerCount: null,
+    },
+  };
 };
 
 describe('SocialFeedPostShell', () => {
@@ -132,14 +141,13 @@ describe('SocialFeedPostShell', () => {
     ).toBeNull();
   });
 
-  it('renders the author, win rate, comment, position card, and engagement row', () => {
+  it('renders the author, comment, position card, and engagement row', () => {
     renderShell(basePost());
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CONTAINER}-post-1`),
     ).toBeOnTheScreen();
     expect(screen.getByText('giga-whale')).toBeOnTheScreen();
-    expect(screen.getByText('78% WR')).toBeOnTheScreen();
     expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     expect(screen.getByText('Just now')).toBeOnTheScreen();
     expect(
@@ -152,16 +160,52 @@ describe('SocialFeedPostShell', () => {
     ).toBeOnTheScreen();
   });
 
-  it('omits optional chrome when win rate, comment, or gif are absent', () => {
+  it('leads the stat line with the trader 30-day P&L', () => {
+    renderShell(basePost());
+
+    expect(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.TRADER_STAT),
+    ).toHaveTextContent('$50K P&L (30d)');
+  });
+
+  // Nothing reports verification yet, so the badge has to read as invented.
+  it('marks the mocked verified badge', () => {
+    renderShell(basePost());
+
+    expect(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('*')).toBeOnTheScreen();
+  });
+
+  it('badges the trader cohort from their 30-day P&L', () => {
+    renderShell(basePost());
+
+    // $50K sits in the dolphin band.
+    expect(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.COHORT),
+    ).toHaveTextContent('🐬');
+  });
+
+  it('omits the stat line and cohort for a trader with no stats', () => {
+    renderShell(basePost({ item: itemWithoutStats('item-3', 'No stats') }));
+
+    expect(
+      screen.queryByTestId(SocialFeedPostShellSelectorsIDs.TRADER_STAT),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialFeedPostShellSelectorsIDs.COHORT),
+    ).toBeNull();
+  });
+
+  it('omits optional chrome when comment or gif are absent', () => {
     renderShell(
       basePost({
-        winRateLabel: undefined,
         gifUri: undefined,
         item: mockOpenPerpsFeedItem({ id: 'item-2', comment: '' }),
       }),
     );
 
-    expect(screen.queryByText('78% WR')).toBeNull();
     expect(screen.queryByText('Amazing position')).toBeNull();
     expect(
       screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),

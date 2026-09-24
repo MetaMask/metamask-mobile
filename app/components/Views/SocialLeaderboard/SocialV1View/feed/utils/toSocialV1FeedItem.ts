@@ -11,14 +11,10 @@ import {
 import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
 import { markMocked, type SocialV1MockedField } from '../mockMarker';
-import {
-  mockAutoClose,
-  mockComment,
-  mockMarkPrice,
-  mockWinRatePercent,
-} from '../mocks/socialV1Enrichment';
+import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
 import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
+import { asFeedCardItem, toWholePercent } from './feedCardStats';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -41,6 +37,11 @@ const toUnitPrice = (trade: Trade): number | null => {
  * That ratio is the fallback for rows whose fill history did not come through.
  */
 const deriveAverageEntryPrice = (core: CoreFeedItem): number | null => {
+  const storedEntry = asFeedCardItem(core).entryPriceUsd;
+  if (isPresentNumber(storedEntry) && storedEntry > 0) {
+    return storedEntry;
+  }
+
   const entryFills = (core.trades ?? []).filter(
     (trade) => trade.intent === 'enter',
   );
@@ -86,15 +87,31 @@ const deriveExitPrice = (core: CoreFeedItem): number | null => {
 /**
  * How long the position has been held, in milliseconds.
  *
- * A closed position measures first fill to last. An open one is still running,
- * so it measures first fill to `now` -- `lastTradeAt` would freeze the clock at
- * the most recent top-up and understate a long hold.
+ * A closed position has a final span, and the API sends it as `holdTimeMs`.
+ * An open one keeps running, so the API sends only `firstTradeAt` and the
+ * clock is ours -- a server-computed number would be stale by the time it
+ * rendered, and staler still the longer the page stays on screen.
+ *
+ * Both API fields come from the position row, so they are right even when the
+ * fill history was truncated. Deriving from the fills is the fallback for
+ * responses that predate them.
  */
 const deriveHoldDurationMs = (
   core: CoreFeedItem,
   isClosed: boolean,
   now: number,
 ): number | null => {
+  const { firstTradeAt, holdTimeMs } = asFeedCardItem(core);
+
+  if (isClosed && isPresentNumber(holdTimeMs) && holdTimeMs > 0) {
+    return holdTimeMs;
+  }
+
+  if (!isClosed && isPresentNumber(firstTradeAt)) {
+    const span = now - tradeTimestampToMs(firstTradeAt);
+    return span > 0 ? span : null;
+  }
+
   const timestamps = (core.trades ?? []).map((trade) =>
     tradeTimestampToMs(trade.timestamp),
   );
@@ -129,16 +146,17 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
 /**
  * Maps one loaded feed row into the V1 card model.
  *
- * Everything the API reports -- identity, time, symbol, direction, leverage,
- * value, P&L, open vs closed -- comes straight from the row, as does anything
- * derivable from its fills. Only genuinely absent values are invented, and each
- * one is recorded in `mockedFields` and rendered with a `*` suffix.
+ * Identity, time, symbol, direction, leverage, value, P&L, the author's win
+ * rate and caption, entry (when position metrics stored one) and hold time
+ * come from the row. Mark price and the perp auto-close bracket are still
+ * invented, and each invented value is recorded in `mockedFields`.
  */
 export function toSocialV1FeedItem(
   row: TraderFeedRow,
   now: number = Date.now(),
 ): SocialV1FeedItem {
   const { item, core } = row;
+  const card = asFeedCardItem(core);
   const mockedFields: SocialV1MockedField[] = [];
 
   const author = {
@@ -146,19 +164,15 @@ export function toSocialV1FeedItem(
     username: item.username,
     address: item.traderAddress,
     avatarUri: item.avatarUri ?? null,
-    winRatePercent: mockWinRatePercent(item.traderId),
+    winRatePercent: toWholePercent(card.actor.winRate30d),
+    pnl30d: card.actor.pnl30d ?? null,
+    tradeCount30d: card.actor.tradeCount30d ?? null,
+    followerCount: card.actor.followerCount ?? null,
   };
-  mockedFields.push('winRate');
 
   const authorComment = readAuthorComment(core);
-  const liveComment = authorComment?.text?.trim();
-  const mockedComment = liveComment
-    ? null
-    : mockComment(item.traderId, core.positionId);
-  if (mockedComment) {
-    mockedFields.push('comment');
-  }
-  const comment = liveComment || mockedComment;
+  const commentText = authorComment?.text?.trim();
+  const comment = commentText || undefined;
 
   const base = {
     id: item.id,
@@ -172,7 +186,7 @@ export function toSocialV1FeedItem(
       symbol: item.type === 'perps' ? item.marketSymbol : item.tokenSymbol,
       avatar: item.tokenAvatar,
     },
-    comment: mockedComment ? markMocked(mockedComment) : comment || undefined,
+    comment,
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     isPnlPositive: item.isPnlPositive,

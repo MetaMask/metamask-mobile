@@ -8,7 +8,6 @@ export const wrapMockFeedPosts = (
     id: `mock-post-${item.id}`,
     authorHandle: 'alpha-queen',
     authorImageUrl: null,
-    winRateLabel: '78% WR',
     timestampMs: nowMs - index * 120_000,
     commentId: `mock-comment-${item.id}`,
     reactions: [],
