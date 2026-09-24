@@ -2,11 +2,11 @@ import React from 'react';
 import {
   BadgeCount,
   BadgeCountSize,
-  Box,
+  BadgeWrapper,
+  BadgeWrapperPositionAnchorShape,
   IconName,
   MainActionButton,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 export interface PredictPortfolioActionProps {
@@ -28,11 +28,24 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   onPress,
   testID,
 }) => {
-  const tw = useTailwind();
   const showBadge = badgeCount > 0;
 
   return (
-    <Box twClassName="relative flex-1">
+    <BadgeWrapper
+      badge={
+        showBadge ? (
+          <BadgeCount
+            count={badgeCount}
+            max={99}
+            size={BadgeCountSize.Md}
+            testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
+          />
+        ) : null
+      }
+      customPosition={{ right: 8, top: 8 }}
+      positionAnchorShape={BadgeWrapperPositionAnchorShape.Rectangular}
+      twClassName="flex-1 self-auto"
+    >
       <MainActionButton
         accessibilityLabel={accessibilityLabel ?? label}
         isDisabled={disabled}
@@ -41,16 +54,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         onPress={onPress}
         testID={testID}
       />
-      {showBadge && (
-        <BadgeCount
-          count={badgeCount}
-          max={99}
-          size={BadgeCountSize.Md}
-          style={tw.style('absolute right-2 top-2')}
-          testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
-        />
-      )}
-    </Box>
+    </BadgeWrapper>
   );
 };
 
