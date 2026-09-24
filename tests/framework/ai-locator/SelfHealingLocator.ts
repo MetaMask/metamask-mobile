@@ -49,8 +49,8 @@ export async function tapWithSelfHealingLocator(
   options: SelfHealingTapOptions,
 ): Promise<'primary' | 'recovered'> {
   try {
-    const element = await options.primary();
-    await element.click();
+    const primaryElement = await options.primary();
+    await primaryElement.click();
     return 'primary';
   } catch (primaryError) {
     if (!options.recovery) {
@@ -68,8 +68,8 @@ export async function tapWithSelfHealingLocator(
       throw primaryError;
     }
 
-    const element = await getElementForLocator(recoveredLocator);
-    await element.click();
+    const recoveredElement = await getElementForLocator(recoveredLocator);
+    await recoveredElement.click();
     await options.onRecovered?.({
       intent: options.intent,
       locator: recoveredLocator,

@@ -16,7 +16,7 @@ jest.mock('../Matchers.ts', () => ({
   },
 }));
 
-const driver = {} as Browser;
+const appiumDriver = {} as Browser;
 
 function createElement(click: () => Promise<void>): AppiumElement {
   return { click } as unknown as AppiumElement;
@@ -36,7 +36,7 @@ describe('tapWithSelfHealingLocator', () => {
     const result = await tapWithSelfHealingLocator({
       intent: 'tap Send on the wallet home',
       primary: async () => createElement(click),
-      driver,
+      driver: appiumDriver,
       recovery,
     });
 
@@ -63,7 +63,7 @@ describe('tapWithSelfHealingLocator', () => {
       primary: async () => {
         throw new Error('wallet-send-button was not found');
       },
-      driver,
+      driver: appiumDriver,
       recovery,
       onRecovered,
     });
@@ -71,7 +71,7 @@ describe('tapWithSelfHealingLocator', () => {
     expect(result).toBe('recovered');
     expect(recovery.recover).toHaveBeenCalledWith(
       expect.objectContaining({
-        driver,
+        driver: appiumDriver,
         intent: 'tap Send on the wallet home',
         primaryError: 'wallet-send-button was not found',
       }),
@@ -97,7 +97,7 @@ describe('tapWithSelfHealingLocator', () => {
         primary: async () => {
           throw error;
         },
-        driver,
+        driver: appiumDriver,
         recovery,
       }),
     ).rejects.toBe(error);
@@ -112,7 +112,7 @@ describe('tapWithSelfHealingLocator', () => {
         primary: async () => {
           throw error;
         },
-        driver,
+        driver: appiumDriver,
       }),
     ).rejects.toBe(error);
   });
