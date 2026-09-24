@@ -215,14 +215,22 @@ describe('useCheckoutPageEvents', () => {
       expect(onError).toHaveBeenCalledWith(expect.any(String), 'go_back');
     });
 
-    it('asks for a retry error on any other load_error', () => {
-      const { post, onError } = setup();
+    it.each([
+      ['load_error', { errorCode: 'something_else' }],
+      ['commit_error', undefined],
+      ['polling_error', undefined],
+      ['session_error', { errorCode: 'ERROR_CODE_UNKNOWN' }],
+    ])(
+      'asks for a go_back error on %s because the Coinbase link is single-use',
+      (eventName, data) => {
+        const { post, onError } = setup();
 
-      post('load_error', { errorCode: 'something_else' });
+        post(eventName, data);
 
-      expect(onError).toHaveBeenCalledTimes(1);
-      expect(onError.mock.calls[0][1]).toBeUndefined();
-    });
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onError.mock.calls[0][1]).toBe('go_back');
+      },
+    );
 
     it.each(['commit_error', 'polling_error'])(
       'reports a fixed error on %s without the page errorMessage',
@@ -349,6 +357,7 @@ describe('useCheckoutPageEvents', () => {
       });
 
       expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError.mock.calls[0][1]).toBeUndefined();
       expect(mockOpenHostedBuyWidget).not.toHaveBeenCalled();
       expect(hook.result.current.isFallbackPending).toBe(false);
     });

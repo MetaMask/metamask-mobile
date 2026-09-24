@@ -64,6 +64,7 @@ import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import { needsLegacyApplePay } from '../../utils/needsLegacyApplePay';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
@@ -729,7 +730,34 @@ const Checkout = () => {
         return;
       }
       hasTerminatedHeadlessSessionRef.current = true;
-      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      // The consumer needs the order to continue (MM Pay submits on it), so a
+      // paid checkout must never read as a dismissal.
+      const session = getSession(headlessSessionId);
+      const orderCode = effectiveOrderId
+        ? extractOrderCode(effectiveOrderId)
+        : undefined;
+      if (session && orderCode) {
+        setHeadlessOrderContext(orderCode, {
+          rampSurface: headlessRampSurface,
+          region: regionCode ?? '',
+        });
+        dispatch(protectWalletModalVisible());
+        try {
+          session.callbacks.onOrderCreated(orderCode);
+        } catch (callbackError) {
+          Logger.error(
+            callbackError as Error,
+            'UnifiedCheckout: onOrderCreated callback threw',
+          );
+        }
+        closeSession(headlessSessionId, { reason: 'completed' });
+      } else {
+        Logger.error(
+          new Error('Embedded checkout completed without an order id'),
+          { message: 'UnifiedCheckout: headless embedded completion' },
+        );
+        closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      }
       dismissActiveHeadlessFlow();
       return;
     }
@@ -741,6 +769,9 @@ const Checkout = () => {
     navigateToOrderDetails({ orderId: effectiveOrderId });
   }, [
     headlessSessionId,
+    headlessRampSurface,
+    regionCode,
+    dispatch,
     dismissActiveHeadlessFlow,
     navigation,
     effectiveOrderId,

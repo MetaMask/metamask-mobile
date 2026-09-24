@@ -12,16 +12,6 @@ import { getProviderDeeplinkRedirectUrl } from '../utils/buildQuoteWithRedirectU
 import { useRampsQuotes } from './useRampsQuotes';
 import { useOpenHostedBuyWidget } from './useOpenHostedBuyWidget';
 
-/** What the embedded page is doing; order state stays with precreated-order polling. */
-export type CheckoutPageState =
-  | 'loading'
-  | 'ready'
-  | 'paying'
-  | 'committed'
-  | 'done'
-  | 'limit_error'
-  | 'error';
-
 /** Which CTA Checkout's error view should render for a given error. */
 export type CheckoutErrorCtaMode = 'retry' | 'go_back';
 
@@ -67,9 +57,10 @@ export function useCheckoutPageEvents({
     [providerCode],
   );
 
-  // The ref is authoritative inside the message handler; state mirrors only
-  // what the UI needs.
-  const stateRef = useRef<CheckoutPageState>('loading');
+  // A single-use page URL can't be reloaded, so its errors offer go back.
+  const errorCtaMode: CheckoutErrorCtaMode = adapter?.singleUseCheckoutUrl
+    ? 'go_back'
+    : 'retry';
   const [limitErrorCode, setLimitErrorCode] = useState<string | undefined>(
     undefined,
   );
@@ -79,13 +70,6 @@ export function useCheckoutPageEvents({
   // state only drives the button's isLoading.
   const isFallbackPendingRef = useRef(false);
   const [isFallbackPending, setIsFallbackPending] = useState(false);
-
-  const setState = useCallback((next: CheckoutPageState) => {
-    stateRef.current = next;
-    if (next !== 'limit_error') {
-      setLimitErrorCode(undefined);
-    }
-  }, []);
 
   // Track each page event name once per session so repeats don't flood analytics.
   const trackProviderEvent = useCallback(
@@ -124,54 +108,55 @@ export function useCheckoutPageEvents({
       }
       const { kind, name, errorCode, reason } = pageEvent;
       trackProviderEvent(name, errorCode);
+      if (kind !== 'limit_reached') {
+        setLimitErrorCode(undefined);
+      }
 
       switch (kind) {
-        case 'loaded':
-          setState('ready');
-          break;
         case 'load_failed':
-          setState('error');
-          // Fixed copy only. A consumed single-use link needs go back, not
-          // retry (retrying would remount the same expired link).
+          // Fixed copy only; an expired link always needs go back.
           if (reason === 'link_expired') {
             onError(
               strings('fiat_on_ramp_aggregator.checkout_link_expired'),
               'go_back',
             );
           } else {
-            onError(strings('fiat_on_ramp_aggregator.something_went_wrong'));
+            onError(
+              strings('fiat_on_ramp_aggregator.something_went_wrong'),
+              errorCtaMode,
+            );
           }
           break;
-        case 'payment_started':
-          setState('paying');
-          break;
-        case 'committed':
-          setState('committed');
-          break;
         case 'completed':
-          setState('done');
           onCompleted();
           break;
         case 'payment_failed':
-          setState('error');
-          onError(strings('fiat_on_ramp_aggregator.checkout_payment_failed'));
-          break;
-        case 'cancelled':
-          // Sheet stays open; after commit, polling owns the final order state.
+          onError(
+            strings('fiat_on_ramp_aggregator.checkout_payment_failed'),
+            errorCtaMode,
+          );
           break;
         case 'limit_reached':
           if (!isHeadless && fallbackBuyWidget) {
-            setState('limit_error');
             setLimitErrorCode(errorCode);
           } else {
-            setState('error');
-            onError(strings('fiat_on_ramp_aggregator.something_went_wrong'));
+            onError(
+              strings('fiat_on_ramp_aggregator.something_went_wrong'),
+              errorCtaMode,
+            );
           }
           break;
         case 'failed':
-          setState('error');
-          onError(strings('fiat_on_ramp_aggregator.something_went_wrong'));
+          onError(
+            strings('fiat_on_ramp_aggregator.something_went_wrong'),
+            errorCtaMode,
+          );
           break;
+        // Sheet stays open on cancel; after commit, polling owns the order state.
+        case 'cancelled':
+        case 'loaded':
+        case 'payment_started':
+        case 'committed':
         case 'tracked_only':
         default:
           break;
@@ -180,9 +165,9 @@ export function useCheckoutPageEvents({
     [
       adapter,
       trackProviderEvent,
-      setState,
       onCompleted,
       onError,
+      errorCtaMode,
       isHeadless,
       fallbackBuyWidget,
     ],
@@ -240,6 +225,8 @@ export function useCheckoutPageEvents({
         message: 'UnifiedCheckout: error opening hosted checkout fallback',
       });
       resetPending();
+      // Retry, not go back: the limit code survives the retry, so Checkout
+      // shows the fallback action again (a fresh fetch, not the used link).
       onError(strings('fiat_on_ramp_aggregator.something_went_wrong'));
     }
   }, [

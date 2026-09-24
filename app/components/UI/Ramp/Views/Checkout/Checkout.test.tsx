@@ -1957,6 +1957,23 @@ describe('Checkout', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
+    it('offers go back instead of retry on a Coinbase payment error, since its link is single-use', () => {
+      mockUseParams.mockReturnValue(coinbaseParams);
+
+      const { getByText, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      fireCoinbaseEvent('commit_error');
+      fireEvent.press(getByText('Go back'));
+
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(queryByTestId('checkout-webview')).toBeNull();
+    });
+
     it('shows a fixed generic error on load_error for other error codes', () => {
       mockUseParams.mockReturnValue(coinbaseParams);
 
@@ -2129,32 +2146,110 @@ describe('Checkout', () => {
       expect(mockParentPop).not.toHaveBeenCalled();
     });
 
-    it('closes the headless session and dismisses once for duplicate polling_success events', () => {
+    describe('headless polling_success', () => {
+      const mockGetSession = jest.requireMock('../../headless/sessionRegistry')
+        .getSession as jest.Mock;
       const mockCloseSession = jest.requireMock(
         '../../headless/sessionRegistry',
       ).closeSession as jest.Mock;
+      const mockSetHeadlessOrderContext = jest.requireMock(
+        '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+      ).setHeadlessOrderContext as jest.Mock;
+      const mockOnOrderCreated = jest.fn();
       const mockParentPop = jest.fn();
-      mockNavigation.getParent.mockImplementation(() => ({
-        pop: mockParentPop,
-        getParent: () => ({
-          setOptions: mockHeadlessEntrySetOptions,
-        }),
-      }));
-      mockUseParams.mockReturnValue({
-        ...coinbaseParams,
-        headlessSessionId: 'hs-coinbase-1',
+
+      beforeEach(() => {
+        mockNavigation.getParent.mockImplementation(() => ({
+          pop: mockParentPop,
+          getParent: () => ({
+            setOptions: mockHeadlessEntrySetOptions,
+          }),
+        }));
+        mockGetSession.mockReturnValue({
+          id: 'hs-coinbase-1',
+          params: { rampSurface: 'money_account' },
+          callbacks: {
+            onOrderCreated: mockOnOrderCreated,
+            onError: jest.fn(),
+            onClose: jest.fn(),
+          },
+        });
       });
 
-      renderWithProvider(<Checkout />, {}, true, false);
+      it('hands the order code to the consumer and closes the session as completed', () => {
+        mockUseParams.mockReturnValue({
+          ...coinbaseParams,
+          orderId: '/providers/coinbase-m/orders/cdp-order-1',
+          headlessSessionId: 'hs-coinbase-1',
+        });
 
-      fireCoinbaseEvent('polling_success');
-      fireCoinbaseEvent('polling_success');
+        renderWithProvider(<Checkout />, {}, true, false);
 
-      expect(mockCloseSession).toHaveBeenCalledTimes(1);
-      expect(mockCloseSession).toHaveBeenCalledWith('hs-coinbase-1', {
-        reason: 'user_dismissed',
+        fireCoinbaseEvent('polling_success');
+
+        expect(mockOnOrderCreated).toHaveBeenCalledWith('cdp-order-1');
+        expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith(
+          'cdp-order-1',
+          expect.objectContaining({ rampSurface: 'money_account' }),
+        );
+        expect(mockCloseSession).toHaveBeenCalledWith('hs-coinbase-1', {
+          reason: 'completed',
+        });
+        expect(mockParentPop).toHaveBeenCalledTimes(1);
       });
-      expect(mockParentPop).toHaveBeenCalledTimes(1);
+
+      it('completes the session once for duplicate polling_success events', () => {
+        mockUseParams.mockReturnValue({
+          ...coinbaseParams,
+          headlessSessionId: 'hs-coinbase-1',
+        });
+
+        renderWithProvider(<Checkout />, {}, true, false);
+
+        fireCoinbaseEvent('polling_success');
+        fireCoinbaseEvent('polling_success');
+
+        expect(mockOnOrderCreated).toHaveBeenCalledTimes(1);
+        expect(mockCloseSession).toHaveBeenCalledTimes(1);
+        expect(mockParentPop).toHaveBeenCalledTimes(1);
+      });
+
+      it('closes the session as dismissed when there is no order id to report', () => {
+        mockUseParams.mockReturnValue({
+          ...coinbaseParams,
+          orderId: undefined,
+          headlessSessionId: 'hs-coinbase-1',
+        });
+
+        renderWithProvider(<Checkout />, {}, true, false);
+
+        fireCoinbaseEvent('polling_success');
+
+        expect(mockOnOrderCreated).not.toHaveBeenCalled();
+        expect(mockCloseSession).toHaveBeenCalledWith('hs-coinbase-1', {
+          reason: 'user_dismissed',
+        });
+        expect(mockParentPop).toHaveBeenCalledTimes(1);
+      });
+
+      it('still completes the session when the consumer callback throws', () => {
+        mockOnOrderCreated.mockImplementationOnce(() => {
+          throw new Error('consumer boom');
+        });
+        mockUseParams.mockReturnValue({
+          ...coinbaseParams,
+          headlessSessionId: 'hs-coinbase-1',
+        });
+
+        renderWithProvider(<Checkout />, {}, true, false);
+
+        fireCoinbaseEvent('polling_success');
+
+        expect(mockCloseSession).toHaveBeenCalledWith('hs-coinbase-1', {
+          reason: 'completed',
+        });
+        expect(mockParentPop).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('does not close or error when cancel arrives before commit_success', () => {
@@ -2365,6 +2460,34 @@ describe('Checkout', () => {
         expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
         expect(mockNavigation.getParent).not.toHaveBeenCalled();
         expect(mockNavigation.reset).not.toHaveBeenCalled();
+      });
+
+      it('returns to the fallback action when Try again is pressed after the hosted widget fetch fails', async () => {
+        mockGetFallbackBuyWidgetData.mockRejectedValueOnce(
+          new Error('network down'),
+        );
+        mockUseParams.mockReturnValue(coinbaseParamsWithFallback);
+
+        const { getByText, queryByTestId } = renderWithProvider(
+          <Checkout />,
+          {},
+          true,
+          false,
+        );
+
+        fireCoinbaseEvent('session_error', {
+          errorCode: 'ERROR_CODE_GUEST_TRANSACTION_LIMIT',
+        });
+        await act(async () => {
+          fireEvent.press(getByText('Continue with your Coinbase account'));
+        });
+        fireEvent.press(getByText('Try again'));
+
+        expect(
+          getByText('Continue with your Coinbase account'),
+        ).toBeOnTheScreen();
+        // The used checkout link is not reloaded.
+        expect(queryByTestId('checkout-webview')).toBeNull();
       });
 
       it('shows the fixed error when the hosted hand-off itself rejects, leaving the sheet mounted', async () => {

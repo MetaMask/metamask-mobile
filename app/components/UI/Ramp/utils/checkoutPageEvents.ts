@@ -29,6 +29,8 @@ export interface CheckoutPageEventAdapter {
   parse: (data: unknown) => CheckoutPageEvent | undefined;
   /** The page goes silent when Google Pay can't pay, so Android must ask Play Services first. */
   requiresGooglePayPreflight?: boolean;
+  /** The checkout URL works once, so reloading it after an error only replays a dead link. */
+  singleUseCheckoutUrl?: boolean;
 }
 
 export interface ProviderCheckoutPageEventAdapter
