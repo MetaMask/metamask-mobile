@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Tài khoản ngân hàng",
       "title": "Nhận Khóa Pix của bạn",
       "description": "Gửi tiền trực tiếp vào Money Account của bạn từ bất kỳ tài khoản ngân hàng nào.",
@@ -9672,7 +9672,7 @@
       "view_on_block_explorer": "Xem trên trình khám phá khối"
     },
     "share_address_qr": {
-      "title": "địa chỉ {{networkName}}",
+      "title": "Địa chỉ {{networkName}}",
       "copy_address": "Sao chép địa chỉ",
       "description": "Sử dụng địa chỉ này để nhận token và bộ sưu tập trên",
       "description_prefix": "Dùng để nhận tài sản vào"

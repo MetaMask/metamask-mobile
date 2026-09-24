@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Τραπεζικός λογαριασμός",
       "title": "Αποκτήστε το Pix Key",
       "description": "Στείλτε χρήματα απευθείας στον Money account σας από οποιονδήποτε τραπεζικό λογαριασμό.",
@@ -9672,7 +9672,7 @@
       "view_on_block_explorer": "Προβολή στον εξερευνητή ομάδας καταχωρίσεων (block explorer)"
     },
     "share_address_qr": {
-      "title": "διεύθυνση δικτύου στο {{networkName}}",
+      "title": "Διεύθυνση δικτύου στο {{networkName}}",
       "copy_address": "Αντιγραφή διεύθυνσης",
       "description": "Χρησιμοποιήστε αυτή τη διεύθυνση για να λάβετε tokens και συλλεκτικά αντικείμενα στο",
       "description_prefix": "Χρησιμοποιήστε αυτό για να λαμβάνετε περιουσιακά στοιχεία στο"

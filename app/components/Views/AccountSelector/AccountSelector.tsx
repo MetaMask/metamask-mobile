@@ -15,7 +15,13 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  HeaderStandard,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
@@ -45,6 +51,7 @@ import {
   SearchInteractionType,
   buildSearchInteractedProperties,
 } from '../../../core/Analytics/events/navigation';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import {
   TraceName,
   TraceOperation,
@@ -119,6 +126,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const handleClose = useCallback(() => {
     navigation.goBack();
+  }, [navigation]);
+
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   }, [navigation]);
 
   useEffect(() => {
@@ -283,6 +296,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
+            endAccessory={
+              <ButtonIcon
+                iconName={IconName.Setting}
+                size={ButtonIconSize.Md}
+                onPress={handleManageAccountsPress}
+                testID={
+                  AccountListBottomSheetSelectorsIDs.MANAGE_ACCOUNTS_BUTTON
+                }
+                accessibilityLabel={strings(
+                  'multichain_accounts.manage_accounts.title',
+                )}
+                accessibilityRole="button"
+              />
+            }
           />
           {renderAccountSelector()}
         </Box>

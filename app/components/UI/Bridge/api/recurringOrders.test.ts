@@ -6,7 +6,10 @@ import {
 } from './recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from './recurringSwaps.mock';
 import { getRecurringOrders, getRecurringSwaps } from './recurringOrders';
-import { RecurringOrderStatus } from './recurringOrders.types';
+import {
+  RecurringOrderStatus,
+  RecurringSwapStatus,
+} from './recurringOrders.types';
 
 const WALLET_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
@@ -108,23 +111,35 @@ describe('getRecurringSwaps', () => {
     });
 
     expect(firstPage.swaps.map(({ swapId }) => swapId)).toStrictEqual([
+      `${orderId}-6`,
       `${orderId}-5`,
-      `${orderId}-4`,
     ]);
     expect(secondPage.swaps.map(({ swapId }) => swapId)).toStrictEqual([
+      `${orderId}-4`,
       `${orderId}-3`,
-      `${orderId}-2`,
     ]);
   });
 
   it('omits the cursor on the final page', async () => {
     const result = await getRecurringSwaps(orderId, {
       limit: 2,
-      cursor: '4',
+      cursor: '5',
     });
 
     expect(result.swaps).toHaveLength(1);
     expect(result.nextCursor).toBeUndefined();
+  });
+
+  it('returns non-resolvable mock hashes for completed swaps', async () => {
+    const result = await getRecurringSwaps(
+      MOCK_RECURRING_COMPLETED_ORDER.orderId,
+    );
+
+    for (const swap of result.swaps) {
+      expect(swap.status).toBe(RecurringSwapStatus.Filled);
+      expect(swap.txHash).toMatch(/^0x/u);
+      expect(swap.txHash).not.toMatch(/^0x[0-9a-f]{64}$/iu);
+    }
   });
 
   it('rejects an unknown order id', async () => {

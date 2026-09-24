@@ -37,6 +37,7 @@ import { SIGNATURE_INSIGHTS_MOCKS } from './signature-insights.ts';
 import { NFT_API_MOCKS } from './nft-api.ts';
 import { SOCIAL_API_MOCKS } from './social-api.ts';
 import { GEOLOCATION_API_MOCKS } from './geolocation-api.ts';
+import { CONFIG_REGISTRY_API_MOCKS } from './config-registry-api.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -45,6 +46,7 @@ export const DEFAULT_MOCKS = {
   GET: [
     ...(authMocks.GET || []),
     ...(DAPP_SCANNING_MOCKS.GET || []),
+    ...(CONFIG_REGISTRY_API_MOCKS.GET || []),
     ...(PRICE_API_MOCKS.GET || []),
     ...(WEB_3_AUTH_MOCKS.GET || []),
     ...(SWAP_API_MOCKS.GET || []),

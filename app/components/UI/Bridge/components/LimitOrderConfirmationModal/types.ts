@@ -1,3 +1,5 @@
+import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 
 /**
@@ -38,21 +40,17 @@ export interface LimitOrderConfirmationModalParams {
    */
   expiry: string;
   /**
-   * Estimated network fee, e.g. "$1.69".
+   * Unformatted order parameters used to request the delegations to sign.
+   * Built by the caller, which is the only place holding the raw asset ids and
+   * minimal-unit amounts. `costTolerance` is excluded on purpose: this screen
+   * reads the live value from state, since it can still be edited while the
+   * sheet is open.
    */
-  networkFee: string;
-  /**
-   * Token the network fee is paid in, used for the network fee row avatar.
-   */
-  feeToken?: BridgeToken;
-  /**
-   * Fee disclaimer shown under the confirm button, e.g. "Includes 0.875% MetaMask fee".
-   */
-  feeDisclaimer?: string;
+  order: Omit<LimitOrderDelegationsParams, 'costTolerance'>;
 }
 
 export interface LimitOrderConfirmationModalProps
-  extends LimitOrderConfirmationModalParams {
+  extends Omit<LimitOrderConfirmationModalParams, 'order'> {
   /**
    * Cost tolerance label, e.g. "2%". Read from state by the host screen so
    * edits made in the cost tolerance modal are reflected here.
@@ -63,9 +61,21 @@ export interface LimitOrderConfirmationModalProps
    */
   triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
-   * Fired when the user confirms the order.
+   * One-time EIP-7702 account upgrade fee, which is the only network cost of
+   * placing the order. The row is hidden entirely once the account is already
+   * delegated, since there is nothing left to pay for.
    */
-  onConfirm: () => void;
+  delegationFee: EIP7702UpgradeFee;
+  /**
+   * Token the network fee is paid in, used for the network fee row avatar.
+   */
+  feeToken?: BridgeToken;
+  primaryButton: {
+    onPress: () => void;
+    label: string;
+    isLoading?: boolean;
+  };
+  error?: string;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

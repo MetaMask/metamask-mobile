@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Банковский счет",
       "title": "Получить ключ Pix",
       "description": "Отправляйте средства напрямую на свой счет Money account с любого банковского счета.",
@@ -9672,7 +9672,7 @@
       "view_on_block_explorer": "Просмотр в обозревателе блоков"
     },
     "share_address_qr": {
-      "title": "адрес {{networkName}}",
+      "title": "Адрес {{networkName}}",
       "copy_address": "Скопировать адрес",
       "description": "Используйте этот адрес для получения токенов и предметов коллекционирования",
       "description_prefix": "Используйте это для получения активов на"

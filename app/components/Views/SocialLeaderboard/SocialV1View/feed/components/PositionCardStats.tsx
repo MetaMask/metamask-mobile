@@ -9,12 +9,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { EM_DASH } from '../../../utils/formatters';
 import { POSITION_CARD_BLEED_TW_CLASS } from './PositionCardShell';
 import { getSocialFeedPositionCardSectionDividerTestId } from './SocialFeedPositionCard.testIds';
 
 export interface PositionCardStatRow {
   key: string;
   label: string;
+  /** Missing values render an em dash rather than dropping the row. */
   value?: string;
   testID?: string;
   leadingValueAccessory?: React.ReactNode;
@@ -29,9 +31,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
   rows,
   cardId,
 }) => {
-  const visibleRows = rows.filter((row) => Boolean(row.value));
-
-  if (visibleRows.length === 0) {
+  if (rows.length === 0) {
     return null;
   }
 
@@ -44,7 +44,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
         testID={getSocialFeedPositionCardSectionDividerTestId(cardId)}
       />
       <Box twClassName="gap-2">
-        {visibleRows.map((row) => (
+        {rows.map((row) => (
           <Box
             key={row.key}
             flexDirection={BoxFlexDirection.Row}
@@ -53,7 +53,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             testID={row.testID}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
               {row.label}
@@ -65,11 +65,11 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             >
               {row.leadingValueAccessory}
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {row.value}
+                {row.value || EM_DASH}
               </Text>
             </Box>
           </Box>

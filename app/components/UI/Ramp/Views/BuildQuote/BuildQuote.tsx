@@ -47,8 +47,7 @@ import {
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
-import useCrossmintWalletPayOverlay from '../../hooks/useCrossmintWalletPayOverlay';
-import WalletPayCheckoutOverlay from '../../components/WalletPayCheckoutOverlay';
+import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
@@ -653,17 +652,15 @@ function BuildQuote() {
     !selectedQuoteLoading &&
     selectedQuote !== null;
 
-  // Crossmint wallet-pay embedded checkout (crossmintApplePayCheckout flag):
-  // pre-creates the order through the on-ramp API so the hosted Apple Pay /
-  // Google Pay button can replace the Continue button on eligible quotes.
-  const crossmintWalletPay = useCrossmintWalletPayOverlay(
+  // A provider's embedded checkout can replace the Continue button on
+  // eligible quotes; while it is anything but inactive, Continue stays out
+  // of reach so the user is not sent to the browser checkout instead.
+  const embeddedCheckout = useEmbeddedCheckout(
     hasSettledQuoteAmount ? selectedQuote : null,
     debouncedPollingAmount,
   );
-
-  const isWalletPayButtonVisible =
-    Boolean(crossmintWalletPay.checkoutUrl) &&
-    crossmintWalletPay.isCheckoutReady;
+  const isEmbeddedCheckoutVisible = embeddedCheckout.phase === 'ready';
+  const isEmbeddedCheckoutActive = embeddedCheckout.phase !== 'inactive';
 
   const hasNoQuotes =
     hasAmount &&
@@ -680,7 +677,10 @@ function BuildQuote() {
   }, [hasNoQuotes, quotesResponse?.error]);
 
   const inlineQuoteError =
-    displayedAmountLimitError ?? providerQuoteError ?? null;
+    displayedAmountLimitError ??
+    providerQuoteError ??
+    embeddedCheckout.error ??
+    null;
   const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
@@ -726,10 +726,10 @@ function BuildQuote() {
         />
       );
     }
-    // The overlay's terms notice takes this slot and already names the
-    // provider, so the attribution would only repeat it. Until then the
-    // ordinary Continue button is showing and the attribution stays.
-    if (isWalletPayButtonVisible) {
+    // The embedded checkout takes this slot and already names the provider,
+    // so the attribution would only repeat it. Until then the ordinary
+    // Continue button is showing and the attribution stays.
+    if (isEmbeddedCheckoutVisible) {
       return null;
     }
     if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
@@ -847,28 +847,29 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {actionSectionMessage}
-                {crossmintWalletPay.checkoutUrl ? (
-                  <WalletPayCheckoutOverlay
-                    key={crossmintWalletPay.checkoutUrl}
-                    checkoutUrl={crossmintWalletPay.checkoutUrl}
-                    interactive={canContinue}
-                    onMessage={crossmintWalletPay.onMessage}
-                    onReady={crossmintWalletPay.onCheckoutReady}
-                  />
-                ) : null}
-                {isWalletPayButtonVisible ? null : (
+                {embeddedCheckout.renderOverlay?.({
+                  interactive: canContinue,
+                })}
+                {isEmbeddedCheckoutVisible ? null : (
                   <Button
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleContinuePress}
                     isFullWidth
-                    isDisabled={!canContinue || crossmintWalletPay.isPreparing}
+                    isDisabled={!canContinue || isEmbeddedCheckoutActive}
                     isLoading={
                       selectedQuoteLoading ||
                       isContinueLoading ||
                       isTokenUnavailable ||
                       !tokenStateIsSettled ||
-                      crossmintWalletPay.isPreparing
+                      isEmbeddedCheckoutActive
+                    }
+                    loadingText={
+                      embeddedCheckout.phase === 'settling'
+                        ? strings(
+                            'fiat_on_ramp_aggregator.order_status_processing',
+                          )
+                        : undefined
                     }
                     testID={BuildQuoteSelectors.CONTINUE_BUTTON}
                   >

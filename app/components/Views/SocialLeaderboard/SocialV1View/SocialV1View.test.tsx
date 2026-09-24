@@ -38,6 +38,17 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
+// The feed pages now fetch through `useTraderFeed`, which reads keyring state
+// and React Query. This suite is about the V1 chrome -- tabs, header, filters --
+// so stub the data source and let the feed's own suites cover it.
+// The feed now fetches through `useTraderFeed`, which needs keyring state and
+// React Query. This suite covers the V1 chrome, so stand in for the data source
+// while still driving the real composed-post store the banner tests depend on.
+jest.mock('./feed/hooks/useSocialV1Feed', () => ({
+  useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
+    .mockUseSocialV1Feed,
+}));
+
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => {
@@ -65,6 +76,20 @@ jest.mock('./feed/components/SocialFeedPostShell', () => {
     default: ({ post }: { post: { item: { id: string } } }) => (
       <View testID={`social-v1-feed-card-${post.item.id}`} />
     ),
+  };
+});
+
+jest.mock('./feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
   };
 });
 
@@ -147,7 +172,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  return Reanimated;
+  return {
+    ...Reanimated,
+    useReducedMotion: jest.fn(() => false),
+  };
 });
 
 jest.mock('react-native-gesture-handler', () => {
@@ -280,8 +308,7 @@ describe('SocialV1View', () => {
         id: 'composed-focus',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({ id: 'focus-item', comment: 'focus me' }),
       });
     });
@@ -302,8 +329,7 @@ describe('SocialV1View', () => {
         id: 'composed-1',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({
           id: 'composed-item',
           comment: 'this is alpha',
