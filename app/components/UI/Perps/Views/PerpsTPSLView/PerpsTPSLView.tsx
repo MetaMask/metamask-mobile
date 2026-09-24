@@ -141,10 +141,20 @@ const sheetPriceValueTextProps = {
 } as const;
 
 /**
- * Compact +/− control for %RoE fields. ButtonBase defaults to `self-start`,
- * which pins the chip to the top of TextField's 48px row; force center so it
- * lines up with the $ prefix, input text, and % suffix.
+ * Compact +/− control for %RoE fields. Force center so it lines up with the
+ * $ prefix, input text, and % suffix.
  */
+const getRoeSignIconColor = (
+  sign: '+' | '-',
+  isNeutral: boolean,
+): IconColor => {
+  if (isNeutral) {
+    return IconColor.IconDefault;
+  }
+
+  return sign === '+' ? IconColor.SuccessDefault : IconColor.ErrorDefault;
+};
+
 const RoeSignBadge: React.FC<{
   sign: '+' | '-';
   onPress: () => void;
@@ -159,29 +169,23 @@ const RoeSignBadge: React.FC<{
   accessibilityLabel,
   isDisabled,
   isNeutral = false,
-}) => {
-  return (
-    <ButtonIcon
-      size={ButtonIconSize.Sm}
-      variant={ButtonIconVariant.Filled}
-      iconName={sign === '+' ? IconName.Add : IconName.Minus}
-      iconProps={{
-        size: IconSize.Sm,
-        color: isNeutral
-          ? IconColor.IconDefault
-          : sign === '+'
-            ? IconColor.SuccessDefault
-            : IconColor.ErrorDefault,
-      }}
-      isDisabled={isDisabled}
-      onPress={onPress}
-      testID={testID}
-      accessibilityLabel={accessibilityLabel}
-      accessibilityValue={{ text: sign }}
-      twClassName="shrink-0 self-center"
-    />
-  );
-};
+}) => (
+  <ButtonIcon
+    size={ButtonIconSize.Sm}
+    variant={ButtonIconVariant.Filled}
+    iconName={sign === '+' ? IconName.Add : IconName.Minus}
+    iconProps={{
+      size: IconSize.Sm,
+      color: getRoeSignIconColor(sign, isNeutral),
+    }}
+    isDisabled={isDisabled}
+    onPress={onPress}
+    testID={testID}
+    accessibilityLabel={accessibilityLabel}
+    accessibilityValue={{ text: sign }}
+    twClassName="shrink-0 self-center"
+  />
+);
 
 /**
  * Reserves HelpText vertical space so TP/SL sections do not jump when
