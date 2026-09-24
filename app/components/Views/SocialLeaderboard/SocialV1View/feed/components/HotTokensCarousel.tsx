@@ -174,22 +174,27 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     [dragStartOffset, offset, paused, trackWidthSv],
   );
 
-  useFrameCallback((frame) => {
-    'worklet';
-    const width = trackWidthSv.value;
-    const viewport = viewportWidthSv.value;
-    if (paused.value || width <= 0 || viewport <= 0 || width <= viewport) {
-      return;
-    }
-    const dtMs = frame.timeSincePreviousFrame ?? 0;
-    if (dtMs <= 0) {
-      return;
-    }
-    offset.value = wrapOffset(
-      offset.value + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
-      width,
-    );
-  });
+  const tickMarquee = useCallback(
+    (frame: { timeSincePreviousFrame: number | null }) => {
+      'worklet';
+      const width = trackWidthSv.value;
+      const viewport = viewportWidthSv.value;
+      if (paused.value || width <= 0 || viewport <= 0 || width <= viewport) {
+        return;
+      }
+      const dtMs = frame.timeSincePreviousFrame ?? 0;
+      if (dtMs <= 0) {
+        return;
+      }
+      offset.value = wrapOffset(
+        offset.value + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
+        width,
+      );
+    },
+    [offset, paused, trackWidthSv, viewportWidthSv],
+  );
+
+  useFrameCallback(tickMarquee);
 
   const trackStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -offset.value }],

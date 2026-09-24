@@ -45,6 +45,13 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
   };
 });
 
+// Reanimated's useFrameCallback registers on the UI runtime via a 0ms timeout.
+// Unmount in this suite races that mock and throws
+// `Cannot set properties of undefined (setting 'startTime')`.
+jest.mock('../SocialV1View/feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
+
 // See the view suite: the real hook needs keyring state and React Query, and
 // this suite is about the shell.
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed', () => ({

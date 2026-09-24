@@ -93,6 +93,10 @@ jest.mock('./feed/components/PopularTradersCarousel', () => {
   };
 });
 
+jest.mock('./feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
+
 jest.mock('../components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
