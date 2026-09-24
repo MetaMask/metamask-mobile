@@ -9,6 +9,8 @@ import type {
   PredictFeedId,
   PredictMarketHistory,
   PredictMarketHistoryRange,
+  PredictOrderPreview,
+  PredictOrderPreviewParams,
   PredictPositionsPage,
   PredictReadOptions,
   PredictVenueStatus,
@@ -24,6 +26,15 @@ export interface VenuePortfolioAdapter {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<PredictActivityPage>;
+}
+
+/** Trading is a write-adjacent capability: requests are never cached and
+ * never blindly retried. Placement is absent until a slice delivers it. */
+export interface VenueTradingAdapter {
+  previewOrder(
+    params: PredictOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictOrderPreview>;
 }
 
 export interface VenueMarketDataAdapter {

@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bankkonto",
       "title": "Holen Sie sich Ihren Pix-Schlüssel",
       "description": "Überweisen Sie Geld direkt von jedem beliebigen Bankkonto auf Ihr Money-Konto.",

@@ -34,6 +34,8 @@ import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { setHasLinkedSocialLoginProfile } from '../../actions/settings';
+import { registerLinkedSocialLoginProfileSync } from '../../util/basicFunctionality/linkedSocialLoginProfile';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -135,9 +137,11 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
+  predictOrderPreviewServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
+import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -394,7 +398,9 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
+        PredictOrderPreviewService: predictOrderPreviewServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
+        LimitOrdersDataService: limitOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         RewardsMoneyController: rewardsMoneyControllerInit,
@@ -699,8 +705,11 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
+      PredictOrderPreviewService:
+        messengerClientsByName.PredictOrderPreviewService,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
+      LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
       RewardsController: rewardsController,
       RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
@@ -1024,10 +1033,33 @@ export class Engine {
       },
     );
 
+    // Only persist the signal here. Consolidation itself stays with
+    // useBasicFunctionalityConsolidation, which already waits for an unlocked
+    // wallet past onboarding, so a sign-in mid-onboarding cannot migrate a new
+    // wallet as an existing one.
+    registerLinkedSocialLoginProfileSync(this.controllerMessenger, () => {
+      if (store.getState().settings?.hasLinkedSocialLoginProfile !== true) {
+        store.dispatch(setHasLinkedSocialLoginProfile(true));
+      }
+    });
+
     Engine.instance = this;
   }
 
   handleVaultBackup() {
+    // Coalesces the burst of identical-vault stateChange events
+    // KeyringController fires during a single unlock into one backup
+    // attempt. Reset on lock so the *next* unlock still performs a fresh
+    // keychain check (needed to self-heal an Android Keystore-invalidated
+    // backup), and reset on a failed attempt so a later stateChange for the
+    // same vault can retry instead of waiting for the next lock/unlock
+    // — see Engine.test.ts for the regression tests.
+    let lastVault: string | undefined;
+
+    this.controllerMessenger.subscribe('KeyringController:lock', () => {
+      lastVault = undefined;
+    });
+
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) => {
@@ -1040,13 +1072,34 @@ export class Engine {
           return;
         }
 
-        // Back up vault if it exists
+        if (state.vault === lastVault) {
+          return;
+        }
+
+        const vaultBeingBackedUp = state.vault;
+        lastVault = vaultBeingBackedUp;
         backupVault(state)
-          .then(() => {
-            Logger.log('Engine', 'Vault back up successful');
+          .then((result) => {
+            if (!result.success) {
+              throw new Error(result.error ?? 'Vault backup failed');
+            }
+            Logger.log(
+              'Engine',
+              result.skipped
+                ? `Vault back up skipped (${result.skipReason})`
+                : 'Vault back up successful',
+            );
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
+            // Don't let a failed attempt block retries until the next
+            // lock/unlock — allow the next stateChange for this vault to
+            // try again. Guarded so we don't clobber a newer attempt that
+            // may have already claimed lastVault while this one was
+            // in flight.
+            if (lastVault === vaultBeingBackedUp) {
+              lastVault = undefined;
+            }
           });
       },
     );
@@ -1388,6 +1441,7 @@ export class Engine {
       SubscriptionController,
       ShieldController,
       ClaimsController,
+      KycController,
     } = this.context;
 
     // Remove all permissions.
@@ -1432,6 +1486,9 @@ export class Engine {
 
     // Claims:
     ClaimsController.clearState();
+
+    // KYC:
+    KycController.clearState();
   };
 
   removeAllListeners() {

@@ -57,12 +57,13 @@ import {
   withCardProvider,
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
   setOnValueChange,
 } from './RegionSelectorModal';
+import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
@@ -189,11 +190,11 @@ const SignUp = () => {
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const handleAlreadyHaveAccountPress = useCallback(() => {
-    if (postAuthRedirect) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { postAuthRedirect });
-      return;
-    }
-    navigation.navigate(Routes.CARD.AUTHENTICATION);
+    navigation.navigate(
+      Routes.CARD.AUTHENTICATION,
+      postAuthRedirect ? { postAuthRedirect } : undefined,
+      { pop: true, merge: true },
+    );
   }, [navigation, postAuthRedirect]);
 
   const {
@@ -225,7 +226,6 @@ const SignUp = () => {
         return;
       }
       // Local UI only — do not call setSelectedCountry here. That would switch
-      // the active provider / clear Baanx before the user confirms with Next.
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(ukRegion);
       setPhoneRegion(ukRegion);
@@ -490,10 +490,8 @@ const SignUp = () => {
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
-      // Clear Baanx while it is still the active provider, then continue as
-      // a new Immersve user (setSelectedCountry + SIWE happen in resume).
       if (fromMigration) {
-        await Engine.context.CardController.logout();
+        Engine.context.CardController.beginMigration();
       }
       await resumeImmersveOnboarding({
         country: selectedCountry.key,
@@ -503,6 +501,9 @@ const SignUp = () => {
         entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
+      if (fromMigration) {
+        Engine.context.CardController.cancelMigration();
+      }
       setImmersveError(getCardProviderErrorMessage(e));
     } finally {
       setIsImmersveSubmitting(false);
@@ -670,22 +671,15 @@ const SignUp = () => {
   const renderFormFields = () => (
     <>
       <Box>
-        <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        {isLoadingRegistrationSettings && !selectedCountry ? (
-          <Box
-            twClassName="flex-row items-center justify-center h-12 rounded-xl border border-solid border-border-muted bg-background-muted"
-            testID="signup-country-loading"
-          >
-            <ActivityIndicator size="small" />
-          </Box>
-        ) : (
-          <SelectField
-            value={selectedCountry?.name}
-            onPress={handleCountrySelect}
-            isDisabled={fromMigration || isLoadingRegistrationSettings}
-            testID="signup-country-select"
-          />
-        )}
+        <CountrySelectField
+          label={strings('card.card_onboarding.sign_up.country_label')}
+          selectedCountry={selectedCountry}
+          isLoading={isLoadingRegistrationSettings}
+          isDisabled={fromMigration}
+          onPress={handleCountrySelect}
+          testID="signup-country-select"
+          loadingTestID="signup-country-loading"
+        />
         {isWaitlistMode && (
           <Text
             variant={TextVariant.BodySm}
@@ -707,7 +701,9 @@ const SignUp = () => {
           }
           inputProps={{
             autoCapitalize: 'none',
-            autoComplete: 'one-time-code',
+            autoCorrect: false,
+            autoComplete: 'email',
+            textContentType: 'emailAddress',
             numberOfLines: 1,
             keyboardType: 'email-address',
             maxLength: 255,

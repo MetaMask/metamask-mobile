@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Conta bancária",
       "title": "Obtenha sua chave Pix",
       "description": "Envie fundos diretamente para sua Money Account de qualquer conta bancária.",
@@ -9672,7 +9672,7 @@
       "view_on_block_explorer": "Ver no explorador de blocos"
     },
     "share_address_qr": {
-      "title": "endereço {{networkName}}",
+      "title": "Endereço {{networkName}}",
       "copy_address": "Copiar endereço",
       "description": "Use este endereço para receber tokens e itens colecionáveis em",
       "description_prefix": "Use esta opção para receber ativos em"

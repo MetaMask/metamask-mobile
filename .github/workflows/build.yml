@@ -36,10 +36,10 @@ on:
       build_attribution:
         description: >-
           Optional analytics build attribution, exported as METAMASK_BUILD_ATTRIBUTION and
-          inlined into the JS bundle. Set to 'nightly' by nightly-build.yml so
-          getAnalyticsAppVersion reports `-rc-nightly` / `-exp-nightly` instead of the
-          `-release-candidate` / `-experimental` suffixes that Runway builds use. Any other
-          value keeps the default suffixes. Distinct from builds.yml build names (main-rc, etc.).
+          inlined into the JS bundle. Nightly jobs pass 'nightly' (`-rc-nightly` /
+          `-exp-nightly`). Official release-channel RC jobs pass 'official'
+          (`-release-candidate`). Any other rc build reports `-rc-unofficial`.
+          Distinct from builds.yml build names (main-rc, etc.).
         required: false
         type: string
         default: ''
@@ -109,10 +109,13 @@ on:
         type: boolean
         default: false
       build_attribution:
-        description: "Analytics build attribution (METAMASK_BUILD_ATTRIBUTION). Use 'nightly' to report -rc-nightly / -exp-nightly; leave empty for the default suffixes"
+        description: "Analytics build attribution. Use 'nightly' for -rc-nightly / -exp-nightly. Leave unofficial for ad-hoc rc builds (`-rc-unofficial`). Official RC attribution is not available here."
         required: false
-        type: string
-        default: ''
+        type: choice
+        options:
+          - unofficial
+          - nightly
+        default: unofficial
       runner_provider:
         description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
@@ -467,7 +470,7 @@ jobs:
         if: matrix.platform == 'ios'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -583,7 +586,7 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 55
           max_attempts: 2

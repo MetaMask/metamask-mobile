@@ -26,8 +26,11 @@ import {
 } from '../../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
+import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
+import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
+import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
 
 async function openInProgressOrderDetails(
   renderResult: ReturnType<typeof renderBridgeViewWithRecurringOrderDetails>,
@@ -89,7 +92,10 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ToastService.resetForTesting();
   });
 
-  it('dismisses cancel confirmation without changing the in-progress order', async () => {
+  it('dismisses cancel confirmation without calling cancellation', async () => {
+    const cancelRecurringOrder = jest.fn();
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ cancelRecurringOrder });
     const renderResult = renderBridgeViewWithRecurringOrderDetails();
     await openInProgressOrderDetails(renderResult);
 
@@ -110,7 +116,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     );
     const cancelSheetScope = within(cancelSheet);
     expect(
-      cancelSheetScope.getByText(strings('bridge.recurring.cancel_order')),
+      cancelSheetScope.getByText(
+        strings('bridge.recurring.cancel_confirmation_title'),
+      ),
     ).toBeOnTheScreen();
     expect(
       cancelSheetScope.getByText(
@@ -142,6 +150,17 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
     expect(showToast).not.toHaveBeenCalled();
+    expect(cancelRecurringOrder).not.toHaveBeenCalled();
+    expect(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('moves a successfully cancelled order to History', async () => {
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
 
     await userEvent.press(
       renderResult.getByTestId(
@@ -154,34 +173,153 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     );
 
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.SCREEN,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    const historyRow = await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
+        MOCK_RECURRING_OPEN_ORDER.orderId,
+      ),
+    );
+    expect(
+      within(historyRow).getByText(strings('bridge.recurring.cancelled')),
+    ).toBeOnTheScreen();
+    expect(showToast).toHaveBeenCalledTimes(1);
+
+    await userEvent.press(
+      renderResult.getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER.orderId,
+          ),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  it('keeps cancellation pending and prevents duplicate confirmation or dismissal', async () => {
+    let resolveCancellation: () => void = () => undefined;
+    const cancelRecurringOrder = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveCancellation = resolve;
+        }),
+    );
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ cancelRecurringOrder });
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    );
+    const cancelSheet = await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
+    );
+    const cancelSheetScope = within(cancelSheet);
+    const confirmButton = cancelSheetScope.getByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+    );
+    await userEvent.press(confirmButton);
+    await waitFor(() => expect(cancelRecurringOrder).toHaveBeenCalledTimes(1));
+
+    expect(confirmButton.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+    await userEvent.press(confirmButton);
+    await userEvent.press(
+      cancelSheetScope.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
+      ),
+    );
+    expect(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
+      ),
+    ).toBeOnTheScreen();
+    expect(cancelRecurringOrder).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCancellation();
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.SCREEN,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the cancel sheet open and allows retry after failure', async () => {
+    const cancelRecurringOrder = jest
+      .fn()
+      .mockRejectedValue(new Error('cancel failed'));
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ cancelRecurringOrder });
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    );
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+      ),
+    );
+
+    expect(
+      renderResult.getByTestId(RecurringOrderDetailsViewSelectorsIDs.SCREEN),
+    ).toBeOnTheScreen();
+    const confirmButton = renderResult.getByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+    );
+    await waitFor(() => {
+      expect(confirmButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ disabled: false }),
+      );
+    });
+    expect(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
+      ),
+    ).toBeOnTheScreen();
     expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
           {
-            label: strings('bridge.recurring.order_canceled_toast_title'),
+            label: strings('bridge.generic_error_toast_title'),
             isBold: true,
           },
+          { label: '\n' },
+          { label: strings('bridge.generic_error_toast_body') },
         ],
       }),
     );
+    expect(cancelRecurringOrder).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(
-        renderResult.queryByTestId(
-          RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-    expect(
+    await userEvent.press(
       renderResult.getByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
       ),
-    ).toBeOnTheScreen();
-    expect(
-      renderResult.getByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.FILLED_VALUE,
-      ),
-    ).toHaveTextContent('0.003 / 0.0075 ETH (40%)');
+    );
+
+    await waitFor(() => expect(cancelRecurringOrder).toHaveBeenCalledTimes(2));
+    expect(showToast).toHaveBeenCalledTimes(2);
   });
 
   it('shows every attempted swap from the API history', async () => {
@@ -205,7 +343,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[2],
-        status: strings('bridge.recurring.not_enough_gas'),
+        status: strings('bridge.recurring.insufficient_balance'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
@@ -218,6 +356,12 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[4],
         status: strings('bridge.recurring.failed'),
+        received: '+0 USDC',
+        spent: '-0 ETH',
+      },
+      {
+        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
+        status: strings('bridge.recurring.needs_smart_account'),
         received: '+0 USDC',
         spent: '-0 ETH',
       },
@@ -252,6 +396,27 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('opens swap details when a history row is pressed', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+    await openOrderDetails(renderResult);
+
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+        ),
+      ),
+    );
+
+    expect(
+      await renderResult.findByTestId(
+        RecurringSwapDetailsViewSelectorsIDs.SCREEN,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('shows an empty state when the order has no attempted swaps', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER_2,
@@ -264,6 +429,43 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_EMPTY,
       ),
     ).toHaveTextContent(strings('bridge.recurring.history_empty'));
+  });
+
+  it('keeps the price range in USD when EUR is selected', async () => {
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+      overrides: {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'EUR',
+              currencyRates: {
+                ETH: {
+                  conversionRate: 1800,
+                  usdConversionRate: 2000,
+                },
+              },
+            },
+            AssetsController: {
+              selectedCurrency: 'eur',
+            },
+          },
+        },
+      },
+    });
+
+    await openOrderDetails(renderResult);
+
+    const summary = within(
+      renderResult.getByTestId(RecurringOrderDetailsViewSelectorsIDs.SUMMARY),
+    );
+    expect(
+      summary.getByText(
+        formatRecurringPriceRange({
+          priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('uses failed copy when a skipped swap has no reason', async () => {
