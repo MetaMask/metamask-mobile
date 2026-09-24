@@ -115,6 +115,7 @@ const KYCPending = () => {
               height: imageDimensions.height,
             }}
             testID="kyc-pending-image"
+            accessible={false}
           />
         </Box>
 
