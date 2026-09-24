@@ -157,10 +157,11 @@ export const navigateToPostUnlockHome = async (): Promise<void> => {
     navigation.dispatch(StackActions.popTo(Routes.ONBOARDING.HOME_NAV));
 
     if (!decision.exact) {
-      // The user was deeper than a top-level route, so trim their section's
-      // stack back to its home. That screen is still mounted, so it keeps its
+      // The user was deeper than a top-level route, so trim back to it. The
+      // target is often the navigator containing that screen rather than the
+      // screen itself, and it is still mounted either way, so it keeps its
       // scroll position rather than rebuilding.
-      navigation.dispatch(StackActions.popTo(decision.route));
+      navigation.dispatch(StackActions.popTo(decision.target));
     }
   } else {
     NavigationService.navigation?.reset({

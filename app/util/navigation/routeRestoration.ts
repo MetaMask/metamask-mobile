@@ -23,23 +23,12 @@ export const ROUTE_RESTORE_WINDOW_MS = 5 * MINUTE;
  */
 export const RESTORABLE_ROUTES: readonly string[] = [
   Routes.TRENDING_VIEW, // Explore
-  Routes.REWARDS_VIEW,
-
-  // A section appears under two names depending on how deep the user is, and
-  // both are needed. Inside its own stack — say Perps home beneath an order
-  // form pushed on top — the home screen's own name is what is reachable.
-  // But a section's detail screens and modals are registered as *siblings* of
-  // its stack in MainNavigator rather than inside it, so from one of those the
-  // only thing reachable is the stack's container name.
-  Routes.MONEY.ROOT,
   Routes.MONEY.HOME,
-  Routes.PERPS.ROOT,
+  Routes.REWARDS_VIEW,
   Routes.PERPS.PERPS_HOME,
-  Routes.PREDICT.ROOT,
   // Predictions has two homes; which one renders is behind a remote flag.
   Routes.PREDICT.MARKET_LIST,
   Routes.PREDICT.FEED,
-  Routes.BRIDGE.ROOT,
   Routes.BRIDGE.BRIDGE_VIEW, // Swap
   Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
 ];
@@ -57,11 +46,16 @@ export type RouteRestoreRejection =
 export type RouteRestoreDecision =
   | {
       restore: true;
-      /** The allow-listed route to land on. */
+      /** The allow-listed screen the user ends up looking at. */
       route: string;
       /**
-       * Whether `route` is the screen the user actually left. False means they
-       * were deeper and the stack is trimmed back to their section's home.
+       * What to pop back to, which is often a navigator containing `route`
+       * rather than `route` itself.
+       */
+      target: string;
+      /**
+       * Whether the user is already on `route`. False means they were deeper
+       * and the stack is trimmed back to it.
        */
       exact: boolean;
     }
@@ -99,8 +93,8 @@ const findRoute = (
  * pushed on top of it — while the tab or stack containing that screen is an
  * ancestor a level out. `popTo` reaches either.
  */
-const collectReachableLevels = (state: AnyNavigationState): string[][] => {
-  const levels: string[][] = [];
+const collectReachableLevels = (state: AnyNavigationState): AnyRoute[][] => {
+  const levels: AnyRoute[][] = [];
   let current: AnyNavigationState | undefined = state;
 
   while (current?.routes?.length) {
@@ -110,11 +104,35 @@ const collectReachableLevels = (state: AnyNavigationState): string[][] => {
       break;
     }
 
-    levels.push(current.routes.slice(0, index + 1).map(({ name }) => name));
+    levels.push(current.routes.slice(0, index + 1));
     current = route.state;
   }
 
   return levels;
+};
+
+/**
+ * The screen a user would end up looking at if sent back to `route`.
+ *
+ * Popping to a navigator lands on whatever is focused inside it, so a candidate
+ * has to be judged by that rather than by its own name: `Home` is a tab
+ * navigator, and what it means depends on which tab is selected.
+ */
+const landingScreen = (route: AnyRoute): string => {
+  let current: AnyNavigationState | undefined = route.state;
+  let name = route.name;
+
+  while (current?.routes?.length) {
+    const index: number = current.index ?? current.routes.length - 1;
+    const next: AnyRoute | undefined = current.routes[index];
+    if (!next) {
+      break;
+    }
+    name = next.name;
+    current = next.state;
+  }
+
+  return name;
 };
 
 /**
@@ -155,7 +173,7 @@ export const decideRouteRestore = ({
   const levels = homeNav.state ? collectReachableLevels(homeNav.state) : [];
   const innermost = levels[levels.length - 1];
   const focused =
-    innermost?.[innermost.length - 1] ?? Routes.ONBOARDING.HOME_NAV;
+    innermost?.[innermost.length - 1]?.name ?? Routes.ONBOARDING.HOME_NAV;
 
   if (
     backgroundedAt === null ||
@@ -168,17 +186,19 @@ export const decideRouteRestore = ({
   // user in a Perps order form lands on Perps home rather than on the tab that
   // contains it.
   for (let level = levels.length - 1; level >= 0; level--) {
-    const names = levels[level];
+    const routes = levels[level];
 
-    for (let i = names.length - 1; i >= 0; i--) {
-      if (!RESTORABLE_ROUTES.includes(names[i])) {
+    for (let i = routes.length - 1; i >= 0; i--) {
+      const route = landingScreen(routes[i]);
+      if (!RESTORABLE_ROUTES.includes(route)) {
         continue;
       }
 
       return {
         restore: true,
-        route: names[i],
-        exact: level === levels.length - 1 && i === names.length - 1,
+        route,
+        target: routes[i].name,
+        exact: level === levels.length - 1 && i === routes.length - 1,
       };
     }
   }

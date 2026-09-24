@@ -316,7 +316,12 @@ describe('startupDeeplinkNavigation', () => {
       expect(mockReset).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).toHaveBeenCalledTimes(1);
       expect(mockTrackRouteRestoreEvaluated).toHaveBeenCalledWith(
-        { restore: true, route: Routes.PERPS.PERPS_HOME, exact: true },
+        {
+          restore: true,
+          route: Routes.PERPS.PERPS_HOME,
+          target: Routes.PERPS.PERPS_HOME,
+          exact: true,
+        },
         expect.any(Number),
       );
     });

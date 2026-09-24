@@ -19,8 +19,11 @@ const buildTree = ({
 }: {
   /** A single screen inside HomeNav. */
   focusedRoute?: string;
-  /** A stack inside HomeNav, last entry focused. */
-  stack?: string[];
+  /**
+   * A stack inside HomeNav, last entry focused. An entry may be a navigator
+   * carrying its own focused child, written `{ name, focused }`.
+   */
+  stack?: (string | { name: string; focused: string })[];
   covers?: string[];
   includeHomeNav?: boolean;
 }) => {
@@ -34,7 +37,17 @@ const buildTree = ({
             state: inner
               ? {
                   index: inner.length - 1,
-                  routes: inner.map((name) => ({ name })),
+                  routes: inner.map((entry) =>
+                    typeof entry === 'string'
+                      ? { name: entry }
+                      : {
+                          name: entry.name,
+                          state: {
+                            index: 0,
+                            routes: [{ name: entry.focused }],
+                          },
+                        },
+                  ),
                 }
               : undefined,
           },
@@ -68,6 +81,7 @@ describe('decideRouteRestore', () => {
     expect(decision).toStrictEqual({
       restore: true,
       route: restorableRoute,
+      target: restorableRoute,
       exact: true,
     });
   });
@@ -84,6 +98,7 @@ describe('decideRouteRestore', () => {
     expect(decision).toStrictEqual({
       restore: true,
       route: Routes.BRIDGE.BRIDGE_VIEW,
+      target: Routes.BRIDGE.BRIDGE_VIEW,
       exact: true,
     });
   });
@@ -172,6 +187,7 @@ describe('decideRouteRestore', () => {
     expect(decision).toStrictEqual({
       restore: true,
       route: restorableRoute,
+      target: restorableRoute,
       exact: false,
     });
   });
@@ -180,17 +196,22 @@ describe('decideRouteRestore', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
         // Predict modals are siblings of the Predict stack in MainNavigator,
-        // so the stack's container name is the only thing reachable.
-        stack: [Routes.PREDICT.ROOT, Routes.PREDICT.MODALS.ROOT],
+        // so the only thing reachable is the stack itself.
+        stack: [
+          { name: Routes.PREDICT.ROOT, focused: Routes.PREDICT.MARKET_LIST },
+          Routes.PREDICT.MODALS.ROOT,
+        ],
       }),
       backgroundedAt: NOW - 1000,
       enabled: true,
       now: NOW,
     });
 
+    // Popping to the stack lands on the screen focused inside it.
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.PREDICT.ROOT,
+      route: Routes.PREDICT.MARKET_LIST,
+      target: Routes.PREDICT.ROOT,
       exact: false,
     });
   });
@@ -198,7 +219,10 @@ describe('decideRouteRestore', () => {
   it('returns to a section from a detail screen registered beside its stack', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({
-        stack: [Routes.MONEY.ROOT, Routes.MONEY.TRANSACTION_DETAILS],
+        stack: [
+          { name: Routes.MONEY.ROOT, focused: Routes.MONEY.HOME },
+          Routes.MONEY.TRANSACTION_DETAILS,
+        ],
       }),
       backgroundedAt: NOW - 1000,
       enabled: true,
@@ -207,8 +231,52 @@ describe('decideRouteRestore', () => {
 
     expect(decision).toStrictEqual({
       restore: true,
-      route: Routes.MONEY.ROOT,
+      route: Routes.MONEY.HOME,
+      target: Routes.MONEY.ROOT,
       exact: false,
+    });
+  });
+
+  it('returns to the selected tab from a screen pushed above the tabs', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({
+        // Explore is a tab, and crypto movers is pushed above the whole tab
+        // navigator, so `Home` is what is reachable.
+        stack: [
+          { name: Routes.HOME_TABS, focused: Routes.TRENDING_VIEW },
+          Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        ],
+      }),
+      backgroundedAt: NOW - 1000,
+      enabled: true,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: true,
+      route: Routes.TRENDING_VIEW,
+      target: Routes.HOME_TABS,
+      exact: false,
+    });
+  });
+
+  it('does not restore a tab that is not allow-listed', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({
+        stack: [
+          { name: Routes.HOME_TABS, focused: Routes.TRANSACTIONS_VIEW },
+          Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        ],
+      }),
+      backgroundedAt: NOW - 1000,
+      enabled: true,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: false,
+      reason: 'not_restorable',
+      route: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
     });
   });
 
@@ -229,6 +297,7 @@ describe('decideRouteRestore', () => {
     expect(decision).toStrictEqual({
       restore: true,
       route: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+      target: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
       exact: false,
     });
   });
