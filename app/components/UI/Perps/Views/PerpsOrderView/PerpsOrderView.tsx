@@ -148,7 +148,10 @@ import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
+import {
+  MAX_PERPS_INPUT_DIGITS,
+  PERPS_MIN_BALANCE_THRESHOLD,
+} from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -2080,7 +2083,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Money Account is not reachable through this view's own pay-token
   // defaulting, so opt this flow into the shared money-account selection.
-  useMoneyAccountDepositAndOrder();
+  // A funded Perps balance is this view's default funding source and the
+  // shared selection only reads the EOA token balance, so hold it back until
+  // the live account proves the Perps balance cannot cover the order.
+  const perpsSpendableBalance = Number.parseFloat(
+    account?.spendableBalance?.toString() ?? '0',
+  );
+  useMoneyAccountDepositAndOrder({
+    disable:
+      isLoadingAccount || perpsSpendableBalance >= PERPS_MIN_BALANCE_THRESHOLD,
+  });
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
