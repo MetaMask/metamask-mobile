@@ -42,20 +42,19 @@ export function usePerpsMarginAdjustment(
   const { track } = usePerpsEventTracking();
 
   // Re-reads the position so a removal is checked against what the exchange
-  // will see, not the snapshot the form was built from. Returns
-  // 'position_closed' when a successful read no longer has the position, and
-  // null when the read fails so the submission is not blocked.
+  // will see, not the snapshot the form was built from. Returns null when the
+  // read can't be trusted so the submission is not blocked. A missing position
+  // counts as that: the provider also returns [] when the fetch fails, so the
+  // exchange decides whether the position is really gone.
   const getFreshRemovableMargin = useCallback(
     async (
       symbol: string,
-    ): Promise<
-      { exchangeMax: number; safeMax: number } | 'position_closed' | null
-    > => {
+    ): Promise<{ exchangeMax: number; safeMax: number } | null> => {
       try {
         const positions = await getPositions({ skipCache: true });
         const position = positions.find((p) => p.symbol === symbol);
         if (!position) {
-          return 'position_closed';
+          return null;
         }
         const params = {
           currentMargin: parseFloat(position.marginUsed),
@@ -127,14 +126,6 @@ export function usePerpsMarginAdjustment(
           // The position can move between opening the form and submitting,
           // so re-check the amount against a fresh read before sending it.
           const fresh = await getFreshRemovableMargin(symbol);
-          if (fresh === 'position_closed') {
-            showToast(
-              PerpsToastOptions.positionManagement.margin.adjustmentFailed(
-                strings('perps.errors.position_not_found'),
-              ),
-            );
-            return;
-          }
           if (fresh && amount > fresh.exchangeMax) {
             showToast(
               PerpsToastOptions.positionManagement.margin.removeAmountChanged(
