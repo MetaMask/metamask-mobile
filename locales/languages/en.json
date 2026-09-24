@@ -9242,6 +9242,8 @@
       "limit": "Limit",
       "recurring": "Recurring"
     },
+    "generic_error_toast_title": "Something went wrong",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Open orders",
