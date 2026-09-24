@@ -85,9 +85,10 @@ describe('useCancelRecurringOrder', () => {
     queryClients.clear();
   });
 
-  it('moves loaded data into matching History caches and invalidates without refetching', async () => {
+  it('updates loaded caches and actively refetches the by-asset query', async () => {
     const queryClient = new QueryClient();
     queryClients.add(queryClient);
+    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
     const openKey = getQueryKey();
     const historyKey = getQueryKey(WALLET_ADDRESS, [
       RecurringOrderStatus.Completed,
@@ -202,6 +203,14 @@ describe('useCancelRecurringOrder', () => {
     expect(queryClient.getQueryState(openKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(historyKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(byAssetKey)?.isInvalidated).toBe(true);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [RECURRING_ORDERS_QUERY_KEY],
+      refetchType: 'none',
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY],
+      refetchType: 'active',
+    });
   });
 
   it('leaves all caches unchanged when cancellation fails', async () => {

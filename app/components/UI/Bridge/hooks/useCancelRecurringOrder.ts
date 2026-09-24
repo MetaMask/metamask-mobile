@@ -15,9 +15,15 @@ import {
 } from '../queries/recurringOrders';
 
 const log = createProjectLogger('bridge-recurring-cancellation-history');
-const RECURRING_ORDER_QUERY_KEYS = [
-  RECURRING_ORDERS_QUERY_KEY,
-  RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
+const RECURRING_ORDER_QUERY_INVALIDATIONS = [
+  {
+    queryKey: RECURRING_ORDERS_QUERY_KEY,
+    refetchType: 'none',
+  },
+  {
+    queryKey: RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
+    refetchType: 'active',
+  },
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -148,7 +154,7 @@ export function useCancelRecurringOrder() {
       updateRecurringOrdersCaches(queryClient, order);
 
       await Promise.all(
-        RECURRING_ORDER_QUERY_KEYS.map(async (queryKey) => {
+        RECURRING_ORDER_QUERY_INVALIDATIONS.map(async ({ queryKey }) => {
           try {
             await Engine.controllerMessenger.call(
               'RecurringOrdersDataService:invalidateQueries',
@@ -161,16 +167,18 @@ export function useCancelRecurringOrder() {
       );
 
       await Promise.all(
-        RECURRING_ORDER_QUERY_KEYS.map(async (queryKey) => {
-          try {
-            await queryClient.invalidateQueries({
-              queryKey: [queryKey],
-              refetchType: 'none',
-            });
-          } catch (error) {
-            log('Recurring-order UI cache invalidation failed', error);
-          }
-        }),
+        RECURRING_ORDER_QUERY_INVALIDATIONS.map(
+          async ({ queryKey, refetchType }) => {
+            try {
+              await queryClient.invalidateQueries({
+                queryKey: [queryKey],
+                refetchType,
+              });
+            } catch (error) {
+              log('Recurring-order UI cache invalidation failed', error);
+            }
+          },
+        ),
       );
     },
   });
