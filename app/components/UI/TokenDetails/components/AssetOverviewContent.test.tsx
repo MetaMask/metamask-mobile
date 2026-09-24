@@ -19,6 +19,8 @@ import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 // eslint-disable-next-line import-x/no-namespace
 import * as TokenDetailsActionsModule from './TokenDetailsActions';
+import { MOCK_RECURRING_OPEN_ORDER } from '../../Bridge/api/recurringOrders.mock';
+import { RecurringOrderDetailsViewSelectorsIDs } from '../../Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -623,6 +625,85 @@ describe('AssetOverviewContent', () => {
       expect(
         queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
       ).toBeNull();
+    });
+  });
+
+  describe('Orders section', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('renders the section only when an order is available', () => {
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          recurringOrder={MOCK_RECURRING_OPEN_ORDER}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.ORDERS_SECTION),
+      ).toBeOnTheScreen();
+
+      rerender(<AssetOverviewContent {...defaultProps} />);
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.ORDERS_SECTION),
+      ).toBeNull();
+    });
+
+    it('keeps the section header non-navigating until the full list route is available', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          recurringOrder={MOCK_RECURRING_OPEN_ORDER}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.ORDERS_HEADER));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('exits the current action and opens recurring order details on row press', () => {
+      const onExitAction = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          recurringOrder={MOCK_RECURRING_OPEN_ORDER}
+          onExitAction={onExitAction}
+        />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER.orderId,
+          ),
+        ),
+      );
+
+      expect(onExitAction).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        params: { order: MOCK_RECURRING_OPEN_ORDER },
+      });
     });
   });
 

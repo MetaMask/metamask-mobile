@@ -94,6 +94,8 @@ import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import type { RecurringOrder } from '../../Bridge/api/recurringOrders.types';
+import { TokenDetailsOrdersSection } from './TokenDetailsOrdersSection';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -202,6 +204,7 @@ export interface AssetOverviewContentProps {
     hasPerpsMarket: boolean;
     isLoading: boolean;
   }) => void;
+  recurringOrder?: RecurringOrder;
 }
 
 /**
@@ -249,6 +252,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onExitAction,
   isPricePositive,
   onPerpsMarketResolved,
+  recurringOrder,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -508,6 +512,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
   }, [marketData, navigation]);
 
+  const handleRecurringOrderPress = useCallback(
+    (order: RecurringOrder) => {
+      onExitAction?.();
+      navigation.navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        params: { order },
+      });
+    },
+    [navigation, onExitAction],
+  );
+
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <TouchableOpacity
@@ -714,6 +729,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
             />
           )}
+          {recurringOrder ? (
+            <TokenDetailsOrdersSection
+              recurringOrder={recurringOrder}
+              onOrderPress={handleRecurringOrderPress}
+            />
+          ) : null}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails
               asset={token}
