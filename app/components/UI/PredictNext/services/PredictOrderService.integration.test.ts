@@ -5,9 +5,9 @@ import {
 } from '@metamask/messenger';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import {
-  PREDICT_ORDER_PREVIEW_SERVICE_NAME,
-  PredictOrderPreviewService,
-} from '../services/PredictOrderPreviewService';
+  PREDICT_ORDER_SERVICE_NAME,
+  PredictOrderService,
+} from '../services/PredictOrderService';
 import { KALSHI_VENUE_ID } from '../types';
 
 const previewResponse = {
@@ -52,10 +52,10 @@ describe('PredictNext Order Preview request', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     const messenger = new Messenger({
-      namespace: PREDICT_ORDER_PREVIEW_SERVICE_NAME,
+      namespace: PREDICT_ORDER_SERVICE_NAME,
       parent: rootMessenger,
     });
-    return new PredictOrderPreviewService({
+    return new PredictOrderService({
       messenger,
       trading: harness.adapter.trading,
       venueId: harness.adapter.venueId,
