@@ -8,7 +8,11 @@ import {
   useNetworkFilter,
 } from '../../hooks/send/useNetworkFilter';
 import { NetworkFilter } from './network-filter';
-import { getNetworkFilterAvatarTestId } from './network-filter.testIds';
+import {
+  getNetworkFilterAvatarTestId,
+  getNetworkFilterTestId,
+  NETWORK_FILTER_ALL_TEST_ID,
+} from './network-filter.testIds';
 
 const mockTokens: AssetType[] = [
   {
@@ -226,6 +230,22 @@ describe('NetworkFilter', () => {
     expect(
       screen.getByTestId(getNetworkFilterAvatarTestId('0x89')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders filter tabs with fully rounded pill corners', () => {
+    render(
+      <NetworkFilter
+        tokens={mockTokens}
+        onFilteredTokensChange={mockOnFilteredTokensChange}
+      />,
+    );
+
+    expect(screen.getByTestId(NETWORK_FILTER_ALL_TEST_ID)).toHaveStyle({
+      borderRadius: 9999,
+    });
+    expect(screen.getByTestId(getNetworkFilterTestId('0x1'))).toHaveStyle({
+      borderRadius: 9999,
+    });
   });
 
   it('does not render avatar for All networks tab', () => {

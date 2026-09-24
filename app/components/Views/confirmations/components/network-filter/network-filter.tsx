@@ -59,7 +59,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
         isActive={isSelected}
         onPress={onPress}
         size={ButtonSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
+        style={tw.style('rounded-full py-2 px-3')}
         testID={testID}
       />
     );
@@ -99,7 +99,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
       isActive={isSelected}
       onPress={onPress}
       size={ButtonSize.Md}
-      style={tw.style('rounded-xl py-2 px-3')}
+      style={tw.style('rounded-full py-2 px-3')}
       testID={testID}
     />
   );
