@@ -75,7 +75,7 @@ describe('CreateVirtualBankAccount', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('records vendor disclaimers before navigating to verify identity', async () => {
+  it('stores vendor terms locally before advancing to email', async () => {
     const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
     const button = getByTestId(
@@ -87,9 +87,7 @@ describe('CreateVirtualBankAccount', () => {
 
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.RAMP.VBA_VERIFY_IDENTITY,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_EMAIL);
     });
   });
 

@@ -19,7 +19,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockHydrate = jest.fn();
 const mockGetState = jest.fn();
-const mockHasAcceptedVbaTermsOne = jest.fn();
+const mockHasAcceptedVbaVendorTerms = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -49,16 +49,16 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('../vbaTermsOneStorage', () => ({
-  hasAcceptedVbaTermsOne: (...args: unknown[]) =>
-    mockHasAcceptedVbaTermsOne(...args),
+jest.mock('../vbaVendorTermsStorage', () => ({
+  hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
+    mockHasAcceptedVbaVendorTerms(...args),
 }));
 
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockHasAcceptedVbaTermsOne.mockResolvedValue(false);
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
@@ -75,13 +75,13 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
-  it('opens at email when Terms 1 is accepted locally', async () => {
-    mockHasAcceptedVbaTermsOne.mockResolvedValue(true);
+  it('opens at email when vendor terms is accepted locally', async () => {
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current();
 
-    expect(mockHasAcceptedVbaTermsOne).toHaveBeenCalledWith('0xabc');
+    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith('0xabc');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_EMAIL);
   });
 

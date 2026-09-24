@@ -1,9 +1,9 @@
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import {
-  getVbaTermsOneAcceptance,
-  hasAcceptedVbaTermsOne,
-  saveVbaTermsOneAcceptance,
-} from './vbaTermsOneStorage';
+  getVbaVendorTermsAcceptance,
+  hasAcceptedVbaVendorTerms,
+  saveVbaVendorTermsAcceptance,
+} from './vbaVendorTermsStorage';
 
 jest.mock('../../../../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -15,7 +15,7 @@ jest.mock('../../../../../store/storage-wrapper', () => ({
 
 const mockStorage = jest.mocked(StorageWrapper);
 
-describe('VBA Terms 1 storage', () => {
+describe('VBA vendor terms storage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStorage.getItem.mockResolvedValue(null);
@@ -23,7 +23,7 @@ describe('VBA Terms 1 storage', () => {
   });
 
   it('stores accepted disclaimer ids under a normalized wallet key', async () => {
-    await saveVbaTermsOneAcceptance('0xAbC', ['privacy', 'terms']);
+    await saveVbaVendorTermsAcceptance('0xAbC', ['privacy', 'terms']);
 
     expect(mockStorage.setItem).toHaveBeenCalledWith(
       '@MetaMask:vbaTermsOneAccepted:v1:0xabc',
@@ -36,16 +36,16 @@ describe('VBA Terms 1 storage', () => {
       '{"disclaimerIds":["privacy","terms"]}',
     );
 
-    await expect(getVbaTermsOneAcceptance('0xAbC')).resolves.toStrictEqual({
+    await expect(getVbaVendorTermsAcceptance('0xAbC')).resolves.toStrictEqual({
       disclaimerIds: ['privacy', 'terms'],
     });
-    await expect(hasAcceptedVbaTermsOne('0xAbC')).resolves.toBe(true);
+    await expect(hasAcceptedVbaVendorTerms('0xAbC')).resolves.toBe(true);
   });
 
   it('ignores malformed acceptance data', async () => {
     mockStorage.getItem.mockResolvedValue('not-json');
 
-    await expect(getVbaTermsOneAcceptance('0xabc')).resolves.toBeNull();
-    await expect(hasAcceptedVbaTermsOne('0xabc')).resolves.toBe(false);
+    await expect(getVbaVendorTermsAcceptance('0xabc')).resolves.toBeNull();
+    await expect(hasAcceptedVbaVendorTerms('0xabc')).resolves.toBe(false);
   });
 });

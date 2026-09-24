@@ -3,10 +3,14 @@ import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
+import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import Routes from '../../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../../reducers';
+import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { strings } from '../../../../../../../locales/i18n';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { VBA_KYC_VENDOR } from '../constants';
+import { getVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -18,7 +22,10 @@ interface UseKycEmailVerificationResult {
   resetKyc: () => Promise<void>;
 }
 
-/** Starts or resumes the KYC session, then continues to Get Pix Key. */
+/**
+ * Starts or resumes the KYC session, records locally accepted vendor
+ * disclaimer ids, then navigates to the provider terms page.
+ */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
   const [email, setEmail] = useState(
@@ -43,7 +50,25 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         email: trimmedEmail,
       });
 
-      navigation.navigate(Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT);
+      const walletAddress = selectSelectedVbaWalletAddress(
+        ReduxService.store.getState() as RootState,
+      );
+      const vendorTermsAcceptance = walletAddress
+        ? await getVbaVendorTermsAcceptance(walletAddress)
+        : null;
+      if (vendorTermsAcceptance?.disclaimerIds.length) {
+        await Engine.context.KycController.recordVendorDisclaimers({
+          disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+        });
+      } else if (
+        !(await Engine.context.KycController.hasCompletedVendorDisclaimers())
+      ) {
+        throw new Error(
+          strings('virtual_bank_account.kyc_email.terms_not_loaded_error'),
+        );
+      }
+
+      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },

@@ -31,10 +31,10 @@ interface VbaFunnelStep {
  */
 export const VBA_FUNNEL: readonly VbaFunnelStep[] = [
   {
-    id: 'termsOne',
+    id: 'vendorTerms',
     route: Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
     isComplete: (snapshot) =>
-      snapshot.termsOneAccepted || snapshot.vendorDisclaimersComplete,
+      snapshot.vendorTermsAcceptedLocally || snapshot.vendorDisclaimersComplete,
   },
   {
     id: 'email',
