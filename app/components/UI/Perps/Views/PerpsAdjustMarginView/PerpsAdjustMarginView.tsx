@@ -41,6 +41,7 @@ import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
+import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
@@ -143,33 +144,14 @@ const PerpsAdjustMarginView: React.FC = () => {
     inputAmount: marginAmount,
   });
 
-  // A stopped removal read a lower limit than the live snapshot; keep Max, the
-  // slider and the submit check within it until the stream catches up to it or
-  // the position itself changes. The stream re-sends positions on every PnL
-  // tick, so only size, entry and leverage count as a change.
-  const positionShape = position
-    ? `${position.size}|${position.entryPrice}|${position.leverage?.value}`
-    : '';
-  useEffect(() => {
-    setFreshMaxAmount(null);
-  }, [positionShape]);
-  useEffect(() => {
-    if (freshMaxAmount !== null && floorUsd(maxAmount) <= freshMaxAmount) {
-      setFreshMaxAmount(null);
-    }
-  }, [maxAmount, freshMaxAmount]);
-  const capToFreshMax = (amount: number) =>
-    freshMaxAmount === null || isAddMode
-      ? amount
-      : Math.min(amount, freshMaxAmount);
-  const flooredMaxAmount = capToFreshMax(floorUsd(maxAmount));
-  // Validate against what the exchange accepts, not the headroom-reduced max
-  // offered by Max/slider, so a price tick after choosing Max does not block it.
-  const submitLimitAmount = capToFreshMax(
-    Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
-      ? floorUsd(exchangeMaxAmount)
-      : flooredMaxAmount,
-  );
+  const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
+    freshMaxAmount,
+    setFreshMaxAmount,
+    position,
+    snapshotMaxAmount: floorUsd(maxAmount),
+    exchangeMaxAmount,
+    isAddMode,
+  });
   const hasNoRemovableMargin =
     !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
 
