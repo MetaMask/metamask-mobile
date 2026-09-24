@@ -44,6 +44,7 @@ import {
   buildScheduledException,
   buildScheduledExceptionMarkdown,
   buildScheduledExceptionSlack,
+  selectBaselineReports,
 } from './scheduled-hermes-exceptions.mjs';
 import {
   buildWeeklyMarkdown,
@@ -251,7 +252,7 @@ Options:
   --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
   --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
   --collect-only         Analyze one run without Slack-sized scenario zips
-  --scheduled-exception  Collect one run and compare it with the prior 7-day median
+  --scheduled-exception  Collect one run and compare it with the previous two scheduled runs
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
@@ -2555,9 +2556,7 @@ async function runScheduledExceptionAnalysis({
       scheduledOnly: true,
     },
   );
-  const baselineReports = scheduledRuns
-    .map((run) => collected.get(String(run.databaseId)))
-    .filter(Boolean);
+  const baselineReports = selectBaselineReports(scheduledRuns, collected);
   const exception = buildScheduledException(currentReport, baselineReports);
   writeScheduledExceptionOutputs(outputDirectory, currentReport, exception);
   if (exception.meta.hasFindings && !args.skipAi && !args.dryRun) {
