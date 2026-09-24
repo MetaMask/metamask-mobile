@@ -123,7 +123,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
             accessibilityLabel={strings(category.titleKey)}
             iconName={category.iconName as IconName}
             label={strings(category.titleKey)}
-            twClassName="flex-1 py-4"
+            twClassName="flex-1"
           />
         ))}
       </ScrollView>

@@ -40,7 +40,6 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         label={label}
         onPress={onPress}
         testID={testID}
-        twClassName="min-h-[74px]"
       />
       {showBadge && (
         <BadgeCount
