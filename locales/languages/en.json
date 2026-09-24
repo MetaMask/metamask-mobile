@@ -2576,7 +2576,7 @@
       "networkErrorSimple": "Network error occurred. Check your connection and try again.",
       "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
-        "title": "Couldn't connect to perps",
+        "title": "Couldn't connect to Perps",
         "description": "We're working to get it back online soon.",
         "retry": "Try again",
         "go_back": "Go back"
