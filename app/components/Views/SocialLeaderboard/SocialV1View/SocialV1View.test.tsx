@@ -308,8 +308,7 @@ describe('SocialV1View', () => {
         id: 'composed-focus',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({ id: 'focus-item', comment: 'focus me' }),
       });
     });
@@ -330,8 +329,7 @@ describe('SocialV1View', () => {
         id: 'composed-1',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({
           id: 'composed-item',
           comment: 'this is alpha',

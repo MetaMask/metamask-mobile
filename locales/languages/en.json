@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Get your Pix Key",
-      "description": "Send funds directly to your Money account from any bank account.",
-      "benefit_deposit_pix": "Deposit with",
-      "benefit_payments": "Send local and international payments",
-      "agreements_disclosures_title": "Agreements and disclosures",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agreement_text": "By continuing, you agree to the terms and conditions above.",
-      "powered_by_moonpay": "Powered by MoonPay.",
-      "button": "Agree and continue"
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1156,7 +1159,7 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
@@ -1282,6 +1285,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1589,7 +1598,10 @@
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
-      "show_fiat_value": "Show fiat value"
+      "show_fiat_value": "Show fiat value",
+      "max_leverage_accessibility_label": "Up to {{maxLeverage}}x leverage",
+      "margin_info_accessibility_label": "About margin",
+      "liquidation_price_info_accessibility_label": "About liquidation price"
     },
     "mode": {
       "lite": "Lite",
@@ -2121,7 +2133,8 @@
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "price_unavailable": "Price information unavailable"
+        "price_unavailable": "Price information unavailable",
+        "description": "If the price hits liquidation, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
       },
       "type": {
         "title": "Order type",
@@ -2279,7 +2292,8 @@
       "increment_label": "Increase slippage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "slippage": "Slippage",
-      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size."
+      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size.",
+      "exceeds_max_reduce_size": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Reduce the order size."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
@@ -2345,6 +2359,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "already_closed": "Position already closed",
       "already_closed_subtitle": "This position was filled or closed already",
+      "already_in_progress": "Close already in progress",
+      "already_in_progress_subtitle": "Wait for it to finish before closing again",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
       "failed_to_place_close_order": "Failed to place close order",
@@ -6255,7 +6271,8 @@
   "duplicate_address": {
     "title": "This is a duplicate address",
     "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
-    "button": "Got it"
+    "button": "Got it",
+    "accessibility_label": "Show ambiguous address information"
   },
   "transaction_submitted": {
     "title": "Transaction submitted",
@@ -7165,6 +7182,12 @@
     "order_status_cancelled": "Cancelled",
     "webview_no_url_provided": "No URL was provided to continue",
     "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Settings",
       "use_new_buy_experience": "More ways to buy",
@@ -8476,7 +8499,6 @@
       "add": "Add",
       "convert_cta": "Convert your crypto",
       "no_fee": "No fee",
-      "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
@@ -8486,13 +8508,11 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get",
       "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
-      "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
@@ -8514,7 +8534,6 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "manage_card": "Manage",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
@@ -9282,6 +9301,11 @@
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
+      "status": "Status",
+      "in_progress": "In progress",
+      "submitted": "Submitted",
+      "cancel_order": "Cancel order",
+      "cancel_order_confirmation": "Do you really want to cancel your order?",
       "edit_cost_tolerance": "Edit cost tolerance",
       "try_again": "Try again",
       "error_calculation_network_fees": "Couldn't calculate the network fee.",
@@ -10302,10 +10326,10 @@
     "card_home": {
       "title": "Card",
       "authentication_error": "Your session has expired. Log in again.",
-      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
@@ -10320,8 +10344,8 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
-      "enable_card_error": "Failed to enable card. Please try again later.",
-      "view_card_details_error": "Unable to load card details. Please try again.",
+      "enable_card_error": "Failed to enable card. Try again later.",
+      "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "card_details": {
@@ -10345,7 +10369,7 @@
         },
         "no_card": {
           "title": "You need to enable your card",
-          "description": "Please enable your card to start spending"
+          "description": "Enable your card to start spending"
         },
         "frozen": {
           "title": "Your card is frozen",
@@ -10353,7 +10377,7 @@
         },
         "blocked": {
           "title": "Your card is blocked",
-          "description": "Please contact support to unblock your card"
+          "description": "Contact support to unblock your card"
         },
         "kyc_pending": {
           "title": "Verification in progress",
@@ -10369,20 +10393,20 @@
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
-          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Check back shortly to enable your card."
         },
         "rejected": {
           "title": "Verification not approved",
-          "description": "We were unable to verify your identity. Please contact support for assistance.",
-          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
+          "description": "We were unable to verify your identity. Contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Contact our support team at {{email}} for assistance and we'll help you resolve this issue."
         },
         "unverified": {
           "title": "Verification required",
-          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification status unavailable",
-          "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
+          "description": "We couldn't check your verification status. Try again later or contact support if the issue persists."
         },
         "ok_button": "OK"
       },
@@ -10392,7 +10416,7 @@
         "view_card_details_description": "Card number, expiration and CVV",
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin_error": "Failed to load PIN. Try again.",
         "set_pin": "Set a 4-digit PIN",
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
@@ -10414,7 +10438,7 @@
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
         "unfreeze_card_description": "Resume all spending on your card",
-        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_error": "Failed to update card status. Try again.",
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
@@ -10535,7 +10559,7 @@
       "update_error": "Failed to update spending limit",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
-      "load_error": "Unable to load tokens. Please try again.",
+      "load_error": "Unable to load tokens. Try again.",
       "retry": "Try again",
       "on_linea": "on Linea",
       "account_label": "Account",
@@ -10559,9 +10583,9 @@
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
       "withdrawal_success": "Withdrawal completed successfully",
-      "withdrawal_failed": "Withdrawal failed. Please try again.",
+      "withdrawal_failed": "Withdrawal failed. Try again.",
       "no_cashback": "No mUSD back available",
-      "loading_error": "Failed to load mUSD back. Please try again.",
+      "loading_error": "Failed to load mUSD back. Try again.",
       "funding_required": {
         "title": "Set up Linea funding",
         "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
@@ -10583,8 +10607,8 @@
       "withdraw_to_money_account": "Move to Money account",
       "withdraw_unavailable": "Redemption unavailable",
       "withdrawal_success": "Redemption completed successfully",
-      "withdrawal_failed": "Redemption failed. Please try again.",
-      "loading_error": "Failed to load credit. Please try again.",
+      "withdrawal_failed": "Redemption failed. Try again.",
+      "loading_error": "Failed to load credit. Try again.",
       "funding_required": {
         "title": "Set up funding",
         "description": "You need at least one approved funding source before redeeming your credit.",
@@ -10659,9 +10683,7 @@
       "signup_button": "Sign up",
       "forgot_password_button": "Forgot password?",
       "account_label": "Account",
-      "account_helper_linked": "This is the account you set your card up with.",
       "account_helper_pick": "Choose the account you set your card up with. We'll check it before asking you to sign.",
-      "account_mismatch": "This isn't the account your card is linked to.",
       "fork_title": "How do you usually sign in?",
       "fork_body": "We didn't find a card on the accounts you use most. Pick how you set yours up.",
       "fork_body_api_error": "We couldn't check how your card was set up. Try again, or tell us how you sign in.",
@@ -10676,6 +10698,7 @@
       "resume_back": "Back to your update",
       "resume_use_current_card": "Use your current card instead",
       "resume_progress_identity": "Identity verified",
+      "resume_progress_identity_pending": "Verify your identity",
       "resume_progress_spending": "Set up spending",
       "banner_account_missing_title": "Your card is linked to an account that isn't on this device",
       "banner_account_missing_body": "Import the Secret Recovery Phrase that holds your card account, or choose another account on this device.",
@@ -10700,30 +10723,30 @@
       "sign_in_help_got_it": "Got it",
       "errors": {
         "invalid_credentials": "Invalid login details",
-        "invalid_otp_code": "Incorrect code, please try again",
-        "unknown_error": "Unknown error, please try again later",
+        "invalid_otp_code": "Incorrect code. Try again.",
+        "unknown_error": "Unknown error. Try again later.",
         "email_required": "Email is required",
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
         "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "timeout_error": "Request timed out. Please check your connection and try again.",
-        "server_error": "Server error. Please try again later.",
+        "network_error": "Network error. Check your connection and try again.",
+        "timeout_error": "Request timed out. Check your connection and try again.",
+        "server_error": "Server error. Try again later.",
         "configuration_error": "Service is temporarily unavailable. Try again later.",
         "forbidden_error": "This action isn't available for your account.",
         "account_check_failed": "We couldn't check this account. Try again."
       }
     },
     "card_forgot_password": {
-      "load_error": "Something went wrong loading the page. Please try again.",
+      "load_error": "Something went wrong loading the page. Try again.",
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
-      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",
       "back_to_login_button": "Back to login",
@@ -11249,6 +11272,7 @@
       "total_volume": "Total volume",
       "top_return": "Top return",
       "top_pnl": "Top PnL",
+      "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {

@@ -9,6 +9,7 @@
 
 import '../mocks';
 import React from 'react';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
@@ -80,20 +81,10 @@ export function renderTopTradersViewWithRoutes(
   );
 }
 
-// ---------------------------------------------------------------------------
-// Settings TopTradersSection – privacy opt-in/out toggle
-// ---------------------------------------------------------------------------
-
 /**
- * Renders the Security & Privacy `TopTradersSection` toggle in isolation.
- *
- * The component reads feature flags and `settings.showAccountOnLeaderboard`
- * from Redux, and calls Engine.controllerMessenger for opt-in/opt-out.
- * No external API mock is required; the default Engine mock is sufficient.
- */
-/**
- * Renders profile onboarding with a real wallet account so the link-account
- * step can list it through the account selectors.
+ * Renders profile onboarding with an EVM account that has a native mainnet
+ * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
+ * must mount and list only the EVM account.
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
@@ -108,6 +99,42 @@ export function renderSocialProfileOnboarding(
           PreferencesController: {
             privacyMode: false,
           },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'sol-1': {
+                  id: 'sol-1',
+                  address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
+                  metadata: {
+                    name: 'Solana Account',
+                    importTime: 1,
+                    keyring: { type: 'Snap Keyring' },
+                  },
+                  options: {},
+                  methods: [],
+                  type: SolAccountType.DataAccount,
+                  scopes: [SolScope.Mainnet],
+                },
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+              },
+            },
+          },
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/slip44:60': { type: 'native', decimals: 18 },
+            },
+            assetsBalance: {
+              'acc-1': {
+                'eip155:1/slip44:60': { amount: '1' },
+              },
+            },
+          },
         },
       },
     })
@@ -121,6 +148,17 @@ export function renderSocialProfileOnboarding(
   );
 }
 
+// ---------------------------------------------------------------------------
+// Settings TopTradersSection – privacy opt-in/out toggle
+// ---------------------------------------------------------------------------
+
+/**
+ * Renders the Security & Privacy `TopTradersSection` toggle in isolation.
+ *
+ * The component reads feature flags and `settings.showAccountOnLeaderboard`
+ * from Redux, and calls Engine.controllerMessenger for opt-in/opt-out.
+ * No external API mock is required; the default Engine mock is sufficient.
+ */
 export function renderSettingsTopTradersSection(
   options: RenderSocialLeaderboardOptions = {},
 ) {

@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Τραπεζικός λογαριασμός",
       "title": "Αποκτήστε το Pix Key",
       "description": "Στείλτε χρήματα απευθείας στον Money account σας από οποιονδήποτε τραπεζικό λογαριασμό.",
