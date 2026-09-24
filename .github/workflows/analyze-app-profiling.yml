@@ -278,6 +278,7 @@ jobs:
             /tmp/analyze-app-profiling/*.md
             /tmp/analyze-app-profiling/report.json
             /tmp/analyze-app-profiling/notification.json
+            /tmp/analyze-app-profiling/ai-proposal-evidence.json
             /tmp/analyze-app-profiling/slack-cards.json
             /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/
