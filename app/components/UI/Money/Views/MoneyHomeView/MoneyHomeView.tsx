@@ -113,7 +113,6 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import useSubscriptions from '../../../../hooks/useSubscriptions';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
@@ -140,11 +139,10 @@ const MoneyHomeView = () => {
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
 
-  // Pro entry point: keep subscription state fresh only while the Pro flow is
-  // enabled so we do not generate API traffic for users without the flow.
+  // usePlusAccess already mounts the subscriptions query while the Pro flow
+  // is enabled, so this view only needs the resolved chrome flags.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
-  useSubscriptions({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
