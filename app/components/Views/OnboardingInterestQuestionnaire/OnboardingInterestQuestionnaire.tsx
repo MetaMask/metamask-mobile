@@ -5,6 +5,7 @@ import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheetFooter,
+  Box,
   Button,
   ButtonSize,
   ButtonsAlignment,
@@ -220,19 +221,16 @@ const OnboardingInterestQuestionnaire = () => {
     >
       <HeaderStandard includesTopInset />
 
-      <TitleStandard
-        title={strings('onboarding_interest_questionnaire.title')}
-        titleProps={{
-          variant: TextVariant.DisplayMd,
-          fontWeight: FontWeight.Bold,
-        }}
-        bottomLabel={strings('onboarding_interest_questionnaire.description')}
-        twClassName="mx-4 mb-4 gap-y-2"
-      />
+      <Box twClassName="px-4 pb-4">
+        <TitleStandard
+          title={strings('onboarding_interest_questionnaire.title')}
+          bottomLabel={strings('onboarding_interest_questionnaire.description')}
+        />
+      </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-4')}
+        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-2')}
         showsVerticalScrollIndicator={false}
       >
         {INTEREST_OPTIONS.map((option) => {
@@ -290,15 +288,17 @@ const OnboardingInterestQuestionnaire = () => {
           testID: OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
         }}
       />
-      <Button
-        variant={ButtonVariant.Tertiary}
-        size={ButtonSize.Lg}
-        onPress={onSkip}
-        testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
-        twClassName="mx-4 mt-2 mb-2"
-      >
-        {strings('onboarding_interest_questionnaire.skip')}
-      </Button>
+      <Box twClassName="px-4 py-2">
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={onSkip}
+          testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
+        >
+          {strings('onboarding_interest_questionnaire.skip')}
+        </Button>
+      </Box>
 
       {isOtherBottomSheetVisible ? (
         <OtherBottomSheet
