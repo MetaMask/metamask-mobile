@@ -10,7 +10,7 @@ import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/ramp
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { VBA_KYC_VENDOR } from '../constants';
-import { getVbaTermsOneAcceptance } from '../vbaTermsOneStorage';
+import { getVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -23,8 +23,8 @@ interface UseKycEmailVerificationResult {
 }
 
 /**
- * Starts or resumes the KYC session, records the Terms 1 ids accepted locally,
- * then navigates to the session-scoped Terms 2 page.
+ * Starts or resumes the KYC session, records locally accepted vendor
+ * disclaimer ids, then navigates to the provider terms page.
  */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -53,12 +53,12 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
       const walletAddress = selectSelectedVbaWalletAddress(
         ReduxService.store.getState() as RootState,
       );
-      const termsOneAcceptance = walletAddress
-        ? await getVbaTermsOneAcceptance(walletAddress)
+      const vendorTermsAcceptance = walletAddress
+        ? await getVbaVendorTermsAcceptance(walletAddress)
         : null;
-      if (termsOneAcceptance?.disclaimerIds.length) {
+      if (vendorTermsAcceptance?.disclaimerIds.length) {
         await Engine.context.KycController.recordVendorDisclaimers({
-          disclaimerIds: termsOneAcceptance.disclaimerIds,
+          disclaimerIds: vendorTermsAcceptance.disclaimerIds,
         });
       } else if (
         !(await Engine.context.KycController.hasCompletedVendorDisclaimers())
