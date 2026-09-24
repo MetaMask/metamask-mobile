@@ -199,6 +199,53 @@ describe('Perps margin-mode lock — integration', () => {
       expect(harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
 
+    it('places an order whose mode matches the resting-order lock', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      harness.setupTradingReady();
+      harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([
+        { coin: 'BTC' },
+      ]);
+      harness.mocks.infoClient.activeAssetData.mockResolvedValue({
+        leverage: { type: 'cross', value: 5 },
+      });
+
+      const result = await harness.provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50_000,
+        leverage: 5,
+        marginMode: 'cross',
+      });
+
+      expect(result.success).toBe(true);
+      expect(harness.mocks.exchangeClient.updateLeverage).toHaveBeenCalledWith(
+        expect.objectContaining({ isCross: true, leverage: 5 }),
+      );
+    });
+
+    it('keeps the isolated default and skips the lock read when no mode is sent', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      harness.setupTradingReady();
+
+      const result = await harness.provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50_000,
+        leverage: 5,
+      });
+
+      expect(result.success).toBe(true);
+      expect(harness.mocks.exchangeClient.updateLeverage).toHaveBeenCalledWith(
+        expect.objectContaining({ isCross: false, leverage: 5 }),
+      );
+      expect(harness.mocks.infoClient.twapHistory).not.toHaveBeenCalled();
+      expect(harness.mocks.infoClient.activeAssetData).not.toHaveBeenCalled();
+    });
+
     it('sets cross leverage and places the order when the market is unlocked', async () => {
       const harness = buildPerpsIntegrationHarness();
       harness.setupTradingReady();
