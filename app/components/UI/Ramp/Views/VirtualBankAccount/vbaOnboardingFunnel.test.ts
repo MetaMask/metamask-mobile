@@ -27,6 +27,14 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       [
+        'session pending before provider terms',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          kycStatus: 'pending',
+        }),
+      ],
+      [
         'provider done',
         snapshot({
           sessionExists: true,
@@ -103,6 +111,7 @@ describe('getVbaDestinationForSnapshot', () => {
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
         "provider done": "identityVerification",
+        "session pending before provider terms": "identityVerification",
         "sumsub submitted": "kycPending",
         "vendor terms done": "email",
       }

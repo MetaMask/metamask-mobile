@@ -108,6 +108,32 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
+  it('opens identity verification when a session is pending before provider terms', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      kycStatus: 'pending',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          vendorTermsAcceptedLocally: true,
+          kycStatus: 'pending',
+        },
+      },
+    });
+  });
+
   it('opens the KYC pending status after identity submission', async () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
