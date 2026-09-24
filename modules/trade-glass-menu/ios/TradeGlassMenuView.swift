@@ -27,19 +27,24 @@ enum TradeGlassMenuColorScheme: String, Enumerable {
 }
 
 /**
- A Liquid Glass menu that grows its own frame out of the button that opened it.
+ A Liquid Glass menu that grows out of the button that opened it.
 
- `UIGlassEffect` renders its refraction at the layer's size, so scaling the
- layer warps the material. UIKit animates the frame instead, off the React
- Native commit path, and the rows are laid out once at their final size and
- revealed by the growing clip.
+ Both the menu and a stand-in for its button are glass siblings inside a
+ `UIGlassContainerEffect`, so UIKit fuses and splits them the way SpringBoard
+ does rather than us imitating it. The geometry is animated by UIKit, off the
+ React Native commit path, and the rows are laid out once at their final size
+ and revealed by a clip that tracks the menu.
  */
 public final class TradeGlassMenuView: ExpoView {
-  private let clipView = UIView()
-  private let glassEffectView = UIVisualEffectView()
+  private let containerEffectView = UIVisualEffectView()
+  private let anchorGlassView = UIVisualEffectView()
+  private let menuGlassView = UIVisualEffectView()
+  private let contentClipView = UIView()
   private let contentView = UIView()
 
-  private var glassEffect: Any?
+  private var containerEffect: Any?
+  private var anchorEffect: Any?
+  private var menuEffect: Any?
   private var animator: UIViewPropertyAnimator?
 
   private var anchor: CGRect = .zero
@@ -47,6 +52,7 @@ public final class TradeGlassMenuView: ExpoView {
   private var horizontalInset: CGFloat = 16
   private var gap: CGFloat = 16
   private var menuCornerRadius: CGFloat = 24
+  private var mergeSpacing: CGFloat = 24
   private var colorScheme: TradeGlassMenuColorScheme = .auto
   private var isOpen = false
   private var presentedOpen = false
@@ -57,16 +63,20 @@ public final class TradeGlassMenuView: ExpoView {
   public required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
 
-    clipView.clipsToBounds = true
-    clipView.layer.cornerCurve = .continuous
-    glassEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    containerEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    contentClipView.clipsToBounds = true
+    contentClipView.layer.cornerCurve = .continuous
     // Keeps the rows pinned to the bottom edge as the clip grows upward.
     contentView.autoresizingMask = [.flexibleTopMargin]
-    contentView.alpha = 0
+    contentClipView.alpha = 0
 
-    clipView.addSubview(glassEffectView)
-    clipView.addSubview(contentView)
-    addSubview(clipView)
+    containerEffectView.contentView.addSubview(anchorGlassView)
+    containerEffectView.contentView.addSubview(menuGlassView)
+    contentClipView.addSubview(contentView)
+    addSubview(containerEffectView)
+    // The rows sit above the glass rather than inside it, so the blob is free
+    // to bulge past the clip while the two shapes fuse.
+    addSubview(contentClipView)
   }
 
   // UIGlassEffect crashes on some iOS 26 betas, so probe before constructing it.
@@ -83,10 +93,19 @@ public final class TradeGlassMenuView: ExpoView {
     return false
   }
 
+  private func isGlassContainerEffectAvailable() -> Bool {
+    #if compiler(>=6.2)
+      if #available(iOS 26.0, *) {
+        return NSClassFromString("UIGlassContainerEffect") != nil
+      }
+    #endif
+    return false
+  }
+
   public override func layoutSubviews() {
     super.layoutSubviews()
 
-    updateEffect()
+    updateEffects()
     // Until the menu has animated, UIKit owns no in-flight geometry, so a
     // bounds change (rotation, keyboard) re-seats it rather than fighting it.
     if !hasAnimated {
@@ -104,31 +123,65 @@ public final class TradeGlassMenuView: ExpoView {
     )
   }
 
+  private func menuRect(open: Bool) -> CGRect {
+    open ? expandedRect : anchor
+  }
+
   private func applyGeometry(open: Bool) {
-    let frame = open ? expandedRect : anchor
-    clipView.frame = frame
-    clipView.layer.cornerRadius = open ? menuCornerRadius : anchor.height / 2
+    let frame = menuRect(open: open)
+    anchorGlassView.frame = anchor
+    menuGlassView.frame = frame
+    contentClipView.frame = frame
+    contentClipView.layer.cornerRadius = open ? menuCornerRadius : anchor.height / 2
     contentView.frame = CGRect(
       x: 0,
       y: frame.height - expandedHeight,
       width: expandedRect.width,
       height: expandedHeight
     )
-    contentView.alpha = open ? 1 : 0
+    contentClipView.alpha = open ? 1 : 0
+    applyCorners(open: open)
   }
 
-  private func updateEffect() {
+  /// Glass takes its shape from the corner configuration, not the layer radius.
+  private func applyCorners(open: Bool) {
     guard isGlassEffectAvailable() else {
       return
     }
     #if compiler(>=6.2)
       if #available(iOS 26.0, *) {
-        if glassEffect == nil {
-          glassEffect = UIGlassEffect(style: .regular)
+        anchorGlassView.cornerConfiguration = .capsule()
+        menuGlassView.cornerConfiguration =
+          open ? .uniformCorners(radius: .fixed(menuCornerRadius)) : .capsule()
+      }
+    #endif
+  }
+
+  private func updateEffects() {
+    guard isGlassEffectAvailable() else {
+      return
+    }
+    #if compiler(>=6.2)
+      if #available(iOS 26.0, *) {
+        if containerEffect == nil, isGlassContainerEffectAvailable() {
+          let effect = UIGlassContainerEffect()
+          effect.spacing = mergeSpacing
+          containerEffect = effect
         }
-        glassEffectView.overrideUserInterfaceStyle = colorScheme.toUIUserInterfaceStyle()
-        // Re-assigning is what makes UIKit pick the effect up.
-        glassEffectView.effect = glassEffect as? UIGlassEffect
+        if anchorEffect == nil {
+          anchorEffect = UIGlassEffect(style: .regular)
+        }
+        if menuEffect == nil {
+          menuEffect = UIGlassEffect(style: .regular)
+        }
+        let style = colorScheme.toUIUserInterfaceStyle()
+        containerEffectView.overrideUserInterfaceStyle = style
+        anchorGlassView.overrideUserInterfaceStyle = style
+        menuGlassView.overrideUserInterfaceStyle = style
+        // Re-assigning is what makes UIKit pick the effects up.
+        containerEffectView.effect = containerEffect as? UIGlassContainerEffect
+        anchorGlassView.effect = anchorEffect as? UIGlassEffect
+        menuGlassView.effect = menuEffect as? UIGlassEffect
       }
     #endif
   }
@@ -136,12 +189,12 @@ public final class TradeGlassMenuView: ExpoView {
   private func animate(open: Bool) {
     animator?.stopAnimation(true)
 
-    // Reduce Motion keeps the crossfade but drops the travel, so the menu
+    // Reduce Motion keeps the cross-fade but drops the travel, so the menu
     // appears where it belongs instead of flying there.
     if UIAccessibility.isReduceMotionEnabled {
       applyGeometry(open: true)
       UIView.animate(withDuration: open ? 0.14 : 0.09) {
-        self.contentView.alpha = open ? 1 : 0
+        self.contentClipView.alpha = open ? 1 : 0
       } completion: { _ in
         if !open {
           self.onCollapsed()
@@ -165,14 +218,18 @@ public final class TradeGlassMenuView: ExpoView {
     }
 
     animator.addAnimations {
-      self.clipView.frame = open ? self.expandedRect : self.anchor
-      self.clipView.layer.cornerRadius = open ? self.menuCornerRadius : self.anchor.height / 2
+      let frame = self.menuRect(open: open)
+      self.menuGlassView.frame = frame
+      self.contentClipView.frame = frame
+      self.contentClipView.layer.cornerRadius =
+        open ? self.menuCornerRadius : self.anchor.height / 2
       self.contentView.frame = CGRect(
         x: 0,
-        y: (open ? self.expandedRect.height : self.anchor.height) - self.expandedHeight,
+        y: frame.height - self.expandedHeight,
         width: self.expandedRect.width,
         height: self.expandedHeight
       )
+      self.applyCorners(open: open)
     }
     animator.addCompletion { position in
       guard position == .end, !open else {
@@ -185,7 +242,7 @@ public final class TradeGlassMenuView: ExpoView {
 
     // The rows cross-fade at their final size, so labels never stretch.
     UIView.animate(withDuration: open ? 0.14 : 0.09) {
-      self.contentView.alpha = open ? 1 : 0
+      self.contentClipView.alpha = open ? 1 : 0
     }
   }
 
@@ -231,12 +288,22 @@ public final class TradeGlassMenuView: ExpoView {
     setNeedsLayout()
   }
 
+  /// How close the two shapes must be before UIKit starts fusing them.
+  func setMergeSpacing(_ spacing: CGFloat) {
+    guard spacing != mergeSpacing else {
+      return
+    }
+    mergeSpacing = spacing
+    containerEffect = nil
+    updateEffects()
+  }
+
   func setColorScheme(_ colorScheme: TradeGlassMenuColorScheme) {
     guard colorScheme != self.colorScheme else {
       return
     }
     self.colorScheme = colorScheme
-    updateEffect()
+    updateEffects()
   }
 
   func setIsOpen(_ isOpen: Bool) {

@@ -19,6 +19,8 @@ export interface TradeGlassMenuProps extends ViewProps {
   /** Space the open menu leaves between itself and the button. */
   gap?: number;
   menuCornerRadius?: number;
+  /** How close the menu and its button must be before UIKit fuses them. */
+  mergeSpacing?: number;
   colorScheme?: 'auto' | 'light' | 'dark';
   isOpen: boolean;
   /** Fires once the collapse animation has finished. */

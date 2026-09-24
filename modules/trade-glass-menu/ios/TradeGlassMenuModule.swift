@@ -27,6 +27,10 @@ public final class TradeGlassMenuModule: Module {
         view.setMenuCornerRadius(radius)
       }
 
+      Prop("mergeSpacing", 24) { (view, spacing: CGFloat) in
+        view.setMergeSpacing(spacing)
+      }
+
       Prop("colorScheme", .auto) { (view, colorScheme: TradeGlassMenuColorScheme) in
         view.setColorScheme(colorScheme)
       }
