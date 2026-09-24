@@ -73,7 +73,7 @@ const baseContext = {
   sourceBalanceFiat: undefined,
   destBalanceFiat: undefined,
   destToken: undefined,
-  selectedDestStable: undefined,
+  selectedReceiveToken: undefined,
   totalAmountFiat: '$123.75',
   isPriceImpactError: false,
   features: { payWithSheet: true, quoteDetails: true },

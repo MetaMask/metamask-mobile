@@ -252,8 +252,8 @@ const buildHookResult = (
   hasSourcePrice: true,
   isSliderDisabled: false,
   sellDestTokenOptions: [],
-  selectedDestStable: undefined,
-  handleSelectDestStable: jest.fn(),
+  selectedReceiveToken: undefined,
+  handleSelectReceiveToken: jest.fn(),
   handleConfirm: jest.fn(),
   ...overrides,
 });

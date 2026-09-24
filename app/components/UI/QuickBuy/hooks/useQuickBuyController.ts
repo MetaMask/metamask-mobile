@@ -153,8 +153,8 @@ export interface UseQuickBuyControllerResult {
   // sell dest token (Sell mode "Receive with")
   sellDestTokenOptions: BridgeToken[];
   positionTokenFromSetup: BridgeToken | undefined;
-  selectedDestStable: BridgeToken | undefined;
-  handleSelectDestStable: (token: BridgeToken) => void;
+  selectedReceiveToken: BridgeToken | undefined;
+  handleSelectReceiveToken: (token: BridgeToken) => void;
   currentCurrency: string;
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -506,7 +506,7 @@ export function useQuickBuyController(
       (token) => getTokenKey(token) !== soldKey,
     );
   }, [receiveTokenOptions, positionTokenFromSetup]);
-  const [selectedDestStable, setSelectedDestStable] = useState<
+  const [selectedReceiveToken, setSelectedReceiveToken] = useState<
     BridgeToken | undefined
   >(undefined);
 
@@ -521,22 +521,22 @@ export function useQuickBuyController(
   // works even when the balance is still resolving.
   useEffect(() => {
     if (isSetupLoading) return;
-    if (sellDestTokenOptions.length > 0 && !selectedDestStable) {
-      setSelectedDestStable(
+    if (sellDestTokenOptions.length > 0 && !selectedReceiveToken) {
+      setSelectedReceiveToken(
         selectDefaultReceiveToken(sellDestTokenOptions, positionTokenFromSetup),
       );
     }
   }, [
     isSetupLoading,
     sellDestTokenOptions,
-    selectedDestStable,
+    selectedReceiveToken,
     positionTokenFromSetup,
   ]);
 
   // ─── Source / dest resolution (mode-dependent) ─────────────────────────
   const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;
   const destToken =
-    tradeMode === 'buy' ? positionTokenFromSetup : selectedDestStable;
+    tradeMode === 'buy' ? positionTokenFromSetup : selectedReceiveToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
 
   // The entered amount is in the user's display currency, but the
@@ -614,7 +614,7 @@ export function useQuickBuyController(
 
   // ─── Live selected-token balances (TSA-632) ────────────────────────────
   // The selected pay-with token (`selectedSourceToken`, buy mode) and receive
-  // token (`selectedDestStable`, sell mode) are `useState` snapshots, so their
+  // token (`selectedReceiveToken`, sell mode) are `useState` snapshots, so their
   // cached `balance` / `balanceFiat` freeze at selection time. The option lists
   // they were picked from — `usePayWithTokens` / `useReceiveTokens` — recompute
   // on every balance-state change because they subscribe (via `useSelector`) to
@@ -637,7 +637,7 @@ export function useQuickBuyController(
     sourceTokenOptions,
   );
   const liveSelectedDestBalance = resolveLiveTokenBalance(
-    selectedDestStable,
+    selectedReceiveToken,
     sellDestTokenOptions,
   );
 
@@ -1345,16 +1345,16 @@ export function useQuickBuyController(
     [selectedSourceToken, sourceTokenOptions, trackPayWithSelected],
   );
 
-  const handleSelectDestStable = useCallback(
+  const handleSelectReceiveToken = useCallback(
     (token: BridgeToken) => {
-      const previousToken = selectedDestStable?.symbol ?? '';
+      const previousToken = selectedReceiveToken?.symbol ?? '';
       if (token.symbol !== previousToken) {
         trackReceiveTokenSelected(token.symbol, previousToken);
       }
-      setSelectedDestStable(token);
+      setSelectedReceiveToken(token);
       resetAmountState();
     },
-    [resetAmountState, selectedDestStable?.symbol, trackReceiveTokenSelected],
+    [resetAmountState, selectedReceiveToken?.symbol, trackReceiveTokenSelected],
   );
 
   const handleAmountChange = useCallback(
@@ -1873,7 +1873,7 @@ export function useQuickBuyController(
     setSelectedSourceToken,
     sellDestTokenOptions,
     positionTokenFromSetup,
-    selectedDestStable,
+    selectedReceiveToken,
     currentCurrency,
     amountDisplayMode,
     fiatAmount,
@@ -1931,7 +1931,7 @@ export function useQuickBuyController(
     handleAmountChange,
     handleToggleAmountDisplay,
     handleSelectSourceToken,
-    handleSelectDestStable,
+    handleSelectReceiveToken,
     handleConfirm,
   };
 }

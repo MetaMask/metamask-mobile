@@ -2577,7 +2577,7 @@ export const runQuickBuyControllerCases = ({
 
         const { result } = renderHook(createTarget(), jest.fn());
 
-        expect(result.current.selectedDestStable?.symbol).toBe('ETH');
+        expect(result.current.selectedReceiveToken?.symbol).toBe('ETH');
       });
 
       it('falls back to the first non-sold candidate when selling the native token', () => {
@@ -2607,7 +2607,7 @@ export const runQuickBuyControllerCases = ({
 
         const { result } = renderHook(createTarget(), jest.fn());
 
-        expect(result.current.selectedDestStable?.symbol).toBe('USDC');
+        expect(result.current.selectedReceiveToken?.symbol).toBe('USDC');
       });
 
       it('excludes the token being sold from the receive options entirely', () => {
@@ -2648,7 +2648,7 @@ export const runQuickBuyControllerCases = ({
 
         const { result } = renderHook(createTarget(), jest.fn());
 
-        expect(result.current.selectedDestStable).toBeUndefined();
+        expect(result.current.selectedReceiveToken).toBeUndefined();
       });
     });
 
@@ -3441,11 +3441,11 @@ export const runQuickBuyControllerCases = ({
 
         const { result } = renderHook(createTarget(), jest.fn());
 
-        const previousSymbol = result.current.selectedDestStable?.symbol;
+        const previousSymbol = result.current.selectedReceiveToken?.symbol;
         const nextToken = previousSymbol === 'USDC' ? eth : usdc;
 
         act(() => {
-          result.current.handleSelectDestStable(nextToken);
+          result.current.handleSelectReceiveToken(nextToken);
         });
 
         expect(mockTrackReceiveTokenSelected).toHaveBeenCalledWith(
@@ -3464,7 +3464,7 @@ export const runQuickBuyControllerCases = ({
         const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
-          result.current.handleSelectDestStable(usdc);
+          result.current.handleSelectReceiveToken(usdc);
         });
 
         expect(mockTrackReceiveTokenSelected).toHaveBeenCalledWith('USDC', '');
@@ -5456,7 +5456,7 @@ export const runQuickBuyControllerCases = ({
         const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
-          result.current.handleSelectDestStable(usdc);
+          result.current.handleSelectReceiveToken(usdc);
         });
 
         expect(mockTrackReceiveTokenSelected).not.toHaveBeenCalled();

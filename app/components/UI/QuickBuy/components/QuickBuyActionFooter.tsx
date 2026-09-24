@@ -37,7 +37,7 @@ const QuickBuyActionFooter: React.FC = () => {
     sourceToken,
     sourceBalanceFiat,
     destBalanceFiat,
-    selectedDestStable,
+    selectedReceiveToken,
     features,
     totalAmountFiat,
     isPriceImpactError,
@@ -45,7 +45,7 @@ const QuickBuyActionFooter: React.FC = () => {
     setActiveScreen,
   } = useQuickBuyContext();
 
-  const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
+  const pickerToken = tradeMode === 'sell' ? selectedReceiveToken : sourceToken;
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 

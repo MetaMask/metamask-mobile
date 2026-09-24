@@ -46,10 +46,10 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
 
 describe('QuickBuyTokenSelectScreen', () => {
   const handleSelectSourceToken = jest.fn();
-  const handleSelectDestStable = jest.fn();
+  const handleSelectReceiveToken = jest.fn();
   const setActiveScreen = jest.fn();
   const selectedSourceToken = createToken();
-  const selectedDestStable = createToken({ symbol: 'USDT' });
+  const selectedReceiveToken = createToken({ symbol: 'USDT' });
   const positionTokenFromSetup = createToken({
     symbol: 'PEPE',
     address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
@@ -61,8 +61,8 @@ describe('QuickBuyTokenSelectScreen', () => {
       positionTokenFromSetup,
       selectedSourceToken,
       handleSelectSourceToken,
-      selectedDestStable,
-      handleSelectDestStable,
+      selectedReceiveToken,
+      handleSelectReceiveToken,
       setActiveScreen,
     });
     return render(<QuickBuyTokenSelectScreen />);
@@ -80,15 +80,15 @@ describe('QuickBuyTokenSelectScreen', () => {
       balanceOnly: true,
       selected: selectedSourceToken,
       handler: handleSelectSourceToken,
-      otherHandler: handleSelectDestStable,
+      otherHandler: handleSelectReceiveToken,
     },
     {
       tradeMode: 'sell' as const,
       title: 'social_leaderboard.quick_buy.receive',
       type: TokenSelectorType.Dest,
       balanceOnly: false,
-      selected: selectedDestStable,
-      handler: handleSelectDestStable,
+      selected: selectedReceiveToken,
+      handler: handleSelectReceiveToken,
       otherHandler: handleSelectSourceToken,
     },
   ])(

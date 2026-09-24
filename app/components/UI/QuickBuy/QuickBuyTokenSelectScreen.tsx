@@ -26,8 +26,8 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
     positionTokenFromSetup,
     selectedSourceToken,
     handleSelectSourceToken,
-    selectedDestStable,
-    handleSelectDestStable,
+    selectedReceiveToken,
+    handleSelectReceiveToken,
     setActiveScreen,
   } = useQuickBuyContext();
   const isSell = tradeMode === 'sell';
@@ -40,13 +40,18 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
   const handleSelect = useCallback(
     (token: BridgeToken) => {
       if (isSell) {
-        handleSelectDestStable(token);
+        handleSelectReceiveToken(token);
       } else {
         handleSelectSourceToken(token);
       }
       setActiveScreen('amount');
     },
-    [isSell, handleSelectDestStable, handleSelectSourceToken, setActiveScreen],
+    [
+      isSell,
+      handleSelectReceiveToken,
+      handleSelectSourceToken,
+      setActiveScreen,
+    ],
   );
 
   return (
@@ -66,7 +71,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
       </BottomSheetHeader>
       <BridgeTokenSelectorContent
         type={isSell ? TokenSelectorType.Dest : TokenSelectorType.Source}
-        selectedToken={isSell ? selectedDestStable : selectedSourceToken}
+        selectedToken={isSell ? selectedReceiveToken : selectedSourceToken}
         onTokenPress={handleSelect}
         balanceOnly={!isSell}
         excludeToken={positionTokenFromSetup}
