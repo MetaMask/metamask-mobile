@@ -16,7 +16,7 @@ const styleSheet = (params: {
   const finalBackgroundColor = selected
     ? (selectedColor ?? colors.background.muted)
     : 'transparent';
-  /** Fully rounded custom chart-picker button. */
+  /** Matches {@link TimeRangeSelector} segment Pressables: `py-1`, `px-4`, `rounded-lg`, `flex-1`, `bg-muted` when selected. */
   return StyleSheet.create({
     button: {
       flex: 1,
@@ -24,7 +24,7 @@ const styleSheet = (params: {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: finalBackgroundColor,
-      borderRadius: 9999,
+      borderRadius: 8,
       paddingVertical: 4,
       paddingHorizontal: 16,
     },
