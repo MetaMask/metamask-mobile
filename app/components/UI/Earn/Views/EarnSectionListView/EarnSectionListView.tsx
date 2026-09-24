@@ -12,6 +12,9 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxFlexWrap,
   FontWeight,
   SectionDivider,
   SensitiveText,
@@ -23,11 +26,16 @@ import {
   TextVariant,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { Pressable } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Asset } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
+import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
+import InlineTextFlow from '../../../../../component-library/components-temp/InlineTextFlow';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
@@ -122,6 +130,8 @@ const MoneyProjection = ({
   isLoading: boolean;
   onProjectionPress: () => void;
 }) => {
+  const { colors } = useTheme();
+  const tw = useTailwind();
   const hasPositiveProjection =
     isPositiveNumber(projectedAmount) && isPositiveNumber(totalAssetsFiat);
 
@@ -142,14 +152,21 @@ const MoneyProjection = ({
       twClassName="px-4 py-3 gap-3"
     >
       {hasPositiveProjection ? (
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Regular}
-          color={TextColor.TextAlternative}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          flexWrap={BoxFlexWrap.Wrap}
+          alignItems={BoxAlignItems.Center}
         >
-          {`${strings(
-            'money.potential_earnings.description_with_amounts_prefix',
-          )} `}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            twClassName="shrink-0"
+          >
+            {`${strings(
+              'money.potential_earnings.description_with_amounts_prefix',
+            )} `}
+          </Text>
           <SensitiveText
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
@@ -160,24 +177,50 @@ const MoneyProjection = ({
           >
             {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
           </SensitiveText>
-          {` ${strings(
-            'money.potential_earnings.description_with_amounts_middle',
-          )} `}
-          <SensitiveText
+          <InlineTextFlow
+            text={strings(
+              'money.potential_earnings.description_with_amounts_middle',
+            )}
+            keyPrefix="earn-projection-middle"
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Regular}
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-            twClassName="underline"
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-            testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED}
+            leadingSpace
+          />
+          <Pressable
+            testID={
+              EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED_BUTTON
+            }
+            style={({ pressed }) => tw.style(pressed && 'opacity-50')}
             onPress={onProjectionPress}
           >
-            {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
-          </SensitiveText>
-
-          {` ${strings('money.potential_earnings.description_with_amounts_suffix')}`}
-        </Text>
+            <DottedUnderline
+              color={colors.success.default}
+              twClassName="shrink-0"
+            >
+              <SensitiveText
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED}
+              >
+                {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
+              </SensitiveText>
+            </DottedUnderline>
+          </Pressable>
+          <InlineTextFlow
+            text={strings(
+              'money.potential_earnings.description_with_amounts_suffix',
+            )}
+            keyPrefix="earn-projection-suffix"
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Regular}
+            variant={TextVariant.BodyMd}
+            leadingSpace
+          />
+        </Box>
       ) : (
         <Text
           variant={TextVariant.BodyMd}
@@ -483,7 +526,8 @@ const EarnSectionListView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: MONEY_COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
+      component_name:
+        MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT,
     });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,

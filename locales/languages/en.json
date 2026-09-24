@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Get your Pix Key",
-      "description": "Send funds directly to your Money account from any bank account.",
-      "benefit_deposit_pix": "Deposit with",
-      "benefit_payments": "Send local and international payments",
-      "agreements_disclosures_title": "Agreements and disclosures",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agreement_text": "By continuing, you agree to the terms and conditions above.",
-      "powered_by_moonpay": "Powered by MoonPay.",
-      "button": "Agree and continue"
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1156,7 +1159,7 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Email is missing. Go back and enter your email."
     }
   },
@@ -2350,6 +2353,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "already_closed": "Position already closed",
       "already_closed_subtitle": "This position was filled or closed already",
+      "already_in_progress": "Close already in progress",
+      "already_in_progress_subtitle": "Wait for it to finish before closing again",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
       "failed_to_place_close_order": "Failed to place close order",
@@ -6260,7 +6265,8 @@
   "duplicate_address": {
     "title": "This is a duplicate address",
     "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
-    "button": "Got it"
+    "button": "Got it",
+    "accessibility_label": "Show ambiguous address information"
   },
   "transaction_submitted": {
     "title": "Transaction submitted",
@@ -8481,7 +8487,6 @@
       "add": "Add",
       "convert_cta": "Convert your crypto",
       "no_fee": "No fee",
-      "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
@@ -8491,13 +8496,11 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get",
       "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
-      "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
@@ -8519,7 +8522,6 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "manage_card": "Manage",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
@@ -9287,6 +9289,11 @@
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
+      "status": "Status",
+      "in_progress": "In progress",
+      "submitted": "Submitted",
+      "cancel_order": "Cancel order",
+      "cancel_order_confirmation": "Do you really want to cancel your order?",
       "edit_cost_tolerance": "Edit cost tolerance",
       "try_again": "Try again",
       "error_calculation_network_fees": "Couldn't calculate the network fee.",
@@ -10679,6 +10686,7 @@
       "resume_back": "Back to your update",
       "resume_use_current_card": "Use your current card instead",
       "resume_progress_identity": "Identity verified",
+      "resume_progress_identity_pending": "Verify your identity",
       "resume_progress_spending": "Set up spending",
       "banner_account_missing_title": "Your card is linked to an account that isn't on this device",
       "banner_account_missing_body": "Import the Secret Recovery Phrase that holds your card account, or choose another account on this device.",
@@ -11252,6 +11260,7 @@
       "total_volume": "Total volume",
       "top_return": "Top return",
       "top_pnl": "Top PnL",
+      "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
