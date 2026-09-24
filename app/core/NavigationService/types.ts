@@ -234,6 +234,7 @@ import type {
   ShareAddressParams,
   ShareAddressQRParams,
   DeleteAccountParams,
+  RemoveAccountParams,
   SmartAccountParams,
   MultichainAccountDetailsParams,
   MultichainAccountGroupDetailsParams,
@@ -481,6 +482,7 @@ export type RootStackParamList = {
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
+  ManageAccountsView: undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -555,8 +557,13 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampGetPixKey: undefined;
+  RampCreateVirtualBankAccount: undefined;
   RampVbaVerifyIdentity: undefined;
   RampVbaKycEmail: undefined;
+  RampVbaSumSubKyc: undefined;
+  RampVbaKycPending: undefined;
+  RampVbaKycRejected: undefined;
+  RampVbaOnboardingError: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -820,6 +827,7 @@ export type RootStackParamList = {
   ShareAddress: ShareAddressParams | undefined;
   ShareAddressQR: ShareAddressQRParams | undefined;
   DeleteAccount: DeleteAccountParams | undefined;
+  RemoveAccount: RemoveAccountParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
   RevealSRPCredential: RevealSRPCredentialParams | undefined;
   SRPRevealQuizInMultichainAccountDetails: SRPRevealQuizParams | undefined;
@@ -930,6 +938,7 @@ export type RootStackParamList = {
   Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
+  PerpsBalanceOrder: PerpsNavigationParamList['PerpsBalanceOrder'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
@@ -959,6 +968,8 @@ export type RootStackParamList = {
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
+  PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
+  PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
   // Predict routes — `Predict` is a nested stack navigator.
   Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
@@ -1002,6 +1013,7 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: undefined;
+  SocialProfileOnboardingView: undefined;
   MyProfileView: undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;

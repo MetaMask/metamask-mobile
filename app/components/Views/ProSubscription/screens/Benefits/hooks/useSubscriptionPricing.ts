@@ -9,6 +9,7 @@ import Logger from '../../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import {
   mapMoneyAccountPlusPricing,
+  PLUS_PRICING_STATUS,
   type MoneyAccountPlusPricingView,
 } from '../utils/mapMoneyAccountPlusPricing';
 
@@ -49,7 +50,13 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   // ReactQueryService wires AppState → focusManager, and react-data-query
   // uses staleTime: 0, so a foreground/reconnect can otherwise run queryFn
   // before React commits enabled:false after background auto-lock.
-  const { data, isLoading, error, refetch } = useQuery<PricingResponse>({
+  const {
+    data,
+    isLoading: isFirstLoad,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery<PricingResponse>({
     queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
     enabled: isUnlocked,
     refetchOnWindowFocus: false,
@@ -68,6 +75,14 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
 
   const plusPricing = useMemo(() => mapMoneyAccountPlusPricing(data), [data]);
 
+  // isLoading only covers the first fetch, so a retry after a failed or empty
+  // result would leave the error banner on screen with no in-flight state.
+  // Any fetch that has nothing displayable behind it counts as loading, and
+  // the previous error stays hidden until that fetch settles.
+  const hasDisplayablePricing =
+    plusPricing.status === PLUS_PRICING_STATUS.ready;
+  const isLoading = isFirstLoad || (isFetching && !hasDisplayablePricing);
+
   const retry = useCallback(() => {
     refetch().catch(() => undefined);
   }, [refetch]);
@@ -75,7 +90,7 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   return {
     plusPricing,
     isLoading,
-    hasError: Boolean(error),
+    hasError: Boolean(error) && !isFetching,
     retry,
   };
 };

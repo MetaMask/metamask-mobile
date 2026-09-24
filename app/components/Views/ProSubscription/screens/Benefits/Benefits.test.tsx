@@ -15,7 +15,7 @@ import {
 } from './Benefits.constants';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
-import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
+import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
 import type { MoneyAccountPlusPricingView } from './utils/mapMoneyAccountPlusPricing';
 
 jest.mock('./hooks/useSubscriptionPricing', () => ({

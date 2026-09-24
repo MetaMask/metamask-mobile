@@ -41,6 +41,7 @@ const makeQueryResult = (
   ({
     data: undefined,
     isLoading: false,
+    isFetching: false,
     error: null,
     refetch: jest.fn(),
     ...overrides,
@@ -130,11 +131,49 @@ describe('useSubscriptionPricing', () => {
   });
 
   it('exposes isLoading from useQuery', () => {
-    mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
+    mockUseQuery.mockReturnValue(
+      makeQueryResult({ isLoading: true, isFetching: true }),
+    );
 
     const { result } = renderHook(() => useSubscriptionPricing());
 
     expect(result.current.isLoading).toBe(true);
+  });
+
+  it('reports loading and hides the previous error while a retry is in flight', () => {
+    mockUseQuery.mockReturnValue(
+      makeQueryResult({
+        error: new Error('network down'),
+        isFetching: true,
+      }),
+    );
+
+    const { result } = renderHook(() => useSubscriptionPricing());
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.hasError).toBe(false);
+  });
+
+  it('reports loading while a retry after empty pricing is in flight', () => {
+    mockUseQuery.mockReturnValue(makeQueryResult({ isFetching: true }));
+
+    const { result } = renderHook(() => useSubscriptionPricing());
+
+    expect(result.current.plusPricing.status).toBe(
+      PLUS_PRICING_STATUS.unavailable,
+    );
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('keeps showing pricing while a refetch runs over usable data', () => {
+    mockUseQuery.mockReturnValue(
+      makeQueryResult({ data: mockPricing, isFetching: true }),
+    );
+
+    const { result } = renderHook(() => useSubscriptionPricing());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.plusPricing.status).toBe(PLUS_PRICING_STATUS.ready);
   });
 
   it('sets hasError and logs when useQuery returns an Error', () => {

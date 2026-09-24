@@ -25,6 +25,7 @@ import {
   PERPS_CONSTANTS,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
@@ -257,7 +258,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           // It is used to override the default decimals for USD with minimal changes
           currency="USD_PERPS"
           onChange={handleKeypadChange}
-          decimals={5}
+          decimals={LIMIT_PRICE_CONFIG.KeypadDecimals}
         />
       </Box>
 
