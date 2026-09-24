@@ -529,7 +529,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   const mostRecentOrderType = getMostRecentOrderType({ recurringOrder });
-  const handleOrdersPress = useCallback(() => {
+  const handleOrdersHeaderPress = useCallback(() => {
     if (!mostRecentOrderType) {
       return;
     }
@@ -756,9 +756,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           {recurringOrder ? (
             <TokenDetailsOrdersSection
-              recurringOrder={recurringOrder}
-              onOrdersPress={handleOrdersPress}
-              onOrderPress={handleRecurringOrderPress}
+              latestRecurringOrder={recurringOrder}
+              onOrdersHeaderPress={handleOrdersHeaderPress}
+              onRecurringOrderPress={handleRecurringOrderPress}
             />
           ) : null}
           <View style={styles.tokenDetailsWrapper}>
