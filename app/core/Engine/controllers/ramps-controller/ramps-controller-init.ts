@@ -12,6 +12,8 @@ import {
   type RampsActivityEvent,
   WebSocketState,
 } from '@metamask/core-backend';
+import ToastService from '../../../ToastService/ToastService';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -19,6 +21,29 @@ import {
  */
 function isRampsDebugDashboardEnabled(): boolean {
   return process.env.RAMPS_DEBUG_DASHBOARD === 'true';
+}
+
+/**
+ * Surfaces `ramps-activity.v1` traffic on screen so the WebSocket path can be
+ * verified by hand. Gated on `RAMP_DEV_BUILD` rather than `__DEV__` because the
+ * `main-dev` APK is a release build, where `__DEV__` is false.
+ *
+ * @param label - The text to display.
+ */
+function showRampsActivityToast(label: string): void {
+  if (process.env.RAMP_DEV_BUILD !== 'true') {
+    return;
+  }
+  // Events can land before the UI mounts the toast ref; `showToast` throws in
+  // that case, so check rather than catch.
+  if (!ToastService.toastRef?.current) {
+    return;
+  }
+  ToastService.showToast({
+    variant: ToastVariants.Plain,
+    labelOptions: [{ label }],
+    hasNoTimeout: false,
+  });
 }
 
 /**
@@ -91,6 +116,7 @@ export const rampsControllerInit: MessengerClientInitFunction<
     initMessenger.subscribe(
       'RampsActivityService:eventReceived',
       (event: RampsActivityEvent) => {
+        showRampsActivityToast(`Ramps activity: ${event.type}`);
         if (!event.needsFetch) {
           return;
         }
@@ -100,6 +126,7 @@ export const rampsControllerInit: MessengerClientInitFunction<
     initMessenger.subscribe(
       'RampsActivityService:statusChanged',
       ({ status }) => {
+        showRampsActivityToast(`Ramps WS: ${status}`);
         if (status === WebSocketState.CONNECTED) {
           refreshAutoramps();
         }
