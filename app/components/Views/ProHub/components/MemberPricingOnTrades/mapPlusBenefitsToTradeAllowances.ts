@@ -4,15 +4,18 @@ import type {
   SubscriptionBenefitsState,
   SwapsBenefitUsage,
 } from '@metamask/subscription-controller';
-import type {
-  TradeAllowanceItem,
-  TradeAllowanceKind,
+import {
+  TRADE_ALLOWANCE_IDS,
+  TRADE_ALLOWANCE_KINDS,
+  type TradeAllowanceItem,
+  type TradeAllowanceKind,
 } from '../../ProHub.constants';
 
 export const MICRO_USD_PER_USD = 1_000_000;
 
 /** Swap, perps, and predict — the products Member pricing can show. */
-export const PLUS_BENEFIT_PRODUCT_COUNT = 3;
+export const PLUS_BENEFIT_PRODUCT_COUNT =
+  Object.keys(TRADE_ALLOWANCE_IDS).length;
 
 const toUsd = (microUsd: number): number =>
   Math.round(microUsd / MICRO_USD_PER_USD);
@@ -49,8 +52,9 @@ const mapMeteredRow = ({
     return undefined;
   }
 
-  const allowance = kind === 'currency' ? toUsd(cap) : cap;
-  let displayUsed = kind === 'currency' ? toUsd(used) : used;
+  const allowance = kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(cap) : cap;
+  let displayUsed =
+    kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(used) : used;
   displayUsed = Math.max(0, displayUsed);
 
   if (exhausted) {
@@ -68,8 +72,8 @@ const mapMeteredRow = ({
 
 const mapSwaps = (usage: SwapsBenefitUsage): TradeAllowanceItem | undefined =>
   mapMeteredRow({
-    id: 'swaps',
-    kind: 'currency',
+    id: TRADE_ALLOWANCE_IDS.SWAPS,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
     cap: usage.capMicroUsd,
     consumed: usage.consumedMicroUsd,
     remaining: usage.remainingMicroUsd,
@@ -78,8 +82,8 @@ const mapSwaps = (usage: SwapsBenefitUsage): TradeAllowanceItem | undefined =>
 
 const mapPerps = (usage: PerpsBenefitUsage): TradeAllowanceItem | undefined =>
   mapMeteredRow({
-    id: 'perps',
-    kind: 'currency',
+    id: TRADE_ALLOWANCE_IDS.PERPS,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
     cap: usage.capMicroUsd,
     consumed: usage.consumedMicroUsd,
     remaining: usage.remainingMicroUsd,
@@ -90,8 +94,8 @@ const mapPredict = (
   usage: PredictBenefitUsage,
 ): TradeAllowanceItem | undefined =>
   mapMeteredRow({
-    id: 'predict',
-    kind: 'count',
+    id: TRADE_ALLOWANCE_IDS.PREDICT,
+    kind: TRADE_ALLOWANCE_KINDS.COUNT,
     cap: usage.capTxCount,
     consumed: usage.consumedTxCount,
     remaining: usage.remainingTxCount,

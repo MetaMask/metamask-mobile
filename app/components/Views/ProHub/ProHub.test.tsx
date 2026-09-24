@@ -6,6 +6,7 @@ import {
   ALSO_INCLUDED_ITEMS,
   MOCK_PRO_HUB_STATS,
   MOCK_TRADE_ALLOWANCES,
+  TRADE_ALLOWANCE_IDS,
 } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
@@ -64,7 +65,7 @@ const renderProHub = () => render(<ProHub />);
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-const TRADE_ALLOWANCE_IDS = ['swaps', 'perps', 'predict'] as const;
+const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
 // CV cannot cover this screen yet: it is still mock-data UI with no Redux /
 // Engine state, so focused unit tests remain the coverage layer.
@@ -230,7 +231,7 @@ describe('ProHub', () => {
       expect(section).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
 
-      TRADE_ALLOWANCE_IDS.forEach((id) => {
+      TRADE_ALLOWANCE_ID_LIST.forEach((id) => {
         const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
         const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
 

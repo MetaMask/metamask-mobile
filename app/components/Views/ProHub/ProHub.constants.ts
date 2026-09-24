@@ -46,10 +46,25 @@ export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [
   },
 ];
 
-export type TradeAllowanceKind = 'currency' | 'count';
+export const TRADE_ALLOWANCE_IDS = {
+  SWAPS: 'swaps',
+  PERPS: 'perps',
+  PREDICT: 'predict',
+} as const;
+
+export type TradeAllowanceId =
+  (typeof TRADE_ALLOWANCE_IDS)[keyof typeof TRADE_ALLOWANCE_IDS];
+
+export const TRADE_ALLOWANCE_KINDS = {
+  CURRENCY: 'currency',
+  COUNT: 'count',
+} as const;
+
+export type TradeAllowanceKind =
+  (typeof TRADE_ALLOWANCE_KINDS)[keyof typeof TRADE_ALLOWANCE_KINDS];
 
 export interface TradeAllowanceItem {
-  id: 'swaps' | 'perps' | 'predict';
+  id: TradeAllowanceId;
   used: number;
   allowance: number;
   kind: TradeAllowanceKind;
@@ -62,7 +77,22 @@ export interface TradeAllowanceItem {
 
 // TODO: replace with real API data once the membership endpoint is available.
 export const MOCK_TRADE_ALLOWANCES: TradeAllowanceItem[] = [
-  { id: 'swaps', used: 310, allowance: 500, kind: 'currency' },
-  { id: 'perps', used: 240, allowance: 1000, kind: 'currency' },
-  { id: 'predict', used: 0, allowance: 1, kind: 'count' },
+  {
+    id: TRADE_ALLOWANCE_IDS.SWAPS,
+    used: 310,
+    allowance: 500,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
+  },
+  {
+    id: TRADE_ALLOWANCE_IDS.PERPS,
+    used: 240,
+    allowance: 1000,
+    kind: TRADE_ALLOWANCE_KINDS.CURRENCY,
+  },
+  {
+    id: TRADE_ALLOWANCE_IDS.PREDICT,
+    used: 0,
+    allowance: 1,
+    kind: TRADE_ALLOWANCE_KINDS.COUNT,
+  },
 ];
