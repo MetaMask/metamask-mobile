@@ -5,7 +5,7 @@ import {
   type Currency,
   type Subscription,
 } from '@metamask/subscription-controller';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
 import { MEMBERSHIP_UNAVAILABLE_VALUE } from './Membership.constants';
@@ -34,7 +34,9 @@ const formatRenewalDate = (date: string): string => {
     return MEMBERSHIP_UNAVAILABLE_VALUE;
   }
 
-  return getIntlDateTimeFormatter(I18n.locale, {
+  // Pinned to en-US so the row keeps the designed "Oct 8, 2026" order rather
+  // than following the device locale.
+  return getIntlDateTimeFormatter('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -51,7 +53,9 @@ const formatPaymentMethod = (
     return `${brand.toUpperCase()} •••• ${paymentMethod.card.last4}`;
   }
 
-  return paymentMethod.crypto.tokenSymbol;
+  // Crypto subscriptions are always funded from the Money account, so the
+  // account is shown rather than the token it is settled in.
+  return strings('pro_hub.membership.money_account');
 };
 
 const getAnnualSavings = (
@@ -142,9 +146,7 @@ export const getMembershipDetails = (
     earnedThisMonth: MEMBERSHIP_UNAVAILABLE_VALUE,
     total,
     payingWith: formatPaymentMethod(subscription),
-    renewsOn: formatRenewalDate(
-      subscription.endDate ?? subscription.currentPeriodEnd,
-    ),
+    renewsOn: formatRenewalDate(subscription.currentPeriodEnd),
     ...annualSavings,
   };
 };

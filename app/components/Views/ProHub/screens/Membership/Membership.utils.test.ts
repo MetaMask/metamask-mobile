@@ -84,7 +84,7 @@ describe('getMembershipDetails', () => {
         },
       ],
       interval: RECURRING_INTERVALS.month,
-      endDate: '2026-08-20T00:00:00.000Z',
+      currentPeriodEnd: '2026-08-20T00:00:00.000Z',
       paymentMethod: {
         type: PAYMENT_TYPES.byCrypto,
         crypto: {
@@ -101,8 +101,18 @@ describe('getMembershipDetails', () => {
     expect(result.total).toBe('$9.99');
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
-    expect(result.payingWith).toBe('USDC');
+    expect(result.payingWith).toBe('Money account');
     expect(result.renewsOn).toBe('Aug 20, 2026');
+  });
+
+  it('renews on the period end even when the subscription has a scheduled end date', () => {
+    const subscription = createSubscription({
+      endDate: '2026-09-20T00:00:00.000Z',
+    });
+
+    const result = getMembershipDetails(subscription, readyPricing);
+
+    expect(result.renewsOn).toBe('Jul 20, 2027');
   });
 
   it('returns unavailable values when the subscription is absent', () => {
