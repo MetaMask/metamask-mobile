@@ -28,6 +28,7 @@ import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader, {
+  type MoneyHeaderProButton,
   type MoneyHeaderProps,
 } from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -111,7 +112,7 @@ import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -139,7 +140,7 @@ const MoneyHomeView = () => {
   // Pro entry point: keep subscription state fresh only while the Pro flow is
   // enabled so we do not generate API traffic for users without the flow.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const isProSubscriber = useIsProSubscriber();
+  const { isProSubscriber, isProAccessUnknown } = useProAccess();
   useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   const {
@@ -424,6 +425,19 @@ const MoneyHomeView = () => {
     });
   }, [navigation, isProSubscriber, trackButtonClicked]);
 
+  // The header only slots the button; this view owns whether the user may see
+  // the Pro entry point, what it says, and where it goes. Access stays hidden
+  // rather than guessed while subscriptions are unresolved.
+  const proButton: MoneyHeaderProButton | undefined =
+    isProSubscriptionEnabled && !isProAccessUnknown
+      ? {
+          label: isProSubscriber
+            ? strings('pro_subscription.pro')
+            : strings('pro_subscription.join_pro'),
+          onPress: handleGetProPress,
+        }
+      : undefined;
+
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.
   const handleBackPress = useCallback(() => {
@@ -442,14 +456,14 @@ const MoneyHomeView = () => {
   const headerProps: MoneyHeaderProps = isPushed
     ? {
         onMenuPress: handleMenuPress,
-        onGetProPress: handleGetProPress,
+        proButton,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
       }
     : {
         onMenuPress: handleMenuPress,
-        onGetProPress: handleGetProPress,
+        proButton,
       };
 
   const handleAddPress = useCallback(

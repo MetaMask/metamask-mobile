@@ -2701,6 +2701,44 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
+    it('hides the Pro entry point while the Pro flow is disabled', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: false,
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('invites the user to join when they are not subscribed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.join_pro'),
+      );
+    });
+
+    it('shows the Pro label when the user is already subscribed', () => {
+      mockUseProAccess.mockReturnValue({
+        isProSubscriber: true,
+        isProAccessUnknown: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.pro'),
+      );
+    });
+
     it('navigates to the subscription flow when the user is not subscribed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

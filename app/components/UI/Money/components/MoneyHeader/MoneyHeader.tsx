@@ -11,8 +11,14 @@ import {
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
+
+/** The Pro entry point, as resolved by the page that owns Pro access. */
+export interface MoneyHeaderProButton {
+  /** Button copy, which differs for subscribers and non-subscribers. */
+  label: string;
+  /** Opens the Pro subscription flow, or the Pro hub for a subscriber. */
+  onPress: () => void;
+}
 
 interface MoneyHeaderCommonProps {
   /**
@@ -20,11 +26,11 @@ interface MoneyHeaderCommonProps {
    */
   onMenuPress: () => void;
   /**
-   * Handler for the Pro button. Opens the Pro subscription flow, or the Pro hub
-   * when the user is already subscribed.
-   * Only fired when the Pro subscription flow flag is enabled.
+   * The Pro entry point. Omit it to leave the Pro button out entirely — the
+   * page decides whether the user may see it, since it also owns where the
+   * button goes and what it is called.
    */
-  onGetProPress: () => void;
+  proButton?: MoneyHeaderProButton;
 }
 
 /**
@@ -50,13 +56,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, onGetProPress } = props;
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isProSubscriber, isProAccessUnknown } = useProAccess();
-
-  const proLabel = isProSubscriber
-    ? strings('pro_subscription.pro')
-    : strings('pro_subscription.join_pro');
+  const { onMenuPress, proButton } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -68,20 +68,19 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   // "Get Pro" is a text button, so it can only go in the end accessory, which
   // takes the menu with it — the header slots the two ButtonIcon paths and the
   // accessory as alternatives rather than siblings.
-  const endAccessory =
-    isProSubscriptionEnabled && !isProAccessUnknown ? (
-      <Box twClassName="flex-row items-center gap-1">
-        <Button
-          size={ButtonSize.Md}
-          onPress={onGetProPress}
-          testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-          accessibilityLabel={proLabel}
-        >
-          {proLabel}
-        </Button>
-        <ButtonIcon {...menuButtonProps} />
-      </Box>
-    ) : undefined;
+  const endAccessory = proButton ? (
+    <Box twClassName="flex-row items-center gap-1">
+      <Button
+        size={ButtonSize.Md}
+        onPress={proButton.onPress}
+        testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
+        accessibilityLabel={proButton.label}
+      >
+        {proButton.label}
+      </Button>
+      <ButtonIcon {...menuButtonProps} />
+    </Box>
+  ) : undefined;
 
   if (props.onBack) {
     return (
