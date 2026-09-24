@@ -526,19 +526,15 @@ describe('PerpsAdjustMarginView', () => {
       ).toHaveTextContent('150.00');
     });
 
-    it('keeps the fresh limit through price ticks and drops it on a newer position', () => {
+    const setUpFreshLimit = () => {
       const { rerender } = render(<PerpsAdjustMarginView />);
       const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
         onAmountChanged?: (maxAmount: number) => void;
       };
-      const slideToMax = () =>
-        act(() => {
-          (
-            screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
-              .props as { onValueChange: (v: number) => void }
-          ).onValueChange(100);
-        });
-      const renderLive = (maxAmount: number, position = mockPosition) => {
+      act(() => {
+        options.onAmountChanged?.(150);
+      });
+      const renderLive = (maxAmount: number, position: Position) => {
         mockUsePerpsAdjustMarginData.mockReturnValue({
           ...removeModeData,
           position,
@@ -546,19 +542,36 @@ describe('PerpsAdjustMarginView', () => {
         });
         rerender(<PerpsAdjustMarginView />);
       };
-      const amountDisplay = () =>
-        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
-      act(() => {
-        options.onAmountChanged?.(150);
-      });
+      const amountAtMax = () => {
+        act(() => {
+          (
+            screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+              .props as { onValueChange: (v: number) => void }
+          ).onValueChange(100);
+        });
+        return screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
+      };
+      return { renderLive, amountAtMax };
+    };
+    const pnlTick = { ...mockPosition, unrealizedPnl: '90', marginUsed: '490' };
 
-      renderLive(199);
-      slideToMax();
-      expect(amountDisplay()).toHaveTextContent('150.00');
+    it('keeps the fresh limit through PnL re-deliveries and drops it when the size changes', () => {
+      const { renderLive, amountAtMax } = setUpFreshLimit();
 
-      renderLive(250, { ...mockPosition });
-      slideToMax();
-      expect(amountDisplay()).toHaveTextContent('250.00');
+      renderLive(199, pnlTick);
+      expect(amountAtMax()).toHaveTextContent('150.00');
+
+      renderLive(250, { ...pnlTick, size: '2' });
+      expect(amountAtMax()).toHaveTextContent('250.00');
+    });
+
+    it('drops the fresh limit once the live max catches up to it', () => {
+      const { renderLive, amountAtMax } = setUpFreshLimit();
+
+      renderLive(140, pnlTick);
+      renderLive(250, { ...pnlTick, unrealizedPnl: '120' });
+
+      expect(amountAtMax()).toHaveTextContent('250.00');
     });
   });
 
