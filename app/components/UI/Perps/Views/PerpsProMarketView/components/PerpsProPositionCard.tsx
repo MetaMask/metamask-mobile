@@ -28,7 +28,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
+import PerpsLiquidationPriceValue from '../../../components/PerpsLiquidationPriceValue';
 import {
   getPerpsCrossLiquidationInfoSelector,
   getPerpsCrossMarginTagSelector,
@@ -61,7 +61,8 @@ interface PerpsProPositionCardProps {
 
 interface KeyValueItemProps {
   label: string;
-  value: string;
+  value?: string;
+  valueNode?: React.ReactNode;
   valueColor?: TextColor;
   labelAccessory?: React.ReactNode;
   isHidden?: boolean;
@@ -77,6 +78,7 @@ interface KeyValueItemProps {
 const KeyValueItem = ({
   label,
   value,
+  valueNode,
   valueColor = TextColor.TextDefault,
   labelAccessory,
   isHidden = false,
@@ -87,7 +89,7 @@ const KeyValueItem = ({
   showEditIcon = false,
   valueTestID,
 }: KeyValueItemProps) => {
-  const valueContent = (
+  const valueContent = valueNode ?? (
     <>
       <SensitiveText
         variant={TextVariant.BodyXs}
@@ -200,30 +202,7 @@ const PerpsProPositionCard = ({
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
-  // How far the live mark price sits from liquidation. Same formula and
-  // precision as the Lite card, so both modes report the same percentage for
-  // the same position.
-  const liqPriceNum =
-    position.liquidationPrice != null
-      ? parseFloat(String(position.liquidationPrice))
-      : NaN;
-  const canShowDistance =
-    liqPriceNum > 0 && Number.isFinite(markPriceNum) && markPriceNum > 0;
-  const liquidationDistanceSuffix = canShowDistance
-    ? ` (${(
-        (Math.abs(markPriceNum - liqPriceNum) / markPriceNum) *
-        100
-      ).toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%)`
-    : '';
-
-  const liqPriceDisplay =
-    position.liquidationPrice != null
-      ? `${formatPerpsFiat(position.liquidationPrice, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        })}${liquidationDistanceSuffix}`
-      : isCross
-        ? strings('perps.cross_position.no_liquidation_price')
-        : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const isLong = parseFloat(position.size) > 0;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
@@ -377,8 +356,17 @@ const PerpsProPositionCard = ({
                     />
                   ) : undefined
                 }
-                value={liqPriceDisplay}
-                isHidden={privacyMode}
+                valueNode={
+                  <PerpsLiquidationPriceValue
+                    liquidationPrice={position.liquidationPrice}
+                    currentPrice={markPriceNum}
+                    isLong={isLong}
+                    isCross={isCross}
+                    privacyMode={privacyMode}
+                    textVariant={TextVariant.BodyXs}
+                    iconSize={IconSize.Xs}
+                  />
+                }
                 valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
               />
             </Box>
