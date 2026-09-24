@@ -722,6 +722,38 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     ).toBeDisabled();
   });
 
+  it('blocks a retained amount once no margin can be removed', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      exchangeMaxAmount: 250,
+    });
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(50);
+    });
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      maxAmount: 0,
+      exchangeMaxAmount: 150,
+    });
+
+    rerender(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    const confirmButton = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton).toBeDisabled();
+    expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+  });
+
   it('hides the zero-state explanation while margin can be removed', () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,

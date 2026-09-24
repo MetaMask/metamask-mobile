@@ -249,6 +249,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const isValidationErrorDisplayed =
     Boolean(validationError) && displayedError === validationError;
   const hasInvalidAmount =
+    hasNoRemovableMargin ||
     marginAmount <= 0 ||
     marginAmount > submitLimitAmount ||
     Boolean(validationError);

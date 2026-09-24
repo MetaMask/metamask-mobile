@@ -11,6 +11,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import { calculateMaxRemovableMargin } from '../utils/marginUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -41,17 +42,20 @@ export function usePerpsMarginAdjustment(
   const { track } = usePerpsEventTracking();
 
   // Re-reads the position so a removal is checked against what the exchange
-  // will see, not the snapshot the form was built from. Returns null when the
-  // read fails so the submission is not blocked.
+  // will see, not the snapshot the form was built from. Returns
+  // 'position_closed' when a successful read no longer has the position, and
+  // null when the read fails so the submission is not blocked.
   const getFreshRemovableMargin = useCallback(
     async (
       symbol: string,
-    ): Promise<{ exchangeMax: number; safeMax: number } | null> => {
+    ): Promise<
+      { exchangeMax: number; safeMax: number } | 'position_closed' | null
+    > => {
       try {
         const positions = await getPositions({ skipCache: true });
         const position = positions.find((p) => p.symbol === symbol);
         if (!position) {
-          return null;
+          return 'position_closed';
         }
         const params = {
           currentMargin: parseFloat(position.marginUsed),
@@ -123,6 +127,14 @@ export function usePerpsMarginAdjustment(
           // The position can move between opening the form and submitting,
           // so re-check the amount against a fresh read before sending it.
           const fresh = await getFreshRemovableMargin(symbol);
+          if (fresh === 'position_closed') {
+            showToast(
+              PerpsToastOptions.positionManagement.margin.adjustmentFailed(
+                strings('perps.errors.position_not_found'),
+              ),
+            );
+            return;
+          }
           if (fresh && amount > fresh.exchangeMax) {
             showToast(
               PerpsToastOptions.positionManagement.margin.removeAmountChanged(
