@@ -133,6 +133,53 @@ describe('getLiveMarketWatchIds', () => {
       getLiveMarketWatchIds([eventA, eventB, propsEvent], [propsEvent.id]),
     ).toEqual(marketIds(propsEvent));
   });
+
+  it('lists only card-visible Markets when the scope is card', () => {
+    const away = {
+      ...makeMarket('card-away'),
+      outcomes: [
+        {
+          ...makeMarket('card-away').outcomes[0],
+          gameSelection: 'away' as const,
+        },
+        makeMarket('card-away').outcomes[1],
+      ],
+    } as PredictMarket;
+    const home = {
+      ...makeMarket('card-home'),
+      outcomes: [
+        {
+          ...makeMarket('card-home').outcomes[0],
+          gameSelection: 'home' as const,
+        },
+        makeMarket('card-home').outcomes[1],
+      ],
+    } as PredictMarket;
+    const spread = makeMarket('card-spread');
+    const gameEvent: PredictEvent = {
+      ...eventA,
+      markets: [away, home, spread],
+    };
+    const extraProps: PredictEvent = {
+      ...propsEvent,
+      markets: [
+        makeMarket('p1'),
+        makeMarket('p2'),
+        makeMarket('p3'),
+        makeMarket('p4'),
+      ],
+    };
+
+    expect(
+      getLiveMarketWatchIds([gameEvent, extraProps], undefined, 'card'),
+    ).toEqual([
+      away.id,
+      home.id,
+      extraProps.markets[0].id,
+      extraProps.markets[1].id,
+      extraProps.markets[2].id,
+    ]);
+  });
 });
 
 describe('useEventsWithLiveData', () => {
@@ -201,7 +248,7 @@ describe('useEventsWithLiveData', () => {
       }: {
         events: readonly PredictEvent[];
         watchEventIds?: readonly PredictEntityId[];
-      }) => useEventsWithLiveData(venueId, events, watchEventIds),
+      }) => useEventsWithLiveData(venueId, events, { watchEventIds }),
       {
         initialProps: { events: [eventA, eventB], watchEventIds: [eventA.id] },
       },
@@ -371,7 +418,7 @@ describe('useEventsWithLiveData', () => {
       }: {
         events: readonly PredictEvent[];
         watchEventIds?: readonly PredictEntityId[];
-      }) => useEventsWithLiveData(venueId, events, watchEventIds),
+      }) => useEventsWithLiveData(venueId, events, { watchEventIds }),
       {
         initialProps: { events: [eventA, eventB], watchEventIds: [eventA.id] },
       },
@@ -504,5 +551,111 @@ describe('useEventsWithLiveData', () => {
         [eventA.id, eventB.id],
       ],
     ]);
+  });
+
+  it('watches only card-visible Markets when marketScope is card', () => {
+    const away = {
+      ...makeMarket('live-away'),
+      outcomes: [
+        {
+          ...makeMarket('live-away').outcomes[0],
+          gameSelection: 'away' as const,
+        },
+        makeMarket('live-away').outcomes[1],
+      ],
+    } as PredictMarket;
+    const home = {
+      ...makeMarket('live-home'),
+      outcomes: [
+        {
+          ...makeMarket('live-home').outcomes[0],
+          gameSelection: 'home' as const,
+        },
+        makeMarket('live-home').outcomes[1],
+      ],
+    } as PredictMarket;
+    const spread = makeMarket('live-spread');
+    const gameEvent: PredictEvent = {
+      ...eventA,
+      markets: [away, home, spread],
+    };
+
+    renderHook(() =>
+      useEventsWithLiveData(venueId, [gameEvent], { marketScope: 'card' }),
+    );
+
+    expect(watchMarketCalls()).toEqual([
+      [
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
+        venueId,
+        [away.id, home.id],
+      ],
+    ]);
+  });
+
+  it('keeps an Event that a quote did not touch', () => {
+    const { result } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA, eventB]),
+    );
+    const onQuote = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+    ) as (quote: PredictQuote) => void;
+    const market = eventA.markets[0];
+
+    act(() => {
+      onQuote({
+        venueId,
+        marketId: market.id,
+        outcomes: [
+          {
+            id: market.outcomes[0].id,
+            side: 'yes',
+            askPrice: '0.61' as PredictDecimal,
+          },
+          { id: market.outcomes[1].id, side: 'no' },
+        ],
+        updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    expect(result.current[1]).toBe(eventB);
+    expect(result.current[0]).not.toBe(eventA);
+  });
+
+  it('keeps a previously patched Event when a later quote belongs to another Event', () => {
+    const { result } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA, eventB]),
+    );
+    const onQuote = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+    ) as (quote: PredictQuote) => void;
+    const quoteFor = (
+      market: PredictMarket,
+      askPrice: string,
+      updatedAt: string,
+    ): PredictQuote => ({
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: askPrice as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
+      ],
+      updatedAt: updatedAt as PredictTimestamp,
+    });
+
+    act(() =>
+      onQuote(quoteFor(eventA.markets[0], '0.61', '2026-09-08T13:00:00.000Z')),
+    );
+    const afterFirst = result.current[0];
+    act(() =>
+      onQuote(quoteFor(eventB.markets[0], '0.33', '2026-09-08T13:01:00.000Z')),
+    );
+
+    expect(result.current[0]).toBe(afterFirst);
+    expect(result.current[1]).not.toBe(eventB);
   });
 });

@@ -182,6 +182,33 @@ describe('OrdersTabs', () => {
     expect(onTabChange).toHaveBeenCalledWith(OrdersTabKey.History);
   });
 
+  it('renders the controlled active tab', () => {
+    const { getByText, queryByText } = renderOrdersTabs({
+      activeTab: OrdersTabKey.History,
+      openOrders: { items: [] },
+      history: { items: [] },
+    });
+
+    expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.orders.empty.open_orders'))).toBeNull();
+  });
+
+  it('notifies controlled tab changes without changing rendered content', () => {
+    const onTabChange = jest.fn();
+    const { getByTestId, getByText, queryByText } = renderOrdersTabs({
+      activeTab: OrdersTabKey.History,
+      openOrders: { items: [] },
+      history: { items: [] },
+      onTabChange,
+    });
+
+    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB));
+
+    expect(onTabChange).toHaveBeenCalledWith(OrdersTabKey.OpenOrders);
+    expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.orders.empty.open_orders'))).toBeNull();
+  });
+
   it('renders the initial loading state', () => {
     const { getByTestId } = renderOrdersTabs({
       openOrders: { items: [], isLoading: true },

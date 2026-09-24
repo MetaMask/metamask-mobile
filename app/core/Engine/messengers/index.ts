@@ -61,6 +61,11 @@ import {
   getPredictPortfolioServiceMessenger,
 } from './predict-portfolio-service-messenger';
 import { getRecurringOrdersDataServiceMessenger } from './recurring-orders-data-service-messenger';
+import { getLimitOrdersDataServiceMessenger } from './limit-orders-data-service-messenger';
+import {
+  getPredictOrderServiceInitMessenger,
+  getPredictOrderServiceMessenger,
+} from './predict-order-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -380,8 +385,16 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictPortfolioServiceMessenger,
     getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
+  PredictOrderService: {
+    getMessenger: getPredictOrderServiceMessenger,
+    getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
   RecurringOrdersDataService: {
     getMessenger: getRecurringOrdersDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  LimitOrdersDataService: {
+    getMessenger: getLimitOrdersDataServiceMessenger,
     getInitMessenger: noop,
   },
   BridgeController: {

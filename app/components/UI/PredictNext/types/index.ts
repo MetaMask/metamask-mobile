@@ -194,12 +194,123 @@ export interface PredictVenueStatus {
   venueId: PredictVenueId;
   status: 'available' | 'degraded' | 'unavailable';
   checkedAt: PredictTimestamp;
+  /** Backend-owned link for the platform-terms affordance. Absent when the
+   * Venue has no agreement to link, in which case no link is rendered. */
+  termsUrl?: string;
 }
 
 export interface PredictBalance {
   venueId: PredictVenueId;
   currency: 'USD';
   available: PredictAmount;
+}
+
+/** A canonical buy intent: the Outcome side of one Market plus the entered
+ * maximum USD spend before fees. */
+export interface PredictOrderPreviewParams {
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  amount: PredictAmount;
+}
+
+/** Wire-shape twin of PredictOrderPreviewParams for the API transport. */
+export interface FetchOrderPreviewParams {
+  marketId: string;
+  side: PredictOutcomeSide;
+  amount: string;
+}
+
+/** Structured fee component source, keyed by the client into localized
+ * labels; the server never sends display strings. */
+export type PredictOrderPreviewFeeSource = 'venue' | 'metamask';
+
+export interface PredictOrderPreviewFeeComponent {
+  source: PredictOrderPreviewFeeSource;
+  amount: PredictAmount;
+}
+
+/** A server-authoritative Order Preview. All monetary values are quoted by
+ * the backend; the client never calculates them. */
+export interface PredictOrderPreview {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  /** The entered maximum USD spend before fees. */
+  requestedAmount: PredictAmount;
+  /** Estimated cost of the quoted contracts; never above requestedAmount. */
+  orderAmount: PredictAmount;
+  estimatedContracts: number;
+  averagePrice: PredictDecimal;
+  fee: PredictAmount;
+  /** Backend-owned breakdown of the fee; present when the backend reports it. */
+  feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
+  /** The Order amount plus the fee: the total expected debit. */
+  totalDebit: PredictAmount;
+  potentialPayout: PredictAmount;
+  potentialProfit: PredictSignedAmount;
+  expiresAt: PredictTimestamp;
+}
+
+/** Wire-shape body for committing an approved Order Preview. Strictly the
+ * Preview reference only: the backend derives every executable detail from
+ * the stored, expiring Order Preview, so the client can never alter Market,
+ * Outcome, spend, quantity, price, or fee at commit time. */
+export interface FetchOrderCommitParams {
+  previewId: string;
+}
+
+/** Status of a committed Order operation, as projected by the backend onto
+ * the canonical Order Receipt. `pending` and `submitted` are in-progress
+ * projections: the backend has accepted the Commit and is still working, so
+ * keep observing by committing the same Order Preview again — the Commit is
+ * idempotent by `previewId`. `filled` is a complete fill of the quoted
+ * contracts. `partially_filled` is a non-zero partial fill: a success
+ * rendered with honest partial-fill copy. `not_filled` is the canonical
+ * outcome for zero fills; nothing was spent and no Position changed.
+ * `rejected` means the Venue refused the Order; nothing was filled.
+ * `reconciliation_required` means the backend is still resolving the true
+ * outcome; render it like an in-progress status and re-observe by committing
+ * the same Order Preview again. */
+export type PredictOrderReceiptStatus =
+  | 'pending'
+  | 'submitted'
+  | 'filled'
+  | 'partially_filled'
+  | 'not_filled'
+  | 'rejected'
+  | 'reconciliation_required';
+
+/** The canonical result of a committed Order: one Order produces exactly one
+ * Order Receipt, and repeated Commits of the same `previewId` converge on it.
+ * All monetary values are backend-owned decimal strings; nullable fill and
+ * spend fields are null until the Venue reports them. */
+export interface PredictOrderReceipt {
+  /** Durable backend operation identity; stable across repeated Commits. */
+  operationId: string;
+  /** The committed Order Preview; the idempotency key for re-observation. */
+  previewId: string;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  status: PredictOrderReceiptStatus;
+  /** Quoted maximum USD spend before fees, from the committed Order Preview. */
+  requestedMaxSpend: PredictAmount;
+  /** Contracts the committed Order Preview quoted; never zero. */
+  quotedContracts: number;
+  /** Venue order identifier once the Venue has produced one. */
+  venueOrderId: string | null;
+  /** Contracts actually filled; null until the Venue reports fills. */
+  filledContracts: PredictAmount | null;
+  /** Total debit actually incurred; null until the Venue reports fills. */
+  actualSpend: PredictAmount | null;
+  /** Average fill price in [0, 1]; null until the Venue reports fills. */
+  averageFillPrice: PredictDecimal | null;
+  /** Fees charged for the fills; null until the Venue reports fills. */
+  fee: PredictAmount | null;
+  /** Settlement value of the filled contracts; null for zero fills. */
+  payoutExposure: PredictAmount | null;
 }
 
 export interface FetchPortfolioPageParams {

@@ -1,5 +1,7 @@
 import type {
   FetchFeedParams,
+  FetchOrderCommitParams,
+  FetchOrderPreviewParams,
   FetchPortfolioPageParams,
   PredictEntityId,
   PredictFeedId,
@@ -44,6 +46,16 @@ export interface PredictApiReadTransport {
     range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchOrderPreview(
+    venueId: PredictVenueId,
+    params: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
 type PredictApiReadQueryParams = FetchFeedParams & {
@@ -70,11 +82,14 @@ const parseBaseUrl = (baseUrl?: string): URL | undefined => {
 
 export class PredictHttpError extends Error {
   readonly status: number;
+  /** Canonical error code from the response body, when the backend sends one. */
+  readonly bodyCode?: string;
 
-  constructor(status: number) {
+  constructor(status: number, bodyCode?: string) {
     super(`Predict API request failed with status ${status}.`);
     this.name = 'PredictHttpError';
     this.status = status;
+    this.bodyCode = bodyCode;
   }
 }
 
@@ -164,6 +179,35 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
+  fetchOrderPreview(
+    venueId: PredictVenueId,
+    params: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
+   * Commits an approved Order Preview. The body carries the Preview
+   * reference only; the backend derives every executable detail from the
+   * stored Preview and derives identity from the bearer token.
+   */
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'commit'],
+      params,
+      options,
+    );
+  }
+
   /**
    * Every predict-api route requires a bearer token, so one is resolved for
    * each request rather than per endpoint.
@@ -218,6 +262,64 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         throw error;
       }
       throw new PredictHttpError(response.status);
+    }
+  }
+
+  async #postAuthenticated(
+    segments: readonly string[],
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const bearerToken = await this.#resolveBearerToken();
+    return this.#post(segments, body, bearerToken, options);
+  }
+
+  async #post(
+    segments: readonly string[],
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
+    bearerToken: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    const url = new URL(
+      segments.map(encodeURIComponent).join('/'),
+      this.#baseUrlWithTrailingSlash(),
+    );
+
+    const response = await this.#fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'x-metamask-clientproduct': 'metamask-mobile',
+        'x-metamask-clientversion': this.#clientVersion,
+        Authorization: `Bearer ${bearerToken}`,
+      },
+      body: JSON.stringify(body),
+      signal: options?.signal,
+    });
+
+    if (!response.ok) {
+      const bodyCode = await this.#extractErrorCode(response);
+      throw new PredictHttpError(response.status, bodyCode);
+    }
+
+    try {
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      throw new PredictHttpError(response.status);
+    }
+  }
+
+  /** Reads the canonical error code from an error response body, if any. */
+  async #extractErrorCode(response: Response): Promise<string | undefined> {
+    try {
+      const body = (await response.json()) as { code?: unknown };
+      return typeof body.code === 'string' ? body.code : undefined;
+    } catch {
+      return undefined;
     }
   }
 

@@ -16,7 +16,6 @@ export enum RecurringSwapStatus {
 }
 
 export type RecurringSwapSkipReason =
-  | 'not_enough_gas'
   | 'out_of_price_range'
   | 'insufficient_balance'
   | 'no_quotes_available'

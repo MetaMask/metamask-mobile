@@ -9,6 +9,11 @@ import type {
   PredictLiveDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictLiveDataService';
 import type {
+  PredictOrderServiceActions,
+  PredictOrderServiceEvents,
+  PredictOrderServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictOrderService';
+import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
   PredictMarketDataServiceMessenger,
@@ -36,6 +41,7 @@ import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
+  predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
 
@@ -96,6 +102,39 @@ describe('Predict service initialization', () => {
     const result = rootMessenger.call(
       'PredictPortfolioService:getBalance',
       'kalshi' as never,
+    );
+
+    await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:getBearerToken',
+    );
+    controller.destroy();
+  });
+
+  it('registers authenticated Order actions on the Engine root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictOrderServiceActions,
+      PredictOrderServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictOrderServiceMessenger = new Messenger({
+      namespace: 'PredictOrderService',
+      parent: rootMessenger,
+    });
+    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: { call } as never,
+    };
+    const { controller } = predictOrderServiceInit(request);
+
+    const result = rootMessenger.call(
+      'PredictOrderService:requestQuote',
+      'kalshi' as never,
+      { marketId: 'KXTEST-26-A', side: 'yes', amount: '20' } as never,
     );
 
     await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
