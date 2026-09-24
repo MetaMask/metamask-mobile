@@ -62,7 +62,7 @@ const ReferralFunnelBar: React.FC<ReferralFunnelBarProps> = ({
 
   return (
     <Box
-      twClassName="mt-2 h-2 overflow-hidden rounded-full bg-muted"
+      twClassName="mt-1 h-2 overflow-hidden rounded-full bg-muted"
       testID={testID}
     >
       <Reanimated.View

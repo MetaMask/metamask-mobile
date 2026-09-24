@@ -30,7 +30,7 @@ const InvitedBenefitCard: React.FC<InvitedBenefitCardProps> = ({
   onViewEarnings,
 }) => (
   <Box
-    twClassName="mt-3 gap-3 px-4 pt-4"
+    twClassName="gap-3 px-4 pt-8"
     testID={KOL_DASHBOARD_SELECTORS.INVITED_HERO}
   >
     <Box twClassName="rounded-2xl bg-muted py-4">

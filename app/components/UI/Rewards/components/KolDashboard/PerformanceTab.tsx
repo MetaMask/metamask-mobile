@@ -70,7 +70,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
         <>
           <SectionHeader
             title={strings('rewards.kol.referrals')}
-            twClassName="pt-6 pb-4"
+            twClassName="pt-4 pb-4"
           >
             <Text
               variant={TextVariant.BodySm}
@@ -90,7 +90,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
               {strings('rewards.kol.eligible_fees')}
             </Text>
             <Box
-              twClassName="mt-6 gap-5"
+              twClassName="mt-4 gap-4"
               testID={KOL_DASHBOARD_SELECTORS.PERFORMANCE_FUNNEL}
             >
               {KOL_PERFORMANCE_FIXTURE.funnel.map((row, index) => (
@@ -127,7 +127,9 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
 
       {/* pt-0 keeps the divider's 32px from stacking with the header's own
           top padding; invited users skip that divider so the first
-          section keeps the header's default top padding. */}
+          section carries the tabs-to-content inset instead. The heading's own
+          line-height reads as extra space, so this tab needs less than the
+          card-led tabs to look level with them. */}
       <SectionHeader
         title={strings('rewards.kol.trading_commissions_section')}
         isInteractive
@@ -137,7 +139,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
             Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
           )
         }
-        twClassName={hideReferrals ? 'pt-6 pb-4' : 'pt-0 pb-4'}
+        twClassName={hideReferrals ? 'pt-4 pb-4' : 'pt-0 pb-4'}
         testID={KOL_DASHBOARD_SELECTORS.PERFORMANCE_COMMISSIONS_HEADER}
       />
       <Box twClassName="px-4">

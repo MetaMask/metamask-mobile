@@ -237,10 +237,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   }, [claimableRewards, startClaimFlow]);
 
   return (
-    <Box
-      twClassName="mt-3 pt-4 pb-6"
-      testID={KOL_DASHBOARD_SELECTORS.EARNINGS_TAB}
-    >
+    <Box twClassName="pt-8 pb-6" testID={KOL_DASHBOARD_SELECTORS.EARNINGS_TAB}>
       <ClaimMoneyFallOverlay visible={isFalling} />
       {claimEligibilitySheets}
       <Box twClassName="px-4">

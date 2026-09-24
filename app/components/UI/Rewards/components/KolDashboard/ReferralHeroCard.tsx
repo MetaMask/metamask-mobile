@@ -38,7 +38,7 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
 
   return (
     <Box
-      twClassName="mt-3 gap-3 px-4 pt-4"
+      twClassName="gap-3 px-4 pt-8"
       testID={KOL_DASHBOARD_SELECTORS.REFERRAL_HERO}
     >
       {/* Vertical padding only: the divider below is full-bleed, so the rows
