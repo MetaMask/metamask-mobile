@@ -2,10 +2,6 @@
 
 // Third-Party dependencies
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-<<<<<<< HEAD
-=======
-import { TouchableOpacity } from 'react-native';
->>>>>>> 2607cee712a (fix(contacts): localize ambiguous address label)
 import { strings } from '../../../../../../../locales/i18n';
 
 // External dependencies
