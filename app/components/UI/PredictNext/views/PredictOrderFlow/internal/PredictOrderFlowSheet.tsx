@@ -33,12 +33,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
-import type { PredictError } from '../../../errors';
+import { PredictError, PredictErrorCode } from '../../../errors';
 import type {
   PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictOrderPreview,
+  PredictOrderReceipt,
   PredictOutcomeSide,
   PredictVenueId,
 } from '../../../types';
@@ -46,14 +47,16 @@ import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 import {
   isPreviewExpired,
-  type PredictOrderPreviewService,
-} from '../../../services/PredictOrderPreviewService';
+  type PredictOrderService,
+} from '../../../services/PredictOrderService';
 
 import { OrderAmountInput } from './OrderAmountInput';
+import { OrderApproval } from './OrderApproval';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
 import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderPreviewRows } from './OrderPreviewRows';
+import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
@@ -72,11 +75,13 @@ export interface PredictOrderFlowIntent {
 
 interface PredictOrderFlowSheetProps {
   intent: PredictOrderFlowIntent;
-  service: PredictOrderPreviewService;
+  service: PredictOrderService;
   onClose: () => void;
 }
 
-type SubmitPhase = 'input' | 'submitting' | 'success';
+/** The explicit Order Flow phases: enter the amount, approve the exact
+ * quoted values, commit, and read the receipt-driven outcome. */
+type SubmitPhase = 'input' | 'approval' | 'submitting' | 'receipt';
 
 const styles = StyleSheet.create({
   modalHost: { ...StyleSheet.absoluteFill },
@@ -100,6 +105,17 @@ export const PredictOrderFlowSheet = ({
   const [isQuoting, setIsQuoting] = useState(false);
   const [isBreakdownVisible, setIsBreakdownVisible] = useState(false);
   const [phase, setPhase] = useState<SubmitPhase>('input');
+  const [receipt, setReceipt] = useState<PredictOrderReceipt | null>(null);
+  const [isRechecking, setIsRechecking] = useState(false);
+  // A Commit failure that returned no Receipt: the operation may or may not
+  // exist, so the approval step stays and keeps this Preview for observation
+  // even after local expiry. Re-approval re-POSTs the same idempotent
+  // Preview reference. A fresh quote is the sole next step only when the
+  // venue confirms `preview_expired` before creating an operation.
+  const [commitError, setCommitError] = useState<PredictError | null>(null);
+  // A Commit rejected as `preview_expired` marks the quote expired even when
+  // the client clock disagrees: the venue is authoritative.
+  const [venueExpired, setVenueExpired] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const requestIdRef = useRef(0);
 
@@ -120,6 +136,10 @@ export const PredictOrderFlowSheet = ({
     setIsQuoting(false);
     setIsBreakdownVisible(false);
     setPhase('input');
+    setReceipt(null);
+    setIsRechecking(false);
+    setCommitError(null);
+    setVenueExpired(false);
     requestIdRef.current += 1;
   }, [intent]);
 
@@ -158,6 +178,7 @@ export const PredictOrderFlowSheet = ({
     const requestId = requestIdRef.current;
     setIsQuoting(true);
     setQuoteError(null);
+    setCommitError(null);
     const timeout = setTimeout(() => {
       service
         .requestQuote(intent.venueId, {
@@ -170,6 +191,7 @@ export const PredictOrderFlowSheet = ({
             return;
           }
           setPreview(quote);
+          setVenueExpired(false);
           setNow(Date.now());
         })
         .catch((error: PredictError) => {
@@ -201,8 +223,13 @@ export const PredictOrderFlowSheet = ({
     return () => clearTimeout(timeout);
   }, [preview, now]);
 
-  const isExpired = preview !== null && isPreviewExpired(preview, now);
-  const canApprove =
+  const isExpired =
+    venueExpired || (preview !== null && isPreviewExpired(preview, now));
+  // After an attempted Commit, keep the original Preview for observation
+  // even if the quote has expired locally. Only a venue `preview_expired`
+  // (commitError stays unset) makes a fresh quote the sole next step.
+  const approvalExpired = commitError === null && isExpired;
+  const canReview =
     phase === 'input' && preview !== null && !isQuoting && !isExpired;
   const canRefresh = isExpired || Boolean(quoteError);
 
@@ -210,19 +237,84 @@ export const PredictOrderFlowSheet = ({
     setQuoteNonce((nonce) => nonce + 1);
   }, []);
 
-  const handleApprove = useCallback(async () => {
-    if (!preview || !canApprove) {
+  /** Back to the amount entry from the approval step. */
+  const handleBack = useCallback(() => {
+    setPhase('input');
+  }, []);
+
+  /** A re-quote from the approval step or a receipt outcome: fresh quote
+   * for the entered amount, discarding the receipt. */
+  const handleRequote = useCallback(() => {
+    setReceipt(null);
+    setPhase('input');
+    setQuoteNonce((nonce) => nonce + 1);
+  }, []);
+
+  const handleReview = useCallback(() => {
+    if (!canReview) {
       return;
     }
     setIsKeypadOpen(false);
+    setPhase('approval');
+  }, [canReview]);
+
+  /** Commits the approved Preview. The Commit sends nothing but the Preview
+   * reference; the service coalesces repeated commits and observes
+   * in-progress operations, so this never places a second Order. */
+  const handleCommit = useCallback(async () => {
+    if (phase !== 'approval' || !preview) {
+      return;
+    }
+    setCommitError(null);
     setPhase('submitting');
     try {
-      await service.submitOrder(intent.venueId, preview.previewId);
-      setPhase('success');
-    } catch {
-      setPhase('input');
+      const committed = await service.commitPreview(
+        intent.venueId,
+        preview.previewId,
+      );
+      setReceipt(committed);
+      setPhase('receipt');
+    } catch (error) {
+      // The Commit failed before a Receipt existed, so the operation may or
+      // may not exist. The approval step stays and keeps this Preview for
+      // observation even after local expiry: re-approving re-POSTs the same
+      // idempotent Preview reference. Never a second Order.
+      setPhase('approval');
+      if (
+        error instanceof PredictError &&
+        error.code === PredictErrorCode.PREVIEW_EXPIRED
+      ) {
+        // The venue revalidated the Preview as expired: degrade to the same
+        // re-quote affordance as a locally expired quote — never a failure.
+        setVenueExpired(true);
+      } else {
+        setCommitError(
+          error instanceof PredictError
+            ? error
+            : PredictError.from(PredictErrorCode.UNKNOWN),
+        );
+      }
     }
-  }, [canApprove, intent.venueId, preview, service]);
+  }, [intent.venueId, phase, preview, service]);
+
+  /** Observes an unresolved receipt by committing the same Preview again —
+   * idempotent by Preview reference, so it never places a second Order. */
+  const handleKeepChecking = useCallback(async () => {
+    if (!receipt) {
+      return;
+    }
+    setIsRechecking(true);
+    try {
+      setReceipt(
+        await service.commitPreview(intent.venueId, receipt.previewId),
+      );
+    } catch {
+      // Still unresolved: stay on the honest in-progress state. The outcome
+      // also surfaces through History and Positions.
+    } finally {
+      setIsRechecking(false);
+    }
+  }, [intent.venueId, receipt, service]);
 
   const isAmountEditable = phase === 'input';
 
@@ -379,11 +471,11 @@ export const PredictOrderFlowSheet = ({
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         isFullWidth
-        onPress={handleApprove}
-        isDisabled={!canApprove}
-        testID={PredictOrderFlowTestIds.APPROVE}
+        onPress={handleReview}
+        isDisabled={!canReview}
+        testID={PredictOrderFlowTestIds.REVIEW}
       >
-        {strings('predict_next.order_preview.confirm')}
+        {strings('predict_next.order_preview.review')}
       </Button>
     );
   };
@@ -453,22 +545,35 @@ export const PredictOrderFlowSheet = ({
               />
             </Box>
             <Box twClassName="px-4">
-              {phase === 'success' ? (
-                <Box
-                  twClassName="items-center justify-center gap-3 py-8"
-                  testID={PredictOrderFlowTestIds.SUCCESS}
-                >
-                  <Text variant={TextVariant.HeadingSm}>
-                    {strings('predict_next.order_preview.success_title')}
-                  </Text>
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    onPress={onClose}
-                    testID={PredictOrderFlowTestIds.DONE}
-                  >
-                    {strings('predict_next.order_preview.done')}
-                  </Button>
+              {phase === 'receipt' && receipt ? (
+                <OrderReceiptOutcome
+                  receipt={receipt}
+                  outcomeLabel={intent.outcomeLabel}
+                  quotedPrice={preview ? formatCents(preview.averagePrice) : ''}
+                  isRechecking={isRechecking}
+                  onKeepChecking={handleKeepChecking}
+                  onRequote={handleRequote}
+                  onDone={onClose}
+                />
+              ) : phase === 'approval' && preview ? (
+                <Box twClassName="gap-2 py-3">
+                  {commitError ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.ErrorDefault}
+                      twClassName="text-center"
+                      testID={PredictOrderFlowTestIds.ERROR}
+                    >
+                      {commitError.message}
+                    </Text>
+                  ) : null}
+                  <OrderApproval
+                    preview={preview}
+                    isExpired={approvalExpired}
+                    onApprove={handleCommit}
+                    onBack={handleBack}
+                    onRefresh={handleRequote}
+                  />
                 </Box>
               ) : (
                 <>

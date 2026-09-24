@@ -8,9 +8,9 @@ import Logger from '../../../../../../util/Logger';
 import type { RootState } from '../../../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { VBA_KYC_VENDOR } from '../constants';
 import { getVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
+import type { VbaEmailCompletion } from '../modules/types';
 
 interface UseKycEmailVerificationResult {
   email: string;
@@ -24,9 +24,11 @@ interface UseKycEmailVerificationResult {
 
 /**
  * Starts or resumes the KYC session, records locally accepted vendor
- * disclaimer ids, then navigates to the provider terms page.
+ * disclaimer ids, then reports completion to the VBA coordinator.
  */
-export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
+export const useKycEmailVerification = (
+  onSuccess: (result: VbaEmailCompletion) => void | Promise<void>,
+): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
   const [email, setEmail] = useState(
     () => Engine.context.KycController?.state.email?.trim() ?? '',
@@ -68,7 +70,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         );
       }
 
-      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+      await onSuccess({ email: trimmedEmail });
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
@@ -83,7 +85,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
     } finally {
       setIsVerifying(false);
     }
-  }, [isVerifying, navigation, trimmedEmail]);
+  }, [isVerifying, onSuccess, trimmedEmail]);
 
   const resetKyc = useCallback(async () => {
     try {
