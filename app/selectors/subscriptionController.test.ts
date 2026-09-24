@@ -16,7 +16,6 @@ import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
   selectHasAnyMoneyAccountPlusEntitlement,
-  selectHasMoneyAccountPlusEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
@@ -608,37 +607,6 @@ describe('subscriptionController selectors', () => {
           },
         },
       });
-
-    describe('selectHasMoneyAccountPlusEntitlement', () => {
-      it('returns the flag for the requested feature', () => {
-        const state = createPlusState({
-          premiumApy: true,
-          swapFeeWaiver: false,
-        });
-
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            state,
-            MoneyAccountFeature.PremiumApy,
-          ),
-        ).toBe(true);
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            state,
-            MoneyAccountFeature.SwapFeeWaiver,
-          ),
-        ).toBe(false);
-      });
-
-      it('fails closed when the controller is absent', () => {
-        expect(
-          selectHasMoneyAccountPlusEntitlement(
-            createState(),
-            MoneyAccountFeature.PremiumApy,
-          ),
-        ).toBe(false);
-      });
-    });
 
     describe('selectHasAnyMoneyAccountPlusEntitlement', () => {
       it.each(Object.values(MoneyAccountFeature))(
