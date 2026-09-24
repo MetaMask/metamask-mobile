@@ -54,6 +54,7 @@ import Keypad from '../../../../Base/Keypad';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
+import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -209,35 +210,15 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     inputAmount: marginAmount,
   });
 
-  // A stopped removal read a lower limit than the live snapshot; keep Max, the
-  // slider and the submit check within it until the stream catches up to it or
-  // the position itself changes. The stream re-sends positions on every PnL
-  // tick, so only size, entry and leverage count as a change.
-  const positionShape = position
-    ? `${position.size}|${position.entryPrice}|${position.leverage?.value}`
-    : '';
-  useEffect(() => {
-    setFreshMaxAmount(null);
-  }, [positionShape]);
-  useEffect(() => {
-    if (freshMaxAmount !== null && floorUsd(maxAmount) <= freshMaxAmount) {
-      setFreshMaxAmount(null);
-    }
-  }, [maxAmount, freshMaxAmount]);
-  const capToFreshMax = (amount: number) =>
-    freshMaxAmount === null || isAddMode
-      ? amount
-      : Math.min(amount, freshMaxAmount);
-  const flooredMaxAmount = capToFreshMax(
-    Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0,
-  );
-  // Validate against what the exchange accepts, not the headroom-reduced max
-  // offered by Max/slider, so a price tick after choosing Max does not block it.
-  const submitLimitAmount = capToFreshMax(
-    Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
-      ? floorUsd(exchangeMaxAmount)
-      : flooredMaxAmount,
-  );
+  const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
+    freshMaxAmount,
+    setFreshMaxAmount,
+    position,
+    snapshotMaxAmount:
+      Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0,
+    exchangeMaxAmount,
+    isAddMode,
+  });
   const sliderPercentage = useMemo(
     () =>
       flooredMaxAmount <= 0
