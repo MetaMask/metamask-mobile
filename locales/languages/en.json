@@ -7182,6 +7182,12 @@
     "order_status_cancelled": "Cancelled",
     "webview_no_url_provided": "No URL was provided to continue",
     "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Settings",
       "use_new_buy_experience": "More ways to buy",
