@@ -162,6 +162,7 @@ const PerpsProCompactInput = React.forwardRef<
   ) => {
     const tw = useTailwind();
     const locale = usePerpsLocale();
+    const inputLocaleRef = useRef(locale);
     const inputRef = useRef<TextInput>(null);
     const isNativeFocusedRef = useRef(false);
     const directPressPhaseRef = useRef<DirectPressPhase>('idle');
@@ -183,6 +184,9 @@ const PerpsProCompactInput = React.forwardRef<
           if (isInteractionBlocked) {
             return;
           }
+          if (!isFocused) {
+            inputLocaleRef.current = locale;
+          }
           directPressPhaseRef.current = 'idle';
           // Match a tap: expand the empty inline field, then focus it once it
           // has a real frame. Focusing the collapsed input dismisses iOS.
@@ -190,7 +194,7 @@ const PerpsProCompactInput = React.forwardRef<
           setShouldFocusInput(true);
         },
       }),
-      [isInteractionBlocked],
+      [isFocused, isInteractionBlocked, locale],
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
@@ -226,6 +230,9 @@ const PerpsProCompactInput = React.forwardRef<
       : undefined;
     const handleFocus = () => {
       isNativeFocusedRef.current = true;
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
+      }
       setIsFocused(true);
       if (directPressPhaseRef.current === 'initial-press') {
         // Scale fields scroll on focus. Wait for release so that scroll cannot
@@ -237,12 +244,17 @@ const PerpsProCompactInput = React.forwardRef<
     };
     const handleChangeText = (nextValue: string) => {
       setDisplayValue(nextValue);
-      onChangeText(normalizePerpsNumericInput(nextValue, locale));
+      onChangeText(
+        normalizePerpsNumericInput(nextValue, inputLocaleRef.current),
+      );
     };
     const handleBlur = () => {
       isNativeFocusedRef.current = false;
       directPressPhaseRef.current = 'idle';
-      const canonicalValue = normalizePerpsNumericInput(displayValue, locale);
+      const canonicalValue = normalizePerpsNumericInput(
+        displayValue,
+        inputLocaleRef.current,
+      );
       setIsFocused(false);
       setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
@@ -283,6 +295,9 @@ const PerpsProCompactInput = React.forwardRef<
         onFieldPress?.();
         return;
       }
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
+      }
       // Pressable.onPress runs after release, so native onFocus can realign
       // immediately without arming the direct-input press delay.
       directPressPhaseRef.current = 'idle';
@@ -296,8 +311,6 @@ const PerpsProCompactInput = React.forwardRef<
         value={displayValue}
         onChangeText={handleChangeText}
         keyboardType={keyboardType}
-        returnKeyType="done"
-        onSubmitEditing={Keyboard.dismiss}
         onFocus={handleFocus}
         onBlur={handleBlur}
         // Hidden fields stay mounted for iOS accessories. Non-editable keeps

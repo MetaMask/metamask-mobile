@@ -7,9 +7,7 @@ import {
   type FiatRangeConfig,
   formatPerpsFiat,
   formatPositionSize,
-  formatProPerpsFiat,
-  formatProLargeNumber,
-  formatProPositionSize,
+  formatLargeNumber,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
 
@@ -328,36 +326,26 @@ export function getDepthWidth(
   return Math.min((value / max) * 100, 100);
 }
 
-function formatUsd(value: number, locale?: string): string {
+function formatUsd(value: number): string {
   if (!Number.isFinite(value)) {
     return ORDER_BOOK_FALLBACK_DISPLAY;
   }
   if (Math.abs(value) >= COMPACT_NOTATION_THRESHOLD) {
-    return `$${formatProLargeNumber(
-      value,
-      { decimals: COMPACT_NOTATION_DECIMALS },
-      locale,
-    )}`;
+    return `$${formatLargeNumber(value, {
+      decimals: COMPACT_NOTATION_DECIMALS,
+    })}`;
   }
-  return formatProPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }, locale);
+  return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
 }
 
-function formatBase(
-  value: number,
-  szDecimals?: number,
-  locale?: string,
-): string {
+function formatBase(value: number, szDecimals?: number): string {
   if (!Number.isFinite(value)) {
     return ORDER_BOOK_FALLBACK_DISPLAY;
   }
   if (Math.abs(value) >= COMPACT_NOTATION_THRESHOLD) {
-    return formatProLargeNumber(
-      value,
-      { decimals: COMPACT_NOTATION_DECIMALS },
-      locale,
-    );
+    return formatLargeNumber(value, { decimals: COMPACT_NOTATION_DECIMALS });
   }
-  return formatProPositionSize(value, szDecimals, locale);
+  return formatPositionSize(value, szDecimals);
 }
 
 /**
@@ -501,27 +489,18 @@ function getFixedDecimalRanges(decimals: number): FiatRangeConfig[] {
 export function formatOrderBookPrice(
   price: string | number,
   format: OrderBookPriceFormat | null,
-  locale?: string,
 ): string {
   const value = typeof price === 'number' ? price : Number.parseFloat(price);
   if (!Number.isFinite(value)) {
     return ORDER_BOOK_FALLBACK_DISPLAY;
   }
   if (format === null) {
-    return formatProPerpsFiat(
-      value,
-      { ranges: PRICE_RANGES_UNIVERSAL },
-      locale,
-    );
+    return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
   }
-  const formatted = formatProPerpsFiat(
-    value / format.divisor,
-    {
-      ranges: getFixedDecimalRanges(format.decimals),
-      stripTrailingZeros: false,
-    },
-    locale,
-  );
+  const formatted = formatPerpsFiat(value / format.divisor, {
+    ranges: getFixedDecimalRanges(format.decimals),
+    stripTrailingZeros: false,
+  });
   return `${formatted}${format.suffix}`;
 }
 
@@ -580,14 +559,13 @@ export function formatColumnValue(
   currency: OrderBookListCurrency,
   metric: OrderBookListMetric,
   szDecimals?: number,
-  locale?: string,
 ): string {
   if (currency === 'usd') {
     const raw = metric === 'total' ? level.totalNotional : level.notional;
-    return formatUsd(Number.parseFloat(raw), locale);
+    return formatUsd(Number.parseFloat(raw));
   }
   const raw = metric === 'total' ? level.total : level.size;
-  return formatBase(Number.parseFloat(raw), szDecimals, locale);
+  return formatBase(Number.parseFloat(raw), szDecimals);
 }
 
 /**
