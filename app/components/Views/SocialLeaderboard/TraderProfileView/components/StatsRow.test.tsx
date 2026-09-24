@@ -139,9 +139,9 @@ describe('StatsRow', () => {
     (label) => {
       renderWithProvider(<StatsRow stats={baseStats} />);
 
-      expect(
-        StyleSheet.flatten(screen.getByText(label).props.style),
-      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+      expect(StyleSheet.flatten(screen.getByText(label).props.style)).toEqual(
+        expect.objectContaining({ textAlign: 'center' }),
+      );
     },
   );
 });
