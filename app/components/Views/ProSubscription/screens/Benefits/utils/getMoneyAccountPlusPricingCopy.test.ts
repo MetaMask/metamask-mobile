@@ -215,6 +215,20 @@ describe('getMoneyAccountPlusPricingCopy', () => {
       );
     });
 
+    it('includes a trial label on annual when trialPeriodDays is greater than zero', () => {
+      const result = getPlanSelectorCardCopy('annual', {
+        status: 'ready',
+        annual: createPlan({
+          interval: RECURRING_INTERVALS.year,
+          trialPeriodDays: 7,
+        }),
+      });
+
+      expect(result?.trialLabel).toBe(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+    });
+
     it('omits the trial label when there is no trial period', () => {
       const result = getPlanSelectorCardCopy('monthly', {
         status: 'ready',

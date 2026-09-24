@@ -18,6 +18,13 @@ const ANNUAL_PLAN: PlanOption = {
   ctaLabel: 'pro_subscription.plans.annual.cta',
 };
 
+const MONTHLY_PLAN: PlanOption = {
+  id: 'monthly',
+  label: 'pro_subscription.plans.monthly.label',
+  price: 'pro_subscription.plans.monthly.price',
+  ctaLabel: 'pro_subscription.plans.monthly.cta',
+};
+
 const PRICE_COPY: PlanSelectorCardCopy = { price: '$49.99/year' };
 
 const darkThemeContext = {
@@ -29,11 +36,13 @@ const darkThemeContext = {
 };
 
 const renderCard = ({
+  plan = ANNUAL_PLAN,
   copy = PRICE_COPY,
   isSelected = false,
   isDark = false,
   onPress = jest.fn(),
 }: {
+  plan?: PlanOption;
   copy?: PlanSelectorCardCopy;
   isSelected?: boolean;
   isDark?: boolean;
@@ -41,7 +50,7 @@ const renderCard = ({
 } = {}) => {
   const card = (
     <PlanSelectorCard
-      plan={ANNUAL_PLAN}
+      plan={plan}
       copy={copy}
       isSelected={isSelected}
       onPress={onPress}
@@ -68,6 +77,7 @@ const useIndicatorColors = () => {
   return {
     white: (tw.style('bg-white') as ViewStyle).backgroundColor,
     black: (tw.style('bg-black') as ViewStyle).backgroundColor,
+    muted: (tw.style('bg-background-muted') as ViewStyle).backgroundColor,
   };
 };
 
@@ -83,13 +93,12 @@ describe('PlanSelectorCard', () => {
     ).toHaveTextContent('$49.99/year');
   });
 
-  it('renders the savings badge, sub price, and trial label from copy', () => {
+  it('renders the savings badge and sub price from copy', () => {
     const { getByTestId } = renderCard({
       copy: {
         price: '$49.99/year',
         subPrice: '$4.17/month',
         savingsBadge: 'Save 16%',
-        trialLabel: '7 day free trial',
       },
     });
 
@@ -99,6 +108,30 @@ describe('PlanSelectorCard', () => {
     expect(
       getByTestId(BenefitsTestIds.PLAN_CARD_SUB_PRICE('annual')),
     ).toHaveTextContent('$4.17/month');
+  });
+
+  it('renders the trial label on the monthly plan', () => {
+    const { getByTestId } = renderCard({
+      plan: MONTHLY_PLAN,
+      copy: {
+        price: '$4.99/month',
+        trialLabel: '7 day free trial',
+      },
+    });
+
+    expect(
+      getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('monthly')),
+    ).toHaveTextContent('7 day free trial');
+  });
+
+  it('renders a trial banner on the annual plan', () => {
+    const { getByTestId } = renderCard({
+      copy: {
+        price: '$49.99/year',
+        trialLabel: '7 day free trial',
+      },
+    });
+
     expect(
       getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
     ).toHaveTextContent('7 day free trial');
@@ -154,6 +187,56 @@ describe('PlanSelectorCard', () => {
 
       expect(
         getByTestId(BenefitsTestIds.PLAN_CARD_RADIO('annual')),
+      ).toHaveStyle({ backgroundColor: white });
+    });
+  });
+
+  describe('annual trial banner', () => {
+    it('fills with muted background when the annual plan is unselected', () => {
+      const { muted } = useIndicatorColors();
+
+      const { getByTestId } = renderCard({
+        copy: {
+          price: '$49.99/year',
+          trialLabel: '7 day free trial',
+        },
+      });
+
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).toHaveStyle({ backgroundColor: muted });
+    });
+
+    it('fills with black when the annual plan is selected in the light theme', () => {
+      const { black } = useIndicatorColors();
+
+      const { getByTestId } = renderCard({
+        isSelected: true,
+        copy: {
+          price: '$49.99/year',
+          trialLabel: '7 day free trial',
+        },
+      });
+
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).toHaveStyle({ backgroundColor: black });
+    });
+
+    it('fills with white when the annual plan is selected in the dark theme', () => {
+      const { white } = useIndicatorColors();
+
+      const { getByTestId } = renderCard({
+        isSelected: true,
+        isDark: true,
+        copy: {
+          price: '$49.99/year',
+          trialLabel: '7 day free trial',
+        },
+      });
+
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
       ).toHaveStyle({ backgroundColor: white });
     });
   });

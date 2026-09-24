@@ -258,6 +258,14 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
         >
           {strings('pro_subscription.join_pro')}
         </Button>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {strings('pro_subscription.free_trial_description')}
+        </Text>
       </Box>
 
       {isBenefitDetailSheetOpen && selectedBenfitDetail && (
