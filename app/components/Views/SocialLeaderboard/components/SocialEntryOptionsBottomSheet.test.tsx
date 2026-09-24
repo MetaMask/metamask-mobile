@@ -1,7 +1,11 @@
 import React from 'react';
+import { Pressable } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import SocialEntryOptionsBottomSheet from './SocialEntryOptionsBottomSheet';
+import SocialEntryOptionsBottomSheet, {
+  SocialEntryOptionsProvider,
+  useSocialEntryOptions,
+} from './SocialEntryOptionsBottomSheet';
 import { SocialEntryOptionsBottomSheetSelectorsIDs } from './SocialEntryOptionsBottomSheet.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -68,5 +72,33 @@ describe('SocialEntryOptionsBottomSheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onReport).not.toHaveBeenCalled();
+  });
+
+  it('hosts a single sheet outside the trigger when a provider is mounted', () => {
+    const Trigger = () => {
+      const { open, sheet } = useSocialEntryOptions();
+      return (
+        <>
+          <Pressable testID="options-trigger" onPress={open} />
+          {sheet}
+        </>
+      );
+    };
+
+    renderWithProvider(
+      <SocialEntryOptionsProvider>
+        <Trigger />
+      </SocialEntryOptionsProvider>,
+    );
+
+    expect(
+      screen.queryByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.SHEET),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId('options-trigger'));
+
+    expect(
+      screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.SHEET),
+    ).toBeOnTheScreen();
   });
 });

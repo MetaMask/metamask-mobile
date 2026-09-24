@@ -15,10 +15,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import SocialEntryOptionsBottomSheet from '../../components/SocialEntryOptionsBottomSheet';
+import { useSocialEntryOptions } from '../../components/SocialEntryOptionsBottomSheet';
 import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
@@ -88,7 +88,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   now,
   showOptionsMenu = false,
 }) => {
-  const [optionsOpen, setOptionsOpen] = useState(false);
+  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
@@ -182,7 +182,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           <ButtonIcon
             iconName={IconName.MoreHorizontal}
             size={ButtonIconSize.Md}
-            onPress={() => setOptionsOpen(true)}
+            onPress={openOptions}
             accessibilityLabel={strings(
               'social_leaderboard.entry_options.title',
             )}
@@ -276,12 +276,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           ) : null}
         </Box>
       </Pressable>
-      {showOptionsMenu ? (
-        <SocialEntryOptionsBottomSheet
-          isOpen={optionsOpen}
-          onClose={() => setOptionsOpen(false)}
-        />
-      ) : null}
+      {showOptionsMenu ? optionsSheet : null}
     </Box>
   );
 };

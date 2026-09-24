@@ -20,7 +20,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import { strings } from '../../../../../../../locales/i18n';
-import SocialEntryOptionsBottomSheet from '../../../components/SocialEntryOptionsBottomSheet';
+import { useSocialEntryOptions } from '../../../components/SocialEntryOptionsBottomSheet';
 import { formatFeedPostAge } from '../../../utils/formatters';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { MOCK_MARKER } from '../mockMarker';
@@ -50,7 +50,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [optionsOpen, setOptionsOpen] = useState(false);
+  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -171,7 +171,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         <ButtonIcon
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSize.Md}
-          onPress={() => setOptionsOpen(true)}
+          onPress={openOptions}
           accessibilityLabel={strings('social_leaderboard.entry_options.title')}
           twClassName="shrink-0"
           testID={`${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`}
@@ -248,10 +248,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         onClose={closePicker}
         onPick={handlePick}
       />
-      <SocialEntryOptionsBottomSheet
-        isOpen={optionsOpen}
-        onClose={() => setOptionsOpen(false)}
-      />
+      {optionsSheet}
     </Box>
   );
 };

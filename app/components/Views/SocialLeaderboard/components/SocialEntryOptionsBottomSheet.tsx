@@ -5,7 +5,13 @@ import {
   Box,
   IconName,
 } from '@metamask/design-system-react-native';
-import React, { useCallback } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -25,6 +31,13 @@ export interface SocialEntryOptionsBottomSheetProps {
   /** Optional hook for a future report flow. Defaults to closing the sheet. */
   onReport?: () => void;
 }
+
+interface SocialEntryOptionsContextValue {
+  open: () => void;
+}
+
+const SocialEntryOptionsContext =
+  createContext<SocialEntryOptionsContextValue | null>(null);
 
 /**
  * Overflow sheet for Social V1 posts and rows. Report is a no-op besides
@@ -97,6 +110,52 @@ const SocialEntryOptionsBottomSheet: React.FC<
   }
 
   return <SocialEntryOptionsBottomSheetInner {...innerProps} />;
+};
+
+/**
+ * Hosts the options Modal outside `PagerView`. iOS often fails to present a
+ * Modal from pager page 0 (Trending), while later tabs work.
+ */
+export const SocialEntryOptionsProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const open = useCallback(() => setIsOpen(true), []);
+  const onClose = useCallback(() => setIsOpen(false), []);
+  const value = useMemo(() => ({ open }), [open]);
+
+  return (
+    <SocialEntryOptionsContext.Provider value={value}>
+      {children}
+      <SocialEntryOptionsBottomSheet isOpen={isOpen} onClose={onClose} />
+    </SocialEntryOptionsContext.Provider>
+  );
+};
+
+/**
+ * Opens the Report sheet. When a {@link SocialEntryOptionsProvider} is
+ * mounted, the Modal is hosted there; otherwise the caller must render
+ * `sheet` so unit tests and standalone rows still work.
+ */
+export const useSocialEntryOptions = (): {
+  open: () => void;
+  sheet: React.ReactNode;
+} => {
+  const hosted = useContext(SocialEntryOptionsContext);
+  const [localOpen, setLocalOpen] = useState(false);
+  const openLocal = useCallback(() => setLocalOpen(true), []);
+  const closeLocal = useCallback(() => setLocalOpen(false), []);
+
+  if (hosted) {
+    return { open: hosted.open, sheet: null };
+  }
+
+  return {
+    open: openLocal,
+    sheet: (
+      <SocialEntryOptionsBottomSheet isOpen={localOpen} onClose={closeLocal} />
+    ),
+  };
 };
 
 export default SocialEntryOptionsBottomSheet;
