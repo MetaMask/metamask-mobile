@@ -2350,6 +2350,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "already_closed": "Position already closed",
       "already_closed_subtitle": "This position was filled or closed already",
+      "already_in_progress": "Close already in progress",
+      "already_in_progress_subtitle": "Wait for it to finish before closing again",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
       "failed_to_place_close_order": "Failed to place close order",
