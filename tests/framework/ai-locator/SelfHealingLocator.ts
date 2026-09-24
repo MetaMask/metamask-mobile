@@ -97,8 +97,8 @@ async function getElementForLocator(
   }
 }
 
-async function defaultTap(element: AppiumElement): Promise<void> {
-  await element.click();
+async function defaultTap(targetElement: AppiumElement): Promise<void> {
+  await targetElement.click();
 }
 
 function getErrorMessage(error: unknown): string {

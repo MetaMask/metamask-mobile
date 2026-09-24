@@ -137,8 +137,8 @@ export default class Gestures {
 
     const recovery = getPerformanceLocatorRecovery();
     if (!recovery) {
-      const element = await elementOrPromise;
-      await tap(element);
+      const resolvedElement = await elementOrPromise;
+      await tap(resolvedElement);
       return;
     }
 
