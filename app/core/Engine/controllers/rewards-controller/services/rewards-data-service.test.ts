@@ -6055,5 +6055,34 @@ describe('RewardsDataService', () => {
         ),
       ).rejects.toThrow('Register Money Account binding failed: 500');
     });
+
+    it('throws InvalidTimestampError with serverTime in milliseconds', async () => {
+      const serverTime = 1758700800000;
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          statusCode: 400,
+          error: 'Bad Request',
+          code: 'TIMESTAMP_OUT_OF_WINDOW',
+          serverTime,
+        }),
+      } as unknown as Response);
+
+      try {
+        await service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        );
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(serverTime);
+      }
+    });
   });
 });

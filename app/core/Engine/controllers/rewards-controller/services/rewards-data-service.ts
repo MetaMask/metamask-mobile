@@ -2399,6 +2399,23 @@ export class RewardsDataService {
     }
 
     if (!response.ok) {
+      let errorData: { code?: string; serverTime?: number } | undefined;
+      try {
+        errorData = (await response.json()) as {
+          code?: string;
+          serverTime?: number;
+        };
+      } catch {
+        // Body may be empty or non-JSON; fall through to the generic error.
+      }
+
+      if (errorData?.code === 'TIMESTAMP_OUT_OF_WINDOW') {
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Number(errorData.serverTime),
+        );
+      }
+
       throw new Error(
         `Register Money Account binding failed: ${response.status}`,
       );
