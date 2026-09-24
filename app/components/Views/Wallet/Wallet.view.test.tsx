@@ -10,7 +10,7 @@ import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceC
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { strings } from '../../../../locales/i18n';
@@ -356,7 +356,7 @@ describeForPlatforms('Wallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the Money balance card after the user skips the last checklist step', () => {
+    it('shows the Money balance card after the user skips the last checklist step', async () => {
       // This preset leaves `pushNotificationOsPromptRequested` unset, so the notifications
       // step is part of the flow (TMCU-924).
       const lastStepIndex =
@@ -369,9 +369,16 @@ describeForPlatforms('Wallet', () => {
         },
       });
 
-      fireEvent.press(
-        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
-      );
+      // The skip dispatch happens inside an `Animated.timing` completion
+      // callback, which runs after `fireEvent.press` returns. react-redux 9
+      // reads the store through `useSyncExternalStore`, so that update is only
+      // flushed inside `act` — under react-redux 8 the hook's own subscription
+      // re-rendered without it.
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+        );
+      });
 
       expect(
         queryByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
