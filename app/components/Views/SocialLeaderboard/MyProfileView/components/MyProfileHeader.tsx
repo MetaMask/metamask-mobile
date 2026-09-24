@@ -34,6 +34,7 @@ interface MyProfileHeaderProps {
   followingCount: number;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
+  onStatsPress?: () => void;
 }
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
@@ -41,6 +42,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   followingCount,
   onFollowersPress,
   onFollowingPress,
+  onStatsPress,
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
@@ -194,7 +196,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      <MyProfileStats profile={profile} />
+      <MyProfileStats profile={profile} onPress={onStatsPress} />
     </Box>
   );
 };

@@ -10,13 +10,14 @@ const profile: TraderProfileWithSheetStats = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'trader1',
+    name: 'mint-cat',
+    imageUrl: 'https://example.com/a.png',
   },
   stats: {
     pnl30d: 7100,
-    winRate30d: 0.81,
-    tradeCount30d: 99,
-    volumeUsd30d: 354520,
+    winRate30d: 0.58,
+    tradeCount30d: 39,
+    volumeUsd30d: 386260,
     medianHoldMinutes: 5760,
   },
   perChainBreakdown: {
@@ -35,38 +36,51 @@ const profile: TraderProfileWithSheetStats = {
 };
 
 describe('TraderStatsSheet', () => {
-  it('renders plumbed 30d stats rows', () => {
+  it('renders the insights layout with plumbed 30d stats', () => {
     renderWithProvider(
-      <TraderStatsSheet profile={profile} onClose={jest.fn()} />,
+      <TraderStatsSheet
+        profile={profile}
+        profileHandle="mint-cat"
+        onClose={jest.fn()}
+      />,
     );
 
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_PNL),
-    ).toHaveTextContent(/\+\$7,100/);
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.HEADER_HANDLE),
+    ).toHaveTextContent('@mint-cat');
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.HERO_PNL),
+    ).toHaveTextContent(/\$7,100/);
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_WIN_RATE),
-    ).toHaveTextContent(/81%/);
+    ).toHaveTextContent(/58%/);
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_VOLUME),
-    ).toHaveTextContent(/\$354\.5K/);
+    ).toHaveTextContent(/\$386\.3K/);
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_TRADE_COUNT),
-    ).toHaveTextContent(/99/);
+    ).toHaveTextContent(/39/);
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_HOLD_TIME),
-    ).toHaveTextContent(/4 days/);
+    ).toHaveTextContent(/4d/);
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.SECTION_BREAKDOWN),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_FOLLOWERS),
     ).toHaveTextContent(/0/);
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_TRADES_COPIED),
     ).toHaveTextContent(/981/);
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.SECTION_PERFORMANCE),
+    ).toBeOnTheScreen();
   });
 
-  it('renders dashes and zero copy count when optional stats are missing', () => {
+  it('leaves missing optional stats blank instead of a dash', () => {
     const emptyProfile: TraderProfileWithSheetStats = {
       ...profile,
       stats: {},
@@ -78,10 +92,13 @@ describe('TraderStatsSheet', () => {
     );
 
     expect(
-      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_PNL),
-    ).toHaveTextContent(/\u2014/);
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.HERO_PNL),
+    ).toHaveTextContent('');
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_VOLUME),
+    ).toHaveTextContent('Trading volume');
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_TRADES_COPIED),
-    ).toHaveTextContent(/0/);
+    ).toHaveTextContent('Trades copied');
   });
 });

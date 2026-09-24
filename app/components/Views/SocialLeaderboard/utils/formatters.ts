@@ -115,6 +115,20 @@ export function formatSignedFullUsdNoDecimals(
   );
 }
 
+/**
+ * Unsigned full USD with thousands separators and no fractional digits
+ * (e.g. `$7,100`). Used when color, not a +/- prefix, carries the sign.
+ */
+export function formatUnsignedFullUsdNoDecimals(
+  value: number | null | undefined,
+): string {
+  if (value == null) return EM_DASH;
+  return formatPerpsFiat(Math.abs(value), {
+    minimumDecimals: 0,
+    maximumDecimals: 0,
+  });
+}
+
 // Ordered largest → smallest. Walk down and promote when rounding pushes a
 // value past the bucket boundary (e.g. `999_999` rounds to `1000K`, which
 // we want as `$1M`, not `$1000K`).

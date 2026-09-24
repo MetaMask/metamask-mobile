@@ -14,7 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -25,14 +25,19 @@ import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
+import ProfileAvatar from './components/ProfileAvatar';
 import { useMyProfile } from './hooks';
 import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
+import TraderStatsSheet from '../TraderProfileView/components/TraderStatsSheet';
+import { TraderStatsSheetSelectorsIDs } from '../TraderProfileView/components/TraderStatsSheet.testIds';
+import { myProfileToSheetProfile } from './utils/myProfileToSheetProfile';
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile, isLoading, error, refresh } = useMyProfile();
   const { traders: following } = useFollowedTraders();
+  const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -132,6 +137,7 @@ const MyProfileView: React.FC = () => {
             followingCount={following.length}
             onFollowersPress={handleFollowersPress}
             onFollowingPress={handleFollowingPress}
+            onStatsPress={() => setIsStatsSheetOpen(true)}
           />
 
           <Box
@@ -213,6 +219,21 @@ const MyProfileView: React.FC = () => {
           </Button>
         </Box>
       )}
+      {isStatsSheetOpen && profile ? (
+        <TraderStatsSheet
+          profile={myProfileToSheetProfile(profile)}
+          profileHandle={profile.handle}
+          headerAvatar={
+            <ProfileAvatar
+              imageUrl={profile.imageUrl}
+              avatarPresetId={profile.avatarPresetId}
+              size="sm"
+              testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
+            />
+          }
+          onClose={() => setIsStatsSheetOpen(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };
