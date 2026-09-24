@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
@@ -12,6 +11,7 @@ import Engine from '../core/Engine';
 import { selectIsSignedIn } from '../selectors/identity';
 import { selectIsUnlocked } from '../selectors/keyringController';
 import {
+  selectIsMoneyAccountPlusSubscriber,
   selectMoneyAccountPlusSubscription,
   selectSubscriptionBenefits,
 } from '../selectors/subscriptionController';
@@ -45,9 +45,12 @@ export interface MoneyAccountPlusBenefits {
 /**
  * Loads current-period Plus benefit usage through SubscriptionController.
  *
- * `getBenefits()` is only called for entitled subscribers. Cached
- * `state.benefits` stays visible during a refresh or a failed refresh; an
- * error with no cache surfaces retry UI instead of paid meters.
+ * `getBenefits()` is only called for active Plus subscribers. Core rejects
+ * the call (and clears `state.benefits`) for entitled-but-inactive statuses
+ * such as `past_due`, so those users keep cached meters instead of fetching.
+ *
+ * Cached `state.benefits` stays visible during a refresh or a failed refresh;
+ * an error with no cache surfaces retry UI instead of paid meters.
  *
  * Fetch lifecycle is owned by TanStack Query. Redux remains the source of
  * truth for mapped meters — the controller persists `state.benefits` with no
@@ -59,12 +62,13 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const access = useMoneyAccountPlusAccess();
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
+  const isActiveSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
   const benefits = useSelector(selectSubscriptionBenefits);
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
   const queryClient = useQueryClient();
 
-  const isSubscriber = access === MoneyAccountPlusAccess.Subscriber;
-  const canFetch = isSubscriber && isSignedIn && isUnlocked;
+  const isHubSubscriber = access === MoneyAccountPlusAccess.Subscriber;
+  const canFetch = isActiveSubscriber && isSignedIn && isUnlocked;
 
   const { isPending, isFetching, isError, refetch } = useQuery({
     queryKey: BENEFITS_QUERY_KEY,
@@ -84,18 +88,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     }
   }, [isSignedIn, isUnlocked, queryClient]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!canFetch) {
-        return;
-      }
-
-      refetch().catch(() => {
-        // Query status already reflects the failure.
-      });
-    }, [canFetch, refetch]),
-  );
-
   const retry = useCallback(() => {
     refetch().catch(() => {
       // Query status already reflects the failure.
@@ -109,7 +101,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const resetsOn = formatPlusPeriodEnd(plusSubscription?.currentPeriodEnd);
   const hasCache = benefits !== undefined;
 
-  if (!isSubscriber) {
+  if (!isHubSubscriber) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
@@ -118,7 +110,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     };
   }
 
-  if (!hasCache && !isError && (isPending || isFetching)) {
+  if (!hasCache && canFetch && !isError && (isPending || isFetching)) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
@@ -127,7 +119,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     };
   }
 
-  if (!hasCache && isError) {
+  if (!hasCache && canFetch && isError) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],

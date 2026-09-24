@@ -148,6 +148,24 @@ describe('MemberPricingOnTrades', () => {
       queryByTestId(MemberPricingOnTradesTestIds.ROW('predict')),
     ).not.toBeOnTheScreen();
   });
+
+  it('hides the section when no trade allowances can be mapped', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Empty,
+      items: [],
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+    });
+
+    const { queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.SECTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.TITLE),
+    ).not.toBeOnTheScreen();
+  });
 });
 
 describe('TradeAllowanceRow', () => {

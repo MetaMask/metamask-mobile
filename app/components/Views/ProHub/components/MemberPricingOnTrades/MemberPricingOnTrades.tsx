@@ -37,6 +37,10 @@ const MemberPricingOnTrades = () => {
     status === MoneyAccountPlusBenefitsStatus.Ready ||
     status === MoneyAccountPlusBenefitsStatus.Incomplete;
 
+  if (status === MoneyAccountPlusBenefitsStatus.Empty) {
+    return null;
+  }
+
   return (
     <Box twClassName="gap-y-6" testID={MemberPricingOnTradesTestIds.SECTION}>
       <Text

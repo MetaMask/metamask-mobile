@@ -46,15 +46,6 @@ jest.mock('../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => {
-  const ReactNav = jest.requireActual('react');
-  return {
-    useFocusEffect: (callback: () => void) => {
-      ReactNav.useEffect(callback, [callback]);
-    },
-  };
-});
-
 const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
 const mockSelectIsSignedIn = jest.mocked(selectIsSignedIn);
 const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
@@ -88,12 +79,14 @@ const BENEFITS: SubscriptionBenefitsState = {
   },
 };
 
-const createPlusSubscription = (): Subscription =>
+const createPlusSubscription = (
+  status: Subscription['status'] = SUBSCRIPTION_STATUSES.active,
+): Subscription =>
   ({
     id: 'sub-plus',
     currentPeriodStart: '2026-08-15T00:00:00.000Z',
     currentPeriodEnd: '2026-09-15T00:00:00.000Z',
-    status: SUBSCRIPTION_STATUSES.active,
+    status,
     products: [
       {
         name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
@@ -108,10 +101,14 @@ const createState = ({
   isSignedIn = true,
   isUnlocked = true,
   benefits,
+  subscriptionStatus = SUBSCRIPTION_STATUSES.active,
+  hasPlusSubscription = true,
 }: {
   isSignedIn?: boolean;
   isUnlocked?: boolean;
   benefits?: SubscriptionBenefitsState;
+  subscriptionStatus?: Subscription['status'];
+  hasPlusSubscription?: boolean;
 } = {}) =>
   ({
     engine: {
@@ -119,7 +116,9 @@ const createState = ({
         AuthenticationController: { isSignedIn },
         KeyringController: { isUnlocked, keyrings: [] },
         SubscriptionController: {
-          subscriptions: [createPlusSubscription()],
+          subscriptions: hasPlusSubscription
+            ? [createPlusSubscription(subscriptionStatus)]
+            : [],
           trialedProducts: [],
           ...(benefits ? { benefits } : {}),
         },
@@ -179,10 +178,51 @@ describe('useMoneyAccountPlusBenefits', () => {
       MoneyAccountPlusAccess.Eligible,
     );
 
-    const { result } = renderBenefits(createState());
+    const { result } = renderBenefits(
+      createState({ hasPlusSubscription: false }),
+    );
 
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+  });
+
+  it('does not fetch benefits while Plus access is unknown', () => {
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Unknown,
+    );
+
+    const { result } = renderBenefits(
+      createState({ hasPlusSubscription: false }),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+  });
+
+  it('keeps cached rows without fetching for an entitled past_due subscriber', async () => {
+    const { result } = renderBenefits(
+      createState({
+        benefits: BENEFITS,
+        subscriptionStatus: SUBSCRIPTION_STATUSES.pastDue,
+      }),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+    expect(result.current.items).toHaveLength(3);
+    expect(result.current.resetsOn).toBe('Sep 15, 2026');
+  });
+
+  it('reports empty without fetching when an entitled past_due subscriber has no cache', () => {
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.pastDue,
+      }),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
+    expect(result.current.items).toEqual([]);
   });
 
   it('does not fetch benefits when the user is signed out', () => {
