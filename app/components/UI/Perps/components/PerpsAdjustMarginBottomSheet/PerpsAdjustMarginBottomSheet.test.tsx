@@ -781,27 +781,6 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     );
   });
 
-  it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
-    render(
-      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
-    );
-    act(() => {
-      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
-    });
-
-    act(() => {
-      (
-        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
-          .props as { onValueChange: (percentage: number) => void }
-      ).onValueChange(100);
-    });
-
-    expect(screen.getByTestId('amount-display')).toHaveProp(
-      'accessibilityLabel',
-      'perps.adjust_margin.amount_accessibility_label, 150.00',
-    );
-  });
-
   const setUpFreshLimit = () => {
     const { rerender } = render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
@@ -839,6 +818,12 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     return { renderLive, expectAmountAtMax };
   };
   const pnlTick = { ...position, unrealizedPnl: '90', marginUsed: '490' };
+
+  it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+    const { expectAmountAtMax } = setUpFreshLimit();
+
+    expectAmountAtMax('150.00');
+  });
 
   it('keeps the fresh limit through PnL re-deliveries and drops it when the size changes', () => {
     const { renderLive, expectAmountAtMax } = setUpFreshLimit();
