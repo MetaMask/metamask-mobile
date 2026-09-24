@@ -10514,6 +10514,9 @@
         "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
       }
     },
+    "spending_limit_progress_bar": {
+      "label": "Spending limit"
+    },
     "contact_details": {
       "title": "Contact details",
       "description": "Keep your email address and phone number up to date.",

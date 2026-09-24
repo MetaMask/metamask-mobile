@@ -93,7 +93,7 @@ const SpendingLimitProgressBar = ({
         <View style={styles.divider} />
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            Spending Limit
+            {strings('card.spending_limit_progress_bar.label')}
           </Text>
           <SensitiveText
             isHidden={privacyMode}
@@ -114,7 +114,7 @@ const SpendingLimitProgressBar = ({
       <View style={styles.divider} />
       <View style={styles.textContainer}>
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-          Spending Limit
+          {strings('card.spending_limit_progress_bar.label')}
         </Text>
         <SensitiveText
           isHidden={privacyMode}
