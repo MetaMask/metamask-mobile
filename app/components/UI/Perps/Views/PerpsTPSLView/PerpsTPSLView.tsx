@@ -30,10 +30,9 @@ import {
   type BottomSheetRef,
   ButtonsAlignment,
   Button,
-  ButtonBase,
-  ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -113,7 +112,7 @@ export function waitForDismissal(dismiss: (afterDismiss: () => void) => void) {
   });
 }
 
-/** ButtonBase resolves `textClassName` per press state, so it takes a function. */
+/** Button tertiary text color must resolve per press state. */
 const getClearTextClassName = () => 'text-primary-default';
 
 const SHEET_PRICE_PLACEHOLDER = '0.00';
@@ -161,37 +160,25 @@ const RoeSignBadge: React.FC<{
   isDisabled,
   isNeutral = false,
 }) => {
-  if (isNeutral) {
-    return (
-      <ButtonIcon
-        size={ButtonIconSize.Sm}
-        iconName={sign === '+' ? IconName.Add : IconName.Minus}
-        iconProps={{ size: IconSize.Sm, color: IconColor.IconDefault }}
-        isDisabled={isDisabled}
-        onPress={onPress}
-        testID={testID}
-        accessibilityLabel={accessibilityLabel}
-        twClassName="shrink-0 self-center rounded-full bg-muted"
-      />
-    );
-  }
-
   return (
-    <ButtonBase
-      size={ButtonBaseSize.Sm}
+    <ButtonIcon
+      size={ButtonIconSize.Sm}
+      variant={ButtonIconVariant.Filled}
+      iconName={sign === '+' ? IconName.Add : IconName.Minus}
+      iconProps={{
+        size: IconSize.Sm,
+        color: isNeutral
+          ? IconColor.IconDefault
+          : sign === '+'
+            ? IconColor.SuccessDefault
+            : IconColor.ErrorDefault,
+      }}
       isDisabled={isDisabled}
       onPress={onPress}
       testID={testID}
-      accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
-      textProps={{
-        variant: TextVariant.BodyMd,
-        color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-      }}
-    >
-      {sign}
-    </ButtonBase>
+      twClassName="shrink-0 self-center"
+    />
   );
 };
 
