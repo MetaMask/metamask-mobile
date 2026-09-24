@@ -128,6 +128,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@braze/react-native-sdk',
   'uuid',
   '@metamask/wallet',
+  '@metamask/passkey-controller',
 ];
 
 const config = {
