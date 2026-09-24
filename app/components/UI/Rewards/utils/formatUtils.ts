@@ -9,6 +9,7 @@ import {
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
+import { MUSD_DECIMALS } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -356,6 +357,33 @@ export const formatUsd = (
   }
 
   return formatFiat(fiatAmount, 'USD');
+};
+
+/**
+ * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
+ * base-unit integer strings, because they exceed what a JSON number holds
+ * exactly, so they are shifted by {@link MUSD_DECIMALS} before formatting.
+ *
+ * Null for a missing or unparseable amount, so a caller can omit the line
+ * rather than print a placeholder where money should be.
+ *
+ * @example formatMusdBaseUnits('41750000') // '$41.75'
+ * @example formatMusdBaseUnits(null)       // null
+ */
+export const formatMusdBaseUnits = (
+  baseUnits: string | null | undefined,
+): string | null => {
+  if (baseUnits === null || baseUnits === undefined || baseUnits === '') {
+    return null;
+  }
+
+  const amount = new BigNumber(baseUnits).shiftedBy(-MUSD_DECIMALS);
+
+  if (!amount.isFinite()) {
+    return null;
+  }
+
+  return formatUsd(amount.toString());
 };
 
 interface FormatCompactValueOptions {

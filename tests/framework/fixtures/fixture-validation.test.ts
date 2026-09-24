@@ -371,6 +371,15 @@ describe('fixture-validation', () => {
       expect(fixture.asyncState).toBeDefined();
     });
 
+    it('includes the Rewards Money Redux initial state', () => {
+      const fixture = readFixtureFile('default-fixture.json');
+
+      expect((fixture.state as Record<string, unknown>).rewardsMoney).toEqual({
+        earningsSummary: {},
+        referralMe: {},
+      });
+    });
+
     it('throws for missing fixture files', () => {
       expect(() => readFixtureFile('nonexistent.json')).toThrow();
     });

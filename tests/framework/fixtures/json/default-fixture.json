@@ -959,6 +959,10 @@
       "vipSplashAccepted": {},
       "vipTransactions": {}
     },
+    "rewardsMoney": {
+      "earningsSummary": {},
+      "referralMe": {}
+    },
     "rpcEvents": {
       "signingEvent": {
         "eventStage": "idle",
