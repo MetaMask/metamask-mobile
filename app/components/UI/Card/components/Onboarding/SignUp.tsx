@@ -491,6 +491,9 @@ const SignUp = () => {
     setIsImmersveSubmitting(true);
     try {
       if (fromMigration) {
+        Engine.context.CardController.requestLegacyAccountClosure().catch(
+          () => undefined,
+        );
         Engine.context.CardController.beginMigration();
       }
       await resumeImmersveOnboarding({
