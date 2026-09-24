@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelSuccessStep from './CancelSuccessStep';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
-import { MOCK_CANCELLATION_END_DATE } from '../CancelMembership.constants';
+import { CANCELLATION_TIMINGS } from '../CancelMembership.utils';
 import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -10,8 +10,22 @@ import { strings } from '../../../../../../../locales/i18n';
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-const renderStep = (onDone: () => void = jest.fn()) =>
-  render(<CancelSuccessStep onDone={onDone} />);
+const CANCELLATION_END_DATE = 'July 20, 2027';
+
+const renderStep = ({
+  onDone = jest.fn(),
+  timing = CANCELLATION_TIMINGS.PERIOD_END,
+}: {
+  onDone?: () => void;
+  timing?: React.ComponentProps<typeof CancelSuccessStep>['timing'];
+} = {}) =>
+  render(
+    <CancelSuccessStep
+      onDone={onDone}
+      timing={timing}
+      cancellationEndDate={CANCELLATION_END_DATE}
+    />,
+  );
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -56,7 +70,7 @@ describe('CancelSuccessStep', () => {
 
       expect(
         getByTestId(CancelMembershipTestIds.SUCCESS_DESCRIPTION),
-      ).toHaveTextContent(toRegex(MOCK_CANCELLATION_END_DATE));
+      ).toHaveTextContent(toRegex(CANCELLATION_END_DATE));
     });
 
     it('renders the description containing the suffix from i18n', () => {
@@ -78,6 +92,20 @@ describe('CancelSuccessStep', () => {
         getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON),
       ).toHaveTextContent(strings('pro_hub.cancel_membership.success.done'));
     });
+
+    it('renders immediate cancellation copy without the period end date', () => {
+      const { getByTestId } = renderStep({
+        timing: CANCELLATION_TIMINGS.IMMEDIATE,
+      });
+      const description = getByTestId(
+        CancelMembershipTestIds.SUCCESS_DESCRIPTION,
+      );
+
+      expect(description).toHaveTextContent(
+        strings('pro_hub.cancel_membership.success.immediate_description'),
+      );
+      expect(description).not.toHaveTextContent(toRegex(CANCELLATION_END_DATE));
+    });
   });
 
   // ── Done button ────────────────────────────────────────────────────────────
@@ -85,7 +113,7 @@ describe('CancelSuccessStep', () => {
   describe('done button', () => {
     it('calls onDone when pressed', () => {
       const onDone = jest.fn();
-      const { getByTestId } = renderStep(onDone);
+      const { getByTestId } = renderStep({ onDone });
 
       fireEvent.press(getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON));
 

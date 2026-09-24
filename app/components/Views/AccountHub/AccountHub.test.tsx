@@ -5,6 +5,7 @@ import AccountHub from './AccountHub';
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 import Routes from '../../../constants/navigation/Routes';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -254,7 +255,9 @@ describe('AccountHub', () => {
 
     fireEvent.press(manageAccountsButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   });
 
   it('opens account group details from Info', () => {

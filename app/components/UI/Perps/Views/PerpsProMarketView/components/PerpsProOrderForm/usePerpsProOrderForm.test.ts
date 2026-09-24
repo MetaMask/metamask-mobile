@@ -9,6 +9,7 @@ import {
   computeScalePriceLadder,
   formatHyperLiquidPrice,
   type PerpsMarketData,
+  type OrderResult,
   type PerpsProviderType,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
@@ -80,7 +81,7 @@ let mockComplianceActionDuringRender: (() => void) | undefined;
 let mockIsEligible = true;
 
 let mockExecutionOptions: {
-  onSuccess?: (position?: unknown) => void;
+  onSuccess?: (position?: unknown, result?: OrderResult) => void;
   onError?: (error: unknown) => void;
 } = {};
 
@@ -792,6 +793,35 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(mockOrderValidationParams?.providerId).toBe('lighter');
+    });
+
+    it('lets a Scale order switch its size denomination without changing notional', () => {
+      // Regression for TAT-3976: Scale used to force the size field to USD, so
+      // the size-unit arrows were rendered inert.
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '90000';
+
+      const { result } = renderProForm();
+
+      expect(result.current.sizeInput.canToggleDenomination).toBe(true);
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      expect(result.current.sizeInput.denomination).toEqual({
+        unit: 'asset',
+        symbol: 'BTC',
+      });
+      expect(result.current.effectiveUsdAmount).toBe('90000');
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+      expect(result.current.effectiveUsdAmount).toBe('90000');
     });
 
     it('routes Chase fees through its placement provider', () => {
@@ -3575,6 +3605,19 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('execution toasts', () => {
+    it('shows the accepted size when the provider rounds the requested size', () => {
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.(undefined, {
+          success: true,
+          orderId: 'rounded-lighter-order',
+          submittedSize: '0.00013',
+        });
+      });
+
+      expect(confirmed).toHaveBeenCalledWith('long', '0.00013', 'BTC');
+    });
     it('shows the confirmed toast on success', () => {
       // Arrange
       renderProForm();
@@ -4036,9 +4079,13 @@ describe('usePerpsProOrderForm', () => {
         result.current.scaleOrder.onTotalOrdersChange('3');
       });
 
-      expect(result.current.sizeInput.value).toBe('90000');
-      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
-      expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+      // Switching to Scale keeps the chosen display unit; sizing stays canonical USD.
+      expect(result.current.sizeInput.value).toBe('1');
+      expect(result.current.sizeInput.denomination).toEqual({
+        unit: 'asset',
+        symbol: 'BTC',
+      });
+      expect(result.current.effectiveUsdAmount).toBe('90000');
 
       await act(async () => {
         await result.current.onPlaceOrderPress();

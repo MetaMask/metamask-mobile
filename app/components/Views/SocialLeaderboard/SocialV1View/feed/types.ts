@@ -24,6 +24,12 @@ export interface SocialV1FeedAuthor {
    * in which case the badge is omitted.
    */
   winRatePercent: number | null;
+  /** 30-day realized PnL in USD. Null when the feed actor omitted it. */
+  pnl30d?: number | null;
+  /** 30-day sell count behind the win rate. */
+  tradeCount30d?: number | null;
+  /** Profiles following this trader. */
+  followerCount?: number | null;
 }
 
 interface SocialV1FeedItemBase {
@@ -116,10 +122,16 @@ export interface SocialV1FeedPost {
   id: string;
   authorHandle: string;
   authorImageUrl?: string | null;
-  winRateLabel?: string;
   timestampMs: number;
-  likeCount: number;
-  commentCount: number;
+  /**
+   * Swap-comment id for the Call this post reacts to. Absent on pending
+   * composer posts and on live rows with no authorComment. The heart still
+   * renders; picks stay session-local until a Call id exists.
+   */
+  commentId?: string;
+  reactions: { emotion: string; count: number }[];
+  /** Session/API viewer emotion when known. */
+  userReaction?: string | null;
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;

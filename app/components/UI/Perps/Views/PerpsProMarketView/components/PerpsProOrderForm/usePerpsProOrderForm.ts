@@ -996,7 +996,6 @@ export const usePerpsProOrderForm = ({
     szDecimals,
     maxPossibleAmount: sizeSliderMaxAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
-    forceUsd: isScaleOrder,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
   });
@@ -1902,13 +1901,13 @@ export const usePerpsProOrderForm = ({
   const isChaseExecutionRef = useRef(false);
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
-    onSuccess: () => {
+    onSuccess: (_position, result) => {
       if (isScaleOrder) {
         return;
       }
       const confirmationPositionSize = isChaseExecutionRef.current
         ? chaseConfirmationPositionSizeRef.current
-        : submissionPositionSize;
+        : (result?.submittedSize ?? submissionPositionSize);
       const toast = isTwapOrder
         ? PerpsToastOptions.orderManagement.twap.confirmed(
             orderForm.direction,
