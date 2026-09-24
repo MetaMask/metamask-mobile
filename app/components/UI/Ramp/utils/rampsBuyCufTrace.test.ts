@@ -22,6 +22,7 @@ import {
   surfaceFromBuyFlowOrigin,
   resetRampsBuyCufTraceForTests,
 } from './rampsBuyCufTrace';
+import { resetRampsBuyLifecycleContextForTests } from './rampsBuyLifecycleContext';
 import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_SURFACE,
@@ -31,6 +32,7 @@ import {
   RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_TIMEOUT_MS,
   RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
+  RAMPS_BUY_LIFECYCLE_CONTEXT,
 } from '../constants/rampsBuyCufTags';
 
 jest.mock('../../../../util/trace', () => ({
@@ -57,6 +59,9 @@ describe('rampsBuyCufTrace', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
+    // A completed journey settles the foreground to warm, so the module-level
+    // context must not leak into the next test.
+    resetRampsBuyLifecycleContextForTests();
     mockTrace.mockReturnValue({ mocked: 'parent-span' });
     mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });
     now = 0;
@@ -91,6 +96,8 @@ describe('rampsBuyCufTrace', () => {
     const fields = {
       [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
       [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+      [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]:
+        RAMPS_BUY_LIFECYCLE_CONTEXT.COLD_PROCESS,
       [RAMPS_BUY_CUF_TAG.SURFACE]: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
     };
 
@@ -263,7 +270,6 @@ describe('rampsBuyCufTrace', () => {
           [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: 6_000,
           [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 2,
           [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 2,
-          [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]: 'background_resumed',
         }),
       }),
     );

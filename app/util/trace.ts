@@ -71,6 +71,7 @@ export enum TraceName {
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
+  RampScreenLoad = 'Ramp Screen Load',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -541,6 +542,12 @@ export interface TraceRequest {
    * The name of the trace.
    */
   name: TraceName;
+
+  /**
+   * Human-readable span name shown as `span.description` in Sentry.
+   * The pending-trace key still uses {@link name}.
+   */
+  description?: string;
 
   /**
    * The parent context of the trace.
@@ -1318,12 +1325,13 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { name, parentContext, startTime, op, forceTransaction } = request;
+  const { name, description, parentContext, startTime, op, forceTransaction } =
+    request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
     attributes: getSpanAttributes(request),
-    name,
+    name: description ?? name,
     op: op || OP_DEFAULT,
     parentSpan,
     startTime,

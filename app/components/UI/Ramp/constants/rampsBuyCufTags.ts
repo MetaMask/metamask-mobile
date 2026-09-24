@@ -11,10 +11,29 @@ export const RAMPS_BUY_CUF_TAG = {
   LIFECYCLE_CONTEXT: 'lifecycle_context',
   BACKGROUND_COUNT: 'background_count',
   RESUME_COUNT: 'resume_count',
+  SCREEN_ID: 'screen_id',
+  CONTENT_STATE: 'content_state',
 } as const;
 
 export const RAMPS_BUY_CUF_FEATURE = 'buy';
 export const RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS = 'foreground_active_ms';
+
+/** Greppable marker for Buy CUF span logs in Metro, mirroring Perps. */
+export const RAMPS_BUY_CUF_LOG_MARKER = '[RampsBuyCUF]';
+
+/**
+ * Launch context a Buy span started in, so cold navigation is never pooled
+ * with warm in-session navigation or a background resume. Shares the Perps
+ * vocabulary so both features' dashboards split latency the same way.
+ */
+export const RAMPS_BUY_LIFECYCLE_CONTEXT = {
+  COLD_PROCESS: 'cold_process',
+  WARM: 'warm',
+  BACKGROUND_RESUME: 'background_resume',
+} as const;
+
+export type RampsBuyLifecycleContext =
+  (typeof RAMPS_BUY_LIFECYCLE_CONTEXT)[keyof typeof RAMPS_BUY_LIFECYCLE_CONTEXT];
 
 export const RAMPS_BUY_CUF_SURFACE = {
   FUND_MENU: 'fund_menu',
@@ -54,6 +73,8 @@ export const RAMPS_BUY_CUF_END_REASON = {
   HEADLESS: 'headless',
   NO_QUOTE: 'no_quote',
   APP_BACKGROUNDED: 'app_backgrounded',
+  UNMOUNTED: 'unmounted',
+  DISABLED: 'disabled',
 } as const;
 /**
  * Buy can legitimately spend significant time in external KYC, banking, or
