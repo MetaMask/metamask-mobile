@@ -66,11 +66,20 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const [forceHideBottomSheet, setForceHideBottomSheet] = useState(false);
 
+  // Tracks whether a connection flow is active. Late adapter/device errors
+  // arriving after a flow has closed must not re-open the error bottom sheet
+  // over the app (e.g. a locked Ledger re-connecting after the flow screen
+  // exited). `showHardwareWalletError` intentionally bypasses this gate —
+  // signing flows rely on it surfacing errors unconditionally.
+  const flowActiveRef = useRef(false);
+  const isFlowActive = useCallback(() => flowActiveRef.current, []);
+
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
       refs,
       setters,
       walletType: effectiveWalletType,
+      isFlowActive,
     });
 
   const {
@@ -84,6 +93,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     handleDeviceEvent,
     handleError,
     updateConnectionState,
+    isFlowActive,
   });
 
   const { checkTransportEnabledOrShowError } = useTransportMonitoring({
@@ -143,6 +153,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     initializeAdapter,
     checkTransportEnabledOrShowError,
     onFlowStart: handleFlowStart,
+    flowActiveRef,
   });
 
   const showHardwareWalletError = useCallback(
@@ -295,6 +306,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setTargetWalletType: setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
+      cancelConnectionFlow: closeFlow,
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
@@ -310,6 +322,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
+      closeFlow,
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,

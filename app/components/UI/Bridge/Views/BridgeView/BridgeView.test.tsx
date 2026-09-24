@@ -303,6 +303,18 @@ jest.mock('../../hooks/useRecurringOrders', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useLimitOrders', () => ({
+  useLimitOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',

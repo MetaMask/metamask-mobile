@@ -1,5 +1,8 @@
 import { cloneDeep } from 'lodash';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   selectMetaMaskPayFlags,
   selectMetaMaskPayTokensFlags,
@@ -26,6 +29,7 @@ import {
   PreferredToken,
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
+  selectRelayAtomicMaxEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -34,6 +38,77 @@ import { RootState } from '../../../reducers';
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
+
+describe('selectRelayAtomicMaxEnabled', () => {
+  it.each([
+    [undefined, false],
+    [{}, false],
+    [{ default: true }, true],
+    [{ default: false }, false],
+    [
+      {
+        default: true,
+        transactionTypes: { [TransactionType.moneyAccountDeposit]: false },
+      },
+      false,
+    ],
+    [
+      { transactionTypes: { [TransactionType.moneyAccountDeposit]: true } },
+      true,
+    ],
+    [{ transactionTypes: { [TransactionType.perpsDeposit]: true } }, false],
+  ])('resolves %j to %s', (atomicMaxEnabled, expected) => {
+    const state = mergeStateForAtomicMax(atomicMaxEnabled);
+
+    const result = selectRelayAtomicMaxEnabled(state, {
+      type: TransactionType.moneyAccountDeposit,
+    } as TransactionMeta);
+
+    expect(result).toBe(expected);
+  });
+
+  it('matches nested transaction types', () => {
+    const state = mergeStateForAtomicMax({
+      transactionTypes: { [TransactionType.moneyAccountDeposit]: true },
+    });
+
+    const result = selectRelayAtomicMaxEnabled(state, {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+    } as TransactionMeta);
+
+    expect(result).toBe(true);
+  });
+
+  it('uses the default without a transaction', () => {
+    const state = mergeStateForAtomicMax({ default: true });
+
+    expect(selectRelayAtomicMaxEnabled(state)).toBe(true);
+  });
+
+  function mergeStateForAtomicMax(
+    atomicMaxEnabled:
+      | {
+          default?: boolean;
+          transactionTypes?: Partial<Record<TransactionType, boolean>>;
+        }
+      | undefined,
+  ): RootState {
+    return {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              confirmations_pay_extended: {
+                payStrategies: { relay: { atomicMaxEnabled } },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+  }
+});
 
 describe('MetaMask Pay Feature Flags', () => {
   it('returns default buffer step if not in feature flags', () => {

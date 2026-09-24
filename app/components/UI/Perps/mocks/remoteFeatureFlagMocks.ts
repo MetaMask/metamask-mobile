@@ -27,4 +27,5 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
   perpsShowFullAssetNames: mockEnabledPerpsLDFlag,
   perpsClosePositionLimitOrderEnabled: mockEnabledPerpsLDFlag,
   perpsCrossMarginEnabled: mockEnabledPerpsLDFlag,
+  perpsPriceAlertsEnabled: mockEnabledPerpsLDFlag,
 };
