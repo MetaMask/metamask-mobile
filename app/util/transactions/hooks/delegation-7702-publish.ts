@@ -133,12 +133,7 @@ export class Delegation7702PublishHook {
       (result) => result.chainId.toLowerCase() === chainId.toLowerCase(),
     );
 
-    const isChainSupported = Boolean(atomicBatchChainSupport);
-    const requiresUpgrade = Boolean(
-      atomicBatchChainSupport && !atomicBatchChainSupport.isSupported,
-    );
-
-    if (!isChainSupported) {
+    if (!atomicBatchChainSupport) {
       log('Skipping as EIP-7702 is not supported', { from, chainId });
 
       if (isGaslessBridge || isSponsored) {
@@ -152,6 +147,7 @@ export class Delegation7702PublishHook {
 
     const { delegationAddress, upgradeContractAddress } =
       atomicBatchChainSupport;
+    const requiresUpgrade = !atomicBatchChainSupport.isSupported;
 
     if (
       (!selectedGasFeeToken || !gasFeeTokens?.length) &&
