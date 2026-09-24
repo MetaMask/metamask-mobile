@@ -210,11 +210,20 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   });
 
   // A stopped removal read a lower limit than the live snapshot; keep Max, the
-  // slider and the submit check within it until the stream pushes a newer
-  // position. Price ticks alone don't release it.
+  // slider and the submit check within it until the stream catches up to it or
+  // the position itself changes. The stream re-sends positions on every PnL
+  // tick, so only size, entry and leverage count as a change.
+  const positionShape = position
+    ? `${position.size}|${position.entryPrice}|${position.leverage?.value}`
+    : '';
   useEffect(() => {
     setFreshMaxAmount(null);
-  }, [position]);
+  }, [positionShape]);
+  useEffect(() => {
+    if (freshMaxAmount !== null && floorUsd(maxAmount) <= freshMaxAmount) {
+      setFreshMaxAmount(null);
+    }
+  }, [maxAmount, freshMaxAmount]);
   const capToFreshMax = (amount: number) =>
     freshMaxAmount === null || isAddMode
       ? amount
