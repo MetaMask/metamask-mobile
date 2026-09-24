@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StatsRow from './StatsRow';
@@ -132,4 +133,15 @@ describe('StatsRow', () => {
 
     expect(screen.getByText('Avg. hold')).toBeOnTheScreen();
   });
+
+  it.each(['Win rate', '7D P&L', 'Avg. hold'])(
+    'centers the %s label beneath its value',
+    (label) => {
+      renderWithProvider(<StatsRow stats={baseStats} />);
+
+      expect(
+        StyleSheet.flatten(screen.getByText(label).props.style),
+      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    },
+  );
 });
