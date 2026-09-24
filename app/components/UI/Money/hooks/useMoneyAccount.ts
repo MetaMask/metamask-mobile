@@ -1,11 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  CommonActions,
-  useNavigation,
-  type NavigationState,
-  type PartialState,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
@@ -222,28 +217,9 @@ export function useMoneyAccountDeposit() {
         if (!isUserRejectedError(error, errorObj.message)) {
           if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
             if (options?.forceBottomSheet) {
-              let state: NavigationState | PartialState<NavigationState> =
-                NavigationService.navigation.getRootState();
-              let route = state.routes[state.index ?? 0];
-              // The container wraps the app stack in NavigationChildren.
-              // Target the modal owner, not the wrapper or the caller stack.
-              while (
-                route.name !== Routes.CONFIRMATION_REQUEST_MODAL &&
-                route.state
-              ) {
-                state = route.state;
-                route = state.routes[state.index ?? 0];
-              }
-              if (
-                route.name === Routes.CONFIRMATION_REQUEST_MODAL &&
-                state.key
-              ) {
-                NavigationService.navigation.dispatch({
-                  ...CommonActions.goBack(),
-                  source: route.key,
-                  target: state.key,
-                });
-              }
+              // The container ref routes Back to the focused confirmation,
+              // not the nested navigator that initiated the deposit.
+              NavigationService.navigation.goBack();
             } else {
               navigation.goBack();
             }

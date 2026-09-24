@@ -1,7 +1,3 @@
-import {
-  StackRouter,
-  type StackNavigationState,
-} from '@react-navigation/routers';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -72,8 +68,7 @@ jest.mock('../../../../core/NavigationService/NavigationService', () => ({
   default: {
     navigation: {
       getCurrentRoute: jest.fn(),
-      getRootState: jest.fn(),
-      dispatch: jest.fn(),
+      goBack: jest.fn(),
     },
   },
 }));
@@ -552,67 +547,6 @@ describe('useMoneyAccountDeposit', () => {
         key: 'confirmation-modal',
         name: Routes.CONFIRMATION_REQUEST_MODAL,
       });
-      const appState: StackNavigationState<Record<string, undefined>> = {
-        preloadedRoutes: [],
-        stale: false,
-        type: 'stack',
-        key: 'root-stack',
-        index: 1,
-        routeNames: [Routes.SETTINGS_VIEW, Routes.CONFIRMATION_REQUEST_MODAL],
-        routes: [
-          {
-            key: 'settings',
-            name: Routes.SETTINGS_VIEW,
-            state: {
-              routes: [
-                { key: 'settings-home', name: 'Settings' },
-                {
-                  key: 'developer-options',
-                  name: Routes.SETTINGS.DEVELOPER_OPTIONS,
-                },
-              ],
-              index: 1,
-            },
-          },
-          {
-            key: 'confirmation-modal',
-            name: Routes.CONFIRMATION_REQUEST_MODAL,
-          },
-        ],
-      };
-      jest.mocked(NavigationService.navigation.getRootState).mockReturnValue({
-        stale: false,
-        type: 'stack',
-        key: 'wrapper-stack',
-        index: 0,
-        routeNames: ['NavigationChildren'],
-        routes: [
-          {
-            key: 'navigation-children',
-            name: 'NavigationChildren',
-            state: appState,
-          },
-        ],
-      });
-      let recoveredState = appState;
-      jest
-        .mocked(NavigationService.navigation.dispatch)
-        .mockImplementationOnce((action) => {
-          if (typeof action === 'function')
-            throw new Error('Expected targeted action');
-          expect(action.target).toBe(appState.key);
-          const nextState = StackRouter({}).getStateForAction(
-            appState,
-            action,
-            {
-              routeNames: appState.routeNames,
-              routeParamList: {},
-              routeGetIdList: {},
-            },
-          );
-          if (!nextState) throw new Error('Modal dismissal was not handled');
-          recoveredState = nextState;
-        });
       const { result } = renderHook(() => useMoneyAccountDeposit());
 
       await act(async () => {
@@ -621,14 +555,7 @@ describe('useMoneyAccountDeposit', () => {
         ).rejects.toBe(error);
       });
 
-      expect(NavigationService.navigation.dispatch).toHaveBeenCalledWith({
-        type: 'GO_BACK',
-        source: 'confirmation-modal',
-        target: 'root-stack',
-      });
-      expect(recoveredState.index).toBe(0);
-      expect(recoveredState.routes).toEqual([appState.routes[0]]);
-      expect(recoveredState.routes[0].state?.index).toBe(1);
+      expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
     },
@@ -649,7 +576,7 @@ describe('useMoneyAccountDeposit', () => {
       ).rejects.toBe(error);
     });
 
-    expect(NavigationService.navigation.dispatch).not.toHaveBeenCalled();
+    expect(NavigationService.navigation.goBack).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
