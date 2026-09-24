@@ -3,6 +3,7 @@ import {
   BadgeCount,
   BadgeCountSize,
   BadgeWrapper,
+  BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
   IconName,
   MainActionButton,
@@ -42,9 +43,12 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
           />
         ) : null
       }
-      customPosition={{ right: 8, top: 8 }}
+      position={BadgeWrapperPosition.TopRight}
       positionAnchorShape={BadgeWrapperPositionAnchorShape.Rectangular}
-      twClassName="flex-1 self-auto"
+      twClassName="flex-1"
+      childrenContainerProps={{
+        twClassName: 'flex-1',
+      }}
     >
       <MainActionButton
         accessibilityLabel={accessibilityLabel ?? label}
@@ -53,6 +57,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         label={label}
         onPress={onPress}
         testID={testID}
+        twClassName="w-full"
       />
     </BadgeWrapper>
   );
