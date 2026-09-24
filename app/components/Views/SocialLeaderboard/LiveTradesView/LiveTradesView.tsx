@@ -1,13 +1,8 @@
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
   FilterButton,
   FilterButtonSize,
   FilterButtonVariant,
-  IconName,
   SectionDivider,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -30,6 +25,7 @@ import { useFeedNow } from '../FeedView/hooks/useFeedNow';
 import type { FeedItem } from '../FeedView/types';
 import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import LiveStreamStatusDot from './components/LiveStreamStatusDot';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
@@ -120,11 +116,20 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
       twClassName="flex-1 bg-default"
       testID={LiveTradesViewSelectorsIDs.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+      <Animated.ScrollView
+        ref={scrollRef}
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('flex-grow pb-8')}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
       >
-        <Box twClassName="flex-1 px-4 pt-3 pb-2">
+        <SocialTabFilterBar
+          onOpenFilters={onOpenFilters}
+          isFilterActive={isFilterActive}
+          filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
+        >
           <FilterButton
             isSelected
             variant={FilterButtonVariant.Primary}
@@ -138,29 +143,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
           >
             {streamLabel}
           </FilterButton>
-        </Box>
-        <Box twClassName="pr-4 pb-2">
-          <ButtonIcon
-            iconName={IconName.Filter}
-            size={ButtonIconSize.Md}
-            onPress={onOpenFilters}
-            testID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
-            accessibilityLabel={strings(
-              'social_leaderboard.shell.filters.title',
-            )}
-            twClassName={isFilterActive ? 'bg-background-muted' : undefined}
-          />
-        </Box>
-      </Box>
-      <Animated.ScrollView
-        ref={scrollRef}
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('flex-grow pb-8 pt-2')}
-        showsVerticalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
-      >
+        </SocialTabFilterBar>
         {MOCK_LIVE_TRADES_ITEMS.map((item, index) => (
           <Fragment key={item.id}>
             {index > 0 ? (
@@ -175,6 +158,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
               item={item}
               now={now}
               showTradeButton={false}
+              showOptionsMenu
               usePositionCardChrome
               onTradePress={handleTradePress}
               onPositionPress={handlePositionPress}

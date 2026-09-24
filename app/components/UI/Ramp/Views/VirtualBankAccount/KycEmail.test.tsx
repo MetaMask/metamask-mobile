@@ -11,6 +11,7 @@ const mockSetEmail = jest.fn();
 const mockGoBack = jest.fn();
 const mockStartVerification = jest.fn();
 const mockResetKyc = jest.fn();
+const mockOnSuccess = jest.fn();
 
 describe('KycEmail', () => {
   beforeEach(() => {
@@ -27,13 +28,17 @@ describe('KycEmail', () => {
   });
 
   it('disables continue until the hook enables it', () => {
-    const { getByTestId } = renderWithProvider(<KycEmail />);
+    const { getByTestId } = renderWithProvider(
+      <KycEmail onSuccess={mockOnSuccess} />,
+    );
 
     expect(getByTestId(KycEmailSelectorsIDs.CONTINUE_BUTTON)).toBeDisabled();
   });
 
   it('passes typed email into the hook', () => {
-    const { getByTestId } = renderWithProvider(<KycEmail />);
+    const { getByTestId } = renderWithProvider(
+      <KycEmail onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.changeText(
       getByTestId(KycEmailSelectorsIDs.EMAIL_INPUT),
@@ -53,7 +58,9 @@ describe('KycEmail', () => {
       startVerification: mockStartVerification,
       resetKyc: mockResetKyc,
     });
-    const { getByTestId } = renderWithProvider(<KycEmail />);
+    const { getByTestId } = renderWithProvider(
+      <KycEmail onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(KycEmailSelectorsIDs.CONTINUE_BUTTON));
 
@@ -61,7 +68,9 @@ describe('KycEmail', () => {
   });
 
   it('navigates back from the header', () => {
-    const { getByTestId } = renderWithProvider(<KycEmail />);
+    const { getByTestId } = renderWithProvider(
+      <KycEmail onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(KycEmailSelectorsIDs.BACK_BUTTON));
 
@@ -69,7 +78,9 @@ describe('KycEmail', () => {
   });
 
   it('resets KYC when the reset button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<KycEmail />);
+    const { getByTestId } = renderWithProvider(
+      <KycEmail onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(KycEmailSelectorsIDs.RESET_BUTTON));
 
@@ -82,20 +93,23 @@ describe('KycEmail', () => {
       finalStatus: 'new',
     };
 
-    const { getByText } = renderWithProvider(<KycEmail />, {
-      state: {
-        engine: {
-          backgroundState: {
-            KycController: {
-              email: 'user@example.com',
-              vendor: 'iron',
-              geoCountry: 'BRA',
-              sessionStatus,
+    const { getByText } = renderWithProvider(
+      <KycEmail onSuccess={mockOnSuccess} />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              KycController: {
+                email: 'user@example.com',
+                vendor: 'iron',
+                geoCountry: 'BRA',
+                sessionStatus,
+              },
             },
           },
         },
       },
-    });
+    );
 
     expect(getByText('email: user@example.com')).toBeOnTheScreen();
     expect(getByText('vendor: iron')).toBeOnTheScreen();
