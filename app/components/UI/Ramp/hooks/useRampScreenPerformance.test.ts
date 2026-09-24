@@ -3,10 +3,10 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
   RAMP_SCREEN_CONTENT_STATE,
-  RAMP_SCREEN_LOAD_PREFIX,
   RAMP_V2_SCREEN_ID,
 } from '../constants/rampScreenPerformance';
 import { getRampsBuyCufParentContext } from '../utils/rampsBuyCufTrace';
+import { resetRampsBuyLifecycleContextForTests } from '../utils/rampsBuyLifecycleContext';
 import { useRampScreenPerformance } from './useRampScreenPerformance';
 
 jest.mock('uuid', () => ({
@@ -25,7 +25,10 @@ jest.mock('../../../../util/trace', () => ({
   TraceOperation: { RampOperation: 'ramp.operation' },
 }));
 
+// Only the parent-context lookup is stubbed. The real tag builder stays in
+// play so these assertions pin the tags Sentry actually receives.
 jest.mock('../utils/rampsBuyCufTrace', () => ({
+  ...jest.requireActual('../utils/rampsBuyCufTrace'),
   getRampsBuyCufParentContext: jest.fn(() => ({ mocked: 'parent' })),
 }));
 
@@ -40,6 +43,9 @@ describe('useRampScreenPerformance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // A completed span settles the foreground to warm, so the module-level
+    // context must not leak into the next test.
+    resetRampsBuyLifecycleContextForTests();
     appState = 'active';
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
@@ -70,12 +76,15 @@ describe('useRampScreenPerformance', () => {
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampScreenLoad,
-        description: `${RAMP_SCREEN_LOAD_PREFIX}${RAMP_V2_SCREEN_ID.TOKEN_SELECTION}`,
         parentContext: { mocked: 'parent' },
         forceTransaction: true,
+        // feature and ramp_type come from the shared Buy CUF builder, so
+        // screen spans cohort alongside the rest of the Buy journey.
         tags: {
-          screen_id: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+          feature: 'buy',
           ramp_type: 'UNIFIED_BUY_2',
+          lifecycle_context: 'cold_process',
+          screen_id: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
         },
       }),
     );
@@ -85,10 +94,14 @@ describe('useRampScreenPerformance', () => {
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampScreenLoad,
-        data: expect.objectContaining({
-          success: true,
+        data: {
+          feature: 'buy',
+          ramp_type: 'UNIFIED_BUY_2',
+          lifecycle_context: 'cold_process',
+          screen_id: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
           content_state: RAMP_SCREEN_CONTENT_STATE.POPULATED,
-        }),
+          success: true,
+        },
       }),
     );
   });
