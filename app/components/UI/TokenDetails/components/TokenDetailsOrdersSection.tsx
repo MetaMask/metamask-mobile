@@ -7,15 +7,13 @@ import { RecurringOrderRow } from '../../Bridge/Views/BridgeView/BridgeRecurring
 
 interface TokenDetailsOrdersSectionProps {
   recurringOrder: RecurringOrder;
+  onOrdersPress: () => void;
   onOrderPress: (recurringOrder: RecurringOrder) => void;
-}
-
-function handleOrdersPress() {
-  // TODO: Open the complete recurring orders list when direct-tab routing exists.
 }
 
 export function TokenDetailsOrdersSection({
   recurringOrder,
+  onOrdersPress,
   onOrderPress,
 }: TokenDetailsOrdersSectionProps) {
   return (
@@ -23,7 +21,7 @@ export function TokenDetailsOrdersSection({
       <SectionHeader
         title={strings('asset_overview.orders')}
         isInteractive
-        onPress={handleOrdersPress}
+        onPress={onOrdersPress}
         twClassName="py-3"
         testID={TokenOverviewSelectorsIDs.ORDERS_HEADER}
       />
