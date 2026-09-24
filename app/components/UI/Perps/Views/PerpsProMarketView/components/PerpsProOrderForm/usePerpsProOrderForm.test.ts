@@ -3831,34 +3831,82 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
-    it('holds Place Order after an account switch until the new lock resolves', async () => {
-      const { result, rerender } = renderWithCrossMargin();
+    it.each([
+      [
+        'an account',
+        () => {
+          mockSelectedAddress = '0xaccount-b';
+        },
+      ],
+      [
+        'a network',
+        () => {
+          mockPerpsNetwork = 'testnet';
+        },
+      ],
+    ])(
+      'drops a Cross pick after %s switch and submits isolated once the new lock resolves',
+      async (_context, switchContext) => {
+        const { result, rerender } = renderWithCrossMargin();
+        act(() => {
+          result.current.onMarginModeSelect('cross');
+        });
+        expect(result.current.marginMode).toBe('cross');
+
+        switchContext();
+        mockMarginModeLock = null;
+        rerender({});
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(result.current.marginMode).toBe('isolated');
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+        mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
+        rerender({});
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ marginMode: 'isolated' }),
+        );
+      },
+    );
+
+    it('drops a Cross pick after a market switch', () => {
+      const { result, rerender } = renderHook(
+        ({ formMarket }: { formMarket: PerpsMarketData }) =>
+          usePerpsProOrderForm({
+            market: formMarket,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: true,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: jest.fn().mockResolvedValue('hyperliquid'),
+            chaseProviderId: 'hyperliquid',
+            isCrossMarginAvailable: true,
+          }),
+        { initialProps: { formMarket: market } },
+      );
       act(() => {
         result.current.onMarginModeSelect('cross');
       });
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
-
-      mockSelectedAddress = '0xaccount-b';
-      mockMarginModeLock = null;
-      rerender({});
-      await act(async () => {
-        await result.current.onPlaceOrderPress();
-      });
-
       expect(result.current.marginMode).toBe('cross');
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
 
-      mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
-      rerender({});
-      await act(async () => {
-        await result.current.onPlaceOrderPress();
-      });
+      rerender({ formMarket: { ...market, symbol: 'ETH' } });
 
-      expect(result.current.isPlaceOrderDisabled).toBe(false);
-      expect(mockExecuteOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ marginMode: 'cross' }),
-      );
+      expect(result.current.marginMode).toBe('isolated');
     });
 
     it('keeps Place Order enabled without a lock answer when Cross is unavailable', () => {

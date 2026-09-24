@@ -888,8 +888,25 @@ export const usePerpsProOrderForm = ({
     isCrossMarginAvailable &&
     !marketData?.onlyIsolated &&
     !marketData?.marginMode;
-  const [selectedMarginMode, setSelectedMarginMode] =
-    useState<MarginMode>('isolated');
+  // A pick only applies to the market, account and network it was made in;
+  // any context change falls back to isolated until the trader picks again.
+  const marginModeContextKey = `${symbol}:${normalizedSelectedAddress}:${network}`;
+  const [marginModeSelection, setMarginModeSelection] = useState<{
+    contextKey: string;
+    marginMode: MarginMode;
+  } | null>(null);
+  const selectedMarginMode: MarginMode =
+    marginModeSelection?.contextKey === marginModeContextKey
+      ? marginModeSelection.marginMode
+      : 'isolated';
+  const onMarginModeSelect = useCallback(
+    (nextMarginMode: MarginMode) =>
+      setMarginModeSelection({
+        contextKey: marginModeContextKey,
+        marginMode: nextMarginMode,
+      }),
+    [marginModeContextKey],
+  );
   const {
     lock: marginModeLock,
     isResolved: isMarginModeLockResolved,
@@ -4065,7 +4082,7 @@ export const usePerpsProOrderForm = ({
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
     refreshMarginModeLock,
-    onMarginModeSelect: setSelectedMarginMode,
+    onMarginModeSelect,
     // Leverage sheet
     isLeverageVisible,
     minLeverage: 1,

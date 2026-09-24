@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { Icon } from '@metamask/design-system-react-native';
 import PerpsMarginModeBottomSheet from './PerpsMarginModeBottomSheet';
+import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -142,9 +143,7 @@ describe('PerpsMarginModeBottomSheet', () => {
 
       expect(onMarginModeSelect).not.toHaveBeenCalled();
       expect(
-        screen.getByText(
-          'Your full account balance is shared across all positions. Coming soon.',
-        ),
+        screen.getByText(strings('perps.margin_mode.cross_description')),
       ).toBeOnTheScreen();
     });
 
@@ -168,7 +167,7 @@ describe('PerpsMarginModeBottomSheet', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
       expect(
         screen.getByText(
-          'Your full account balance is shared across all positions.',
+          strings('perps.margin_mode.cross_description_available'),
         ),
       ).toBeOnTheScreen();
     });
