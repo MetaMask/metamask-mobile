@@ -81,7 +81,7 @@ import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
-import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
+import CreateVirtualBankAccount from '../../UI/Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount';
 import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
 import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
 
@@ -188,6 +188,7 @@ import {
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
+  SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -1112,8 +1113,8 @@ const MainNavigator = () => {
           component={KycEmail}
         />
         <NativeStack.Screen
-          name={Routes.RAMP.GET_PIX_KEY}
-          component={GetPixKey}
+          name={Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT}
+          component={CreateVirtualBankAccount}
         />
         <NativeStack.Screen
           name={Routes.RAMP.VBA_VERIFY_IDENTITY}
@@ -1313,6 +1314,10 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
             component={ManageProfileLinkedAccountView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.PROFILE_ONBOARDING}
+            component={SocialProfileOnboardingView}
           />
         </NativeStack.Group>
       )}

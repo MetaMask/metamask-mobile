@@ -62,7 +62,7 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -105,6 +105,7 @@ import {
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
   selectCardProviderUserId,
+  selectCardSelectedCountry,
   selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
@@ -112,6 +113,7 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
 
@@ -119,6 +121,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockNavigationDispatch = jest.fn();
+let mockIsFocused = true;
 
 import {
   useFocusEffect,
@@ -131,6 +134,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useFocusEffect: jest.fn(),
+    useIsFocused: () => mockIsFocused,
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -873,6 +877,7 @@ function setupMockSelectors(
       decimals: number;
     } | null;
     activeProviderId: string;
+    selectedCountry: string | null;
     isCardIntercomSupportEnabled: boolean;
     providerUserId: string | null;
     hasCompletedMigration: boolean;
@@ -898,6 +903,7 @@ function setupMockSelectors(
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
     activeProviderId: 'baanx',
+    selectedCountry: null,
     isCardIntercomSupportEnabled: false,
     providerUserId: 'cardholder-1',
     hasCompletedMigration: false,
@@ -918,6 +924,7 @@ function setupMockSelectors(
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectCardActiveProviderId) return config.activeProviderId;
+    if (selector === selectCardSelectedCountry) return config.selectedCountry;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
     if (selector === selectPrimaryMoneyAccount)
       return config.primaryMoneyAccount;
@@ -1249,8 +1256,50 @@ function render() {
   );
 }
 
+const authTransitionListeners = new Set<() => void>();
+
+const CardHomeAuthTransitionProbe = () => {
+  const [, setTick] = React.useState(1);
+  React.useEffect(() => {
+    const listener = () => setTick((tick) => tick + 1);
+    authTransitionListeners.add(listener);
+    return () => {
+      authTransitionListeners.delete(listener);
+    };
+  }, []);
+  return (
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <CardHome />
+    </ToastContext.Provider>
+  );
+};
+
+function renderAuthTransition() {
+  const view = renderScreen(
+    withCardSDK(CardHomeAuthTransitionProbe),
+    { name: Routes.CARD.HOME },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+  return {
+    ...view,
+    update() {
+      act(() => {
+        authTransitionListeners.forEach((listener) => listener());
+      });
+    },
+  };
+}
+
 describe('CardHome Component', () => {
   beforeEach(() => {
+    authTransitionListeners.clear();
+    mockIsFocused = true;
     mockCanEnableCard = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
@@ -1405,6 +1454,15 @@ describe('CardHome Component', () => {
 
     (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
 
+    jest.mocked(useImmersveSupportedRegions).mockReturnValue({
+      region: null,
+      onboardingDocuments: [],
+      permanentDocuments: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
     // Setup default selectors
     setupMockSelectors();
   });
@@ -1475,6 +1533,69 @@ describe('CardHome Component', () => {
       }),
     );
     expect(mockClearLastUnauthenticatedReason).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces with authentication when the user logs out while Card Home is focused', () => {
+    mockIsFocused = true;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+    );
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'REPLACE',
+      routeName: Routes.CARD.AUTHENTICATION,
+    });
+  });
+
+  it('waits until Card Home is focused before replacing with authentication', () => {
+    mockIsFocused = false;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+
+    setupMockSelectors({ isAuthenticated: false });
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+    view.update();
+
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
+
+    mockIsFocused = true;
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+    );
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'REPLACE',
+      routeName: Routes.CARD.AUTHENTICATION,
+    });
+  });
+
+  it('does not replace with authentication when auth returns before Card Home refocuses', () => {
+    mockIsFocused = false;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    setupMockSelectors({ isAuthenticated: true });
+    view.update();
+
+    mockIsFocused = true;
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+    view.update();
+
+    expect(StackActions.replace).not.toHaveBeenCalled();
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
@@ -2098,6 +2219,65 @@ describe('CardHome Component', () => {
     expect(
       screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows the Immersve privacy policy and contact support before a card exists', () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      activeProviderId: 'immersve',
+      selectedCountry: 'GB',
+    });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: null,
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+    });
+    jest.mocked(useImmersveSupportedRegions).mockReturnValue({
+      region: null,
+      onboardingDocuments: [],
+      permanentDocuments: [
+        {
+          id: 'privacyPolicy',
+          title: 'Privacy policy',
+          url: 'https://example.com/privacy',
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render();
+
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('GB', {
+      enabled: true,
+    });
+    expect(
+      screen.getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-privacyPolicy`),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Privacy policy')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
+  });
+
+  it('uses the issued card region for legal documents when a card exists', () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      activeProviderId: 'immersve',
+      selectedCountry: 'GB',
+    });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: { type: CardType.VIRTUAL, regionCode: 'NZ' },
+    });
+
+    render();
+
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('NZ', {
+      enabled: true,
+    });
   });
 
   it('shows the Enable card button for allowance_revoked with no banner', () => {

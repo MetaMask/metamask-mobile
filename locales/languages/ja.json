@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "銀行口座",
       "title": "Pixキーを入手しよう",
       "description": "銀行口座から自分のMoney Accountに直接送金できます。",

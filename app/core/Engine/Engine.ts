@@ -34,6 +34,8 @@ import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { setHasLinkedSocialLoginProfile } from '../../actions/settings';
+import { registerLinkedSocialLoginProfileSync } from '../../util/basicFunctionality/linkedSocialLoginProfile';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -1030,6 +1032,16 @@ export class Engine {
           .catch((error) => Logger.log('Feature flags update failed: ', error));
       },
     );
+
+    // Only persist the signal here. Consolidation itself stays with
+    // useBasicFunctionalityConsolidation, which already waits for an unlocked
+    // wallet past onboarding, so a sign-in mid-onboarding cannot migrate a new
+    // wallet as an existing one.
+    registerLinkedSocialLoginProfileSync(this.controllerMessenger, () => {
+      if (store.getState().settings?.hasLinkedSocialLoginProfile !== true) {
+        store.dispatch(setHasLinkedSocialLoginProfile(true));
+      }
+    });
 
     Engine.instance = this;
   }

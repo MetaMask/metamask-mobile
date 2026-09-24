@@ -224,6 +224,19 @@ export const PopularList = [
       imageSource: require('../../images/robinhood.png'),
     },
   },
+  {
+    chainId: toHex('50'),
+    nickname: 'XDC Network',
+    rpcUrl: `https://xdc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
+    ticker: 'XDC',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://xdcscan.com',
+      imageUrl: 'XDC',
+      imageSource: require('../../images/xdc.png'),
+    },
+  },
 ];
 
 /**
