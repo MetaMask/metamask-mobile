@@ -1,7 +1,7 @@
 import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
@@ -34,11 +34,13 @@ const MOCK_ACCOUNT_ID_2 = createMockUuidFromAddress(
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    TokensController: {
-      addToken: jest.fn(),
+    AssetsController: {
+      addCustomAsset: jest.fn(),
     },
   },
 }));
+
+const mockedEngine = jest.mocked(Engine);
 
 const mockStore = configureMockStore();
 const mockInitialState = {
@@ -139,13 +141,14 @@ describe('useAddressBalance', () => {
     networkClientId?: string | undefined,
   ) => Promise<BN5>;
   beforeEach(() => {
+    jest.clearAllMocks();
     mockGetERC20BalanceOf = jest
       .fn()
       .mockReturnValue(Promise.resolve(0x0186a0));
-    //@ts-expect-error - for test purposes is not needed to add the other properties of AssetsContractController
-    Engine.context.AssetsContractController = {
+    mockedEngine.context.AssetsContractController = {
+      ...(mockedEngine.context.AssetsContractController ?? {}),
       getERC20BalanceOf: mockGetERC20BalanceOf,
-    };
+    } as typeof mockedEngine.context.AssetsContractController;
   });
 
   it('render balance from AccountTrackerController.accounts for ETH', () => {
@@ -220,5 +223,68 @@ describe('useAddressBalance', () => {
     );
     expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
     expect(res.result.current.addressBalance).toStrictEqual('0.0005 TST');
+  });
+
+  it('adds a watched ERC20 asset when the asset is not already tracked and watchAsset is allowed', async () => {
+    const addCustomAsset = jest.mocked(
+      mockedEngine.context.AssetsController.addCustomAsset,
+    );
+
+    renderHook(
+      () =>
+        useAddressBalance(
+          {
+            address: TST_ADDRESS,
+            symbol: 'TST',
+            decimals: 4,
+          },
+          MOCK_ADDRESS_2,
+          false,
+          '0x1',
+        ),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    await waitFor(() => {
+      expect(addCustomAsset).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.objectContaining({
+          address: TST_ADDRESS,
+          symbol: 'TST',
+          decimals: 4,
+          chainId: '0x1',
+        }),
+      );
+    });
+  });
+
+  it('does not auto-add a watched ERC20 asset when dontWatchAsset is true', async () => {
+    const addCustomAsset = jest.mocked(
+      mockedEngine.context.AssetsController.addCustomAsset,
+    );
+
+    renderHook(
+      () =>
+        useAddressBalance(
+          {
+            address: TST_ADDRESS,
+            symbol: 'TST',
+            decimals: 4,
+          },
+          MOCK_ADDRESS_2,
+          true,
+          '0x1',
+        ),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(addCustomAsset).not.toHaveBeenCalled();
   });
 });

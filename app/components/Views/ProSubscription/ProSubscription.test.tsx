@@ -1,11 +1,17 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
+import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
-const mockNavigation = { goBack: mockGoBack, replace: mockReplace };
+const mockSetParams = jest.fn();
+const mockNavigation = {
+  goBack: mockGoBack,
+  replace: mockReplace,
+  setParams: mockSetParams,
+};
 const mockRoute = { params: {} };
 
 jest.mock('@react-navigation/native', () => ({
@@ -19,9 +25,19 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-const mockUseProSubscriptionEnabled = jest.fn();
-jest.mock('../../../hooks/useProSubscriptionEnabled', () => ({
-  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+}));
+
+const mockGetSubscriptions = jest.fn().mockResolvedValue([]);
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    SubscriptionController: {
+      getSubscriptions: () => mockGetSubscriptions(),
+    },
+  },
 }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -29,14 +45,25 @@ jest.mock('./screens/Benefits', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({
     onSuccess,
+    onPlanChange,
     initialPlan,
   }: {
-    onSuccess: () => void;
+    onSuccess: (plan: { planId: string }) => void;
+    onPlanChange?: (planId: string) => void;
     initialPlan?: string;
   }) => (
-    <TouchableOpacity testID="mock-benefits" onPress={onSuccess}>
-      <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        testID="mock-benefits"
+        onPress={() => onSuccess({ planId: initialPlan ?? 'annual' })}
+      >
+        <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        testID="mock-select-monthly"
+        onPress={() => onPlanChange?.('monthly')}
+      />
+    </>
   );
 });
 
@@ -56,30 +83,49 @@ describe('ProSubscription', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRoute.params = {};
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: true,
-      variantName: 'treatment',
-      isActive: true,
-    });
+    mockGetSubscriptions.mockResolvedValue([]);
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Eligible,
+    );
   });
 
-  describe('feature flag guard', () => {
+  describe('access guard', () => {
     it('navigates back when Pro subscription is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: true,
-      });
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
 
       render(<ProSubscription />);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not navigate back when Pro subscription is enabled', () => {
+    it('does not navigate back for an eligible non-subscriber', () => {
       render(<ProSubscription />);
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('sends an existing subscriber straight to the hub', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+
+      render(<ProSubscription />);
+
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+    });
+
+    it('does not send an unresolved user to the hub', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { queryByTestId } = render(<ProSubscription />);
+
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId('mock-benefits')).toBeNull();
     });
   });
 
@@ -118,16 +164,43 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
+    it('refreshes subscriptions before replacing the screen with ProHub', async () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
-      fireEvent.press(getByTestId('mock-success'));
-
-      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
-        source: 'pro_subscription_success',
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
       });
+
+      expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('keeps the success screen when the post-checkout refresh fails', async () => {
+      mockGetSubscriptions.mockRejectedValue(new Error('request failed'));
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
+
+      expect(getByTestId('mock-success')).toBeOnTheScreen();
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('keeps the success screen visible once the user becomes a subscriber', () => {
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
+
+      expect(getByTestId('mock-success')).toBeOnTheScreen();
+      expect(mockReplace).not.toHaveBeenCalled();
     });
   });
 
@@ -140,12 +213,20 @@ describe('ProSubscription', () => {
       expect(getByTestId('mock-benefits-plan')).toHaveTextContent('monthly');
     });
 
-    it('passes undefined initialPlan when route params are empty', () => {
+    it('passes the default annual plan when route params are empty', () => {
       mockRoute.params = {};
 
       const { getByTestId } = render(<ProSubscription />);
 
-      expect(getByTestId('mock-benefits-plan')).toHaveTextContent('none');
+      expect(getByTestId('mock-benefits-plan')).toHaveTextContent('annual');
+    });
+
+    it('writes the selected plan to route params', () => {
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-select-monthly'));
+
+      expect(mockSetParams).toHaveBeenCalledWith({ initialPlan: 'monthly' });
     });
   });
 });

@@ -654,6 +654,45 @@ describe('Delegation 7702 Publish Hook', () => {
     );
   });
 
+  it('overwrites a non-MetaMask delegation with a MetaMask authorization', async () => {
+    const foreignDelegationAddress =
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: foreignDelegationAddress,
+        isSupported: false,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await hookClass.getHook()(
+      {
+        ...TRANSACTION_META_MOCK,
+        isGasFeeSponsored: true,
+        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+      },
+      SIGNED_TX_MOCK,
+    );
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizationList: [
+          {
+            address: UPGRADE_CONTRACT_ADDRESS_MOCK,
+            chainId: TRANSACTION_META_MOCK.chainId,
+            nonce: TRANSACTION_META_MOCK.txParams.nonce,
+            r: expect.any(String),
+            s: expect.any(String),
+            yParity: expect.any(String),
+          },
+        ],
+      }),
+    );
+  });
+
   it('includes authorization list if not upgraded', async () => {
     isAtomicBatchSupportedMock.mockResolvedValueOnce([
       {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
+import type { Caip19AssetId } from '@metamask/assets-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -9,6 +10,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
@@ -27,6 +29,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
   useEIP7702UpgradeFee: jest.fn(),
+}));
+
+jest.mock('../../api/limitOrders/getDelegations', () => ({
+  useFetchLimitOrdersDelegations: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -59,6 +65,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseEIP7702UpgradeFee = jest.mocked(useEIP7702UpgradeFee);
+const mockUseFetchLimitOrdersDelegations = jest.mocked(
+  useFetchLimitOrdersDelegations,
+);
+const mockFetchLimitOrdersDelegations = jest.fn();
 
 const mockSourceToken = {
   address: '0x0000000000000000000000000000000000000000',
@@ -78,6 +88,15 @@ const mockDestToken = {
   symbol: 'USDC',
 };
 
+const mockOrder = {
+  sourceAssetId: 'eip155:1/slip44:60' as Caip19AssetId,
+  sourceAmount: '100000000000000000',
+  destAssetId:
+    'eip155:10/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359' as Caip19AssetId,
+  destAmount: '341220000',
+  expiresInMinutes: 10080,
+};
+
 const mockParams: LimitOrderConfirmationModalParams = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
@@ -85,7 +104,10 @@ const mockParams: LimitOrderConfirmationModalParams = {
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',
+  order: mockOrder,
 };
+
+const MOCK_DELEGATIONS_RESPONSE = { delegations: [], approvalRequired: false };
 
 function renderScreen(state?: DeepPartial<RootState>) {
   return renderWithProvider(<LimitOrderConfirmationModalScreen />, { state });
@@ -100,6 +122,12 @@ describe('LimitOrderConfirmationModalScreen', () => {
       displayFee: '$1.69',
       preciseNativeFeeInHex: '0x1',
       retry: jest.fn(),
+    });
+    mockFetchLimitOrdersDelegations.mockResolvedValue(
+      MOCK_DELEGATIONS_RESPONSE,
+    );
+    mockUseFetchLimitOrdersDelegations.mockReturnValue({
+      fetchLimitOrdersDelegations: mockFetchLimitOrdersDelegations,
     });
   });
 
@@ -215,7 +243,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     ).toBeNull();
   });
 
-  it('confirms the order when the primary button is pressed while the fee estimate is ready', () => {
+  it('fetches the delegations to sign when the primary button is pressed while the fee estimate is ready', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
     const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
 
@@ -225,8 +253,76 @@ describe('LimitOrderConfirmationModalScreen', () => {
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
     );
 
-    expect(warnSpy).toHaveBeenCalledWith('Confirm limit order');
+    await waitFor(() => {
+      expect(mockFetchLimitOrdersDelegations).toHaveBeenCalledTimes(1);
+    });
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Limit order delegations',
+      MOCK_DELEGATIONS_RESPONSE,
+    );
     warnSpy.mockRestore();
+  });
+
+  it('requests the delegations with the order params and the live cost tolerance', () => {
+    renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: { limitOrderCostTolerance: '0.5' },
+      }),
+    );
+
+    expect(mockUseFetchLimitOrdersDelegations).toHaveBeenCalledWith({
+      ...mockOrder,
+      costTolerance: '0.5',
+    });
+  });
+
+  it('falls back to the default cost tolerance when none is set', () => {
+    renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: { limitOrderCostTolerance: undefined },
+      }),
+    );
+
+    expect(mockUseFetchLimitOrdersDelegations).toHaveBeenCalledWith({
+      ...mockOrder,
+      costTolerance: '2',
+    });
+  });
+
+  it('displays an error banner when the delegations cannot be fetched', async () => {
+    mockFetchLimitOrdersDelegations.mockRejectedValue(new Error('boom'));
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(
+          'Could not create an order: unable to fetch delegation details.',
+        ),
+      ).toBeOnTheScreen();
+    });
+    expect(getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('retries the delegations fetch when pressed after a failure', async () => {
+    mockFetchLimitOrdersDelegations.mockRejectedValueOnce(new Error('boom'));
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+    const primaryButton = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
+    );
+
+    fireEvent.press(primaryButton);
+    await waitFor(() => expect(getByText('Try again')).toBeOnTheScreen());
+
+    fireEvent.press(primaryButton);
+
+    await waitFor(() => {
+      expect(mockFetchLimitOrdersDelegations).toHaveBeenCalledTimes(2);
+    });
+    expect(getByText('Confirm order')).toBeOnTheScreen();
   });
 
   it('displays an error banner and a "Try again" primary button when the fee estimate fails', () => {
@@ -242,7 +338,6 @@ describe('LimitOrderConfirmationModalScreen', () => {
   });
 
   it('retries the fee estimate instead of confirming when pressed after a failure', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
     const retry = jest.fn();
     mockUseEIP7702UpgradeFee.mockReturnValue({ status: 'error', retry });
 
@@ -253,8 +348,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     );
 
     expect(retry).toHaveBeenCalledTimes(1);
-    expect(warnSpy).not.toHaveBeenCalled();
-    warnSpy.mockRestore();
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
   it('derives the network fee token from the paying token chain', () => {

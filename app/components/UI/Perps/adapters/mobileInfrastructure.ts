@@ -7,6 +7,8 @@
 
 import Logger from '../../../../util/Logger';
 import StorageWrapper from '../../../../store/storage-wrapper';
+import { lighterSignerBridge } from '../Lighter/lighterSignerBridge';
+import { isLighterProviderEnabled } from '../utils/lighterFeatureFlags';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -208,11 +210,30 @@ function createCacheInvalidatorAdapter() {
   };
 }
 
+/** Parse optional decimal signer indices without selecting a fallback on malformed input. */
+function parseLighterIndex(
+  value: string | undefined,
+  name: string,
+  maximum: number,
+): number | undefined {
+  if (value === undefined || value === '') return undefined;
+  if (
+    !/^\d+$/u.test(value) ||
+    !Number.isSafeInteger(Number(value)) ||
+    Number(value) > maximum
+  ) {
+    throw new Error(`${name} must be an integer between 0 and ${maximum}`);
+  }
+  return Number(value);
+}
+
 /**
  * Creates mobile-specific client config from environment variables.
  * Centralizes all process.env reads so the Engine init file stays pure wiring.
  */
 export function createMobileClientConfig(): PerpsControllerConfig {
+  const lighterProviderEnabled = isLighterProviderEnabled();
+
   return {
     fallbackBlockedRegions: parseCommaSeparatedString(
       process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
@@ -230,6 +251,33 @@ export function createMobileClientConfig(): PerpsControllerConfig {
           process.env.MM_PERPS_HL_BUILDER_ADDRESS_TESTNET ?? '',
         builderAddressMainnet:
           process.env.MM_PERPS_HL_BUILDER_ADDRESS_MAINNET ?? '',
+      },
+      lighter: {
+        enabled: lighterProviderEnabled,
+        // Lighter Go/WASM signer transport (hidden WebView). Handed to the
+        // controller before the WebView mounts; calls queue behind the
+        // bridge's readiness promise (see lighterSignerBridge.ts). Only
+        // supplied under the same enablement rule that mounts the WebView, so
+        // the controller's enablement gate and the client's signer mount
+        // can never disagree (remote flag alone cannot register a trading
+        // provider whose signer was never mounted).
+        ...(lighterProviderEnabled
+          ? { signerBridge: lighterSignerBridge }
+          : {}),
+        accountIndexTestnet: lighterProviderEnabled
+          ? parseLighterIndex(
+              process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET,
+              'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+              Number.MAX_SAFE_INTEGER,
+            )
+          : undefined,
+        apiKeyIndex: lighterProviderEnabled
+          ? parseLighterIndex(
+              process.env.MM_PERPS_LIGHTER_API_KEY_INDEX,
+              'MM_PERPS_LIGHTER_API_KEY_INDEX',
+              254,
+            )
+          : undefined,
       },
     },
   };

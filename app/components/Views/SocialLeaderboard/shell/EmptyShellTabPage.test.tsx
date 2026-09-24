@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { act, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import EmptyShellTabPage from './EmptyShellTabPage';
 import {
@@ -12,6 +12,14 @@ import {
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
+import {
+  mockUseSocialV1Feed,
+  mockUseSocialV1FeedLoading,
+} from '../SocialV1View/feed/mocks/mockComposedFeedHook';
+import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
+import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
+import { FeedSortFilterSelectorsIDs } from '../components/Filters';
+import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -37,12 +45,20 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
   };
 });
 
+// Reanimated's useFrameCallback registers on the UI runtime via a 0ms timeout.
+// Unmount in this suite races that mock and throws
+// `Cannot set properties of undefined (setting 'startTime')`.
+jest.mock('../SocialV1View/feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
+
 // See the view suite: the real hook needs keyring state and React Query, and
 // this suite is about the shell.
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed', () => ({
-  useSocialV1Feed: jest.requireActual(
-    '../SocialV1View/feed/mocks/mockComposedFeedHook',
-  ).mockUseSocialV1Feed,
+  useSocialV1Feed: jest.fn(
+    jest.requireActual('../SocialV1View/feed/mocks/mockComposedFeedHook')
+      .mockUseSocialV1Feed,
+  ),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -51,6 +67,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
+    jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
     resetSocialV1ComposedFeedStore();
   });
 
@@ -132,8 +149,7 @@ describe('EmptyShellTabPage', () => {
         id: 'composed-1',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({
           id: 'composed-item',
           comment: 'this is alpha',
@@ -206,6 +222,26 @@ describe('EmptyShellTabPage', () => {
     expect(ids.indexOf(fourth)).toBeGreaterThan(carouselIndex);
   });
 
+  it('scrolls the Following filter bar with the feed', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    const scroll = within(screen.getByTestId('following-page-scroll'));
+
+    expect(
+      scroll.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR),
+    ).toBeOnTheScreen();
+    expect(
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('omits the Popular traders carousel on Following', () => {
     renderWithProvider(
       <EmptyShellTabPage
@@ -216,6 +252,63 @@ describe('EmptyShellTabPage', () => {
       />,
     );
 
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+  });
+
+  it('renders full-width dividers between Following feed entries', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-leading-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-leading-2'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-leading-3'),
+    ).toBeOnTheScreen();
+  });
+
+  it('frames the Popular traders rail with block dividers on Trending', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-block-popular-traders'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-entry-divider-block-trailing'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows feed post skeletons and hides Popular traders during initial load', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1FeedLoading);
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+    ).toBeOnTheScreen();
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
   });
 });

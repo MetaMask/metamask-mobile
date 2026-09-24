@@ -36,6 +36,50 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
   }),
 }));
 
+const NATIVE_TAB_INSET_PROBE_TEST_ID = 'native-tab-inset-probe';
+jest.mock('@react-navigation/bottom-tabs/unstable', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text, View } = jest.requireActual('react-native');
+  const { useFloatingTabBarInset } = jest.requireActual(
+    '../../../component-library/components/Navigation/TabBarFloating',
+  );
+  // Rendered inside the navigator, so it reads the inset the tab scenes get.
+  const InsetProbe = () =>
+    ReactActual.createElement(
+      Text,
+      { testID: 'native-tab-inset-probe' },
+      String(useFloatingTabBarInset()),
+    );
+  // A host view, so the render result's `root` spans every screen.
+  const Navigator = ({ children }: { children?: React.ReactNode }) =>
+    ReactActual.createElement(
+      View,
+      null,
+      children,
+      ReactActual.createElement(InsetProbe),
+    );
+  Navigator.displayName = 'NativeTabNavigator';
+  return {
+    createNativeBottomTabNavigator: jest.fn().mockReturnValue({
+      Navigator,
+      Screen: 'NativeTabScreen',
+    }),
+  };
+});
+
+let mockIsNativeTabBar = false;
+jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
+  useIsNativeTabBar: () => mockIsNativeTabBar,
+}));
+
+jest.mock(
+  '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
 // RewardsHome resolves the candidate subscription id for both the dashboard and
 // onboarding branches. Mock it so the regression test can assert the call
 // without exercising the real async fetch.
@@ -134,6 +178,7 @@ describe('MainNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsNativeTabBar = false;
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
   });
 
@@ -373,6 +418,127 @@ describe('MainNavigator', () => {
         // Then the tab bar should be visible (default to home page)
         expect(result).not.toBeNull();
       });
+    });
+  });
+
+  describe('Native tab bar (iOS 26)', () => {
+    const renderHomeTabs = () => {
+      const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const homeScreen = mainRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+      )[0];
+      const HomeTabs = homeScreen?.props?.component as React.ComponentType<
+        Record<string, unknown>
+      >;
+      return renderWithProvider(<HomeTabs route={{ params: {} }} />, {
+        state: initialRootState,
+      });
+    };
+
+    const findNativeScreens = (root: ReactTestInstance) =>
+      root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'NativeTabScreen',
+      );
+
+    beforeEach(() => {
+      mockIsNativeTabBar = true;
+    });
+
+    it('renders native tab screens instead of the JS navigator', () => {
+      const { root } = renderHomeTabs();
+
+      expect(findNativeScreens(root).length).toBeGreaterThan(0);
+      expect(
+        root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator' ||
+            node.type?.toString?.() === 'TabScreen',
+        ),
+      ).toHaveLength(0);
+    });
+
+    it('registers the visible tabs plus the system search slot, not Browser or Trade', () => {
+      const { root } = renderHomeTabs();
+
+      expect(
+        findNativeScreens(root).map((screen) => screen.props.name),
+      ).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.TRANSACTIONS_VIEW,
+        Routes.REWARDS_VIEW,
+        'SearchTab',
+      ]);
+    });
+
+    it('gives every tab a title, an icon and press listeners', () => {
+      const { root } = renderHomeTabs();
+      const homeScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.WALLET.HOME,
+      );
+
+      expect(homeScreen?.props.options).toMatchObject({ title: 'Home' });
+      expect(typeof homeScreen?.props.options.tabBarIcon).toBe('function');
+      expect(typeof homeScreen?.props.listeners).toBe('function');
+    });
+
+    it('hides the bar on Rewards sub-pages through a stable style identity', () => {
+      const { root } = renderHomeTabs();
+      const rewardsScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.REWARDS_VIEW,
+      );
+      const resolveOptions = rewardsScreen?.props.options as (args: {
+        route: unknown;
+      }) => { tabBarStyle?: { display: string } };
+
+      const onDashboard = resolveOptions({
+        route: {
+          name: Routes.REWARDS_VIEW,
+          state: {
+            routes: [
+              {
+                name: Routes.REWARDS_VIEW,
+                state: {
+                  index: 0,
+                  routes: [{ name: Routes.REWARDS_DASHBOARD }],
+                },
+              },
+            ],
+          },
+        },
+      });
+      const onSubPage = resolveOptions({
+        route: {
+          name: Routes.REWARDS_VIEW,
+          state: {
+            routes: [
+              {
+                name: Routes.REWARDS_VIEW,
+                state: {
+                  index: 0,
+                  routes: [{ name: 'OndoCampaignDetails' }],
+                },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(onDashboard.tabBarStyle).toBeUndefined();
+      expect(onSubPage.tabBarStyle).toEqual({ display: 'none' });
+    });
+
+    it('reports the native bar height so scroll views clear it', () => {
+      const { getByTestId } = renderHomeTabs();
+
+      // Mocked safe-area bottom is 0, so the padding floor (16) plus the bar (62).
+      expect(getByTestId(NATIVE_TAB_INSET_PROBE_TEST_ID)).toHaveTextContent(
+        '78',
+      );
     });
   });
 
@@ -666,6 +832,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
         (child): child is ReactTestInstance =>
@@ -745,20 +912,32 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
     });
 
-    it('shares slide-from-right options on one Group for the VBA screens', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
+    it('registers the modular host alongside transitional VBA routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
-
-      const group = findGroupContaining(root, Routes.RAMP.GET_PIX_KEY);
-
-      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
-      expect(groupedScreenNames(group)).toEqual([
+      const legacyGroup = findGroupContaining(
+        container.root,
         Routes.RAMP.VBA_KYC_EMAIL,
-        Routes.RAMP.GET_PIX_KEY,
+      );
+
+      const vbaScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_ONBOARDING,
+      );
+
+      expect(groupedScreenNames(legacyGroup)).toEqual([
+        Routes.RAMP.VBA_KYC_EMAIL,
+        Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
         Routes.RAMP.VBA_VERIFY_IDENTITY,
       ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);
+      expect(vbaScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_ONBOARDING,
+          options: expect.objectContaining({
+            headerShown: false,
+          }),
+        }),
+      );
     });
 
     it('shares slide-from-right options on one Group for trending and RWA full views', () => {
@@ -1644,6 +1823,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 
