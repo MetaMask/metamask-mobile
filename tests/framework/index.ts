@@ -58,6 +58,7 @@ export {
   type RecoveredLocator,
   type SelfHealingTapOptions,
 } from './ai-locator/SelfHealingLocator.ts';
+export { createClaudeLocatorRecoveryProvider } from './ai-locator/ClaudeLocatorRecoveryProvider.ts';
 export {
   DeviceCommandHandler,
   AndroidDeviceCommandHandler,
