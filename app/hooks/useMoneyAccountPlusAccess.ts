@@ -3,7 +3,7 @@ import {
   selectHasAnyMoneyAccountPlusEntitlement,
   selectIsMoneyAccountPlusSubscriber,
 } from '../selectors/subscriptionController';
-import useSubscriptionPolling from '../components/hooks/useSubscriptionPolling';
+import useSubscriptions from '../components/hooks/useSubscriptions';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 /**
@@ -42,7 +42,7 @@ export enum MoneyAccountPlusAccess {
  */
 export function useMoneyAccountPlusAccess(): MoneyAccountPlusAccess {
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isLoading } = useSubscriptionPolling({
+  const { isLoading } = useSubscriptions({
     enabled: isProSubscriptionEnabled,
   });
   const isSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);

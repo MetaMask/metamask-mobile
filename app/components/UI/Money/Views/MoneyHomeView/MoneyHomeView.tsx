@@ -110,7 +110,7 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
+import useSubscriptions from '../../../../hooks/useSubscriptions';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
@@ -141,7 +141,7 @@ const MoneyHomeView = () => {
   // enabled so we do not generate API traffic for users without the flow.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
   const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
-  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
+  useSubscriptions({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
