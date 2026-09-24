@@ -684,12 +684,8 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
       expect(await findByText('Market resulted to Yes')).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-        ),
-      ).toBeOnTheScreen();
     });
 
     it('lets the user switch to the About tab on a closed market', async () => {
