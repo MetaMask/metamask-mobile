@@ -60,6 +60,18 @@ const givenPositions = (positions: PredictPosition[]) =>
 const givenPriceHistory = (points: PredictPriceHistoryPoint[]) =>
   controllerMock('getPriceHistory').mockResolvedValue(points);
 
+/** Market header and About tab content mount on independent async phases. */
+const awaitMarketDetailsAboutReady = async (
+  findByTestId: (testId: string) => Promise<unknown>,
+  findByText: (text: string | RegExp) => Promise<unknown>,
+) => {
+  const screen = await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+  await waitFor(() => {
+    expect(within(screen).getByText(MOCK_PREDICT_MARKET.title)).toBeOnTheScreen();
+  });
+  await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+};
+
 /** Redux delta that makes the user eligible to trade. */
 const ELIGIBLE_USER = {
   engine: {
@@ -357,11 +369,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -373,11 +385,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
