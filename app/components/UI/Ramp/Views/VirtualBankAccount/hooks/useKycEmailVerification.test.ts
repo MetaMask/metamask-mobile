@@ -87,7 +87,7 @@ describe('useKycEmailVerification', () => {
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
-  it('starts the session then navigates to Get Pix Key', async () => {
+  it('starts the session then navigates to Create Virtual Bank Account', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result, '  user@example.com  ');
@@ -96,7 +96,7 @@ describe('useKycEmailVerification', () => {
       vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
+    expect(mockNavigate).toHaveBeenCalledWith('RampCreateVirtualBankAccount');
   });
 
   it('alerts without navigating when customer creation rejects', async () => {
