@@ -49,9 +49,8 @@ export enum MONEY_SURFACE_TYPES {
 }
 
 export enum COMPONENT_NAMES {
-  // — Section Headers —
-  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
-  MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
+  // — Money Balance Summary —
+  MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
   // — Onboarding —
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
@@ -61,11 +60,17 @@ export enum COMPONENT_NAMES {
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
+  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
+  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
+  MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT = 'money_earn_crypto_projected_amount',
+
+  // — MetaMask Card —
+  MONEY_METAMASK_CARD_SECTION_HEADER = 'money_metamask_card_section_header',
 
   // — Activity —
-  MONEY_ACTIVITY_SECTION = 'money_activity_section',
+  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
   MONEY_ACTIVITY_LIST_ITEM = 'money_activity_list_item',
 
   // — Activity Filter Buttons —
@@ -96,6 +101,7 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
 
   // — Miscellaneous —
+  MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
   MONEY_WHAT_YOU_GET_SECTION = 'money_what_you_get_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',

@@ -23,9 +23,9 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 export const BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK =
-  'https://metamask.io/news/updating-metamask-analytics';
+  'https://metamask.io/news/basic-functionality-profile-setting';
 export const BASIC_FUNCTIONALITY_MIGRATION_PRIVACY_NOTICE_LINK =
-  'https://consensys.io/privacy-notice';
+  'https://metamask.io/privacy-notice';
 
 export const SOCIAL_BF_PRIVACY_NOTICE_NAME = 'social_bf_privacy_notice';
 
