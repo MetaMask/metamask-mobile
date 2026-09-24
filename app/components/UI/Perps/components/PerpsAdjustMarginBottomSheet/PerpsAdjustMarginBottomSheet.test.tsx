@@ -850,6 +850,14 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expectAmountAtMax('250.00');
   });
 
+  it('drops the fresh limit when margin is added to the position elsewhere', () => {
+    const { renderLive, expectAmountAtMax } = setUpFreshLimit();
+
+    renderLive(250, { ...pnlTick, marginUsed: '520' });
+
+    expectAmountAtMax('250.00');
+  });
+
   it('drops the fresh limit once the live max catches up to it', () => {
     const { renderLive, expectAmountAtMax } = setUpFreshLimit();
 

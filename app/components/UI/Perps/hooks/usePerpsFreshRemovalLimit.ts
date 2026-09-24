@@ -17,8 +17,8 @@ const floorUsd = (value: number) => Math.floor(value * 100) / 100;
 /**
  * Keeps a remove-margin form within the limit a fresh read returned after it
  * stopped a removal, until the stream catches up to it or the position itself
- * changes. The stream re-sends positions on every PnL tick, so only size,
- * entry and leverage count as a change.
+ * changes. The stream re-sends positions on every PnL tick, so a change means
+ * size, entry, leverage or collateral (margin net of unrealized PnL).
  *
  * @param params - Fresh limit state, live position and snapshot limits.
  * @returns The max offered by Max/slider and the limit submissions are checked against.
@@ -31,8 +31,14 @@ export const usePerpsFreshRemovalLimit = ({
   exchangeMaxAmount,
   isAddMode,
 }: UsePerpsFreshRemovalLimitParams) => {
+  const collateral = position
+    ? (
+        Number.parseFloat(position.marginUsed) -
+        Number.parseFloat(position.unrealizedPnl)
+      ).toFixed(2)
+    : '';
   const positionShape = position
-    ? `${position.size}|${position.entryPrice}|${position.leverage?.value}`
+    ? `${position.size}|${position.entryPrice}|${position.leverage?.value}|${collateral}`
     : '';
   useEffect(() => {
     setFreshMaxAmount(null);

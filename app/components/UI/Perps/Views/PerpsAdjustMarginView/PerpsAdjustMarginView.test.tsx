@@ -565,6 +565,14 @@ describe('PerpsAdjustMarginView', () => {
       expect(amountAtMax()).toHaveTextContent('250.00');
     });
 
+    it('drops the fresh limit when margin is added to the position elsewhere', () => {
+      const { renderLive, amountAtMax } = setUpFreshLimit();
+
+      renderLive(250, { ...pnlTick, marginUsed: '520' });
+
+      expect(amountAtMax()).toHaveTextContent('250.00');
+    });
+
     it('drops the fresh limit once the live max catches up to it', () => {
       const { renderLive, amountAtMax } = setUpFreshLimit();
 
