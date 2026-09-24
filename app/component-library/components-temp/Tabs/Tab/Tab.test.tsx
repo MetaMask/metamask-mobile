@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -29,20 +30,24 @@ describe('Tab', () => {
       expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
     });
 
-    it('renders an indicator dot when showsIndicatorDot is true', () => {
+    it('renders endAccessory after the label', () => {
       const { getByTestId } = render(
-        <Tab {...defaultProps} showsIndicatorDot testID="dot-tab" />,
+        <Tab
+          {...defaultProps}
+          testID="accessory-tab"
+          endAccessory={<View testID="tab-end-accessory" />}
+        />,
       );
 
-      expect(getByTestId('dot-tab-indicator-dot')).toBeOnTheScreen();
+      expect(getByTestId('tab-end-accessory')).toBeOnTheScreen();
     });
 
-    it('renders no indicator dot by default', () => {
+    it('renders no endAccessory by default', () => {
       const { queryByTestId } = render(
         <Tab {...defaultProps} testID="plain-tab" />,
       );
 
-      expect(queryByTestId('plain-tab-indicator-dot')).toBeNull();
+      expect(queryByTestId('tab-end-accessory')).toBeNull();
     });
 
     it('renders long labels without truncating the element', () => {

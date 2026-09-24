@@ -20,7 +20,7 @@ const Tab: React.FC<TabProps> = ({
   onPress,
   testID,
   onLayout,
-  showsIndicatorDot = false,
+  endAccessory,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -51,7 +51,7 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* The label sizes itself, so the dot below can sit beside it */}
+        {/* The label sizes itself, so endAccessory can sit beside it */}
         <View>
           {/* Hidden bold text that determines layout size */}
           <Text
@@ -86,12 +86,7 @@ const Tab: React.FC<TabProps> = ({
           </Text>
         </View>
 
-        {showsIndicatorDot ? (
-          <View
-            testID={testID ? `${testID}-indicator-dot` : undefined}
-            style={tw.style('h-1.5 w-1.5 rounded-full bg-success-default')}
-          />
-        ) : null}
+        {endAccessory}
       </Pressable>
     </View>
   );

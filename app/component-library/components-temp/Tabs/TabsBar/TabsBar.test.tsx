@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -1648,29 +1648,30 @@ describe('TabsBar', () => {
     });
   });
 
-  describe('Indicator Dot', () => {
-    it('renders a dot on a tab that sets showsIndicatorDot', () => {
-      const tabsWithDot: TabItem[] = [
+  describe('End Accessory', () => {
+    it('renders endAccessory on a tab that sets it', () => {
+      const tabsWithAccessory: TabItem[] = [
         { key: 'tab1', label: 'Tab 1', content: null },
         {
           key: 'tab2',
           label: 'Tab 2',
           content: null,
-          showsIndicatorDot: true,
+          endAccessory: <View testID="tab-2-end-accessory" />,
         },
       ];
 
       const { getByTestId, queryByTestId } = render(
         <TabsBar
-          tabs={tabsWithDot}
+          tabs={tabsWithAccessory}
           activeIndex={0}
           onTabPress={jest.fn()}
           testID="tabs-bar"
         />,
       );
 
-      expect(queryByTestId('tabs-bar-tab-0-indicator-dot')).toBeNull();
-      expect(getByTestId('tabs-bar-tab-1-indicator-dot')).toBeOnTheScreen();
+      expect(getByTestId('tab-2-end-accessory')).toBeOnTheScreen();
+      expect(getByTestId('tabs-bar-tab-0')).toBeOnTheScreen();
+      expect(queryByTestId('tab-1-end-accessory')).toBeNull();
     });
   });
 

@@ -296,7 +296,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           label={tab.label}
           isActive={index === activeIndex}
           isDisabled={tab.isDisabled}
-          showsIndicatorDot={tab.showsIndicatorDot}
+          endAccessory={tab.endAccessory}
           onPress={() => handleTabPress(index)}
           onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
           testID={tab.testID ?? `${testID}-tab-${index}`}
