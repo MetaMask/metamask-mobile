@@ -44,7 +44,6 @@ const NetworkSelector = ({
         )}
         onPress={openNetworkSelector}
         onLongPress={openNetworkSelector}
-        testID="add-asset-network-selector-button"
       >
         {selectedNetwork ? (
           <Box twClassName="mr-2">

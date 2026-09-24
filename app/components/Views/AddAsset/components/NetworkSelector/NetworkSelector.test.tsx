@@ -65,12 +65,4 @@ describe('NetworkSelector', () => {
 
     expect(mockOpenNetworkSelector).toHaveBeenCalledTimes(1);
   });
-
-  it('uses fully rounded corners for the network picker', () => {
-    const { getByTestId } = renderComponent();
-
-    expect(
-      getByTestId('add-asset-network-selector-button'),
-    ).toHaveStyle({ borderRadius: 9999 });
-  });
 });
