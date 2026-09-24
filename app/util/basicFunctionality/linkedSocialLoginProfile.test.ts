@@ -35,7 +35,10 @@ const createAuthenticationState = (
           metaMetricsId: 'metrics-id',
           profileId: 'profile-id',
           canonicalProfileId: 'profile-id',
-          pairedIdentifierIds: pairedIdentifierTypes.map((type) => ({ type })),
+          pairedIdentifierIds: pairedIdentifierTypes.map((type) => ({
+            id: `${type}-id`,
+            type,
+          })),
         },
         token: {
           accessToken: 'access-token',
