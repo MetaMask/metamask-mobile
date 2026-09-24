@@ -60,7 +60,7 @@ describe('useVaultMetadata', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectVaultApyForChain) {
         return MOCK_SELECT_POOLED_STAKING_VAULT_APY;
       }

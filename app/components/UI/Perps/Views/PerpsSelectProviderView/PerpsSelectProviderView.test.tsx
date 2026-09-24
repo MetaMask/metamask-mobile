@@ -73,7 +73,7 @@ const mockSwitchProvider = jest.fn();
 const mockToggleTestnet = jest.fn();
 const mockWaitForConnection =
   PerpsConnectionManager.waitForConnection as jest.Mock;
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
 const mockUsePerpsNetworkConfig = usePerpsNetworkConfig as jest.Mock;
 

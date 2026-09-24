@@ -56,7 +56,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockLoggerError = Logger.error as jest.Mock;
 
 let queryClient: QueryClient;

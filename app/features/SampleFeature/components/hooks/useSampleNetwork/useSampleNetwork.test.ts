@@ -20,7 +20,7 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('useSampleNetwork', () => {
-  const mockedUseSelector = useSelector as jest.Mock;
+  const mockedUseSelector = useSelector as unknown as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();

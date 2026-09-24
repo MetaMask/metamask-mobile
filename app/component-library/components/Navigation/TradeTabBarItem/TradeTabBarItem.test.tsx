@@ -30,7 +30,7 @@ describe('TradeTabBarItem', () => {
   };
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectChainId) return '1';
       return selector();
     });

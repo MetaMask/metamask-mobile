@@ -406,7 +406,7 @@ const defaultSelectorMap = new Map<unknown, unknown>([
 function setupSelectors(overrides: Map<unknown, unknown> = new Map()) {
   const merged = new Map([...defaultSelectorMap, ...overrides]);
   const mockUseSelector = jest.requireMock('react-redux')
-    .useSelector as jest.Mock;
+    .useSelector as unknown as jest.Mock;
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (merged.has(selector)) {
       return merged.get(selector);

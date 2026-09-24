@@ -64,7 +64,7 @@ describe('useAddPopularNetwork', () => {
     jest.clearAllMocks();
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    (useSelector as jest.Mock).mockReturnValue({});
+    (useSelector as unknown as jest.Mock).mockReturnValue({});
     (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder.mockReturnValue({
@@ -124,7 +124,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 
@@ -291,7 +291,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 
@@ -323,7 +323,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 
@@ -370,7 +370,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 
@@ -417,7 +417,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 
@@ -471,7 +471,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 
@@ -514,7 +514,7 @@ describe('useAddPopularNetwork', () => {
       defaultRpcEndpointIndex: 0,
     };
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       '0x89': existingNetwork,
     });
 

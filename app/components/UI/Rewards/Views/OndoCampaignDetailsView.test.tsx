@@ -520,7 +520,7 @@ describe('OndoCampaignDetailsView', () => {
     jest.clearAllMocks();
     mockRouteState.params = { campaignId: 'campaign-1' };
     resetOndoCampaignDetailsSessionAutoNavigationForTests();
-    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === selectReferralCode) {
         return null;
       }

@@ -67,7 +67,7 @@ describe('SDKSessionsManager', () => {
 
   describe('Component Rendering', () => {
     it('renders empty state when no connections', () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {},
         dappConnections: {},
         v2Connections: {},
@@ -80,7 +80,7 @@ describe('SDKSessionsManager', () => {
     });
 
     it('renders connections list when connections exist', () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
         },
@@ -101,7 +101,7 @@ describe('SDKSessionsManager', () => {
     });
 
     it('renders HeaderStandard with title and back button', () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {},
         dappConnections: {},
         v2Connections: {},
@@ -118,7 +118,7 @@ describe('SDKSessionsManager', () => {
 
   describe('User Actions', () => {
     it('handles disconnect all button press', async () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
         },
@@ -137,7 +137,7 @@ describe('SDKSessionsManager', () => {
     });
 
     it('passes trigger prop to SDKSessionItem components', () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
         },
@@ -166,7 +166,7 @@ describe('SDKSessionsManager', () => {
         params: undefined,
       });
 
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1', name: 'Connection 1' },
         },
@@ -188,7 +188,7 @@ describe('SDKSessionsManager', () => {
     });
 
     it('handles multiple connections correctly', () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         connections: {
           conn1: { id: 'conn1' },
           conn2: { id: 'conn2' },

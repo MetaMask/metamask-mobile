@@ -5,22 +5,22 @@ export const STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED =
 export const STORE_PNA25_ACKNOWLEDGED = 'STORE_PNA25_ACKNOWLEDGED';
 export const STORE_ARC_USAGE_NOTICE_SHOWN = 'STORE_ARC_USAGE_NOTICE_SHOWN';
 
-interface StorePrivacyPolicyShownDateAction {
+type StorePrivacyPolicyShownDateAction = {
   type: typeof STORE_PRIVACY_POLICY_SHOWN_DATE;
   payload: number;
-}
+};
 
-interface StorePrivacyPolicyClickedOrClosedAction {
+type StorePrivacyPolicyClickedOrClosedAction = {
   type: typeof STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED;
-}
+};
 
-interface StorePna25AcknowledgedAction {
+type StorePna25AcknowledgedAction = {
   type: typeof STORE_PNA25_ACKNOWLEDGED;
-}
+};
 
-interface StoreArcUsageNoticeShownAction {
+type StoreArcUsageNoticeShownAction = {
   type: typeof STORE_ARC_USAGE_NOTICE_SHOWN;
-}
+};
 
 export type LegalNoticesActionTypes =
   | StorePrivacyPolicyShownDateAction

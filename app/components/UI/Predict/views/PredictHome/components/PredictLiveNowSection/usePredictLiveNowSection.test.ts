@@ -28,7 +28,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../hooks/usePredictMarketList');
 jest.mock('../../../../hooks/useCurrentPredictMarketFromSeries');
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUsePredictMarketList = usePredictMarketList as jest.Mock;
 const mockUseCurrentPredictMarketFromSeries =
   useCurrentPredictMarketFromSeries as jest.Mock;

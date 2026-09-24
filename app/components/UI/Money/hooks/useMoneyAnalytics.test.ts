@@ -92,7 +92,7 @@ const mockGetMMPayChainIds = getMMPayChainIds as jest.MockedFunction<
   typeof getMMPayChainIds
 >;
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockSelectIsCardAuthenticated =
   selectIsCardAuthenticated as unknown as jest.Mock;
 const mockSelectIsMoneyAccountDelegatedForCard =

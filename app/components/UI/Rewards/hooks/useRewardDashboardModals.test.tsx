@@ -117,7 +117,7 @@ describe('useRewardDashboardModals', () => {
     });
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     // Mock both selectors that are used in the hook
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectInternalAccountsByGroupId) {
         return (_groupId: string) => mockAccounts;
       }
@@ -192,7 +192,7 @@ describe('useRewardDashboardModals', () => {
 
     it('does not show modal when no selected account group', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -281,7 +281,7 @@ describe('useRewardDashboardModals', () => {
 
     it('does not show modal when bulk link is running', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -313,7 +313,7 @@ describe('useRewardDashboardModals', () => {
 
     it('shows modal when bulk link is not running', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -485,7 +485,7 @@ describe('useRewardDashboardModals', () => {
 
     it('does not show modal when no selected account group', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -526,7 +526,7 @@ describe('useRewardDashboardModals', () => {
         },
       ];
 
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => nonHardwareAccounts;
         }
@@ -577,7 +577,7 @@ describe('useRewardDashboardModals', () => {
         },
       ];
 
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => hardwareAccounts;
         }
@@ -616,7 +616,7 @@ describe('useRewardDashboardModals', () => {
 
     it('does not show modal when no selected account group', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -662,7 +662,7 @@ describe('useRewardDashboardModals', () => {
   describe('hasShownModal', () => {
     it('returns false when no selected account group', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -703,7 +703,7 @@ describe('useRewardDashboardModals', () => {
   describe('tracking key fallback behavior', () => {
     it('falls back to "unknown" when accountGroupId is null', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) {
           return null; // no account group
         }
@@ -910,7 +910,7 @@ describe('useRewardDashboardModals', () => {
 
     it('does not reset tracking when no selected account group', () => {
       // Arrange
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectInternalAccountsByGroupId) {
           return (_groupId: string) => mockAccounts;
         }
@@ -943,7 +943,7 @@ describe('useRewardDashboardModals', () => {
       });
 
       // Switch to different account group
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) {
           return {
             ...mockSelectedAccountGroup,
@@ -982,7 +982,7 @@ describe('useRewardDashboardModals', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
 
       // Switch back to first account group
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) {
           return mockSelectedAccountGroup;
         }
@@ -1094,7 +1094,7 @@ describe('useRewardDashboardModals', () => {
       });
 
       // Switch to different account group for second instance
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSelectedAccountGroup) {
           return { ...mockSelectedAccountGroup, id: 'group-2' };
         }

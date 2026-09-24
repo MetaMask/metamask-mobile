@@ -27,7 +27,7 @@ describe('useAccountNativeBalance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectAccountsByChainId) {
         return mockAccountsByChainId;
       }
@@ -77,7 +77,7 @@ describe('useAccountNativeBalance', () => {
   });
 
   it('returns 0x0 balance when accountsByChainId is undefined', () => {
-    (useSelector as jest.Mock).mockReturnValue(undefined);
+    (useSelector as unknown as jest.Mock).mockReturnValue(undefined);
 
     const { result } = renderHook(() =>
       useAccountNativeBalance(mockChainId, mockAddress),

@@ -318,7 +318,7 @@ const ActionHarness = ({
 describe('usePerpsProPositionsPanelActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     mockCancelOrder.mockResolvedValue({ success: true });
     mockEditOrder.mockResolvedValue({ success: true });
   });
@@ -354,7 +354,7 @@ describe('usePerpsProPositionsPanelActions', () => {
   });
 
   it('keeps haptics silent when eligibility blocks an action', async () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReset()
       .mockReturnValueOnce(false)
       .mockReturnValue('0x123');
@@ -704,7 +704,7 @@ describe('usePerpsProPositionsPanelActions', () => {
 describe('PerpsProPositionsPanel action callbacks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     mockCancelOrder.mockResolvedValue({ success: true });
     mockEditOrder.mockResolvedValue({ success: true });
     mockScreenVsBottomSheetAbTest.useBottomSheet = true;

@@ -23,7 +23,7 @@ const BUTTON_TEST_ID = 'button-icon-test-id';
 
 describe('NetworkImageComponent', () => {
   beforeEach(() => {
-    (useSelector as jest.Mock).mockReturnValue('default-network-image');
+    (useSelector as unknown as jest.Mock).mockReturnValue('default-network-image');
   });
 
   it('should render correctly', () => {

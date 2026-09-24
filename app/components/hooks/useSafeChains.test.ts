@@ -44,7 +44,7 @@ describe('useSafeChains', () => {
   });
 
   it('should fetch and store safe chains when validation is enabled', async () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockSafeChains),
@@ -62,7 +62,7 @@ describe('useSafeChains', () => {
   });
 
   it('should handle fetch errors', async () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     const mockError = new Error('Network error');
     (global.fetch as jest.Mock).mockRejectedValueOnce(mockError);
 
@@ -74,7 +74,7 @@ describe('useSafeChains', () => {
   });
 
   it('should handle invalid response format', async () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve('invalid-data'),
@@ -91,7 +91,7 @@ describe('useSafeChains', () => {
   });
 
   it('should not fetch chains when validation is disabled', () => {
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
     const { result } = renderHook(() => useSafeChains());
 
@@ -100,7 +100,7 @@ describe('useSafeChains', () => {
   });
 
   it('clears cache on failure to allow retries', async () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     const mockError = new Error('Network error');
 
     (global.fetch as jest.Mock)

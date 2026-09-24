@@ -365,7 +365,7 @@ const defaultCardState = {
   },
 };
 
-(useSelector as jest.Mock).mockImplementation((selector) =>
+(useSelector as unknown as jest.Mock).mockImplementation((selector) =>
   selector(defaultCardState),
 );
 
@@ -400,7 +400,7 @@ const defaultCardState = {
 describe('PersonalDetails Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockImplementation(
+    (useSelector as unknown as jest.Mock).mockImplementation(
       (selector: (state: unknown) => unknown) => selector(defaultCardState),
     );
 
@@ -978,7 +978,7 @@ describe('PersonalDetails Component', () => {
     });
 
     it('does not call registerPersonalDetails when onboardingId is missing', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         const mockState = {
           card: {
             onboarding: {

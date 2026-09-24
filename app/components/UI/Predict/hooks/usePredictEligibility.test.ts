@@ -33,7 +33,7 @@ jest.mock('react-native', () => ({
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 
 describe('usePredictEligibility', () => {
-  const mockUseSelector = useSelector as jest.Mock;
+  const mockUseSelector = useSelector as unknown as jest.Mock;
   const mockRefreshEligibility = Engine.context.PredictController
     .refreshEligibility as jest.Mock;
   const mockAppStateAddEventListener = AppState.addEventListener as jest.Mock;

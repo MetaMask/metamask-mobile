@@ -27,7 +27,7 @@ jest.mock('../transactions/useTransferRecipient', () => ({
 }));
 
 describe('useFirstTimeInteractionAlert', () => {
-  const mockUseSelector = useSelector as jest.Mock;
+  const mockUseSelector = useSelector as unknown as jest.Mock;
   const mockUseTransactionMetadataRequest =
     useTransactionMetadataRequest as jest.Mock;
   const mockUseAddressTrustSignal = useAddressTrustSignal as jest.Mock;

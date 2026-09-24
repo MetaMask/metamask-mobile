@@ -291,7 +291,7 @@ describe('useContinueWithQuote', () => {
       setParams: jest.fn(),
       goBack: jest.fn(),
     });
-    (useSelector as jest.Mock).mockImplementation((selector) =>
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
       typeof selector === 'function' ? selector() : undefined,
     );
   });

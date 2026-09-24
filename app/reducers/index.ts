@@ -186,15 +186,19 @@ if (isTestEnvironment) {
   baseReducers.performance = performanceReducer;
 }
 
-// TODO: Fix the Action type. It's set to `any` now because some of the
-// TypeScript reducers have invalid actions
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer = combineReducers<RootState, any>({
+// `combineReducers` takes a single type argument as of redux 5 (the reducers
+// map), so the previous `<RootState, any>` form is gone. We infer from the map
+// and assert back to the hand-written `RootState` to keep the public contract
+// unchanged.
+//
+// TODO: several TypeScript reducers still have invalid action types, which is
+// why this needs an assertion rather than matching by inference. Fixing those
+// reducers would let the assertion go away.
+const rootReducer = combineReducers({
   ...baseReducers,
   attribution: attributionReducer,
   headlessOrderContexts: headlessOrderContextsReducer,
   terminalOrderAnalytics: terminalOrderAnalyticsReducer,
-});
+}) as unknown as Reducer<RootState>;
 
 export default rootReducer;

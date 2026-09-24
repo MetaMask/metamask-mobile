@@ -35,7 +35,7 @@ describe('usePerpsBlockExplorerUrl', () => {
     jest.clearAllMocks();
     Engine.context.PerpsController =
       mockController as unknown as PerpsController;
-    (useSelector as jest.Mock).mockReturnValue(() => ({
+    (useSelector as unknown as jest.Mock).mockReturnValue(() => ({
       address: mockSelectedAddress,
     }));
   });
@@ -103,7 +103,7 @@ describe('usePerpsBlockExplorerUrl', () => {
 
     it('should return null when no address available', () => {
       mockController.getBlockExplorerUrl.mockClear();
-      (useSelector as jest.Mock).mockReturnValue(() => null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(() => null);
 
       const { result } = renderHook(() => usePerpsBlockExplorerUrl());
       const url = result.current.getExplorerUrl();

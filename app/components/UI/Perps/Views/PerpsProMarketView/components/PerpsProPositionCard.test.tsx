@@ -36,7 +36,7 @@ describe('PerpsProPositionCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Cross margin flag on, privacy mode off.
-    (useSelector as jest.Mock).mockImplementation(
+    (useSelector as unknown as jest.Mock).mockImplementation(
       (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
     );
   });
@@ -74,7 +74,7 @@ describe('PerpsProPositionCard', () => {
 
   it('falls back to the isolated presentation when the Cross margin flag is off', () => {
     // Arrange - every selector false, including the Cross margin flag
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
     const onEditMargin = jest.fn();
 
     // Act
@@ -104,7 +104,7 @@ describe('PerpsProPositionCard', () => {
   it.each([null, '2500'])(
     'masks Cross liquidation %s in privacy mode',
     (liquidationPrice) => {
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
       render(
         <PerpsProPositionCard
@@ -391,7 +391,7 @@ describe('PerpsProPositionCard', () => {
   });
 
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     render(<PerpsProPositionCard position={position} />);
 

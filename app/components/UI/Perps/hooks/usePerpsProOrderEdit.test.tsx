@@ -214,7 +214,7 @@ const confirmEdit = async (field: 'price' | 'size') => {
 describe('usePerpsProOrderEdit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     mockEditOrder.mockResolvedValue({ success: true });
     mockGetSnapshot.mockReturnValue(null);
   });

@@ -38,7 +38,7 @@ jest.mock('../utils/lighterFeatureFlags', () => ({
 }));
 const mockLighterRemoteFlagEnabled = jest.fn();
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockGetOrderCapabilities = jest.mocked(
   Engine.context.PerpsController.getOrderCapabilities,
 );

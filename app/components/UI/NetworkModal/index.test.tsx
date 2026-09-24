@@ -117,7 +117,7 @@ describe('NetworkDetails', () => {
     jest
       .mocked(useAnalytics)
       .mockReturnValue(createMockUseAnalyticsHook({ identify: mockIdentify }));
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
       return {};
@@ -190,7 +190,7 @@ describe('NetworkDetails', () => {
   });
 
   it('should call setActiveNetwork when updating an existing network', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
       if (selector === selectNetworkConfigurations)
@@ -286,7 +286,7 @@ describe('NetworkDetails', () => {
   });
 
   it('should call identify with chain ID list when updating an existing network', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
       if (selector === selectNetworkConfigurations)
@@ -336,7 +336,7 @@ describe('NetworkDetails', () => {
     });
 
     it('should handle adding new network correctly', async () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
         return {};
       });
@@ -410,7 +410,7 @@ describe('NetworkDetails', () => {
     });
 
     it('should call selectNetwork when adding a new network', async () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
         return {};
       });
@@ -468,7 +468,7 @@ describe('NetworkDetails', () => {
     });
 
     it('should call selectNetwork when updating an existing network', async () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectNetworkName) return 'Ethereum Main Network';
         if (selector === selectUseSafeChainsListValidation) return true;
         if (selector === selectNetworkConfigurations)

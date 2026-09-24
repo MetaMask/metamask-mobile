@@ -23,7 +23,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 const createParentState = (routeNames: string[]) => ({
   routes: routeNames.map((name) => ({ name, key: `${name}-key` })),

@@ -130,7 +130,7 @@ const defaultProps = {
 };
 
 const setupSelectorMock = (geolocation?: string) => {
-  (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+  (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
     if (selector === getDetectedGeolocation) {
       return geolocation;
     }

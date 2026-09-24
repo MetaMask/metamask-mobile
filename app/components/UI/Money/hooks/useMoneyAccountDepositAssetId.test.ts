@@ -15,7 +15,7 @@ jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
   selectMoneyAccountVaultConfig: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 // Resolve `useSelector(selector)` calls by running the selector against a
 // vault-config-only slice, so only the vault config drives the hook.

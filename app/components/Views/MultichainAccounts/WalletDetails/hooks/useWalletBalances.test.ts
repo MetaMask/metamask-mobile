@@ -13,7 +13,7 @@ describe('useWalletBalances', () => {
   });
 
   it('returns the correct formatted total and filters balances for provided accounts', () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReturnValueOnce({
         // selectBalanceByWallet
         walletId: 'wallet-1',
@@ -47,7 +47,7 @@ describe('useWalletBalances', () => {
   });
 
   it('returns undefined total if totalBalance is not available', () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReturnValueOnce({
         // selectBalanceByWallet
         walletId: 'wallet-1',
@@ -69,7 +69,7 @@ describe('useWalletBalances', () => {
   });
 
   it('formats different currencies correctly', () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReturnValueOnce({
         // selectBalanceByWallet
         walletId: 'wallet-1',
@@ -97,7 +97,7 @@ describe('useWalletBalances', () => {
   });
 
   it('formats small balances with threshold correctly', () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReturnValueOnce({
         // selectBalanceByWallet
         walletId: 'wallet-1',
@@ -125,7 +125,7 @@ describe('useWalletBalances', () => {
   });
 
   it('formats balances at threshold correctly', () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReturnValueOnce({
         // selectBalanceByWallet
         walletId: 'wallet-1',
@@ -147,7 +147,7 @@ describe('useWalletBalances', () => {
   });
 
   it('formats zero balance correctly', () => {
-    (useSelector as jest.Mock)
+    (useSelector as unknown as jest.Mock)
       .mockReturnValueOnce({
         // selectBalanceByWallet
         walletId: 'wallet-1',

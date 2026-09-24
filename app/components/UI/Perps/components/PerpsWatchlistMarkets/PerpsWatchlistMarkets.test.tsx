@@ -166,7 +166,7 @@ describe('PerpsWatchlistMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Default: flag enabled, empty watchlist symbols
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectPerpsWatchlistEnabledFlag) return true;
       if (selector === selectPerpsWatchlistMarkets) return [];
       return [];
@@ -599,7 +599,7 @@ describe('PerpsWatchlistMarkets', () => {
 
   describe('when perps-watchlist-v2-enabled flag is OFF (legacy path)', () => {
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectPerpsWatchlistEnabledFlag) return false;
         if (selector === selectPerpsWatchlistMarkets) return [];
         return [];

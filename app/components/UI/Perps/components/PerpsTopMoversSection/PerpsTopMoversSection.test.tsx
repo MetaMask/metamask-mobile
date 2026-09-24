@@ -104,7 +104,7 @@ jest.mock('../PerpsPillItem', () => ({
   },
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUsePerpsTopMovers = usePerpsTopMovers as jest.Mock;
 const mockUsePerpsNavigation = usePerpsNavigation as jest.Mock;
 

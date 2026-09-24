@@ -163,7 +163,7 @@ describe('useSortedQuotes', () => {
   });
 
   it('returns recommended quote based on reliability if no previously used provider', () => {
-    (useSelector as jest.Mock).mockReturnValue([]);
+    (useSelector as unknown as jest.Mock).mockReturnValue([]);
     (useQuotes as jest.Mock).mockReturnValue({
       quotes: [
         { id: 'quote-1', provider: { id: 'provider-id-1' }, error: null },
@@ -187,7 +187,7 @@ describe('useSortedQuotes', () => {
   });
 
   it('returns recommended quote based on price if no previously used provider and no reliability sorted quotes', () => {
-    (useSelector as jest.Mock).mockReturnValue([]);
+    (useSelector as unknown as jest.Mock).mockReturnValue([]);
     (useQuotes as jest.Mock).mockReturnValue({
       quotes: [
         { id: 'quote-1', provider: { id: 'provider-id-1' }, error: null },
@@ -211,7 +211,7 @@ describe('useSortedQuotes', () => {
   });
 
   it('defaults the recommended quote to the first quote', () => {
-    (useSelector as jest.Mock).mockReturnValue([]);
+    (useSelector as unknown as jest.Mock).mockReturnValue([]);
     (useQuotes as jest.Mock).mockReturnValue({
       quotes: [
         { id: 'quote-1', provider: { id: 'provider-id-1' }, error: null },

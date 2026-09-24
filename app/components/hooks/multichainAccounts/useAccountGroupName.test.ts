@@ -13,7 +13,7 @@ describe('useAccountGroupName', () => {
   });
 
   it('returns the account group name when account group is selected', () => {
-    const mockUseSelector = useSelector as jest.Mock;
+    const mockUseSelector = useSelector as unknown as jest.Mock;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroup) {
         return {
@@ -29,7 +29,7 @@ describe('useAccountGroupName', () => {
   });
 
   it('returns null when no account group is selected', () => {
-    const mockUseSelector = useSelector as jest.Mock;
+    const mockUseSelector = useSelector as unknown as jest.Mock;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroup) {
         return null;

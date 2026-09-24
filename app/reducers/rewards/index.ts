@@ -525,11 +525,11 @@ export const initialState: RewardsState = {
   subscribedCampaignReminders: {},
 };
 
-interface RehydrateAction extends Action<'persist/REHYDRATE'> {
+type RehydrateAction = Action<'persist/REHYDRATE'> & {
   payload?: {
     rewards?: Partial<RewardsState>;
   };
-}
+};
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

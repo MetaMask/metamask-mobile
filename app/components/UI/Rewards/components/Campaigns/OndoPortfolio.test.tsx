@@ -384,7 +384,7 @@ describe('OndoPortfolio', () => {
     };
 
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectAllTokens } = jest.requireMock(
           '../../../../../selectors/tokensController',
         );
@@ -394,7 +394,7 @@ describe('OndoPortfolio', () => {
     });
 
     afterEach(() => {
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(null);
     });
 
     it('pressing a position row does not throw', () => {
@@ -427,7 +427,7 @@ describe('OndoPortfolio', () => {
     const buildPropsWithBalance = (rawHexBalance: string) => {
       const mockOnOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectCurrentSubscriptionAccounts } = jest.requireMock(
           '../../../../../selectors/rewards',
         );
@@ -475,7 +475,7 @@ describe('OndoPortfolio', () => {
 
     afterEach(() => {
       // Restore the default useSelector mock for other tests
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(null);
     });
 
     it.each([
@@ -638,13 +638,13 @@ describe('OndoPortfolio', () => {
     const GROUP_2 = { id: 'group-2', metadata: { name: 'Account 2' } } as never;
 
     afterEach(() => {
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(null);
     });
 
     it('auto-switches to the single group with balance when user is on a different group', () => {
       const onOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectCurrentSubscriptionAccounts } = jest.requireMock(
           '../../../../../selectors/rewards',
         );
@@ -711,7 +711,7 @@ describe('OndoPortfolio', () => {
     it('navigates directly without picker when single group with balance is the currently selected group', () => {
       const onOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectCurrentSubscriptionAccounts } = jest.requireMock(
           '../../../../../selectors/rewards',
         );
@@ -788,7 +788,7 @@ describe('OndoPortfolio', () => {
           assetReference: CHECKSUMMED_TOKEN,
         });
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectCurrentSubscriptionAccounts } = jest.requireMock(
           '../../../../../selectors/rewards',
         );
@@ -856,7 +856,7 @@ describe('OndoPortfolio', () => {
     it('opens account picker when multiple groups hold the token', () => {
       const onOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectCurrentSubscriptionAccounts } = jest.requireMock(
           '../../../../../selectors/rewards',
         );
@@ -930,7 +930,7 @@ describe('OndoPortfolio', () => {
     it('excludes accounts not in the subscription even if they hold the token balance', () => {
       const onOpenAccountPicker = jest.fn();
       // ACCOUNT_2 has balance but is NOT in the subscription
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
         const { selectCurrentSubscriptionAccounts } = jest.requireMock(
           '../../../../../selectors/rewards',
         );

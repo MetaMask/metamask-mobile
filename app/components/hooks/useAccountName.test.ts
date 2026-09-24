@@ -18,7 +18,7 @@ describe('useAccountName', () => {
   });
 
   it('should return the ENS name when default name is a default account name', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       metadata: { name: 'Account 1' },
       address: '0x1234567890123456789012345678901234567890',
     });
@@ -30,7 +30,7 @@ describe('useAccountName', () => {
   });
 
   it('should return the default name when it is not a default account name', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       metadata: { name: 'My Custom Account' },
       address: '0x1234567890123456789012345678901234567890',
     });
@@ -42,7 +42,7 @@ describe('useAccountName', () => {
   });
 
   it('should return an empty string when both default name and ENS name are undefined', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       metadata: { name: undefined },
       address: '0x1234567890123456789012345678901234567890',
     });
@@ -54,7 +54,7 @@ describe('useAccountName', () => {
   });
 
   it('should return an empty string when default name is undefined and ENS name is available', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       metadata: { name: undefined },
       address: '0x1234567890123456789012345678901234567890',
     });
@@ -66,7 +66,7 @@ describe('useAccountName', () => {
   });
 
   it('should return the ENS name when default name is a default account name and ENS name is available', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       metadata: { name: 'Account 1' },
       address: '0x1234567890123456789012345678901234567890',
     });

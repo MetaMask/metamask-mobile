@@ -103,7 +103,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('usePerpsTrading', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectPerpsTerminalBackendEnabledFlag) return true;
       return undefined;
     });

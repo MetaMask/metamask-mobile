@@ -109,7 +109,7 @@ describe('KeyringSnapRemovalWarning', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue({ chainId: '1' });
+    (useSelector as unknown as jest.Mock).mockReturnValue({ chainId: '1' });
   });
 
   it('renders correctly with initial props', () => {

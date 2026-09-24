@@ -18,7 +18,7 @@ jest.mock('../utils/getInternalAccountsFromWallet');
 
 const mockUseHdKeyringsWithSnapAccounts =
   useHdKeyringsWithSnapAccounts as jest.Mock;
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 

@@ -18,13 +18,13 @@ jest.mock('react-redux', () => ({
 
 describe('EarnDepositTokenListItem', () => {
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsIpfsGatewayEnabled) return true;
     });
   });
 
   afterEach(() => {
-    (useSelector as jest.Mock).mockClear();
+    (useSelector as unknown as jest.Mock).mockClear();
   });
 
   const baseProps: EarnTokenListItemProps = {

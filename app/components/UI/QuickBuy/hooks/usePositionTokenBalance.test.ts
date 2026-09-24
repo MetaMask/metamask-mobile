@@ -49,7 +49,7 @@ jest.mock('../../../../selectors/multichain/multichain', () => ({
   selectMultichainAssetsRates: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockAccountByScope =
   selectSelectedInternalAccountByScope as unknown as jest.Mock;
 

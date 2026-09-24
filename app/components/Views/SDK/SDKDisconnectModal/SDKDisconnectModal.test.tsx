@@ -70,7 +70,7 @@ describe('SDKDisconnectModal', () => {
     jest.clearAllMocks();
     mockRouteParams = {};
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       v2Connections: { conn1: {}, conn2: {} },
     });
 
@@ -268,7 +268,7 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles empty v2Connections gracefully', async () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         v2Connections: {},
       });
       mockRouteParams = { isV2: true };
@@ -284,7 +284,7 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles null v2Connections gracefully', async () => {
-      (useSelector as jest.Mock).mockReturnValue({
+      (useSelector as unknown as jest.Mock).mockReturnValue({
         v2Connections: null,
       });
       mockRouteParams = { isV2: true };

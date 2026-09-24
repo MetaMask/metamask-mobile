@@ -122,7 +122,7 @@ describe('useOpenSwaps', () => {
     );
     (useTokensWithBalance as jest.Mock).mockReturnValue(mockTokensWithBalance);
 
-    (useSelector as jest.Mock).mockImplementation((selector) => selector());
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => selector());
 
     const { useSwapBridgeNavigation } = jest.requireMock(
       '../../Bridge/hooks/useSwapBridgeNavigation',

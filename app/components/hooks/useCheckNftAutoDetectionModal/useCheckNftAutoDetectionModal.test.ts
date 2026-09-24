@@ -45,7 +45,7 @@ describe('useCheckNftAutoDetectionModal', () => {
   const mockSelectors = ({
     isConsolidationRolloutEnabled = false,
   }: { isConsolidationRolloutEnabled?: boolean } = {}) => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
         case selectUseNftDetection:
           return false;

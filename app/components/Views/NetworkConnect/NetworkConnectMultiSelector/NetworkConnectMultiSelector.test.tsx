@@ -70,7 +70,7 @@ describe('NetworkConnectMultiSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       // Use switch statement for better selector matching
       switch (selector) {
         case selectNetworkConfigurationsByCaipChainId:

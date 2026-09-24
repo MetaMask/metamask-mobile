@@ -25,7 +25,7 @@ jest.mock('../../hooks/useChainValueOrder', () => ({
   useChainValueOrder: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 // Mock chain ranking array with names from feature flags
 const mockChainRanking = [

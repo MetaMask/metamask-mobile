@@ -6,15 +6,13 @@ export enum ActionType {
   SET_MM_PAY_DEBUG_ENABLED = 'SET_MM_PAY_DEBUG_ENABLED',
 }
 
-export interface SetSecurityAlertsEnabled
-  extends Action<ActionType.SET_SECURITY_ALERTS_ENABLED> {
+export type SetSecurityAlertsEnabled = Action<ActionType.SET_SECURITY_ALERTS_ENABLED> & {
   securityAlertsEnabled: boolean;
-}
+};
 
-export interface SetMmPayDebugEnabled
-  extends Action<ActionType.SET_MM_PAY_DEBUG_ENABLED> {
+export type SetMmPayDebugEnabled = Action<ActionType.SET_MM_PAY_DEBUG_ENABLED> & {
   mmPayDebugEnabled: boolean;
-}
+};
 
 export function setMmPayDebugEnabled(
   mmPayDebugEnabled: boolean,

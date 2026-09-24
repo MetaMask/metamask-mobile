@@ -20,7 +20,7 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
 
 const mockNavigate = jest.fn();
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();

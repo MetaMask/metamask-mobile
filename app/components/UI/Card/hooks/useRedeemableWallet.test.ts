@@ -32,7 +32,7 @@ jest.mock('../../../../selectors/cardController', () => ({
 }));
 
 const mockUseSelector = jest.requireMock('react-redux')
-  .useSelector as jest.Mock;
+  .useSelector as unknown as jest.Mock;
 
 const mockGetCashbackWallet = Engine.context.CardController
   .getCashbackWallet as jest.Mock;
