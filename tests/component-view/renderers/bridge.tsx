@@ -19,6 +19,9 @@ import type { RecurringOrderDetailsRouteParams } from '../../../app/components/U
 import RecurringSwapDetailsView from '../../../app/components/UI/Bridge/Views/RecurringSwapDetailsView';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import BlockExplorersModal from '../../../app/components/UI/Bridge/components/TransactionDetails/BlockExplorersModal';
+import { OpenLimitOrderDetailsModalScreen } from '../../../app/components/UI/Bridge/components/OpenLimitOrderDetailsModal/OpenLimitOrderDetailsModalScreen';
+import { LimitOrderTabRow } from '../../../app/components/UI/Bridge/components/LimitOrderTabRow';
+import type { LimitOrder } from '../../../app/components/UI/Bridge/api/limitOrders/getLimitOrders/types';
 import { initialStateBridge } from '../presets/bridge';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
@@ -240,6 +243,66 @@ export function renderRecurringOrderDetailsView({
         Component: createRouteParamsProbe(
           Routes.WEBVIEW.MAIN,
         ) as React.ComponentType<object>,
+      },
+    ],
+    { state },
+  );
+}
+
+interface RenderOpenLimitOrderDetailsModalOptions
+  extends RenderBridgeViewOptions {
+  order: LimitOrder;
+}
+
+export function renderOpenLimitOrderDetailsModal({
+  order,
+  overrides,
+  deterministicFiat,
+}: RenderOpenLimitOrderDetailsModalOptions): ReturnType<
+  typeof renderScreenWithRoutes
+> {
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    OpenLimitOrderDetailsModalScreen,
+    { name: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL },
+    [
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: BridgeModalStack as unknown as React.ComponentType<object>,
+      },
+    ],
+    { state },
+    { order },
+  );
+}
+
+interface RenderLimitOrderTabRowOptions extends RenderBridgeViewOptions {
+  order: LimitOrder;
+}
+
+export function renderLimitOrderTabRow({
+  order,
+  overrides,
+  deterministicFiat,
+}: RenderLimitOrderTabRowOptions): ReturnType<typeof renderScreenWithRoutes> {
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    () => React.createElement(LimitOrderTabRow, { order }),
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    [
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: BridgeModalStack as unknown as React.ComponentType<object>,
       },
     ],
     { state },
