@@ -523,9 +523,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe(
-          'Invalid referral code. Check and try again.',
-        );
+        expect(result).toBe('Invalid referral code. Check and try again.');
       });
 
       it('returns invalid referral code message case-insensitively', () => {
@@ -536,9 +534,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe(
-          'Invalid referral code. Check and try again.',
-        );
+        expect(result).toBe('Invalid referral code. Check and try again.');
       });
 
       it('returns already referred message for "Already referred by another user"', () => {
