@@ -179,7 +179,7 @@ const createActiveQuote = (
     overrides,
   ) as EnrichedQuickBuyQuote;
 
-const setupDefaultMocks = () => {
+export const setupDefaultMocks = () => {
   (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
   mockUseRampNavigation.mockReturnValue({
     goToBuy: mockGoToBuy,

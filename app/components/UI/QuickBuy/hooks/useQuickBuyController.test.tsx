@@ -1,12 +1,20 @@
+import React from 'react';
 import { renderHook } from '@testing-library/react-native';
 import { useQuickBuyController } from './useQuickBuyController';
-import { runQuickBuyControllerCases } from './runQuickBuyControllerCases';
+import {
+  runQuickBuyControllerCases,
+  setupDefaultMocks,
+} from './runQuickBuyControllerCases';
 import {
   positionToQuickBuyTarget,
   type QuickBuyAnalyticsContext,
   type QuickBuyTarget,
 } from '../types';
+import { FeatureId } from '@metamask/bridge-controller';
+import { BridgeSessionProvider } from '../../Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../../Bridge/providers/SwapQuotesProvider';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -18,6 +26,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+  shallowEqual: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -62,6 +71,18 @@ jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
 }));
 
+jest.mock('../../Bridge/providers/SwapQuotesProvider', () => ({
+  SwapQuotesProvider: ({ children }: { children: unknown }) => children,
+}));
+
+jest.mock('../../Bridge/providers/BridgeSessionProvider', () => ({
+  BridgeSessionProvider: ({ children }: { children: unknown }) => children,
+}));
+
+jest.mock('../../Bridge/hooks/useSwapQuotes', () => ({
+  useSwapQuotes: jest.fn(),
+}));
+
 jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
@@ -69,6 +90,14 @@ jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
 jest.mock('../../Bridge/hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../Bridge/hooks/useUnifiedSwapBridgeContext', () => ({
+  useUnifiedSwapBridgeContext: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({ colors: {} })),
 }));
 
 jest.mock('../../Bridge/hooks/useHasSufficientGas', () => ({
@@ -145,10 +174,19 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectIsNonEvmSourced: jest.fn(),
   selectBridgeFeatureFlags: jest.fn(),
   selectIsGasIncludedSTXSendBundleSupported: jest.fn(),
+  selectSourceToken: jest.fn(),
+  selectDestToken: jest.fn(),
+  selectSourceAmount: jest.fn(),
+  selectBridgeBalanceRefreshKey: jest.fn(),
+  selectBridgeControllerState: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
+  selectGasIncludedQuoteParams: jest.fn(() => ({
+    gasIncluded: false,
+    gasIncluded7702: false,
+  })),
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
@@ -277,4 +315,130 @@ runQuickBuyControllerCases({
       },
     };
   },
+});
+
+const Wrapper = ({
+  children,
+  featureId,
+}: {
+  children: React.ReactNode;
+  featureId: FeatureId;
+}) => {
+  return (
+    <BridgeSessionProvider featureId={featureId}>
+      <SwapQuotesProvider>{children}</SwapQuotesProvider>
+    </BridgeSessionProvider>
+  );
+};
+
+const mockUseSwapQuotes = jest.mocked(useSwapQuotes);
+
+const setupQuoteSourceMock = (
+  mockResult: ReturnType<typeof useQuickBuyQuotes>,
+) => {
+  mockUseSwapQuotes.mockImplementation(
+    () =>
+      ({
+        activeQuote: mockResult.activeQuote,
+        validQuotes: mockResult.sortedQuotes,
+        destTokenAmount: mockResult.destTokenAmount,
+        isLoading: mockResult.isQuoteLoading,
+        isNoQuotesAvailable: mockResult.isNoQuotesAvailable,
+        quoteFetchError: mockResult.quoteFetchError,
+        isActiveQuoteForCurrentTokenPair:
+          mockResult.isActiveQuoteForCurrentTokenPair,
+        needsNewQuote: mockResult.isQuoteRequestStale,
+        formattedQuoteData: {
+          priceImpact: undefined,
+        },
+        shouldShowPriceImpactError:
+          Number(
+            mockResult.activeQuote?.quote?.priceData?.priceImpact?.amount,
+          ) >= 0.25,
+        refreshQuotes: mockResult.refetchQuotes,
+        debouncedUpdateQuoteParams: Object.assign(jest.fn(), {
+          cancel: jest.fn(),
+          flush: jest.fn(),
+        }),
+      }) as unknown as ReturnType<typeof useSwapQuotes>,
+  );
+};
+
+runQuickBuyControllerCases({
+  name: 'useSwapQuotes (QuickBuy)',
+  setupQuoteSourceMock,
+  mockQuoteSource: mockUseQuickBuyQuotes,
+  renderHook: (
+    target?: QuickBuyTarget,
+    onClose?: () => void,
+    analyticsContext?: QuickBuyAnalyticsContext,
+    initialProps?: { target: QuickBuyTarget; onClose: () => void },
+  ) => {
+    const utils = renderHook(
+      () =>
+        useQuickBuyController(
+          target ?? defaultTarget,
+          onClose ?? jest.fn(),
+          analyticsContext,
+        ),
+      {
+        initialProps,
+        wrapper: ({ children }) => (
+          <Wrapper featureId={FeatureId.QUICK_BUY_EXPLORE}>{children}</Wrapper>
+        ),
+      },
+    );
+
+    return {
+      result: utils.result,
+      unmount: utils.unmount,
+      rerender: (props?: { target: QuickBuyTarget; onClose: () => void }) => {
+        utils.rerender(props ?? { target: defaultTarget, onClose: jest.fn() });
+      },
+    };
+  },
+});
+
+describe('formattedPriceImpact', () => {
+  beforeEach(() => {
+    setupDefaultMocks();
+    mockUseQuickBuyQuotes.mockReturnValue({
+      activeQuote: undefined,
+      sortedQuotes: [],
+      destTokenAmount: undefined,
+      isQuoteLoading: false,
+      isNoQuotesAvailable: false,
+      quoteFetchError: null,
+      isActiveQuoteForCurrentTokenPair: false,
+      isQuoteRequestStale: false,
+      quoteCount: 0,
+      quotesLastFetchedAt: null,
+      refreshCount: 0,
+      quoteRefreshRateMs: 30000,
+      maxRefreshCount: 5,
+      refetchQuotes: jest.fn(),
+    });
+  });
+
+  it('returns useSwapQuotes formatted price impact', () => {
+    mockUseSwapQuotes.mockReturnValue({
+      formattedQuoteData: { priceImpact: '-0.20%' },
+      shouldShowPriceImpactError: false,
+      activeQuote: undefined,
+      validQuotes: [],
+      isLoading: false,
+      isNoQuotesAvailable: false,
+      quoteFetchError: null,
+      isActiveQuoteForCurrentTokenPair: false,
+      needsNewQuote: false,
+      refreshQuotes: jest.fn(),
+      debouncedUpdateQuoteParams: jest.fn(),
+    } as unknown as ReturnType<typeof useSwapQuotes>);
+
+    const { result } = renderHook(() =>
+      useQuickBuyController(defaultTarget, jest.fn()),
+    );
+
+    expect(result.current.formattedPriceImpact).toBe('-0.20%');
+  });
 });
