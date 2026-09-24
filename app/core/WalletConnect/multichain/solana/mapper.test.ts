@@ -130,6 +130,12 @@ describe('multichain/solana - mapper', () => {
       ).toStrictEqual({ transaction: 'signedTx', signature: 'sig' });
     });
 
+    it('throws when the snap returns neither a transaction nor a signature', () => {
+      expect(() => mapSignTransactionResponse({})).toThrow(
+        'Snap returned neither a transaction nor a signature',
+      );
+    });
+
     it('maps connected accounts to WalletConnect pubkey objects', () => {
       expect(mapGetAccountsResponse(CONNECTED_ADDRESSES)).toStrictEqual([
         { pubkey: 'AddrA' },

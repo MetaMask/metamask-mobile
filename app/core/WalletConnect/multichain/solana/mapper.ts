@@ -85,6 +85,10 @@ export function mapSignTransactionResponse(
     response.signature = result.signature;
   }
 
+  if (!response.transaction && !response.signature) {
+    throw new Error('Snap returned neither a transaction nor a signature');
+  }
+
   return response;
 }
 
