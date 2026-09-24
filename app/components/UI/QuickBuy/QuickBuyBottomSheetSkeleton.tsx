@@ -11,12 +11,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../locales/i18n';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 
 const QuickBuyBottomSheetSkeleton: React.FC = () => {
   const tw = useTailwind();
 
   return (
-    <Box testID="quick-buy-content-loading">
+    <Box testID={QuickBuySheetSelectorsIDs.CONTENT_LOADING}>
       {/* Toolbar — gear | toggle | close */}
       <Box
         flexDirection={BoxFlexDirection.Row}

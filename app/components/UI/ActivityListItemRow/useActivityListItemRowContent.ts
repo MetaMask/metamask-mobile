@@ -1,6 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Formatters } from '@metamask/client-utils';
-import type { Hex } from '@metamask/utils';
+import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
@@ -10,8 +10,9 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
-import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectPrimaryMoneyAccount } from '../../../selectors/moneyAccountController';
 import { getFormatters, useFormatters } from '../../hooks/useFormatters';
+import { useConvertToFiat } from '../../hooks/useConvertToFiat';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 import {
   MUSD_DECIMALS,
@@ -19,10 +20,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../Earn/constants/musd';
-import {
-  renderShortAddress,
-  safeToChecksumAddress,
-} from '../../../util/address';
+import { areAddressesEqual, renderShortAddress } from '../../../util/address';
 import {
   applyDisplaySign,
   type ActivityKind,
@@ -33,13 +31,11 @@ import {
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
   isPerpsOrderKind,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
   shouldShowPlusSign,
   type Status,
   type TokenAmount,
-  toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
-import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat';
 import {
   addCurrencySymbol,
   balanceToFiatNumber,
@@ -52,8 +48,11 @@ import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
   resolvePerpsOrderStatusLabel,
+  resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
+/* eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list cache hook */
+import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -258,19 +257,17 @@ function perpsPositionSubtitle(
   );
 }
 
-function getPredictActivity(item: ActivityListItem) {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
+function getPredictEventTitle(item: ActivityListItem): string | undefined {
+  return 'eventTitle' in item.data
+    ? (item.data.eventTitle as string | undefined)
+    : undefined;
 }
 
 function predictMarketSubtitle(item: ActivityListItem): string | undefined {
-  return getPredictActivity(item)?.title;
+  return getPredictEventTitle(item);
 }
 
-function protocolSubtitle(item: ActivityListItem): string | undefined {
-  const rawData =
-    item.raw?.type === 'apiEvmTransaction' ? item.raw.data : undefined;
-  const protocol = rawData?.transactionProtocol;
-
+function protocolSubtitle(protocol?: string) {
   if (
     !protocol ||
     protocol === 'GENERIC' ||
@@ -324,7 +321,12 @@ function resolveFallbackTitle(item: ActivityListItem): string {
     strings('transactions.interaction');
 
   if (isPerpsOrderKind(item.type)) {
-    return base;
+    return item.data.perpsTriggerOrderType
+      ? resolvePerpsTriggerOrderTitle(
+          item.type,
+          item.data.perpsTriggerOrderType,
+        )
+      : base;
   }
   return withDomainStatusSuffix(base, item.status);
 }
@@ -392,15 +394,11 @@ function enrichSpendingCapToken(
   }
   const symbol = token.symbol ?? listToken?.symbol;
   const decimals = token.decimals ?? listToken?.decimals;
-  const isUnlimitedApproval =
-    token.amount !== undefined
-      ? isUnlimitedApprovalAmount(token.amount, decimals)
-      : token.isUnlimitedApproval;
+
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
     ...(decimals === undefined ? {} : { decimals }),
-    ...(isUnlimitedApproval ? { isUnlimitedApproval: true } : {}),
   };
 }
 
@@ -475,7 +473,7 @@ function resolveAvatarTokens(
   }
 
   const { data } = item;
-  return uniqueTokens([
+  const tokens = uniqueTokens([
     'sourceToken' in data
       ? enrichStablecoinTokenMetadata(data.sourceToken, item.chainId)
       : undefined,
@@ -486,10 +484,24 @@ function resolveAvatarTokens(
       ? enrichStablecoinTokenMetadata(data.token, item.chainId)
       : undefined,
   ]);
+
+  return tokens.length === 0 && isEvmStakingKind(item)
+    ? [{ direction: 'in', symbol: 'ETH', assetId: `${item.chainId}/slip44:60` }]
+    : tokens;
 }
 
 function isNamelessNftToken(token: TokenAmount | undefined): boolean {
   return Boolean(token?.amount && !token.symbol && !token.assetId);
+}
+
+/** EVM pooled staking is ETH-only; other chains stake their own asset. */
+function isEvmStakingKind(item: ActivityListItem): boolean {
+  return (
+    (item.type === 'stake' ||
+      item.type === 'unstake' ||
+      item.type === 'claim') &&
+    item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+  );
 }
 
 function resolveCoreContent(
@@ -497,6 +509,8 @@ function resolveCoreContent(
   formatters: Formatters,
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
+  isMoneyAccountCounterparty = false,
+  transactionProtocol?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -507,12 +521,27 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol ?? '';
       const address = item.type === 'receive' ? item.data.from : item.data.to;
-      const label = item.type === 'receive' ? 'Received' : 'Sent';
-      const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
-      const failedLabel =
-        item.type === 'receive' ? 'Receive failed' : 'Send failed';
-      const cancelledLabel =
-        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
+      const isMoneyDeposit = item.type === 'send' && isMoneyAccountCounterparty;
+      const label = isMoneyDeposit
+        ? strings('money.transaction.deposited')
+        : item.type === 'receive'
+          ? 'Received'
+          : 'Sent';
+      const pendingLabel = isMoneyDeposit
+        ? strings('money.transaction.depositing')
+        : item.type === 'receive'
+          ? 'Receiving'
+          : 'Sending';
+      const failedLabel = isMoneyDeposit
+        ? strings('money.transaction.deposit_failed')
+        : item.type === 'receive'
+          ? 'Receive failed'
+          : 'Send failed';
+      const cancelledLabel = isMoneyDeposit
+        ? 'Deposit cancelled'
+        : item.type === 'receive'
+          ? 'Receive cancelled'
+          : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
       const counterpartyLabel =
         counterpartyName ||
@@ -547,7 +576,7 @@ function resolveCoreContent(
             ),
             failed: strings('transactions.activity_swap_failed'),
           }),
-          subtitle: protocolSubtitle(item),
+          subtitle: protocolSubtitle(transactionProtocol),
           primaryToken: sourceToken,
         };
       }
@@ -560,7 +589,7 @@ function resolveCoreContent(
         }),
         subtitle:
           tokenPairSubtitle(sourceToken, destinationToken) ??
-          protocolSubtitle(item),
+          protocolSubtitle(transactionProtocol),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -647,14 +676,12 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      // Pooled staking is ETH-only, so stake/unstake read the full asset name
-      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
-      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
       let displayNoun = symbol;
-      if (isStakingKind) {
-        displayNoun = 'Ethereum';
-      } else if (isNamelessNftBuy) {
+      if (isNamelessNftBuy) {
         displayNoun = 'NFT';
+      } else if (!symbol && isEvmStakingKind(item)) {
+        // The unstake leg moves no token, so there is no ticker to read.
+        displayNoun = 'ETH';
       }
       const labels = TOKEN_ACTION_LABELS[item.type];
 
@@ -664,7 +691,7 @@ function resolveCoreContent(
           pending: withOptionalSymbol(labels.pending, displayNoun),
           failed: labels.failed,
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken: isNamelessNftBuy ? undefined : token,
       };
     }
@@ -731,7 +758,7 @@ function resolveCoreContent(
               ? 'Deposit failed'
               : 'Withdrawal failed',
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken,
         secondaryToken:
           primaryToken === destinationToken ? sourceToken : destinationToken,
@@ -751,7 +778,7 @@ function resolveCoreContent(
           pending: withOptionalSymbol(labels.pending, nftName),
           failed: labels.failed,
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken: item.data.paymentToken,
       };
     }
@@ -814,7 +841,7 @@ function resolveCoreContent(
           failed: 'Interaction failed',
         }),
         subtitle:
-          protocolSubtitle(item) ??
+          protocolSubtitle(transactionProtocol) ??
           (item.data.to ? `With ${shortAddress(item.data.to)}` : undefined),
         primaryToken: item.data.token,
       };
@@ -865,7 +892,8 @@ function resolveCoreContent(
       return {
         title: resolveFallbackTitle(item),
         subtitle:
-          perpsPositionSubtitle(item, formatters) ?? protocolSubtitle(item),
+          perpsPositionSubtitle(item, formatters) ??
+          protocolSubtitle(transactionProtocol),
         primaryToken: 'token' in item.data ? item.data.token : undefined,
       };
   }
@@ -889,14 +917,15 @@ function resolveAmount(
 ): string | undefined {
   if (!token) return undefined;
 
-  const displayAmount = token.isUnlimitedApproval
+  const isUnlimited = isSpendingCapUnlimited(token.amount, token.decimals);
+  const displayAmount = isUnlimited
     ? strings('confirm.unlimited')
     : getHumanReadableTokenAmount(token);
   if (displayAmount === undefined) {
     return undefined;
   }
 
-  const amount = token.isUnlimitedApproval
+  const amount = isUnlimited
     ? withOptionalSymbol(displayAmount, token.symbol)
     : formatTokenDisplayAmount(formatters, displayAmount, token.symbol);
 
@@ -935,118 +964,26 @@ function getHexChainId(chainId: string | undefined): Hex | undefined {
     : (`0x${parsedChainId.toString(16)}` as Hex);
 }
 
-function isNativeAsset(token: TokenAmount): boolean {
-  return Boolean(
-    token.assetId?.includes('/slip44:') || token.assetId?.includes('/native:'),
-  );
-}
-
-function getMusdMarketRateToken(
-  token: TokenAmount,
-  hexChainId: Hex,
-): MarketRateLookupToken | undefined {
-  if (
-    token.symbol !== MUSD_TOKEN.symbol ||
-    !MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId]
-  ) {
-    return undefined;
-  }
-
-  return {
-    address: MUSD_TOKEN_ADDRESS_BY_CHAIN[hexChainId].toLowerCase(),
-    symbol: MUSD_TOKEN.symbol,
-    decimals: token.decimals ?? MUSD_DECIMALS,
-    chainId: hexChainId,
-  };
-}
-
-function getMusdNativeExchangeRate({
-  usdConversionRate,
-}: {
-  usdConversionRate: number | null | undefined;
-}): number | undefined {
-  if (!usdConversionRate) {
-    return undefined;
-  }
-
-  return 1 / usdConversionRate;
-}
-
-/**
- * Looks up a token's market `price` from contractExchangeRates. Market data is
- * keyed by checksummed addresses, but the lookup address is lowercased (CAIP
- * asset references are normalized to lowercase), so try the checksum first and
- * fall back to a case-insensitive match. Mirrors `getTokenToEthPrice` in
- * `Money/utils/moneyActivityFiat`.
- */
-function getMarketPriceForAddress(
-  contractExchangeRates:
-    | Record<string, { price?: number | null } | undefined>
-    | undefined,
-  address: string,
-): number | null | undefined {
-  if (!contractExchangeRates) return undefined;
-
-  const checksum = safeToChecksumAddress(address);
-  if (checksum) {
-    const price = contractExchangeRates[checksum]?.price;
-    if (price !== undefined && price !== null) return price;
-  }
-
-  const lower = address.toLowerCase();
-  const key = Object.keys(contractExchangeRates).find(
-    (k) => k.toLowerCase() === lower,
-  );
-  return key !== undefined ? contractExchangeRates[key]?.price : undefined;
-}
-
 function resolveFiatAmount({
   activityType,
-  contractExchangeRates,
-  conversionRate,
+  convertToFiat,
   currentCurrency,
   formatters,
-  hexChainId,
   token,
-  usdConversionRate,
 }: {
   activityType: ActivityListItem['type'];
-  contractExchangeRates:
-    | Record<string, { price?: number | null } | undefined>
-    | undefined;
-  conversionRate: number | null | undefined;
+  convertToFiat: (token: TokenAmount | undefined) => number | undefined;
   currentCurrency: string | undefined;
   formatters: Formatters;
-  hexChainId: Hex | undefined;
   token: TokenAmount | undefined;
-  usdConversionRate: number | null | undefined;
 }): string | undefined {
-  if (!token || !currentCurrency || !hexChainId) return undefined;
-  if (token.isUnlimitedApproval) return undefined;
+  if (!token || !currentCurrency) return undefined;
 
-  const humanAmount = getHumanReadableTokenAmount(token);
-  if (humanAmount === undefined) return undefined;
-
-  const lookupToken =
-    toMarketRateLookupToken(token, hexChainId) ??
-    getMusdMarketRateToken(token, hexChainId);
-  const exchangeRate = isNativeAsset(token)
-    ? 1
-    : lookupToken
-      ? (getMarketPriceForAddress(contractExchangeRates, lookupToken.address) ??
-        (lookupToken.symbol === MUSD_TOKEN.symbol
-          ? getMusdNativeExchangeRate({ usdConversionRate })
-          : undefined))
-      : undefined;
-
-  if (!conversionRate || !exchangeRate) return undefined;
+  const fiatValue = convertToFiat(token);
+  if (fiatValue === undefined) return undefined;
 
   const fiatAmount = formatters.formatCurrencyWithMinThreshold(
-    balanceToFiatNumber(
-      Number.parseFloat(humanAmount),
-      conversionRate,
-      exchangeRate,
-    ),
+    fiatValue,
     currentCurrency,
   );
 
@@ -1159,16 +1096,12 @@ export function useActivityListItemRowContent(
       ? selectConversionRateByChainId(state, hexChainId, true)
       : undefined,
   );
-  const contractExchangeRates = useSelector((state: RootState) =>
-    hexChainId
-      ? selectContractExchangeRatesByChainId(state, hexChainId)
-      : undefined,
-  );
   const usdConversionRate = useSelector((state: RootState) =>
     hexChainId
       ? selectUSDConversionRateByChainId(state, hexChainId)
       : undefined,
   );
+  const convertToFiat = useConvertToFiat(networkChainId);
 
   // Spending caps: resolve the token's symbol/decimals from the tokens API by
   // its asset id (mirroring the extension's ApprovalDetails), so the row/details
@@ -1216,7 +1149,7 @@ export function useActivityListItemRowContent(
       : item.type === 'send'
         ? item.data.to
         : undefined;
-  const counterpartyName = useAccountNames(
+  const accountGroupName = useAccountNames(
     counterpartyAddress
       ? [
           {
@@ -1227,12 +1160,27 @@ export function useActivityListItemRowContent(
         ]
       : [],
   )[0];
+  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const isMoneyAccountCounterparty = Boolean(
+    counterpartyAddress &&
+      moneyAccountAddress &&
+      areAddressesEqual(counterpartyAddress, moneyAccountAddress),
+  );
+  const counterpartyName = isMoneyAccountCounterparty
+    ? strings('transaction_details.label.money_account')
+    : accountGroupName;
 
+  const cachedEvmTransaction = useCachedEvmTransaction({
+    chainId: item.chainId,
+    txHash: item.hash,
+  });
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
+    isMoneyAccountCounterparty,
+    cachedEvmTransaction?.transactionProtocol,
   );
 
   let basePrimaryToken: TokenAmount | undefined;
@@ -1292,13 +1240,10 @@ export function useActivityListItemRowContent(
   );
   const secondaryFiatAmount = resolveFiatAmount({
     activityType: item.type,
-    contractExchangeRates,
-    conversionRate,
+    convertToFiat,
     currentCurrency,
     formatters,
-    hexChainId,
     token: secondaryToken,
-    usdConversionRate,
   });
   const primaryFiatAmount = shouldUsePrimaryFiatFallback(
     item.type,
@@ -1306,13 +1251,10 @@ export function useActivityListItemRowContent(
   )
     ? resolveFiatAmount({
         activityType: item.type,
-        contractExchangeRates,
-        conversionRate,
+        convertToFiat,
         currentCurrency,
         formatters,
-        hexChainId,
         token: primaryToken,
-        usdConversionRate,
       })
     : undefined;
 
@@ -1361,9 +1303,12 @@ export function useActivityListItemRowContent(
       ? item.data.sourceToken?.symbol
       : undefined
     : undefined;
-  const predictIconUrl = isPredictTradeKind(item.type)
-    ? getPredictActivity(item)?.icon
-    : undefined;
+  const predictIconUrl =
+    isPredictTradeKind(item.type) &&
+    'icon' in item.data &&
+    typeof item.data.icon === 'string'
+      ? item.data.icon
+      : undefined;
 
   let avatarTokens: TokenAmount[];
   if (isSpendingCap && spendingCapToken) {

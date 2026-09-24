@@ -4,7 +4,7 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 
@@ -55,7 +55,7 @@ export const useAddNetworkIfMissingMutation = (): UseMutationResult<
 
   return useMutation<Network | null, Error, string | undefined>({
     mutationFn: addNetworkIfMissing,
-    cacheTime: 0,
+    gcTime: 0,
     onError: (error, chainId) =>
       Logger.error(error, {
         message: 'Failed to add missing network',
@@ -78,17 +78,23 @@ export const useAddNetworkIfMissingQuery = ({
 }): UseQueryResult<Network | null, Error> => {
   const addNetworkIfMissing = useAddNetworkIfMissing();
 
-  return useQuery<Network | null, Error>({
+  const query = useQuery<Network | null, Error>({
     queryKey: ['add-network-if-missing', chainId ?? null],
     queryFn: () => addNetworkIfMissing(chainId),
     enabled,
     staleTime: 0,
     retry: false,
     refetchOnWindowFocus: false,
-    onError: (error) =>
-      Logger.error(error, {
+  });
+
+  useEffect(() => {
+    if (query.error) {
+      Logger.error(query.error, {
         message: 'Failed to auto-add missing network',
         chainId,
-      }),
-  });
+      });
+    }
+  }, [query.error, chainId]);
+
+  return query;
 };

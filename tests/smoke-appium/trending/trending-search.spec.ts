@@ -9,15 +9,18 @@ import Assertions from '../../framework/Assertions.js';
 import TrendingView from '../../page-objects/Trending/TrendingView.js';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks.js';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers.js';
-import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
+import {
+  remoteFeatureFlagHeaderNavBar,
+  remoteFeatureFlagTrendingTokensEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 
 appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      remoteFeatureFlagTrendingTokensEnabled(),
-    );
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      ...remoteFeatureFlagTrendingTokensEnabled(),
+      ...remoteFeatureFlagHeaderNavBar(),
+    });
 
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };
@@ -51,10 +54,10 @@ appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
           await TrendingView.tapSearchButton();
 
           await Assertions.expectElementToBeVisible(
-            TrendingView.searchCancelButton,
+            TrendingView.searchBackButton,
             {
               description:
-                'Search cancel button should be visible (search mode active)',
+                'Search back button should be visible (search mode active)',
             },
           );
 
@@ -65,13 +68,13 @@ appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
           await TrendingView.verifySearchResultsListVisible();
 
           await Assertions.expectElementToBeVisible(
-            TrendingView.searchCancelButton,
+            TrendingView.searchBackButton,
             {
-              description: 'Cancel button should be visible',
+              description: 'Back button should be visible',
             },
           );
 
-          await TrendingView.tapSearchCancelButton();
+          await TrendingView.tapSearchBackButton();
 
           await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
             description: 'Search button should be visible again',

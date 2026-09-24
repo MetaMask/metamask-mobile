@@ -1,5 +1,6 @@
 export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
+  EXPLORE = 'explore',
   TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
   ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
@@ -13,6 +14,11 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
+  VBA_GET_PIX_KEY = 'vba_get_pix_key',
+  VBA_KYC_EMAIL = 'vba_kyc_email',
+  EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
+  PRO_SUBSCRIPTION = 'pro_subscription',
+  PRO_HUB = 'pro_hub',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -77,6 +83,7 @@ export enum COMPONENT_NAMES {
   MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO = 'money_add_money_sheet_convert_crypto',
   MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS = 'money_add_money_sheet_deposit_funds',
   MONEY_ADD_MONEY_SHEET_MOVE_MUSD = 'money_add_money_sheet_move_musd',
+  MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT = 'money_add_money_sheet_bank_account',
 
   // — Transfer Money Sheet —
   MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS = 'money_transfer_money_sheet_between_accounts',
@@ -101,7 +108,16 @@ export enum COMPONENT_NAMES {
   MONEY_ASSET_OVERVIEW_BALANCE_CTA = 'money_asset_overview_balance_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
+  MONEY_HEADER = 'money_header',
 
   // — How It Works / FAQ —
   FAQ_ITEM = 'money_faq_item',
+
+  // — EarnSection —
+  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
+  EXPLORE_EARN_SECTION = 'explore_earn_section',
+  EARN_SECTION_MONEY_CARD = 'earn_section_money_card',
+
+  // — EarnSectionListView —
+  MONEY_ACCOUNT_ROW = 'money_account_row',
 }

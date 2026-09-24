@@ -8,9 +8,8 @@ import {
   TestDapps,
 } from '../../../framework/index.js';
 import {
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from '../../mm-connect/utils.js';
 import BitcoinTestDapp, {
   BITCOIN_DAPP_PORT,
@@ -34,15 +33,11 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest.beforeAll(async () => {
-    bitcoinDappServer.setServerPort(BITCOIN_DAPP_PORT);
-    await bitcoinDappServer.start();
-    await waitForDappServerReady(BITCOIN_DAPP_PORT);
-    setupAdbReverse(BITCOIN_DAPP_PORT);
+    await startLocalDappServerOnWorker(bitcoinDappServer, BITCOIN_DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(BITCOIN_DAPP_PORT);
-    await bitcoinDappServer.stop();
+    await stopLocalDappServerOnWorker(bitcoinDappServer, BITCOIN_DAPP_PORT);
   });
 
   appiumTest(

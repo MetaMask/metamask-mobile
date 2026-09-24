@@ -8,12 +8,15 @@ import {
 } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsMode,
+} from '../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import type { PerpsStackParamList } from '../types/navigation';
 
 /**
- * Default market a user lands on when switching to Pro mode (TAT-3551, AC #4).
+ * Default market a user lands on when switching to Pro mode.
  */
 export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
 
@@ -24,9 +27,28 @@ export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
  * the remaining fields from the live markets stream, so a symbol-only payload
  * is sufficient to open `MARKET_DETAILS`.
  */
-export const buildDefaultProMarket = (): PerpsMarketData =>
+export const resolveTradableLastViewedMarketSymbol = (
+  lastViewed: string,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
+): string => {
+  const symbol =
+    typeof lastViewed === 'string' && lastViewed.length > 0
+      ? lastViewed
+      : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
+  if (!tradableSymbols) {
+    return symbol;
+  }
+  const tradableSet =
+    tradableSymbols instanceof Set ? tradableSymbols : new Set(tradableSymbols);
+  return tradableSet.has(symbol) ? symbol : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
+};
+
+export const buildDefaultProMarket = (
+  symbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
+): PerpsMarketData =>
   ({
-    symbol: PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+    symbol: resolveTradableLastViewedMarketSymbol(symbol, tradableSymbols),
   }) as unknown as PerpsMarketData;
 
 /**
@@ -65,19 +87,27 @@ export interface PerpsHomeNavigationTarget {
  * has not re-rendered yet.
  *
  * While Pro mode is active, `PerpsHomeView` must never be shown (TAT-3612):
- * every entry point instead lands on the default Pro market, so the user
- * only ever moves between a market page and the market list. Centralizing
- * this here keeps every entry point (Trade sheet, Wallet actions, Homepage
- * grid/pill, deeplinks, etc.) consistent.
+ * every entry point instead lands on the last viewed market (falling back
+ * to BTC), so the user only ever moves between a market page and the market
+ * list. Centralizing this here keeps every entry point (Trade sheet, Wallet
+ * actions, Homepage grid/pill, deeplinks, etc.) consistent.
+ *
+ * `extraParams.market` still wins when a caller already knows the destination
+ * (deeplinks with `symbol=`, Lite↔Pro from an open market screen).
  */
 export const resolvePerpsHomeNavigationTarget = (
   isProModeActive: boolean,
   extraParams: Record<string, unknown> = {},
+  lastViewedMarketSymbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
 ): PerpsHomeNavigationTarget => {
   if (isProModeActive) {
     return {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market: buildDefaultProMarket(), ...extraParams },
+      params: {
+        market: buildDefaultProMarket(lastViewedMarketSymbol, tradableSymbols),
+        ...extraParams,
+      },
     };
   }
 
@@ -96,7 +126,11 @@ export const getPerpsHomeNavigationTarget = (
   state: RootState,
   extraParams: Record<string, unknown> = {},
 ): PerpsHomeNavigationTarget =>
-  resolvePerpsHomeNavigationTarget(isPerpsProModeActive(state), extraParams);
+  resolvePerpsHomeNavigationTarget(
+    isPerpsProModeActive(state),
+    extraParams,
+    selectPerpsLastViewedMarketSymbol(state),
+  );
 
 /**
  * React hook returning a function that resolves the "go to Perps home"
@@ -106,11 +140,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
   extraParams?: Record<string, unknown>,
 ) => PerpsHomeNavigationTarget) => {
   const isProModeActive = useIsPerpsProModeActive();
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
 
   return useCallback(
     (extraParams?: Record<string, unknown>) =>
-      resolvePerpsHomeNavigationTarget(isProModeActive, extraParams),
-    [isProModeActive],
+      resolvePerpsHomeNavigationTarget(
+        isProModeActive,
+        extraParams,
+        typeof lastViewedMarketSymbol === 'string'
+          ? lastViewedMarketSymbol
+          : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+      ),
+    [isProModeActive, lastViewedMarketSymbol],
   );
 };
 
@@ -125,11 +166,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
  * in `usePerpsNavigationHandlers.ts`, or `app/components/UI/Rewards/utils.ts`).
  * Centralized here so every "go to Perps home" call site shares one
  * reviewed assertion instead of repeating it.
+ *
+ * Pass `pop: true` when the destination is already below the caller in the
+ * Perps stack: React Navigation pushes a duplicate entry otherwise.
  */
 export const toPerpsNavigatorScreenParams = (
   target: PerpsHomeNavigationTarget,
+  options: { pop?: boolean } = {},
 ): NavigatorScreenParams<PerpsStackParamList> =>
-  target as unknown as NavigatorScreenParams<PerpsStackParamList>;
+  ({
+    ...target,
+    ...options,
+  }) as unknown as NavigatorScreenParams<PerpsStackParamList>;
 
 /**
  * Navigates directly (not nested under `Routes.PERPS.ROOT`) to a resolved
@@ -150,14 +198,136 @@ export const navigateToPerpsHomeTarget = (
 };
 
 /**
+ * Replaces the Perps stack with the resolved home target.
+ *
+ * `navigate(PERPS_HOME)` pushes Home onto a remaining market after Home was
+ * dropped, so hardware/swipe back from Home returns to that market. Reset
+ * leaves Home as the only Perps route (TAT-3786).
+ */
+export const resetToPerpsHomeTarget = (
+  navigation: { reset: (...args: never[]) => void },
+  target: PerpsHomeNavigationTarget,
+): void => {
+  // Same assertion rationale as `navigateToPerpsHomeTarget`: the screen name
+  // is resolved at runtime, so `reset()` cannot correlate it with its params.
+  (
+    navigation.reset as unknown as (state: {
+      index: number;
+      routes: { name: string; params?: Record<string, unknown> }[];
+    }) => void
+  )({
+    index: 0,
+    routes: [{ name: target.screen, params: target.params }],
+  });
+};
+
+/**
+ * Stamped onto remaining Perps routes when {@link dropPerpsHomeFromStackHistory}
+ * actually removes Home. A single-entry Perps stack looks the same whether the
+ * user arrived from Explore (back should pop `PERPS.ROOT`) or Home was dropped
+ * after Lite -> Pro (back should use the header fallback). This param is how
+ * the back handler tells those apart.
+ */
+export const PERPS_HOME_DROPPED_FROM_HISTORY_PARAM =
+  'homeDroppedFromHistory' as const;
+
+/**
+ * Index + focused-route params are enough. Callers pass `navigation.getState()`
+ * or a partial fixture in tests; requiring a full `NavigationState` made the
+ * helper unusable from unit tests (`lint:tsc`).
+ */
+interface PerpsHistoryState {
+  index: number;
+  routes: readonly { params?: object }[];
+}
+
+export const withHomeDroppedFromHistory = <T extends object>(
+  params: T,
+): T & { [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true } => ({
+  ...params,
+  [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
+});
+
+const routeCarriesHomeDroppedFromHistory = (
+  route: { params?: object } | undefined,
+): boolean => {
+  const params = route?.params;
+  if (!params || typeof params !== 'object') {
+    return false;
+  }
+  return (
+    (params as Record<string, unknown>)[
+      PERPS_HOME_DROPPED_FROM_HISTORY_PARAM
+    ] === true
+  );
+};
+
+export const wasPerpsHomeDroppedFromHistory = (
+  state: PerpsHistoryState | undefined,
+): boolean =>
+  Boolean(
+    state && routeCarriesHomeDroppedFromHistory(state.routes[state.index]),
+  );
+
+/**
+ * Whether Back should pop the current Perps route rather than using the
+ * header/list fallback.
+ *
+ * `canGoBack` is parent-aware, so a single-entry Perps stack still reports
+ * true when the main stack can pop `PERPS.ROOT`. That is correct for
+ * Explore/homepage and wrong after Lite → Pro dropped Home (TAT-3786).
+ */
+export const shouldPopPerpsRoute = (
+  canGoBack: boolean,
+  state: PerpsHistoryState | undefined,
+): boolean => {
+  const hasPerpsStackHistory = (state?.index ?? 0) > 0;
+  return (
+    canGoBack &&
+    (hasPerpsStackHistory || !wasPerpsHomeDroppedFromHistory(state))
+  );
+};
+
+/** Native-stack iOS swipe and Android hardware back use these action types. */
+export const isPerpsStackBackAction = (actionType: string): boolean =>
+  actionType === 'GO_BACK' || actionType === 'POP';
+
+/**
+ * Copies {@link PERPS_HOME_DROPPED_FROM_HISTORY_PARAM} onto new route params
+ * when any stack entry already carries it. The header market picker rebuilds
+ * `MARKET_DETAILS` without inheriting the previous params, which would look
+ * like an Explore single-entry stack to the back handler (TAT-3786).
+ */
+export const preserveHomeDroppedFromHistory = <T extends object>(
+  params: T,
+  state: PerpsHistoryState | undefined,
+): T => {
+  if (!state?.routes.some(routeCarriesHomeDroppedFromHistory)) {
+    return params;
+  }
+  return withHomeDroppedFromHistory(params);
+};
+
+const stampHomeDroppedFromHistory = <T extends { params?: object }>(
+  route: T,
+): T => ({
+  ...route,
+  params: withHomeDroppedFromHistory(route.params ?? {}),
+});
+
+/**
  * Removes `PerpsHomeView` from a Perps stack's history, leaving every other
  * entry (e.g. the market list) untouched.
  *
  * Switching to Pro from a market screen swaps the rendered layout in place —
  * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
  * user came through stays in history and the back button would reveal the Lite
- * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
+ * hub while Pro is active. Screens that switch mode by navigating
  * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
+ *
+ * Remaining routes are stamped with {@link PERPS_HOME_DROPPED_FROM_HISTORY_PARAM}
+ * so the market-header back handler can still pop out of Perps when the stack
+ * was a single external entry (Explore, homepage) rather than a dropped Home.
  */
 export const dropPerpsHomeFromStackHistory = (navigation: {
   getState: () => NavigationState | undefined;
@@ -171,15 +341,20 @@ export const dropPerpsHomeFromStackHistory = (navigation: {
     return;
   }
 
-  const routes = state.routes.filter(
+  const remainingRoutes = state.routes.filter(
     (route) => route.name !== Routes.PERPS.PERPS_HOME,
   );
 
   // Nothing to drop, or Home is the only entry — resetting to an empty
   // history would leave the navigator with no screen to render.
-  if (routes.length === state.routes.length || routes.length === 0) {
+  if (
+    remainingRoutes.length === state.routes.length ||
+    remainingRoutes.length === 0
+  ) {
     return;
   }
+
+  const routes = remainingRoutes.map(stampHomeDroppedFromHistory);
 
   // Keep the user on the screen they're looking at: its position shifts when
   // an earlier route is removed.
@@ -230,6 +405,7 @@ export const useNavigateToPerpsHome = (): ((
       // Same assertion rationale as `navigateToPerpsHomeTarget`: the nested
       // screen name is resolved at runtime, so `navigate()`'s overloads can't
       // correlate it with its params.
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- two-arg navigate; nested screen name is resolved at runtime
       const navigate = navigation.navigate as unknown as (
         screen: string,
         params: NavigatorScreenParams<PerpsStackParamList>,
@@ -237,7 +413,12 @@ export const useNavigateToPerpsHome = (): ((
 
       navigate(
         Routes.PERPS.ROOT,
-        toPerpsNavigatorScreenParams(getTarget(extraParams)),
+        // When the target is already below the caller (e.g. the deposit
+        // confirmation stacked over it), pop back to it: without `pop` React
+        // Navigation pushes a duplicate and leaves that confirmation
+        // underneath, so Back returns to it. When the target is not in the
+        // stack at all, `pop` finds nothing and the push happens as before.
+        toPerpsNavigatorScreenParams(getTarget(extraParams), { pop: true }),
       );
     },
     [navigation, getTarget],

@@ -4,10 +4,9 @@ import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { Performance, PerformanceOnboarding } from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import {
-  asPlaywrightElement,
   PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightGestures,
+  AppiumAssertions,
+  AppiumGestures,
 } from '../../framework';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
@@ -56,28 +55,26 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
 
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(OnboardingSheet.importSeedButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          OnboardingSheet.importSeedButton,
         );
       });
 
       await OnboardingSheet.tapImportSeedButton();
       await timer2.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(ImportWalletView.title),
-        );
+        await AppiumAssertions.expectElementToBeVisible(ImportWalletView.title);
       });
 
       await ImportWalletView.typeSecretRecoveryPhrase(
         process.env.TEST_SRP_3 || '',
         true,
       );
-      await PlaywrightGestures.hideKeyboard();
+      await AppiumGestures.hideKeyboard();
 
       await ImportWalletView.tapContinueButton();
       await timer3.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(CreatePasswordView.newPasswordInput),
+        await AppiumAssertions.expectElementToBeVisible(
+          CreatePasswordView.newPasswordInput,
         );
       });
 
@@ -92,13 +89,13 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
       await CreatePasswordView.tapConfirmPasswordVisibilityIcon();
       await CreatePasswordView.tapIUnderstandCheckBox();
       if (await PlatformDetector.isAndroid()) {
-        await PlaywrightGestures.hideKeyboard();
+        await AppiumGestures.hideKeyboard();
       }
       await CreatePasswordView.tapCreatePasswordButton();
 
       await timer4.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+        await AppiumAssertions.expectElementToBeVisible(
+          MetaMetricsOptInView.screenTitle,
         );
       });
 
@@ -107,10 +104,9 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
       await dismissPushNotificationExistingUserSheet();
       await closePredictModal();
       await timer7.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.headerRoot),
-          { timeout: walletTokenLoadTimeoutMs },
-        );
+        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot, {
+          timeout: walletTokenLoadTimeoutMs,
+        });
       });
 
       performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer7);

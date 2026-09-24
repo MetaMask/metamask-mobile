@@ -31,6 +31,27 @@ interface ValidationParams {
 }
 
 /**
+ * Checks that a trigger price can be sent to the protocol at all.
+ *
+ * Direction checks alone let a non-positive price through: a negative take
+ * profit is still "below" a short's current price, and a negative stop loss is
+ * still "below" a long's current price. The protocol rejects the whole order
+ * when `p` or `triggerPx` is at or below zero, so this floor is checked before
+ * the direction rules.
+ *
+ * @param price - The trigger price to validate
+ * @returns False only when the price parses to a number at or below zero
+ */
+export const isPositiveTriggerPrice = (price?: string): boolean => {
+  if (!price) return true;
+
+  const parsedPrice = parseFloat(price.replace(/[$,]/g, ''));
+  if (isNaN(parsedPrice)) return true;
+
+  return parsedPrice > 0;
+};
+
+/**
  * Validates if a take profit price is valid for the given direction.
  *
  * @param price - The take profit price to validate
@@ -43,6 +64,8 @@ export const isValidTakeProfitPrice = (
   price: string,
   { currentPrice, direction }: ValidationParams,
 ): boolean => {
+  if (!isPositiveTriggerPrice(price)) return false;
+
   if (!currentPrice || !direction || !price) return true;
 
   const tpPrice = parseFloat(price.replace(/[$,]/g, ''));
@@ -65,6 +88,8 @@ export const isValidStopLossPrice = (
   price: string,
   { currentPrice, direction }: ValidationParams,
 ): boolean => {
+  if (!isPositiveTriggerPrice(price)) return false;
+
   if (!currentPrice || !direction || !price) return true;
 
   const slPrice = parseFloat(price.replace(/[$,]/g, ''));
@@ -162,20 +187,22 @@ export const getPerpsOrderTpSlWarnings = ({
 
   const isTakeProfitPriceInvalid = Boolean(
     takeProfitPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidTakeProfitPrice(takeProfitPrice, {
-        currentPrice: validationReferencePrice,
-        direction,
-      }),
+      (!isPositiveTriggerPrice(takeProfitPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidTakeProfitPrice(takeProfitPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
   );
 
   const isStopLossPriceInvalid = Boolean(
     stopLossPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidStopLossPrice(stopLossPrice, {
-        currentPrice: validationReferencePrice,
-        direction,
-      }),
+      (!isPositiveTriggerPrice(stopLossPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidStopLossPrice(stopLossPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
   );
 
   return {
@@ -199,6 +226,15 @@ export const validateTPSLPrices = (
   stopLossPrice: string | undefined,
   params: ValidationParams,
 ): boolean => {
+  // The positive-price floor does not depend on a reference price, so it is
+  // applied before the early return that skips the direction rules.
+  if (
+    !isPositiveTriggerPrice(takeProfitPrice) ||
+    !isPositiveTriggerPrice(stopLossPrice)
+  ) {
+    return false;
+  }
+
   if (!params.currentPrice || !params.direction) return true;
 
   let isValid = true;
@@ -396,7 +432,7 @@ export const calculatePriceForRoE = (
   // Prevent stop loss from exceeding maximum possible loss
   // Maximum theoretical loss is 100% * leverage (before liquidation)
   // But we'll cap it at 99% to avoid negative prices
-  if (!isProfit && Math.abs(roePercentage) >= leverage * 99) {
+  if (!isProfit && roePercentage <= -(leverage * 99)) {
     // Cap at 99% of max loss to prevent negative prices
     roePercentage = -(leverage * 99);
   }
@@ -552,11 +588,13 @@ export const safeParseRoEPercentage = (roePercent: string): string => {
  * Format RoE percentage for display based on focus state
  * @param value - The raw percentage value as string
  * @param isFocused - Whether the input is currently focused
+ * @param includeSign - When false, omit `+`/`-` (the Auto Close badge owns the sign)
  * @returns Formatted percentage string for display
  */
 export const formatRoEPercentageDisplay = (
   value: string,
   isFocused: boolean,
+  includeSign: boolean = true,
 ): string => {
   if (!value || value.trim() === '') {
     return '';
@@ -589,6 +627,10 @@ export const formatRoEPercentageDisplay = (
   const absValue = Math.abs(parsed);
   const formattedValue =
     absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+
+  if (!includeSign) {
+    return formattedValue;
+  }
 
   // Always show sign for display
   if (parsed >= 0) {

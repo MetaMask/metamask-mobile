@@ -5,9 +5,47 @@ import {
 } from '../../constants/onboarding';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import { setWalletHomeOnboardingStepsEligible } from '../../actions/onboarding';
+import {
+  setBasicFunctionality,
+  setBasicFunctionalityConsolidatedEnabled,
+} from '../../actions/settings';
+import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { store } from '../../store';
 import { analytics } from '../analytics/analytics';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import Logger from '../Logger';
+
+jest.mock(
+  '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences',
+  () => ({
+    syncConsolidatedBasicFunctionalityPreferences: jest.fn(),
+  }),
+);
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock(
+  '../../selectors/featureFlagController/basicFunctionalityConsolidation',
+  () => ({
+    selectMobileUxBftcConsolidationFlagEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../actions/settings', () => ({
+  setBasicFunctionality: jest.fn((basicFunctionalityEnabled: boolean) => ({
+    type: 'TOGGLE_BASIC_FUNCTIONALITY',
+    basicFunctionalityEnabled,
+  })),
+  setBasicFunctionalityConsolidatedEnabled: jest.fn(() => ({
+    type: 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED',
+    isBasicFunctionalityConsolidatedEnabled: true,
+  })),
+}));
 
 jest.mock('../analytics/analytics', () => ({
   analytics: {
@@ -19,6 +57,7 @@ jest.mock('../../multichain-accounts/discovery', () => ({
 }));
 
 const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
+const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../core/Engine/Engine', () => ({
   context: {
@@ -30,6 +69,10 @@ jest.mock('../../core/Engine/Engine', () => ({
     QrSyncProvisioningService: {
       provisionFromMetadata: (...args: unknown[]) =>
         mockProvisionFromMetadata(...args),
+    },
+    MultichainAccountService: {
+      setBasicFunctionality: (...args: unknown[]) =>
+        mockSetBasicFunctionality(...args),
     },
   },
 }));
@@ -45,6 +88,18 @@ describe('finalizeOnboardingCompletion', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockProvisionFromMetadata.mockResolvedValue(undefined);
+    mockSetBasicFunctionality.mockResolvedValue(undefined);
+    mockDiscoverAccounts.mockResolvedValue(0);
+    jest
+      .mocked(store.getState)
+      .mockReturnValue({} as ReturnType<typeof store.getState>);
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('tracks ONBOARDING_COMPLETED via analytics.trackEvent for eligible flows', () => {
@@ -184,9 +239,7 @@ describe('finalizeOnboardingCompletion', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
-
     loggerSpy.mockRestore();
-    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('logs discoverAccounts failures with the provided context', async () => {
@@ -210,8 +263,91 @@ describe('finalizeOnboardingCompletion', () => {
       expect.any(Error),
       'OnboardingSuccess: discoverAccounts failed',
     );
-
     loggerSpy.mockRestore();
-    mockDiscoverAccounts.mockResolvedValue(0);
+  });
+
+  it('marks consolidated Basic Functionality cohort when remote flag is enabled', () => {
+    jest.mocked(store.getState).mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+        },
+      },
+    } as ReturnType<typeof store.getState>);
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(true);
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      accountType: AccountType.Metamask,
+      isBasicFunctionalityEnabled: true,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+    });
+
+    expect(setBasicFunctionalityConsolidatedEnabled).toHaveBeenCalledWith(true);
+    expect(setBasicFunctionality).toHaveBeenCalledWith(true);
+    expect(syncConsolidatedBasicFunctionalityPreferences).toHaveBeenCalledWith(
+      true,
+    );
+  });
+
+  it('forces Basic Functionality on for social-login onboarding', () => {
+    jest.mocked(store.getState).mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+          SeedlessOnboardingController: {
+            authConnection: 'google',
+            vault: 'encrypted',
+          },
+        },
+      },
+    } as ReturnType<typeof store.getState>);
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(true);
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      accountType: AccountType.MetamaskGoogle,
+      isBasicFunctionalityEnabled: false,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+    });
+
+    expect(setBasicFunctionality).toHaveBeenCalledWith(true);
+    expect(syncConsolidatedBasicFunctionalityPreferences).toHaveBeenCalledWith(
+      true,
+    );
+    expect(mockSetBasicFunctionality).toHaveBeenCalledWith(true);
+  });
+
+  it('forces Basic Functionality on before seedless controller metadata hydrates', () => {
+    jest.mocked(store.getState).mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+          SeedlessOnboardingController: {},
+        },
+      },
+    } as ReturnType<typeof store.getState>);
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(true);
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      accountType: undefined,
+      isBasicFunctionalityEnabled: false,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+    });
+
+    expect(setBasicFunctionality).toHaveBeenCalledWith(true);
+    expect(syncConsolidatedBasicFunctionalityPreferences).toHaveBeenCalledWith(
+      true,
+    );
   });
 });

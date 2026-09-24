@@ -112,6 +112,7 @@ import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
+import { AssetSelectionBottomSheetTestIds } from './AssetSelectionBottomSheet.testIds';
 import {
   FundingStatus,
   CardFundingToken,
@@ -293,12 +294,14 @@ describe('AssetSelectionBottomSheet', () => {
       expect(getByText('Select token and network')).toBeOnTheScreen();
     });
 
-    it('displays loading indicator when delegation settings is null', () => {
-      const { UNSAFE_getByType, queryByText } = setupComponent({
+    it('displays loading spinner when delegation settings is null', () => {
+      const { getByTestId, queryByText } = setupComponent({
         delegationSettings: null,
       });
 
-      expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
+      expect(
+        getByTestId(AssetSelectionBottomSheetTestIds.LOADING_SPINNER),
+      ).toBeOnTheScreen();
       expect(queryByText('No tokens available')).not.toBeOnTheScreen();
     });
 

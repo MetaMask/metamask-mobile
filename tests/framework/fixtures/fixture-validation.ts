@@ -253,6 +253,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.thresholdCache',
+    'engine.backgroundState.RemoteFeatureFlagController.featureFlagThresholdGroups',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
 
@@ -278,6 +279,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
     'engine.backgroundState.TransactionController.transactionBatches',
+    'engine.backgroundState.TransactionController.batchTransactionCounts',
     'engine.backgroundState.TransactionController.lastFetchedBlockNumbers',
     'engine.backgroundState.TransactionController.submitHistory',
     'engine.backgroundState.TransactionPayController',
@@ -307,6 +309,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.NetworkEnablementController',
     'engine.backgroundState.PredictController',
     'engine.backgroundState.RewardsController',
+    'engine.backgroundState.RewardsMoneyController',
     'engine.backgroundState.SeedlessOnboardingController',
     'engine.backgroundState.SelectedNetworkController',
     'engine.backgroundState.SignatureController',
@@ -322,6 +325,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'card.geoLocation',
     'engine.backgroundState.GeolocationController.location',
     'engine.backgroundState.GeolocationController.lastFetchedAt',
+    'engine.backgroundState.ConfigRegistryController.lastFetched',
 
     // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base

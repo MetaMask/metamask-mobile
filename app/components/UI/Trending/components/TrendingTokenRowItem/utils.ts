@@ -1,4 +1,5 @@
-import { ImageSourcePropType } from 'react-native';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native';
+import type { ImageSourcePropType } from 'react-native';
 import {
   CaipChainId,
   isCaipChainId,
@@ -50,6 +51,12 @@ export const getNetworkBadgeSource = (
   if (customNetworkImg) return customNetworkImg as ImageSourcePropType;
   return undefined;
 };
+
+/** Same lookup as `getNetworkBadgeSource`, typed for design-system `BadgeNetwork`. */
+export const getNetworkBadgeSrc = (
+  caipChainId: CaipChainId,
+): ImageOrSvgSrc | undefined =>
+  getNetworkBadgeSource(caipChainId) as ImageOrSvgSrc | undefined;
 
 /**
  * Formats a number as compact currency string with magnitude abbreviations

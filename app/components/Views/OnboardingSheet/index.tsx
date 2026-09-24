@@ -31,6 +31,9 @@ import {
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -60,6 +63,18 @@ const OnboardingSheet = () => {
   } = params ?? {};
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+
+  // Sheet CTAs are the first paint destination after Create/Import wallet.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ONBOARDING_SHEET,
+    contentReady: true,
+    isEmpty: false,
+  });
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.ONBOARDING_SHEET,
+    destinationReady: true,
+  });
+
   const onPressCreateAction = () => {
     if (onPressCreate) {
       onPressCreate();

@@ -4,24 +4,12 @@ import {
   waitFor,
   cleanup,
 } from '@testing-library/react-native';
-import { AppState, type AppStateStatus } from 'react-native';
 import Braze from '@braze/react-native-sdk';
+import { endTrace, trace } from '../../../util/trace';
 import { useBrazeBanner } from './useBrazeBanner';
 
 const TEST_PLACEMENT_ID = 'placement-1';
 const SKELETON_TIMEOUT_MS = 5000;
-
-// ---------------------------------------------------------------------------
-// Mock: react-native AppState
-// ---------------------------------------------------------------------------
-let capturedAppStateListener: ((nextState: AppStateStatus) => void) | undefined;
-const mockAppStateRemove = jest.fn();
-
-const fireAppStateChange = (nextState: AppStateStatus) => {
-  act(() => {
-    capturedAppStateListener?.(nextState);
-  });
-};
 
 // ---------------------------------------------------------------------------
 // Mock: @braze/react-native-sdk
@@ -53,14 +41,33 @@ jest.mock('@braze/react-native-sdk', () => ({
 // ---------------------------------------------------------------------------
 const mockGetBannerForPlacement = jest.fn().mockResolvedValue(null);
 const mockDismissBrazeBanner = jest.fn();
-const mockRefreshBrazeBanners = jest.fn();
 
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
-  refreshBrazeBanners: (...args: unknown[]) => mockRefreshBrazeBanners(...args),
   dismissBrazeBanner: (...args: unknown[]) => mockDismissBrazeBanner(...args),
 }));
+
+// ---------------------------------------------------------------------------
+// Mock: trace
+// ---------------------------------------------------------------------------
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    BrazeBannerTimeToContent: 'Braze Banner Time To Content',
+  },
+  TraceOperation: {
+    BrazeBannerPerformance: 'braze_banner.performance',
+  },
+}));
+
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'test-braze-trace-id'),
+}));
+
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
 
 // ---------------------------------------------------------------------------
 // Mock: react-redux
@@ -150,21 +157,10 @@ const fireBannerEvent = (banners: object[]) => {
 describe('useBrazeBanner', () => {
   beforeEach(() => {
     capturedBannerListener = undefined;
-    capturedAppStateListener = undefined;
     mockLastDismissed = null;
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
-    mockRefreshBrazeBanners.mockReset();
-
-    jest
-      .spyOn(AppState, 'addEventListener')
-      .mockImplementation((_event, cb: (nextState: AppStateStatus) => void) => {
-        capturedAppStateListener = cb;
-        return { remove: mockAppStateRemove } as ReturnType<
-          typeof AppState.addEventListener
-        >;
-      });
   });
 
   afterEach(() => {
@@ -541,27 +537,8 @@ describe('useBrazeBanner', () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Foreground refresh
-  // ---------------------------------------------------------------------------
-  describe('foreground refresh', () => {
-    it('calls requestBannersRefresh when app becomes active', () => {
-      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireAppStateChange('active');
-
-      expect(mockRefreshBrazeBanners).toHaveBeenCalledWith([TEST_PLACEMENT_ID]);
-    });
-
-    it('does not call requestBannersRefresh when app goes to background', () => {
-      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireAppStateChange('background');
-
-      expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
-    });
-
-    it('swaps a visible banner when the foreground refresh returns a different trackingId', () => {
+  describe('banner replacement', () => {
+    it('replaces a visible banner when a different trackingId arrives', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
       fireBannerEvent([
@@ -573,8 +550,6 @@ describe('useBrazeBanner', () => {
       ]);
       expect(result.current.status).toBe('visible');
 
-      // Simulate foreground → SDK fires a new bannerCardsUpdated event
-      fireAppStateChange('active');
       fireBannerEvent([
         makeBanner({
           trackingId: 'tracking-2',
@@ -584,23 +559,6 @@ describe('useBrazeBanner', () => {
       ]);
 
       expect(result.current.body).toBe('Refreshed body');
-    });
-
-    it('removes the AppState subscription on unmount', () => {
-      const { unmount } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      unmount();
-
-      expect(mockAppStateRemove).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls requestBannersRefresh multiple times across multiple foreground transitions', () => {
-      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireAppStateChange('active');
-      fireAppStateChange('background');
-      fireAppStateChange('active');
-
-      expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -697,6 +655,146 @@ describe('useBrazeBanner', () => {
     it('returns null deeplink when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
       expect(result.current.deeplink).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Performance trace
+  // ---------------------------------------------------------------------------
+  describe('performance trace', () => {
+    it('starts the time-to-content span on mount with the placement tag', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        op: 'braze_banner.performance',
+        id: 'test-braze-trace-id',
+        tags: { placement_id: TEST_PLACEMENT_ID },
+      });
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('ends with success and source event when a banner event is accepted', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: true,
+          source: 'event',
+          placement_id: TEST_PLACEMENT_ID,
+          banner_name: 'campaign-abc',
+        },
+      });
+    });
+
+    it('omits banner_name when the accepted banner has none', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner()]);
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            success: true,
+            source: 'event',
+            placement_id: TEST_PLACEMENT_ID,
+          },
+        }),
+      );
+    });
+
+    it('ends with source warm-cache when the probe resolves a banner', async () => {
+      mockGetBannerForPlacement.mockResolvedValue(makeBanner());
+
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      await waitFor(() => expect(result.current.status).toBe('visible'));
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            success: true,
+            source: 'warm-cache',
+          }),
+        }),
+      );
+    });
+
+    it('ends with reason empty when a control banner settles the placement', async () => {
+      mockGetBannerForPlacement.mockResolvedValue({
+        ...makeBanner(),
+        isControl: true,
+      });
+
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      await waitFor(() => expect(result.current.status).toBe('empty'));
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: false,
+          reason: 'empty',
+          source: 'warm-cache',
+          placement_id: TEST_PLACEMENT_ID,
+        },
+      });
+    });
+
+    it('ends with reason timeout when no banner arrives in the window', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      act(() => {
+        jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: false,
+          reason: 'timeout',
+          placement_id: TEST_PLACEMENT_ID,
+        },
+      });
+    });
+
+    it('ends with reason unmounted when the hook unmounts before settling', () => {
+      const { unmount } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: false,
+          reason: 'unmounted',
+          placement_id: TEST_PLACEMENT_ID,
+        },
+      });
+    });
+
+    it('does not end again after the span already settled', () => {
+      const { unmount } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner()]);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+      });
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
   });
 });

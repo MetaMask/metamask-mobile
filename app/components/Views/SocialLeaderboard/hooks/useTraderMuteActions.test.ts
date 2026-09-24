@@ -4,8 +4,13 @@ import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 
+let mockIsMasterEnabled = true;
+
 jest.mock('../NotificationPreferences/hooks');
 jest.mock('./useOpenTradingSignalsSetup');
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsMasterEnabled,
+}));
 jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { FollowToggle: 'FollowToggle' },
   playImpact: jest.fn(),
@@ -51,7 +56,10 @@ const setGate = (intercepts: boolean) => {
 };
 
 describe('useTraderMuteActions', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsMasterEnabled = true;
+  });
 
   it('reports a trader as muted when their notifications are off', () => {
     mockUseNotificationPreferences.mockReturnValue(
@@ -112,6 +120,20 @@ describe('useTraderMuteActions', () => {
 
     // The trader itself is not paused, but with both channels off nothing can
     // be heard, so the bell still reads as muted.
+    expect(result.current.isChipMuted('trader-1')).toBe(true);
+  });
+
+  it('shows the chip as muted when master notifications are off', () => {
+    mockIsMasterEnabled = false;
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        isTraderNotificationEnabled: jest.fn(() => true),
+      }),
+    );
+    setGate(false);
+
+    const { result } = renderHook(() => useTraderMuteActions());
+
     expect(result.current.isChipMuted('trader-1')).toBe(true);
   });
 

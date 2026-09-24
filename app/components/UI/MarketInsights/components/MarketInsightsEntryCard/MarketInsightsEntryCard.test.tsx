@@ -24,6 +24,7 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 );
 
 const mockTrackEvent = jest.fn();
+const mockEndTrace = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 let capturedOnVisible: (() => void) | null = null;
@@ -38,7 +39,7 @@ jest.mock('../../hooks/useViewportTracking', () => ({
 }));
 
 jest.mock('../../../../../util/trace', () => ({
-  endTrace: jest.fn(),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
   TraceName: { MarketInsightsEntryCardLoad: 'MarketInsightsEntryCardLoad' },
 }));
 
@@ -140,6 +141,29 @@ describe('MarketInsightsEntryCard', () => {
 
     fireEvent.press(getByTestId('market-insights-entry-card'));
     expect(mockPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends the parent entry-card trace after the card commits', () => {
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        traceId="perps:entry_card:ETH"
+        source="perps"
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'MarketInsightsEntryCardLoad',
+      id: 'perps:entry_card:ETH',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
   });
 
   it('renders summary text when there are no trend descriptions', () => {

@@ -4,9 +4,11 @@ import {
   Matchers,
   PlatformDetector,
   sleep,
-  type EncapsulatedElementType,
+  Utilities,
+  type AppiumElement,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -21,40 +23,42 @@ const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
   /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
   TOKEN_SEARCH_SETTLE: 1000,
+  /** Overall Android Activity → Quote → Wallet dismiss retry budget. */
+  ANDROID_SWAP_DISMISS: 12000,
 } as const;
 
 class QuoteView {
-  get selectAmountLabel(): EncapsulatedElementType {
+  get selectAmountLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT);
   }
 
-  get confirmBridge(): EncapsulatedElementType {
+  get confirmBridge(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get confirmSwap(): EncapsulatedElementType {
+  get confirmSwap(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get sourceTokenArea(): EncapsulatedElementType {
+  get sourceTokenArea(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
-  get amountInput(): EncapsulatedElementType {
+  get amountInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
   }
 
-  get destinationTokenArea(): EncapsulatedElementType {
+  get destinationTokenArea(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
   }
 
-  get destinationTokenInput(): EncapsulatedElementType {
+  get destinationTokenInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT,
     );
   }
 
-  get searchToken(): EncapsulatedElementType {
+  get searchToken(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[@name='${QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
@@ -63,34 +67,34 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
   }
 
-  get seeAllButton(): EncapsulatedElementType {
+  get seeAllButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
-  get moreNetworksButton(): EncapsulatedElementType {
+  get moreNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('network-pills-more-button');
   }
 
-  get networkFeeLabel(): EncapsulatedElementType {
+  get networkFeeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  get bridgeViewScroll(): EncapsulatedElementType {
+  get bridgeViewScroll(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
   }
 
   /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
-  get feeDisclaimerLabel(): EncapsulatedElementType {
+  get feeDisclaimerLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.PRICE_IMPACT_INFO_BUTTON,
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[contains(@name,'${QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON}')]`,
@@ -99,15 +103,15 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
   }
 
-  get maxLink(): EncapsulatedElementType {
+  get maxLink(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
-  get includedLabel(): EncapsulatedElementType {
+  get includedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
   }
 
-  get rateLabel(): EncapsulatedElementType {
+  get rateLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
@@ -116,7 +120,7 @@ class QuoteView {
     return getAssetTestId(`${chainId}-${symbol}`);
   }
 
-  getTokenElement(chainId: string, symbol: string): EncapsulatedElementType {
+  getTokenElement(chainId: string, symbol: string): Promise<AppiumElement> {
     const testId = this.getTokenElementId(chainId, symbol);
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(testId);
@@ -126,26 +130,38 @@ class QuoteView {
     return Matchers.getLazyElementByNativeXPath(`//*[@name='${testId}']`);
   }
 
-  async enterAmount(amount: string): Promise<void> {
+  getKeypadKey(digit: string): Promise<AppiumElement> {
+    const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     // iOS: keypad keys are not reliably found via accessibility-id / text;
     // use name XPath (same pattern as enterSourceTokenAmount).
-    const isAndroid = PlatformDetector.isAndroid();
-    for (const digit of amount.split('')) {
-      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-      const el = isAndroid
-        ? Matchers.getElementByID(keyName)
-        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
-      await Assertions.expectElementToBeVisible(el, {
-        timeout: TIMEOUT.KEYPAD_DIGIT,
-        description: `Keypad digit ${digit} should be visible`,
-      });
-      await Gestures.waitAndTap(el, {
-        checkForDisplayed: true,
-        checkEnabled: true,
-        delay: 1000,
-        elemDescription: `Tapping on keyboard digit ${digit}`,
-      });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(keyName);
     }
+    return Matchers.getElementByNativeXPath(
+      `//*[contains(@name,'${keyName}')]`,
+    );
+  }
+
+  async tapKeypadDigit(digit: string): Promise<void> {
+    await Gestures.waitAndTap(this.getKeypadKey(digit), {
+      checkEnabled: false,
+      elemDescription: `Keypad digit ${digit}`,
+    });
+  }
+
+  async enterAmount(amount: string): Promise<void> {
+    const digits = amount.split('');
+    await Assertions.expectElementToBeVisible(this.getKeypadKey(digits[0]), {
+      timeout: TIMEOUT.KEYPAD_DIGIT,
+      description: 'Swap keypad should be mounted',
+    });
+    // Sequential taps — keypad keys stay mounted, so do not re-assert
+    // displayed+enabled per digit (that costs ~15s each on a contended emulator).
+    await digits.reduce(
+      (previousTap, digit) =>
+        previousTap.then(() => this.tapKeypadDigit(digit)),
+      Promise.resolve(),
+    );
   }
 
   async tapSearchToken(): Promise<void> {
@@ -175,7 +191,7 @@ class QuoteView {
           tokenElement = this.getTokenElement(chainId, symbol);
           // Gestures.scrollToElement uses Detox direction semantics and inverts
           // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
-          // (matches prior PlaywrightGestures.scrollIntoView direction: 'up').
+          // (matches prior AppiumGestures.scrollIntoView direction: 'up').
           await Gestures.scrollToElement(
             tokenElement,
             Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
@@ -325,9 +341,55 @@ class QuoteView {
     });
   }
 
+  async dismissSwapOnAndroid(): Promise<void> {
+    const walletTab = Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    await Utilities.executeWithRetry(
+      async () => {
+        // Wallet chrome is the success signal — source-token-area can stay in
+        // the stack (displayed:true) after a missed back, which used to burn
+        // 8s per retry on expectElementToNotBeVisible.
+        if (await Utilities.isElementVisible(walletTab, 800)) {
+          return;
+        }
+        if (await Utilities.isElementVisible(this.backButton, 1500)) {
+          await Gestures.waitAndTap(this.backButton, {
+            timeout: 2500,
+            checkEnabled: false,
+            delay: 0,
+            elemDescription: 'Bridge header back (retry loop)',
+          });
+        }
+        if (await Utilities.isElementVisible(walletTab, 2500)) {
+          return;
+        }
+        throw new Error('Wallet tab not visible after Swap back');
+      },
+      {
+        timeout: TIMEOUT.ANDROID_SWAP_DISMISS,
+        description: 'dismiss Swap with back and verify wallet tab',
+        elemDescription: 'Wallet tab after Swap back',
+      },
+    );
+  }
+
   async tapOnBackButton(): Promise<void> {
+    // Deeplink / navigation races can already leave Swap before dismiss runs
+    // (failure screenshots show wallet home while looking for the back control).
+    if (!(await Utilities.isElementVisible(this.sourceTokenArea, 1500))) {
+      return;
+    }
+
+    // Prefer the dedicated `bridge-back-button` testID. On Android still retry
+    // + verify wallet chrome — post-trade Activity → Quote stacks can leave
+    // Swap up after a missed tap, and TabBar Wallet then hangs.
+    if (PlatformDetector.isAndroid()) {
+      await this.dismissSwapOnAndroid();
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
-      elemDescription: 'Back button on Quote View',
+      timeout: 10000,
+      elemDescription: 'Bridge header back on Quote View',
     });
   }
 
@@ -418,7 +480,7 @@ class QuoteView {
    * Gets the slippage display text element (e.g., "2.5%")
    * @param value - The slippage value to match (e.g., "2.5" for 2.5%)
    */
-  slippageDisplayText(value: string): EncapsulatedElementType {
+  slippageDisplayText(value: string): Promise<AppiumElement> {
     return Matchers.getElementByText(`${value}%`);
   }
 

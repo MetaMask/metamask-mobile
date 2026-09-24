@@ -27,13 +27,10 @@ import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/Tok
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
-import { toHex } from '@metamask/controller-utils';
-import type { Hex } from '@metamask/utils';
 import TokenListSkeleton from '../../../../UI/Tokens/TokenList/TokenListSkeleton/TokenListSkeleton';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import { useRefreshTokens } from '../../../../UI/Tokens/hooks/useRefreshTokens';
@@ -44,8 +41,6 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useHomepageReady } from '../../hooks/useHomepageReady';
 import type { HomepageReadyContentState } from '../../../../../core/Performance/HomepageReady';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
@@ -118,28 +113,9 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       setShowScamWarningModal,
     } = useRemoveToken();
 
-    const evmNetworkConfigurationsByChainId = useSelector(
-      selectEvmNetworkConfigurationsByChainId,
-    );
-
-    // Restrict refresh to popular EVM networks so we only poll/refresh those chains.
-    const evmNetworkConfigurationsForRefresh = useMemo(() => {
-      const allowedEvmChainIds = new Set<string>(
-        popularChainIds
-          .filter((id) => id.startsWith('eip155:'))
-          .map((id) => toHex(id.slice(7)) as Hex),
-      );
-      return Object.fromEntries(
-        Object.entries(evmNetworkConfigurationsByChainId).filter(([chainId]) =>
-          allowedEvmChainIds.has(chainId),
-        ),
-      );
-    }, [evmNetworkConfigurationsByChainId, popularChainIds]);
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
-    const { refresh: refreshTokensForGroup } = useRefreshTokens({
-      evmNetworkConfigurationsByChainId: evmNetworkConfigurationsForRefresh,
-    });
+    const { refresh: refreshTokensForGroup } = useRefreshTokens();
 
     const prevAccountIdRef = useRef(selectedAccountId);
     // Reset section error when account changes (not on initial mount) so the new account gets a fresh state
@@ -150,13 +126,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       }
     }, [selectedAccountId]);
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
-    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const shouldExcludeMusd =
-      isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
+    const shouldExcludeMusd = useSelector(selectMoneyHubEnabledFlag);
 
     const title = strings('homepage.sections.tokens');
     // Exclude mUSD while it is surfaced in the Money hub; otherwise include all tokens.

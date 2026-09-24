@@ -1,19 +1,15 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
-import {
-  EncapsulatedElementType,
-  Assertions,
-  getDriver,
-} from '../../framework';
+import { type AppiumElement, Assertions, getDriver } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class SuccessImportAccountView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER);
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON);
   }
 

@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import {
-  Alert,
-  TouchableOpacity,
-  FlatList,
-  Platform,
-  useWindowDimensions,
-} from 'react-native';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -13,20 +13,26 @@ import {
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   HeaderStandard,
   Text,
   TextColor,
+  TextField,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { connect } from 'react-redux';
-import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import SecureContentView from '../../UI/SecureContentView';
 import { strings } from '../../../../locales/i18n';
 import { seedphraseBackedUp } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { compareMnemonics } from '../../../util/mnemonic';
+import {
+  compareMnemonics,
+  pickUniqueMissingWordSlots,
+} from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
@@ -40,6 +46,13 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import ManualBackupConfirmErrorSheet from './ManualBackupConfirmErrorSheet';
+
+const HIDDEN_WORD_MASK_CHARACTER = '•';
+const HIDDEN_WORD_MASK_LENGTH_SINGLE_DIGIT = 6;
+const HIDDEN_WORD_MASK_LENGTH_DOUBLE_DIGIT = 5;
 
 const ManualBackupStep2 = ({
   navigation,
@@ -52,7 +65,6 @@ const ManualBackupStep2 = ({
   const settingsBackup = route?.params?.settingsBackup;
 
   const tw = useTailwind();
-  const { width: innerWidth, height: windowHeight } = useWindowDimensions();
 
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
@@ -60,6 +72,15 @@ const ManualBackupStep2 = ({
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [usedWordIndices, setUsedWordIndices] = useState(new Set());
   const [wordPositionMap, setWordPositionMap] = useState({});
+  const [isErrorSheetVisible, setIsErrorSheetVisible] = useState(false);
+  const hasTriggeredValidationRef = useRef(false);
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.MANUAL_BACKUP_STEP2,
+    contentReady: true,
+    isEmpty: false,
+    fullyDisplayed: gridWords.length > 0,
+  });
 
   const validateWords = useCallback(() => {
     const validWords = route.params?.words ?? [];
@@ -68,12 +89,15 @@ const ManualBackupStep2 = ({
 
   const areAllWordsPlaced = useMemo(() => {
     const validWords = route.params?.words ?? [];
-    return gridWords.filter((word) => word !== '').length === validWords.length;
+    return (
+      validWords.length > 0 &&
+      gridWords.filter((word) => word !== '').length === validWords.length
+    );
   }, [route.params?.words, gridWords]);
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (validateWords()) {
       seedphraseBackedUp();
       if (backupFlow || settingsBackup) {
@@ -127,31 +151,28 @@ const ManualBackupStep2 = ({
         ).build(),
         saveOnboardingEvent,
       );
-    } else {
-      Alert.alert(
-        strings('account_backup_step_5.error_title'),
-        strings('account_backup_step_5.error_message'),
-      );
     }
-  };
+  }, [
+    backupFlow,
+    isMetricsEnabled,
+    navigation,
+    saveOnboardingEvent,
+    seedphraseBackedUp,
+    settingsBackup,
+    validateWords,
+  ]);
 
   const generateMissingWords = useCallback(() => {
-    const rows = [0, 1, 2, 3];
-    const sortGridRows = rows.sort(() => 0.5 - Math.random());
-    const selectRandomSlots = sortGridRows.slice(0, 3);
-    const emptySlotsIndexes = selectRandomSlots.map((row) => {
-      const col = Math.floor(Math.random() * 3);
-      return row * 3 + col;
-    });
-
+    const emptySlotsIndexes = pickUniqueMissingWordSlots(words);
     const tempGrid = [...words];
-    const removed = [];
-
-    emptySlotsIndexes.forEach((i) => {
-      removed.push(tempGrid[i]);
+    const removed = emptySlotsIndexes.map((i) => {
+      const word = tempGrid[i];
       tempGrid[i] = '';
+      return word;
     });
 
+    hasTriggeredValidationRef.current = false;
+    setIsErrorSheetVisible(false);
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(emptySlotsIndexes);
@@ -170,24 +191,6 @@ const ManualBackupStep2 = ({
       const updatedGrid = [...gridWords];
 
       if (usedWordIndices.has(wordIndex)) {
-        const positionToRemove = Object.keys(wordPositionMap).find(
-          (pos) => wordPositionMap[pos] === wordIndex,
-        );
-
-        if (positionToRemove !== undefined) {
-          const newGrid = [...updatedGrid];
-          newGrid[parseInt(positionToRemove, 10)] = '';
-          setGridWords(newGrid);
-          setSelectedSlot(parseInt(positionToRemove, 10));
-
-          const newUsedIndices = new Set(usedWordIndices);
-          newUsedIndices.delete(wordIndex);
-          setUsedWordIndices(newUsedIndices);
-
-          const newPositionMap = { ...wordPositionMap };
-          delete newPositionMap[positionToRemove];
-          setWordPositionMap(newPositionMap);
-        }
         return;
       }
 
@@ -246,6 +249,7 @@ const ManualBackupStep2 = ({
       if (isFilled) {
         updated[index] = '';
         setGridWords(updated);
+        hasTriggeredValidationRef.current = false;
 
         const wordIndexToRemove = wordPositionMap[index];
         if (wordIndexToRemove !== undefined) {
@@ -266,75 +270,66 @@ const ManualBackupStep2 = ({
     [emptySlots, gridWords, wordPositionMap, usedWordIndices],
   );
 
-  const renderGridItemText = useCallback(
-    (item, index, isEmpty) => (
-      <>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          maxFontSizeMultiplier={1}
-        >
-          {index + 1}.
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextDefault}
-          twClassName="w-[95%]"
-          maxFontSizeMultiplier={1}
-        >
-          {isEmpty ? item : '••••••'}
-        </Text>
-      </>
-    ),
-    [],
-  );
-
   const renderGridItem = useCallback(
-    ({ item, index }) => {
+    (item, index) => {
       const isEmpty = emptySlots.includes(index);
-      const isSelected = selectedSlot === index;
+      const isSelected = isEmpty && selectedSlot === index;
+      const maskLength =
+        index + 1 < 10
+          ? HIDDEN_WORD_MASK_LENGTH_SINGLE_DIGIT
+          : HIDDEN_WORD_MASK_LENGTH_DOUBLE_DIGIT;
+      const displayValue = isEmpty
+        ? item
+        : HIDDEN_WORD_MASK_CHARACTER.repeat(maskLength);
 
       return (
-        <TouchableOpacity
+        <Pressable
           key={index}
+          disabled={!isEmpty}
           testID={
             isEmpty
               ? `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${index}`
               : `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-${index}`
           }
-          style={tw.style(
-            'py-1 px-2 rounded-lg bg-default border border-muted flex-row items-center justify-start h-10 opacity-50',
-            Platform.OS === 'ios' ? 'gap-1 m-1' : 'gap-[3px] m-[3px]',
-            isEmpty && 'bg-default opacity-100 border-2 border-default',
-            isSelected && 'border-2 border-primary-default',
-            { width: innerWidth / 3.85 },
-          )}
+          style={tw.style('w-[31%] mb-2')}
           onPress={() => handleSlotPress(index)}
         >
-          {renderGridItemText(item, index, isEmpty)}
-        </TouchableOpacity>
+          <TextField
+            isReadOnly
+            isDisabled={!isEmpty}
+            value={displayValue}
+            pointerEvents="none"
+            twClassName={isSelected ? 'border-icon-default' : undefined}
+            startAccessory={
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                maxFontSizeMultiplier={1}
+              >
+                {index + 1}.
+              </Text>
+            }
+            inputProps={{
+              caretHidden: true,
+              showSoftInputOnFocus: false,
+              maxFontSizeMultiplier: 1,
+              lineBreakModeIOS: 'clip',
+            }}
+          />
+        </Pressable>
       );
     },
-    [
-      emptySlots,
-      handleSlotPress,
-      innerWidth,
-      renderGridItemText,
-      selectedSlot,
-      tw,
-    ],
+    [emptySlots, handleSlotPress, selectedSlot, tw],
   );
 
   const renderGrid = useCallback(
     () => (
       <SecureContentView>
-        <Box twClassName="bg-muted rounded-[10px] mb-4 p-4 gap-1">
-          <FlatList
-            data={gridWords}
-            numColumns={3}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={renderGridItem}
-          />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="flex-wrap justify-between"
+        >
+          {gridWords.map((item, index) => renderGridItem(item, index))}
         </Box>
       </SecureContentView>
     ),
@@ -347,44 +342,39 @@ const ManualBackupStep2 = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-wrap"
+          twClassName="gap-2"
         >
           {missingWords.map((word, i) => {
             const isUsed = usedWordIndices.has(i);
             return (
-              <TouchableOpacity
+              <Button
                 key={`${word}-${i}`}
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                isDisabled={isUsed}
                 testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
-                style={tw.style(
-                  'py-1 px-2 m-2 rounded-lg bg-default border border-primary-default flex-row items-center justify-center h-10',
-                  isUsed && 'bg-alternative border-0',
-                  { width: innerWidth / 3.9 },
-                )}
                 onPress={() => handleWordSelect(word, i)}
+                twClassName="flex-1 rounded-[12px]"
+                textProps={{
+                  testID: `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`,
+                }}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isUsed
-                      ? TextColor.TextAlternative
-                      : TextColor.PrimaryDefault
-                  }
-                  testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
-                  maxFontSizeMultiplier={1}
-                >
-                  {word}
-                </Text>
-              </TouchableOpacity>
+                {word}
+              </Button>
             );
           })}
         </Box>
       </SecureContentView>
     ),
-    [missingWords, usedWordIndices, innerWidth, handleWordSelect, tw],
+    [missingWords, usedWordIndices, handleWordSelect],
   );
 
-  const validateSeedPhrase = () => {
+  const handleErrorSheetDismiss = useCallback(() => {
+    setIsErrorSheetVisible(false);
+    generateMissingWords();
+  }, [generateMissingWords]);
+
+  const validateSeedPhrase = useCallback(() => {
     const isSuccess = validateWords();
     if (isSuccess) {
       trackOnboarding(
@@ -393,33 +383,20 @@ const ManualBackupStep2 = ({
         ).build(),
         saveOnboardingEvent,
       );
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.success-title'),
-          description: strings('manual_backup_step_2.success-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: () => goNext(),
-          onPrimaryButtonPress: () => goNext(),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-    } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.error-title'),
-          description: strings('manual_backup_step_2.error-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.error-button'),
-          type: 'error',
-          onClose: () => generateMissingWords(),
-          onPrimaryButtonPress: () => generateMissingWords(),
-          closeOnPrimaryButtonPress: true,
-        },
-      });
+      goNext();
+      return;
     }
-  };
+
+    setIsErrorSheetVisible(true);
+  }, [goNext, saveOnboardingEvent, validateWords]);
+
+  useEffect(() => {
+    if (!areAllWordsPlaced || hasTriggeredValidationRef.current) {
+      return;
+    }
+    hasTriggeredValidationRef.current = true;
+    validateSeedPhrase();
+  }, [areAllWordsPlaced, validateSeedPhrase]);
 
   return (
     <SafeAreaView
@@ -433,45 +410,24 @@ const ManualBackupStep2 = ({
           testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
         }}
       />
-      <Box twClassName="flex-1 px-4">
-        <ActionView
-          confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-          confirmText={strings('manual_backup_step_2.continue')}
-          onConfirmPress={validateSeedPhrase}
-          confirmDisabled={!areAllWordsPlaced}
-          showCancelButton={false}
-          confirmButtonMode={'confirm'}
-          buttonContainerStyle={tw.style(
-            'px-0',
-            Platform.OS === 'android' && 'mb-4',
-          )}
-          contentContainerStyle={tw.style('flex-1')}
-        >
-          <Box
-            justifyContent={BoxJustifyContent.SpaceBetween}
-            twClassName="flex-1 gap-y-4"
-            style={{ height: windowHeight - 290 }}
-            testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
-          >
-            <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-              {strings('manual_backup_step_2.action')}
-            </Text>
-
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('manual_backup_step_2.info')}
-            </Text>
-
-            <Box twClassName="flex-1 gap-1">
-              {renderGrid()}
-              {renderMissingWords()}
-            </Box>
-          </Box>
-        </ActionView>
+      <Box
+        twClassName="flex-1 px-4 gap-4"
+        testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+      >
+        <TitleStandard
+          title={strings('manual_backup_step_2.action')}
+          bottomLabel={strings('manual_backup_step_2.info')}
+        />
+        <Box twClassName="flex-1 gap-4">
+          {renderGrid()}
+          {renderMissingWords()}
+        </Box>
       </Box>
       <ScreenshotDeterrent enabled isSRP />
+      <ManualBackupConfirmErrorSheet
+        isVisible={isErrorSheetVisible}
+        onDismiss={handleErrorSheetDismiss}
+      />
     </SafeAreaView>
   );
 };

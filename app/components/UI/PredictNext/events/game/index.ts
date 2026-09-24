@@ -1,4 +1,13 @@
 export { createGamePresentation, getEventGame } from './createGamePresentation';
+export {
+  findGameSelectionQuote,
+  type GameSelectionQuote,
+} from './findGameSelectionQuote';
+export {
+  findGameTradingQuote,
+  findWinnerMarketQuotes,
+  type WinnerMarketQuotes,
+} from './findWinnerMarketQuotes';
 export type {
   GamePresentation,
   GamePresentationVariant,

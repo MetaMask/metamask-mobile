@@ -10,11 +10,14 @@ import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
   type CardControllerState,
+  type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
   type CardHomeData,
+  type CardSignInLink,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import {
   CardType,
@@ -113,6 +116,22 @@ export const selectIsCardAuthenticated = createSelector(
     cardState?.isAuthenticated ?? false,
 );
 
+export const selectCardSignInLink = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardSignInLink | null =>
+    (cardState?.signInLink as unknown as CardSignInLink | null) ?? null,
+);
+
+export const selectHasCardSignInLink = createSelector(
+  selectCardSignInLink,
+  (link) => link !== null,
+);
+
+export const selectHasCompletedCardMigration = createSelector(
+  selectCardSignInLink,
+  (link) => link?.status === 'completed',
+);
+
 export const selectCardProviderUserId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
@@ -131,6 +150,12 @@ export const selectIsMoneyAccountCardLinkInProgress = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.moneyAccountCardLinkInProgress ?? false,
+);
+
+export const selectCardRedeemWithdrawal = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
 );
 
 export const selectCardholderAccounts = createSelector(
@@ -195,6 +220,12 @@ export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
     cardState?.cardHomeDataStatus ?? 'idle',
+);
+
+export const selectCardHomeDataError = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeDataError | null =>
+    (cardState?.cardHomeDataError as CardHomeDataError | null) ?? null,
 );
 
 export const selectCardHomeDataFetchedThisSession = createSelector(

@@ -32,6 +32,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -68,6 +70,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const tw = useTailwind();
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ONBOARDING_SUCCESS,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   useLayoutEffect(() => {
     navigation.setOptions({

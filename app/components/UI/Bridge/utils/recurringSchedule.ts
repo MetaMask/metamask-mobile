@@ -1,16 +1,22 @@
+import type { RecurringPriceRange } from './priceRange';
+
 export const RECURRING_INTERVAL_UNITS = [
   'minute',
   'hour',
   'day',
   'week',
+  'month',
 ] as const;
 
 export type RecurringIntervalUnit = (typeof RECURRING_INTERVAL_UNITS)[number];
+
+export type { RecurringPriceRange };
 
 export interface RecurringState {
   everyValue: string;
   everyUnit: RecurringIntervalUnit;
   repeatCount: string;
+  priceRange?: RecurringPriceRange;
 }
 
 export enum RecurringScheduleErrorCode {
@@ -32,7 +38,8 @@ export const RECURRING_EVERY_MAX_BY_UNIT: Record<
   minute: 60,
   hour: 24,
   day: 7,
-  week: 25,
+  week: 4,
+  month: 6,
 };
 
 export const RECURRING_INTERVAL_MINUTES: Record<RecurringIntervalUnit, number> =
@@ -41,6 +48,7 @@ export const RECURRING_INTERVAL_MINUTES: Record<RecurringIntervalUnit, number> =
     hour: 60,
     day: 1440,
     week: 10080,
+    month: 30 * 1440,
   };
 
 export const RECURRING_MAX_DURATION_DAYS = 180;
@@ -58,6 +66,7 @@ export const initialRecurringState: RecurringState = {
   everyValue: DEFAULT_RECURRING_EVERY_VALUE,
   everyUnit: DEFAULT_RECURRING_EVERY_UNIT,
   repeatCount: DEFAULT_RECURRING_REPEAT_COUNT,
+  priceRange: undefined,
 };
 
 export function parsePositiveInteger(value: string): number | undefined {
@@ -110,4 +119,13 @@ export function validateRecurringSchedule(
     isValid: errors.length === 0,
     errors,
   };
+}
+
+export function getMaxRepeatCount(
+  every: number,
+  unit: RecurringIntervalUnit,
+): number {
+  return Math.floor(
+    RECURRING_MAX_DURATION_MINUTES / (every * RECURRING_INTERVAL_MINUTES[unit]),
+  );
 }

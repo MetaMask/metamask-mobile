@@ -1,0 +1,15 @@
+<!-- Figma supplies this graph in dark only. Geometry matches twap.svg exactly;
+     primary, foreground, and warning colors use their light-theme counterparts. -->
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Graph Icon">
+<line id="Dotted Line" x1="27.5" y1="27.5" x2="4.5" y2="27.5" stroke="#4459FF" stroke-linecap="round" stroke-dasharray="3 3"/>
+<line id="Dotted Line_2" x1="27.5" y1="20.5" x2="4.5" y2="20.5" stroke="#4459FF" stroke-linecap="round" stroke-dasharray="3 3"/>
+<line id="Dotted Line_3" x1="27.5" y1="13.5" x2="4.5" y2="13.5" stroke="#4459FF" stroke-linecap="round" stroke-dasharray="3 3"/>
+<line id="Dotted Line_4" x1="27.5" y1="6.5" x2="4.5" y2="6.5" stroke="#4459FF" stroke-linecap="round" stroke-dasharray="3 3"/>
+<path id="Line" d="M23.4999 27.5C23.4999 27.5 12.41 23.4707 12.9999 20.5C13.5899 17.5293 18.0135 16 17.4999 13.5C16.9864 11 10.4999 11.5 8.49994 10.5C6.49994 9.49998 8.46194 7.17931 10.4999 6.49997C13.4999 5.49997 16.9999 4.49998 16.9999 4.49998" stroke="#121314" stroke-linecap="round"/>
+<rect id="Dot" x="21" y="30" width="5" height="5" rx="2.5" transform="rotate(-90 21 30)" fill="#9A6300"/>
+<rect id="Dot_2" x="11" y="23" width="5" height="5" rx="2.5" transform="rotate(-90 11 23)" fill="#9A6300"/>
+<rect id="Dot_3" x="15" y="16" width="5" height="5" rx="2.5" transform="rotate(-90 15 16)" fill="#9A6300"/>
+<rect id="Dot_4" x="8" y="9" width="5" height="5" rx="2.5" transform="rotate(-90 8 9)" fill="#9A6300"/>
+</g>
+</svg>

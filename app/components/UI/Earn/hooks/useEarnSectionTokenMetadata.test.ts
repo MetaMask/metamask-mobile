@@ -73,6 +73,50 @@ describe('useEarnSectionTokenMetadata', () => {
     expect(result.current.isSettled).toBe(true);
   });
 
+  it('does not fetch metadata when disabled', () => {
+    const { result } = renderHook(() =>
+      useEarnSectionTokenMetadata([USDC_ASSET_ID], false),
+    );
+
+    expect(mockFetchTokenAssets).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('preserves current metadata while a refresh is in flight', async () => {
+    const token = createTokenAsset();
+    let resolveRefresh: (tokens: TokenAsset[]) => void = () => undefined;
+    mockFetchTokenAssets.mockResolvedValueOnce([token]).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() =>
+      useEarnSectionTokenMetadata([USDC_ASSET_ID]),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSettled).toBe(true);
+    });
+
+    let refreshPromise: Promise<void> | undefined;
+    await act(async () => {
+      refreshPromise = result.current.refresh();
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.tokensByAssetId).toEqual({
+      [USDC_ASSET_ID]: token,
+    });
+
+    await act(async () => {
+      resolveRefresh([token]);
+      await refreshPromise;
+    });
+  });
+
   it('deduplicates asset IDs that differ only by casing', async () => {
     mockFetchTokenAssets.mockResolvedValue([]);
 

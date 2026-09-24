@@ -36,6 +36,8 @@ const mockQrKeyringBridge: QrKeyringBridge = {
 
 const legacyQrKeyring = new LegacyQrKeyring({ bridge: mockQrKeyringBridge });
 const qrKeyring = new QrKeyring({
+  // @ts-expect-error: Two different types with this name exist, but they are
+  // unrelated.
   legacyKeyring: legacyQrKeyring,
   entropySource: 'test-entropy-source',
 });

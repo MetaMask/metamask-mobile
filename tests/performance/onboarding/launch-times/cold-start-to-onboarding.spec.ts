@@ -5,28 +5,39 @@ import {
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
+import AppiumAssertions from '../../../framework/AppiumAssertions';
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement';
+import { addAppScreenTtcTimer } from '../../utils/readScreenTtc';
 
+/**
+ * Cold start launch (process→CTA) plus in-app TTC [onboarding_landing]
+ * (mount→contentReady, Sentry-equivalent). Landing TTC is required here —
+ * the screen is already the entry point.
+ */
 test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Measure Cold Start To Onboarding Screen',
     { tag: '@metamask-mobile-platform' },
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      const timer1 = new TimerHelper(
+    async ({ currentDeviceDetails, performanceTracker }) => {
+      const platform = currentDeviceDetails.platform;
+      const launchToCta = new TimerHelper(
         'Time since the the app is installed, until onboarding screen appears',
         { ios: 3000, android: 4000 },
-        currentDeviceDetails.platform,
+        platform,
       );
-      await timer1.measure(
-        async () =>
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingView.newWalletButton),
-          ),
-      );
+      await launchToCta.measure(async () => {
+        await AppiumAssertions.expectElementToBeVisible(
+          OnboardingView.newWalletButton,
+        );
+      });
+      performanceTracker.addTimer(launchToCta);
 
-      performanceTracker.addTimer(timer1);
+      await addAppScreenTtcTimer({
+        performanceTracker,
+        screenId: 'onboarding_landing',
+        platform,
+        required: true,
+      });
     },
   );
 });

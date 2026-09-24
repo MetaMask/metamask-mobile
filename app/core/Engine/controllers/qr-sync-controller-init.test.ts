@@ -99,7 +99,6 @@ describe('qrSyncControllerInit', () => {
     const { controller } = qrSyncControllerInit(initRequestMock);
 
     expect(typeof controller.importRemainingSecrets).toBe('function');
-    expect(typeof controller.enrichProvisioningEntry).toBe('function');
     expect(typeof controller.markProvisioningFailed).toBe('function');
     expect(typeof controller.completeProvisioning).toBe('function');
   });
@@ -117,15 +116,23 @@ describe('qrSyncControllerInit', () => {
       expect.any(Function),
     );
     expect(registerSpy).toHaveBeenCalledWith(
-      'QrSyncController:enrichProvisioningEntry',
-      expect.any(Function),
-    );
-    expect(registerSpy).toHaveBeenCalledWith(
       'QrSyncController:markProvisioningFailed',
       expect.any(Function),
     );
     expect(registerSpy).toHaveBeenCalledWith(
       'QrSyncController:completeProvisioning',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:resetState',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:handleScannedQrPayload',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:hasPendingSecretImports',
       expect.any(Function),
     );
   });

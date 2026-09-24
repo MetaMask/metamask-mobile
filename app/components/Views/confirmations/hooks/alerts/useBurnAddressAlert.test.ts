@@ -62,7 +62,7 @@ describe('useBurnAddressAlert', () => {
     expect(result.current[0].message).toBeDefined();
   });
 
-  it('returns burn address alert when transaction recipient is second burn address', () => {
+  it('returns non-blocking burn address alert when transaction recipient is dead address', () => {
     (useTransferRecipient as jest.Mock).mockReturnValue(BURN_ADDRESS_2);
 
     const { result } = renderHookWithProvider(() => useBurnAddressAlert());
@@ -72,7 +72,7 @@ describe('useBurnAddressAlert', () => {
       key: AlertKeys.BurnAddress,
       field: RowAlertKey.FromToAddress,
       severity: Severity.Danger,
-      isBlocking: true,
+      isBlocking: false,
     });
   });
 
@@ -104,7 +104,7 @@ describe('useBurnAddressAlert', () => {
     });
   });
 
-  it('returns burn address alert when nested transaction contains burn address with mixed case', () => {
+  it('returns non-blocking burn address alert when nested transaction contains dead address with mixed case', () => {
     (useNestedTransactionTransferRecipients as jest.Mock).mockReturnValue([
       '0x000000000000000000000000000000000000dEaD',
     ]);
@@ -112,10 +112,13 @@ describe('useBurnAddressAlert', () => {
     const { result } = renderHookWithProvider(() => useBurnAddressAlert());
 
     expect(result.current).toHaveLength(1);
-    expect(result.current[0].key).toBe(AlertKeys.BurnAddress);
+    expect(result.current[0]).toMatchObject({
+      key: AlertKeys.BurnAddress,
+      isBlocking: false,
+    });
   });
 
-  it('returns single burn address alert when both transaction and nested transactions contain burn addresses', () => {
+  it('returns blocking alert when zero address and dead address are both present', () => {
     (useTransferRecipient as jest.Mock).mockReturnValue(BURN_ADDRESS_1);
     (useNestedTransactionTransferRecipients as jest.Mock).mockReturnValue([
       BURN_ADDRESS_2,
@@ -124,7 +127,10 @@ describe('useBurnAddressAlert', () => {
     const { result } = renderHookWithProvider(() => useBurnAddressAlert());
 
     expect(result.current).toHaveLength(1);
-    expect(result.current[0].key).toBe(AlertKeys.BurnAddress);
+    expect(result.current[0]).toMatchObject({
+      key: AlertKeys.BurnAddress,
+      isBlocking: true,
+    });
   });
 
   it('returns single burn address alert when nested transactions contain multiple burn addresses', () => {

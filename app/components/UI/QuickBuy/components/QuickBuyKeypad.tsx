@@ -2,6 +2,7 @@ import { Box } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Keypad, { type KeypadChangeData } from '../../../Base/Keypad';
 import useCurrency from '../../../Base/Keypad/useCurrency';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import CollapsibleReveal from './CollapsibleReveal';
 
@@ -65,9 +66,9 @@ const QuickBuyKeypad: React.FC = () => {
       expanded={isKeypadOpen}
       snapExpandedOnMount
       unmountWhenCollapsed={false}
-      testID="quick-buy-keypad-reveal"
+      testID={QuickBuySheetSelectorsIDs.KEYPAD_REVEAL}
     >
-      <Box twClassName="px-4 py-4" testID="quick-buy-keypad">
+      <Box twClassName="px-4 py-4" testID={QuickBuySheetSelectorsIDs.KEYPAD}>
         <Keypad
           value={keypadValue}
           onChange={handleChange}

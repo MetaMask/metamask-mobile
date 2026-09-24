@@ -1,3 +1,5 @@
+import { isUiAutomator2SessionDeadError } from '../../Constants.ts';
+
 const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /pm clear/i,
   /MainActivity.*does not exist/i,
@@ -6,12 +8,30 @@ const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /session is either terminated or not started/i,
   /UiAutomation not connected/i,
   /Error executing adbExec/i,
+  // Shared-adb / N=2 worker races: reverse --remove crashes the adb daemon and
+  // the sibling worker's element commands die with socket hang up / proxy errors.
+  /socket hang up/i,
+  /Could not proxy command to the remote server/i,
+  /device offline/i,
+  /protocol fault/i,
 ];
 
 let recreateRequested = false;
 
+/**
+ * In-process recreate hook installed by the Playwright driver fixture while a
+ * test is running. Soft-reload can call this to recover from UiAutomator2 death
+ * without waiting for the next Playwright retry.
+ */
+export type SharedSessionRecreateHandler = () => Promise<WebdriverIO.Browser>;
+
+let sharedSessionRecreateHandler: SharedSessionRecreateHandler | undefined;
+
 /** True when the error looks like emulator/session health failure, not a product assert. */
 export function isDeviceHealthError(error: unknown): boolean {
+  if (isUiAutomator2SessionDeadError(error)) {
+    return true;
+  }
   const message =
     error instanceof Error
       ? error.message
@@ -36,7 +56,44 @@ export function consumeSharedSessionRecreate(): boolean {
   return requested;
 }
 
+/**
+ * Register (or clear) the in-process session recreate handler.
+ * The driver fixture owns the lifecycle — set before `use(drv)`, clear in finally.
+ */
+export function setSharedSessionRecreateHandler(
+  handler: SharedSessionRecreateHandler | undefined,
+): void {
+  sharedSessionRecreateHandler = handler;
+}
+
+/**
+ * Recreate the shared WebDriver session now (same Playwright attempt).
+ * Returns undefined when no handler is registered (e.g. unit tests without the fixture).
+ * Clears the pending recreate flag only after the handler succeeds, so a failed
+ * recreate still forces the next fixture setup to drop the shared session.
+ */
+export async function recreateSharedSessionNow(): Promise<
+  WebdriverIO.Browser | undefined
+> {
+  const handler = sharedSessionRecreateHandler;
+  if (!handler) {
+    return undefined;
+  }
+  try {
+    const newDrv = await handler();
+    // Consume the flag only after the handler returns a live session.
+    // If configureImplicitWait (or session create) still throws, the next
+    // fixture setup must drop whatever was left in sharedSession.drv.
+    recreateRequested = false;
+    return newDrv;
+  } catch (error) {
+    recreateRequested = true;
+    throw error;
+  }
+}
+
 /** Test-only reset. */
 export function resetSharedSessionRecreateState(): void {
   recreateRequested = false;
+  sharedSessionRecreateHandler = undefined;
 }

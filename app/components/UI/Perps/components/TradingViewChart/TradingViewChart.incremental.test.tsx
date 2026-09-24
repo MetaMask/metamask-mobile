@@ -378,6 +378,78 @@ describe('TradingViewChart — incremental update routing', () => {
     );
   });
 
+  it('drops Limit prices from autoscale after add then clear', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+    const clearFnStart = template.indexOf(
+      'window.clearLimitOrderLines = function()',
+    );
+    const updateFnStart = template.indexOf(
+      'window.updateLimitOrderLines = function',
+    );
+    const collectFnStart = template.indexOf(
+      'window.collectLimitOverlayPrices = function()',
+    );
+    const collectFnEnd = template.indexOf(
+      'window.candlestickSeries = window.chart.addSeries',
+    );
+    const clearTpslStart = template.indexOf("case 'CLEAR_TPSL_LINES':");
+    const clearTpslEnd = template.indexOf("case 'UPDATE_INTERVAL':");
+
+    expect(clearFnStart).toBeGreaterThan(-1);
+    expect(updateFnStart).toBeGreaterThan(clearFnStart);
+    expect(collectFnStart).toBeGreaterThan(-1);
+    expect(clearTpslStart).toBeGreaterThan(-1);
+
+    const clearFn = template.slice(clearFnStart, updateFnStart);
+    const collectFn = template.slice(collectFnStart, collectFnEnd);
+    const clearTpslCase = template.slice(clearTpslStart, clearTpslEnd);
+    const updateFn = template.slice(
+      updateFnStart,
+      template.indexOf('window.hideAllPriceLines = function()'),
+    );
+
+    expect(collectFn).toContain(
+      '(window.lastLimitOrderPrices || []).forEach(pushPrice)',
+    );
+    const clearLimitOrderLinesCall = 'window.clearLimitOrderLines();';
+    const lastLimitOrderPricesAssign =
+      'window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {';
+    const clearLimitOrderLinesIndex = updateFn.indexOf(
+      clearLimitOrderLinesCall,
+    );
+    const lastLimitOrderPricesAssignIndex = updateFn.indexOf(
+      lastLimitOrderPricesAssign,
+    );
+    expect(clearLimitOrderLinesIndex).toBeGreaterThan(-1);
+    expect(lastLimitOrderPricesAssignIndex).toBeGreaterThan(
+      clearLimitOrderLinesIndex,
+    );
+    expect(clearFn.match(/window\.lastLimitOrderPrices = \[\];/g)).toEqual([
+      'window.lastLimitOrderPrices = [];',
+      'window.lastLimitOrderPrices = [];',
+    ]);
+    expect(clearTpslCase).toContain('window.clearLimitOrderLines();');
+  });
+
+  it('reports Limit line remove and create failures without forcing autoscale', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+    const updateFn = template.slice(
+      template.indexOf('window.updateLimitOrderLines = function'),
+      template.indexOf('window.hideAllPriceLines = function()'),
+    );
+
+    expect(template).toContain(
+      "console.error('TradingView: Error removing limit order line:', error)",
+    );
+    expect(template).toContain(
+      "console.error('TradingView: Error creating limit order line:', error)",
+    );
+    expect(updateFn).not.toContain('applyOptions({ autoScale: true })');
+    expect(template).not.toContain(
+      "console.error('TradingView: Error applying limit order autoscale:', scaleError)",
+    );
+  });
+
   // -----------------------------------------------------------------------
   // True reload: interval change
   // -----------------------------------------------------------------------
@@ -559,5 +631,169 @@ describe('TradingViewChart — incremental update routing', () => {
     // The chart must repaint from the data it already holds, not stay blank.
     expect(mockPostMessage).toHaveBeenCalledTimes(1);
     expect(lastMessageType()).toBe('SET_CANDLESTICK_DATA');
+  });
+
+  it('forwards VISIBLE_CANDLE_COUNT_CHANGED from the WebView', () => {
+    const onVisibleCandleCountChange = jest.fn();
+    const testID = 'visible-candle-count';
+    const { getByTestId } = render(
+      <TradingViewChart
+        candleData={twoCandles}
+        symbol="BTC"
+        testID={testID}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
+      />,
+    );
+
+    const webViewEl = getByTestId(`${testID}-webview`);
+    const onMessage = webViewEl.props.onMessage as (e: unknown) => void;
+    act(() => {
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+            candleCount: 80,
+          }),
+        },
+      });
+    });
+
+    expect(onVisibleCandleCountChange).toHaveBeenCalledWith(80);
+  });
+
+  describe('template visible-candle-count reporting', () => {
+    const RIGHT_MARGIN_CANDLES = 2;
+
+    /**
+     * Extracts the real reporting arithmetic out of the template string and runs
+     * it against a stubbed `window`, so the assertions exercise the shipped code
+     * rather than a re-implementation of it.
+     */
+    const executeCandleCountReport = (
+      range: { from: number; to: number },
+      dataLength: number,
+      isPinchZoomActive = true,
+      initialVisibleCandleCount = 30,
+    ): {
+      reportedCandleCount: number | undefined;
+      visibleCandleCount: number;
+    } => {
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+      const start = template.indexOf('if (window.isPinchZoomActive) {');
+      const end = template.indexOf(
+        "// Check if we're near the left edge (oldest data)",
+      );
+      expect(start).toBeGreaterThan(-1);
+      expect(end).toBeGreaterThan(start);
+
+      const posted: { type: string; candleCount: number }[] = [];
+      const windowStub = {
+        allCandleData: new Array(dataLength).fill({}),
+        lastReportedVisibleCandleCount: null,
+        visibleCandleCount: initialVisibleCandleCount,
+        isPinchZoomActive,
+        ZOOM_LIMITS: {
+          MIN_CANDLES: 10,
+          MAX_CANDLES: 250,
+          DEFAULT_CANDLES: 30,
+          RIGHT_MARGIN_CANDLES,
+        },
+        ReactNativeWebView: {
+          postMessage: (raw: string) => posted.push(JSON.parse(raw)),
+        },
+      };
+
+      // eslint-disable-next-line no-new-func
+      new Function('range', 'window', template.slice(start, end))(
+        range,
+        windowStub,
+      );
+
+      return {
+        reportedCandleCount: posted[0]?.candleCount,
+        visibleCandleCount: windowStub.visibleCandleCount,
+      };
+    };
+
+    const reportCandleCount = (
+      range: { from: number; to: number },
+      dataLength: number,
+      isPinchZoomActive = true,
+    ): number | undefined =>
+      executeCandleCountReport(range, dataLength, isPinchZoomActive)
+        .reportedCandleCount;
+
+    /** Mirrors window.applyZoom's setVisibleLogicalRange framing. */
+    const rangeFromApplyZoom = (candleCount: number, dataLength: number) => ({
+      from: Math.max(0, dataLength - candleCount),
+      to: dataLength - 1 + RIGHT_MARGIN_CANDLES,
+    });
+
+    it.each([15, 30, 45, 90, 200])(
+      'reports a user pinch showing %i candles without drift',
+      (candleCount) => {
+        const dataLength = 500;
+
+        expect(
+          reportCandleCount(
+            rangeFromApplyZoom(candleCount, dataLength),
+            dataLength,
+          ),
+        ).toBe(candleCount);
+      },
+    );
+
+    it('ignores trailing whitespace beyond the last bar', () => {
+      // A pinch can leave the right edge in empty space past the latest candle;
+      // only the 20 real candles behind it should be reported.
+      expect(reportCandleCount({ from: 80, to: 140 }, 100)).toBe(20);
+    });
+
+    it('does not persist non-pinch range changes', () => {
+      const dataLength = 500;
+
+      expect(
+        reportCandleCount(
+          rangeFromApplyZoom(90, dataLength),
+          dataLength,
+          false,
+        ),
+      ).toBeUndefined();
+    });
+
+    it('uses the pinched count when a new realtime bar reapplies zoom', () => {
+      const dataLength = 500;
+      const result = executeCandleCountReport(
+        rangeFromApplyZoom(80, dataLength),
+        dataLength,
+        true,
+        30,
+      );
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+      expect(result.reportedCandleCount).toBe(80);
+      expect(result.visibleCandleCount).toBe(80);
+      expect(template).toContain(
+        'window.applyZoom(window.visibleCandleCount, false)',
+      );
+    });
+
+    it('tracks two-finger gestures on the chart container', () => {
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+      expect(template).toContain(
+        "chartContainer.addEventListener('touchstart'",
+      );
+      expect(template).toContain(
+        'window.isPinchZoomActive = event.touches.length >= 2',
+      );
+      expect(template).toContain("chartContainer.addEventListener('touchend'");
+      expect(template).toContain('window.isPinchZoomActive = false');
+    });
+
+    it('clamps the reported count to the configured zoom limits', () => {
+      expect(reportCandleCount({ from: 98, to: 99 }, 100)).toBe(10);
+      expect(reportCandleCount({ from: 0, to: 399 }, 400)).toBe(250);
+    });
   });
 });

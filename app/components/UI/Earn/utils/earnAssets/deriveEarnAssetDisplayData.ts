@@ -1,0 +1,43 @@
+import type { EarnAssetMetadata } from '../../types/earnAssets';
+import {
+  getEarnAssetFiatDisplay,
+  getReadyEarnDepositExperiences,
+  hasEarnAssetSubsidizedFee,
+} from '.';
+import { getEarnAssetHighestRateCopy } from '../earnSection/getEarnAssetHighestRateCopy';
+import type { EarnSectionRankedAsset } from '../earnSection';
+
+/** Derived display values shared by Earn asset cards and search rows. */
+export interface EarnAssetDisplayData {
+  /** Normalized name, symbol, ticker, and token metadata. */
+  metadata: EarnAssetMetadata;
+  /** Localized fiat balance for tracked assets, when available. */
+  fiatBalance?: string;
+  /** Whether the asset meets the minimum deposit amount. */
+  hasMinDepositAmount: boolean;
+  /** Whether any available Earn experience waives fees. */
+  hasSubsidizedFee: boolean;
+  /** Localized highest-rate copy of all supported experiences */
+  highestRateCopy: string;
+}
+
+/**
+ * Centralizes display data derivation for Earn assets.
+ *
+ * @param asset - Ranked Earn asset to derive display data for.
+ * @returns Display metadata, fiat balance, minimum deposit amount, subsidized fee state, and rate copy.
+ */
+export const deriveEarnAssetDisplayData = (
+  asset: EarnSectionRankedAsset,
+): EarnAssetDisplayData => {
+  const fiatBalance = getEarnAssetFiatDisplay(asset);
+
+  return {
+    metadata: asset.metadata,
+    fiatBalance,
+    hasMinDepositAmount:
+      getReadyEarnDepositExperiences(asset.experiences).length > 0,
+    hasSubsidizedFee: hasEarnAssetSubsidizedFee(asset),
+    highestRateCopy: getEarnAssetHighestRateCopy({ asset }),
+  };
+};

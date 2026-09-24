@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import {
@@ -17,10 +19,11 @@ type PendingAction = () => void | Promise<void>;
 
 export interface UseOpenTradingSignalsSetupResult {
   /**
-   * Intercepts an action that requires notifications. When the trading-signal
-   * channels are disabled it fires an error haptic and navigates to the setup
-   * sheet, deferring `pendingAction` until the sheet closes with a channel
-   * enabled. When the user has no saved preferences yet it routes to
+   * Intercepts an action that requires notifications. When the global master
+   * toggle is off it presents the FeatureNotificationsGate sheet. When the
+   * trading-signal channels are disabled it fires an error haptic and navigates
+   * to the setup sheet, deferring `pendingAction` until the sheet closes with a
+   * channel enabled. When the user has no saved preferences yet it routes to
    * notification settings and resumes the action on return.
    *
    * @param pendingAction - Deferred until setup completes with channels enabled.
@@ -31,21 +34,22 @@ export interface UseOpenTradingSignalsSetupResult {
 }
 
 /**
- * Opens the Trading Signals setup bottom sheet (a navigated modal screen) when
- * both channels are off, or routes to notification settings when the user has
- * no saved preferences yet.
+ * Opens the FeatureNotificationsGate sheet when the global master toggle is
+ * off, the Trading Signals setup bottom sheet when both channels are off, or
+ * routes to notification settings when the user has no saved preferences yet.
  *
  * Rather than performing the action optimistically, the caller passes it to
  * `openSetupIfNeeded`. For the setup sheet the action is handed to the sheet
  * screen as a navigation param and runs when the sheet closes with at least one
- * trading-signal channel enabled. For the no-preferences path it runs after
- * returning from notification settings with channels enabled. Dismissing the
- * sheet without enabling, or returning from settings without creating
- * preferences, drops the action.
+ * trading-signal channel enabled. For the master-toggle and no-preferences
+ * paths it runs after returning with notifications enabled. Dismissing a sheet
+ * without enabling, or returning from settings without creating preferences,
+ * drops the action.
  */
 export const useOpenTradingSignalsSetup =
   (): UseOpenTradingSignalsSetupResult => {
     const navigation = useNavigation<AppNavigationProp>();
+    const isMasterEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
     const {
       preferences,
       hasNotificationPreferences,
@@ -54,20 +58,24 @@ export const useOpenTradingSignalsSetup =
 
     const pendingActionRef = useRef<PendingAction | null>(null);
     const awaitingSettingsNavigationRef = useRef(false);
+    const awaitingGateSheetRef = useRef(false);
     const wasBlurredRef = useRef(false);
     // Tracks whether this hook's screen is currently focused. The shared
     // notification-preferences cache can re-render this hook while the screen is
     // in the background (e.g. the user toggles a channel in the Settings flow),
     // and we must not resume the deferred action until the user returns.
     const isFocusedRef = useRef(false);
-    // Read the freshest preferences at resume time; the user may have just
-    // toggled a channel in the Settings flow.
+    // Read the freshest preferences / master toggle at resume time; the user
+    // may have just enabled them in a sheet or the Settings flow.
     const preferencesRef = useRef(preferences);
     preferencesRef.current = preferences;
+    const isMasterEnabledRef = useRef(isMasterEnabled);
+    isMasterEnabledRef.current = isMasterEnabled;
 
     const clearPendingAction = useCallback(() => {
       pendingActionRef.current = null;
       awaitingSettingsNavigationRef.current = false;
+      awaitingGateSheetRef.current = false;
     }, []);
 
     const navigateToSetupSheet = useCallback(
@@ -83,10 +91,18 @@ export const useOpenTradingSignalsSetup =
       [navigation],
     );
 
+    const navigateToGateSheet = useCallback(() => {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+        params: { feature: 'socialAI', autoDismiss: true },
+      });
+    }, [navigation]);
+
     const tryForwardPendingAction = useCallback((): boolean => {
       const pendingAction = pendingActionRef.current;
       if (
         !pendingAction ||
+        !isMasterEnabledRef.current ||
         !areTradingSignalsChannelsEnabled(preferencesRef.current)
       ) {
         return false;
@@ -126,10 +142,49 @@ export const useOpenTradingSignalsSetup =
       tryForwardPendingAction,
     ]);
 
+    const resumeFromGateSheet = useCallback(() => {
+      if (
+        !awaitingGateSheetRef.current ||
+        !pendingActionRef.current ||
+        isLoadingPreferences
+      ) {
+        return;
+      }
+
+      if (!isMasterEnabled) {
+        return;
+      }
+
+      awaitingGateSheetRef.current = false;
+
+      if (tryForwardPendingAction()) {
+        return;
+      }
+
+      // Master is on but no trading-signal channel is enabled: hand off to the
+      // channel setup sheet.
+      const pendingAction = pendingActionRef.current ?? undefined;
+      clearPendingAction();
+      navigateToSetupSheet(pendingAction);
+    }, [
+      clearPendingAction,
+      isLoadingPreferences,
+      isMasterEnabled,
+      navigateToSetupSheet,
+      tryForwardPendingAction,
+    ]);
+
     const openSetupIfNeeded = useCallback(
       (pendingAction?: PendingAction): boolean => {
         if (isLoadingPreferences) {
           return false;
+        }
+
+        if (!isMasterEnabled) {
+          pendingActionRef.current = pendingAction ?? null;
+          awaitingGateSheetRef.current = true;
+          navigateToGateSheet();
+          return true;
         }
 
         if (!hasNotificationPreferences) {
@@ -151,6 +206,8 @@ export const useOpenTradingSignalsSetup =
       [
         hasNotificationPreferences,
         isLoadingPreferences,
+        isMasterEnabled,
+        navigateToGateSheet,
         navigateToSetupSheet,
         navigation,
         preferences,
@@ -175,6 +232,21 @@ export const useOpenTradingSignalsSetup =
           };
         }
 
+        if (
+          wasBlurredRef.current &&
+          awaitingGateSheetRef.current &&
+          pendingActionRef.current &&
+          !isLoadingPreferences &&
+          !isMasterEnabled
+        ) {
+          clearPendingAction();
+          wasBlurredRef.current = false;
+          return () => {
+            isFocusedRef.current = false;
+          };
+        }
+
+        resumeFromGateSheet();
         resumeFromSettingsNavigation();
 
         return () => {
@@ -185,6 +257,8 @@ export const useOpenTradingSignalsSetup =
         clearPendingAction,
         hasNotificationPreferences,
         isLoadingPreferences,
+        isMasterEnabled,
+        resumeFromGateSheet,
         resumeFromSettingsNavigation,
       ]),
     );
@@ -196,8 +270,9 @@ export const useOpenTradingSignalsSetup =
       if (!isFocusedRef.current) {
         return;
       }
+      resumeFromGateSheet();
       resumeFromSettingsNavigation();
-    }, [resumeFromSettingsNavigation]);
+    }, [resumeFromGateSheet, resumeFromSettingsNavigation]);
 
     return { openSetupIfNeeded };
   };

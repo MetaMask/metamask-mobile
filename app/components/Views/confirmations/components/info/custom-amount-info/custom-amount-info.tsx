@@ -15,7 +15,6 @@ import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -24,6 +23,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
+import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import {
   CustomAmountStage,
@@ -37,7 +37,6 @@ import {
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   CustomAmount,
   CustomAmountSkeleton,
@@ -66,6 +65,7 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
+import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
@@ -135,7 +135,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     useClearConfirmationOnBackSwipe();
 
-    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
+    // Pre-warm the Transak partner API key so the fiat fee estimate's native
+    // buy-quote lookup succeeds on first load, showing the real native fee
+    // instead of the aggregator fallback (which previously only corrected after
+    // the user entered the Transak widget flow).
+    useEnsureTransakApiKey();
 
     useAutomaticTransactionPayToken({
       autoSelectFiatPayment,
@@ -158,30 +162,29 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountFiat,
       amountFiatDebounced,
       amountHuman,
-      amountHumanDebounced,
+      depositPrefillStatus,
       hasInput,
       hasPrefetchedQuote,
-      isDepositPrefillEnabled,
-      isDepositPrefilled,
-      isDepositPrefillLoading,
+      hasUserEditedAmountRef,
       isInputChanged,
       isPrefillPending,
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
-    } = useTransactionCustomAmount({ currency });
+    } = useTransactionCustomAmount({ autoSelectFiatPayment, currency });
 
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
-
-    // Fiat was selected (explicitly or because no crypto tokens are available)
-    // with no crypto pay token — deposit prefill has nothing to prefill from.
+    const isDepositPrefillEnabled =
+      depositPrefillStatus !== DepositPrefillStatus.Disabled;
+    const isDepositPrefilled =
+      depositPrefillStatus === DepositPrefillStatus.Prefilled;
+    const isDepositPrefillLoading =
+      depositPrefillStatus === DepositPrefillStatus.Loading;
     const skipDepositPrefill =
-      Boolean(autoSelectFiatPayment) ||
-      (Boolean(selectedFiatPaymentMethodId) && !payToken) ||
-      (!hasAvailableTokens && !payToken);
+      depositPrefillStatus === DepositPrefillStatus.Skipped;
 
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
@@ -222,11 +225,36 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
-        pendingTokenAmount: amountHumanDebounced,
         pendingFiatAmount: amountFiatDebounced,
       });
 
     const hasAutoSubmittedPrefill = useRef(false);
+
+    // A skipped prefill opens the keypad, but the skip can be transient while
+    // the pay token and its balance resolve. Track the release so a prefill
+    // that lands afterwards still auto-submits instead of being mistaken for
+    // the user editing. Consumed on auto-submit so a keypad the user reopens
+    // later is never dismissed from under them.
+    const wasPrefillSkippedRef = useRef(skipDepositPrefill);
+    const isPrefillSkipReleasedRef = useRef(false);
+
+    // Tapping the amount is an explicit request to edit, which the user can
+    // make as soon as the prefilled value renders — long before quotes arrive.
+    // A prefill landing or re-running afterwards must not auto-submit that
+    // keypad closed, which left the amount unresponsive until quotes settled.
+    const hasUserOpenedKeypadRef = useRef(false);
+
+    // Only a commit the user made freezes the amount while the request
+    // prepares. An amount committed on their behalf by a prefill stays
+    // tappable, so editing it never waits on quotes.
+    const hasUserCommittedAmountRef = useRef(false);
+
+    useEffect(() => {
+      if (wasPrefillSkippedRef.current && !skipDepositPrefill) {
+        isPrefillSkipReleasedRef.current = true;
+      }
+      wasPrefillSkippedRef.current = skipDepositPrefill;
+    }, [skipDepositPrefill]);
 
     const handleDone = useCallback(async () => {
       if (isAmountUpdateInProgressRef.current) {
@@ -294,7 +322,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
-      if (wasPrefillPending.current && !isPrefillPending) {
+      if (
+        wasPrefillPending.current &&
+        !isPrefillPending &&
+        !hasUserOpenedKeypadRef.current
+      ) {
         handleDone();
       }
       wasPrefillPending.current = isPrefillPending;
@@ -312,15 +344,34 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
       // (true → false → true) during background state changes, which resets
       // the guard above and would otherwise dismiss the keyboard mid-edit.
-      if (stage === CustomAmountStage.AmountInput) {
+      // A keypad opened only because the prefill was skipped is not editing;
+      // one the user opened by tapping the amount is.
+      if (
+        stage === CustomAmountStage.AmountInput &&
+        (hasUserEditedAmountRef.current ||
+          hasUserOpenedKeypadRef.current ||
+          !isPrefillSkipReleasedRef.current)
+      ) {
         return;
       }
 
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
+        isPrefillSkipReleasedRef.current = false;
         handleDone();
       }
-    }, [isDepositPrefilled, amountFiat, handleDone, stage]);
+    }, [
+      isDepositPrefilled,
+      amountFiat,
+      handleDone,
+      hasUserEditedAmountRef,
+      stage,
+    ]);
+
+    const handleDonePress = useCallback(() => {
+      hasUserCommittedAmountRef.current = true;
+      handleDone();
+    }, [handleDone]);
 
     const isMaxAutoSubmitPending = useRef(false);
 
@@ -331,6 +382,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // withdraw — the amount stays $0, so leave the keyboard open instead of
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
+          hasUserCommittedAmountRef.current = true;
           isMaxAutoSubmitPending.current = true;
           // Max defers the commit to the effect below once the amount lands;
           // show the loading skeleton through that gap rather than the derived
@@ -356,6 +408,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [amountFiat, handleDone, stage]);
 
     const handleAmountPress = useCallback(() => {
+      hasUserOpenedKeypadRef.current = true;
       setStage(CustomAmountStage.AmountInput);
     }, [setStage]);
 
@@ -395,14 +448,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
-              !skipDepositPrefill &&
+              stage !== CustomAmountStage.AmountInput &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            onPress={
-              stage === CustomAmountStage.Loading
-                ? undefined
-                : handleAmountPress
-            }
+            // Always pressable: tapping the amount is the escape hatch from a
+            // prefill or quote that never resolves.
+            onPress={handleAmountPress}
             disabled={!hasPaymentOption}
             showCursor={stage === CustomAmountStage.AmountInput}
           />
@@ -453,14 +504,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {!hasAccountNoFunds && (
-                <CustomAmountTotals
-                  amountFiat={amountFiat}
-                  canSelectWithdrawToken={canSelectWithdrawToken}
-                  stage={stage}
-                />
-              )}
-              <PercentageRow />
+              {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}
           {footerText && (
@@ -482,7 +526,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
-                onDonePress={handleDone}
+                onDonePress={handleDonePress}
                 onPercentagePress={handlePercentagePress}
                 hasInput={hasInput}
                 hasMax={
@@ -519,7 +563,7 @@ export function CustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </Box>
-      <Box>
+      <Box style={styles.bottomBlock}>
         <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
       </Box>
@@ -536,7 +580,7 @@ export function PrefillCustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <Skeleton height={20} width={200} />
       </View>
-      <View>
+      <View style={styles.bottomBlock}>
         <View style={styles.skeletonRow}>
           <Skeleton height={18} width={100} />
           <View style={styles.skeletonRowRight}>
@@ -585,7 +629,7 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
       </View>
-      <View>
+      <View style={styles.bottomBlock}>
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />

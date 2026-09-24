@@ -1,4 +1,4 @@
-import { TextProps } from '../../../../../component-library/components/Texts/Text/Text.types';
+import { TextProps } from '@metamask/design-system-react-native';
 import { TokenI } from '../../../Tokens/types';
 
 interface Text extends Omit<TextProps, 'children'> {

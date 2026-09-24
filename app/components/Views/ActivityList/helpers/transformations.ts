@@ -15,7 +15,11 @@ import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
-import { type ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  type ActivityListItem,
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
+} from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
@@ -103,7 +107,14 @@ function isIncomingNativeTransfer(
   return hasIncomingNativeTransfer && !hasOutgoingTransfer;
 }
 
-export function shouldSkipTransaction(
+/**
+ * Participation gate shared by the activity list and the Activity details
+ * by-hash lookup: excluded hashes, transactions the subject does not take part
+ * in at the top level, spam, and no-op self transfers.
+ *
+ * `address` must already be lowercased.
+ */
+export function shouldSkipUnrelatedTransaction(
   address: string,
   transaction: V1TransactionByHashResponse,
   excludedTxHashes?: Set<string>,
@@ -125,15 +136,34 @@ export function shouldSkipTransaction(
     return true;
   }
 
-  if (
+  return (
     rawFrom === address &&
     rawTo === address &&
     transaction.value === '0' &&
     !transaction.valueTransfers?.length &&
     (!transaction.methodId || transaction.methodId === '0x')
-  ) {
+  );
+}
+
+/**
+ * List gate. On top of {@link shouldSkipUnrelatedTransaction} it drops rows
+ * whose only relevance to the subject is an inbound value transfer, which the
+ * list surfaces from other sources.
+ *
+ * Details must not reuse this gate: the by-hash request always asks for
+ * `includeValueTransfers`, so a plain receive the user explicitly opened would
+ * be filtered out and render as not-found.
+ */
+export function shouldSkipTransaction(
+  address: string,
+  transaction: V1TransactionByHashResponse,
+  excludedTxHashes?: Set<string>,
+) {
+  if (shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes)) {
     return true;
   }
+
+  const rawFrom = transaction.from?.toLowerCase();
 
   return (
     isIncomingTokenTransfer(address, transaction) ||
@@ -153,10 +183,11 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    items.push({
-      ...mapApiTransaction({ subjectAddress, transaction: tx }),
-      raw: { type: 'apiEvmTransaction' as const, data: tx },
-    } as ActivityListItem);
+    const activity = mapApiTransaction({
+      subjectAddress,
+      transaction: tx,
+    }) as ActivityListItem;
+    items.push(classifyPooledStakingActivity(tx, activity));
   }
 
   return items;
@@ -185,7 +216,7 @@ export function mapNonEvmTransactions(
 ): ActivityListItem[] {
   return transactions.map((transaction) => {
     const subjectAddress = getSubjectAddress?.(transaction);
-    const activity = {
+    const activity = classifyKeyringStakingActivity(transaction, {
       ...mapKeyringTransaction({
         transaction: {
           ...transaction,
@@ -193,8 +224,7 @@ export function mapNonEvmTransactions(
         },
         subjectAddress,
       }),
-      raw: { type: 'keyringTransaction' as const, data: transaction },
-    } as ActivityListItem;
+    } as ActivityListItem);
     const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
     const quote = bridgeHistoryItem?.quote;
 

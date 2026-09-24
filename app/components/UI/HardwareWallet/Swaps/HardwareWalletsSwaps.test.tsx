@@ -5,9 +5,9 @@ import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-} from '../../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
@@ -41,8 +41,8 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: () => mockIsFocused,
 }));
 
-jest.mock('rive-react-native', () =>
-  jest.requireActual('../../../../__mocks__/rive-react-native'),
+jest.mock('@rive-app/react-native', () =>
+  jest.requireActual('../../../../__mocks__/rive-app-react-native'),
 );
 
 jest.mock(
@@ -113,6 +113,7 @@ jest.mock('../../../../core/HardwareWallet/helpers', () => ({
   getDeviceIdForAddress: jest.fn().mockResolvedValue('ledger-device-id'),
   // Re-export anything else the component tree might import from helpers
   getHardwareWalletTypeForAddress: jest.fn().mockReturnValue('ledger'),
+  getHardwareWalletTypeName: jest.fn().mockReturnValue('Ledger'),
 }));
 
 jest.mock('../../../../core/Ledger/Ledger', () => ({
@@ -410,7 +411,7 @@ function renderSendScreen(state: Partial<HardwareWalletsSwapsState>) {
 describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
+    __resetRiveMocks();
     mockHardwareWalletState.walletType = null;
     mockHardwareWalletState.pendingScanRequest = null;
     mockIsFocused = true;
@@ -602,8 +603,7 @@ describe('HardwareWalletsSwaps', () => {
       (progressState) => {
         renderScreen(progressState);
 
-        expect(__getLastMockedMethods()?.fireState).toHaveBeenCalledWith(
-          'wallet_states',
+        expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
           progressState.expectedTrigger,
         );
       },

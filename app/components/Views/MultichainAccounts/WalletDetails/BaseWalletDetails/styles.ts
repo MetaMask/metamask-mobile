@@ -29,7 +29,9 @@ const styleSheet = (params: { theme: Theme }) => {
 
     container: {
       flex: 1,
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      paddingTop: 8,
     },
 
     header: {
@@ -37,7 +39,10 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      margin: 16,
+      marginTop: 16,
+      marginHorizontal: 16,
+      // Spacing below the header comes from the container padding alone.
+      marginBottom: 0,
     },
 
     avatar: {

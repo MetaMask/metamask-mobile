@@ -1,17 +1,29 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
 import {
+  HOMEPAGE_EARN_SECTION_AB_KEY,
+  HOMEPAGE_EARN_SECTION_VARIANTS,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+  HomepageEarnSectionVariant,
   HomepagePerpsPillsEmptyVariant,
+  PERPS_SECTION_PRIORITY_AB_KEY,
+  PERPS_SECTION_PRIORITY_VARIANTS,
+  PerpsSectionPriorityVariant,
 } from './abTestConfig';
 
-const defaultUseABTestImplementation = (key: string) => {
+interface MockABTestResult {
+  variant: unknown;
+  variantName: string;
+  isActive: boolean;
+}
+
+const defaultUseABTestImplementation = (key: string): MockABTestResult => {
   if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
     return {
       variant:
@@ -19,6 +31,14 @@ const defaultUseABTestImplementation = (key: string) => {
           HomepagePerpsPillsEmptyVariant.Control
         ],
       variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+    return {
+      variant:
+        PERPS_SECTION_PRIORITY_VARIANTS[PerpsSectionPriorityVariant.Control],
+      variantName: PerpsSectionPriorityVariant.Control,
       isActive: true,
     };
   }
@@ -49,6 +69,23 @@ jest.mock('../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
     Reflect.apply(mockUseABTest, undefined, args),
 }));
+
+const mockHomepageEarnSection = jest.fn();
+jest.mock('./Sections/EarnSection', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    __esModule: true,
+    HomepageEarnSection: ReactLib.forwardRef(
+      (props: Record<string, unknown>, _ref: React.Ref<unknown>) => {
+        mockHomepageEarnSection(props);
+        return <View testID="homepage-earn-section-mock" />;
+      },
+    ),
+  };
+});
 
 const mockUseOwnedNfts = jest.fn((): Nft[] => []);
 jest.mock('./Sections/NFTs/hooks', () => ({
@@ -99,6 +136,7 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
 }));
 
 jest.mock('../../UI/Perps/hooks', () => ({
+  useIsActivePerpsTrader: jest.fn(() => false),
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
     isInitialLoading: false,
@@ -163,6 +201,15 @@ jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
+}));
+
+jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
+  UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
 }));
 
 jest.mock('@tanstack/react-query', () => {
@@ -235,6 +282,23 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
   })),
 }));
 
+jest.mock(
+  '../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery',
+  () => ({
+    useSuggestedWatchlistItemsQuery: jest.fn(() => ({
+      data: [],
+      isLoading: false,
+    })),
+  }),
+);
+
+jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations', () => ({
+  useTokenWatchlistAddItemMutation: jest.fn(() => ({
+    mutate: jest.fn(),
+    isPending: false,
+  })),
+}));
+
 const mockBalanceBreakdownSection = jest.fn();
 jest.mock('./Sections/BalanceBreakdown', () => {
   const { View } = jest.requireActual('react-native');
@@ -263,15 +327,28 @@ interface UseHomeViewedEventParamsSnapshot {
   sectionName?: string;
   sectionIndex?: number;
   totalSectionsLoaded?: number;
+  /** Read from context by the mock, mirroring what the real hook observes. */
+  perpsPriorityEligible?: boolean;
 }
 
 // Mock useHomeViewedEvent to avoid analytics side-effects in
 // Homepage-level tests — section-level analytics are covered by the hook tests.
-const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
+const mockUseHomeViewedEvent = jest.fn(
+  (_params: UseHomeViewedEventParamsSnapshot) => ({ onLayout: jest.fn() }),
+);
 jest.mock('./hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: (params: UseHomeViewedEventParamsSnapshot) =>
-    (mockUseHomeViewedEvent as jest.Mock)(params),
+  // Reads the eligibility context the way the real hook does, so tests can
+  // assert what each section observes rather than what Homepage renders.
+  default: (params: UseHomeViewedEventParamsSnapshot) => {
+    const { usePerpsPriorityEligibility } = jest.requireActual<
+      typeof import('./context/PerpsPriorityEligibilityContext')
+    >('./context/PerpsPriorityEligibilityContext');
+    return mockUseHomeViewedEvent({
+      ...params,
+      perpsPriorityEligible: usePerpsPriorityEligibility(),
+    });
+  },
   HomeSectionNames: {
     TOKENS: 'tokens',
     WATCHLIST: 'watchlist',
@@ -286,20 +363,14 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
 
 /** Returns mock useHomeViewedEvent calls with typed first argument. */
 function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
-  return mockUseHomeViewedEvent.mock.calls as unknown as [
-    UseHomeViewedEventParamsSnapshot,
-  ][];
+  return mockUseHomeViewedEvent.mock.calls;
 }
 
-jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-  selectPooledStakingEnabledFlag: jest.fn(() => false),
-  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-  selectIsMusdGetBuyCtaEnabledFlag: jest.fn(() => false),
-  selectMusdConversionCTATokens: jest.fn(() => ({})),
-  selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
-  selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMusdBalanceChainIds: jest.fn(() => []),
+let mockHomepageEarnSectionVisible = false;
+jest.mock('../../UI/Earn/selectors/visibility', () => ({
+  selectIsHomepageEarnSectionVisible: jest.fn(
+    () => mockHomepageEarnSectionVisible,
+  ),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
@@ -391,7 +462,26 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+    mockHomepageEarnSectionVisible = false;
   });
+
+  const mockEarnSectionExperiment = (
+    enabled: boolean,
+    variantName: HomepageEarnSectionVariant,
+  ) => {
+    mockHomepageEarnSectionVisible = enabled;
+    mockUseABTest.mockImplementation((key: string) => {
+      if (key === HOMEPAGE_EARN_SECTION_AB_KEY) {
+        return {
+          variant: HOMEPAGE_EARN_SECTION_VARIANTS[variantName],
+          variantName,
+          isActive: true,
+        };
+      }
+
+      return defaultUseABTestImplementation(key);
+    });
+  };
 
   it('uses one enabled Perps connection provider for the homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
@@ -442,6 +532,49 @@ describe('Homepage', () => {
       screen.queryByTestId('balance-breakdown-section-mock'),
     ).not.toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
+  });
+
+  describe('Earn section experiment', () => {
+    it('keeps the Earn section hidden for the control variant', () => {
+      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Control);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.queryByTestId('homepage-earn-section-mock'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the Earn section for the treatment variant', () => {
+      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Treatment);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.getByTestId('homepage-earn-section-mock'),
+      ).toBeOnTheScreen();
+      expect(mockHomepageEarnSection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sectionIndex: 2,
+          totalSectionsLoaded: 6,
+        }),
+      );
+    });
+
+    it('keeps the Earn section hidden when its feature flag is disabled', () => {
+      mockEarnSectionExperiment(false, HomepageEarnSectionVariant.Treatment);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.queryByTestId('homepage-earn-section-mock'),
+      ).not.toBeOnTheScreen();
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        HOMEPAGE_EARN_SECTION_AB_KEY,
+        HOMEPAGE_EARN_SECTION_VARIANTS,
+        expect.objectContaining({ trackExposure: false }),
+      );
+    });
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
@@ -678,6 +811,152 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
+    });
+  });
+
+  describe('Perps section priority experiment', () => {
+    const perpsHooksMock = jest.mocked(
+      jest.requireMock<typeof import('../../UI/Perps/hooks')>(
+        '../../UI/Perps/hooks',
+      ),
+    );
+
+    const setVariant = (variant: PerpsSectionPriorityVariant) => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant: PERPS_SECTION_PRIORITY_VARIANTS[variant],
+            variantName: variant,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+    };
+
+    const sectionIndexOf = (name: string) =>
+      getUseHomeViewedEventCalls().find((c) => c[0]?.sectionName === name)?.[0]
+        ?.sectionIndex;
+
+    // `clearAllMocks` leaves `mockReturnValue` in place, so restore the default
+    // rather than leaking eligibility into any later block.
+    afterEach(() => {
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+    });
+
+    it('keeps Tokens above Perps for the control variant even when the user is an active trader', () => {
+      setVariant(PerpsSectionPriorityVariant.Control);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBe(1);
+    });
+
+    it('renders Perps above Tokens for the treatment variant when the user is an active trader', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('perps')).toBe(0);
+      expect(sectionIndexOf('tokens')).toBe(1);
+    });
+
+    it('keeps Tokens above Perps for the treatment variant when the user is not an active trader', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBe(1);
+    });
+
+    it('falls back to the control order when the flag is unresolved', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant:
+              PERPS_SECTION_PRIORITY_VARIANTS[
+                PerpsSectionPriorityVariant.Control
+              ],
+            variantName: PerpsSectionPriorityVariant.Control,
+            isActive: false,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBe(1);
+    });
+
+    it('leaves the sections after Perps and Tokens in place when reordered', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('predict')).toBe(2);
+      expect(sectionIndexOf('defi')).toBe(3);
+      expect(sectionIndexOf('nfts')).toBe(4);
+    });
+
+    // Eligibility is provided to every section rather than passed to the Perps
+    // section, so an eligible control user is observable without scrolling to
+    // Perps. See useHomeViewedEvent.test.ts for the event-level contract.
+    it.each([
+      [PerpsSectionPriorityVariant.Control],
+      [PerpsSectionPriorityVariant.Treatment],
+    ])(
+      'provides eligibility to every section for the %s arm so both arms are comparable',
+      (variant) => {
+        setVariant(variant);
+        perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+        renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+        const sections = getUseHomeViewedEventCalls().map((c) => c[0]);
+        expect(sections.length).toBeGreaterThan(1);
+        // Every section sees it, not just Perps — that is the whole point.
+        sections.forEach((section) => {
+          expect(section.perpsPriorityEligible).toBe(true);
+        });
+        expect(
+          sections.some((section) => section.sectionName === 'tokens'),
+        ).toBe(true);
+      },
+    );
+
+    it('provides ineligibility rather than omitting it', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      getUseHomeViewedEventCalls()
+        .map((c) => c[0])
+        .forEach((section) => {
+          expect(section.perpsPriorityEligible).toBe(false);
+        });
+    });
+
+    it('keeps Tokens first when Perps is disabled, regardless of variant', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBeUndefined();
     });
   });
 });

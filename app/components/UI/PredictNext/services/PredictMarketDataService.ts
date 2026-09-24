@@ -18,14 +18,17 @@ import {
   type FeedParams,
   type GetEventResult,
   type GetFeedResult,
+  type GetMarketHistoryResult,
   type GetVenueStatusResult,
 } from '../queries/marketDataQueries';
 import type {
   PredictEntityId,
   PredictFeedId,
+  PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueId,
 } from '../types';
+import { isRetryablePredictError } from './servicePolicy';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_MARKET_DATA_SERVICE_NAME =
@@ -59,10 +62,21 @@ export interface PredictMarketDataServiceGetEventAction {
   ) => Promise<GetEventResult>;
 }
 
+export interface PredictMarketDataServiceGetMarketHistoryAction {
+  type: 'PredictMarketDataService:getMarketHistory';
+  handler: (
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ) => Promise<GetMarketHistoryResult>;
+}
+
 export type PredictMarketDataServiceActions =
   | PredictMarketDataServiceGetVenueStatusAction
   | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
+  | PredictMarketDataServiceGetMarketHistoryAction
   | DataServiceInvalidateQueriesAction<typeof PREDICT_MARKET_DATA_SERVICE_NAME>;
 
 export type PredictMarketDataServiceEvents =
@@ -76,16 +90,6 @@ export type PredictMarketDataServiceMessenger = Messenger<
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents
 >;
-
-const RETRYABLE_CODES = new Set([
-  PredictErrorCode.NETWORK_ERROR,
-  PredictErrorCode.RATE_LIMITED,
-  PredictErrorCode.VENUE_UNAVAILABLE,
-]);
-
-/** Returns whether a Predict error is safe to retry. */
-export const isRetryablePredictError = (error: unknown): boolean =>
-  error instanceof PredictError && RETRYABLE_CODES.has(error.code);
 
 export interface PredictMarketDataServiceOptions {
   messenger: PredictMarketDataServiceMessenger;
@@ -135,6 +139,10 @@ export class PredictMarketDataService extends BaseDataService<
     messenger.registerActionHandler(
       'PredictMarketDataService:getEvent',
       this.getEvent.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictMarketDataService:getMarketHistory',
+      this.getMarketHistory.bind(this),
     );
   }
 
@@ -190,6 +198,7 @@ export class PredictMarketDataService extends BaseDataService<
           {
             queryKey: descriptor.queryKey,
             staleTime: descriptor.staleTime,
+            initialPageParam: cursor as string | null,
             queryFn: async ({ pageParam, signal }) => {
               const page = await this.#marketData.fetchFeed(
                 feedId,
@@ -201,7 +210,7 @@ export class PredictMarketDataService extends BaseDataService<
                 nextCursor: page.nextCursor || undefined,
               } as Json & GetFeedResult;
             },
-            getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+            getNextPageParam: (lastPage) => lastPage.nextCursor || null,
           },
           cursor,
         ),
@@ -230,6 +239,38 @@ export class PredictMarketDataService extends BaseDataService<
             this.#marketData.fetchEvent(eventId, {
               signal: options?.signal ?? signal,
             }) as Promise<Json & GetEventResult>,
+        }),
+    );
+  }
+
+  async getMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+    options?: PredictReadOptions,
+  ): Promise<GetMarketHistoryResult> {
+    this.#assertVenue(venueId);
+    const descriptor = marketDataQueries.getMarketHistory(
+      venueId,
+      marketId,
+      range,
+    );
+    return withPredictNextTrace(
+      {
+        method: 'getMarketHistory',
+        name: TraceName.PredictNextGetMarketHistory,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId, range },
+        resultData: (result) => ({ pointCount: result.points.length }),
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#marketData.fetchMarketHistory(marketId, range, {
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & GetMarketHistoryResult>,
         }),
     );
   }

@@ -1,22 +1,52 @@
 import type {
   FeedItem as CoreFeedItem,
   FeedResponse,
+  ProfileSummary,
   Trade,
 } from '@metamask/social-controllers';
+import type { TradeAction } from '../../utils/tradeAction';
 
 /**
  * Core-shaped feed fixtures (`Position` + `actor` + `timestamp`) used only by
  * adapter and hook tests. Timestamps are Unix seconds, matching the API.
  */
 
-/** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
-type CoreFeedItemOverrides = Partial<CoreFeedItem> & {
-  marginUsd?: number | null;
-};
+type TradeWithAction = Trade & { action?: TradeAction };
 
-const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({
+/**
+ * Feed-card fields the API returns beside `CoreFeedItem`. Kept local so this
+ * fixture does not depend on the V1 view, and so tests can set them before
+ * the published controller types include them.
+ */
+interface FeedCardOverrides {
+  actor?: ProfileSummary & {
+    winRate30d?: number | null;
+    pnl30d?: number | null;
+    tradeCount30d?: number | null;
+    followerCount?: number | null;
+  };
+  commentCount?: number;
+  replyCount?: number;
+  firstTradeAt?: number | null;
+  holdTimeMs?: number | null;
+  entryPriceUsd?: number | null;
+}
+
+/** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
+type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades' | 'actor'> &
+  FeedCardOverrides & {
+    marginUsd?: number | null;
+    /** The API's open/closed verdict; absent on older responses. */
+    isOpen?: boolean;
+    trades?: TradeWithAction[];
+  };
+
+const buildTrade = (
+  overrides: Partial<TradeWithAction> = {},
+): TradeWithAction => ({
   direction: 'buy',
   intent: 'enter',
+  action: 'opened',
   tokenAmount: 1000,
   usdCost: 120000,
   timestamp: 1_700_000_000,
@@ -27,7 +57,7 @@ const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({
 
 /** An open spot buy on Ethereum. */
 export const mockSpotFeedItem = (
-  overrides: Partial<CoreFeedItem> = {},
+  overrides: CoreFeedItemOverrides = {},
 ): CoreFeedItem => ({
   positionId: 'pos-spot-1',
   tokenSymbol: 'PEPE',
@@ -74,6 +104,7 @@ export const mockPerpFeedItem = (
       buildTrade({
         direction: 'sell',
         intent: 'exit',
+        action: 'closed',
         tokenAmount: 5,
         usdCost: 88000,
         timestamp: 1_700_000_500,

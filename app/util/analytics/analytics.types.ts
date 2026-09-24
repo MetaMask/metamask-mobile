@@ -6,7 +6,7 @@ import type {
 
 /**
  * Properties that may contain undefined values.
- * Accepted by AnalyticsEventBuilder.addProperties(), addSensitiveProperties(), and by filterUndefinedValues().
+ * Accepted by AnalyticsEventBuilder.addProperties() and by filterUndefinedValues().
  *
  * Valid inputs:
  * - Objects with properties (already filtered or with undefined values)

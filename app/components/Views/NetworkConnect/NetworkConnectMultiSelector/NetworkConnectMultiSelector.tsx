@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -57,19 +57,23 @@ const NetworkConnectMultiSelector = ({
     onSubmit(selectedChainIds);
   }, [onSubmit, selectedChainIds]);
   // TODO: [SOLANA]  When we support non evm networks, refactor this
-  const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [
-      string,
-      EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-    ]) => ({
-      id: key,
-      name: network.name,
-      isSelected: false,
-      imageSource: getNetworkImageSource({
-        chainId: network.caipChainId,
-      }),
-      caipChainId: network.caipChainId,
-    }),
+  const networks = useMemo(
+    () =>
+      Object.entries(networkConfigurations).map(
+        ([key, network]: [
+          string,
+          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+        ]) => ({
+          id: key,
+          name: network.name,
+          isSelected: false,
+          imageSource: getNetworkImageSource({
+            chainId: network.caipChainId,
+          }),
+          caipChainId: network.caipChainId,
+        }),
+      ),
+    [networkConfigurations],
   );
 
   const onSelectNetwork = useCallback(

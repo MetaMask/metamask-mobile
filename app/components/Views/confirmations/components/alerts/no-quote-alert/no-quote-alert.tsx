@@ -24,6 +24,10 @@ export function NoQuoteAlert({ error }: Props) {
   const allMessages = useMemo(() => {
     const messages = [collapsedMessage];
 
+    if (error.message && isExpanded) {
+      messages.push(error.message);
+    }
+
     if (error.detail && isExpanded) {
       messages.push(...error.detail);
     }

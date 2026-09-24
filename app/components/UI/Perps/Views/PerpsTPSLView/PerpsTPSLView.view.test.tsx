@@ -70,6 +70,8 @@ describe('PerpsTPSLView', () => {
         szDecimals: 2,
         onConfirm,
       },
+      // The form only submits against a position the live stream still holds.
+      streamOverrides: { positions: [position] },
     });
 
     fireEvent.changeText(
@@ -113,6 +115,8 @@ describe('PerpsTPSLView', () => {
         szDecimals: 2,
         onConfirm,
       },
+      // The form only submits against a position the live stream still holds.
+      streamOverrides: { positions: [position] },
     });
 
     fireEvent.changeText(
@@ -130,6 +134,139 @@ describe('PerpsTPSLView', () => {
         undefined,
         expect.objectContaining({ direction: 'long' }),
       );
+    });
+  });
+
+  it('renders RoE sign badges at default + take profit and - stop loss', async () => {
+    renderPerpsTPSLView();
+
+    expect(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
+        {},
+        { timeout: 10000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
+    ).toHaveTextContent('+');
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    ).toHaveTextContent('-');
+  });
+
+  it('flips the take profit RoE badge from + to - on press', async () => {
+    renderPerpsTPSLView();
+
+    const tpBadge = await screen.findByTestId(
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
+      {},
+      { timeout: 10000 },
+    );
+
+    fireEvent.press(tpBadge);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE,
+        ),
+      ).toHaveTextContent('-');
+    });
+  });
+
+  describe('sheet variant', () => {
+    const position = {
+      ...defaultPositionForViews,
+      entryPrice: '2500',
+      liquidationPrice: '2100',
+    };
+
+    const renderSheet = (onConfirm = jest.fn().mockResolvedValue(undefined)) =>
+      renderPerpsTPSLView({
+        variant: 'sheet',
+        initialParams: {
+          asset: 'ETH',
+          currentPrice: '2500',
+          direction: 'long',
+          position,
+          initialTakeProfitPrice: '',
+          initialStopLossPrice: '',
+          leverage: 3,
+          orderType: 'market',
+          limitPrice: '',
+          amount: '1',
+          szDecimals: 2,
+          onConfirm,
+        },
+        // The form only submits against a position the live stream still holds.
+        streamOverrides: { positions: [position] },
+      });
+
+    it('renders the sheet back button and the Save action', async () => {
+      renderSheet();
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.BACK_BUTTON,
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('sets a stop loss from the sheet', async () => {
+      const onConfirm = jest.fn().mockResolvedValue(undefined);
+      renderSheet(onConfirm);
+
+      fireEvent.changeText(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+          {},
+          { timeout: 10000 },
+        ),
+        '2300',
+      );
+      fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+
+      await waitFor(() => {
+        expect(onConfirm).toHaveBeenCalledWith(
+          position,
+          undefined,
+          '2300',
+          expect.objectContaining({ direction: 'long' }),
+        );
+      });
+    });
+
+    it('shows the liquidation distance the control arm does not', async () => {
+      renderSheet();
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE,
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+
+      cleanup();
+      renderPerpsTPSLView({ initialParams: { position } });
+
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+        {},
+        { timeout: 10000 },
+      );
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
+      ).toBeNull();
     });
   });
 });

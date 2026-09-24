@@ -1,7 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
+import {
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../../../../../../tests/component-view/render';
 import { sendViewOverrides } from '../../../../../../tests/component-view/presets/send';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -42,6 +45,7 @@ const EVM_NATIVE_ETH_ASSET_SEND_FIVE = {
 
 const VALID_EVM_RECIPIENT = '0x0000000000000000000000000000000000000002';
 const TOKEN_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000003';
+const SEND_NAVBAR_BACK_BUTTON_TEST_ID = 'send-navbar-back-button';
 const buildTrustedAddressScanOverrides = (...addresses: string[]) =>
   ({
     engine: {
@@ -253,6 +257,70 @@ describeForPlatforms('Send', () => {
       await waitFor(() => expect(reviewButton).toBeEnabled(), {
         timeout: 5000,
       });
+    });
+
+    /**
+     * Header back must pop Recipient to Amount, then exit Send instead of looping.
+     */
+    it('ETH: header back pops Recipient to Amount then exits Send', async () => {
+      const state = initialStateWallet()
+        .withOverrides(sendViewOverrides)
+        .build();
+
+      const { getByTestId, getByRole, findByTestId, queryByTestId } =
+        renderScreenWithRoutes(
+          Send as unknown as React.ComponentType,
+          { name: Routes.SEND.DEFAULT },
+          [{ name: Routes.WALLET_VIEW }],
+          { state },
+          { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
+        );
+
+      expect(
+        getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+      );
+      fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(SEND_NAVBAR_BACK_BUTTON_TEST_ID));
+
+      expect(
+        await findByTestId(
+          RedesignedSendViewSelectorsIDs.SEND_AMOUNT,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(SEND_NAVBAR_BACK_BUTTON_TEST_ID));
+
+      expect(
+        await findByTestId(
+          getRouteProbeTestId(Routes.WALLET_VIEW),
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT),
+      ).not.toBeOnTheScreen();
     });
 
     /**

@@ -6,14 +6,12 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  IconColor,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import PendingSpinner from '../../../UI/Money/components/PendingSpinner/PendingSpinner';
 import {
@@ -70,7 +68,7 @@ export function ActivityDetailsPendingBanner({
       testID={ActivityDetailsSelectorsIDs.PENDING_BANNER}
     >
       <Box twClassName="flex-row items-center gap-2">
-        <PendingSpinner size={IconSize.Sm} color={IconColor.Default} />
+        <PendingSpinner size={IconSize.Sm} color={IconColor.IconDefault} />
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('activity_details.transaction_pending')}
         </Text>

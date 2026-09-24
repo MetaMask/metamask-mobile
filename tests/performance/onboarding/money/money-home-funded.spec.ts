@@ -1,9 +1,6 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright/index.js';
 import TimerHelper from '../../../framework/TimerHelper.js';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-} from '../../../framework/index.js';
+import { AppiumAssertions } from '../../../framework/index.js';
 import { onboardingFlowImportSRPPlaywright } from '../../../flows/wallet.flow.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
@@ -17,8 +14,8 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
       await onboardingFlowImportSRPPlaywright(MONEY_FUNDED_USER_SRP);
 
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(TabBarComponent.tabBarMoneyButton),
+      await AppiumAssertions.expectElementToBeVisible(
+        TabBarComponent.tabBarMoneyButton,
         {
           description:
             'Money tab should be available for the funded-account scenario',

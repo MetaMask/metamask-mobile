@@ -13,6 +13,9 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
+process.env.KYC_API_URL = 'https://kyc-api.example.com';
+process.env.IDOS_ENCLAVE_URL = 'https://enclave.example.com';
+process.env.IDOS_RELAY_URL = 'https://relay.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -30,6 +33,96 @@ process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 // When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
 const isReassureRun = process.env.REASSURE === 'true';
 
+const DEPENDENCIES_TO_TRANSPILE = [
+  '@react-native',
+  'react-native',
+  'redux-persist-filesystem',
+  '@react-navigation',
+  '@react-native-community',
+  '@react-native-masked-view',
+  'react-navigation',
+  'react-navigation-redux-helpers',
+  '@sentry',
+  'd3-color',
+  'd3-shape',
+  'd3-path',
+  'd3-scale',
+  'd3-array',
+  'd3-time',
+  'd3-format',
+  'd3-interpolate',
+  'd3-selection',
+  'd3-axis',
+  'd3-transition',
+  'internmap',
+  'lodash-es',
+  'react-native-wagmi-charts',
+  'react-native-nitro-modules',
+  '@notifee',
+  'expo-file-system',
+  'expo-modules-core',
+  'expo(nent)?',
+  '@expo(nent)?/.*',
+  '@noble/.*',
+  '@nktkas/hyperliquid',
+  '@metamask/abi-utils',
+  '@metamask/assets-controller',
+  '@metamask/assets-controllers',
+  '@metamask/authenticated-user-storage',
+  '@metamask/base-controller',
+  '@metamask/base-data-service',
+  '@metamask/address-book-controller',
+  '@metamask/bridge-controller',
+  '@metamask/bridge-status-controller',
+  '@metamask/client-controller',
+  '@metamask/chomp-api-service',
+  '@metamask/config-registry-controller',
+  '@metamask/controller-utils',
+  '@metamask/core-backend',
+  '@metamask/delegation-controller',
+  '@metamask/delegation-core',
+  '@metamask/delegation-deployments',
+  '@metamask/gas-fee-controller',
+  '@metamask/kyc-controller',
+  '@metamask/money-account-balance-service',
+  '@metamask/money-account-utils',
+  '@metamask/multichain-network-controller',
+  '@metamask/network-enablement-controller',
+  '@metamask/notification-services-controller',
+  '@metamask/phishing-controller',
+  '@metamask/polling-controller',
+  '@metamask/preferences-controller',
+  '@metamask/profile-metrics-controller',
+  '@metamask/profile-sync-controller',
+  '@metamask/ramps-controller',
+  '@metamask/sentinel-api-service',
+  // 3.x ships ESM-only under dist/*.js (2.x used dist/index.cjs).
+  '@metamask/social-controllers',
+  '@signinwithethereum',
+  '@metamask/design-system-twrnc-preset',
+  '@metamask/design-system-react-native',
+  '@metamask/messenger',
+  '@metamask/native-utils',
+  '@metamask/perps-controller',
+  '@metamask/superstruct',
+  '@metamask/utils',
+  '@metamask/react-native-acm',
+  '@metamask/react-native-actionsheet',
+  '@metamask/react-native-button',
+  '@metamask/smart-transactions-controller',
+  '@metamask/subscription-controller',
+  '@metamask/transaction-controller',
+  '@metamask/transaction-pay-controller',
+  // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
+  // which cannot hoist onto the CJS v11 the rest of the repo resolves.
+  '@metamask/utils',
+  '@tommasini/react-native-scrollable-tab-view',
+  '@veriff/react-native-sdk',
+  '@sumsub/react-native-mobilesdk-module',
+  '@braze/react-native-sdk',
+  'uuid',
+];
+
 const config = {
   // RN 0.85 removes the bundled 'react-native' Jest preset in favor of the
   // extracted '@react-native/jest-preset' package (functionally identical on
@@ -38,11 +131,12 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@braze/react-native-sdk|uuid))',
+    `node_modules/(?!(${DEPENDENCIES_TO_TRANSPILE.join('|')}))`,
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
+    '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
@@ -89,18 +183,21 @@ const config = {
     '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
     '^react-native-video$': '<rootDir>/app/__mocks__/react-native-video.tsx',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
+    'wasm-wrapper\\.standalone\\.html$':
+      '<rootDir>/app/__mocks__/lighterSignerHtml.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
+    // 17.x ships ESM-only under dist/*.js (16.x used dist/*.cjs).
     '^@metamask/perps-controller$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.js',
     '^@metamask/perps-controller/(constants|types|utils)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.js',
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.js',
     '^@metamask/perps-controller/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.js',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from
@@ -110,11 +207,11 @@ const config = {
     // @metamask/perps-controller without crashing, until upstream publishes a fix.
     '^file:///home/runner/work/hyperliquid/hyperliquid/src/mod\\.ts$':
       '<rootDir>/app/__mocks__/hyperliquidMock.js',
-    '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-glass-effect$': '<rootDir>/app/__mocks__/expo-glass-effect.tsx',
     '^expo-local-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-local-authentication.ts',
     '^expo-screen-orientation(/.*)?$':
@@ -126,7 +223,8 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
-    '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
+    '^@rive-app/react-native$':
+      '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
   },

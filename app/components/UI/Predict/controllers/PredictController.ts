@@ -64,6 +64,7 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
@@ -104,6 +105,7 @@ import {
   PredictBuyAttemptContext,
   PredictClaim,
   PredictClaimStatus,
+  PredictEligibility,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarket,
@@ -111,7 +113,6 @@ import {
   PredictMarketListResponse,
   PredictOrderErrorStage,
   PredictPosition,
-  PredictPositionStatus,
   PredictPriceHistoryPoint,
   PredictTradeAnalyticsProperties,
   PredictWithdraw,
@@ -137,6 +138,7 @@ import {
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
 import { generateOrderId } from '../utils/orders';
+import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
@@ -154,10 +156,7 @@ import { withTrace, type TraceableController } from './utils/withTrace';
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  eligibility: {
-    eligible: boolean;
-    country?: string;
-  };
+  eligibility: PredictEligibility;
 
   // Error handling
   lastError: string | null;
@@ -210,7 +209,7 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  eligibility: { eligible: false },
+  eligibility: { status: 'checking', eligible: false },
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -518,6 +517,7 @@ export class PredictController extends BaseController<
   PredictControllerMessenger
 > {
   private provider: PolymarketProvider;
+  private eligibilityRefreshPromise: Promise<PredictEligibility> | null = null;
 
   private pendingOrderPreviews: {
     [transactionId: string]: PendingOrderPreview;
@@ -579,7 +579,7 @@ export class PredictController extends BaseController<
     });
 
     this.analytics = new PredictAnalytics({
-      getEligibility: () => this.state.eligibility ?? { eligible: false },
+      getEligibility: () => this.state.eligibility,
     });
 
     this.messenger.subscribe(
@@ -587,22 +587,8 @@ export class PredictController extends BaseController<
       this.handleTransactionStatusUpdate.bind(this),
     );
 
-    this.refreshEligibility().catch((error) => {
-      DevLogger.log('PredictController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
-
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('refreshEligibility', {
-          provider: POLYMARKET_PROVIDER_ID,
-        }),
-      );
-    });
+    // refreshEligibility owns failure state and logging.
+    this.refreshEligibility().catch(() => undefined);
   }
 
   /**
@@ -1157,6 +1143,9 @@ export class PredictController extends BaseController<
             providerId: POLYMARKET_PROVIDER_ID,
             symbol: params.symbol,
             variant: params.variant,
+            ...(params.twapWindowSeconds !== undefined && {
+              twapWindowSeconds: params.twapWindowSeconds,
+            }),
           },
         },
         errorContext: {
@@ -1165,6 +1154,7 @@ export class PredictController extends BaseController<
           eventStartTime: params.eventStartTime,
           variant: params.variant,
           endDate: params.endDate,
+          twapWindowSeconds: params.twapWindowSeconds,
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
         traceData: (history) => ({ pointCount: history.length }),
@@ -1233,10 +1223,23 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
+            // A pending claim was prepared from the current snapshot; the
+            // confirmation footer, `beforeSign` and `confirmClaim` all read it
+            // back. A concurrent refetch (or a transient empty response) must
+            // not clobber it mid-flight (PRED-1321).
+            if (this.findPendingClaimAddress(selectedAddress)) {
+              return;
+            }
+            // Callers pass this address in different casings (checksummed
+            // signer vs lowercased `txParams.from`). Write into the existing
+            // key so a single account never has two entries in the map.
+            const addressKey =
+              this.findClaimablePositionsAddress(selectedAddress) ??
+              selectedAddress;
             if (params.claimable === true) {
-              state.claimablePositions[selectedAddress] = [...positions];
+              state.claimablePositions[addressKey] = [...positions];
             } else if (params.claimable === undefined) {
-              state.claimablePositions[selectedAddress] = positions.filter(
+              state.claimablePositions[addressKey] = positions.filter(
                 (p) => p.claimable,
               );
             }
@@ -1603,7 +1606,10 @@ export class PredictController extends BaseController<
     missingBatchIdError: string;
   }): Promise<string> {
     try {
-      const batchResult = await addTransactionBatch(params);
+      const batchResult = await addTransactionBatch({
+        ...params,
+        overwriteUpgrade: true,
+      });
 
       if (!batchResult?.batchId) {
         throw new Error(missingBatchIdError);
@@ -2476,10 +2482,23 @@ export class PredictController extends BaseController<
         };
       }
 
-      // Get claimable positions from state
-      const claimablePositions = this.state.claimablePositions[signer.address];
+      // The confirmation footer only renders Confirm for WON/REDEEMABLE
+      // positions. Require at least one before opening the confirmation, and
+      // refresh once before deciding there is nothing to claim: controller
+      // state is not persisted, so the map can be empty or stale even though
+      // the CTA that brought us here was correct (PRED-1321).
+      let claimablePositions = this.getClaimablePositionsByAddress(
+        signer.address,
+      );
 
-      if (!claimablePositions || claimablePositions.length === 0) {
+      if (!claimablePositions?.some(isActionableClaimablePosition)) {
+        claimablePositions = await this.getPositions({
+          address: signer.address,
+          claimable: true,
+        });
+      }
+
+      if (!claimablePositions?.some(isActionableClaimablePosition)) {
         throw new Error('No claimable positions found');
       }
 
@@ -2533,6 +2552,16 @@ export class PredictController extends BaseController<
         );
       }
 
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
+
+      const gasFeeToken = isDepositWallet
+        ? undefined
+        : (MATIC_CONTRACTS_V2.collateral as Hex);
+
       // Add transaction batch - can fail if transaction submission fails
       const batchId = await this.submitPredictTransactionBatch({
         params: {
@@ -2542,9 +2571,7 @@ export class PredictController extends BaseController<
           networkClientId,
           disableHook: true,
           disableSequential: true,
-          skipInitialGasEstimate: true,
-          // Temporarily breaking abstraction, can instead be abstracted via provider.
-          gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
+          gasFeeToken,
           transactions,
         },
         missingBatchIdError:
@@ -2870,11 +2897,8 @@ export class PredictController extends BaseController<
   public confirmClaim({ address }: { address?: string }): void {
     const provider = this.provider;
 
-    const normalizedAddress = (
-      address ?? this.getSigner().address
-    ).toLowerCase();
-    const matchedAddress = Object.keys(this.state.claimablePositions).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    const matchedAddress = this.findClaimablePositionsAddress(
+      address ?? this.getSigner().address,
     );
 
     if (!matchedAddress) {
@@ -2904,50 +2928,108 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Refresh eligibility status
+   * Refresh eligibility status.
+   *
+   * Concurrent callers share one in-flight request. A confirmed
+   * `eligible` / `ineligible` result stays in state while a re-check is in
+   * flight, so a routine foreground refresh or a slow geoblock check never
+   * blocks a user who was already confirmed; only the first check (or a
+   * retry after `unavailable`) reports `checking`. A definitive result
+   * requires a country; failures and incomplete responses become
+   * `unavailable` so they are never described as a geo-restriction.
    */
-  public async refreshEligibility(): Promise<void> {
+  public async refreshEligibility(): Promise<PredictEligibility> {
+    if (this.eligibilityRefreshPromise) {
+      return this.eligibilityRefreshPromise;
+    }
+
+    this.eligibilityRefreshPromise = this.performEligibilityRefresh().finally(
+      () => {
+        this.eligibilityRefreshPromise = null;
+      },
+    );
+    return this.eligibilityRefreshPromise;
+  }
+
+  private async performEligibilityRefresh(): Promise<PredictEligibility> {
     DevLogger.log('PredictController: Refreshing eligibility');
+    const { status: previousStatus } = this.state.eligibility;
+    const hasConfirmedResult =
+      previousStatus === 'eligible' || previousStatus === 'ineligible';
+    if (!hasConfirmedResult) {
+      this.update((state) => {
+        state.eligibility = { status: 'checking', eligible: false };
+      });
+    }
+
+    if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+      const eligibility: PredictEligibility = {
+        status: 'eligible',
+        country: 'N/A',
+        eligible: true,
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      return eligibility;
+    }
+
     try {
       const geoBlockResponse = await this.provider.isEligible();
-      if (geoBlockResponse.isEligible && geoBlockResponse.country) {
-        const isLocallyGeoblocked = this.isLocallyGeoblocked({
-          country: geoBlockResponse.country,
-        });
-        geoBlockResponse.isEligible = !isLocallyGeoblocked;
+      const country = geoBlockResponse.country?.trim();
+      if (!country) {
+        throw new Error('Geoblock check returned an incomplete response');
       }
-      if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
-        geoBlockResponse.isEligible = true;
-        geoBlockResponse.country = 'N/A';
-      }
-      this.update((state) => {
-        state.eligibility = {
-          eligible: geoBlockResponse.isEligible,
-          country: geoBlockResponse.country,
-        };
-      });
-    } catch (error) {
-      this.update((state) => {
-        state.eligibility = {
-          eligible: false,
-          country: undefined,
-        };
-      });
-      DevLogger.log('PredictController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
 
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('refreshEligibility.provider', {
-          providerId: POLYMARKET_PROVIDER_ID,
-        }),
-      );
+      const status =
+        geoBlockResponse.isEligible && !this.isLocallyGeoblocked({ country })
+          ? 'eligible'
+          : 'ineligible';
+      const eligibility: PredictEligibility = {
+        status,
+        country,
+        eligible: status === 'eligible',
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      return eligibility;
+    } catch (error) {
+      const eligibility: PredictEligibility = {
+        status: 'unavailable',
+        eligible: false,
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      this.reportEligibilityRefreshFailure(error);
+      return eligibility;
     }
+  }
+
+  private reportEligibilityRefreshFailure(error: unknown): void {
+    const errorContext = this.getErrorContext('refreshEligibility.provider', {
+      providerId: POLYMARKET_PROVIDER_ID,
+    });
+
+    DevLogger.log('PredictController: Eligibility refresh failed', {
+      error:
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (isExpectedPolymarketRequestAbort(error)) {
+      Logger.log(
+        'Predict geoblock request ended by expected timeout/cancellation:',
+        error instanceof Error ? error.message : String(error),
+        errorContext,
+      );
+      return;
+    }
+
+    Logger.error(ensureError(error), errorContext);
   }
 
   /**
@@ -3979,23 +4061,9 @@ export class PredictController extends BaseController<
   }
 
   private getClaimAmountByAddress(address: string): number {
-    const normalizedAddress = address.toLowerCase();
-    const matchedAddress = Object.keys(this.state.claimablePositions).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
-    );
-
-    if (!matchedAddress) {
-      return 0;
-    }
-
-    return this.state.claimablePositions[matchedAddress].reduce(
-      (sum, position) =>
-        position.status === PredictPositionStatus.WON ||
-        position.status === PredictPositionStatus.REDEEMABLE
-          ? sum + position.currentValue
-          : sum,
-      0,
-    );
+    return this.getClaimablePositionsByAddress(address)
+      .filter(isActionableClaimablePosition)
+      .reduce((sum, position) => sum + position.currentValue, 0);
   }
 
   private getClaimAmountFromReceipt(
@@ -4421,6 +4489,33 @@ export class PredictController extends BaseController<
     });
   }
 
+  private findPendingClaimAddress(address: string): string | undefined {
+    const normalizedAddress = address.toLowerCase();
+    return Object.keys(this.state.pendingClaims).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+  }
+
+  /**
+   * `claimablePositions` is keyed by whichever casing first wrote it
+   * (checksummed signer address or lowercased `txParams.from`). Every read
+   * and write goes through this lookup so one account never ends up with two
+   * entries that the footer and the claim flow disagree on (PRED-1321).
+   */
+  private findClaimablePositionsAddress(address: string): string | undefined {
+    const normalizedAddress = address.toLowerCase();
+    return Object.keys(this.state.claimablePositions).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+  }
+
+  private getClaimablePositionsByAddress(address: string): PredictPosition[] {
+    const matchedAddress = this.findClaimablePositionsAddress(address);
+    return matchedAddress
+      ? (this.state.claimablePositions[matchedAddress] ?? [])
+      : [];
+  }
+
   private getPendingClaimContext(transactionMeta: TransactionMeta):
     | {
         senderAddress: string;
@@ -4443,10 +4538,7 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    const normalizedAddress = senderAddress.toLowerCase();
-    const matchedAddress = Object.keys(this.state.pendingClaims).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
-    );
+    const matchedAddress = this.findPendingClaimAddress(senderAddress);
 
     if (!matchedAddress) {
       return undefined;
@@ -4462,8 +4554,9 @@ export class PredictController extends BaseController<
       throw new Error('Pending claim batch does not match transaction batch');
     }
 
-    const claimablePositions = this.state.claimablePositions[matchedAddress];
-    if (!claimablePositions || claimablePositions.length === 0) {
+    const claimablePositions =
+      this.getClaimablePositionsByAddress(matchedAddress);
+    if (claimablePositions.length === 0) {
       throw new Error('No claimable positions found for pending claim');
     }
 

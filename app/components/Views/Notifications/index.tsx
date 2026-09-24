@@ -30,6 +30,7 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../util/notifications/hooks/useNotifications';
+import { useNotificationListPerformance } from '../../../util/notifications/hooks/useNotificationListPerformance';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -91,12 +92,17 @@ const NotificationsView = ({
     selectIsMetamaskNotificationsEnabled,
   );
   const notifications = useSelector(getNotificationsList);
+  const { allNotifications } = useNotificationFilters({ notifications });
+
+  useNotificationListPerformance({
+    isLoading,
+    notificationCount: allNotifications.length,
+    enabled: isNotificationEnabled,
+  });
 
   const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
     notifications,
   });
-
-  const { allNotifications } = useNotificationFilters({ notifications });
 
   const unreadCount = useMemo(
     () => allNotifications.filter((n) => !n.isRead).length,

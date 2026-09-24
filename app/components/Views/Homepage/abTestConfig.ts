@@ -1,7 +1,52 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
+import { TokenDetailsSource } from '../../UI/TokenDetails/constants/constants';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
+
+// ─── Homepage Earn section (MUSD-1313) ──────────────────────────────────────
+export const HOMEPAGE_EARN_SECTION_AB_KEY =
+  'musd1313AbtestEarnSectionOnHomepage';
+
+export enum HomepageEarnSectionVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface HomepageEarnSectionVariantConfig {
+  showEarnSection: boolean;
+}
+
+export const HOMEPAGE_EARN_SECTION_VARIANTS: Record<
+  HomepageEarnSectionVariant,
+  HomepageEarnSectionVariantConfig
+> = {
+  [HomepageEarnSectionVariant.Control]: {
+    showEarnSection: false,
+  },
+  [HomepageEarnSectionVariant.Treatment]: {
+    showEarnSection: true,
+  },
+};
+
+export const HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Earn section on Homepage',
+  variationNames: {
+    control: 'Homepage without Earn section',
+    treatment: 'Homepage with Earn section',
+  },
+} as const;
+
+export const HOMEPAGE_EARN_SECTION_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_EARN_SECTION_AB_KEY,
+    validVariants: Object.values(HomepageEarnSectionVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+    injectWhenPropertiesMatch: {
+      section_name: 'earn',
+    },
+  };
 
 // ─── Homepage Perps empty state — Explore-style pills (TMCU-725) ─────────────
 
@@ -353,6 +398,130 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
       },
       [EVENT_NAME.POSITION_SCREEN_VIEWED]: {
         source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+      },
+    },
+  };
+
+// ─── Wallet header & bottom NavBar refresh (TMCU-1276) ───────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1276).
+ */
+export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
+
+export enum HeaderNavBarVariant {
+  Control = 'control',
+  SearchFocused = 'searchFocused',
+  TradeFocused = 'tradeFocused',
+}
+
+/** Trailing circular button alongside the floating NavBar pill. */
+export type HeaderNavBarTrailingAction = 'none' | 'search' | 'trade';
+
+interface HeaderNavBarVariantConfig {
+  isCompactHeaderEnabled: boolean;
+  trailingNavBarAction: HeaderNavBarTrailingAction;
+  /** Search moves into the header when the NavBar button opens the trade tray. */
+  isHeaderSearchEnabled: boolean;
+}
+
+export const HEADER_NAV_BAR_VARIANTS: Record<
+  HeaderNavBarVariant,
+  HeaderNavBarVariantConfig
+> = {
+  [HeaderNavBarVariant.Control]: {
+    isCompactHeaderEnabled: false,
+    trailingNavBarAction: 'none',
+    isHeaderSearchEnabled: false,
+  },
+  [HeaderNavBarVariant.SearchFocused]: {
+    isCompactHeaderEnabled: true,
+    trailingNavBarAction: 'search',
+    isHeaderSearchEnabled: false,
+  },
+  [HeaderNavBarVariant.TradeFocused]: {
+    isCompactHeaderEnabled: true,
+    trailingNavBarAction: 'trade',
+    isHeaderSearchEnabled: true,
+  },
+};
+
+export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Header and Nav Bar refresh',
+  variationNames: {
+    control: 'Current header and NavBar',
+    searchFocused:
+      'Refreshed header with consolidated hamburger menu and NavBar search',
+    tradeFocused: 'Refreshed header with NavBar trade button and header search',
+  },
+} as const;
+
+export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HEADER_NAV_BAR_AB_KEY,
+    validVariants: Object.values(HeaderNavBarVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACCOUNT_LIST_VIEWED],
+  };
+
+// ─── Perps section priority on wallet home (TAT-3597) ────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `perps`, ticket TAT-3597).
+ */
+export const PERPS_SECTION_PRIORITY_AB_KEY =
+  'perpsTAT3597AbtestPerpsSectionPriority';
+
+export enum PerpsSectionPriorityVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface PerpsSectionPriorityVariantConfig {
+  /** Permits the reorder; still gated at render time by active-trader status. */
+  perpsAboveTokensEligible: boolean;
+}
+
+export const PERPS_SECTION_PRIORITY_VARIANTS: Record<
+  PerpsSectionPriorityVariant,
+  PerpsSectionPriorityVariantConfig
+> = {
+  [PerpsSectionPriorityVariant.Control]: {
+    perpsAboveTokensEligible: false,
+  },
+  [PerpsSectionPriorityVariant.Treatment]: {
+    perpsAboveTokensEligible: true,
+  },
+};
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Section Priority',
+  variationNames: {
+    control: 'Tokens above Perps (current)',
+    treatment: 'Perps above Tokens when eligible',
+  },
+} as const;
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_SECTION_PRIORITY_AB_KEY,
+    validVariants: Object.values(PerpsSectionPriorityVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.ACTION_BUTTON_CLICKED,
+      EVENT_NAME.TOKEN_DETAILS_OPENED,
+    ],
+    // Both guardrails fire from surfaces this experiment does not touch
+    // (asset details, navbar, the token list page). Tagging those would not
+    // bias the comparison, since it tags both arms equally, but it dilutes the
+    // metric with traffic the section order cannot influence.
+    eventPropertyRequirements: {
+      [EVENT_NAME.ACTION_BUTTON_CLICKED]: { location: ActionLocation.HOME },
+      [EVENT_NAME.TOKEN_DETAILS_OPENED]: {
+        source: TokenDetailsSource.MobileTokenList,
       },
     },
   };

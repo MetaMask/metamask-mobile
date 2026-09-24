@@ -5,7 +5,7 @@ import {
   Assertions,
   PlatformDetector,
   Utilities,
-  EncapsulatedElementType,
+  type AppiumElement,
   sleep,
 } from '../../framework';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
@@ -17,55 +17,91 @@ import WalletView from './WalletView';
 import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 import TrendingView from '../Trending/TrendingView';
 
+/** Native iOS 26 tab items have no testID; UIKit exposes them by title. */
+const NATIVE_TAB_LABELS = {
+  WALLET: 'Home',
+  EXPLORE: 'Explore',
+  ACTIVITY: 'Activity',
+  MONEY: 'Money',
+  REWARDS: 'Rewards',
+} as const;
+
+const NATIVE_TAB_BAR_MIN_IOS_VERSION = 26;
+
 class TabBarComponent {
-  get tabBarExploreButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
+  private tabItem(
+    testId: string,
+    nativeLabel: (typeof NATIVE_TAB_LABELS)[keyof typeof NATIVE_TAB_LABELS],
+  ): Promise<AppiumElement> {
+    if (PlatformDetector.isIOSAtLeast(NATIVE_TAB_BAR_MIN_IOS_VERSION)) {
+      return Matchers.getElementByLabel(nativeLabel);
+    }
+    return Matchers.getElementByID(testId);
   }
 
-  get tabBarBrowserButton(): EncapsulatedElementType {
+  get tabBarExploreButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.EXPLORE, NATIVE_TAB_LABELS.EXPLORE);
+  }
+
+  get tabBarBrowserButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
-  get tabBarWalletButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+  get tabBarWalletButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.WALLET, NATIVE_TAB_LABELS.WALLET);
   }
 
-  get tabBarActionButton(): EncapsulatedElementType {
+  get tabBarActionButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
-  get tabBarTradeButton(): EncapsulatedElementType {
+  get tabBarTradeButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
-  get tabBarSettingButton(): EncapsulatedElementType {
+  get tabBarSettingButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
-  get tabBarActivityButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+  get tabBarActivityButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.ACTIVITY, NATIVE_TAB_LABELS.ACTIVITY);
   }
 
-  get tabBarRewardsButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
+  get tabBarRewardsButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.REWARDS, NATIVE_TAB_LABELS.REWARDS);
   }
 
-  get tabBarMoneyButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.MONEY);
+  get tabBarMoneyButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.MONEY, NATIVE_TAB_LABELS.MONEY);
   }
 
-  get homeButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+  get homeButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.WALLET, NATIVE_TAB_LABELS.WALLET);
+  }
+
+  private async dismissStackedActivity(): Promise<void> {
+    const isActivityVisible = await Utilities.isElementVisible(
+      ActivitiesView.redesignedScreen,
+      500,
+    );
+    if (isActivityVisible) {
+      await ActivitiesView.tapBackButton();
+    }
   }
 
   async tapHome(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.homeButton, { timeout: 2000 });
+        await this.dismissStackedActivity();
+        await Gestures.waitAndTap(this.homeButton, {
+          elemDescription: 'Tab Bar - Home Button',
+          timeout: 2000,
+        });
         if (PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet home screen',
             timeout: 500,
           });
         }
@@ -90,6 +126,7 @@ class TabBarComponent {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet home screen',
             timeout: 5_000,
           });
         }
@@ -187,38 +224,44 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        // Money account replaces the Activity tab with Money; Activity is then
-        // opened from the wallet-header clock button (`wallet-activity-button`).
-        // When Money is off, that header button is hidden and the Activity tab
-        // is the only entry point. Prefer whichever control is present.
-        //
-        // If a prior attempt already navigated but the title was not ready yet,
-        // neither entry point is on screen — skip / swallow taps and wait for
-        // the title so executeWithRetry can succeed once Activity is visible.
         const alreadyOnActivity = await Utilities.isElementVisible(
-          ActivitiesView.title,
+          ActivitiesView.redesignedScreen,
           500,
         );
         if (!alreadyOnActivity) {
-          try {
+          const isMoneyTabVisible = await Utilities.isElementVisible(
+            this.tabBarMoneyButton,
+            500,
+          );
+          if (isMoneyTabVisible) {
+            const isWalletActivityButtonVisible =
+              await Utilities.isElementVisible(WalletView.activityButton, 500);
+            if (!isWalletActivityButtonVisible) {
+              await Gestures.waitAndTap(this.tabBarWalletButton, {
+                timeout: 2_000,
+                elemDescription: 'Tab Bar - Wallet Button',
+              });
+            }
+            await Gestures.waitAndTap(WalletView.activityButton, {
+              timeout: 5_000,
+              elemDescription: 'Wallet Activity button',
+            });
+          } else {
             await Gestures.waitAndTap(this.tabBarActivityButton, {
-              timeout: 2000,
+              timeout: 2_000,
               elemDescription: 'Tab Bar - Activity Button',
             });
-          } catch {
-            try {
-              await Gestures.waitAndTap(WalletView.activityButton, {
-                timeout: 2000,
-                elemDescription: 'Wallet Activity button',
-              });
-            } catch {
-              // Both entry points missing — likely already on Activity from a
-              // prior attempt; fall through to the title assertion below.
-            }
           }
         }
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity View Title',
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.redesignedScreen,
+          {
+            description: 'Activity View Screen',
+            timeout: 500,
+          },
+        );
+        await Assertions.expectElementToBeVisible(ActivitiesView.container, {
+          description: 'Activity List',
           timeout: 500,
         });
       },

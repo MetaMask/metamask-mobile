@@ -5,7 +5,14 @@ import Matchers from '../framework/Matchers';
 import { sleep } from '../framework/Utilities';
 import LoginView from '../page-objects/wallet/LoginView';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import {
+  isUiAutomator2SessionDeadError,
+  resolveE2EWaitTimeoutMs,
+} from '../framework/Constants';
+import {
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from '../framework/services/appium/sessionRecovery';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -237,54 +244,70 @@ export const waitForAppReady = async (
 
   logger.debug('Waiting for app to reach login or wallet home...');
 
-  while (Date.now() < deadline) {
-    if (PlatformDetector.isIOS()) {
-      if (await isWalletHomeReadyOnIOS()) {
-        logger.debug(
-          `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
-        );
-        return 'wallet';
-      }
-    } else if (PlatformDetector.isAndroid()) {
-      // Android Appium: probe login before wallet-screen. The wallet container
-      // may exist in the native tree while the lock screen is showing.
-      if (await isLoginScreenDisplayed()) {
-        await sleep(500);
+  try {
+    while (Date.now() < deadline) {
+      if (PlatformDetector.isIOS()) {
+        if (await isWalletHomeReadyOnIOS()) {
+          logger.debug(
+            `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
+          );
+          return 'wallet';
+        }
+      } else if (PlatformDetector.isAndroid()) {
+        // Android Appium: probe login before wallet-screen. The wallet container
+        // may exist in the native tree while the lock screen is showing.
         if (await isLoginScreenDisplayed()) {
+          await sleep(500);
+          if (await isLoginScreenDisplayed()) {
+            logger.debug(
+              `App ready on login after ${Date.now() - startTime}ms`,
+            );
+            return 'login';
+          }
+          // Login flickered during rehydration — skip wallet probe this iteration.
+          await sleep(pollIntervalMs);
+          continue;
+        }
+        if (await isWalletHomeReadyOnAndroidStable()) {
+          logger.debug(
+            `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+          );
+          return 'wallet';
+        }
+      }
+
+      if (!PlatformDetector.isAndroid()) {
+        try {
+          await Assertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login view should be stable',
+            timeout: 3000,
+          });
+          await sleep(500);
+          await Assertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login view should remain visible',
+            timeout: 1500,
+          });
           logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
           return 'login';
+        } catch {
+          // Still booting — keep polling.
         }
-        // Login flickered during rehydration — skip wallet probe this iteration.
-        await sleep(pollIntervalMs);
-        continue;
       }
-      if (await isWalletHomeReadyOnAndroidStable()) {
-        logger.debug(
-          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
-        );
-        return 'wallet';
-      }
-    }
 
-    if (!PlatformDetector.isAndroid()) {
-      try {
-        await Assertions.expectElementToBeVisible(LoginView.container, {
-          description: 'Login view should be stable',
-          timeout: 3000,
-        });
-        await sleep(500);
-        await Assertions.expectElementToBeVisible(LoginView.container, {
-          description: 'Login view should remain visible',
-          timeout: 1500,
-        });
-        logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-        return 'login';
-      } catch {
-        // Still booting — keep polling.
-      }
+      await sleep(pollIntervalMs);
     }
-
-    await sleep(pollIntervalMs);
+  } catch (error) {
+    // Soft-reload can leave the Appium session up while UiAutomator2 is dead.
+    // Polling login/wallet for 60s only masks that as a "rehydration" timeout.
+    if (isUiAutomator2SessionDeadError(error) || isDeviceHealthError(error)) {
+      requestSharedSessionRecreate();
+      const detail =
+        error instanceof Error ? error.message : String(error ?? '');
+      throw new Error(
+        `Appium session is unhealthy during waitForAppReady (${Date.now() - startTime}ms): ${detail}`,
+      );
+    }
+    throw error;
   }
 
   throw new Error(

@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -533,12 +534,16 @@
       "direction": "desc"
     },
     "mode": "lite",
+    "orderBookPreferences": {
+      "currency": "usd",
+      "metric": "total"
+    },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "proLayoutPreferences": {
-      "chartExpanded": false,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
+      "chartExpanded": true,
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
       "orderFormPosition": "right",
       "ordersSideFilter": "all",
       "ordersSortDirection": "desc",
@@ -547,7 +552,9 @@
       "positionsSortDirection": "desc",
       "positionsSortField": "positionValue"
     },
+    "selectedOrderType": "market",
     "selectedPaymentToken": null,
+    "visibleCandleCount": 30,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
   },
@@ -591,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -614,8 +622,10 @@
     "transactionData": {}
   },
   "ProfileMetricsController": {
+    "accountSourceBackfillEnqueued": false,
     "initialEnqueueCompleted": false,
     "proofBackfillEnqueued": false,
+    "reportedAccounts": [],
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -623,7 +633,8 @@
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
     "isContactSyncingEnabled": true,
-    "isContactSyncingInProgress": false
+    "isContactSyncingInProgress": false,
+    "isRampsSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}
@@ -757,12 +768,21 @@
     "cardHomeData": null,
     "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataError": null,
     "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null,
+    "signInLink": null,
+    "accountLookupCache": {}
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {
@@ -776,6 +796,21 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "email": null,
+    "vendor": null,
+    "geoCountry": null,
+    "sessionStatus": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -861,15 +896,16 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "perpsTradingCampaignPrizePool": {},
     "predictThePitchLeaderboard": {},
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "moneyAccountSweepstakesStats": {},
     "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesVolumeStats": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
-    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -883,8 +919,20 @@
     "subscriptions": {},
     "rewardsEnvUrl": null
   },
+  "RewardsMoneyController": {
+    "referralMe": {},
+    "referralCodes": {},
+    "referralFunnel": {},
+    "earningsSummary": {},
+    "earningsLedgerFirstPage": {},
+    "claimHistoryFirstPage": {},
+    "commissionsFirstPage": {},
+    "claimById": {},
+    "rewardsMoneyEnvUrl": null
+  },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
@@ -908,11 +956,9 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

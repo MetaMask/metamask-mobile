@@ -1,13 +1,104 @@
+/* eslint-disable import-x/no-nodejs-modules */
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import {
   ANDROID_E2E_PACKAGES_TO_DISABLE,
   findAnrDialogRecoveryTapPoint,
   findAnrDialogWaitTapPoint,
   isAndroidPingSuccessful,
+  isReusableAndroidPoolDevice,
+  runAndroidPoolTasks,
+  shouldWaitForAndroidPoolDevice,
   shouldWaitForOfflineEmulator,
   shouldWaitForUnidentifiedOfflineEmulator,
 } from './EmulatorHelpers.ts';
+import {
+  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+  buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
+  computeAndroidSystemImageFingerprint,
+  getGoldenSnapshotDir,
+  hasGoldenSnapshot,
+  isGoldenSnapshotUsable,
+  resolveAndroidBootMode,
+} from './AndroidGoldenSnapshot.ts';
 
 describe('EmulatorHelpers', () => {
+  describe('Android pool boot policy', () => {
+    it('runs cold boots sequentially', async () => {
+      let active = 0;
+      let maxActive = 0;
+
+      const results = await runAndroidPoolTasks(
+        'cold',
+        [0, 1],
+        async (task) => {
+          active += 1;
+          maxActive = Math.max(maxActive, active);
+          await Promise.resolve();
+          active -= 1;
+          return task;
+        },
+      );
+
+      expect(results).toEqual([0, 1]);
+      expect(maxActive).toBe(1);
+    });
+
+    it('only wipes shared AVD data before the first cold pool boot', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        avdName: 'appium_smoke_avd',
+        isCI: true,
+        poolSize: 2,
+        bootMode: 'cold',
+      });
+
+      expect(boots[0].args).toContain('-wipe-data');
+      expect(boots[1].args).not.toContain('-wipe-data');
+    });
+
+    it('only reuses a ready device from the expected AVD', () => {
+      expect(
+        isReusableAndroidPoolDevice(
+          'device',
+          'appium_smoke_avd',
+          'appium_smoke_avd',
+        ),
+      ).toBe(true);
+      expect(
+        isReusableAndroidPoolDevice('offline', 'appium_smoke_avd', undefined),
+      ).toBe(false);
+      expect(
+        isReusableAndroidPoolDevice('device', 'appium_smoke_avd', 'personal'),
+      ).toBe(false);
+    });
+
+    it('waits for an expected pool serial that is still starting', () => {
+      expect(
+        shouldWaitForAndroidPoolDevice(
+          'offline',
+          'appium_smoke_avd',
+          undefined,
+        ),
+      ).toBe(true);
+      expect(
+        shouldWaitForAndroidPoolDevice(
+          'authorizing',
+          'appium_smoke_avd',
+          'appium_smoke_avd',
+        ),
+      ).toBe(true);
+      expect(
+        shouldWaitForAndroidPoolDevice(
+          'offline',
+          'appium_smoke_avd',
+          'personal',
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe('shouldWaitForOfflineEmulator', () => {
     it('returns true only when resolved AVD matches the request', () => {
       expect(
@@ -116,6 +207,380 @@ describe('EmulatorHelpers', () => {
           '1 packets transmitted, 0 received, 100% packet loss',
         ),
       ).toBe(false);
+    });
+  });
+
+  describe('resolveAndroidBootMode', () => {
+    it('defaults to auto when unset, empty, or unrecognized', () => {
+      expect(resolveAndroidBootMode({})).toBe('auto');
+      expect(resolveAndroidBootMode({ ANDROID_EMULATOR_BOOT_MODE: ' ' })).toBe(
+        'auto',
+      );
+      expect(
+        resolveAndroidBootMode({ ANDROID_EMULATOR_BOOT_MODE: 'bogus' }),
+      ).toBe('auto');
+    });
+
+    it('accepts snapshot and cold, case-insensitively', () => {
+      expect(
+        resolveAndroidBootMode({ ANDROID_EMULATOR_BOOT_MODE: 'snapshot' }),
+      ).toBe('snapshot');
+      expect(
+        resolveAndroidBootMode({ ANDROID_EMULATOR_BOOT_MODE: 'COLD' }),
+      ).toBe('cold');
+    });
+  });
+
+  describe('buildAndroidEmulatorArgs', () => {
+    const base = { avdName: 'appium_smoke_avd', isCI: true };
+
+    it('cold mode locks the CI default flag set', () => {
+      expect(buildAndroidEmulatorArgs({ ...base, bootMode: 'cold' })).toEqual([
+        '-avd',
+        'appium_smoke_avd',
+        '-skin',
+        '1440x3120',
+        '-memory',
+        '10240',
+        '-cores',
+        '8',
+        '-dns-server',
+        '8.8.8.8',
+        '-gpu',
+        'swiftshader_indirect',
+        '-no-audio',
+        '-no-boot-anim',
+        '-partition-size',
+        '8192',
+        '-no-snapshot-save',
+        '-no-snapshot-load',
+        '-wipe-data',
+        '-read-only',
+        '-cache-size',
+        '2048',
+        '-accel',
+        'on',
+        '-no-window',
+      ]);
+    });
+
+    it('cold mode honors cores and skin overrides', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'cold',
+        cores: '4',
+        skin: '1080x2340',
+      });
+      expect(args).toContain('-cores');
+      expect(args[args.indexOf('-cores') + 1]).toBe('4');
+      expect(args[args.indexOf('-skin') + 1]).toBe('1080x2340');
+    });
+
+    it('snapshot-resume quick-boots read-only and never writes back', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-resume',
+      });
+      expect(args).toContain('-snapshot');
+      expect(args[args.indexOf('-snapshot') + 1]).toBe(
+        ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+      );
+      expect(args).toContain('-no-snapshot-save');
+      expect(args).toContain('-read-only');
+      // Must not wipe or bypass the snapshot it is resuming from.
+      expect(args).not.toContain('-wipe-data');
+      expect(args).not.toContain('-no-snapshot-load');
+      expect(args).not.toContain('-partition-size');
+    });
+
+    it('snapshot-resume allows opting out of -read-only', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-resume',
+        snapshotReadOnly: false,
+      });
+      expect(args).not.toContain('-read-only');
+      expect(args).toContain('-snapshot');
+    });
+
+    it('snapshot-resume accepts a custom snapshot name', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-resume',
+        snapshotName: 'my_snapshot',
+      });
+      expect(args[args.indexOf('-snapshot') + 1]).toBe('my_snapshot');
+    });
+
+    it('snapshot-resume pins the requested emulator console port', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-resume',
+        port: 5556,
+      });
+
+      expect(args).toContain('-port');
+      expect(args[args.indexOf('-port') + 1]).toBe('5556');
+    });
+
+    it('builds two read-only golden resumes on distinct ports', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        ...base,
+        poolSize: 2,
+        cores: '4',
+      });
+
+      expect(boots.map(({ serial }) => serial)).toEqual([
+        'emulator-5554',
+        'emulator-5556',
+      ]);
+      expect(boots.map(({ port }) => port)).toEqual([5554, 5556]);
+      for (const boot of boots) {
+        expect(boot.args).toContain('-read-only');
+        expect(boot.args).toContain('-snapshot');
+        expect(boot.args[boot.args.indexOf('-memory') + 1]).toBe('10240');
+        expect(boot.args[boot.args.indexOf('-port') + 1]).toBe(
+          String(boot.port),
+        );
+      }
+    });
+
+    it('builds two cold pool boots on distinct ports without loading a snapshot', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        ...base,
+        poolSize: 2,
+        bootMode: 'cold',
+        cores: '4',
+      });
+
+      expect(boots.map(({ serial }) => serial)).toEqual([
+        'emulator-5554',
+        'emulator-5556',
+      ]);
+      for (const boot of boots) {
+        expect(boot.args).toContain('-read-only');
+        expect(boot.args).toContain('-no-snapshot-load');
+        expect(boot.args).not.toContain('-snapshot');
+        expect(boot.args[boot.args.indexOf('-port') + 1]).toBe(
+          String(boot.port),
+        );
+      }
+    });
+
+    it('local cold pool boots pin ports and stay read-only', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        avdName: 'Pixel_5_Pro_API_34',
+        isCI: false,
+        poolSize: 2,
+        bootMode: 'cold',
+      });
+
+      expect(boots.map(({ args }) => args)).toEqual([
+        [
+          '-avd',
+          'Pixel_5_Pro_API_34',
+          '-no-snapshot-load',
+          '-read-only',
+          '-port',
+          '5554',
+        ],
+        [
+          '-avd',
+          'Pixel_5_Pro_API_34',
+          '-no-snapshot-load',
+          '-read-only',
+          '-port',
+          '5556',
+        ],
+      ]);
+    });
+
+    it('snapshot-prime boots writable with wipe-data and snapshot save enabled', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-prime',
+      });
+      expect(args).toContain('-wipe-data');
+      expect(args).toContain('-no-snapshot-load');
+      expect(args).toContain('-partition-size');
+      expect(args).toContain('-no-window');
+      // Snapshot save requires a writable image.
+      expect(args).not.toContain('-read-only');
+      expect(args).not.toContain('-no-snapshot-save');
+      expect(args).not.toContain('-snapshot');
+    });
+
+    it('non-CI keeps the minimal local flag set regardless of mode', () => {
+      for (const bootMode of [
+        'cold',
+        'snapshot-prime',
+        'snapshot-resume',
+      ] as const) {
+        expect(
+          buildAndroidEmulatorArgs({ avdName: 'test', isCI: false, bootMode }),
+        ).toEqual(['-avd', 'test', '-no-snapshot-load']);
+      }
+    });
+  });
+
+  describe('golden snapshot state', () => {
+    const avdName = 'appium_smoke_avd';
+    let avdHome: string;
+    let snapshotDir: string;
+
+    beforeEach(() => {
+      avdHome = fs.mkdtempSync(path.join(os.tmpdir(), 'mm-avd-test-'));
+      snapshotDir = path.join(
+        avdHome,
+        `${avdName}.avd`,
+        'snapshots',
+        ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+      );
+    });
+
+    afterEach(() => {
+      fs.rmSync(avdHome, { recursive: true, force: true });
+    });
+
+    function writeSnapshot(fingerprint?: string): void {
+      fs.mkdirSync(snapshotDir, { recursive: true });
+      fs.writeFileSync(path.join(snapshotDir, 'snapshot.pb'), 'pb');
+      if (fingerprint !== undefined) {
+        fs.writeFileSync(
+          path.join(
+            avdHome,
+            `${avdName}.avd`,
+            'snapshots',
+            `${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}.fingerprint.txt`,
+          ),
+          `${fingerprint}\n`,
+        );
+      }
+    }
+
+    it('getGoldenSnapshotDir points at the named snapshot inside the AVD', () => {
+      expect(getGoldenSnapshotDir(avdName, { ANDROID_AVD_HOME: avdHome })).toBe(
+        snapshotDir,
+      );
+    });
+
+    it('hasGoldenSnapshot is false without snapshot.pb and true with it', () => {
+      const env = { ANDROID_AVD_HOME: avdHome };
+      expect(hasGoldenSnapshot(avdName, env)).toBe(false);
+      writeSnapshot();
+      expect(hasGoldenSnapshot(avdName, env)).toBe(true);
+    });
+
+    it('isGoldenSnapshotUsable accepts on existence when no fingerprint is set', () => {
+      writeSnapshot();
+      expect(
+        isGoldenSnapshotUsable(avdName, { ANDROID_AVD_HOME: avdHome }),
+      ).toBe(true);
+    });
+
+    it('isGoldenSnapshotUsable rejects missing fingerprint in CI', () => {
+      writeSnapshot();
+      expect(
+        isGoldenSnapshotUsable(avdName, {
+          ANDROID_AVD_HOME: avdHome,
+          CI: 'true',
+        }),
+      ).toBe(false);
+    });
+
+    it('isGoldenSnapshotUsable enforces the fingerprint when set', () => {
+      writeSnapshot('fp-1');
+      const env = {
+        ANDROID_AVD_HOME: avdHome,
+        ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-1',
+      };
+      expect(isGoldenSnapshotUsable(avdName, env)).toBe(true);
+      expect(
+        isGoldenSnapshotUsable(avdName, {
+          ...env,
+          ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-2',
+        }),
+      ).toBe(false);
+    });
+
+    it('isGoldenSnapshotUsable rejects a snapshot with no fingerprint file', () => {
+      writeSnapshot();
+      expect(
+        isGoldenSnapshotUsable(avdName, {
+          ANDROID_AVD_HOME: avdHome,
+          ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-1',
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('computeAndroidSystemImageFingerprint', () => {
+    let androidHome: string;
+
+    beforeEach(() => {
+      androidHome = fs.mkdtempSync(path.join(os.tmpdir(), 'mm-android-home-'));
+      const imageDir = path.join(
+        androidHome,
+        'system-images',
+        'android-36',
+        'default',
+        'x86_64',
+      );
+      fs.mkdirSync(imageDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(imageDir, 'source.properties'),
+        'Pkg.Revision=1',
+      );
+      fs.writeFileSync(path.join(imageDir, 'build.props'), 'ro.build.id=test');
+      const emulatorDir = path.join(androidHome, 'emulator');
+      fs.mkdirSync(emulatorDir, { recursive: true });
+      const emulatorBin = path.join(emulatorDir, 'emulator');
+      fs.writeFileSync(
+        emulatorBin,
+        '#!/bin/sh\necho "Android emulator version 1.0.0"\n',
+      );
+      fs.chmodSync(emulatorBin, 0o755);
+    });
+
+    afterEach(() => {
+      fs.rmSync(androidHome, { recursive: true, force: true });
+    });
+
+    it('changes when ANDROID_EMULATOR_CI_CORES changes', async () => {
+      const base = {
+        ANDROID_HOME: androidHome,
+        ANDROID_SYSTEM_IMAGE_API_LEVEL: '36',
+        ANDROID_SYSTEM_IMAGE_TAG: 'default',
+        ANDROID_SYSTEM_IMAGE_ABI: 'x86_64',
+      };
+      const fp8 = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_CORES: '8',
+      });
+      const fp16 = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_CORES: '16',
+      });
+      expect(fp8).not.toBe(fp16);
+    });
+
+    it('changes when ANDROID_EMULATOR_CI_SKIN changes', async () => {
+      const base = {
+        ANDROID_HOME: androidHome,
+        ANDROID_SYSTEM_IMAGE_API_LEVEL: '36',
+        ANDROID_SYSTEM_IMAGE_TAG: 'default',
+        ANDROID_SYSTEM_IMAGE_ABI: 'x86_64',
+        ANDROID_EMULATOR_CI_CORES: '8',
+      };
+      const fpA = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_SKIN: '1080x2340',
+      });
+      const fpB = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_SKIN: '1440x3120',
+      });
+      expect(fpA).not.toBe(fpB);
     });
   });
 });

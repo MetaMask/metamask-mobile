@@ -46,6 +46,7 @@ import {
   formatCardTransactionStatus,
 } from '../../../Card/utils/cardTransactionDisplayInfo';
 import { getCardDeclineReasonLabel } from '../../../Card/utils/moneyAccountCardTransaction';
+import { formatNetworkFeeLabel } from '../../../Card/utils/cardTransactionAmount';
 import CardTransactionDetailsContent from '../../../Card/components/CardTransactionDetailsContent/CardTransactionDetailsContent';
 import {
   CardTransactionStatus,
@@ -59,6 +60,7 @@ import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactio
 const MONEY_ACCOUNT_HERO_TOKEN = {
   symbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
   iconSource: MoneyIcon,
+  isMoneyAccount: true,
 } as const;
 
 const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
@@ -187,6 +189,7 @@ interface MoneyCardDetailsContentProps {
   merchant?: CardTransactionMerchant;
   declineSource?: CardTransaction;
   transactionId?: string;
+  networkFeeLabel?: string;
   statusLabel: string;
   statusColor: TextColor;
   amountColor: TextColor;
@@ -201,6 +204,7 @@ function MoneyCardDetailsContent({
   merchant,
   declineSource,
   transactionId,
+  networkFeeLabel,
   statusLabel,
   statusColor,
   amountColor,
@@ -234,6 +238,7 @@ function MoneyCardDetailsContent({
       locationLabel={locationLabel}
       declineReason={getCardDeclineReasonLabel(declineSource)}
       transactionId={transactionId}
+      networkFeeLabel={networkFeeLabel}
       heroToken={MONEY_ACCOUNT_HERO_TOKEN}
       heroIconTestID="money-account-hero-icon"
       onBack={handleBack}
@@ -262,6 +267,10 @@ function MoneyDeclinedCardDetailsContent({
       merchant={transaction.merchant}
       declineSource={transaction}
       transactionId={transaction.reference ?? transaction.id}
+      networkFeeLabel={formatNetworkFeeLabel(
+        transaction.feeAmount,
+        MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      )}
       statusLabel={formatCardTransactionStatus(transaction.status)}
       statusColor={isFailed ? TextColor.ErrorDefault : TextColor.SuccessDefault}
       amountColor={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
@@ -291,6 +300,10 @@ function MoneySettledCardDetailsContent({
       merchant={enrichment?.merchant}
       declineSource={enrichment}
       transactionId={enrichment?.reference}
+      networkFeeLabel={formatNetworkFeeLabel(
+        enrichment?.feeAmount,
+        MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      )}
       statusLabel={strings('money.api_activity_details.completed')}
       statusColor={TextColor.SuccessDefault}
       amountColor={

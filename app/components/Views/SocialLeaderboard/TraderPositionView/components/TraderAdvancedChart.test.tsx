@@ -3,10 +3,16 @@ import { render, act } from '@testing-library/react-native';
 import type { Trade } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { useOHLCVChart } from '../../../../UI/Charts/AdvancedChart/useOHLCVChart';
-import type { OHLCVBar } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
+import {
+  ChartType,
+  type OHLCVBar,
+} from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
+import { CandlePeriod } from '@metamask/perps-controller';
 import TraderAdvancedChart, {
   getRecommendedTradeFocusPeriod,
   getTradeFocusSpanMs,
+  getPerpTradeFocusSpanMs,
+  getNextWiderPerpCandlePeriod,
   mapTradesToAdvancedMarkers,
 } from './TraderAdvancedChart';
 
@@ -52,6 +58,20 @@ jest.mock('./TraderPriceChart', () => ({
 
 jest.mock('../../../../UI/Charts/AdvancedChart/useOHLCVChart');
 
+const mockUseSocialPerpsChartAdapter = jest.fn();
+jest.mock('../hooks/useSocialPerpsChartAdapter', () => ({
+  useSocialPerpsChartAdapter: (...args: unknown[]) =>
+    mockUseSocialPerpsChartAdapter(...args),
+}));
+
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'USD'),
 }));
@@ -96,11 +116,31 @@ const setOHLCV = (bars: OHLCVBar[], overrides = {}) =>
 const defaultProps = {
   assetId: 'eip155:1/erc20:0xtoken',
   activeTimePeriod: '1D' as const,
+  chartType: ChartType.Line,
   trades: [] as Trade[],
   historicalPrices: [] as TokenPrice[],
   priceDiff: 0,
   isPricesLoading: false,
   onChartIndexChange: jest.fn(),
+};
+
+const setPerpAdapter = (bars: OHLCVBar[], overrides = {}) => {
+  mockUseSocialPerpsChartAdapter.mockReturnValue({
+    ohlcvData: bars,
+    realtimeBar: undefined,
+    latestBar: bars.at(-1),
+    ohlcvSeriesKey: 'BTC|15m',
+    visibleFromMs: undefined,
+    visibleToMs: undefined,
+    isLoading: false,
+    handleFetchOlderBarsRequest: jest.fn().mockResolvedValue({
+      requestId: 'test',
+      seriesGeneration: 0,
+      bars: [],
+      noData: true,
+    }),
+    ...overrides,
+  });
 };
 
 describe('getRecommendedTradeFocusPeriod', () => {
@@ -138,6 +178,33 @@ describe('getRecommendedTradeFocusPeriod', () => {
     expect(getRecommendedTradeFocusPeriod(ago(31 * DAY_MS), true, now)).toBe(
       'All',
     );
+  });
+});
+
+describe('getPerpTradeFocusSpanMs', () => {
+  it('uses the one-month interval for CandlePeriod.OneMonth', () => {
+    const monthMs = 30 * 24 * 60 * 60_000;
+    expect(getPerpTradeFocusSpanMs(CandlePeriod.OneMonth, 30)).toBe(
+      monthMs * 30,
+    );
+  });
+});
+
+describe('getNextWiderPerpCandlePeriod', () => {
+  it('steps from 15min to 1h, then 4h, then 1d', () => {
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.FifteenMinutes)).toBe(
+      CandlePeriod.OneHour,
+    );
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.OneHour)).toBe(
+      CandlePeriod.FourHours,
+    );
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.OneDay)).toBe(
+      CandlePeriod.OneWeek,
+    );
+  });
+
+  it('returns null at the coarsest candle period', () => {
+    expect(getNextWiderPerpCandlePeriod(CandlePeriod.OneMonth)).toBeNull();
   });
 });
 
@@ -207,6 +274,8 @@ describe('TraderAdvancedChart', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseOHLCVChart.mockReset();
+    mockUseSocialPerpsChartAdapter.mockReset();
+    setPerpAdapter(makeBars(20));
   });
 
   it('renders the AdvancedChart with mapped trade markers when OHLCV data is sufficient', () => {
@@ -253,6 +322,62 @@ describe('TraderAdvancedChart', () => {
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({ slbMode: true }),
     );
+  });
+
+  it('enables RN-backed pagination on perp charts instead of slbMode', () => {
+    setOHLCV([]);
+    setPerpAdapter(makeBars(20));
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+      />,
+    );
+
+    // slbMode would short-circuit getBars with noData and make
+    // rnBackedPagination unreachable, so panning could not load YTD history.
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rnBackedPagination: { enabled: true },
+      }),
+    );
+    expect(mockAdvancedChart).not.toHaveBeenCalledWith(
+      expect.objectContaining({ slbMode: true }),
+    );
+  });
+
+  it('reports chart type support when the AdvancedChart is rendered', () => {
+    setOHLCV(makeBars(20));
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(onSupportsChartTypeChange).toHaveBeenCalledWith(true);
+  });
+
+  it('reports chart type is unsupported when falling back to the legacy chart', () => {
+    setOHLCV(makeBars(2));
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(onSupportsChartTypeChange).toHaveBeenCalledWith(false);
   });
 
   it('passes ALL trades as markers and frames a trade older than the loaded page when more history can be paginated', () => {
@@ -401,20 +526,19 @@ describe('TraderAdvancedChart', () => {
     expect(getByTestId('legacy-chart')).toBeTruthy();
   });
 
-  it('renders a perp position from historicalPrices, ignoring the spot OHLCV feed', () => {
-    // Spot feed empty: the perp path must build its series from historicalPrices.
+  it('renders a perp position from the perps stream adapter, ignoring spot OHLCV', () => {
     setOHLCV([]);
-    const historicalPrices: TokenPrice[] = Array.from(
-      { length: 10 },
-      (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
-    );
+    const perpBars = makeBars(20);
 
     const { getByTestId, queryByTestId } = render(
       <TraderAdvancedChart
         {...defaultProps}
         assetId={undefined}
         isPerp
-        historicalPrices={historicalPrices}
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
       />,
     );
 
@@ -422,34 +546,590 @@ describe('TraderAdvancedChart', () => {
     expect(queryByTestId('legacy-chart')).toBeNull();
 
     const props = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
-      ohlcvData: { time: number; open: number; close: number }[];
+      ohlcvData: OHLCVBar[];
+      chartType: ChartType;
+      showVolume: boolean;
     };
-    expect(props.ohlcvData).toHaveLength(10);
-    // Each line point becomes a flat OHLC bar (open === close).
-    expect(props.ohlcvData[0]).toMatchObject({
-      time: 1_700_000_000_000,
+    expect(props.ohlcvData).toHaveLength(20);
+    expect(props.chartType).toBe(ChartType.Candles);
+    expect(props.showVolume).toBe(true);
+    expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+      }),
+    );
+    expect(perpBars).toBeDefined();
+  });
+
+  it('uses the adapter candle-period viewport for perps instead of trade-framing', () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const bars = Array.from({ length: 100 }, (_, i) => ({
+      time: 1_700_000_000_000 + i * intervalMs,
+      open: 100 + i,
+      high: 101 + i,
+      low: 99 + i,
+      close: 100 + i,
+      volume: 10,
+    }));
+    const visibleFromMs = bars[bars.length - 1].time - 30 * intervalMs;
+    const visibleToMs = bars[bars.length - 1].time;
+    setPerpAdapter(bars, { visibleFromMs, visibleToMs });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: bars[0].time / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+      />,
+    );
+
+    const chartProps = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      visibleFromMs: number;
+      visibleToMs: number;
+    };
+    expect(chartProps.visibleFromMs).toBe(visibleFromMs);
+    expect(chartProps.visibleToMs).toBe(visibleToMs);
+    expect(chartProps.visibleFromMs).toBeGreaterThan(bars[0].time);
+  });
+
+  it('reports perp header metrics from the visible candle window', () => {
+    setOHLCV([]);
+    const bars = Array.from({ length: 50 }, (_, i) => ({
+      time: 1_700_000_000_000 + i * 15 * 60 * 1000,
       open: 100,
-      close: 100,
+      high: 101,
+      low: 99,
+      close: i < 40 ? 100 : 110,
+      volume: 10,
+    }));
+    const visibleFromMs = bars[39].time;
+    const visibleToMs = bars[bars.length - 1].time;
+    const mockOnPerpMetricsChange = jest.fn();
+    setPerpAdapter(bars, {
+      visibleFromMs,
+      visibleToMs,
+      latestBar: bars.at(-1),
+    });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onPerpMetricsChange={mockOnPerpMetricsChange}
+      />,
+    );
+
+    expect(mockOnPerpMetricsChange).toHaveBeenCalledWith({
+      percentChange: 10,
+      currentPrice: 110,
     });
   });
 
-  it('falls back to the legacy chart for a perp with insufficient price history', () => {
+  it('paginates and focuses an older perp trade after chart layout settles', async () => {
     setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - intervalMs;
+    const olderBar = {
+      time: oldTradeTime,
+      open: 90,
+      high: 91,
+      low: 89,
+      close: 90,
+      volume: 10,
+    };
+    const expandedBars = [olderBar, ...recentBars];
+
+    const mockFetchOlder = jest.fn().mockResolvedValue({
+      requestId: 'focus-older',
+      seriesGeneration: 1,
+      bars: [olderBar],
+      noData: false,
+    });
+
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    const focusRequest = {
+      id: '0xold',
+      timestamp: oldTradeTime / 1000,
+      nonce: 1,
+      spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+    };
+
+    const chartProps = {
+      ...defaultProps,
+      assetId: undefined,
+      isPerp: true,
+      perpSymbol: 'BTC',
+      selectedCandlePeriod: CandlePeriod.FifteenMinutes,
+      chartType: ChartType.Candles,
+      historicalPrices: [] as TokenPrice[],
+      trades: [
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: oldTradeTime / 1000,
+          transactionHash: '0xold',
+        },
+      ],
+      focusRequest,
+    };
+
+    const { rerender } = render(<TraderAdvancedChart {...chartProps} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchOlder).toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    setPerpAdapter(expandedBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+    rerender(<TraderAdvancedChart {...chartProps} />);
+
+    const lastChartProps = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      onChartLayoutSettled?: () => void;
+    };
+    expect(lastChartProps.onChartLayoutSettled).toBeDefined();
+
+    act(() => {
+      lastChartProps.onChartLayoutSettled?.();
+    });
+
+    expect(mockFocusTime).toHaveBeenCalledWith(oldTradeTime, {
+      spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+    });
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xold');
+  });
+
+  it('does not drop a newer older-trade focus while pagination is in flight', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const firstTradeTime = recentBars[0].time - intervalMs;
+    const secondTradeTime = firstTradeTime - intervalMs;
+    const olderBars = [
+      {
+        time: secondTradeTime,
+        open: 80,
+        high: 81,
+        low: 79,
+        close: 80,
+        volume: 10,
+      },
+      {
+        time: firstTradeTime,
+        open: 90,
+        high: 91,
+        low: 89,
+        close: 90,
+        volume: 10,
+      },
+    ];
+
+    let resolveFetch: (value: {
+      requestId: string;
+      seriesGeneration: number;
+      bars: typeof olderBars;
+      noData: boolean;
+    }) => void = () => undefined;
+    const mockFetchOlder = jest.fn(
+      () =>
+        new Promise<Parameters<typeof resolveFetch>[0]>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    const chartProps = {
+      ...defaultProps,
+      assetId: undefined,
+      isPerp: true,
+      perpSymbol: 'BTC',
+      selectedCandlePeriod: CandlePeriod.FifteenMinutes,
+      chartType: ChartType.Candles,
+      historicalPrices: [] as TokenPrice[],
+      trades: [
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: firstTradeTime / 1000,
+          transactionHash: '0xfirst',
+        },
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: secondTradeTime / 1000,
+          transactionHash: '0xsecond',
+        },
+      ],
+    };
+
+    const { rerender } = render(
+      <TraderAdvancedChart
+        {...chartProps}
+        focusRequest={{
+          id: '0xfirst',
+          timestamp: firstTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockFetchOlder).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <TraderAdvancedChart
+        {...chartProps}
+        focusRequest={{
+          id: '0xsecond',
+          timestamp: secondTradeTime / 1000,
+          nonce: 2,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveFetch({
+        requestId: 'focus-older',
+        seriesGeneration: 1,
+        bars: olderBars,
+        noData: false,
+      });
+    });
+
+    setPerpAdapter([...olderBars, ...recentBars], {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+    rerender(
+      <TraderAdvancedChart
+        {...chartProps}
+        focusRequest={{
+          id: '0xsecond',
+          timestamp: secondTradeTime / 1000,
+          nonce: 2,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    const lastChartProps = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      onChartLayoutSettled?: () => void;
+    };
+    act(() => {
+      lastChartProps.onChartLayoutSettled?.();
+    });
+
+    expect(mockFocusTime).toHaveBeenCalledWith(secondTradeTime, {
+      spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+    });
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xsecond');
+  });
+
+  it('requests a coarser candle period when pagination has no history for the trade', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - 7 * 24 * 60 * 60 * 1000;
+    const mockFetchOlder = jest.fn().mockResolvedValue({
+      requestId: 'focus-older',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+    });
+    const mockRequestCandlePeriod = jest.fn();
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onRequestCandlePeriod={mockRequestCandlePeriod}
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: oldTradeTime / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+        focusRequest={{
+          id: '0xold',
+          timestamp: oldTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchOlder).toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+    expect(mockRequestCandlePeriod).toHaveBeenCalledWith(CandlePeriod.OneHour);
+  });
+
+  it('does not widen the candle period when older-bar pagination fails with an error', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - intervalMs;
+    const mockFetchOlder = jest.fn().mockResolvedValue({
+      requestId: 'focus-older',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+      error: 'Error: history down',
+    });
+    const mockRequestCandlePeriod = jest.fn();
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onRequestCandlePeriod={mockRequestCandlePeriod}
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: oldTradeTime / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+        focusRequest={{
+          id: '0xold',
+          timestamp: oldTradeTime / 1000,
+          nonce: 1,
+          spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchOlder).toHaveBeenCalled();
+    expect(mockRequestCandlePeriod).not.toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+  });
+
+  it('does not widen the candle period when the user changes period during a focus fetch', async () => {
+    setOHLCV([]);
+    const intervalMs = 15 * 60 * 1000;
+    const recentBars = Array.from({ length: 20 }, (_, index) => ({
+      time: 1_700_000_000_000 + (index + 10) * intervalMs,
+      open: 100,
+      high: 101,
+      low: 99,
+      close: 100,
+      volume: 10,
+    }));
+    const oldTradeTime = recentBars[0].time - 7 * 24 * 60 * 60 * 1000;
+
+    let resolveFetch: (value: {
+      requestId: string;
+      seriesGeneration: number;
+      bars: [];
+      noData: boolean;
+    }) => void = () => undefined;
+    const mockFetchOlder = jest.fn(
+      () =>
+        new Promise<Parameters<typeof resolveFetch>[0]>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+    const mockRequestCandlePeriod = jest.fn();
+
+    setPerpAdapter(recentBars, {
+      handleFetchOlderBarsRequest: mockFetchOlder,
+    });
+
+    const chartProps = {
+      ...defaultProps,
+      assetId: undefined,
+      isPerp: true,
+      perpSymbol: 'BTC',
+      selectedCandlePeriod: CandlePeriod.FifteenMinutes,
+      chartType: ChartType.Candles,
+      historicalPrices: [] as TokenPrice[],
+      onRequestCandlePeriod: mockRequestCandlePeriod,
+      trades: [
+        {
+          intent: 'enter' as const,
+          direction: 'buy' as const,
+          tokenAmount: 1,
+          usdCost: 100,
+          timestamp: oldTradeTime / 1000,
+          transactionHash: '0xold',
+        },
+      ],
+      focusRequest: {
+        id: '0xold',
+        timestamp: oldTradeTime / 1000,
+        nonce: 1,
+        spanMs: getPerpTradeFocusSpanMs(CandlePeriod.FifteenMinutes),
+      },
+    };
+
+    const { rerender } = render(<TraderAdvancedChart {...chartProps} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockFetchOlder).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <TraderAdvancedChart
+        {...chartProps}
+        selectedCandlePeriod={CandlePeriod.OneHour}
+      />,
+    );
+
+    await act(async () => {
+      resolveFetch({
+        requestId: 'focus-1',
+        seriesGeneration: 1,
+        bars: [],
+        noData: true,
+      });
+    });
+
+    expect(mockRequestCandlePeriod).not.toHaveBeenCalled();
+    expect(mockFocusTime).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the legacy chart for a perp with insufficient adapter data', () => {
+    setOHLCV([]);
+    setPerpAdapter(makeBars(2));
 
     const { getByTestId, queryByTestId } = render(
       <TraderAdvancedChart
         {...defaultProps}
         assetId={undefined}
         isPerp
-        historicalPrices={[
-          ['1', 1],
-          ['2', 2],
-        ]}
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
       />,
     );
 
     expect(getByTestId('legacy-chart')).toBeTruthy();
     expect(queryByTestId('advanced-chart')).toBeNull();
+  });
+
+  it('reports chart type is unsupported when a perp chart falls back to the legacy chart', () => {
+    setOHLCV([]);
+    setPerpAdapter(makeBars(2));
+    const onSupportsChartTypeChange = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        perpSymbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        chartType={ChartType.Candles}
+        historicalPrices={[]}
+        onSupportsChartTypeChange={onSupportsChartTypeChange}
+      />,
+    );
+
+    expect(onSupportsChartTypeChange).toHaveBeenCalledWith(false);
   });
 
   it('centers and pulses a trade in the current period when its data is loaded', () => {
@@ -656,21 +1336,21 @@ describe('TraderAdvancedChart', () => {
 
     it('uses a perp instance key when there is no assetId', () => {
       setOHLCV([]);
-      const historicalPrices: TokenPrice[] = Array.from(
-        { length: 10 },
-        (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
-      );
+      setPerpAdapter(makeBars(20));
 
       render(
         <TraderAdvancedChart
           {...defaultProps}
           assetId={undefined}
           isPerp
-          historicalPrices={historicalPrices}
+          perpSymbol="BTC"
+          selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+          chartType={ChartType.Candles}
+          historicalPrices={[]}
         />,
       );
 
-      expect(lastProps().webViewInstanceKey).toBe('perp|usd');
+      expect(lastProps().webViewInstanceKey).toBe('perp|BTC|usd');
     });
 
     it('shows the skeleton on first load, then suppresses it on a background refetch', () => {
@@ -704,19 +1384,19 @@ describe('TraderAdvancedChart', () => {
       expect(spotConfigs.size).toBe(5);
     });
 
-    it('fetches no spot OHLCV for a perp position (data comes from historicalPrices)', () => {
+    it('does not fetch spot OHLCV for a perp position (data comes from the adapter)', () => {
       setOHLCV([]);
-      const historicalPrices: TokenPrice[] = Array.from(
-        { length: 10 },
-        (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
-      );
+      setPerpAdapter(makeBars(20));
 
       render(
         <TraderAdvancedChart
           {...defaultProps}
           assetId={undefined}
           isPerp
-          historicalPrices={historicalPrices}
+          perpSymbol="BTC"
+          selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+          chartType={ChartType.Candles}
+          historicalPrices={[]}
         />,
       );
 
@@ -724,6 +1404,7 @@ describe('TraderAdvancedChart', () => {
         .map(([opts]) => opts)
         .filter((opts) => opts.assetId !== '');
       expect(spotFetches).toHaveLength(0);
+      expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalled();
     });
   });
 });

@@ -28,8 +28,9 @@ export function getAuthenticationControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'KeyringController:getState',
+      'KeyringController:withKeyringV2Unsafe',
       'SeedlessOnboardingController:getState',
-      'SnapController:handleRequest',
+      'SeedlessOnboardingController:getAccessToken',
     ],
     events: ['KeyringController:lock', 'KeyringController:unlock'],
     messenger,

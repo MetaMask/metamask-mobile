@@ -39,6 +39,7 @@ describe('outcomeGrouping', () => {
         'spreads',
         'totals',
         'first_half_moneyline',
+        'first_half_spreads',
         'both_teams_to_score',
         'both_teams_to_score_first_half',
         'both_teams_to_score_second_half',
@@ -52,6 +53,12 @@ describe('outcomeGrouping', () => {
         'soccer_extra_time',
         'soccer_penalty_shootout',
         'team_totals',
+        'team_totals_home',
+        'team_totals_away',
+        'anytime_touchdowns',
+        'first_touchdowns',
+        'rushing_yards',
+        'receiving_yards',
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
@@ -72,8 +79,15 @@ describe('outcomeGrouping', () => {
           'totals',
           'first_half_moneyline',
           'first_half_totals',
+          'first_half_spreads',
           'soccer_halftime_result',
           'soccer_player_goals',
+          'anytime_touchdowns',
+          'first_touchdowns',
+          'rushing_yards',
+          'receiving_yards',
+          'team_totals_home',
+          'team_totals_away',
           'points',
         ]),
       ).toEqual([
@@ -82,8 +96,15 @@ describe('outcomeGrouping', () => {
         'totals',
         'first_half_moneyline',
         'first_half_totals',
+        'first_half_spreads',
         'soccer_halftime_result',
         'soccer_player_goals',
+        'anytime_touchdowns',
+        'first_touchdowns',
+        'rushing_yards',
+        'receiving_yards',
+        'team_totals_home',
+        'team_totals_away',
       ]);
     });
   });
@@ -165,12 +186,17 @@ describe('outcomeGrouping', () => {
   describe('isLineOutcomeType', () => {
     it.each([
       'map_handicap',
+      'first_half_spreads',
       'round_handicap_game_1',
       'round_over_under_game_5',
       'round_over_under_game_10',
       'kill_over_under_game',
       'map_participant_win_total',
-    ])('returns true for esports line market %s', (type) => {
+      'team_totals_home',
+      'team_totals_away',
+      'rushing_yards',
+      'receiving_yards',
+    ])('returns true for line market %s', (type) => {
       expect(isLineOutcomeType(type)).toBe(true);
     });
 
@@ -534,6 +560,20 @@ describe('outcomeGrouping', () => {
       ]);
     });
 
+    it('groups first-half spreads with first-half moneyline', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('first-half-spread', 'first_half_spreads', -3.5),
+        createGroupingOutcome('first-half-moneyline', 'first_half_moneyline'),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('first_half');
+      expect(groups[0].subgroups?.map((subgroup) => subgroup.key)).toEqual([
+        'first_half_moneyline',
+        'first_half_spreads',
+      ]);
+    });
+
     it('orders soccer half totals by line without changing half market order', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome('h2-total-2.5', 'second_half_totals', 2.5),
@@ -610,6 +650,116 @@ describe('outcomeGrouping', () => {
           outcomes: [
             expect.objectContaining({ id: 'uzbekistan-total-0.5' }),
             expect.objectContaining({ id: 'uzbekistan-total-1.5' }),
+          ],
+        }),
+      ]);
+    });
+
+    it('splits shared team totals into one line subgroup per team', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'patriots-total-24.5',
+          'team_totals',
+          24.5,
+          'O 24.5',
+          'Patriots O/U 24.5',
+        ),
+        createGroupingOutcome(
+          'broncos-total-18.5',
+          'team_totals',
+          18.5,
+          'O 18.5',
+          'Broncos O/U 18.5',
+        ),
+        createGroupingOutcome(
+          'patriots-total-22.5',
+          'team_totals',
+          22.5,
+          'O 22.5',
+          'Patriots O/U 22.5',
+        ),
+        createGroupingOutcome(
+          'broncos-total-20.5',
+          'team_totals',
+          20.5,
+          'O 20.5',
+          'Broncos O/U 20.5',
+        ),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toMatchObject({
+        key: 'team_totals',
+        outcomes: [],
+      });
+      expect(groups[0].subgroups).toEqual([
+        expect.objectContaining({
+          key: 'team_totals-0',
+          title: 'Patriots Totals',
+          outcomes: [
+            expect.objectContaining({ id: 'patriots-total-22.5' }),
+            expect.objectContaining({ id: 'patriots-total-24.5' }),
+          ],
+        }),
+        expect.objectContaining({
+          key: 'team_totals-1',
+          title: 'Broncos Totals',
+          outcomes: [
+            expect.objectContaining({ id: 'broncos-total-18.5' }),
+            expect.objectContaining({ id: 'broncos-total-20.5' }),
+          ],
+        }),
+      ]);
+    });
+
+    it('keeps home and away team totals in separate line subgroups', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'home-total-23.5',
+          'team_totals_home',
+          23.5,
+          'O 23.5',
+          'Patriots O/U 23.5',
+        ),
+        createGroupingOutcome(
+          'away-total-17.5',
+          'team_totals_away',
+          17.5,
+          'O 17.5',
+          'Broncos O/U 17.5',
+        ),
+        createGroupingOutcome(
+          'home-total-21.5',
+          'team_totals_home',
+          21.5,
+          'O 21.5',
+          'Patriots O/U 21.5',
+        ),
+        createGroupingOutcome(
+          'away-total-19.5',
+          'team_totals_away',
+          19.5,
+          'O 19.5',
+          'Broncos O/U 19.5',
+        ),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].subgroups).toEqual([
+        expect.objectContaining({
+          key: 'team_totals_home-0',
+          title: 'Patriots Totals',
+          outcomes: [
+            expect.objectContaining({ id: 'home-total-21.5' }),
+            expect.objectContaining({ id: 'home-total-23.5' }),
+          ],
+        }),
+        expect.objectContaining({
+          key: 'team_totals_away-0',
+          title: 'Broncos Totals',
+          outcomes: [
+            expect.objectContaining({ id: 'away-total-17.5' }),
+            expect.objectContaining({ id: 'away-total-19.5' }),
           ],
         }),
       ]);
@@ -693,6 +843,54 @@ describe('outcomeGrouping', () => {
         'both_teams_to_score_first_half',
         'both_teams_to_score_second_half',
       ]);
+    });
+
+    it('groups NFL player markets by prop category', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'anytime-touchdown',
+          'anytime_touchdowns',
+          undefined,
+          'Yes',
+          'Player A: Anytime Touchdown',
+        ),
+        createGroupingOutcome(
+          'first-touchdown',
+          'first_touchdowns',
+          undefined,
+          'Yes',
+          'Player B: First Touchdown',
+        ),
+        createGroupingOutcome(
+          'rushing-yards',
+          'rushing_yards',
+          49.5,
+          'O 49.5',
+          'Player C: Rushing Yards O/U 49.5',
+        ),
+        createGroupingOutcome(
+          'receiving-yards',
+          'receiving_yards',
+          59.5,
+          'O 59.5',
+          'Player D: Receiving Yards O/U 59.5',
+        ),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'touchdowns',
+        'rushing',
+        'receiving',
+      ]);
+      expect(
+        groups[0].outcomes.map((outcome) => outcome.sportsMarketType),
+      ).toEqual(['anytime_touchdowns', 'first_touchdowns']);
+      expect(groups[1].outcomes[0]).toEqual(
+        expect.objectContaining({ sportsMarketType: 'rushing_yards' }),
+      );
+      expect(groups[2].outcomes[0]).toEqual(
+        expect.objectContaining({ sportsMarketType: 'receiving_yards' }),
+      );
     });
 
     it('keeps full-match BTTS under game lines', () => {

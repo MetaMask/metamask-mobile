@@ -1,7 +1,6 @@
 export interface UsePredictionsDefaultSectionModelInput {
   isPredictEnabled: boolean;
   isLoadingPositions: boolean;
-  isLoadingClaimable: boolean;
   isLoadingMarkets: boolean;
   isTreatmentDiscovery: boolean;
   isLoadingWorldCupHomepage: boolean;
@@ -10,7 +9,6 @@ export interface UsePredictionsDefaultSectionModelInput {
   positionsError: string | null;
   marketsError: string | null;
   marketsLength: number;
-  totalClaimableValue: number;
 }
 
 export interface PredictionsDefaultSectionModel {
@@ -27,7 +25,6 @@ export interface PredictionsDefaultSectionModel {
 export function usePredictionsDefaultSectionModel({
   isPredictEnabled,
   isLoadingPositions,
-  isLoadingClaimable,
   isLoadingMarkets,
   isTreatmentDiscovery,
   isLoadingWorldCupHomepage,
@@ -36,31 +33,25 @@ export function usePredictionsDefaultSectionModel({
   positionsError,
   marketsError,
   marketsLength,
-  totalClaimableValue,
 }: UsePredictionsDefaultSectionModelInput): PredictionsDefaultSectionModel {
-  const hasClaimablePositions = !isLoadingClaimable && totalClaimableValue > 0;
-  const hasAnyPositions = hasPositions || hasClaimablePositions;
-  const inPositionsLayout =
-    hasAnyPositions || isLoadingPositions || isLoadingClaimable;
+  const inPositionsLayout = hasPositions || isLoadingPositions;
 
   const hasError = Boolean(
     !isLoadingPositions &&
       !isLoadingMarkets &&
-      !isLoadingClaimable &&
-      !hasAnyPositions &&
+      !hasPositions &&
       marketsLength === 0 &&
       (positionsError || (!isTreatmentDiscovery && marketsError)),
   );
 
   const isLoading =
     isLoadingPositions ||
-    isLoadingClaimable ||
     (isTreatmentDiscovery && isLoadingWorldCupHomepage) ||
     (!isTreatmentDiscovery && isLoadingMarkets);
 
   const isEmpty =
     !isLoading &&
-    !hasAnyPositions &&
+    !hasPositions &&
     !hasError &&
     !isTreatmentDiscovery &&
     marketsLength === 0;
@@ -84,18 +75,16 @@ export function usePredictionsDefaultSectionModel({
     isPredictEnabled &&
     !hasError &&
     !isLoading &&
-    (hasAnyPositions || marketsLength > 0 || isTreatmentDiscovery);
+    (hasPositions || marketsLength > 0 || isTreatmentDiscovery);
 
   const itemCount = hasPositions
     ? positionsLength
-    : hasClaimablePositions
-      ? marketsLength || 1
-      : isTreatmentDiscovery
-        ? 1
-        : marketsLength;
+    : isTreatmentDiscovery
+      ? 1
+      : marketsLength;
 
   return {
-    hasAnyPositions,
+    hasAnyPositions: hasPositions,
     hasError,
     isEmpty,
     showTrendingAbove,

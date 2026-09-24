@@ -1,23 +1,32 @@
-import {
-  playImpact,
-  playSelection,
-  ImpactMoment,
-} from '../../../../../util/haptics';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import LinearGradient from 'react-native-linear-gradient';
 import React, {
-  memo,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { ScrollView } from 'react-native';
+import {
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+} from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
   type OrderType,
 } from '@metamask/perps-controller';
@@ -27,34 +36,43 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
 import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
+import {
+  calculateLiquidationDistance,
+  clampLiquidationDistance,
+} from '../../utils/liquidationDistance';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   BottomSheetRef,
-  Button,
   ButtonSize,
-  ButtonVariant,
-  HelpText,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   KeyValueRow,
   KeyValueRowVariant,
+  SectionDivider,
   Skeleton,
-  Slider,
-  SliderMarkColor,
   Text,
   TextColor,
   TextVariant,
-  type SliderMark,
 } from '@metamask/design-system-react-native';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
+  onBack?: () => void;
+  onConfirmComplete?: () => void;
+  presentation?: 'bottomSheet' | 'screen';
   onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
   leverage: number;
   minLeverage: number;
@@ -68,30 +86,31 @@ interface PerpsLeverageBottomSheetProps {
   enableConfirmHaptics?: boolean;
 }
 
-interface LeverageSliderEntry {
-  key: number;
-  value: number;
-  role: 'active' | 'incoming';
-}
+const LEVERAGE_ITEM_WIDTH = 56;
+const LEVERAGE_PICKER_HEIGHT = 48;
+const LEVERAGE_PICKER_FADE_WIDTH = 48;
+// Matches paddingTop={3} (12px) plus paddingBottom={6} (24px).
+const LEVERAGE_PICKER_VERTICAL_PADDING = 36;
+const LEVERAGE_PICKER_CONTAINER_HEIGHT =
+  LEVERAGE_PICKER_HEIGHT + LEVERAGE_PICKER_VERTICAL_PADDING;
 
-const leverageToTrackStep = (
+const clampLeverage = (
   value: number,
   minLeverage: number,
   maxLeverage: number,
-): number => {
-  if (maxLeverage === minLeverage) {
-    return 0;
-  }
-  return ((value - minLeverage) / (maxLeverage - minLeverage)) * 100;
-};
+) => Math.max(minLeverage, Math.min(maxLeverage, Math.round(value)));
 
 const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   isVisible,
   onClose,
+  onBack,
+  onConfirmComplete,
+  presentation = 'bottomSheet',
   onConfirm,
   leverage: initialLeverage,
   minLeverage,
   maxLeverage,
+  currentPrice: initialCurrentPrice,
   direction,
   asset = '',
   limitPrice,
@@ -99,26 +118,23 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   orderType = 'market',
   enableConfirmHaptics = false,
 }) => {
-  const styles = createStyles();
+  const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const [tempLeverage, setTempLeverage] = useState(initialLeverage);
-  const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
-  const [isDragging, setIsDragging] = useState(false);
-  const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
-  // After a slider gesture, MMDS can leave drag/echo state stuck so chip
-  // prop updates won't move the thumb. Remount via a hidden "incoming"
-  // instance, then promote it in place (same React key) so the old thumb
-  // stays visible until the new one is laid out — no opacity flash, no
-  // translateX=0 jerk.
-  const [sliderEntries, setSliderEntries] = useState<LeverageSliderEntry[]>([
-    { key: 0, value: initialLeverage, role: 'active' },
-  ]);
-  const hasSliderDraggedRef = useRef(false);
-  const promoteFrameRef = useRef<number | null>(null);
-  // While an incoming slider is mounting after a preset chip, ignore late
-  // drag events from the outgoing active instance so tempLeverage cannot
-  // desync from the chip value that will be promoted.
-  const isSliderRemountingRef = useRef(false);
+  const pickerRef = useRef<ScrollView>(null);
+  const lastPickerIndexRef = useRef<number | null>(null);
+  const isProgrammaticScrollRef = useRef(false);
+  const inputMethodRef = useRef<'slider' | 'preset'>('slider');
+  const [pickerWidth, setPickerWidth] = useState(0);
+  const boundedInitialLeverage = clampLeverage(
+    initialLeverage,
+    minLeverage,
+    maxLeverage,
+  );
+  const [tempLeverage, setTempLeverage] = useState(boundedInitialLeverage);
+  const [previewLeverage, setPreviewLeverage] = useState(
+    boundedInitialLeverage,
+  );
+  const [isScrolling, setIsScrolling] = useState(false);
 
   // Cache last valid liquidation price to avoid skeleton blinking when the
   // price updates passively (market price ticks). The cache is intentionally
@@ -126,7 +142,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   // previous leverage is never shown alongside the new leverage's percentage.
   const lastValidLiquidationPrice = useRef<number | null>(null);
 
-  // Tracks whether the user actively changed leverage (slider/quick select).
+  // Tracks whether the user actively changed leverage.
   // While true, the cache is bypassed and a loading skeleton is shown until
   // the API returns a fresh liquidation price for the new leverage.
   const [leverageChanged, setLeverageChanged] = useState(false);
@@ -142,7 +158,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     throttleMs: 1000,
   });
 
-  const currentPrice = parseFloat(currentLivePrice[asset]?.price);
+  const livePrice = Number.parseFloat(currentLivePrice[asset]?.price);
+  const currentPrice =
+    Number.isFinite(livePrice) && livePrice > 0
+      ? livePrice
+      : initialCurrentPrice;
 
   // Dynamically calculate liquidation price based on tempLeverage
   // Use the prospective execution price for priced placements, else live mid.
@@ -212,21 +232,23 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   useEffect(() => {
     if (!isVisible) {
-      setTempLeverage(initialLeverage);
-      setDraggingLeverage(initialLeverage);
-      setIsDragging(false);
+      setTempLeverage(boundedInitialLeverage);
+      setPreviewLeverage(boundedInitialLeverage);
+      setIsScrolling(false);
       setLeverageChanged(false);
-      setSliderEntries([{ key: 0, value: initialLeverage, role: 'active' }]);
-      hasSliderDraggedRef.current = false;
-      isSliderRemountingRef.current = false;
-      if (promoteFrameRef.current !== null) {
-        cancelAnimationFrame(promoteFrameRef.current);
-        promoteFrameRef.current = null;
-      }
+      // The picker unmounts while hidden, so its measured width must be
+      // discarded too. Keeping it would leave the centering effect below with
+      // unchanged dependencies on reopen, and the re-measure via onLayout
+      // reports the same width — so the picker would never scroll back to the
+      // selected leverage.
+      setPickerWidth(0);
+      lastPickerIndexRef.current = null;
+      isProgrammaticScrollRef.current = false;
+      inputMethodRef.current = 'slider';
       lastValidLiquidationPrice.current = null;
       leverageChangeTime.current = 0;
     }
-  }, [isVisible, initialLeverage]);
+  }, [boundedInitialLeverage, isVisible]);
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
@@ -245,30 +267,20 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   });
 
   const liquidationDropPercentage = useMemo(() => {
-    const leverageToUse = isDragging ? draggingLeverage : tempLeverage;
-
     if (currentPrice === 0 || !currentPrice) return 0;
 
-    if (leverageToUse === 1) {
+    if (tempLeverage === 1) {
       return 100;
     }
 
     if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
-      const theoreticalPercentage = (1 / leverageToUse) * 100;
-      return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
+      return clampLiquidationDistance((1 / tempLeverage) * 100);
     }
 
-    const percentageDrop =
-      (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
-
-    return percentageDrop >= 99.9 ? 100 : percentageDrop;
-  }, [
-    currentPrice,
-    dynamicLiquidationPrice,
-    tempLeverage,
-    isDragging,
-    draggingLeverage,
-  ]);
+    return clampLiquidationDistance(
+      calculateLiquidationDistance(currentPrice, dynamicLiquidationPrice),
+    );
+  }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
   const isRecalculating = leverageChanged;
 
@@ -283,412 +295,392 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const displayLiquidationPercentage = isRecalculating
     ? null
-    : `${liquidationDropPercentage.toFixed(1)}%`;
+    : `${liquidationDropPercentage.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
 
-  const quickSelectValues = useMemo(() => {
-    DevLogger.log(
-      `Generating leverage options for maxLeverage: ${maxLeverage}`,
-    );
-    const baseOptions = [2, 5, 10, 20, 40];
-    const filtered = baseOptions.filter((option) => option <= maxLeverage);
-    const options = maxLeverage === 3 ? [2, 3] : filtered;
-
-    DevLogger.log(`Available leverage options: ${options.join(', ')}`);
-    return options;
-  }, [maxLeverage]);
-
-  const midLeverage =
-    maxLeverage >= 40 ? 20 : Math.floor((minLeverage + maxLeverage) / 2);
-
-  const sliderMarks = useMemo((): SliderMark[] => {
-    const toStep = (value: number) =>
-      leverageToTrackStep(value, minLeverage, maxLeverage);
-
-    const marks: SliderMark[] = [
-      {
-        step: toStep(minLeverage),
-        label: `${minLeverage}x`,
-        value: minLeverage,
-        color: SliderMarkColor.SuccessDefault,
-      },
-    ];
-
-    if (midLeverage > minLeverage && midLeverage < maxLeverage) {
-      marks.push({
-        step: toStep(midLeverage),
-        label: `${midLeverage}x`,
-        value: midLeverage,
-        color: SliderMarkColor.WarningDefault,
-      });
-    }
-
-    if (maxLeverage !== minLeverage) {
-      marks.push({
-        step: toStep(maxLeverage),
-        label: `${maxLeverage}x`,
-        value: maxLeverage,
-        color: SliderMarkColor.ErrorDefault,
-      });
-    }
-
-    return marks;
-  }, [minLeverage, maxLeverage, midLeverage]);
-
-  const displayLeverage = isDragging ? draggingLeverage : tempLeverage;
-  const hasIncomingSlider = sliderEntries.some(
-    (entry) => entry.role === 'incoming',
+  const leverageOptions = useMemo(
+    () =>
+      Array.from(
+        { length: Math.max(0, maxLeverage - minLeverage + 1) },
+        (_, index) => minLeverage + index,
+      ),
+    [maxLeverage, minLeverage],
   );
 
-  const syncActiveSliderValue = useCallback((value: number) => {
-    setSliderEntries((prev) =>
-      prev.map((entry) =>
-        entry.role === 'active' ? { ...entry, value } : entry,
+  const displayLeverage = isScrolling ? previewLeverage : tempLeverage;
+
+  const getLeverageForOffset = useCallback(
+    (offset: number) =>
+      clampLeverage(
+        minLeverage + Math.round(offset / LEVERAGE_ITEM_WIDTH),
+        minLeverage,
+        maxLeverage,
       ),
-    );
+    [maxLeverage, minLeverage],
+  );
+
+  const commitLeverage = useCallback(
+    (value: number) => {
+      const boundedValue = clampLeverage(value, minLeverage, maxLeverage);
+      setIsScrolling(false);
+      setPreviewLeverage(boundedValue);
+      if (boundedValue !== tempLeverage) {
+        leverageChangeTime.current = Date.now();
+        setLeverageChanged(true);
+        lastValidLiquidationPrice.current = null;
+      }
+      setTempLeverage(boundedValue);
+    },
+    [maxLeverage, minLeverage, tempLeverage],
+  );
+
+  const handlePickerLayout = useCallback((event: LayoutChangeEvent) => {
+    setPickerWidth(event.nativeEvent.layout.width);
+    lastPickerIndexRef.current = null;
   }, []);
 
-  const handleSliderChange = useCallback((value: number) => {
-    if (isSliderRemountingRef.current) {
+  useEffect(() => {
+    if (!isVisible || pickerWidth === 0) {
       return;
     }
-    hasSliderDraggedRef.current = true;
-    setIsDragging(true);
-    setDraggingLeverage(value);
-  }, []);
+    const index = Math.max(0, leverageOptions.indexOf(tempLeverage));
+    if (lastPickerIndexRef.current === index) {
+      return;
+    }
+    lastPickerIndexRef.current = index;
+    isProgrammaticScrollRef.current = true;
+    pickerRef.current?.scrollTo({
+      x: index * LEVERAGE_ITEM_WIDTH,
+      animated: false,
+    });
+  }, [isVisible, leverageOptions, pickerWidth, tempLeverage]);
 
-  const handleSliderDragEnd = useCallback(
-    (value: number) => {
-      if (isSliderRemountingRef.current) {
+  const handlePickerScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (isProgrammaticScrollRef.current) {
         return;
       }
-      setIsDragging(false);
-      if (value !== tempLeverage) {
-        leverageChangeTime.current = Date.now();
-        setLeverageChanged(true);
-        lastValidLiquidationPrice.current = null;
+
+      const nextLeverage = getLeverageForOffset(
+        event.nativeEvent.contentOffset.x,
+      );
+      if (nextLeverage !== previewLeverage) {
+        setPreviewLeverage(nextLeverage);
+        playImpact(ImpactMoment.SliderTick);
       }
-      setTempLeverage(value);
-      syncActiveSliderValue(value);
-      setInputMethod('slider');
     },
-    [syncActiveSliderValue, tempLeverage],
+    [getLeverageForOffset, previewLeverage],
   );
 
-  // ScrollView / gesture arbitration can finalize the MMDS pan without
-  // onDragEnd; mirror drag-end so liquidation UI refreshes for the settled value.
-  const handleSliderDragCancel = useCallback(() => {
-    if (isSliderRemountingRef.current) {
-      return;
-    }
-    if (isDragging) {
-      setIsDragging(false);
-      if (draggingLeverage !== tempLeverage) {
-        leverageChangeTime.current = Date.now();
-        setLeverageChanged(true);
-        lastValidLiquidationPrice.current = null;
+  const handlePickerScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      isProgrammaticScrollRef.current = false;
+      const offset =
+        event.nativeEvent.targetContentOffset?.x ??
+        event.nativeEvent.contentOffset.x;
+      const leverageValue = getLeverageForOffset(offset);
+      lastPickerIndexRef.current = leverageValue - minLeverage;
+      commitLeverage(leverageValue);
+    },
+    [commitLeverage, getLeverageForOffset, minLeverage],
+  );
+
+  const handlePickerScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (Math.abs(event.nativeEvent.velocity?.x ?? 0) < 0.01) {
+        handlePickerScrollEnd(event);
       }
-      setTempLeverage(draggingLeverage);
-      syncActiveSliderValue(draggingLeverage);
-      setInputMethod('slider');
-    }
-  }, [draggingLeverage, isDragging, syncActiveSliderValue, tempLeverage]);
+    },
+    [handlePickerScrollEnd],
+  );
+
+  const handlePickerScrollBeginDrag = useCallback(() => {
+    isProgrammaticScrollRef.current = false;
+    inputMethodRef.current = 'slider';
+    setIsScrolling(true);
+  }, []);
+
+  const handleLeveragePress = useCallback(
+    (value: number) => {
+      const index = value - minLeverage;
+      lastPickerIndexRef.current = index;
+      isProgrammaticScrollRef.current = true;
+      inputMethodRef.current = 'preset';
+      pickerRef.current?.scrollTo({
+        x: index * LEVERAGE_ITEM_WIDTH,
+        animated: true,
+      });
+      commitLeverage(value);
+      playSelection();
+    },
+    [commitLeverage, minLeverage],
+  );
 
   const handleConfirm = useCallback(() => {
-    // Guard against confirming a stale committed `tempLeverage` while
-    // `isDragging` is (or is stuck) true — e.g. a cancelled gesture
-    // that never reached handleSliderDragEnd (see handleSliderDragCancel
-    // above). Flush the last live value and bail; `tempLeverage`
-    // reflects it on the next render, so the very next tap confirms the
-    // leverage shown on the numeral/footer instead of racing a same-tick
-    // confirm against a state update.
-    if (isDragging) {
-      handleSliderDragCancel();
-      return;
-    }
+    const leverageToConfirm = isScrolling ? previewLeverage : tempLeverage;
+    const inputMethod = inputMethodRef.current;
 
     DevLogger.log(
-      `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
+      `Confirming leverage: ${leverageToConfirm}, method: ${inputMethod}`,
     );
 
     if (enableConfirmHaptics) {
       playSelection().catch(() => undefined);
     }
-    onConfirm(tempLeverage, inputMethod);
-    onClose();
+    onConfirm(leverageToConfirm, inputMethod);
+    (onConfirmComplete ?? onClose)();
   }, [
     enableConfirmHaptics,
-    handleSliderDragCancel,
-    inputMethod,
-    isDragging,
+    isScrolling,
     onClose,
+    onConfirmComplete,
     onConfirm,
+    previewLeverage,
     tempLeverage,
   ]);
 
-  const handleSliderGrip = useCallback(() => {
-    playImpact(ImpactMoment.SliderGrip);
-  }, []);
-
-  const handleSliderMark = useCallback(() => {
-    playImpact(ImpactMoment.SliderTick);
-  }, []);
-
-  const promoteIncomingSlider = useCallback((incomingKey: number) => {
-    if (promoteFrameRef.current !== null) {
-      cancelAnimationFrame(promoteFrameRef.current);
-    }
-    // Wait until the incoming Slider has applied its layout-driven thumb
-    // position, then promote that same instance (same key) to active.
-    promoteFrameRef.current = requestAnimationFrame(() => {
-      promoteFrameRef.current = requestAnimationFrame(() => {
-        promoteFrameRef.current = null;
-        setSliderEntries((prev) => {
-          const incoming = prev.find((entry) => entry.key === incomingKey);
-          if (!incoming) {
-            return prev;
-          }
-          return [{ key: incoming.key, value: incoming.value, role: 'active' }];
-        });
-        isSliderRemountingRef.current = false;
-      });
-    });
-  }, []);
-
-  const handleQuickSelect = useCallback(
-    (value: number) => {
-      // A second chip during the promote window must cancel the pending
-      // promote and remount again; otherwise the first chip's incoming value
-      // is restored after the sync-only path updates tempLeverage.
-      if (promoteFrameRef.current !== null) {
-        cancelAnimationFrame(promoteFrameRef.current);
-        promoteFrameRef.current = null;
-      }
-
-      const wasDragging = isDragging;
-      setIsDragging(false);
-      if (value !== tempLeverage) {
-        leverageChangeTime.current = Date.now();
-        setLeverageChanged(true);
-        lastValidLiquidationPrice.current = null;
-      }
-      setTempLeverage(value);
-      setDraggingLeverage(value);
-      setInputMethod('preset');
-
-      // Arm the guard before the remount state flush so any late drag
-      // callbacks queued in this tick cannot overwrite tempLeverage.
-      if (wasDragging || hasSliderDraggedRef.current) {
-        isSliderRemountingRef.current = true;
-      }
-
-      setSliderEntries((prev) => {
-        const hasIncoming = prev.some((entry) => entry.role === 'incoming');
-        const shouldRemountSlider =
-          wasDragging || hasSliderDraggedRef.current || hasIncoming;
-
-        if (!shouldRemountSlider) {
-          isSliderRemountingRef.current = false;
-          return prev.map((entry) =>
-            entry.role === 'active' ? { ...entry, value } : entry,
-          );
-        }
-
-        isSliderRemountingRef.current = true;
-        hasSliderDraggedRef.current = false;
-        const active = prev.find((entry) => entry.role === 'active') ?? prev[0];
-        const nextKey = Math.max(...prev.map((entry) => entry.key)) + 1;
-        return [
-          { key: active.key, value: active.value, role: 'active' },
-          { key: nextKey, value, role: 'incoming' },
-        ];
-      });
-
-      playSelection();
-    },
-    [isDragging, tempLeverage],
+  const fadeMask = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      twClassName="flex-1"
+      accessible={false}
+    >
+      <LinearGradient
+        colors={['transparent', 'black']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={tw.style(`w-[${LEVERAGE_PICKER_FADE_WIDTH}px]`)}
+      />
+      <Box twClassName="flex-1 bg-black" />
+      <LinearGradient
+        colors={['black', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={tw.style(`w-[${LEVERAGE_PICKER_FADE_WIDTH}px]`)}
+      />
+    </Box>
   );
 
   if (!isVisible) return null;
 
-  return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-      <BottomSheetHeader onClose={onClose}>
+  // As a nested Trade sheet screen the header only offers "back": the Trade
+  // sheet itself owns dismissal, and the explainer that the standalone sheet
+  // keeps behind the Liquidation price tooltip is shown inline instead.
+  const isNestedScreen = presentation === 'screen';
+
+  const content = (
+    <>
+      <BottomSheetHeader
+        onBack={isNestedScreen ? onBack : undefined}
+        onClose={isNestedScreen ? undefined : onClose}
+      >
         {strings('perps.order.leverage_modal.title')}
       </BottomSheetHeader>
 
-      <ScrollView
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Box twClassName="pb-4">
-          <Box twClassName="items-center px-4 py-4">
-            <Text variant={TextVariant.DisplayLg} color={TextColor.TextDefault}>
-              {displayLeverage}x
-            </Text>
-          </Box>
-
-          <Box
-            twClassName="relative px-4"
-            onTouchCancel={handleSliderDragCancel}
-          >
-            {sliderEntries.map((entry) => {
-              const isActive = entry.role === 'active';
-              // Outgoing active slider must not accept input during remount;
-              // late dragEnd would overwrite the chip's tempLeverage.
-              const acceptsInput = isActive && !hasIncomingSlider;
-              const sliderValue =
-                acceptsInput && isDragging ? draggingLeverage : entry.value;
-
-              return (
-                <Box
-                  key={entry.key}
-                  testID={
-                    isActive
-                      ? undefined
-                      : PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP
-                  }
-                  style={isActive ? undefined : styles.sliderIncoming}
-                  pointerEvents={acceptsInput ? 'auto' : 'none'}
-                  onLayout={
-                    isActive
-                      ? undefined
-                      : () => {
-                          promoteIncomingSlider(entry.key);
-                        }
-                  }
-                >
-                  <Slider
+      <Box paddingTop={3} accessible={false}>
+        {currentPrice ? (
+          <Box paddingHorizontal={4} accessible={false}>
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={strings('perps.order.leverage_modal.current_price')}
+              value={formatPerpsFiat(currentPrice, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
+              valueTextProps={{
+                testID:
+                  PerpsLeverageBottomSheetSelectorsIDs.CURRENT_PRICE_VALUE,
+              }}
+            />
+            <KeyValueRow
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={strings('perps.order.leverage_modal.liquidation_price')}
+              value={
+                isRecalculating ? (
+                  <Skeleton
+                    width={112}
+                    height={16}
                     testID={
-                      isActive
-                        ? PerpsLeverageBottomSheetSelectorsIDs.SLIDER
-                        : PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING
+                      PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON
                     }
-                    value={sliderValue}
-                    onValueChange={
-                      acceptsInput ? handleSliderChange : () => undefined
-                    }
-                    onDragEnd={acceptsInput ? handleSliderDragEnd : undefined}
-                    minimumValue={minLeverage}
-                    maximumValue={maxLeverage}
-                    step={1}
-                    marks={sliderMarks}
-                    showRangeLabels
-                    showRangeDots
-                    onGrip={acceptsInput ? handleSliderGrip : undefined}
-                    onMark={acceptsInput ? handleSliderMark : undefined}
                   />
-                </Box>
-              );
-            })}
+                ) : (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    accessible={false}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextDefault}
+                      testID={
+                        PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE
+                      }
+                    >
+                      {displayLiquidationPrice
+                        ? formatPerpsFiat(displayLiquidationPrice, {
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
+                        : PERPS_CONSTANTS.FallbackDataDisplay}
+                    </Text>
+                    {(tempLeverage === 1 || displayLiquidationPrice !== null) &&
+                      displayLiquidationPercentage && (
+                        <>
+                          <Icon
+                            name={
+                              direction === 'long'
+                                ? IconName.TrendDown
+                                : IconName.TrendUp
+                            }
+                            size={IconSize.Sm}
+                            color={IconColor.IconAlternative}
+                            twClassName="ml-1"
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
+                            }
+                          />
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                            }
+                          >
+                            {displayLiquidationPercentage}
+                          </Text>
+                        </>
+                      )}
+                  </Box>
+                )
+              }
+            />
           </Box>
-
-          <Box twClassName="flex-row justify-between gap-2 px-4 mt-1 mb-4">
-            {quickSelectValues.map((value) => (
-              <Button
-                key={value}
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Md}
-                onPress={() => handleQuickSelect(value)}
-                testID={`${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-${value}`}
-                twClassName="flex-1"
-              >
-                {`${value}x`}
-              </Button>
-            ))}
-          </Box>
-
-          <Box
-            twClassName="items-center justify-center px-4 mb-4"
-            style={styles.helpTextContainer}
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center px-4 py-4"
           >
-            {isRecalculating ? (
-              <Skeleton width="80%" height={14} />
-            ) : (
-              <HelpText
-                testID={PerpsLeverageBottomSheetSelectorsIDs.HELP_TEXT}
-                twClassName="w-full justify-center text-center"
-              >
-                {strings('perps.order.leverage_modal.liquidation_warning', {
-                  direction:
-                    direction === 'long'
-                      ? strings('perps.order.leverage_modal.drops')
-                      : strings('perps.order.leverage_modal.rises'),
-                  percentage: displayLiquidationPercentage ?? '--',
-                })}
-              </HelpText>
-            )}
-          </Box>
+            {strings('perps.order.leverage_modal.price_unavailable')}
+          </Text>
+        )}
 
-          {currentPrice ? (
-            <Box
-              twClassName="mb-2 justify-center"
-              style={styles.priceInfoContainer}
+        <SectionDivider />
+
+        <Box
+          paddingTop={3}
+          paddingBottom={6}
+          twClassName={`h-[${LEVERAGE_PICKER_CONTAINER_HEIGHT}px]`}
+          accessible={false}
+        >
+          <MaskedView
+            style={tw.style('flex-1 overflow-hidden')}
+            maskElement={fadeMask}
+          >
+            <ScrollView
+              ref={pickerRef}
+              horizontal
+              bounces={false}
+              directionalLockEnabled
+              showsHorizontalScrollIndicator={false}
+              snapToAlignment="start"
+              snapToInterval={LEVERAGE_ITEM_WIDTH}
+              decelerationRate="fast"
+              scrollEventThrottle={16}
+              contentContainerStyle={tw.style('items-center', {
+                paddingHorizontal: Math.max(
+                  (pickerWidth - LEVERAGE_ITEM_WIDTH) / 2,
+                  0,
+                ),
+              })}
+              testID={PerpsLeverageBottomSheetSelectorsIDs.PICKER}
+              onLayout={handlePickerLayout}
+              onScrollBeginDrag={handlePickerScrollBeginDrag}
+              onScroll={handlePickerScroll}
+              onScrollEndDrag={handlePickerScrollEndDrag}
+              onMomentumScrollEnd={handlePickerScrollEnd}
             >
-              <KeyValueRow
-                variant={KeyValueRowVariant.Summary}
-                keyLabel={strings(
-                  'perps.order.leverage_modal.liquidation_price',
-                )}
-                value={
-                  isRecalculating ? (
-                    <Skeleton width={80} height={16} />
-                  ) : displayLiquidationPrice ? (
-                    formatPerpsFiat(displayLiquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })
-                  ) : (
-                    '--'
-                  )
-                }
-              />
-              <KeyValueRow
-                variant={KeyValueRowVariant.Summary}
-                keyLabel={strings('perps.order.leverage_modal.current_price')}
-                value={formatPerpsFiat(currentPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })}
-              />
-            </Box>
-          ) : (
-            <Box
-              twClassName="mb-2 justify-center"
-              style={styles.priceInfoContainer}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="text-center px-4 py-4"
-              >
-                {strings('perps.order.leverage_modal.price_unavailable')}
-              </Text>
-            </Box>
-          )}
+              {leverageOptions.map((value) => {
+                const distance = Math.abs(value - displayLeverage);
+                const isSelected = distance === 0;
+                const textVariant = isSelected
+                  ? TextVariant.HeadingLg
+                  : distance === 1
+                    ? TextVariant.BodyMd
+                    : TextVariant.BodySm;
+                const textColor =
+                  distance <= 1
+                    ? TextColor.TextAlternative
+                    : TextColor.TextMuted;
+
+                return (
+                  <Pressable
+                    key={value}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${value}x`}
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => handleLeveragePress(value)}
+                    testID={`${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${value}`}
+                    style={({ pressed }) =>
+                      tw.style(
+                        'h-10 items-center justify-center rounded-full',
+                        isSelected && 'bg-muted',
+                        pressed && 'opacity-70',
+                        { width: LEVERAGE_ITEM_WIDTH },
+                      )
+                    }
+                  >
+                    <Text
+                      variant={textVariant}
+                      fontWeight={FontWeight.Medium}
+                      color={isSelected ? TextColor.TextDefault : textColor}
+                    >
+                      {value}x
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </MaskedView>
         </Box>
-      </ScrollView>
+
+        {isNestedScreen ? (
+          <>
+            <SectionDivider />
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="px-4 py-3"
+              testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
+            >
+              {strings('perps.order.leverage_modal.description')}
+            </Text>
+          </>
+        ) : null}
+      </Box>
 
       <BottomSheetFooter
         primaryButtonProps={{
           size: ButtonSize.Lg,
           onPress: handleConfirm,
-          children: strings('perps.order.leverage_modal.set_leverage', {
-            leverage: displayLeverage,
-          }),
+          children: strings('perps.order.leverage_modal.set'),
+          testID: PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON,
           twClassName: 'mb-4',
         }}
       />
+    </>
+  );
+
+  if (presentation === 'screen') {
+    return <Box twClassName="flex-1">{content}</Box>;
+  }
+
+  return (
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+      {content}
     </BottomSheet>
   );
 };
 
 PerpsLeverageBottomSheet.displayName = 'PerpsLeverageBottomSheet';
 
-export default memo(
-  PerpsLeverageBottomSheet,
-  (prevProps, nextProps) =>
-    prevProps.isVisible === nextProps.isVisible &&
-    prevProps.leverage === nextProps.leverage &&
-    prevProps.minLeverage === nextProps.minLeverage &&
-    prevProps.maxLeverage === nextProps.maxLeverage &&
-    prevProps.direction === nextProps.direction,
-);
+export default PerpsLeverageBottomSheet;

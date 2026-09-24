@@ -37,6 +37,8 @@ describe('StockBadge', () => {
     mockUseRWAToken.mockReturnValue({
       isStockToken: jest.fn(() => true),
       isTokenTradingOpen: mockIsTokenTradingOpen,
+      isTokenTradable: jest.fn(() => true),
+      isTokenMarketFullyClosed: jest.fn(() => false),
     });
   });
 

@@ -2,7 +2,7 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import Utilities from '../../framework/Utilities';
 import {
   DownloadFileSelectorsAccessibilityIDs,
@@ -17,7 +17,7 @@ class DownloadFile {
       return;
     }
 
-    await PlaywrightContextHelpers.switchToNativeContext();
+    await AppiumContextHelpers.switchToNativeContext();
     await Gestures.waitAndTap(
       Matchers.getElementByID(
         DownloadFileSelectorsIDs.ANDROID_CONFIRM_DOWNLOAD_BUTTON,
@@ -29,7 +29,7 @@ class DownloadFile {
   }
 
   async verifySuccessStateVisible(): Promise<void> {
-    await PlaywrightContextHelpers.switchToNativeContext();
+    await AppiumContextHelpers.switchToNativeContext();
 
     if (PlatformDetector.isIOS()) {
       // saveToFiles presents UIDocumentPickerViewController (export), not a

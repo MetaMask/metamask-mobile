@@ -130,11 +130,12 @@ module.exports = {
       },
     ],
     dynamicImportToRequire,
-    // NOTE: react-native-reanimated/plugin must be listed LAST.
-    // Required by reanimated v3 to compile `'worklet'` directives; without it,
-    // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector
-    // children (e.g. WebView) render at 0x0 (white screen).
-    'react-native-reanimated/plugin',
+    // NOTE: react-native-worklets/plugin must be listed LAST.
+    // Compiles `'worklet'` directives (reanimated v4 moved the babel plugin to
+    // react-native-worklets; react-native-reanimated/plugin is a deprecated
+    // alias). Without it, gesture-handler worklets silently no-op on iOS Fabric
+    // and GestureDetector children (e.g. WebView) render at 0x0 (white screen).
+    'react-native-worklets/plugin',
   ],
   overrides: [
     {
@@ -165,6 +166,31 @@ module.exports = {
       ],
     },
     {
+      // 17.x of @metamask/perps-controller ships ESM-only under dist/*.js.
+      // Force Babel to transform it (and lodash-es, a nested peer of
+      // controller-utils) to CJS so Jest can load them without needing
+      // --experimental-vm-modules.
+      test: (filename) => {
+        const f = posixPath(filename);
+        return (
+          f.includes('/node_modules/@metamask/perps-controller/') ||
+          f.includes('/node_modules/lodash-es/')
+        );
+      },
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          {
+            allowTopLevelThis: true,
+            // Loose mode emits `exports.foo = foo` instead of non-configurable
+            // getters, so jest.spyOn on named exports (e.g. splitScaleSizes)
+            // keeps working.
+            loose: true,
+          },
+        ],
+      ],
+    },
+    {
       test: pathIncludes('/node_modules/@noble/secp256k1'),
       plugins: [
         [
@@ -179,6 +205,14 @@ module.exports = {
     },
     {
       test: pathIncludes('/app/lib/snaps/SnapsExecutionWebView.tsx'),
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
+    },
+    {
+      // Lighter Go/WASM signer page (base64-embedded WASM, ~10 MB) inlined as
+      // a string for the hidden signer WebView.
+      test: pathIncludes(
+        '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+      ),
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
     {

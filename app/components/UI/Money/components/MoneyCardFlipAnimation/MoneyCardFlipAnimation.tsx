@@ -1,8 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+  useViewModelInstance,
+  type RiveError,
+} from '@rive-app/react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -76,7 +83,10 @@ const MoneyCardFlipAnimation = ({
   const flagEnabled = useSelector(selectMoneyCardFlipAnimationEnabledFlag);
   const reduceMotionState = useReduceMotionState();
   const [hasRiveError, setHasRiveError] = useState(false);
-  const riveRef = useRef<RiveRef>(null);
+  // riveViewRef (state) is non-null only after the native view resolves
+  // awaitViewReady — gating the reveal on it retries a late-ready view
+  // instead of silently dropping the trigger.
+  const { riveViewRef, setHybridRef } = useRive();
 
   const reduceMotion = reduceMotionState ?? true;
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
@@ -104,18 +114,25 @@ const MoneyCardFlipAnimation = ({
     });
   }, [animate, variantKnown, isHeld, entranceOpacity, entranceTranslateY]);
 
-  const handleError = useCallback((riveError: RNRiveError) => {
-    log(`Rive error: ${riveError.message}`);
-    setHasRiveError(true);
-  }, []);
-
   const artboardName = isMetalCard
     ? RIVE_ARTBOARD_METAL
     : RIVE_ARTBOARD_VIRTUAL;
   const isPlaying = animate && variantKnown && !reduceMotionPending && !isHeld;
 
-  const handlePlay = useRiveRevealTrigger({
-    riveRef,
+  const { riveFile } = useRiveFile(CardTiltAnimation);
+  const { instance } = useViewModelInstance(riveFile, {
+    artboardName,
+    async: true,
+  });
+
+  const handleError = useCallback((riveError: RiveError) => {
+    log(`Rive error: ${riveError.message}`);
+    setHasRiveError(true);
+  }, []);
+
+  useRiveRevealTrigger({
+    instance,
+    riveViewRef,
     triggerName: RIVE_TRIGGER_START,
     enabled: isPlaying,
     artboardName,
@@ -128,21 +145,24 @@ const MoneyCardFlipAnimation = ({
   } else if (animate) {
     content = (
       <Animated.View style={[styles.media, entranceStyle]}>
-        <Rive
-          // Remount per artboard: swapping `artboardName` in place reloads the
-          // artboard but leaves data binding pointing at the previous one.
-          key={artboardName}
-          ref={riveRef}
-          source={CardTiltAnimation}
-          artboardName={artboardName}
-          stateMachineName={RIVE_STATE_MACHINE}
-          dataBinding={AutoBind(true)}
-          fit={Fit.Contain}
-          style={styles.media}
-          onPlay={handlePlay}
-          onError={handleError}
-          testID={MoneyCardFlipAnimationTestIds.RIVE}
-        />
+        {riveFile && instance && (
+          <RiveView
+            // Remount per artboard: swapping `artboardName` in place reloads
+            // the artboard but leaves data binding pointing at the previous
+            // one.
+            key={artboardName}
+            hybridRef={setHybridRef}
+            file={riveFile}
+            artboardName={artboardName}
+            stateMachineName={RIVE_STATE_MACHINE}
+            dataBind={instance}
+            autoPlay
+            fit={Fit.Contain}
+            style={styles.media}
+            onError={handleError}
+            testID={MoneyCardFlipAnimationTestIds.RIVE}
+          />
+        )}
       </Animated.View>
     );
   } else {

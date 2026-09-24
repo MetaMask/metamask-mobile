@@ -9,8 +9,10 @@ import {
   formatPercentage,
   formatLargeNumber,
   formatVolume,
+  formatCoinVolume,
   formatPositionSize,
   formatLeverage,
+  formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
   parsePercentageString,
@@ -21,7 +23,9 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatLimitPriceInput,
   formatPerpsPrice,
+  formatPositionTriggerSummary,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -45,14 +49,18 @@ jest.mock('../../../../util/assets', () => ({
 
 // Mock the strings function
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: { count?: number }) => {
     const mockStrings: Record<string, string> = {
       today: 'Today',
+      'perps.position.card.tpsl_count_multiple': '{{count}} orders',
       'notifications.yesterday': 'Yesterday',
       'perps.today': 'Today',
       'perps.yesterday': 'Yesterday',
     };
-    return mockStrings[key] || key;
+    const template = mockStrings[key] || key;
+    return params?.count === undefined
+      ? template
+      : template.replace('{{count}}', String(params.count));
   },
 }));
 
@@ -181,15 +189,12 @@ describe('formatUtils', () => {
       expect(result).toBe('');
     });
 
-    it('displays zero display value when value rounds to zero', () => {
-      // Given a value that rounds to zero with 4 decimals
-      const value = 0.000000001; // Would round to 0.0000%
+    it('displays threshold when positive value is below display precision', () => {
+      const value = 0.000000001;
 
-      // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe('<0.0001%');
     });
 
     it('handles number precision edge cases correctly', () => {
@@ -803,6 +808,32 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatCoinVolume', () => {
+    it('formats candle volume without a USD prefix', () => {
+      const volume = 0.33;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('0.33');
+    });
+
+    it('keeps magnitude suffixes without a dollar sign', () => {
+      const volume = 123456;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('123K');
+    });
+
+    it('keeps the minus sign in front of negative coin volume', () => {
+      const volume = -1000000;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('-1.00M');
+    });
+  });
+
   describe('formatPositionSize', () => {
     it('should format very small numbers without trailing zeros', () => {
       expect(formatPositionSize(0.001)).toBe('0.001');
@@ -888,6 +919,23 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatLiquidationDistance', () => {
+    it('formats the distance from entry to liquidation as a percentage', () => {
+      expect(formatLiquidationDistance(100, 70)).toBe('30.00%');
+      expect(formatLiquidationDistance(100, 130)).toBe('30.00%');
+      expect(formatLiquidationDistance('103.02', '70.45')).toBe('31.62%');
+    });
+
+    it('returns undefined when either price is unusable', () => {
+      expect(formatLiquidationDistance(100, undefined)).toBeUndefined();
+      expect(formatLiquidationDistance(null, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, '0')).toBeUndefined();
+      expect(formatLiquidationDistance(0, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
+      expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
+    });
+  });
+
   describe('formatLeverage', () => {
     it('should format leverage with x suffix', () => {
       expect(formatLeverage(2)).toBe('2.0x');
@@ -942,6 +990,22 @@ describe('formatUtils', () => {
       expect(parseCurrencyString(null as any)).toBe(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+
+    // A dust balance below 1e-6 serializes to exponential notation, whose
+    // exponent sign was being read as a negative amount.
+    it('reads exponential dust balances as small positives, not negatives', () => {
+      expect(parseCurrencyString('1.1e-7')).toBe(1.1e-7);
+      expect(parseCurrencyString('1e-7')).toBe(1e-7);
+      expect(parseCurrencyString('2.5e-8')).toBe(2.5e-8);
+    });
+
+    it('keeps a genuinely negative exponential negative', () => {
+      expect(parseCurrencyString('-1.1e-7')).toBe(-1.1e-7);
+    });
+
+    it('formats an exponential dust balance as zero rather than a negative', () => {
+      expect(formatPerpsBalance('1.1e-7')).toBe('$0');
     });
   });
 
@@ -2074,6 +2138,66 @@ describe('formatUtils', () => {
 
         expect(result).toBe('12.34');
       });
+    });
+  });
+
+  describe('formatPositionTriggerSummary', () => {
+    it('names the order count when a side carries several trigger orders', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 3,
+        price: '2654.1',
+      });
+
+      expect(summary).toBe('3 orders');
+    });
+
+    it('keeps the trigger price when a side carries exactly one order', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 1,
+        price: '2312.8',
+      });
+
+      expect(summary).toBe('$2,312.8');
+    });
+
+    it('keeps the trigger price when the controller reports no count', () => {
+      const summary = formatPositionTriggerSummary({ price: '2312.8' });
+
+      expect(summary).toBe('$2,312.8');
+    });
+
+    it('applies market size decimals to the single order price', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 1,
+        price: '2.1946',
+        szDecimals: 2,
+      });
+
+      expect(summary).toBe('$2.1946');
+    });
+
+    it('returns null when a side has neither a count nor a usable price', () => {
+      expect(formatPositionTriggerSummary({ count: 0 })).toBeNull();
+      expect(formatPositionTriggerSummary({ price: '0' })).toBeNull();
+    });
+  });
+
+  describe('formatLimitPriceInput', () => {
+    it('returns empty for absent or zero input', () => {
+      expect(formatLimitPriceInput('')).toBe('');
+      expect(formatLimitPriceInput('0')).toBe('');
+    });
+
+    it('preserves a trailing decimal point while typing', () => {
+      expect(formatLimitPriceInput('12.')).toBe('$12.');
+    });
+
+    it('preserves trailing zeros after the decimal while typing', () => {
+      expect(formatLimitPriceInput('12.50')).toBe('$12.50');
+    });
+
+    it('formats a complete number', () => {
+      expect(formatLimitPriceInput('3000')).toBe('$3,000');
     });
   });
 });

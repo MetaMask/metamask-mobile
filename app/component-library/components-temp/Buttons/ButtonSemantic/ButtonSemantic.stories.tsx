@@ -70,10 +70,10 @@ export const AllVariants = {
   render: (args: ButtonSemanticProps) => (
     <Box gap={4}>
       <ButtonSemantic {...args} severity={ButtonSemanticSeverity.Success}>
-        Success Button
+        Success button
       </ButtonSemantic>
       <ButtonSemantic {...args} severity={ButtonSemanticSeverity.Danger}>
-        Danger Button
+        Danger button
       </ButtonSemantic>
     </Box>
   ),

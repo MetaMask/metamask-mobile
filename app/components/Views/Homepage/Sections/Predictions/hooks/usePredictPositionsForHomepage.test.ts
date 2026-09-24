@@ -1,9 +1,6 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { usePredictPositionsForHomepage } from './usePredictPositionsForHomepage';
-import {
-  PredictPositionStatus,
-  type PredictPosition,
-} from '../../../../../UI/Predict/types';
+import type { PredictPosition } from '../../../../../UI/Predict/types';
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockUsePredictPositions = jest.fn();
@@ -38,7 +35,6 @@ const createMockPosition = (id: string, currentValue = 12): PredictPosition =>
     icon: `https://example.com/icon-${id}.png`,
     initialValue: 10,
     currentValue,
-    status: PredictPositionStatus.WON,
     size: 15,
     percentPnl: 20,
   }) as unknown as PredictPosition;
@@ -137,87 +133,23 @@ describe('usePredictPositionsForHomepage', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  describe('claimable option', () => {
-    it('defaults claimable to false', () => {
-      const { result } = renderHook(() => usePredictPositionsForHomepage());
+  it('requests active positions with live price updates', () => {
+    renderHook(() => usePredictPositionsForHomepage());
 
-      expect(result.current.totalClaimableValue).toBe(0);
+    expect(mockUsePredictPositions).toHaveBeenCalledWith({
+      claimable: false,
+      enabled: true,
+      livePriceUpdates: true,
     });
+  });
 
-    it('computes totalClaimableValue as sum of actionable currentValue when claimable is true', () => {
-      mockUsePredictPositionsReturn.data = [
-        createMockPosition('c1', 5),
-        createMockPosition('c2', 10),
-        createMockPosition('c3', 3),
-      ];
+  it('forwards enabled false to usePredictPositions', () => {
+    renderHook(() => usePredictPositionsForHomepage({ enabled: false }));
 
-      const { result } = renderHook(() =>
-        usePredictPositionsForHomepage({ claimable: true }),
-      );
-
-      expect(result.current.totalClaimableValue).toBe(18);
-    });
-
-    it('returns totalClaimableValue 0 for lost-only claimable positions', () => {
-      mockUsePredictPositionsReturn.data = [
-        {
-          ...createMockPosition('lost', 25),
-          status: PredictPositionStatus.LOST,
-        },
-      ];
-
-      const { result } = renderHook(() =>
-        usePredictPositionsForHomepage({ claimable: true }),
-      );
-
-      expect(result.current.totalClaimableValue).toBe(0);
-    });
-
-    it('returns totalClaimableValue 0 when claimable is false', () => {
-      mockUsePredictPositionsReturn.data = [createMockPosition('1', 100)];
-
-      const { result } = renderHook(() =>
-        usePredictPositionsForHomepage({ claimable: false }),
-      );
-
-      expect(result.current.totalClaimableValue).toBe(0);
-    });
-
-    it('enables live updates for active positions', () => {
-      renderHook(() => usePredictPositionsForHomepage({ claimable: false }));
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          claimable: false,
-          livePriceUpdates: true,
-        }),
-      );
-    });
-
-    it('disables live updates for claimable positions', () => {
-      renderHook(() => usePredictPositionsForHomepage({ claimable: true }));
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          claimable: true,
-          livePriceUpdates: false,
-        }),
-      );
-    });
-
-    it('treats undefined currentValue as 0 in totalClaimableValue sum', () => {
-      mockUsePredictPositionsReturn.data = [
-        {
-          ...createMockPosition('c1', 5),
-          currentValue: undefined,
-        } as unknown as PredictPosition,
-      ];
-
-      const { result } = renderHook(() =>
-        usePredictPositionsForHomepage({ claimable: true }),
-      );
-
-      expect(result.current.totalClaimableValue).toBe(0);
+    expect(mockUsePredictPositions).toHaveBeenCalledWith({
+      claimable: false,
+      enabled: false,
+      livePriceUpdates: true,
     });
   });
 });

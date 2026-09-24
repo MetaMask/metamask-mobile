@@ -9,43 +9,79 @@ import { useLocalActivityItems } from './useLocalActivityItems';
 import {
   selectLocalTransactions,
   selectReplacedLocalTransactions,
+  selectRequiredTransactions,
 } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../UI/Earn/constants/musd';
+import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
+
+const from = '0x9bed78535d6a03a955f1504aadba974d9a29e292';
+const recipient = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
+const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+
+const mockSelectorState = {
+  allTokens: {
+    '0x2105': {
+      [from.toLowerCase()]: [{ address: usdc, decimals: 6, symbol: 'USDC' }],
+    },
+  },
+  bridgeHistory: {},
+  groupAccount: { address: from },
+  localTransactions: [] as unknown[],
+  replacedTransactions: [] as unknown[],
+  requiredTransactions: [] as TransactionMeta[],
+  transactionPayData: {},
+  networks: {
+    '0x2105': { nativeCurrency: 'ETH' },
+  },
+};
+const selectorState = mockSelectorState;
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/transactionController', () => ({
-  selectLocalTransactions: jest.fn(),
-  selectReplacedLocalTransactions: jest.fn(),
+  selectLocalTransactions: jest.fn(() => mockSelectorState.localTransactions),
+  selectReplacedLocalTransactions: jest.fn(
+    () => mockSelectorState.replacedTransactions,
+  ),
+  selectRequiredTransactions: jest.fn(
+    () => mockSelectorState.requiredTransactions,
+  ),
 }));
 
 jest.mock('../../../../selectors/bridgeStatusController', () => ({
-  selectBridgeHistoryForAccount: jest.fn(),
+  selectBridgeHistoryForAccount: jest.fn(() => mockSelectorState.bridgeHistory),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(
+    () => mockSelectorState.networks,
+  ),
 }));
 
 jest.mock('../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
+  selectAllTokens: jest.fn(() => mockSelectorState.allTokens),
+}));
+
+jest.mock('../../../../selectors/transactionPayController', () => ({
+  selectTransactionPayTransactionData: jest.fn(
+    () => mockSelectorState.transactionPayData,
+  ),
 }));
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(
+      () => mockSelectorState.groupAccount,
+    ),
   }),
 );
-
-const from = '0x9bed78535d6a03a955f1504aadba974d9a29e292';
-const recipient = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
-const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 
 const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
   ({
@@ -64,26 +100,13 @@ const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
     ...overrides,
   }) as TransactionMeta;
 
-const selectorState = {
-  allTokens: {
-    '0x2105': {
-      [from.toLowerCase()]: [{ address: usdc, decimals: 6, symbol: 'USDC' }],
-    },
-  },
-  bridgeHistory: {},
-  groupAccount: { address: from },
-  localTransactions: [] as unknown[],
-  replacedTransactions: [] as unknown[],
-  networks: {
-    '0x2105': { nativeCurrency: 'ETH' },
-  },
-};
-
 describe('useLocalActivityItems', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     selectorState.localTransactions = [];
     selectorState.replacedTransactions = [];
+    selectorState.requiredTransactions = [];
+    selectorState.transactionPayData = {};
     selectorState.bridgeHistory = {};
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
@@ -91,6 +114,10 @@ describe('useLocalActivityItems', () => {
           return selectorState.localTransactions;
         case selectReplacedLocalTransactions:
           return selectorState.replacedTransactions;
+        case selectRequiredTransactions:
+          return selectorState.requiredTransactions;
+        case selectTransactionPayTransactionData:
+          return selectorState.transactionPayData;
         case selectBridgeHistoryForAccount:
           return selectorState.bridgeHistory;
         case selectEvmNetworkConfigurationsByChainId:
@@ -100,7 +127,7 @@ describe('useLocalActivityItems', () => {
         case selectSelectedAccountGroupEvmInternalAccount:
           return selectorState.groupAccount;
         default:
-          return undefined;
+          return selector({});
       }
     });
   });
@@ -527,7 +554,75 @@ describe('useLocalActivityItems', () => {
     expect(result.current[0]).toMatchObject({
       type: 'perpsAddFunds',
       hash: '0xperpsdeposit',
-      raw: { type: 'localTransaction' },
+    });
+  });
+
+  it('maps a Money deposit from the Money signer into a send from the active EOA', () => {
+    const moneyAccountAddress = '0x3333333333333333333333333333333333333333';
+    selectorState.requiredTransactions = [
+      makeTx({
+        id: 'money-source-transfer',
+        chainId: '0x2105',
+        type: TransactionType.tokenMethodTransfer,
+        txParams: {
+          from,
+          nonce: '0x2',
+          to: usdc,
+          value: '0x0',
+        },
+        transferInformation: {
+          amount: '4000000',
+          contractAddress: usdc,
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      }),
+    ];
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'money-deposit-id',
+        hash: '0xmoneydeposit',
+        chainId: '0x8f',
+        status: TransactionStatus.confirmed,
+        type: TransactionType.batch,
+        txParams: {
+          from: moneyAccountAddress,
+          nonce: '0x1',
+          to: recipient,
+          value: '0x0',
+        },
+        nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+        requiredTransactionIds: ['money-source-transfer'],
+        requiredAssets: [
+          {
+            address: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+            amount: '0x2625a0',
+            standard: 'erc20',
+          },
+        ],
+        metamaskPay: {
+          chainId: '0x2105',
+          tokenAddress: usdc,
+        },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'send',
+      hash: '0xmoneydeposit',
+      data: {
+        from,
+        to: moneyAccountAddress,
+        token: {
+          amount: '4000000',
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
     });
   });
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { type CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import {
   type ActivityListItem,
@@ -70,8 +71,18 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData);
-  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData);
+  // Keyring amounts are already human-readable — skip formatUnits.
+  const humanReadable = isNonEvmChainId(item.chainId);
+  const sourceBase = enrichTokenFromApi(rawSourceToken, tokenData);
+  const destBase = enrichTokenFromApi(rawDestinationToken, tokenData);
+  const sourceToken =
+    humanReadable && sourceBase
+      ? { ...sourceBase, amountIsHumanReadable: true as const }
+      : sourceBase;
+  const destinationToken =
+    humanReadable && destBase
+      ? { ...destBase, amountIsHumanReadable: true as const }
+      : destBase;
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,
@@ -90,14 +101,14 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   );
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 gap-2">
       <ActivityDetailsDualAmountHeader
         sentToken={sourceToken}
         receivedToken={destinationToken}
       />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsMetadata item={item} />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsFeesAndTotal item={item} token={totalToken} fiatOnly />
       <Box twClassName="mt-auto pt-4">
         <ActivityDetailsFooter>

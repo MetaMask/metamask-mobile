@@ -165,7 +165,6 @@ export interface UserState {
   backUpSeedphraseVisible: boolean;
   passwordSet: boolean;
   importTime?: number;
-  musdConversionEducationSeen?: boolean;
   [key: string]: unknown;
 }
 

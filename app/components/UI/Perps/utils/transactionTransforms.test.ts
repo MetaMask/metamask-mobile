@@ -9,11 +9,15 @@ import {
   transformDepositRequestsToTransactions,
   transformWalletPerpsDepositsToTransactions,
   walletPerpsWithdrawalsToRequests,
-  aggregateFillsByTimestamp,
+  aggregateFillsByOrder,
 } from './transactionTransforms';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
-import { OrderFill } from '@metamask/perps-controller';
+import {
+  OrderFill,
+  type OrdinaryOrderType,
+  type TriggerOrderType,
+} from '@metamask/perps-controller';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 import {
   PerpsOrderTransactionStatus,
@@ -36,7 +40,7 @@ const mockParseStandardTokenTransactionData =
   >;
 
 describe('transactionTransforms', () => {
-  describe('aggregateFillsByTimestamp', () => {
+  describe('aggregateFillsByOrder', () => {
     // Helper to create a fill with defaults
     const createFill = (overrides: Partial<OrderFill> = {}): OrderFill => ({
       orderId: 'order-1',
@@ -82,7 +86,7 @@ describe('transactionTransforms', () => {
           detailedOrderType: 'Stop Market',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.24213, 5);
@@ -111,7 +115,7 @@ describe('transactionTransforms', () => {
           detailedOrderType: 'Take Profit Market',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
@@ -133,7 +137,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([btcFill, ethFill]);
+        const result = aggregateFillsByOrder([btcFill, ethFill]);
 
         expect(result).toHaveLength(2);
       });
@@ -149,24 +153,23 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([
-          closeLongFill,
-          closeShortFill,
-        ]);
+        const result = aggregateFillsByOrder([closeLongFill, closeShortFill]);
 
         expect(result).toHaveLength(2);
       });
 
-      it('does not aggregate fills in different seconds', () => {
+      it('does not aggregate fills in different seconds from different orders', () => {
         const fill1 = createFill({
+          orderId: 'order-1',
           timestamp: 1700000000999, // End of second 1700000000
         });
 
         const fill2 = createFill({
+          orderId: 'order-2',
           timestamp: 1700000001000, // Start of second 1700000001
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(2);
       });
@@ -184,7 +187,7 @@ describe('transactionTransforms', () => {
           pnl: '100',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(0.2);
@@ -192,53 +195,329 @@ describe('transactionTransforms', () => {
       });
     });
 
-    describe('non-close fills pass through', () => {
-      it('does not aggregate Open Long fills', () => {
+    describe('open and flip fills aggregate (TAT-3931)', () => {
+      it('aggregates Open Long fills of one order', () => {
+        // Hyperliquid testnet order 60252966679: 8.29 SOL opened in four fills
+        const sizes = ['2.92', '0.4', '2.35', '2.62'];
+        const fills = sizes.map((size) =>
+          createFill({
+            orderId: 'open-order-1',
+            symbol: 'SOL',
+            direction: 'Open Long',
+            size,
+            pnl: '0',
+            fee: '0.1',
+            timestamp: 1700000000000,
+          }),
+        );
+
+        const result = aggregateFillsByOrder(fills);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBeCloseTo(8.29, 2);
+        expect(parseFloat(result[0].fee)).toBeCloseTo(0.4, 2);
+        expect(result[0].direction).toBe('Open Long');
+      });
+
+      it('aggregates Open Short fills of one order', () => {
         const fill1 = createFill({
+          orderId: 'open-order-2',
+          direction: 'Open Short',
+          size: '0.3',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          orderId: 'open-order-2',
+          direction: 'Open Short',
+          size: '0.7',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByOrder([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(1);
+      });
+
+      it('aggregates Buy fills of one order (spot-perps)', () => {
+        const fill1 = createFill({
+          orderId: 'buy-order-1',
+          direction: 'Buy',
+          size: '40',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          orderId: 'buy-order-1',
+          direction: 'Buy',
+          size: '60',
+          timestamp: 1700000000000,
+        });
+
+        const result = aggregateFillsByOrder([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(100);
+      });
+
+      it('aggregates flip fills of one order and keeps the opening position size', () => {
+        const fill1 = createFill({
+          orderId: 'flip-order-1',
+          direction: 'Long > Short',
+          size: '20',
+          pnl: '-5',
+          startPosition: '37.66',
+          timestamp: 1700000000000,
+        });
+
+        const fill2 = createFill({
+          orderId: 'flip-order-1',
+          direction: 'Long > Short',
+          size: '23.23',
+          pnl: '-4',
+          startPosition: '17.66',
+          timestamp: 1700000002000, // Two seconds later
+        });
+
+        const result = aggregateFillsByOrder([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBeCloseTo(43.23, 2);
+        expect(parseFloat(result[0].pnl)).toBeCloseTo(-9, 2);
+        expect(result[0].startPosition).toBe('37.66');
+        expect(result[0].direction).toBe('Long > Short');
+      });
+
+      it('takes the opening position size from the largest fill when timestamps tie', () => {
+        // A book sweep fills in one millisecond, and HyperLiquid returns history newest
+        // first, so the later slice arrives before the one that opened the order.
+        const newestFill = createFill({
+          orderId: 'flip-order-3',
+          direction: 'Long > Short',
+          size: '13.23',
+          startPosition: '7.66',
+          timestamp: 1700000000000,
+        });
+
+        const oldestFill = createFill({
+          orderId: 'flip-order-3',
+          direction: 'Long > Short',
+          size: '30',
+          startPosition: '37.66',
+          timestamp: 1700000000000, // Same millisecond
+        });
+
+        const result = aggregateFillsByOrder([newestFill, oldestFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('37.66');
+      });
+
+      it('ignores a flip fill that already crossed to the other side', () => {
+        // Flipping a small short into a big long: the first fill crosses well past zero, so
+        // the position it leaves behind is larger than the one the order opened with. Picking
+        // by magnitude alone would call +5 the start and under-report the resulting long.
+        const crossingFill = createFill({
+          orderId: 'flip-order-5',
+          direction: 'Short > Long',
+          size: '6',
+          startPosition: '-1',
+          timestamp: 1700000000000,
+        });
+
+        const remainderFill = createFill({
+          orderId: 'flip-order-5',
+          direction: 'Short > Long',
+          size: '5',
+          startPosition: '5',
+          timestamp: 1700000000000, // Same millisecond
+        });
+
+        const result = aggregateFillsByOrder([crossingFill, remainderFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('-1');
+      });
+
+      it('keeps a negative opening position signed when timestamps tie', () => {
+        const newestFill = createFill({
+          orderId: 'adl-order-1',
+          direction: 'Auto-Deleveraging',
+          size: '2',
+          startPosition: '-3',
+          timestamp: 1700000000000,
+        });
+
+        const oldestFill = createFill({
+          orderId: 'adl-order-1',
+          direction: 'Auto-Deleveraging',
+          size: '5',
+          startPosition: '-8',
+          timestamp: 1700000000000, // Same millisecond
+        });
+
+        const result = aggregateFillsByOrder([newestFill, oldestFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].startPosition).toBe('-8');
+      });
+
+      it('does not aggregate fills of different orders opening the same market', () => {
+        const fill1 = createFill({
+          orderId: 'open-order-3',
           direction: 'Open Long',
           timestamp: 1700000000000,
         });
 
         const fill2 = createFill({
+          orderId: 'open-order-4',
+          direction: 'Open Long',
+          timestamp: 1700000009000, // Nine seconds later
+        });
+
+        const result = aggregateFillsByOrder([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it('keeps two opens of different orders apart inside the same second', () => {
+        const fill1 = createFill({
+          orderId: 'open-order-5',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000100,
+        });
+
+        const fill2 = createFill({
+          orderId: 'open-order-6',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000900, // Same second, different order
+        });
+
+        const result = aggregateFillsByOrder([fill1, fill2]);
+
+        expect(result).toHaveLength(2);
+        expect(result.map((fill) => fill.size)).toEqual(['1', '1']);
+      });
+
+      it('does not chain unrelated opens through an order that spans two seconds', () => {
+        const orderA = createFill({
+          orderId: 'open-order-a',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000100,
+        });
+
+        const orderBFirst = createFill({
+          orderId: 'open-order-b',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000000900, // Same second as order A
+        });
+
+        const orderBSecond = createFill({
+          orderId: 'open-order-b',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000002100, // Order B spans into the next second
+        });
+
+        const orderC = createFill({
+          orderId: 'open-order-c',
+          direction: 'Open Long',
+          size: '1',
+          timestamp: 1700000002900, // Same second as order B's last fill
+        });
+
+        const result = aggregateFillsByOrder([
+          orderA,
+          orderBFirst,
+          orderBSecond,
+          orderC,
+        ]);
+
+        expect(result).toHaveLength(3);
+        expect(result.map((fill) => fill.size).sort()).toEqual(['1', '1', '2']);
+      });
+
+      it('does not aggregate an open and a close of the same order id', () => {
+        const openFill = createFill({
+          orderId: 'order-1',
           direction: 'Open Long',
           timestamp: 1700000000000,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const closeFill = createFill({
+          orderId: 'order-1',
+          direction: 'Close Long',
+          timestamp: 1700000005000,
+        });
+
+        const result = aggregateFillsByOrder([openFill, closeFill]);
 
         expect(result).toHaveLength(2);
       });
+    });
 
-      it('does not aggregate Open Short fills', () => {
-        const fill1 = createFill({
-          direction: 'Open Short',
-          timestamp: 1700000000000,
-        });
+    describe('multi-second close aggregation (TAT-3931)', () => {
+      it('aggregates one close order filled across several seconds', () => {
+        // Hyperliquid testnet order 37271558002: 0.4 SOL closed in six fills over 74 seconds
+        const observedFills: { size: string; timestamp: number }[] = [
+          { size: '0.07', timestamp: 1754639203894 },
+          { size: '0.1', timestamp: 1754639204498 },
+          { size: '0.07', timestamp: 1754639206468 },
+          { size: '0.07', timestamp: 1754639222725 },
+          { size: '0.06', timestamp: 1754639268514 },
+          { size: '0.03', timestamp: 1754639277416 },
+        ];
+        const fills = observedFills.map(({ size, timestamp }) =>
+          createFill({
+            orderId: '37271558002',
+            symbol: 'SOL',
+            direction: 'Close Long',
+            size,
+            pnl: '1',
+            fee: '0.01',
+            timestamp,
+          }),
+        );
 
-        const fill2 = createFill({
-          direction: 'Open Short',
-          timestamp: 1700000000000,
-        });
+        const result = aggregateFillsByOrder(fills);
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
-
-        expect(result).toHaveLength(2);
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBeCloseTo(0.4, 5);
+        expect(parseFloat(result[0].pnl)).toBeCloseTo(6, 5);
+        expect(parseFloat(result[0].fee)).toBeCloseTo(0.06, 5);
+        expect(result[0].timestamp).toBe(1754639277416);
       });
 
-      it('does not aggregate Buy fills (spot-perps)', () => {
-        const fill1 = createFill({
-          direction: 'Buy',
+      it('links same-second and same-order groups into one entry', () => {
+        // A trigger order split into two child order ids that fill together, one of which
+        // also fills a second later.
+        const childA = createFill({
+          orderId: 'child-a',
+          size: '1',
           timestamp: 1700000000000,
         });
 
-        const fill2 = createFill({
-          direction: 'Buy',
-          timestamp: 1700000000000,
+        const childB = createFill({
+          orderId: 'child-b',
+          size: '1',
+          timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const childBLater = createFill({
+          orderId: 'child-b',
+          size: '1',
+          timestamp: 1700000003000,
+        });
 
-        expect(result).toHaveLength(2);
+        const result = aggregateFillsByOrder([childA, childB, childBLater]);
+
+        expect(result).toHaveLength(1);
+        expect(parseFloat(result[0].size)).toBe(3);
       });
     });
 
@@ -258,7 +537,7 @@ describe('transactionTransforms', () => {
           pnl: '50',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(200);
@@ -282,7 +561,7 @@ describe('transactionTransforms', () => {
           startPosition: '1.0',
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
@@ -307,7 +586,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].price)).toBeCloseTo(90600, 0);
@@ -326,7 +605,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].detailedOrderType).toBe('Stop Market');
@@ -347,7 +626,7 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].liquidation).toEqual({
@@ -368,13 +647,13 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
         expect(result[0].startPosition).toBe('1.0');
       });
 
-      it('uses first fill orderId for aggregated result', () => {
+      it('uses the last fill orderId and timestamp for the aggregated result', () => {
         const fill1 = createFill({
           orderId: 'first-order',
           timestamp: 1700000000000,
@@ -385,16 +664,17 @@ describe('transactionTransforms', () => {
           timestamp: 1700000000500,
         });
 
-        const result = aggregateFillsByTimestamp([fill1, fill2]);
+        const result = aggregateFillsByOrder([fill1, fill2]);
 
         expect(result).toHaveLength(1);
-        expect(result[0].orderId).toBe('first-order');
+        expect(result[0].orderId).toBe('second-order');
+        expect(result[0].timestamp).toBe(1700000000500);
       });
     });
 
     describe('edge cases', () => {
       it('returns empty array for empty input', () => {
-        const result = aggregateFillsByTimestamp([]);
+        const result = aggregateFillsByOrder([]);
 
         expect(result).toEqual([]);
       });
@@ -402,7 +682,7 @@ describe('transactionTransforms', () => {
       it('returns single fill unchanged', () => {
         const fill = createFill();
 
-        const result = aggregateFillsByTimestamp([fill]);
+        const result = aggregateFillsByOrder([fill]);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual(fill);
@@ -410,16 +690,18 @@ describe('transactionTransforms', () => {
 
       it('sorts result by timestamp descending', () => {
         const oldFill = createFill({
-          direction: 'Open Long', // Non-aggregatable
+          orderId: 'older-order',
+          direction: 'Open Long',
           timestamp: 1700000000000,
         });
 
         const newFill = createFill({
-          direction: 'Open Long', // Non-aggregatable
+          orderId: 'newer-order',
+          direction: 'Open Long',
           timestamp: 1700001000000,
         });
 
-        const result = aggregateFillsByTimestamp([oldFill, newFill]);
+        const result = aggregateFillsByOrder([oldFill, newFill]);
 
         expect(result[0].timestamp).toBe(1700001000000);
         expect(result[1].timestamp).toBe(1700000000000);
@@ -445,7 +727,7 @@ describe('transactionTransforms', () => {
           pnl: '100',
         });
 
-        const result = aggregateFillsByTimestamp([
+        const result = aggregateFillsByOrder([
           openFill,
           closeFill1,
           closeFill2,
@@ -543,6 +825,247 @@ describe('transactionTransforms', () => {
           action: 'Flipped',
         },
       });
+    });
+
+    it('reports a multi-fill flip as one row sized from the whole order (TAT-3931)', () => {
+      // A 37.66 long flipped into a 5.57 short: 43.23 traded, split over two seconds.
+      // Pre-fix each fill became its own row, so the size shown was derived from a partial
+      // trade (|37.66 - 30| = 7.66). Post-fix the row is derived from the whole order:
+      // subtitle carries the 43.23 actually traded, and fill.size carries the 5.57 position
+      // the flip left open (|startPosition of the earliest fill - total traded|).
+      const firstFill: OrderFill = {
+        ...mockFill,
+        orderId: 'flip-order-2',
+        direction: 'Long > Short',
+        size: '30',
+        startPosition: '37.66',
+        pnl: '30.00',
+        fee: '4.00',
+        timestamp: 1700000000000,
+      };
+
+      const secondFill: OrderFill = {
+        ...firstFill,
+        size: '13.23',
+        startPosition: '7.66',
+        pnl: '20.00',
+        fee: '6.00',
+        timestamp: 1700000002000,
+      };
+
+      const result = transformFillsToTransactions([firstFill, secondFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('43.23 ETH');
+      expect(result[0].fill?.size).toBe('5.57');
+      expect(result[0].fill?.amount).toBe('+$40.00');
+      expect(result[0].title).toBe('Flipped long > short');
+    });
+
+    it('sizes a short flip from the magnitude of the position it opened from', () => {
+      // A 37.66 short flipped into a 5.57 long: 43.23 traded. A short opens from a negative
+      // position, so subtracting the traded size straight from it would report 80.89 - the
+      // two magnitudes added together - instead of the 5.57 the flip left open.
+      const firstFill: OrderFill = {
+        ...mockFill,
+        orderId: 'flip-order-6',
+        direction: 'Short > Long',
+        size: '30',
+        startPosition: '-37.66',
+        pnl: '30.00',
+        fee: '4.00',
+        timestamp: 1700000000000,
+      };
+
+      const secondFill: OrderFill = {
+        ...firstFill,
+        size: '13.23',
+        startPosition: '-7.66',
+        pnl: '20.00',
+        fee: '6.00',
+        timestamp: 1700000002000,
+      };
+
+      const result = transformFillsToTransactions([firstFill, secondFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('43.23 ETH');
+      expect(result[0].fill?.size).toBe('5.57');
+      expect(result[0].title).toBe('Flipped short > long');
+    });
+
+    it('sizes a tied-timestamp flip from the position the order started at', () => {
+      // Same 43.23 flip as above, but both fills land in one millisecond and arrive
+      // newest first. The leftover short must still read 5.57, not |7.66 - 43.23|.
+      const newestFill: OrderFill = {
+        ...mockFill,
+        orderId: 'flip-order-4',
+        direction: 'Long > Short',
+        size: '13.23',
+        startPosition: '7.66',
+        pnl: '20.00',
+        fee: '6.00',
+        timestamp: 1700000000000,
+      };
+
+      const oldestFill: OrderFill = {
+        ...newestFill,
+        size: '30',
+        startPosition: '37.66',
+        pnl: '30.00',
+        fee: '4.00',
+        timestamp: 1700000000000,
+      };
+
+      const result = transformFillsToTransactions([newestFill, oldestFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('43.23 ETH');
+      expect(result[0].fill?.size).toBe('5.57');
+    });
+
+    it('lists every execution separately when aggregation is turned off', () => {
+      // Hyperliquid testnet order 60252966679: 8.29 SOL opened in four fills.
+      const sizes = ['2.92', '0.4', '2.35', '2.62'];
+      const fills: OrderFill[] = sizes.map((size, index) => ({
+        ...mockFill,
+        orderId: 'open-order-agg',
+        direction: 'Open Long',
+        size,
+        fee: '0.1',
+        timestamp: 1700000000000 + index,
+      }));
+
+      const aggregated = transformFillsToTransactions(fills);
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+
+      expect(aggregated).toHaveLength(1);
+      expect(aggregated[0].subtitle).toBe('8.29 ETH');
+      expect(individual).toHaveLength(4);
+      expect(individual.map((tx) => tx.subtitle)).toEqual([
+        '2.62 ETH',
+        '2.35 ETH',
+        '0.4 ETH',
+        '2.92 ETH',
+      ]);
+    });
+
+    it('gives individual executions ids that cannot collide with the aggregated row', () => {
+      // The aggregated row carries its last fill's orderId and timestamp, so the newest fill
+      // of an order would otherwise mint exactly the same id as the row combining it.
+      const fills: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-A',
+          size: '2',
+          timestamp: 1700000002000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-A',
+          size: '3',
+          timestamp: 1700000001000,
+        },
+      ];
+
+      const aggregated = transformFillsToTransactions(fills);
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+
+      const aggregatedIds = new Set(aggregated.map((tx) => tx.id));
+      expect(individual.filter((tx) => aggregatedIds.has(tx.id))).toStrictEqual(
+        [],
+      );
+    });
+
+    it('keeps both executions when two fills of one order share timestamp, size and price', () => {
+      // HyperLiquid does not guarantee those four values identify one execution, so a fill
+      // must never be dropped for looking like another.
+      const fills: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-twin',
+          direction: 'Open Long',
+          size: '1.5',
+          price: '3000',
+          fee: '0.1',
+          timestamp: 1700000000000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-twin',
+          direction: 'Open Long',
+          size: '1.5',
+          price: '3000',
+          fee: '0.1',
+          timestamp: 1700000000000,
+        },
+      ];
+
+      const individual = transformFillsToTransactions(fills, {
+        aggregate: false,
+      });
+      const aggregated = transformFillsToTransactions(fills);
+
+      expect(individual).toHaveLength(2);
+      expect(new Set(individual.map((tx) => tx.id)).size).toBe(2);
+      expect(aggregated).toHaveLength(1);
+      expect(aggregated[0].subtitle).toBe('3 ETH');
+    });
+
+    it('leaves existing execution ids unchanged when a newer fill is prepended', () => {
+      const existing: OrderFill[] = [
+        {
+          ...mockFill,
+          orderId: 'order-history',
+          direction: 'Open Long',
+          size: '2',
+          timestamp: 1700000001000,
+        },
+        {
+          ...mockFill,
+          orderId: 'order-history',
+          direction: 'Open Long',
+          size: '3',
+          timestamp: 1700000000000,
+        },
+      ];
+      const newerFill: OrderFill = {
+        ...mockFill,
+        orderId: 'order-newer',
+        direction: 'Open Long',
+        size: '1',
+        timestamp: 1700000002000,
+      };
+
+      const before = transformFillsToTransactions(existing, {
+        aggregate: false,
+      });
+      const after = transformFillsToTransactions([newerFill, ...existing], {
+        aggregate: false,
+      });
+
+      expect(after.map((tx) => tx.id).slice(1)).toStrictEqual(
+        before.map((tx) => tx.id),
+      );
+    });
+
+    it('defaults to aggregating when no options are passed', () => {
+      const fills: OrderFill[] = ['1', '2'].map((size, index) => ({
+        ...mockFill,
+        orderId: 'open-order-default',
+        direction: 'Open Long',
+        size,
+        timestamp: 1700000000000 + index,
+      }));
+
+      const result = transformFillsToTransactions(fills);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subtitle).toBe('3 ETH');
     });
 
     it('should handle empty fills array', () => {
@@ -882,15 +1405,169 @@ describe('transactionTransforms', () => {
     });
 
     it('uses timestamp as fallback ID when orderId is missing', () => {
+      // Empty rather than undefined: that is what HyperLiquidProvider emits when a fill carries no
+      // `oid`, and it stays contract-valid against OrderFill.
       const noOrderIdFill = {
         ...mockFill,
-        orderId: undefined as unknown as string,
+        orderId: '',
       };
 
       const result = transformFillsToTransactions([noOrderIdFill]);
 
-      // ID format: fill-{timestamp}-{index}
-      expect(result[0].id).toBe(`fill-${mockFill.timestamp}-0`);
+      // A group with no order id is seeded on its timestamp, so the id is too.
+      expect(result[0].id).toBe(
+        `trade-ETH-OpenLong-solo-${mockFill.timestamp}`,
+      );
+    });
+
+    // HyperLiquid splits a triggered TP/SL into child orders that fill in the same millisecond, and
+    // returns them in no guaranteed order. The market page and Activity fetch independently (one
+    // merges websocket fills over REST, the other is REST only), so the same trade can arrive in
+    // either order - the id has to name the group, not whichever fill happened to come last.
+    it('gives an aggregated close the same ID whichever order its child fills arrive in', () => {
+      const childA = {
+        ...mockFill,
+        orderId: 'child-order-a',
+        direction: 'Close Long',
+        timestamp: 1640995500000,
+        pnl: '30',
+      };
+      const childB = {
+        ...mockFill,
+        orderId: 'child-order-b',
+        direction: 'Close Long',
+        timestamp: 1640995500000,
+        pnl: '20',
+      };
+
+      const [forward] = transformFillsToTransactions([childA, childB]);
+      const [reversed] = transformFillsToTransactions([childB, childA]);
+
+      expect(forward.id).toBe(reversed.id);
+    });
+
+    it('gives a set of fills the same IDs whichever order they arrive in', () => {
+      const fills = [
+        { ...mockFill, orderId: 'open-1', direction: 'Open Long' },
+        {
+          ...mockFill,
+          orderId: 'close-child-1',
+          direction: 'Close Long',
+          timestamp: 1640995600000,
+        },
+        {
+          ...mockFill,
+          orderId: 'close-child-2',
+          direction: 'Close Long',
+          timestamp: 1640995600000,
+        },
+        // Shares an order id with close-child-1 a second later, so the union-find merges the two
+        // per-second groups - the merged group's identity must not depend on input order either.
+        {
+          ...mockFill,
+          orderId: 'close-child-1',
+          direction: 'Close Long',
+          timestamp: 1640995601000,
+        },
+        { ...mockFill, orderId: '', symbol: 'BTC', direction: 'Open Short' },
+      ];
+
+      const ids = (input: typeof fills) =>
+        transformFillsToTransactions(input)
+          .map((transaction) => transaction.id)
+          .sort();
+
+      expect(ids([...fills].reverse())).toStrictEqual(ids(fills));
+      expect(
+        ids([fills[2], fills[0], fills[4], fills[3], fills[1]]),
+      ).toStrictEqual(ids(fills));
+    });
+
+    it('keeps an aggregated row ID unchanged when a newer fill joins its group', () => {
+      const firstFill = {
+        ...mockFill,
+        orderId: 'still-filling',
+        direction: 'Open Long',
+        timestamp: 1640995700000,
+      };
+      // Same order, filled further a second later - one trade the user placed, so one row whose
+      // identity must survive the refresh that picks up the new execution.
+      const laterFill = {
+        ...mockFill,
+        orderId: 'still-filling',
+        direction: 'Open Long',
+        timestamp: 1640995701000,
+      };
+
+      const [before] = transformFillsToTransactions([firstFill]);
+      const [after] = transformFillsToTransactions([firstFill, laterFill]);
+
+      expect(after.id).toBe(before.id);
+    });
+
+    // The market page transforms one market's fills, activity details all of them. A positional id
+    // differed between the two, so details found nothing: "Transaction details are unavailable".
+    it('gives a fill the same ID whether transformed alone or with other markets', () => {
+      const btcEarlier = {
+        ...mockFill,
+        orderId: 'order-btc-1',
+        symbol: 'BTC',
+        timestamp: 1640995200000,
+      };
+      const ethBetween = {
+        ...mockFill,
+        orderId: 'order-eth-1',
+        symbol: 'ETH',
+        timestamp: 1640995300000,
+      };
+      // The row that failed: an ETH fill sits before it in full history but not in the BTC-only set.
+      const btcLater = {
+        ...mockFill,
+        orderId: 'order-btc-2',
+        symbol: 'BTC',
+        timestamp: 1640995400000,
+      };
+      const allMarkets = [btcEarlier, ethBetween, btcLater];
+
+      const idsFromAllMarkets = transformFillsToTransactions(allMarkets)
+        .filter((transaction) => transaction.asset === 'BTC')
+        .map((transaction) => transaction.id);
+      const idsFromBtcOnly = transformFillsToTransactions(
+        allMarkets.filter((fill) => fill.symbol === 'BTC'),
+      ).map((transaction) => transaction.id);
+
+      expect(idsFromBtcOnly).toStrictEqual(idsFromAllMarkets);
+    });
+
+    it('gives every fill in a set a unique ID', () => {
+      // Covers what the positional index used to keep apart: same-second closes, and no order id.
+      const fills = [
+        { ...mockFill, orderId: 'order-open', direction: 'Open Long' },
+        {
+          ...mockFill,
+          orderId: 'order-close-a',
+          direction: 'Close Long',
+          timestamp: 1640995500000,
+          pnl: '50',
+        },
+        {
+          ...mockFill,
+          orderId: 'order-close-b',
+          direction: 'Close Long',
+          timestamp: 1640995500500,
+          pnl: '25',
+        },
+        // Empty rather than undefined: that is what HyperLiquidProvider emits when a fill carries
+        // no `oid`, and it stays contract-valid against OrderFill.
+        { ...mockFill, orderId: '', symbol: 'BTC', direction: 'Open Short' },
+      ];
+
+      const ids = transformFillsToTransactions(fills).map(
+        (transaction) => transaction.id,
+      );
+
+      expect(ids.length).toBeGreaterThan(0);
+      expect(new Set(ids).size).toBe(ids.length);
     });
 
     it('strips hip3 prefix from symbol in subtitle', () => {
@@ -1026,11 +1703,185 @@ describe('transactionTransforms', () => {
       timestamp: 1640995200000,
     };
 
+    const orderTypeCases = [
+      {
+        orderType: 'market',
+        executionType: 'market',
+        detailedOrderType: 'Market',
+        price: '50000',
+        triggerOrderType: undefined,
+        triggerPrice: undefined,
+      },
+      {
+        orderType: 'limit',
+        executionType: 'limit',
+        detailedOrderType: 'Limit',
+        price: '50000',
+        triggerOrderType: undefined,
+        triggerPrice: undefined,
+      },
+      {
+        orderType: 'stop_market',
+        executionType: 'market',
+        detailedOrderType: 'Stop Market',
+        price: '50500',
+        triggerOrderType: 'stop_market',
+        triggerPrice: '50000',
+      },
+      {
+        orderType: 'stop_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Stop Limit',
+        price: '49500',
+        triggerOrderType: 'stop_limit',
+        triggerPrice: '50000',
+      },
+      {
+        orderType: 'take_profit_market',
+        executionType: 'market',
+        detailedOrderType: 'Take Profit Market',
+        price: '50500',
+        triggerOrderType: 'take_profit_market',
+        triggerPrice: '51000',
+      },
+      {
+        orderType: 'take_profit_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Take Profit Limit',
+        price: '51500',
+        triggerOrderType: 'take_profit_limit',
+        triggerPrice: '51000',
+      },
+    ] as const satisfies readonly {
+      orderType: OrdinaryOrderType;
+      executionType: 'market' | 'limit';
+      detailedOrderType: string;
+      price: string;
+      triggerOrderType?: TriggerOrderType;
+      triggerPrice?: string;
+    }[];
+
+    const legacyTriggerOrderCases = [
+      {
+        orderType: 'stop_market',
+        executionType: 'market',
+        detailedOrderType: 'Stop Market',
+        price: '50500',
+        triggerPrice: '50000',
+        limitPrice: undefined,
+      },
+      {
+        orderType: 'stop_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Stop Limit',
+        price: '49500',
+        triggerPrice: '50000',
+        limitPrice: '49500',
+      },
+      {
+        orderType: 'take_profit_market',
+        executionType: 'market',
+        detailedOrderType: 'Take Profit Market',
+        price: '50500',
+        triggerPrice: '51000',
+        limitPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Take Profit Limit',
+        price: '51500',
+        triggerPrice: '51000',
+        limitPrice: '51500',
+      },
+    ] as const satisfies readonly {
+      orderType: TriggerOrderType;
+      executionType: 'market' | 'limit';
+      detailedOrderType: string;
+      price: string;
+      triggerPrice: string;
+      limitPrice: string | undefined;
+    }[];
+
+    it.each(orderTypeCases)(
+      'preserves $orderType price fields in transaction history',
+      ({
+        orderType,
+        executionType,
+        detailedOrderType,
+        price,
+        triggerOrderType,
+        triggerPrice,
+      }) => {
+        const sourceOrder = {
+          ...mockOrder,
+          orderType: executionType,
+          triggerOrderType,
+          detailedOrderType,
+          price,
+          triggerPrice,
+        };
+
+        const result = transformOrdersToTransactions([sourceOrder]);
+        const transformedOrder = result[0].order;
+
+        expect(transformedOrder).toMatchObject({
+          orderType,
+          type: executionType,
+          detailedOrderType,
+          triggerPrice:
+            orderType === 'market' || orderType === 'limit'
+              ? undefined
+              : triggerPrice,
+          limitPrice:
+            orderType === 'market' ||
+            orderType === 'stop_market' ||
+            orderType === 'take_profit_market'
+              ? undefined
+              : price,
+        });
+      },
+    );
+
+    it.each(legacyTriggerOrderCases)(
+      'recovers $orderType from legacy order metadata',
+      ({
+        orderType,
+        executionType,
+        detailedOrderType,
+        price,
+        triggerPrice,
+        limitPrice,
+      }) => {
+        const sourceOrder = {
+          ...mockOrder,
+          orderType: executionType,
+          isTrigger: true,
+          detailedOrderType,
+          price,
+          triggerPrice,
+        };
+
+        const result = transformOrdersToTransactions([sourceOrder]);
+
+        expect(result[0]?.order).toEqual(
+          expect.objectContaining({
+            orderType,
+            type: executionType,
+            isTrigger: true,
+            detailedOrderType,
+            triggerPrice,
+            limitPrice,
+          }),
+        );
+      },
+    );
+
     it('transforms filled order correctly (defaults to 100% without fill data)', () => {
       const result = transformOrdersToTransactions([mockOrder]);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
+      expect(result[0]).toMatchObject({
         id: 'order1-1640995200000',
         type: 'order',
         category: 'limit_order',
@@ -1043,6 +1894,7 @@ describe('transactionTransforms', () => {
           text: PerpsOrderTransactionStatus.Filled,
           statusType: PerpsOrderTransactionStatusType.Filled,
           type: 'limit',
+          orderType: 'limit',
           size: '50000',
           limitPrice: '50000',
           filled: '100%', // Filled status without fill data defaults to 100%
@@ -1156,34 +2008,6 @@ describe('transactionTransforms', () => {
       const result = transformOrdersToTransactions([closeShortOrder]);
 
       expect(result[0].title).toBe('Limit close short');
-    });
-
-    it('formats trigger orders as closing orders', () => {
-      const triggerOrder = {
-        ...mockOrder,
-        side: 'sell' as const,
-        isTrigger: true,
-        detailedOrderType: 'Stop Market',
-        orderType: 'market' as const,
-      };
-
-      const result = transformOrdersToTransactions([triggerOrder]);
-
-      expect(result[0].title).toBe('Stop market close long');
-    });
-
-    it('uses detailedOrderType for Take Profit orders', () => {
-      const takeProfitOrder = {
-        ...mockOrder,
-        side: 'sell' as const,
-        isTrigger: true,
-        reduceOnly: true,
-        detailedOrderType: 'Take Profit Limit',
-      };
-
-      const result = transformOrdersToTransactions([takeProfitOrder]);
-
-      expect(result[0].title).toBe('Take profit limit close long');
     });
 
     it('handles market orders correctly', () => {

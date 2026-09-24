@@ -4,6 +4,10 @@ import {
   AvatarIcon,
   AvatarIconSeverity,
   AvatarIconSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -17,15 +21,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import {
-  BadgeAnchorElementShape,
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
@@ -81,14 +76,16 @@ const ActivityRowView = ({
     >
       {showNetworkBadge ? (
         <BadgeWrapper
-          anchorElementShape={BadgeAnchorElementShape.Circular}
-          badgePosition={BadgePosition.BottomRight}
+          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+          position={BadgeWrapperPosition.BottomRight}
           style={tw.style('self-center')}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkImageSource}
-              size={AvatarSize.Sm}
+          badge={
+            <BadgeNetwork
+              src={
+                networkImageSource as React.ComponentProps<
+                  typeof BadgeNetwork
+                >['src']
+              }
             />
           }
         >

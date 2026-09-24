@@ -82,13 +82,64 @@ jest.mock('expo/fetch', () => {
   };
 });
 
+let mockQuickCryptoUuidCounter = 0;
+let mockQuickCryptoRandomCounter = 0;
+const fillDeterministicBytes = (array) => {
+  mockQuickCryptoRandomCounter += 1;
+  for (let i = 0; i < array.length; i++) {
+    array[i] = ((i + mockQuickCryptoRandomCounter) % 255) + 1;
+  }
+  return array;
+};
+const createMockUuid = () => {
+  mockQuickCryptoUuidCounter += 1;
+  return `mock-uuid-${String(mockQuickCryptoUuidCounter).padStart(9, '0')}`;
+};
+
 jest.mock('react-native-quick-crypto', () => ({
-  getRandomValues: jest.fn((array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-    return array;
-  }),
+  __esModule: true,
+  default: {
+    randomBytes: jest.fn((size) =>
+      Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
+    ),
+    randomUUID: jest.fn(() => createMockUuid()),
+    getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
+    subtle: {
+      importKey: jest.fn(
+        (format, keyData, algorithm, extractable, keyUsages) => {
+          return Promise.resolve({
+            format,
+            keyData,
+            algorithm,
+            extractable,
+            keyUsages,
+          });
+        },
+      ),
+      deriveBits: jest.fn((algorithm, baseKey, length) => {
+        const derivedBits = new Uint8Array(length);
+        return Promise.resolve(fillDeterministicBytes(derivedBits));
+      }),
+      exportKey: jest.fn((format, key) => {
+        return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
+      }),
+      encrypt: jest.fn((algorithm, key, data) => {
+        return Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+          ]),
+        );
+      }),
+      decrypt: jest.fn((algorithm, key, data) => {
+        return Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+          ]),
+        );
+      }),
+    },
+  },
+  getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
   subtle: {
     importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
       return Promise.resolve({
@@ -101,10 +152,7 @@ jest.mock('react-native-quick-crypto', () => ({
     }),
     deriveBits: jest.fn((algorithm, baseKey, length) => {
       const derivedBits = new Uint8Array(length);
-      for (let i = 0; i < length; i++) {
-        derivedBits[i] = Math.floor(Math.random() * 256);
-      }
-      return Promise.resolve(derivedBits);
+      return Promise.resolve(fillDeterministicBytes(derivedBits));
     }),
     exportKey: jest.fn((format, key) => {
       return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
@@ -124,10 +172,31 @@ jest.mock('react-native-quick-crypto', () => ({
       );
     }),
   },
-  randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
-  ),
+  randomUUID: jest.fn(() => createMockUuid()),
 }));
+
+// Mock react-native-quick-base64. v3's `index.ts` calls
+// `TurboModuleRegistry.getEnforcing('QuickBase64')` at import time, which
+// throws in Jest since no native binary is registered. This module is a
+// transitive dependency of `Engine` (via the OAuth login handlers used for
+// seedless onboarding), so it must be mocked globally rather than per-file.
+jest.mock('react-native-quick-base64', () => {
+  // eslint-disable-next-line import-x/no-nodejs-modules
+  const { Buffer: NodeBuffer } = require('buffer');
+  return {
+    byteLength: (b64) => NodeBuffer.from(b64, 'base64').length,
+    toByteArray: (b64) => new Uint8Array(NodeBuffer.from(b64, 'base64')),
+    fromByteArray: (uint8) => NodeBuffer.from(uint8).toString('base64'),
+    btoa: (str) => NodeBuffer.from(str, 'binary').toString('base64'),
+    atob: (b64) => NodeBuffer.from(b64, 'base64').toString('binary'),
+    shim: jest.fn(),
+    getNative: () => ({
+      base64FromArrayBuffer: global.base64FromArrayBuffer,
+      base64ToArrayBuffer: global.base64ToArrayBuffer,
+    }),
+    trimBase64Padding: (str) => str.replace(/[.=]{1,2}$/, ''),
+  };
+});
 
 // Create a persistent mock function that survives Jest teardown
 const mockBatchedUpdates = jest.fn((fn) => {
@@ -405,18 +474,10 @@ jest.mock('react-native-keychain', () => ({
 
   // Storage Type enum
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
     RSA: 'KeystoreRSAECB',
-  },
-
-  // Security Rules enum
-  SECURITY_RULES: {
-    NONE: 'none',
-    AUTOMATIC_UPGRADE: 'automaticUpgradeToMoreSecuredStorage',
   },
 
   // Generic password functions
@@ -452,6 +513,7 @@ jest.mock('react-native-keychain', () => ({
   getSecurityLevel: jest
     .fn()
     .mockResolvedValue('MOCK_SECURITY_LEVEL_SECURE_SOFTWARE'),
+  isPasscodeAuthAvailable: jest.fn().mockResolvedValue(true),
 
   // Shared web credentials (iOS only)
   requestSharedWebCredentials: jest.fn().mockResolvedValue({
@@ -556,6 +618,14 @@ NativeModules.NotifeeApiModule = {
   eventsNotifyReady: jest.fn(),
 };
 
+NativeModules.SNSMobileSDKModule = {
+  launch: jest.fn(() => Promise.resolve({ success: false, status: 'Failed' })),
+  dismiss: jest.fn(),
+  updateAccessToken: jest.fn(),
+  addListener: jest.fn(),
+  removeListeners: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
@@ -579,6 +649,11 @@ NativeModules.AesForked = {
 
 NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
+};
+
+NativeModules.BrazePushModule = {
+  registerPush: jest.fn().mockResolvedValue(undefined),
+  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
 };
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
@@ -694,6 +769,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
@@ -1094,7 +1170,10 @@ jest.mock('@sentry/react-native', () => ({
   // Capture methods
   captureException: jest.fn(),
   captureMessage: jest.fn(),
-  captureUserFeedback: jest.fn(),
+  captureFeedback: jest.fn(),
+
+  dedupeIntegration: jest.fn(() => ({ name: 'Dedupe' })),
+  extraErrorDataIntegration: jest.fn(() => ({ name: 'ExtraErrorData' })),
 
   // Breadcrumb and context methods
   addBreadcrumb: jest.fn(),

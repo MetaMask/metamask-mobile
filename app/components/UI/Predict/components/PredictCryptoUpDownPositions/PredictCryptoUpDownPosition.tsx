@@ -42,7 +42,12 @@ import {
   type PredictMarket,
   type PredictPosition,
 } from '../../types';
+import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { formatCents, formatPrice } from '../../utils/format';
+import {
+  getPredictPositionDisplay,
+  getPredictPositionNetValue,
+} from '../../utils/orders';
 
 const AUTO_REFRESH_TIMEOUT = 5000;
 
@@ -57,6 +62,7 @@ const PredictCryptoUpDownPosition: React.FC<
 > = ({ position, market, marketStatus }) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
+  const feeCollection = useSelector(selectPredictFeeCollectionFlag);
   const isFocused = useIsFocused();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -107,13 +113,16 @@ const PredictCryptoUpDownPosition: React.FC<
     position.avgPrice,
   )}`;
 
-  const currentValue = preview
-    ? preview.minAmountReceived
-    : position.currentValue;
-  const cashPnl = useMemo(
-    () => currentValue - position.initialValue,
-    [currentValue, position.initialValue],
-  );
+  const netValue = getPredictPositionNetValue({
+    sellable: isOpen,
+    grossValue: position.currentValue,
+    preview,
+    feeCollection,
+  });
+  const { value: currentValue, cashPnl } = getPredictPositionDisplay({
+    initialValue: position.initialValue,
+    netValue,
+  });
 
   const isPnlPositive = cashPnl >= 0;
   const isClaimable = !isOpen && position.claimable && cashPnl > 0;

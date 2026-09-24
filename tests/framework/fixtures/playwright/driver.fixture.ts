@@ -13,44 +13,30 @@ import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
   requestSharedSessionRecreate,
+  setSharedSessionRecreateHandler,
 } from '../../services/appium/sessionRecovery.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import UnifiedGestures from '../../UnifiedGestures.ts';
-import type { ServiceProvider } from '../../services';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
+import {
+  configureImplicitWait,
+  createSession,
+  recreateInProcessSession,
+  resolveLiveDriver,
+} from './sessionLifecycle.ts';
 
-const logger = createPlaywrightLogger('driver');
-
-async function configureImplicitWait(
-  drv: WebdriverIO.Browser,
-  implicitMs: number,
-): Promise<void> {
-  // Wrapped in retry because BrowserStack sessions can transiently reject
-  // the setTimeout command before the session is fully initialised.
-  const maxRetries = 5;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      await drv.setTimeout({ implicit: implicitMs });
-      return;
-    } catch (err) {
-      if (attempt === maxRetries) throw err;
-      const backoff = Math.min(2 ** attempt * 1000, 15000);
-      logger.warn(
-        `driver.setTimeout failed (attempt ${attempt}/${maxRetries}), retrying in ${backoff}ms`,
-      );
-      await new Promise((r) => setTimeout(r, backoff));
-    }
+/** Appium reports the OS version unprefixed in session capabilities; W3C prefixes it. */
+const readCapability = (capabilities: object | undefined, key: string) => {
+  if (!capabilities) {
+    return '';
   }
-}
+  const value: unknown =
+    key in capabilities
+      ? Reflect.get(capabilities, key)
+      : Reflect.get(capabilities, `appium:${key}`);
+  return typeof value === 'string' ? value : '';
+};
 
-async function createSession(
-  deviceProvider: ServiceProvider,
-  sharedSession: SharedAppiumSession,
-): Promise<WebdriverIO.Browser> {
-  const drv = await deviceProvider.getDriver();
-  sharedSession.drv = drv;
-  return drv;
-}
+const logger = createAppiumLogger('driver');
 
 export const driverFixture = {
   driver: async (
@@ -114,15 +100,16 @@ export const driverFixture = {
       await configureImplicitWait(drv, implicitMs);
 
       globalThis.driver = drv;
-      UnifiedGestures.resetStrategy();
 
-      const platformName = (await drv.capabilities)?.platformName;
+      const capabilities = await drv.capabilities;
+      const platformName = capabilities?.platformName;
       const windowSize = await drv.getWindowSize();
       setDeviceInfo(
         (platformName?.toLowerCase() === 'android' ? 'android' : 'ios') as
           | 'android'
           | 'ios',
         { width: windowSize.width, height: windowSize.height },
+        readCapability(capabilities, 'platformVersion'),
       );
 
       const deviceProviderName = project.use.device?.provider;
@@ -164,22 +151,72 @@ export const driverFixture = {
       }
 
       if (recordVideoOnFailure) {
-        recordingBackend = await startFailureRecording(drv, platform);
+        recordingBackend = await startFailureRecording(drv, testInfo, platform);
       }
 
-      await use(drv);
+      // Allow soft-reload / fixture helpers to recreate the session in-process
+      // when UiAutomator2 dies mid-attempt (avoids a Playwright-retry flake).
+      setSharedSessionRecreateHandler(async () => {
+        logger.warn(
+          `In-process WebDriver session recreate for "${testInfo.title}"`,
+        );
+        const newDrv = await recreateInProcessSession({
+          currentDrv: drv,
+          deviceProvider,
+          sharedSession,
+          implicitMs,
+          adoptSession: (session) => {
+            drv = session;
+            globalThis.driver = session;
+            sessionRecreated = true;
+          },
+          // Screen recording is bound to the session that started it, so hand
+          // it over: flush the dying session, then re-arm on the replacement
+          // so a later failure in the same attempt still produces a video.
+          ...(recordVideoOnFailure && {
+            flushDyingSession: async (dyingDrv: WebdriverIO.Browser) => {
+              const dyingBackend = recordingBackend;
+              recordingBackend = undefined;
+              await stopFailureRecordingAndAttach(
+                dyingDrv,
+                testInfo,
+                dyingBackend,
+                platform,
+              );
+            },
+            armNewSession: async (session: WebdriverIO.Browser) => {
+              recordingBackend = await startFailureRecording(
+                session,
+                testInfo,
+                platform,
+              );
+            },
+          }),
+        });
+        logger.info(
+          `In-process WebDriver session ready: sessionId=${deviceProvider.sessionId ?? newDrv.sessionId ?? 'unknown'}`,
+        );
+        return newDrv;
+      });
+
+      try {
+        await use(drv);
+      } finally {
+        setSharedSessionRecreateHandler(undefined);
+      }
     } finally {
       const testStatus = testInfo.status;
       const testError = testInfo.error?.message;
+      const liveDrv = resolveLiveDriver(drv, sharedSession);
 
       logger.info(
         `Tearing down driver fixture for "${testInfo.title}" (status: ${testStatus ?? 'unknown'}, reuse=${reuseEnabled})`,
       );
 
       try {
-        if (drv) {
+        if (liveDrv) {
           await stopFailureRecordingAndAttach(
-            drv,
+            liveDrv,
             testInfo,
             recordingBackend,
             platform,
@@ -206,8 +243,8 @@ export const driverFixture = {
       ) {
         requestSharedSessionRecreate();
         try {
-          if (drv) {
-            await deviceProvider.cleanupSession?.(drv);
+          if (liveDrv) {
+            await deviceProvider.cleanupSession?.(liveDrv);
           }
         } catch (error) {
           logger.error(
@@ -221,14 +258,14 @@ export const driverFixture = {
 
       if (!reuseEnabled) {
         try {
-          if (drv) {
+          if (liveDrv) {
             // Always pass drv so providers (including BrowserStack via
             // BaseServiceProvider) actually deleteSession — a no-arg /
             // missing cleanupSession must not leave cloud sessions open.
             if (deviceProvider.cleanupSession) {
-              await deviceProvider.cleanupSession(drv);
+              await deviceProvider.cleanupSession(liveDrv);
             } else {
-              await drv.deleteSession();
+              await liveDrv.deleteSession();
               logger.info('WebDriver session deleted');
             }
           }
@@ -240,7 +277,6 @@ export const driverFixture = {
 
         try {
           delete globalThis.driver;
-          UnifiedGestures.resetStrategy();
         } catch (error) {
           logger.error('Failed to clean up global driver:', error);
         }

@@ -21,7 +21,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -45,6 +45,8 @@ import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
@@ -85,12 +87,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       flex: 1,
     },
-    loader: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
   });
 };
 
@@ -115,9 +111,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         | 'both'
         | 'buy'
         | 'swap'
-        | 'swap_earn'
-        | 'earn_buy'
-        | 'earn'
+        | 'money_swap'
+        | 'money'
         | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
@@ -196,7 +191,7 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (
-    shown: 'both' | 'buy' | 'swap' | 'swap_earn' | 'earn_buy' | 'earn' | null,
+    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null,
   ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
@@ -226,6 +221,10 @@ const TokenDetails: React.FC<{
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
+  const { variant: moneyFooterCtaVariant } = useABTest(
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+  );
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -296,10 +295,6 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
-  useEffect(() => {
-    endTrace({ name: TraceName.AssetDetails });
-  }, []);
-
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
   );
@@ -321,7 +316,47 @@ const TokenDetails: React.FC<{
     setTimePeriod,
     chartNavigationButtons,
     hasInsufficientCoverage,
+    historicalPricesApiMs,
+    exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const hasEndedAssetDetailsTraceRef = useRef(false);
+
+  useEffect(() => {
+    if (hasEndedAssetDetailsTraceRef.current || isLoading) {
+      return;
+    }
+    hasEndedAssetDetailsTraceRef.current = true;
+    endTrace({
+      name: TraceName.AssetDetails,
+      data: {
+        ...(caip19AssetId ? { asset_id: caip19AssetId } : {}),
+        ...(historicalPricesApiMs !== undefined
+          ? { historical_prices_api_ms: historicalPricesApiMs }
+          : {}),
+        ...(exchangeRateApiMs !== undefined
+          ? { exchange_rate_api_ms: exchangeRateApiMs }
+          : {}),
+      },
+    });
+  }, [isLoading, caip19AssetId, historicalPricesApiMs, exchangeRateApiMs]);
+
+  // If the screen unmounts before price data finishes loading, close the
+  // pending span here instead of leaving it open. Otherwise it stays pending
+  // until the next `AssetDetails` trace is started (e.g. opening another
+  // asset), which silently finishes it as a normal completion with a
+  // duration measuring time-until-next-open and no API timing data,
+  // skewing Asset Details performance metrics.
+  useEffect(
+    () => () => {
+      if (hasEndedAssetDetailsTraceRef.current) {
+        return;
+      }
+      hasEndedAssetDetailsTraceRef.current = true;
+      endTrace({ name: TraceName.AssetDetails });
+    },
+    [],
+  );
 
   const currentPriceUsd = useMemo(() => {
     if (!Number.isFinite(currentPrice)) {
@@ -370,8 +405,9 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyAssetOverviewCtas.isFooterCtaLoading ||
-    moneyAssetOverviewCtas.isFooterCtaVisible;
+    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
+    (moneyAssetOverviewCtas.isFooterCtaLoading ||
+      moneyAssetOverviewCtas.isFooterCtaVisible);
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -475,7 +511,7 @@ const TokenDetails: React.FC<{
     [caip19AssetId, isNativeToken, hasBalanceValue],
   );
 
-  const moneyEarnCta = useMemo(
+  const moneyDepositCta = useMemo(
     () =>
       isMoneyFooterCtaActive
         ? {
@@ -572,11 +608,6 @@ const TokenDetails: React.FC<{
     </>
   );
 
-  const renderLoader = () => (
-    <View style={styles.loader}>
-      <ActivityIndicator style={styles.loader} size="small" />
-    </View>
-  );
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -595,9 +626,7 @@ const TokenDetails: React.FC<{
         onCopyAddress={handleCopyAddress}
       />
 
-      {txLoading ? (
-        renderLoader()
-      ) : txIsNonEvmAsset ? (
+      {txIsNonEvmAsset ? (
         <MultichainTransactionsView
           header={renderHeader()}
           transactions={transactions}
@@ -629,24 +658,23 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && (
-        <TokenDetailsStickyFooter
-          token={token}
-          securityData={securityData}
-          balanceFiatUsd={balanceFiatUsd}
-          networkName={networkName}
-          currentTokenBalance={balance}
-          hasTokenBalance={hasBalanceValue}
-          moneyEarnCta={moneyEarnCta}
-          onStickyButtonsResolved={onStickyButtonsResolved}
-          sourcePage="TokenDetailsView"
-          useAmbientColor={useAmbientColor}
-          onSwapPress={onCtaClicked}
-          onBuyPress={onCtaClicked}
-          onQuickBuyPress={onQuickBuyPress}
-          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-        />
-      )}
+      <TokenDetailsStickyFooter
+        token={token}
+        securityData={securityData}
+        balanceFiatUsd={balanceFiatUsd}
+        networkName={networkName}
+        currentTokenBalance={balance}
+        hasTokenBalance={hasBalanceValue}
+        moneyDepositCta={moneyDepositCta}
+        onStickyButtonsResolved={onStickyButtonsResolved}
+        sourcePage="TokenDetailsView"
+        useAmbientColor={useAmbientColor}
+        onSwapPress={onCtaClicked}
+        onBuyPress={onCtaClicked}
+        onQuickBuyPress={onQuickBuyPress}
+        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+      />
+
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
@@ -687,14 +715,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    | 'both'
-    | 'buy'
-    | 'swap'
-    | 'swap_earn'
-    | 'earn_buy'
-    | 'earn'
-    | null
-    | undefined
+    'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null | undefined
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);

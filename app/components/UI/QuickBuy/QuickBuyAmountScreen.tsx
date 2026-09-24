@@ -12,6 +12,7 @@ import QuickBuyActionFooter from './components/QuickBuyActionFooter';
 import QuickBuyDisabledSection from './components/QuickBuyDisabledSection';
 import QuickBuyKeypad from './components/QuickBuyKeypad';
 import QuickBuyToolbar from './components/QuickBuyToolbar';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 /**
@@ -39,7 +40,7 @@ const QuickBuyAmountScreen: React.FC = () => {
         isDisabled={hasNoPayWithFunds}
         testID="quick-buy-disabled-amount"
       >
-        <Box testID="quick-buy-amount-container">
+        <Box testID={QuickBuySheetSelectorsIDs.AMOUNT_CONTAINER}>
           <QuickBuyAmount />
         </Box>
       </QuickBuyDisabledSection>

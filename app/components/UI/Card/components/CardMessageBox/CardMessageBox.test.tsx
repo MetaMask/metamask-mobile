@@ -45,6 +45,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.credit_banner.description':
         'Spend it or move it to your Money account to keep earning on your balance.',
       'card.credit_banner.confirm_button_label': 'Move funds',
+      'card.uk_migration_soft.title': 'Update your MetaMask Card',
+      'card.uk_migration_soft.description':
+        'Set up by {{deadline}} to avoid interruptions.',
+      'card.uk_migration_soft.description_no_deadline':
+        'Set up your card to avoid interruptions.',
+      'card.uk_migration_soft.confirm_button_label': 'Set up card',
+      'card.uk_migration_required.title': 'Update required to continue',
+      'card.uk_migration_required.description':
+        'Complete your MetaMask Card update to keep using your card.',
+      'card.uk_migration_required.confirm_button_label': 'Update now',
     };
     let value = mockStrings[key] || key;
     if (params) {
@@ -210,28 +220,6 @@ describe('CardMessageBox', () => {
       ));
 
       expect(getByTestId('card-message-box')).toBeOnTheScreen();
-    });
-  });
-
-  describe('PendingVerification warning', () => {
-    it('renders title, description, and continue CTA', () => {
-      const { getByText, getByTestId } = renderWithProvider(() => (
-        <CardMessageBox
-          messageType={CardMessageBoxType.PendingVerification}
-          onConfirm={mockOnConfirm}
-        />
-      ));
-
-      expect(getByText('Finish setting up your card')).toBeOnTheScreen();
-      expect(
-        getByText(
-          'You have pending verification steps to complete before your card can be enabled.',
-        ),
-      ).toBeOnTheScreen();
-      expect(getByText('Continue verification')).toBeOnTheScreen();
-
-      fireEvent.press(getByTestId('confirm-button'));
-      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 

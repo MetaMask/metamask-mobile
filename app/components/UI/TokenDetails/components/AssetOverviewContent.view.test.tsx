@@ -2,6 +2,7 @@ import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { merge } from 'lodash';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
@@ -80,27 +81,32 @@ function renderAssetOverviewMarketInsightsStack(
   providerValues: ProviderValues,
 ) {
   const Stack = createNativeStackNavigator();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>
     () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
   return renderWithProvider(
-    <AccessRestrictedProvider>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="AssetOverviewMI"
-          component={AssetOverviewContentHarness}
-        />
-        {extraRoutes.map(({ name, Component: Extra }) => (
+    <QueryClientProvider client={queryClient}>
+      <AccessRestrictedProvider>
+        <Stack.Navigator>
           <Stack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            name="AssetOverviewMI"
+            component={AssetOverviewContentHarness}
           />
-        ))}
-      </Stack.Navigator>
-    </AccessRestrictedProvider>,
+          {extraRoutes.map(({ name, Component: Extra }) => (
+            <Stack.Screen
+              key={name}
+              name={name}
+              component={Extra ?? DefaultRouteProbe(name)}
+            />
+          ))}
+        </Stack.Navigator>
+      </AccessRestrictedProvider>
+    </QueryClientProvider>,
     providerValues,
   );
 }

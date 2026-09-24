@@ -37,6 +37,10 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
 } from '../MoneySheetOptionsList';
@@ -57,6 +61,7 @@ const log = createProjectLogger('money-add-money-sheet');
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
+  const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
   const { styles } = useStyles(styleSheet, {});
 
   const {
@@ -69,6 +74,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
+  const isVirtualBankAccountEnabled = useSelector(
+    selectMoneyMovementBrazilNeobankEnabled,
+  );
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -111,15 +119,20 @@ const MoneyAddMoneySheet: React.FC = () => {
   // letting it race the unmount.
   const startDeposit = useCallback(
     (options?: InitiateDepositOptions) => {
+      // Applied here rather than per row so every funding method inherits the
+      // caller's launch source.
+      const depositOptions = launchedFrom
+        ? { ...options, launchedFrom }
+        : options;
       if (hasPendingTransaction) {
         log('Rejecting pending transaction before starting deposit');
         rejectPendingTransactions();
-        setDeferredDeposit({ options });
+        setDeferredDeposit({ options: depositOptions });
         return;
       }
-      closeAndStartDeposit(options);
+      closeAndStartDeposit(depositOptions);
     },
-    [hasPendingTransaction, closeAndStartDeposit],
+    [hasPendingTransaction, closeAndStartDeposit, launchedFrom],
   );
 
   useEffect(() => {
@@ -145,6 +158,18 @@ const MoneyAddMoneySheet: React.FC = () => {
 
     startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
+
+  const handleBankAccount = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
+      redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
+    });
+
+    // Not part of the crypto deposit flow, so it bypasses startDeposit.
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
+    });
+  }, [navigation, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
     trackSurfaceClicked({
@@ -210,7 +235,27 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
+  const bankAccountOption: MoneySheetOption = isVirtualBankAccountEnabled
+    ? {
+        label: strings('money.add_money_sheet.bank_account'),
+        icon: IconName.Bank,
+        onPress: handleBankAccount,
+        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        newBadge: true,
+      }
+    : {
+        label: strings('money.add_money_sheet.bank_account'),
+        icon: IconName.Bank,
+        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        disabled: true,
+        comingSoon: true,
+      };
+
   const baseOptions: MoneySheetOption[] = [
+    // Flag on: the enabled Bank account row is promoted to the top of the
+    // sheet. Flag off: the coming-soon row keeps its pre-flag position
+    // further down so ordering is unchanged for existing users.
+    ...(isVirtualBankAccountEnabled ? [bankAccountOption] : []),
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -245,13 +290,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
     },
-    {
-      label: strings('money.add_money_sheet.bank_account'),
-      icon: IconName.Bank,
-      testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-      disabled: true,
-      comingSoon: true,
-    },
+    ...(isVirtualBankAccountEnabled ? [] : [bankAccountOption]),
     {
       label: strings('money.add_money_sheet.receive_external'),
       icon: IconName.QrCode,

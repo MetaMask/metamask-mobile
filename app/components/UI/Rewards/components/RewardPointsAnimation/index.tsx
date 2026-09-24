@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import Rive, { Alignment, Fit } from 'rive-react-native';
+import { Alignment, Fit, RiveView, useRiveFile } from '@rive-app/react-native';
 import Animated from 'react-native-reanimated';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -12,6 +12,7 @@ import Icon, {
 import {
   useRewardsAnimation,
   RewardAnimationState,
+  REWARDS_ICON_STATE_MACHINE_NAME,
 } from '../../hooks/useRewardsAnimation';
 import styleSheet from './index.styles';
 
@@ -90,7 +91,7 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
   });
 
   const {
-    riveRef,
+    setRiveHybridRef,
     animatedStyle,
     rivePositionStyle,
     displayValue,
@@ -102,6 +103,8 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
     state,
   });
 
+  const { riveFile } = useRiveFile(RewardsIconAnimation);
+
   if (!shouldShow) {
     return null;
   }
@@ -112,13 +115,17 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
         {/* Rive fox animation */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Animated.View style={[styles.riveIcon, rivePositionStyle] as any}>
-          <Rive
-            ref={riveRef}
-            source={RewardsIconAnimation}
-            fit={Fit.FitHeight}
-            alignment={Alignment.CenterRight}
-            style={{ width, height }}
-          />
+          {riveFile && (
+            <RiveView
+              hybridRef={setRiveHybridRef}
+              file={riveFile}
+              stateMachineName={REWARDS_ICON_STATE_MACHINE_NAME}
+              autoPlay
+              fit={Fit.FitHeight}
+              alignment={Alignment.CenterRight}
+              style={{ width, height }}
+            />
+          )}
         </Animated.View>
 
         {/* Animated points number or error text */}

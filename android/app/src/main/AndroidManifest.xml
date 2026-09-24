@@ -8,6 +8,7 @@
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
 
   <!-- Android < 12 -->
   <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
@@ -112,6 +113,13 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="https" />
 				<data android:host="link.metamask.io" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
+				<data android:host="link.metamask.com" />
 			</intent-filter>
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />

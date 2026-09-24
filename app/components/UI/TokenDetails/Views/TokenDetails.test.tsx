@@ -14,11 +14,15 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
-import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
+import {
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+} from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
+import { TraceName } from '../../../../util/trace';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -102,6 +106,9 @@ const defaultUseTokenPriceReturn = {
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m'],
   currentCurrency: 'USD',
+  hasInsufficientCoverage: false,
+  historicalPricesApiMs: undefined as number | undefined,
+  exchangeRateApiMs: undefined as number | undefined,
 };
 const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
@@ -369,10 +376,10 @@ jest.mock('../../../../core/ToastService/ToastService', () => ({
   },
 }));
 
-const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
+const mockIsTokenTradable = jest.fn().mockReturnValue(true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: jest.fn(() => false),
   }),
 }));
@@ -390,6 +397,13 @@ const defaultUseABTestImpl = (key: string) => {
       variant: { showQuickBuy: true },
       variantName: 'treatment',
       isActive: true,
+    };
+  }
+  if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
+    return {
+      variant: { showMoneyDepositFooterCta: false },
+      variantName: 'control',
+      isActive: false,
     };
   }
   return {
@@ -428,12 +442,20 @@ jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
+const mockEndTrace = jest.fn();
+const mockTrace = jest.fn();
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+  trace: (...args: unknown[]) => mockTrace(...args),
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAssetOverviewCtas.mockReturnValue({
       apyPercent: undefined,
-      footerLabel: undefined,
+      footerLabelLocalized: undefined,
       isBalanceCtaLoading: false,
       isBalanceCtaVisible: false,
       isFooterCtaEligible: false,
@@ -461,7 +483,7 @@ describe('TokenDetails', () => {
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
     });
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
     mockUseTokenBuyability.mockReturnValue({
       isBuyable: true,
@@ -502,15 +524,17 @@ describe('TokenDetails', () => {
     });
   });
 
-  it('renders loader when txLoading is true', () => {
+  it('does not render a full-page loader when txLoading is true', () => {
     mockUseTokenTransactions.mockReturnValue({
       ...defaultUseTokenTransactionsReturn,
       loading: true,
     });
 
-    const { UNSAFE_getByType } = render(<TokenDetails />);
+    const { UNSAFE_queryAllByType } = render(<TokenDetails />);
 
-    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+    // Content (and its own skeletons) mounts immediately instead of being
+    // blocked behind a full-page spinner while transactions load.
+    expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
   });
 
   it('requests the auto-add of the network for the token chain', () => {
@@ -526,7 +550,147 @@ describe('TokenDetails', () => {
     });
   });
 
+  describe('Asset Details performance trace', () => {
+    it('ends the AssetDetails trace once price finishes loading, with asset id and API timings', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+        historicalPricesApiMs: 120,
+        exchangeRateApiMs: 80,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.AssetDetails,
+        data: {
+          asset_id: expect.any(String),
+          historical_prices_api_ms: 120,
+          exchange_rate_api_ms: 80,
+        },
+      });
+    });
+
+    it('does not end the trace while price is still loading', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('only ends the trace once, even if isLoading toggles again later (e.g. chart time period change)', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+      });
+
+      const { rerender } = render(<TokenDetails />);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+      rerender(<TokenDetails />);
+
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+      });
+      rerender(<TokenDetails />);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends the trace on unmount if the screen unmounts before price finishes loading, so it is not left pending', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+
+      const { unmount } = render(<TokenDetails />);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.AssetDetails,
+      });
+    });
+
+    it('does not end the trace a second time if it unmounts after already ending successfully', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: false,
+      });
+
+      const { unmount } = render(<TokenDetails />);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Swap/Buy sticky buttons', () => {
+    it('does not render Money Earn CTA in the control variant', () => {
+      mockUseMoneyAssetOverviewCtas.mockReturnValue({
+        apyPercent: 4,
+        footerLabelLocalized: 'Earn 4% APY',
+        isBalanceCtaLoading: false,
+        isBalanceCtaVisible: false,
+        isFooterCtaEligible: true,
+        isFooterCtaLoading: false,
+        isFooterCtaVisible: true,
+        onBalancePress: jest.fn(),
+        onFooterPress: jest.fn(),
+        projectedEarningsFormatted: '$4.00',
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(
+        queryByTestId('money-asset-overview-footer-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders Money Earn CTA in the treatment variant when eligible', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
+          return {
+            variant: { showMoneyDepositFooterCta: true },
+            variantName: 'treatment',
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImpl(key);
+      });
+      mockUseMoneyAssetOverviewCtas.mockReturnValue({
+        apyPercent: 4,
+        footerLabelLocalized: 'Earn 4% APY',
+        isBalanceCtaLoading: false,
+        isBalanceCtaVisible: false,
+        isFooterCtaEligible: true,
+        isFooterCtaLoading: false,
+        isFooterCtaVisible: true,
+        onBalancePress: jest.fn(),
+        onFooterPress: jest.fn(),
+        projectedEarningsFormatted: '$4.00',
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+    });
+
     it('shows sticky buttons when token is loaded', () => {
       const { getByTestId, getByText } = render(<TokenDetails />);
 
@@ -535,8 +699,8 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when RWA token trading is not open', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('does not show sticky buttons when RWA token is not tradable', () => {
+      mockIsTokenTradable.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails />);
 
@@ -619,7 +783,7 @@ describe('TokenDetails', () => {
     it('opens AssetDetailsQuickBuy when an eligible token has unresolved APY', () => {
       mockUseMoneyAssetOverviewCtas.mockReturnValue({
         apyPercent: undefined,
-        footerLabel: undefined,
+        footerLabelLocalized: undefined,
         isBalanceCtaLoading: false,
         isBalanceCtaVisible: false,
         isFooterCtaEligible: true,

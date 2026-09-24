@@ -62,17 +62,6 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
         token_symbol_destination: 'ETH',
       },
     },
-    {
-      name: COMPLETED,
-      containProperties: {
-        chain_id_source: 'eip155:1',
-        chain_id_destination: 'eip155:8453',
-        token_address_source: 'eip155:1/slip44:60',
-        token_address_destination: 'eip155:8453/slip44:60',
-        token_symbol_source: 'ETH',
-        token_symbol_destination: 'ETH',
-      },
-    },
   ],
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);

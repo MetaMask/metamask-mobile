@@ -114,6 +114,34 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('stopLossPrice');
   });
 
+  it('assembles Chase fields without price, slippage override, or TP/SL', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'chase',
+      limitPrice: '90000',
+      chaseMaxDistanceBps: 125,
+      takeProfitPrice: '95000',
+      stopLossPrice: '80000',
+      maxSlippageBps: 150,
+    });
+
+    expect(params.chaseMaxDistanceBps).toBe(125);
+    expect(params).not.toHaveProperty('maxSlippageBps');
+    expect(params).not.toHaveProperty('price');
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
+
+  it('omits an undefined Chase distance', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'chase',
+      chaseMaxDistanceBps: undefined,
+    });
+
+    expect(params).not.toHaveProperty('chaseMaxDistanceBps');
+  });
+
   it('includes triggerPrice and omits TP/SL for a stop-market order', () => {
     const params = buildPerpsOrderParams({
       ...base,
@@ -187,6 +215,36 @@ describe('buildPerpsOrderParams', () => {
       isFullClose: true,
     });
     expect(params).not.toHaveProperty('usdAmount');
+  });
+
+  it('builds a routed TWAP order with strategy fields only', () => {
+    // Arrange / Act
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'twap',
+      twapDuration: 90,
+      twapRandomize: true,
+      providerId: 'hyperliquid',
+      limitPrice: '80000',
+      triggerPrice: '81000',
+      takeProfitPrice: '95000',
+      stopLossPrice: '70000',
+    });
+
+    // Assert
+    expect(params).toMatchObject({
+      orderType: 'twap',
+      twapDuration: 90,
+      twapRandomize: true,
+      providerId: 'hyperliquid',
+      currentPrice: 90000,
+      priceAtCalculation: 90000,
+    });
+    expect(params).not.toHaveProperty('maxSlippageBps');
+    expect(params).not.toHaveProperty('price');
+    expect(params).not.toHaveProperty('triggerPrice');
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
   });
 });
 

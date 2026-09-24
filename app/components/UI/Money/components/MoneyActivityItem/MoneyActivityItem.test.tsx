@@ -38,37 +38,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       iconName: string;
       testID?: string;
     }) => <View testID={testID} accessibilityLabel={iconName} />,
-  };
-});
-
-jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        badgeElement,
-      }: {
-        children: unknown;
-        badgeElement?: unknown;
-      }) => (
-        <View testID="mock-badge-wrapper">
-          {badgeElement}
-          {children}
-        </View>
-      ),
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Badges/Badge', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="mock-network-badge" />,
-    BadgeVariant: { Network: 'Network' },
+    BadgeWrapper: ({
+      children,
+      badge,
+    }: {
+      children: unknown;
+      badge?: unknown;
+    }) => (
+      <View testID="mock-badge-wrapper">
+        {badge}
+        {children}
+      </View>
+    ),
+    BadgeNetwork: () => <View testID="mock-network-badge" />,
   };
 });
 

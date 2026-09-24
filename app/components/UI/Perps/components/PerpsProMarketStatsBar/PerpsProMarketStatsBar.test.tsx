@@ -4,6 +4,8 @@ import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import type { UsePerpsMarketStatsReturn } from '../../hooks/usePerpsMarketStats';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -22,7 +24,7 @@ jest.mock('@metamask/perps-controller', () => ({
   calculateFundingCountdown: jest.fn(() => '39:24'),
 }));
 
-const mockMarketStats = {
+const mockMarketStats: UsePerpsMarketStatsReturn = {
   high24h: '$50,000.00',
   low24h: '$45,000.00',
   volume24h: '$1.37B',
@@ -30,6 +32,9 @@ const mockMarketStats = {
   fundingRate: '0.0100%',
   currentPrice: 64639,
   isLoading: false,
+  dataSymbol: 'BTC',
+  hasLiveData: true,
+  hasError: false,
   refresh: jest.fn(),
 };
 const mockUsePerpsMarketStats = jest.fn((_symbol?: string) => mockMarketStats);
@@ -108,6 +113,33 @@ describe('PerpsProMarketStatsBar', () => {
     expect(mockUsePerpsMarketStats).toHaveBeenCalledWith('ETH');
   });
 
+  it('keeps readiness loading until live volume or open interest arrives', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      dataSymbol: 'BTC',
+      hasLiveData: false,
+    });
+
+    const view = renderComponent({ onResolvedStateChange });
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      dataSymbol: 'BTC',
+      hasLiveData: true,
+    });
+    view.rerender(
+      <PerpsProMarketStatsBar
+        {...defaultProps}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+  });
+
   it('prefers the live WebSocket funding rate when available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       BTC: { funding: 0.0005 },
@@ -139,6 +171,34 @@ describe('PerpsProMarketStatsBar', () => {
     expect(
       getByText(`${FUNDING_RATE_CONFIG.ZeroDisplay} / 39:24`),
     ).toBeOnTheScreen();
+  });
+
+  it('displays a positive threshold funding rate in success color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '<0.0001%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '<0.0001% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('displays a negative threshold funding rate in error color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '-<0.0001%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '-<0.0001% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.ErrorDefault);
   });
 
   it('reflects live volume updates on re-render', () => {

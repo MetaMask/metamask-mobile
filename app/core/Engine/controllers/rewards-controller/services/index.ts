@@ -20,6 +20,7 @@ export type {
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
   RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,
@@ -27,10 +28,10 @@ export type {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,
-  RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

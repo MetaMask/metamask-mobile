@@ -1,4 +1,5 @@
 import type { BridgeToken } from '../types';
+import { initialRecurringState } from '../utils/recurringSchedule';
 
 /** Native ETH (mainnet) token used as default source in Bridge view tests. */
 export const ETH_SOURCE: Pick<
@@ -41,4 +42,5 @@ export const DEFAULT_BRIDGE = {
   sourceAmount: '1',
   sourceToken: ETH_SOURCE,
   destToken: USDC_DEST,
+  recurring: initialRecurringState,
 } as const;

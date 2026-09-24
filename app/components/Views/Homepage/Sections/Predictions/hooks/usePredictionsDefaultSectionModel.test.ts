@@ -7,7 +7,6 @@ const createInput = (
 ): Parameters<typeof usePredictionsDefaultSectionModel>[0] => ({
   isPredictEnabled: true,
   isLoadingPositions: false,
-  isLoadingClaimable: false,
   isLoadingMarkets: false,
   isTreatmentDiscovery: false,
   isLoadingWorldCupHomepage: false,
@@ -16,7 +15,6 @@ const createInput = (
   positionsError: null,
   marketsError: null,
   marketsLength: 1,
-  totalClaimableValue: 0,
   ...overrides,
 });
 
@@ -44,5 +42,33 @@ describe('usePredictionsDefaultSectionModel', () => {
 
     expect(result.isLoading).toBe(true);
     expect(result.predictTimeToContentReady).toBe(false);
+  });
+
+  it('treats claimable-only users as having no homepage positions', () => {
+    const result = usePredictionsDefaultSectionModel(
+      createInput({
+        hasPositions: false,
+        positionsLength: 0,
+        marketsLength: 2,
+      }),
+    );
+
+    expect(result.hasAnyPositions).toBe(false);
+    expect(result.showTrendingAbove).toBe(true);
+    expect(result.itemCount).toBe(2);
+  });
+
+  it('counts open positions when the user has them', () => {
+    const result = usePredictionsDefaultSectionModel(
+      createInput({
+        hasPositions: true,
+        positionsLength: 3,
+        marketsLength: 2,
+      }),
+    );
+
+    expect(result.hasAnyPositions).toBe(true);
+    expect(result.showTrendingAbove).toBe(false);
+    expect(result.itemCount).toBe(3);
   });
 });

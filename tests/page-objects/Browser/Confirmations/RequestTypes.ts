@@ -1,15 +1,15 @@
 import { ConfirmationRequestTypeIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class RequestTypes {
-  get PersonalSignRequest(): EncapsulatedElementType {
+  get PersonalSignRequest(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRequestTypeIDs.PERSONAL_SIGN_REQUEST,
     );
   }
 
-  get TypedSignRequest(): EncapsulatedElementType {
+  get TypedSignRequest(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationRequestTypeIDs.TYPED_SIGN_REQUEST,
     );

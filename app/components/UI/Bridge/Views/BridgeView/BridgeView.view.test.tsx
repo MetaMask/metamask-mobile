@@ -1,6 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
+import {
+  BridgeViewWithSession as BridgeView,
+  renderBridgeView,
+  renderBridgeViewWithTokenSelector,
+} from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
@@ -11,7 +15,6 @@ import {
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
-import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -22,8 +25,8 @@ import {
   setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeViewMode, type BridgeToken } from '../../types';
-import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
@@ -48,7 +51,53 @@ import {
   clearTrendingApiMocks,
   mockTrendingTokensData,
 } from '../../../../../../tests/component-view/api-mocking/trending';
+import {
+  clearRecurringOrdersDataServiceMock,
+  setupRecurringOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/recurringOrders';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/limitOrders';
 import { merge } from 'lodash';
+
+const HOUR_MS = 60 * 60 * 1000;
+
+const createStockRwaToken = ({
+  nowMs,
+  inRegularHours,
+  inOffHours,
+}: {
+  nowMs: number;
+  inRegularHours: boolean;
+  inOffHours: boolean;
+}): BridgeToken => ({
+  address: '0x1111111111111111111111111111111111111111',
+  symbol: 'AAPL',
+  name: 'Apple',
+  decimals: 18,
+  chainId: '0x1',
+  rwaData: {
+    instrumentType: 'stock',
+    market: inRegularHours
+      ? {
+          nextOpen: new Date(nowMs - HOUR_MS).toISOString(),
+          nextClose: new Date(nowMs + 6 * HOUR_MS).toISOString(),
+        }
+      : {
+          nextOpen: new Date(nowMs + 12 * HOUR_MS).toISOString(),
+          nextClose: new Date(nowMs + 20 * HOUR_MS).toISOString(),
+        },
+    ...(inOffHours
+      ? {
+          offhours: {
+            nextOpen: new Date(nowMs - HOUR_MS).toISOString(),
+            nextClose: new Date(nowMs + 2 * HOUR_MS).toISOString(),
+          },
+        }
+      : {}),
+  } as BridgeToken['rwaData'],
+});
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
@@ -66,6 +115,8 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
 
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
+    setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock();
     // testSetup.js mocks Date.now to always return 123, which breaks lodash debounce
     // (timeSinceLastCall = 123 - 123 = 0 never reaches the wait threshold).
     // Restore it to a real implementation so debounce-based tests work correctly.
@@ -73,6 +124,8 @@ describeForPlatforms('BridgeView', () => {
   });
 
   afterEach(() => {
+    clearRecurringOrdersDataServiceMock();
+    clearLimitOrdersDataServiceMock();
     jest.restoreAllMocks();
   });
 
@@ -879,6 +932,159 @@ describeForPlatforms('BridgeView', () => {
     });
   });
 
+  describe('Off-hours trading banner', () => {
+    it('shows the warning when dest stock is in off-hours and hides it after switching dest', async () => {
+      const nowMs = Date.now();
+      const stockInRegularHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: true,
+        inOffHours: false,
+      });
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const { queryByTestId, findByTestId, findByText, store } =
+        defaultBridgeWithTokens({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [RWA_FEATURE_FLAG_NAME]: true,
+                },
+              },
+            },
+          },
+        });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInRegularHours));
+      });
+
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken?.symbol).toBe('AAPL');
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(strings('bridge.off_hours_trading.title')),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(strings('bridge.off_hours_trading.description')),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(USDC_DEST as BridgeToken));
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('replaces the off-hours warning with the market-closed banner when dest stock becomes fully closed', async () => {
+      const nowMs = Date.now();
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+      const { queryByTestId, findByTestId, store } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockFullyClosed));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the market-unavailable quote error when the dest stock market is fully closed', async () => {
+      const nowMs = Date.now();
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+
+      const { queryByTestId, findByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          destToken: stockFullyClosed,
+          sourceAmount: '1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: nowMs,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RWA_MARKET_UNAVAILABLE,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.NO_QUOTES_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24744" style references are GitHub issue IDs (e.g. "#2342"), not color literals
@@ -1052,18 +1258,7 @@ describeForPlatforms('BridgeView', () => {
         .build() as unknown as Record<string, unknown>;
 
       const { getByTestId, getByText, findByText, getAllByText } =
-        renderScreenWithRoutes(
-          BridgeView as unknown as React.ComponentType,
-          { name: Routes.BRIDGE.BRIDGE_VIEW },
-          [
-            {
-              name: Routes.BRIDGE.TOKEN_SELECTOR,
-              Component:
-                BridgeTokenSelector as unknown as React.ComponentType<unknown>,
-            },
-          ],
-          { state },
-        );
+        renderBridgeViewWithTokenSelector(state);
 
       fireEvent.press(await findByText('Swap to'));
 

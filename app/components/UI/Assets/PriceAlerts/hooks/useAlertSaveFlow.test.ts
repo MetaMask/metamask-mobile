@@ -1,6 +1,5 @@
-import React from 'react';
 import { act, renderHook } from '@testing-library/react-native';
-import { ToastContext } from '../../../../../component-library/components/Toast';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
@@ -10,11 +9,19 @@ import useAlertSaveFlow from './useAlertSaveFlow';
 
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
 const mockSetQueryData = jest.fn();
 const mockSubmit = jest.fn();
 const mockAddToWatchlistMutate = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -52,17 +59,8 @@ const baseAnalyticsProperties = {
   alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
   alert_value: 1500,
   alert_recurring: true,
+  alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
 };
-
-const toastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
-
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  React.createElement(ToastContext.Provider, { value: { toastRef } }, children);
 
 const renderSaveFlow = (
   overrides: Partial<{
@@ -72,14 +70,12 @@ const renderSaveFlow = (
     shouldAutoWatchlistOnCreate: boolean;
   }> = {},
 ) =>
-  renderHook(
-    () =>
-      useAlertSaveFlow({
-        assetId: 'eip155:1/slip44:60',
-        displayTicker: 'ETH',
-        ...overrides,
-      }),
-    { wrapper },
+  renderHook(() =>
+    useAlertSaveFlow({
+      assetId: 'eip155:1/slip44:60',
+      displayTicker: 'ETH',
+      ...overrides,
+    }),
   );
 
 const mockAnalytics = () => {
@@ -117,14 +113,12 @@ describe('useAlertSaveFlow', () => {
     expect(mockSubmit).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockPop).not.toHaveBeenCalled();
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hasNoTimeout: false,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({ label: expect.stringContaining('ETH') }),
-        ]),
-      }),
-    );
+    expect(toast).toHaveBeenCalledWith({
+      title: expect.stringContaining('ETH'),
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
   });
 
   it('pops two screens after a create save opened from manage', async () => {
@@ -175,16 +169,12 @@ describe('useAlertSaveFlow', () => {
 
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockPop).not.toHaveBeenCalled();
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: 'Failed to save price alert. Please try again.',
-          }),
-        ]),
-        hasNoTimeout: false,
-      }),
-    );
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Failed to save price alert. Try again.',
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
   });
 
   it('patches the matching cached alert after an edit save', async () => {
@@ -349,6 +339,7 @@ describe('useAlertSaveFlow', () => {
       alert_value: 1500,
       alert_recurring: true,
       alert_active: true,
+      alert_market_type: 'spot',
     });
   });
 
@@ -384,6 +375,7 @@ describe('useAlertSaveFlow', () => {
       prev_alert_value: 1500,
       prev_alert_recurring: true,
       prev_alert_active: true,
+      alert_market_type: 'spot',
     });
   });
 
@@ -400,6 +392,7 @@ describe('useAlertSaveFlow', () => {
           alert_recurring: true,
           alert_period: '24h',
           alert_direction: 'up',
+          alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
         },
       });
     });

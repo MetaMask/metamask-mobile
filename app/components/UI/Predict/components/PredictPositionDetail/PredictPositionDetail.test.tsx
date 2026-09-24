@@ -16,6 +16,19 @@ import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string | number>) => {
     switch (key) {
@@ -255,19 +268,22 @@ describe('PredictPositionDetail', () => {
   });
 
   it.each([
-    { value: -3.5, expected: '-3.5%' },
-    { value: 0, expected: '0%' },
-    { value: 7.5, expected: '7.5%' },
-  ])('formats percentPnl %p as %p for open market', ({ value, expected }) => {
-    const initialValue = basePosition.initialValue;
-    const currentValue = initialValue * (1 + value / 100);
+    { minAmountReceived: 80, initialValue: 100, expected: '-20%' },
+    { minAmountReceived: 100, initialValue: 100, expected: '0%' },
+    { minAmountReceived: 110, initialValue: 100, expected: '10%' },
+  ])(
+    'formats derived percent PnL from net proceeds for minAmountReceived $minAmountReceived',
+    ({ minAmountReceived, initialValue, expected }) => {
+      renderComponent(
+        { initialValue, currentValue: minAmountReceived },
+        undefined,
+        undefined,
+        { minAmountReceived },
+      );
 
-    renderComponent({ percentPnl: value, currentValue }, undefined, undefined, {
-      minAmountReceived: currentValue,
-    });
-
-    expect(screen.getByText(expected)).toBeOnTheScreen();
-  });
+      expect(screen.getByText(expected)).toBeOnTheScreen();
+    },
+  );
 
   it('renders initial value line and avgPrice cents', () => {
     renderComponent({
@@ -289,7 +305,7 @@ describe('PredictPositionDetail', () => {
       { percentPnl: 12.34, currentValue: 500 },
       { status: 'closed' },
       PredictMarketStatus.CLOSED,
-      { minAmountReceived: 500 },
+      { minAmountReceived: 400 },
     );
 
     expect(screen.getByText('Won $500')).toBeOnTheScreen();
@@ -343,7 +359,6 @@ describe('PredictPositionDetail', () => {
 
       renderComponent();
 
-      // Should show skeletons instead of actual values
       expect(screen.queryByText('$129.93')).toBeNull();
       expect(screen.queryByText('5.25%')).toBeNull();
     });
@@ -358,11 +373,10 @@ describe('PredictPositionDetail', () => {
 
       renderComponent();
 
-      // Should show skeletons instead of actual values
       expect(screen.queryByText('5.25%')).toBeNull();
     });
 
-    it('falls back to position currentValue when preview has error', () => {
+    it('falls back to estimated net value when preview has error', () => {
       mockUsePredictOrderPreviewFn.mockReturnValue({
         preview: null,
         error: 'Failed to fetch preview',
@@ -372,13 +386,11 @@ describe('PredictPositionDetail', () => {
 
       renderComponent({ currentValue: 150, initialValue: 100 });
 
-      // Should display position's currentValue when preview errors
-      expect(screen.getByText('$150')).toBeOnTheScreen();
-      // PnL should be calculated from position values: (150-100)/100 = 50%
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+      expect(screen.getByText('$144')).toBeOnTheScreen();
+      expect(screen.getByText('44%')).toBeOnTheScreen();
     });
 
-    it('calculates PnL from position data when preview has error', () => {
+    it('calculates PnL from estimated net value when preview has error', () => {
       mockUsePredictOrderPreviewFn.mockReturnValue({
         preview: null,
         error: 'Network error',
@@ -392,9 +404,8 @@ describe('PredictPositionDetail', () => {
         percentPnl: -5,
       });
 
-      // Should show negative PnL calculated from position data
-      expect(screen.getByText('$95')).toBeOnTheScreen();
-      expect(screen.getByText('-5%')).toBeOnTheScreen();
+      expect(screen.getByText('$91.20')).toBeOnTheScreen();
+      expect(screen.getByText('-8.8%')).toBeOnTheScreen();
     });
   });
 

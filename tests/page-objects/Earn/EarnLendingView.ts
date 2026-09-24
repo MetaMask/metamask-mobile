@@ -2,66 +2,68 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { EarnLendingViewSelectorsText } from '../../selectors/Earn/EarnLendingView.selectors';
+import { EARN_LENDING_BALANCE_TEST_IDS } from '../../../app/components/UI/Earn/components/EarnLendingBalance/EarnLendingBalance.testIds';
 import {
-  EarnLendingViewSelectorsIDs,
-  EarnLendingViewSelectorsText,
-} from '../../selectors/Earn/EarnLendingView.selectors';
-import { EncapsulatedElementType } from '../../framework';
+  CONFIRMATION_FOOTER_TEST_ID,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+} from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ConfirmationFooter/ConfirmationFooter.testIds';
+import { DEPOSIT_DETAILS_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositInfoSection/DepositInfoSection.testIds';
+import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositReceiveSection/DepositReceiveSection.testIds';
+import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ProgressStepper/ProgressStepper.testIds';
+import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
+import { type AppiumElement } from '../../framework';
 
 class EarnLendingView {
-  get withdrawButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON);
-  }
-
-  get depositButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON);
-  }
-
-  get confirmationFooter(): EncapsulatedElementType {
+  get withdrawButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
+      EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
     );
   }
 
-  get confirmButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CONFIRM_BUTTON);
+  get confirmationFooter(): Promise<AppiumElement> {
+    return Matchers.getElementByID(CONFIRMATION_FOOTER_TEST_ID);
   }
 
-  get cancelButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CANCEL_BUTTON);
-  }
-
-  get depositInfoSection(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
   }
 
-  get depositReceiveSection(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     );
   }
 
-  get progressBar(): EncapsulatedElementType {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.PROGRESS_BAR);
+  get depositInfoSection(): Promise<AppiumElement> {
+    return Matchers.getElementByID(DEPOSIT_DETAILS_SECTION_TEST_ID);
   }
 
-  get supplyTitle(): EncapsulatedElementType {
+  get depositReceiveSection(): Promise<AppiumElement> {
+    return Matchers.getElementByID(DEPOSIT_RECEIVE_SECTION_TEST_ID);
+  }
+
+  get progressBar(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PROGRESS_STEPPER_TEST_IDS.PROGRESS_BAR);
+  }
+
+  get supplyTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.SUPPLY);
   }
 
-  get reviewButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.REVIEW_BUTTON);
+  get reviewButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(EarnWithdrawInputViewTestIds.REVIEW_BUTTON);
   }
 
-  get withdrawalTimeLabel(): EncapsulatedElementType {
+  get withdrawalTimeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       EarnLendingViewSelectorsText.WITHDRAWAL_TIME,
     );
   }
 
-  get confirmButtonByLabel(): EncapsulatedElementType {
+  get confirmButtonByLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
   }
 
@@ -97,13 +99,6 @@ class EarnLendingView {
         elemDescription: 'Scroll to Withdraw button',
       },
     );
-  }
-
-  async tapDeposit(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.depositButton, {
-      timeout,
-      elemDescription: 'Deposit button on lending balance',
-    });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {

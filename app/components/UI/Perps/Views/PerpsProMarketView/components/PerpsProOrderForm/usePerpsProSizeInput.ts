@@ -31,6 +31,8 @@ export interface UsePerpsProSizeInputParams {
    * (used for reduce-only `no_position` / `wrong_side`).
    */
   keepSizeEmpty?: boolean;
+  /** Preserve reactive maximum recalculation after a Chase MAX selection. */
+  preserveMaxIntent?: boolean;
 }
 
 export interface UsePerpsProSizeInputResult {
@@ -126,10 +128,11 @@ export const usePerpsProSizeInput = ({
   maxPossibleAmount,
   maxDigits,
   keepSizeEmpty = false,
+  preserveMaxIntent = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
     Number.isFinite(effectivePrice) && effectivePrice > 0;
-  const [denominationUnit, setDenominationUnit] =
+  const [activeDenominationUnit, setDenominationUnit] =
     useState<SizeDenominationUnit>('usd');
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
@@ -209,7 +212,7 @@ export const usePerpsProSizeInput = ({
       // and avoid overwriting a blur snap with a stale usdAmount before the
       // parent echoes the pending internal commit.
       if (
-        denominationUnit === 'asset' &&
+        activeDenominationUnit === 'asset' &&
         canToggleDenomination &&
         assetDraftState.source === 'canonical' &&
         !isSizeFocused &&
@@ -234,8 +237,19 @@ export const usePerpsProSizeInput = ({
     }
 
     // External canonical update (amount clamp, reset, payment-token change).
+    const clampedMaximum = new BigNumber(
+      clampSliderUsdAmount(maxPossibleAmount, maxPossibleAmount),
+    );
+    const preservesMaxIntent =
+      preserveMaxIntent &&
+      sliderAtMaxRef.current &&
+      maxPossibleAmount > 0 &&
+      clampedMaximum.gt(0) &&
+      new BigNumber(usdAmount || 0).eq(clampedMaximum);
     clearSliderPreview();
-    clearSliderMaxIntent();
+    if (!preservesMaxIntent) {
+      clearSliderMaxIntent();
+    }
     setUsdDraft(usdAmount);
     if (canToggleDenomination) {
       setAssetDraftState({
@@ -248,9 +262,11 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     clearSliderMaxIntent,
     clearSliderPreview,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     isSizeFocused,
+    maxPossibleAmount,
+    preserveMaxIntent,
     szDecimals,
     usdAmount,
   ]);
@@ -259,10 +275,10 @@ export const usePerpsProSizeInput = ({
     () => ({
       maxDigits,
       maxDecimalPlaces:
-        denominationUnit === 'usd' ? 2 : getDecimalPlaces(szDecimals),
+        activeDenominationUnit === 'usd' ? 2 : getDecimalPlaces(szDecimals),
       acceptedDecimalSeparators: ['.', ','],
     }),
-    [denominationUnit, maxDigits, szDecimals],
+    [activeDenominationUnit, maxDigits, szDecimals],
   );
 
   const onChange = useCallback(
@@ -271,7 +287,8 @@ export const usePerpsProSizeInput = ({
         return;
       }
 
-      const previousValue = denominationUnit === 'usd' ? usdDraft : assetDraft;
+      const previousValue =
+        activeDenominationUnit === 'usd' ? usdDraft : assetDraft;
       const result = normalizeNumericTextInput(
         text,
         previousValue,
@@ -286,7 +303,7 @@ export const usePerpsProSizeInput = ({
       clearSliderPreview();
       clearSliderMaxIntent();
 
-      if (denominationUnit === 'usd') {
+      if (activeDenominationUnit === 'usd') {
         setUsdDraft(result.value);
         commitUsdAmount(result.value || '0');
         return;
@@ -305,7 +322,7 @@ export const usePerpsProSizeInput = ({
       clearSliderMaxIntent,
       clearSliderPreview,
       commitUsdAmount,
-      denominationUnit,
+      activeDenominationUnit,
       effectivePrice,
       inputOptions,
       keepSizeEmpty,
@@ -319,7 +336,7 @@ export const usePerpsProSizeInput = ({
       return;
     }
 
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       const finalizedDraft = finalizeNumericTextInput(usdDraft);
       setUsdDraft(finalizedDraft);
       commitUsdAmount(finalizedDraft || '0');
@@ -364,7 +381,7 @@ export const usePerpsProSizeInput = ({
     assetDraftState.source,
     canToggleDenomination,
     commitUsdAmount,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     szDecimals,
@@ -384,7 +401,7 @@ export const usePerpsProSizeInput = ({
     clearSliderPreview();
     clearSliderMaxIntent();
 
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
       setAssetDraftState({
         value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
@@ -403,7 +420,7 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     clearSliderPreview,
     commitUsdAmount,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     clearSliderMaxIntent,
@@ -420,7 +437,7 @@ export const usePerpsProSizeInput = ({
       return sliderPreview;
     }
 
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       return finalizeNumericTextInput(usdDraft) || '0';
     }
 
@@ -440,7 +457,7 @@ export const usePerpsProSizeInput = ({
     assetDraft,
     assetDraftState.source,
     canToggleDenomination,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     sliderPreview,
@@ -538,9 +555,9 @@ export const usePerpsProSizeInput = ({
     }
 
     if (sliderPreview === null) {
-      return denominationUnit === 'usd' ? usdDraft : assetDraft;
+      return activeDenominationUnit === 'usd' ? usdDraft : assetDraft;
     }
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       return sliderPreview;
     }
     if (canToggleDenomination) {
@@ -550,7 +567,7 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraft,
     canToggleDenomination,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     sliderPreview,
@@ -560,10 +577,10 @@ export const usePerpsProSizeInput = ({
 
   const denomination = useMemo<PerpsProSizeDenomination>(
     () =>
-      denominationUnit === 'usd'
+      activeDenominationUnit === 'usd'
         ? { unit: 'usd' }
         : { unit: 'asset', symbol: assetSymbol },
-    [assetSymbol, denominationUnit],
+    [activeDenominationUnit, assetSymbol],
   );
 
   const sizeInput = useMemo<PerpsProSizeInputModel>(

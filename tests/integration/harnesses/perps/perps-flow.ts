@@ -364,6 +364,8 @@ export function buildPerpsFlowHarness(
     ) => harness.provider.getAccountState(params),
     getOrders: (params?: Parameters<typeof harness.provider.getOrders>[0]) =>
       harness.provider.getOrders(params),
+    getChaseOrders: () => harness.provider.getChaseOrders(),
+    suspendChaseOrders: () => harness.provider.suspendChaseOrders(),
     calculateFees: (
       params: Parameters<typeof harness.provider.calculateFees>[0],
     ) => harness.provider.calculateFees(params),
@@ -384,6 +386,9 @@ export function buildPerpsFlowHarness(
     setSelectedPaymentToken: jest.fn(),
     savePendingTradeConfiguration: jest.fn(),
     clearPendingTradeConfiguration: jest.fn(),
+    setSelectedOrderType: jest.fn(),
+    setOrderBookPreferences: jest.fn(),
+    saveTradeConfiguration: jest.fn(),
   };
   installMockEngineContext();
 

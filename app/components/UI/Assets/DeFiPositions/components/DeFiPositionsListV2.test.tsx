@@ -75,6 +75,17 @@ jest.mock('./DeFiPositionsListItemV2', () => ({
   },
 }));
 
+jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
+  const { FlatList } = jest.requireActual('react-native');
+  return {
+    FlashList: ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<unknown>) =>
+        ReactActual.createElement(FlatList, { ...props, ref }),
+    ),
+  };
+});
+
 const mockInitialState = { engine: { backgroundState } };
 
 const makePosition = (
@@ -101,16 +112,10 @@ const makeHookResult = (
   ...overrides,
 });
 
-const renderComponent = (isFullView = true, analyticsSource?: string) =>
-  renderWithProvider(
-    <DeFiPositionsListV2
-      isFullView={isFullView}
-      analyticsSource={analyticsSource}
-    />,
-    {
-      state: mockInitialState,
-    },
-  );
+const renderComponent = (isFullView = true) =>
+  renderWithProvider(<DeFiPositionsListV2 isFullView={isFullView} />, {
+    state: mockInitialState,
+  });
 
 describe('DeFiPositionsListV2', () => {
   beforeEach(() => {
@@ -191,7 +196,16 @@ describe('DeFiPositionsListV2', () => {
   });
 
   it('renders the empty state when ready with no items', () => {
-    const { getByTestId, queryByTestId } = renderComponent();
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('defi-empty-state')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the empty state without a list when not in full view', () => {
+    const { getByTestId, queryByTestId } = renderComponent(false);
 
     expect(getByTestId('defi-empty-state')).toBeOnTheScreen();
     expect(
@@ -298,7 +312,7 @@ describe('DeFiPositionsListV2', () => {
     expect(items[1]).toContain('Zebra');
   });
 
-  it('renders a scroll view with pull-to-refresh in full view', () => {
+  it('renders FlashList with pull-to-refresh in full view', () => {
     mockUseDeFiPositionsV2.mockReturnValue(
       makeHookResult({
         positions: [makePosition({})],
@@ -307,9 +321,23 @@ describe('DeFiPositionsListV2', () => {
 
     const { getByTestId } = renderComponent(true);
 
+    const list = getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+    expect(list.props.refreshControl).toBeDefined();
+  });
+
+  it('does not attach pull-to-refresh when not in full view', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({
+        positions: [makePosition({})],
+      }),
+    );
+
+    const { getByTestId } = renderComponent(false);
+
     expect(
-      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW),
-    ).toBeOnTheScreen();
+      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST).props
+        .refreshControl,
+    ).toBeUndefined();
   });
 
   it('calls refresh when pulled to refresh in full view', async () => {
@@ -323,17 +351,15 @@ describe('DeFiPositionsListV2', () => {
 
     const { getByTestId } = renderComponent(true);
 
-    const scrollView = getByTestId(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
-    );
+    const list = getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
     await act(async () => {
-      await scrollView.props.refreshControl.props.onRefresh();
+      await list.props.refreshControl.props.onRefresh();
     });
 
     expect(refresh).toHaveBeenCalledTimes(1);
     await waitFor(() =>
       expect(
-        getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW).props
+        getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST).props
           .refreshControl.props.refreshing,
       ).toBe(false),
     );
@@ -379,24 +405,6 @@ describe('DeFiPositionsListV2', () => {
           location: 'homepage',
           is_empty: true,
           screen_type: 'defi',
-        })
-        .build(),
-    );
-  });
-
-  it('attributes the screen viewed event to the homepage balance breakdown', () => {
-    renderComponent(true, 'homescreen_balance_breakdown');
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.POSITION_SCREEN_VIEWED,
-      )
-        .addProperties({
-          item_count: 0,
-          location: 'homepage',
-          is_empty: true,
-          screen_type: 'defi',
-          source: 'homescreen_balance_breakdown',
         })
         .build(),
     );

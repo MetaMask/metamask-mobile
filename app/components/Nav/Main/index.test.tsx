@@ -1,12 +1,14 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import React from 'react';
 import { View } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Main from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 
 const mockReact = React;
 const mockView = View;
+const TestStack = createNativeStackNavigator();
 
 // Mock Ramp shell to avoid deep dependency graph in Main mount test
 jest.mock('../../../components/UI/Ramp', () => ({
@@ -94,11 +96,6 @@ jest.mock('../../UI/CliLoginPushNudge', () => ({
     mockReact.createElement('CliLoginPushNudgeListenerMock'),
 }));
 
-jest.mock('../../UI/ReviewModal', () => ({
-  __esModule: true,
-  default: () => mockReact.createElement('ReviewModalMock'),
-}));
-
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
   startIncomingTransactionPolling: jest.fn(),
@@ -110,16 +107,21 @@ describe('Main', () => {
     jest.clearAllMocks();
   });
 
-  it('mounts the main flow with mocked navigator and shell components', () => {
-    const { getByTestId } = renderWithProvider(<Main />, {
-      state: {
-        ...initialRootState,
-        user: {
-          ...initialRootState.user,
-          isConnectionRemoved: false,
+  it('mounts the main shell with mocked navigator and shell components', () => {
+    const { getByTestId } = renderWithProvider(
+      <TestStack.Navigator>
+        <TestStack.Screen name="HomeNav" component={Main} />
+      </TestStack.Navigator>,
+      {
+        state: {
+          ...initialRootState,
+          user: {
+            ...initialRootState.user,
+            isConnectionRemoved: false,
+          },
         },
       },
-    });
+    );
 
     expect(getByTestId('mocked-main-navigator')).toBeOnTheScreen();
   });

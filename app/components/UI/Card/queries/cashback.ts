@@ -4,6 +4,10 @@ import type {
   CashbackWalletResponse,
   CashbackWithdrawEstimationResponse,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  REDEEM_STALE_TIME_MS,
+  shouldRetryRedeemQuery,
+} from './redeemQueryDefaults';
 
 export const cashbackKeys = {
   all: () => ['card', 'cashback'] as const,
@@ -17,7 +21,8 @@ export const cashbackWalletOptions = () =>
     queryKey: cashbackKeys.wallet(),
     queryFn: async (): Promise<CashbackWalletResponse> =>
       Engine.context.CardController.getCashbackWallet(),
-    staleTime: 0,
+    staleTime: REDEEM_STALE_TIME_MS,
+    retry: shouldRetryRedeemQuery,
   });
 
 export const cashbackWithdrawEstimationOptions = () =>
@@ -26,5 +31,6 @@ export const cashbackWithdrawEstimationOptions = () =>
     queryFn: async (): Promise<CashbackWithdrawEstimationResponse> =>
       Engine.context.CardController.getCashbackWithdrawEstimation(),
     enabled: false,
-    staleTime: 0,
+    staleTime: REDEEM_STALE_TIME_MS,
+    retry: shouldRetryRedeemQuery,
   });

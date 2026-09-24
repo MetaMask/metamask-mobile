@@ -8,10 +8,10 @@ import {
 } from '../../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import type { CurrentDeviceDetails } from './types.ts';
 
-const logger = createPlaywrightLogger('currentDeviceDetails');
+const logger = createAppiumLogger('currentDeviceDetails');
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (

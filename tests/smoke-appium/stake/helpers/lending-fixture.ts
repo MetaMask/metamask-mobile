@@ -243,10 +243,9 @@ export async function createLendingFixture(
       toChecksumHexAddress(AAVE_USDC_OUTPUT_TOKEN),
       0.000333,
     )
-    .withMusdConversion({
+    .withMainnetUsdcBalance({
       hasUsdcBalance: true,
       usdcBalance,
-      musdConversionEducationSeen: true,
     })
     .build();
 

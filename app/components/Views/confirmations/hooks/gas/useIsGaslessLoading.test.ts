@@ -128,7 +128,7 @@ describe('useIsGaslessLoading', () => {
     expect(result.isGaslessLoading).toBe(false);
   });
 
-  it('returns false if gas fee tokens is an empty array', async () => {
+  it('returns true if gas fee tokens is an empty array', async () => {
     const result = await runHook({
       simulationEnabled: true,
       gaslessSupported: true,
@@ -136,7 +136,7 @@ describe('useIsGaslessLoading', () => {
       gasFeeTokens: [],
     });
 
-    expect(result.isGaslessLoading).toBe(false);
+    expect(result.isGaslessLoading).toBe(true);
   });
 
   it('returns false if gas fee tokens are present and dont match selectedGasFeeToken (non-reg)', async () => {

@@ -9,7 +9,7 @@ import {
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import {
   DappServer,
   DappVariants,
@@ -19,9 +19,8 @@ import {
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -41,15 +40,11 @@ const playgroundServer = new DappServer({
 // Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
 appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
   appiumTest.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Test steps (in order):
@@ -90,7 +85,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       const platform = currentDeviceDetails.platform;
       const DAPP_URL = getDappUrlForBrowser(platform);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -98,11 +93,11 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       });
       await sleep(5000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapConnectButton({
@@ -115,17 +110,17 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         // Purposely not interacting with the approval but we still spend some time
         // on the app
@@ -136,23 +131,23 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await refreshMobileBrowser();
       });
       await sleep(2000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(false);
       }, DAPP_URL);
 
       await sleep(10000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(false);
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton({
           shouldCooldown: true,
@@ -164,7 +159,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       }, DAPP_URL);
@@ -173,7 +168,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       // Read-only method should hit rpc endpoint instead of wallet
       //
       await Gestures.terminateApp(currentDeviceDetails);
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapGetBalance();
         await sleep(10000);
         // Balance response should contain "Balance:" prefix
@@ -184,7 +179,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       // Reset dapp state
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

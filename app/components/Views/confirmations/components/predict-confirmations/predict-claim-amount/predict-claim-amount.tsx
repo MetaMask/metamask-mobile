@@ -36,7 +36,7 @@ export function PredictClaimAmount() {
     selectPredictWinPnl(state, selectedAddress),
   );
 
-  if (!(winningsFiat && winningsPnl)) {
+  if (!winningsFiat) {
     return null;
   }
 
@@ -44,9 +44,13 @@ export function PredictClaimAmount() {
     maximumDecimals: 2,
   });
 
-  const formattedWinningsPnl = `+${formatPrice(winningsPnl, {
-    maximumDecimals: 2,
-  })} (${formatPercentage((winningsPnl / winningsFiat) * 100)})`;
+  // A push bought above 50c is claimable but pays back less than it cost, so
+  // the net P&L can be negative. Sign it by value like the sell preview does.
+  const isLoss = winningsPnl < 0;
+  const formattedWinningsPnl = `${isLoss ? '-' : '+'}${formatPrice(
+    Math.abs(winningsPnl),
+    { maximumDecimals: 2 },
+  )} (${formatPercentage((winningsPnl / winningsFiat) * 100)})`;
 
   return (
     <Box
@@ -63,14 +67,16 @@ export function PredictClaimAmount() {
       >
         {formattedWinningsFiat}
       </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.SuccessDefault}
-        style={styles.change}
-      >
-        {formattedWinningsPnl}
-      </Text>
+      {winningsPnl !== 0 && (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={isLoss ? TextColor.ErrorDefault : TextColor.SuccessDefault}
+          style={styles.change}
+        >
+          {formattedWinningsPnl}
+        </Text>
+      )}
     </Box>
   );
 }

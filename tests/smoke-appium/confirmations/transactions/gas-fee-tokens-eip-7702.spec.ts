@@ -340,10 +340,6 @@ appiumTest.describe.skip(
 
             await FooterActions.tapConfirmButton();
             await TabBarComponent.tapActivity();
-
-            await Assertions.expectTextDisplayed('Confirmed', {
-              description: 'Activity status Confirmed',
-            });
           },
         );
       },

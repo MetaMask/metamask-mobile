@@ -1,11 +1,26 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Routes from '../../../../../constants/navigation/Routes';
+import {
+  PRODUCT_TYPES,
+  type Subscription,
+} from '@metamask/subscription-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
+import { strings } from '../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
+import {
+  buildPostCancellationResetState,
+  CANCELLATION_TIMINGS,
+  formatCancellationEndDate,
+  getCancellationTiming,
+  toCancellationReason,
+  type CancellationTiming,
+} from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelSuccessStep from './components/CancelSuccessStep';
 
@@ -16,67 +31,145 @@ const CancelMembership = () => {
   const tw = useTailwind();
   const [step, setStep] = useState<CancelStep>('survey');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
+  const [stayFeedback, setStayFeedback] = useState('');
+  const [otherReasonText, setOtherReasonText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cancelledSubscription, setCancelledSubscription] = useState<{
+    timing: CancellationTiming;
+    endDate: string;
+  } | null>(null);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
+    if (isSubmitting) return;
     navigation.goBack();
-  }, [navigation]);
+  }, [isSubmitting, navigation]);
 
   const handleKeepMembership = useCallback(() => {
+    if (isSubmitting) return;
     navigation.goBack();
-  }, [navigation]);
+  }, [isSubmitting, navigation]);
 
-  const handleCancelConfirm = useCallback(() => {
-    setStep('success');
-  }, []);
+  const handleCancelConfirm = useCallback(async () => {
+    if (isSubmitting) return;
+
+    const controller = Engine.context.SubscriptionController;
+    const subscription: Subscription | undefined =
+      controller.getSubscriptionByProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+    const timing = subscription
+      ? getCancellationTiming(subscription.cancelType)
+      : undefined;
+
+    if (!subscription || !timing) {
+      setErrorMessage(
+        strings('pro_hub.cancel_membership.cancellation_unavailable'),
+      );
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const cancellationReason = toCancellationReason(selectedReasonId);
+
+      await controller.cancelSubscription({
+        subscriptionId: subscription.id,
+        cancelAtPeriodEnd: timing === CANCELLATION_TIMINGS.PERIOD_END,
+        ...(cancellationReason ? { cancellationReason } : {}),
+      });
+
+      setCancelledSubscription({
+        timing,
+        endDate: formatCancellationEndDate(subscription.currentPeriodEnd),
+      });
+      setStep('success');
+    } catch (error) {
+      Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
+        tags: {
+          feature: 'money_account_plus',
+          operation: 'cancel_subscription',
+        },
+      });
+      setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, selectedReasonId]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
   }, []);
 
+  const handleStayFeedbackChange = useCallback((value: string) => {
+    setStayFeedback(value);
+  }, []);
+
+  const handleOtherReasonChange = useCallback((value: string) => {
+    setOtherReasonText(value);
+  }, []);
+
   const handleDone = useCallback(() => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    navigation.navigate(Routes.PRO_HUB.ROOT, {
-      source: 'pro_subscription_cancellation_success',
-    });
-  }, [navigation]);
+    // Reset instead of navigate so the stale cancel and membership screens are
+    // removed. Period-end cancellation keeps Pro Hub above the origin screen;
+    // immediate cancellation returns directly to the origin.
+    navigation.dispatch((state) =>
+      CommonActions.reset(
+        buildPostCancellationResetState(
+          state,
+          cancelledSubscription?.timing === CANCELLATION_TIMINGS.PERIOD_END,
+        ),
+      ),
+    );
+  }, [cancelledSubscription?.timing, navigation]);
 
-  // Once the membership is cancelled (success step), disable iOS swipe-back
-  // so the user cannot accidentally return to the now-stale Membership screen.
-  useEffect(() => {
-    navigation.setOptions({ gestureEnabled: step !== 'success' });
-  }, [navigation, step]);
+  // Leaving is blocked while the cancel request is in flight (it would still
+  // cancel the membership but skip the success step) and once the membership
+  // is cancelled (the Membership screen below is now stale).
+  const isLeaveBlocked = isSubmitting || step === 'success';
 
-  // Intercept any navigation attempt that would remove this screen while
-  // on the success step. Covers programmatic goBack() and acts as
-  // defense-in-depth alongside the disabled gesture.
+  // Disable iOS swipe-back so the user cannot leave by gesture.
   useEffect(() => {
-    if (step !== 'success') {
+    navigation.setOptions({ gestureEnabled: !isLeaveBlocked });
+  }, [navigation, isLeaveBlocked]);
+
+  // Intercept any navigation attempt that would remove this screen. Covers
+  // programmatic goBack() and acts as defense-in-depth alongside the disabled
+  // gesture.
+  useEffect(() => {
+    if (!isLeaveBlocked) {
       return undefined;
     }
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (isNavigatingRef.current) return;
       e.preventDefault();
-      handleDone();
+      if (step === 'success') {
+        handleDone();
+      }
     });
     return () => unsubscribe();
-  }, [step, navigation, handleDone]);
+  }, [isLeaveBlocked, step, navigation, handleDone]);
 
-  // Android hardware back button: redirect to handleDone on the success step.
+  // Android hardware back button: swallow it while submitting, and redirect to
+  // handleDone on the success step.
   useEffect(() => {
-    if (step !== 'success') {
+    if (!isLeaveBlocked) {
       return undefined;
     }
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        handleDone();
+        if (step === 'success') {
+          handleDone();
+        }
         return true;
       },
     );
     return () => subscription.remove();
-  }, [step, handleDone]);
+  }, [isLeaveBlocked, step, handleDone]);
 
   return (
     <SafeAreaView
@@ -87,13 +180,25 @@ const CancelMembership = () => {
       {step === 'survey' ? (
         <CancelSurveyStep
           selectedReasonId={selectedReasonId}
+          stayFeedback={stayFeedback}
+          otherReasonText={otherReasonText}
           onReasonSelect={handleReasonSelect}
+          onStayFeedbackChange={handleStayFeedbackChange}
+          onOtherReasonChange={handleOtherReasonChange}
           onBack={handleBack}
           onKeepMembership={handleKeepMembership}
           onCancelConfirm={handleCancelConfirm}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
         />
       ) : (
-        <CancelSuccessStep onDone={handleDone} />
+        cancelledSubscription && (
+          <CancelSuccessStep
+            onDone={handleDone}
+            timing={cancelledSubscription.timing}
+            cancellationEndDate={cancelledSubscription.endDate}
+          />
+        )
       )}
     </SafeAreaView>
   );

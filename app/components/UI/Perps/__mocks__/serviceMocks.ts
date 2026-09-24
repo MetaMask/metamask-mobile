@@ -9,8 +9,11 @@ import {
   type InitializationState,
   type PerpsControllerMessenger,
   type PerpsPlatformDependencies,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
   DEFAULT_PERPS_MODE,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_SELECTED_ORDER_TYPE,
+  VISIBLE_CANDLE_COUNT_CONFIG,
 } from '@metamask/perps-controller';
 
 /**
@@ -166,6 +169,9 @@ export const createMockPerpsControllerState = (
   cachedUserDataByProvider: {},
   mode: DEFAULT_PERPS_MODE,
   proLayoutPreferences: DEFAULT_PRO_LAYOUT_PREFERENCES,
+  orderBookPreferences: DEFAULT_ORDER_BOOK_PREFERENCES,
+  selectedOrderType: DEFAULT_SELECTED_ORDER_TYPE,
+  visibleCandleCount: VISIBLE_CANDLE_COUNT_CONFIG.Default,
   ...overrides,
 });
 

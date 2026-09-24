@@ -124,6 +124,7 @@ import {
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
+  resolveCommittedDocumentUrl,
 } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -162,12 +163,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
+    fromExploreSearch,
     fromPerps,
     fromBenefit,
     fromCard,
     fromWhatsHappening,
     fromMarketInsights,
     fromMoney,
+    fromEarnStrategySelection,
   }) => {
     // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
     'use no memo';
@@ -841,6 +844,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Resolves the URL bar from a document URL reported by the WebView after a
      * back/forward navigation. Only the message matching the pending request is
      * applied; messages without a matching request are ignored.
+     *
+     * Same-origin document URLs are used so SPA path updates still apply.
+     * Otherwise the navigation event URL is used.
      */
     const handleDocumentUrlForUrlBar = useCallback(
       (payload: unknown) => {
@@ -855,9 +861,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         pendingBackForwardNavRef.current = null;
 
+        const committedUrl = resolveCommittedDocumentUrl(
+          pendingNav.url,
+          payload.url,
+        );
+
+        if (!committedUrl) {
+          Logger.log(
+            `Skipping back/forward address bar update. Navigation: ${pendingNav.url} Document: ${payload.url}`,
+          );
+          return;
+        }
+
+        const usedPageReportedUrl = committedUrl === payload.url;
+        if (!usedPageReportedUrl) {
+          Logger.log(
+            `Using navigation URL for address bar. Navigation: ${pendingNav.url} Document: ${payload.url}`,
+          );
+        }
+
         handleSuccessfulPageResolution({
-          title: payload.title ?? titleRef.current,
-          url: payload.url,
+          title: usedPageReportedUrl
+            ? (payload.title ?? pendingNav.title ?? titleRef.current)
+            : (pendingNav.title ?? titleRef.current),
+          url: committedUrl,
           icon: favicon,
           canGoBack: pendingNav.canGoBack,
           canGoForward: pendingNav.canGoForward,
@@ -1473,7 +1500,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
 
     const handleClosePress = useCallback(() => {
-      if (fromPerps) {
+      if (fromExploreSearch) {
+        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+      } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {
         navigation.goBack();
@@ -1490,6 +1519,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromMarketInsights) {
         // MarketInsightsView is in the stack navigator so goBack() works correctly.
         navigation.goBack();
+      } else if (fromEarnStrategySelection) {
+        navigation.goBack();
       } else if (fromMoney) {
         navigation.navigate(
           Routes.HOME_TABS,
@@ -1500,22 +1531,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           { pop: true },
         );
       } else {
-        // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser
         // is a separate tab in the Tab Navigator, and goBack() doesn't properly
         // navigate back between tabs.
-        navigation.navigate(Routes.TRENDING_VIEW, {
-          screen: Routes.TRENDING_FEED,
-        });
+        navigation.navigate(Routes.TRENDING_VIEW);
       }
     }, [
       navigation,
       navigateToPerpsHome,
+      fromExploreSearch,
       fromPerps,
       fromBenefit,
       fromCard,
       fromWhatsHappening,
       fromMarketInsights,
+      fromEarnStrategySelection,
       fromMoney,
     ]);
 
@@ -1605,11 +1635,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
 
+          if (!url) {
+            return;
+          }
+
           // Sync the URL bar from the document; navigation events are not always
           // aligned with window.location after back/forward transitions.
           const requestId = createRequestId();
           pendingBackForwardNavRef.current = {
             requestId,
+            url,
+            title,
             canGoBack,
             canGoForward,
           };

@@ -17,9 +17,17 @@ export { isSessionAlive, switchToNativeContext } from './sessionHealth.ts';
 export {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
+  recreateSharedSessionNow,
   requestSharedSessionRecreate,
   resetSharedSessionRecreateState,
+  setSharedSessionRecreateHandler,
+  type SharedSessionRecreateHandler,
 } from './sessionRecovery.ts';
+export {
+  isAdbTransportFault,
+  withAdbHostLock,
+  withAdbHostLockSync,
+} from './adbHostLock.ts';
 export {
   softReloadAppForFixtures,
   type SoftReloadAppForFixturesOptions,

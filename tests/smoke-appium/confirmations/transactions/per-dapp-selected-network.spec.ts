@@ -126,9 +126,6 @@ appiumTest.describe.skip(SmokeConfirmations('Dapp Network Switching'), () => {
           await selectCustomNetworkFromNetworkManager(LOCAL_CHAIN_NAME);
 
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Confirmed', {
-            description: 'Activity status Confirmed',
-          });
         },
       );
     },

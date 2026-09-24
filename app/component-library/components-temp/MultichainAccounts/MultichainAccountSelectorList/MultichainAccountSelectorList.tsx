@@ -19,7 +19,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../hooks';
-import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
@@ -65,6 +65,15 @@ const keyExtractor = (
   }
 };
 
+const renderListSlot = (
+  slot: MultichainAccountSelectorListProps['ListHeaderComponent'],
+) => {
+  if (!slot) {
+    return null;
+  }
+  return React.isValidElement(slot) ? slot : React.createElement(slot);
+};
+
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -76,13 +85,18 @@ const MultichainAccountSelectorList = ({
   accountSections: accountSectionsProp,
   chainId,
   hideAccountCellMenu = false,
+  hideSearch = false,
+  onSearchFocus,
+  onSearchSettled,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
-  const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
+  const accountSectionsFromSelector = useSelector(
+    selectVisibleAccountGroupsByWallet,
+  );
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
@@ -180,6 +194,12 @@ const MultichainAccountSelectorList = ({
     [debouncedSearchText],
   );
 
+  useEffect(() => {
+    if (trimmedSearchText) {
+      onSearchSettled?.(trimmedSearchText);
+    }
+  }, [trimmedSearchText, onSearchSettled]);
+
   const shouldShowExternalAccount = useMemo(
     () =>
       Boolean(trimmedSearchText) &&
@@ -256,6 +276,9 @@ const MultichainAccountSelectorList = ({
 
   // Scroll to selected item on initial mount
   useEffect(() => {
+    if (props.ListHeaderComponent) {
+      return undefined;
+    }
     if (
       !hasScrolledToSelected.current &&
       listRefToUse.current &&
@@ -280,7 +303,13 @@ const MultichainAccountSelectorList = ({
       }
       hasScrolledToSelected.current = true;
     }
-  }, [flattenedData, selectedAccountGroups, listRefToUse]);
+    return undefined;
+  }, [
+    props.ListHeaderComponent,
+    flattenedData,
+    selectedAccountGroups,
+    listRefToUse,
+  ]);
 
   // Reset scroll to top when search text changes
   useEffect(() => {
@@ -428,42 +457,49 @@ const MultichainAccountSelectorList = ({
 
   return (
     <>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchText}
-          onChangeText={setSearchText}
-          onPressClearButton={() => setSearchText('')}
-          placeholder={strings('accounts.search_your_accounts')}
-          inputProps={{
-            testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
-          }}
-          autoFocus={false}
-          isError={shouldShowInvalidAddressError}
-        />
-        {shouldShowInvalidAddressError ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={styles.searchErrorText}
-            testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
-          >
-            {strings('bridge.invalid_recipient_address')}
-          </Text>
-        ) : null}
-      </View>
+      {hideSearch ? null : (
+        <View style={styles.searchContainer}>
+          <TextFieldSearch
+            value={searchText}
+            onChangeText={setSearchText}
+            onFocus={onSearchFocus}
+            onPressClearButton={() => setSearchText('')}
+            placeholder={strings('accounts.search_your_accounts')}
+            inputProps={{
+              testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+            }}
+            autoFocus={false}
+            isError={shouldShowInvalidAddressError}
+          />
+          {shouldShowInvalidAddressError ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={styles.searchErrorText}
+              testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
+            >
+              {strings('bridge.invalid_recipient_address')}
+            </Text>
+          ) : null}
+        </View>
+      )}
       <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (
-          <View
-            style={styles.emptyState}
-            testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextMuted}
-              style={styles.emptyStateText}
+          <View style={styles.emptyStateColumn}>
+            {renderListSlot(props.ListHeaderComponent)}
+            <View
+              style={styles.emptyState}
+              testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
             >
-              {emptyStateText}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextMuted}
+                style={styles.emptyStateText}
+              >
+                {emptyStateText}
+              </Text>
+            </View>
+            {renderListSlot(props.ListFooterComponent)}
           </View>
         ) : (
           <FlashList

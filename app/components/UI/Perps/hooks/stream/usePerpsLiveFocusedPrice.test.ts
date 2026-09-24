@@ -4,11 +4,20 @@ import { type PriceUpdate } from '@metamask/perps-controller';
 
 // Mock the entire PerpsStreamManager provider so we control stream.focusedPrice
 const mockSubscribeToSymbol = jest.fn();
+const mockStream = {
+  focusedPrice: {
+    subscribeToSymbol: mockSubscribeToSymbol,
+  },
+};
+let mockMarketContextKey = 'testnet|hyperliquid|1';
+let mockIsMarketContextReady = true;
 jest.mock('../../providers/PerpsStreamManager', () => ({
-  usePerpsStream: () => ({
-    focusedPrice: {
-      subscribeToSymbol: mockSubscribeToSymbol,
-    },
+  usePerpsStream: () => mockStream,
+}));
+jest.mock('../usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: mockMarketContextKey,
+    isReady: mockIsMarketContextReady,
   }),
 }));
 
@@ -24,6 +33,8 @@ describe('usePerpsLiveFocusedPrice', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMarketContextKey = 'testnet|hyperliquid|1';
+    mockIsMarketContextReady = true;
     mockSubscribeToSymbol.mockReturnValue(jest.fn());
   });
 
@@ -76,6 +87,52 @@ describe('usePerpsLiveFocusedPrice', () => {
       expect(mockSubscribeToSymbol).toHaveBeenLastCalledWith(
         expect.objectContaining({ symbol: 'ETH' }),
       );
+    });
+
+    it('clears the price and resubscribes for a new market context', () => {
+      let capturedCallback: (update: PriceUpdate | undefined) => void =
+        jest.fn();
+      const mockInitialUnsubscribe = jest.fn();
+      const mockNextUnsubscribe = jest.fn();
+      mockSubscribeToSymbol.mockImplementation(
+        (params: { callback: (update: PriceUpdate | undefined) => void }) => {
+          capturedCallback = params.callback;
+          return mockSubscribeToSymbol.mock.calls.length === 1
+            ? mockInitialUnsubscribe
+            : mockNextUnsubscribe;
+        },
+      );
+      const { result, rerender } = renderHook(() =>
+        usePerpsLiveFocusedPrice({ symbol: 'BTC' }),
+      );
+      act(() => capturedCallback(mockPriceUpdate));
+
+      mockMarketContextKey = 'mainnet|hyperliquid|1';
+      rerender({});
+
+      expect(result.current).toBeUndefined();
+      expect(mockInitialUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockNextUnsubscribe).not.toHaveBeenCalled();
+      expect(mockSubscribeToSymbol).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for the selected market context before resubscribing', () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToSymbol.mockReturnValue(mockUnsubscribe);
+      const { rerender } = renderHook(() =>
+        usePerpsLiveFocusedPrice({ symbol: 'BTC' }),
+      );
+
+      mockIsMarketContextReady = false;
+      rerender({});
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToSymbol).toHaveBeenCalledTimes(1);
+
+      mockIsMarketContextReady = true;
+      rerender({});
+
+      expect(mockSubscribeToSymbol).toHaveBeenCalledTimes(2);
     });
   });
 

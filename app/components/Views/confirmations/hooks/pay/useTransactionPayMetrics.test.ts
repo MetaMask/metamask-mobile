@@ -40,9 +40,19 @@ import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { PaymentMethod } from '@metamask/ramps-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+import { getAddressAccountType } from '../../../../../util/address';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { PayWithOption } from '../../components/confirm/confirm-component';
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
+}));
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../transactions/useTransactionAccountOverride');
+jest.mock('../transactions/useTransactionPayingAccount');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../pay/useTransactionPayData');
@@ -53,6 +63,7 @@ jest.mock('../../../../UI/Predict/selectors/predictController');
 jest.mock('./useIsMoneyAccountFlagDefault');
 jest.mock('./useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('./useFiatPaymentHighlightedActions');
+jest.mock('../../../../../util/address');
 
 const mockSelectConfirmationMetricsById = jest.fn();
 
@@ -65,6 +76,7 @@ jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
 
 const CHAIN_ID_MOCK = '0x1';
 const TOKEN_AMOUNT_MOCK = '1.23';
+const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
 
 const PAY_TOKEN_MOCK = {
   address: tokenAddress1Mock,
@@ -139,6 +151,11 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
   );
+  const useTransactionPayingAccountMock = jest.mocked(
+    useTransactionPayingAccount,
+  );
+  const getAddressAccountTypeMock = jest.mocked(getAddressAccountType);
+  const useParamsMock = jest.mocked(useParams);
   const useIsTransactionPayQuoteLoadingMock = jest.mocked(
     useIsTransactionPayQuoteLoading,
   );
@@ -188,9 +205,12 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    useTransactionPayingAccountMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+    getAddressAccountTypeMock.mockReturnValue('MetaMask');
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
     useTransactionPayQuoteErrorMock.mockReturnValue(undefined);
+    useParamsMock.mockReturnValue({});
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -799,8 +819,11 @@ describe('useTransactionPayMetrics', () => {
       } as ReturnType<typeof useTransactionPayToken>);
     });
 
-    it('defaults to crypto when no override is active', async () => {
-      runHook();
+    it('tracks Ledger when a Ledger account pays', async () => {
+      useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+      getAddressAccountTypeMock.mockReturnValue('Ledger');
+
+      runHook({ type: TransactionType.moneyAccountDeposit });
 
       await act(async () => noop());
 
@@ -808,8 +831,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_account_type_source_presented: 'crypto',
-            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_account_type_source_presented: 'Ledger',
+            mm_pay_account_type_source_selected: 'Ledger',
             mm_pay_source_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
@@ -874,7 +897,7 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is crypto when perps balance selected but not perpsDepositAndOrder', async () => {
+    it('uses the account type when perps balance is unused', async () => {
       useIsPerpsBalanceSelectedMock.mockReturnValue(true);
 
       runHook({ type: TransactionType.perpsDeposit });
@@ -885,7 +908,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_account_type_source_selected: 'metamask',
           }),
           sensitiveProperties: {},
         },
@@ -968,8 +991,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_account_type_source_presented: 'crypto',
-            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_account_type_source_presented: 'metamask',
+            mm_pay_account_type_source_selected: 'metamask',
             mm_pay_source_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
@@ -986,7 +1009,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_presented: 'metamask',
             mm_pay_account_type_source_selected: 'money-account',
             mm_pay_source_mm_account_switch_count: 1,
           }),
@@ -1329,21 +1352,33 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is money_hub for musdConversion', async () => {
-      runHook({ type: TransactionType.musdConversion });
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])(
+      'is money_account for %s started from the Money account UI',
+      async (type) => {
+        useParamsMock.mockReturnValue({
+          payWithOption: PayWithOption.MoneyAccount,
+        });
 
-      await act(async () => noop());
+        runHook({ type });
 
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_entry_point: 'money_hub',
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
+        await act(async () => noop());
+
+        expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+          id: transactionIdMock,
+          params: {
+            properties: expect.objectContaining({
+              mm_pay_entry_point: 'money_account',
+            }),
+            sensitiveProperties: {},
+          },
+        });
+      },
+    );
 
     it('is null for unrecognized transaction types', async () => {
       runHook({ type: TransactionType.simpleSend });
@@ -1391,20 +1426,13 @@ describe('useTransactionPayMetrics', () => {
       );
     }
 
-    it('dispatches confirmation_time_to_open_ms immediately on mount', async () => {
+    it('does not dispatch confirmation_time_to_open_ms, which useConfirmationLoadMetrics owns', async () => {
       jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
 
       runHook({ type: TransactionType.perpsDeposit });
       await act(async () => noop());
 
-      const calls = timingDispatches('confirmation_time_to_open_ms');
-      expect(calls).toHaveLength(1);
-      expect(calls[0][0]).toEqual({
-        id: transactionIdMock,
-        params: {
-          properties: { confirmation_time_to_open_ms: 1000 },
-        },
-      });
+      expect(timingDispatches('confirmation_time_to_open_ms')).toHaveLength(0);
     });
 
     it('dispatches confirmation_time_to_load_info_ms when pay token loads', async () => {
@@ -1474,7 +1502,6 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      expect(timingDispatches('confirmation_time_to_open_ms')).toHaveLength(1);
       expect(
         timingDispatches('confirmation_time_to_load_info_ms'),
       ).toHaveLength(1);

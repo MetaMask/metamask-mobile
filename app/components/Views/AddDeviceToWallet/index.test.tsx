@@ -6,24 +6,10 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
-import {
-  QrSyncOperations,
-  QrSyncSurfaces,
-  QrSyncTelemetrySources,
-  reportQrSyncFailure,
-} from '../../../core/QrSync/qrSyncTelemetry';
-
-jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
-  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
-  reportQrSyncFailure: jest.fn(),
-}));
-
-const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -33,28 +19,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
-jest.mock(
-  '../../../images/add_wallet_to_device.png',
-  () => 'add_wallet_to_device_image',
-);
-
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    QrSyncController: {
-      cancelSession: jest.fn(),
-      handleScannedQrPayload: jest.fn(),
-      resetState: jest.fn(),
-    },
-  },
+  context: {},
 }));
-
-import Engine from '../../../core/Engine';
-
-const mockCancelSession = Engine.context.QrSyncController
-  .cancelSession as jest.Mock;
-const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
-const mockHandleScannedQrPayload = Engine.context.QrSyncController
-  .handleScannedQrPayload as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -79,33 +46,25 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ActualReact = jest.requireActual('react');
-    const { Pressable } = jest.requireActual('react-native');
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
-    return {
-      __esModule: true,
-      default: jest.fn(
-        ({ onBack }: { onBack?: () => void; includesTopInset?: boolean }) =>
-          ActualReact.createElement(Pressable, {
-            testID: 'button-icon',
-            onPress: onBack,
-            accessibilityRole: 'button',
-          }),
-      ),
-    };
-  },
-);
-
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+const mockHandleScannedQrPayload = jest.fn();
+const mockResetState = jest.fn();
 
 const renderComponent = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
   completedOnboarding = false,
 ) =>
   renderWithProvider(<AddDeviceToWallet />, {
+    routeMessenger: createMockRouteMessenger({
+      'QrSyncController:resetState': mockResetState,
+      'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
+      'QrSyncController:importRemainingSecrets': jest.fn(),
+      'QrSyncController:hasPendingSecretImports': jest
+        .fn()
+        .mockResolvedValue(false),
+      'KeyringController:getAccounts': jest.fn().mockResolvedValue([]),
+    }),
     state: {
       engine: {
         backgroundState: {
@@ -128,13 +87,10 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('initial render', () => {
-    it('applies top safe-area inset to the header so the back button is tappable on iOS', () => {
-      renderComponent();
+    it('renders the back button', () => {
+      const { getByTestId } = renderComponent();
 
-      expect(HeaderCompactStandard).toHaveBeenCalledWith(
-        expect.objectContaining({ includesTopInset: true }),
-        undefined,
-      );
+      expect(getByTestId('button-icon')).toBeOnTheScreen();
     });
 
     it('renders the page heading', () => {
@@ -211,23 +167,27 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('back navigation', () => {
-    it('calls navigation.goBack when back button is pressed', () => {
+    it('calls navigation.goBack when back button is pressed', async () => {
       const { getByTestId } = renderComponent();
 
       fireEvent.press(getByTestId('button-icon'));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
     });
 
-    it('resets QR sync state when back is pressed during an active session', () => {
+    it('resets QR sync state when back is pressed during an active session', async () => {
       const { getByTestId } = renderComponent({
         phase: QrSyncPhases.DISPLAYING_OTP,
       });
 
       fireEvent.press(getByTestId('button-icon'));
 
-      expect(mockResetState).toHaveBeenCalledTimes(1);
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
+      });
     });
   });
 
@@ -242,7 +202,7 @@ describe('AddDeviceToWallet', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('resets a stale QR sync session before opening the scanner', () => {
+    it('resets a stale QR sync session before opening the scanner', async () => {
       mockIsQrTabSwitcherOpen = true;
 
       const { getByText } = renderComponent({
@@ -253,8 +213,10 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.scan_qr_code_button')),
       );
 
-      expect(mockResetState).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalled();
+      });
     });
 
     it('navigates to the QR scanner with Scanner screen and tabber disabled', () => {
@@ -270,37 +232,9 @@ describe('AddDeviceToWallet', () => {
           initialScreen: 'Scanner',
           disableTabber: true,
           origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-          onScanSuccess: expect.any(Function),
         }),
       );
-    });
-
-    it('reports scan submit failures to Sentry', async () => {
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('scan submit failed'),
-      );
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const onScanSuccess = mockNavigate.mock.calls[0][1].onScanSuccess as (
-        data: { content?: string },
-        content?: string,
-      ) => void;
-      onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
-
-      await waitFor(() => {
-        expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-          expect.any(Error),
-          {
-            surface: QrSyncSurfaces.SCANNER,
-            operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-            source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
-          },
-        );
-      });
+      expect(mockNavigate.mock.calls[0][1].onScanSuccess).toBeUndefined();
     });
   });
 
@@ -361,14 +295,24 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        value: 'word1 word2 word3',
-        type: QrSyncSecretTypes.MNEMONIC,
-        isPrimary: true,
-      },
-    ];
+    const pendingSecretImports = {
+      version: 1 as const,
+      wallets: [
+        {
+          id: 'wallet:test' as `wallet:${string}`,
+          type: 'mnemonic' as const,
+          value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+          metadata: { name: 'Wallet 1' },
+          groups: [
+            {
+              id: 'wallet:test/0' as `wallet:${string}/${string}`,
+              groupIndex: 0,
+              metadata: { name: 'Account 1', pinned: false, hidden: false },
+            },
+          ],
+        },
+      ],
+    };
 
     it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({

@@ -11,13 +11,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   Box,
   Label,
   TextColor,
   Text,
   TextVariant,
-  FontWeight,
   TextField,
   Button,
   ButtonVariant,
@@ -25,10 +26,13 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
+  TitleStandard,
+  TextButton,
+  BottomSheetFooter,
 } from '@metamask/design-system-react-native';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import Engine from '../../../core/Engine';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import SecureContentView from '../../UI/SecureContentView';
@@ -86,6 +90,13 @@ const ManualBackupStep1 = () => {
 
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.MANUAL_BACKUP_STEP1,
+    contentReady: true,
+    isEmpty: false,
+    fullyDisplayed: ready,
+  });
 
   const steps = MANUAL_BACKUP_STEPS;
 
@@ -163,10 +174,12 @@ const ManualBackupStep1 = () => {
       }
 
       if (exportError) {
-        const srpRecoveryError = new Error(
-          'Error trying to recover SRP from keyring-controller',
+        trackErrorAsAnalytics(
+          'ManualBackupStep1: SRP recovery failed',
+          exportError instanceof Error
+            ? exportError.message
+            : JSON.stringify(exportError),
         );
-        Logger.error(srpRecoveryError);
       }
 
       setView(CONFIRM_PASSWORD);
@@ -325,87 +338,83 @@ const ManualBackupStep1 = () => {
     </KeyboardAvoidingView>
   );
 
+  const showRemindLaterButton = !hasFunds && !backupFlow && !settingsBackup;
+
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
       <Box
         twClassName="flex-1 flex-col gap-4"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-          {strings('manual_backup_step_1.action')}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('manual_backup_step_1.info-1')}{' '}
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.PrimaryDefault}
+        <Box gap={1}>
+          <TitleStandard
+            title={strings('manual_backup_step_1.action')}
+            bottomLabel={strings('manual_backup_step_1.description')}
+          />
+          <TextButton
+            variant={TextVariant.BodySm}
             onPress={showWhatIsSeedphrase}
+            testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
           >
-            {strings('manual_backup_step_1.info-2')}{' '}
-          </Text>
-          {strings('manual_backup_step_1.info-3')}{' '}
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('manual_backup_step_1.info-4')}
-          </Text>
-        </Text>
+            {strings('manual_backup_step_1.what_is_srp')}
+          </TextButton>
+        </Box>
         {seedPhraseHidden ? (
           <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
           <SecureContentView style={tw.style('w-full')}>
-            <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
-              <FlatList
-                data={words}
-                numColumns={3}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
+            <FlatList
+              data={words}
+              numColumns={3}
+              keyExtractor={(_, index) => index.toString()}
+              columnWrapperStyle={tw.style('gap-2')}
+              contentContainerStyle={tw.style('gap-2')}
+              renderItem={({ item, index }) => (
+                <TextField
+                  value={item}
+                  isReadOnly
+                  twClassName="flex-1"
+                  startAccessory={
                     <Text
-                      variant={TextVariant.BodyMd}
+                      variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                       maxFontSizeMultiplier={1}
                     >
                       {index + 1}.
                     </Text>
+                  }
+                  inputElement={
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                      key={index}
                       numberOfLines={1}
                       adjustsFontSizeToFit
                       minimumFontScale={0.7}
-                      style={tw.style('flex-1')}
-                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}
+                      twClassName="flex-1"
+                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                     >
                       {item}
                     </Text>
-                  </Box>
-                )}
-              />
-            </Box>
+                  }
+                />
+              )}
+            />
           </SecureContentView>
         )}
       </Box>
-      <Box
-        twClassName={`px-0 gap-4 flex justify-center items-center ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={goNext}
-          isFullWidth
-          size={ButtonSize.Lg}
-          isDisabled={seedPhraseHidden}
-          testID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-        >
-          {strings('manual_backup_step_1.continue')}
-        </Button>
-        {!hasFunds && !backupFlow && !settingsBackup && (
+      <Box twClassName={`gap-4 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}>
+        <BottomSheetFooter
+          twClassName="px-0"
+          primaryButtonProps={{
+            children: strings('manual_backup_step_1.continue'),
+            onPress: goNext,
+            size: ButtonSize.Lg,
+            isDisabled: seedPhraseHidden,
+            testID: ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+          }}
+        />
+        {showRemindLaterButton ? (
           <Button
             variant={ButtonVariant.Tertiary}
             onPress={showRemindLater}
@@ -415,25 +424,27 @@ const ManualBackupStep1 = () => {
           >
             {strings('account_backup_step_1.remind_me_later')}
           </Button>
-        )}
+        ) : null}
       </Box>
     </Box>
   );
 
   return (
     <SafeAreaView
-      edges={showHeader ? { bottom: 'additive' } : ['top', 'bottom']}
+      edges={{ bottom: 'additive' }}
       style={tw.style('bg-default flex-1')}
     >
-      {showHeader ? (
-        <HeaderStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-          backButtonProps={{
-            testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
-          }}
-        />
-      ) : null}
+      <HeaderStandard
+        includesTopInset
+        onBack={showHeader ? () => navigation.goBack() : undefined}
+        backButtonProps={
+          showHeader
+            ? {
+                testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+              }
+            : undefined
+        }
+      />
       {ready ? (
         <>
           <Box twClassName="flex-1 px-4">

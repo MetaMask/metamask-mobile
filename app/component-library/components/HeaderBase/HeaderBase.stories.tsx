@@ -34,7 +34,7 @@ export default HeaderBaseMeta;
 
 export const Default = {
   args: {
-    children: 'Header Title',
+    children: 'Header title',
     variant: HeaderBaseVariant.Compact,
   },
 };
@@ -59,7 +59,7 @@ export const Variant = {
           />
         }
       >
-        Compact Variant
+        Compact variant
       </HeaderBase>
       <HeaderBase
         variant={HeaderBaseVariant.Display}
@@ -78,7 +78,7 @@ export const Variant = {
           />
         }
       >
-        Display Variant
+        Display variant
       </HeaderBase>
     </>
   ),
@@ -87,7 +87,7 @@ export const Variant = {
 export const TwClassName = {
   render: () => (
     <HeaderBase twClassName="bg-info-default px-4">
-      Header with Custom Styles
+      Header with custom styles
     </HeaderBase>
   ),
 };
@@ -100,7 +100,7 @@ export const StartButtonIconProps = {
         onPress: () => console.log('Back pressed'),
       }}
     >
-      With Start Button
+      With start button
     </HeaderBase>
   ),
 };
@@ -115,7 +115,7 @@ export const EndButtonIconProps = {
         },
       ]}
     >
-      With End Button
+      With end button
     </HeaderBase>
   ),
 };
@@ -138,7 +138,7 @@ export const MultipleEndButtonIconProps = {
         },
       ]}
     >
-      Multiple End Buttons
+      Multiple end buttons
     </HeaderBase>
   ),
 };
@@ -154,7 +154,7 @@ export const StartAccessory = {
         />
       }
     >
-      With Start Accessory
+      With start accessory
     </HeaderBase>
   ),
 };
@@ -170,7 +170,7 @@ export const EndAccessory = {
         />
       }
     >
-      With End Accessory
+      With end accessory
     </HeaderBase>
   ),
 };
@@ -193,7 +193,7 @@ export const BothAccessories = {
         />
       }
     >
-      Both Accessories
+      Both accessories
     </HeaderBase>
   ),
 };

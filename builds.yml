@@ -29,10 +29,14 @@ _public_envs: &public_envs # Servers (production)
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
   COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
+  KYC_API_URL: 'https://kyc-api.api.cx.metamask.io'
+  IDOS_ENCLAVE_URL: 'https://enclave.idos.network'
+  IDOS_RELAY_URL: 'https://relay.idos.network'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.api.cx.metamask.io'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
+  REWARDS_MONEY_API_URL: 'https://rewards-money.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
   # Build flags (production defaults)
@@ -42,6 +46,9 @@ _public_envs: &public_envs # Servers (production)
   # Set only to point a build at a custom Bridge API deployment.
   BRIDGE_USE_CUSTOM_BASE_URL: ''
   MM_BATCH_SELL_ENABLED: 'true'
+  # Carries the BFTC consolidation rollout for wallets with Basic Functionality
+  # off, which cannot read the LaunchDarkly flag.
+  MM_BFTC_CONSOLIDATION_ENABLED: 'true'
   RAMP_INTERNAL_BUILD: 'false'
   HAS_TEST_OVERRIDES: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -60,11 +67,15 @@ _main_dev_env: &main_dev_env
   MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
   MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
   REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+  REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
   BAANX_API_URL: 'https://dev.api.baanx.com'
   CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
   PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+  KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+  IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+  IDOS_RELAY_URL: 'https://relay.playground.idos.network'
   RAMPS_ENVIRONMENT: 'development'
   RAMP_INTERNAL_BUILD: 'true'
   RAMP_DEV_BUILD: 'true'
@@ -247,6 +258,8 @@ builds:
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
   # on feature branches with the same github_environment/signing as all other e2e builds.
+  # It also arms Hermes CPU profiling from index.js and dumps a trace to app-scoped
+  # storage whenever the app is backgrounded (see docs/readme/release-build-profiler.md).
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
@@ -260,6 +273,7 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
+      OAUTH_BUILD_TYPE: 'main_uat'
       IS_PERFORMANCE_TEST: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       # e2e/test LaunchDarkly env has telegram_login_enabled=false; bake the
@@ -273,6 +287,8 @@ builds:
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
   # on feature branches with the same github_environment/signing as all other e2e builds.
+  # It also arms Hermes CPU profiling from index.js and dumps a trace to app-scoped
+  # storage whenever the app is backgrounded (see docs/readme/release-build-profiler.md).
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   main-e2e-bs-with-srp:
     github_environment: build-e2e
@@ -311,7 +327,7 @@ builds:
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
     code_fencing: *code_fencing_main
 
-  # Release candidate without pre-imported wallet — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # Release candidate without pre-imported wallet — seedless onboarding (OAuthLoginHandlers mocked)
   # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-rc-without-srp:
@@ -326,6 +342,7 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
+      OAUTH_BUILD_TYPE: 'main_uat'
       # Keep Telegram seedless onboarding available for RC without-srp perf runs
       # even if remote flag delivery lags; selector reads MM_TELEGRAM_LOGIN_ENABLED.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
@@ -343,11 +360,15 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+      IDOS_RELAY_URL: 'https://relay.playground.idos.network'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -368,11 +389,15 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+      IDOS_RELAY_URL: 'https://relay.playground.idos.network'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -393,11 +418,15 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+      IDOS_RELAY_URL: 'https://relay.playground.idos.network'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -424,7 +453,7 @@ builds:
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
     code_fencing: *code_fencing_experimental
 
-  # BrowserStack experimental builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # BrowserStack experimental builds — seedless onboarding (OAuthLoginHandlers mocked)
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-exp-without-srp:
     github_environment: build-exp
@@ -437,6 +466,7 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
+      OAUTH_BUILD_TYPE: 'main_uat'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
@@ -476,6 +506,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
@@ -521,11 +552,15 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+      IDOS_RELAY_URL: 'https://relay.playground.idos.network'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -546,11 +581,15 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+      IDOS_RELAY_URL: 'https://relay.playground.idos.network'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -570,6 +609,7 @@ builds:
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'

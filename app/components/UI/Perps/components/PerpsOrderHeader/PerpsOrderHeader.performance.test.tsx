@@ -48,6 +48,32 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => mockStream),
 }));
 
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({ isInitialized: true })),
+}));
+
+jest.mock('../../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    getInitializedMarketContextKey: () => 'mainnet|hyperliquid|1',
+    subscribeToInitializedMarketContext: () => jest.fn(),
+    getConnectionGeneration: () => 1,
+    getInitializedConnectionGeneration: () => 1,
+    getConnectionState: () => ({ isInitialized: true }),
+    subscribeToConnectionGeneration: () => jest.fn(),
+    subscribeToInitializedUserContext: () => jest.fn(),
+    isSelectedUserContextReady: () => true,
+  },
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectHip3ConfigVersion: () => 1,
+}));
+
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsNetwork: () => 'mainnet',
+  selectPerpsProvider: () => 'hyperliquid',
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {

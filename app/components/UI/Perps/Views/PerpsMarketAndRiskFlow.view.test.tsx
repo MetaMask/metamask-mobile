@@ -427,6 +427,7 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     await screen.findByText(SORT_SORT_BY, {}, { timeout: 3000 });
     const volumeOption = screen.getByTestId('perps-sort-sheet-option-volume');
     fireEvent.press(volumeOption);
+    fireEvent.press(screen.getByTestId('perps-sort-sheet-apply'));
     await waitFor(() => {
       expect(mockOnOptionSelect).toHaveBeenCalledWith(
         'volume',

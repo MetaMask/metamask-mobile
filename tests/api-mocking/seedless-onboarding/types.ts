@@ -2,6 +2,8 @@
  * Seedless Onboarding E2E Test Type Definitions
  */
 
+export { SecretType } from '@metamask/seedless-onboarding-controller';
+
 /**
  * Options for OAuthMockttpService setup
  */

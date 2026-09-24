@@ -39,6 +39,7 @@ import {
   type SectionListRenderItemInfo,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   ImpactMoment,
@@ -57,12 +58,16 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import FeedAudienceToggle from './components/FeedAudienceToggle';
+import FeedAudienceToggle, {
+  DEFAULT_FEED_AUDIENCE_ORDER,
+  type FeedAudienceOrder,
+} from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
 import { TypeFilterSelector, TypeFilterSheet } from '../components/Filters';
 import FollowingEmptyState from './components/FollowingEmptyState';
+import { useFeedNow } from './hooks/useFeedNow';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
   FeedAudience,
@@ -89,12 +94,19 @@ type AnimatedScrollHandler = React.ComponentProps<
 
 export interface FeedViewProps {
   /**
-   * Whether the Feed tab is the active page. The feed fetch only fires when
-   * active so simply opening the Follow Trading surface (which mounts both tab
-   * pages) doesn't request the feed until the user actually views it. Defaults
+   * Whether the Feed tab is the active page. The visible feed query only
+   * subscribes when active so the off-screen page doesn't keep a live
+   * observer. First-page data for both audiences is still prefetched when
+   * Follow Trading opens, so tapping Feed can render from cache. Defaults
    * to `true` for standalone use.
    */
   isActive?: boolean;
+  /**
+   * Audience the feed opens on. Set by the tabs container when an entry point
+   * requests a specific landing scope (TSA-1042 lands the homepage carousel on
+   * the Feed tab with "All" selected). Defaults to `following`.
+   */
+  initialAudience?: FeedAudience;
   /**
    * Opens the QuickBuy sheet for a spot token. The sheet is hosted by the
    * parent (above the tab `PagerView`) rather than inside this page so it isn't
@@ -132,25 +144,37 @@ export interface FeedViewProps {
  */
 const FeedView: React.FC<FeedViewProps> = ({
   isActive = true,
+  initialAudience = 'following',
   onQuickBuy,
   onSpotAvailabilityChange,
   onScroll,
   pageRef,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
-  // `'TopTradersView'` is the *route* name for the whole Follow Trading surface
-  // (`Routes.SOCIAL_LEADERBOARD.VIEW`), not the sibling component of the same
-  // name — the feed renders inside it via `SocialTradersTabsView`, so this is
+  // `'SocialV0View'` is the *route* name for the whole Follow Trading surface
+  // (`Routes.SOCIAL.V0`), not the sibling component of the same
+  // name — the feed renders inside it via `SocialV0View`, so this is
   // the enclosing route's param list even though the names look mismatched.
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
 
-  // Default to "Following": the backend "leaderboard" scope isn't implemented
-  // yet, so the feed opens on the Following scope (the only one the API serves).
-  const [audience, setAudience] = useState<FeedAudience>('following');
+  // Defaults to "Following" unless the entry point requested a landing scope
+  // (see `initialAudience`).
+  const [audience, setAudience] = useState<FeedAudience>(initialAudience);
+  // Keep the preselected audience as the leftmost segment. Read from the
+  // landing audience only (not the live selection) so toggling never reshuffles
+  // the segments under the user's finger.
+  const audienceOrder = useMemo<FeedAudienceOrder>(
+    () =>
+      initialAudience === 'all'
+        ? ['all', 'following']
+        : DEFAULT_FEED_AUDIENCE_ORDER,
+    [initialAudience],
+  );
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
   const audienceRef = useRef(audience);
   const typeFilterRef = useRef(typeFilter);
@@ -203,7 +227,13 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
     error,
     refresh,
+    // Bumps the shared wall clock immediately after PTR / load more so labels
+    // do not wait for the next 30s tick. Relative ages themselves come from
+    // `useFeedNow`, not from this fetch instant.
+    dataUpdatedAt,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
+
+  const now = useFeedNow({ enabled: isActive, dataUpdatedAt });
 
   // Report spot availability up to the parent so it can mount the Buy Action
   // orchestrator (and scope its A/B exposure) only when the loaded feed offers
@@ -290,7 +320,9 @@ const FeedView: React.FC<FeedViewProps> = ({
         [SocialLeaderboardEventProperties.SOURCE]: 'trader_feed',
         [SocialLeaderboardEventProperties.TRADER_ADDRESS]: item.traderAddress,
         [SocialLeaderboardEventProperties.TRADER_USERNAME]: item.username,
-        [SocialLeaderboardEventProperties.FEED_ACTION]: item.action,
+        ...(item.action
+          ? { [SocialLeaderboardEventProperties.FEED_ACTION]: item.action }
+          : {}),
         [SocialLeaderboardEventProperties.FEED_AUDIENCE]: audience,
         [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: typeFilter,
       };
@@ -342,7 +374,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   const handleTraderPress = useCallback(
     (item: FeedItem) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId: item.traderId,
         traderName: item.username,
         traderAddress: item.traderAddress,
@@ -355,7 +387,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   const handlePositionPress = useCallback(
     (item: FeedItem) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+      navigation.navigate(Routes.SOCIAL.POSITION, {
         positionId: item.tokenAvatar.positionId,
         traderId: item.traderId,
         traderAddress: item.traderAddress,
@@ -373,9 +405,10 @@ const FeedView: React.FC<FeedViewProps> = ({
         onTradePress={handleTradePress}
         onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
+        now={now}
       />
     ),
-    [handleTradePress, handlePositionPress, handleTraderPress],
+    [handleTradePress, handlePositionPress, handleTraderPress, now],
   );
 
   const renderSectionHeader = useCallback(
@@ -416,6 +449,13 @@ const FeedView: React.FC<FeedViewProps> = ({
       loadMore();
     }
   }, [hasNextPage, loadMore]);
+
+  // pb-6 plus whatever the floating NavBar overlays, so the last row stays
+  // reachable. The inset is 0 on control and wherever the navigator hides it.
+  const listBottomPadding = useMemo(
+    () => ({ paddingBottom: 24 + floatingTabBarInset }),
+    [floatingTabBarInset],
+  );
 
   const refreshControl = useMemo(
     () => (
@@ -496,10 +536,14 @@ const FeedView: React.FC<FeedViewProps> = ({
           value={typeFilter}
           onPress={() => setIsTypeSheetOpen(true)}
         />
-        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
+        <FeedAudienceToggle
+          value={audience}
+          order={audienceOrder}
+          onChange={handleAudienceChange}
+        />
       </Box>
     ),
-    [typeFilter, audience, handleAudienceChange],
+    [typeFilter, audience, audienceOrder, handleAudienceChange],
   );
 
   const content = useMemo(() => {
@@ -508,7 +552,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Animated.ScrollView
           ref={skeletonScrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('pb-6')}
+          contentContainerStyle={listBottomPadding}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -540,7 +584,8 @@ const FeedView: React.FC<FeedViewProps> = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style('pb-6 flex-grow')}
+        contentContainerStyle={[tw.style('flex-grow'), listBottomPadding]}
+        extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -559,6 +604,8 @@ const FeedView: React.FC<FeedViewProps> = ({
     filterRow,
     onScroll,
     tw,
+    now,
+    listBottomPadding,
   ]);
 
   return (

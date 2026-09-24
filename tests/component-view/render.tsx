@@ -6,6 +6,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import type { Json } from '@metamask/utils';
+import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import renderWithProvider, {
   renderScreen,
   type ProviderValues,
@@ -15,7 +16,9 @@ import { DATA_SERVICES } from '../../app/constants/data-services';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
-type JsonSubscriptionCallback = (data: Json) => void;
+type JsonSubscriptionCallback = (
+  data: DataServiceGranularCacheUpdatedPayload,
+) => void;
 
 const dataServiceMessenger = {
   call: async (method: string, ...params: Json[]) =>

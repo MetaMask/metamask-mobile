@@ -10,11 +10,11 @@ import {
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
-import { EncapsulatedElementType, PlatformDetector } from '../../framework';
+import { type AppiumElement, PlatformDetector } from '../../framework';
 
 class PerpsOrderView {
   /** Place order button - wdio uses 'perps-order-view-place-order-button' */
-  get placeOrderButton(): EncapsulatedElementType {
+  get placeOrderButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
     );
@@ -24,7 +24,7 @@ class PerpsOrderView {
    * Fees row value — only mounted after fee loading finishes
    * Useful readiness signal before tapping Long/Short on Appium.
    */
-  get feesValue(): EncapsulatedElementType {
+  get feesValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.FEES_VALUE);
   }
 
@@ -39,7 +39,7 @@ class PerpsOrderView {
    * Opens Auto close / TPSL from the order form. The row is labeled TP/SL in UI;
    * production uses STOP_LOSS_BUTTON testID on that touchable (see PerpsOrderView.tsx).
    */
-  get takeProfitButton(): EncapsulatedElementType {
+  get takeProfitButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON);
   }
 
@@ -49,22 +49,22 @@ class PerpsOrderView {
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('keypad-delete-button');
   }
 
   // Leverage chip by visible text, e.g., "3x", "10x", "20x"
-  leverageOption(leverageX: number, index = 0): EncapsulatedElementType {
+  leverageOption(leverageX: number, index = 0): Promise<AppiumElement> {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
   /** Row label to open the leverage modal - wdio uses getElementByText('Leverage') */
-  get leverageRowLabel(): EncapsulatedElementType {
+  get leverageRowLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText('Leverage');
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
-  get leverageModalTitle(): EncapsulatedElementType {
+  get leverageModalTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Set Leverage');
   }
 
@@ -152,26 +152,26 @@ class PerpsOrderView {
   }
 
   // Amount handling
-  get amountDisplay(): EncapsulatedElementType {
+  get amountDisplay(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER);
   }
 
-  get amountValue(): EncapsulatedElementType {
+  get amountValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
-  getKeypadKey(key: string): EncapsulatedElementType {
+  getKeypadKey(key: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(`keypad-key-${key}`);
     }
     return Matchers.getElementByText(key);
   }
 
-  getDoneButton(): EncapsulatedElementType {
+  getDoneButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Done');
   }
 
-  getTpslDoneButton(): EncapsulatedElementType {
+  getTpslDoneButton(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.DONE_BUTTON);
     }
@@ -180,7 +180,7 @@ class PerpsOrderView {
     );
   }
 
-  getTpslKeypadKey(key: string): EncapsulatedElementType {
+  getTpslKeypadKey(key: string): Promise<AppiumElement> {
     const testId = key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
     return Matchers.getElementByID(testId);
   }
@@ -189,15 +189,15 @@ class PerpsOrderView {
     inputTestId:
       | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(inputTestId);
   }
 
-  private get tpslSetButton(): EncapsulatedElementType {
+  private get tpslSetButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
   }
 
-  private get tpslAutoCloseTitle(): EncapsulatedElementType {
+  private get tpslAutoCloseTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Auto close');
   }
 
@@ -233,16 +233,16 @@ class PerpsOrderView {
   }
 
   // Order type / Limit Price helpers
-  private get orderTypeMarket(): EncapsulatedElementType {
+  private get orderTypeMarket(): Promise<AppiumElement> {
     return Matchers.getElementByText('Market');
   }
 
-  private get orderTypeSelector(): EncapsulatedElementType {
+  private get orderTypeSelector(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
     );
   }
-  private get orderTypeLimit(): EncapsulatedElementType {
+  private get orderTypeLimit(): Promise<AppiumElement> {
     return Matchers.getElementByText('Limit');
   }
 

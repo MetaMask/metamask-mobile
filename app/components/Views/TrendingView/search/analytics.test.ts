@@ -218,7 +218,7 @@ describe('Explore search analytics', () => {
   });
 
   describe('trackExploreSearchOpened', () => {
-    it.each([['home' as const], ['explore' as const]])(
+    it.each([['home' as const], ['explore' as const], ['deeplink' as const]])(
       'tracks the opened interaction with entry_point %s',
       (entryPoint) => {
         trackExploreSearchOpened(entryPoint);

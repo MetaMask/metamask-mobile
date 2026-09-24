@@ -4,9 +4,11 @@ import {
   CardType,
   CardWalletExternalPriorityResponse,
   DelegationSettingsResponse,
+  type UserResponse,
 } from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
+export type { UserResponse };
 
 // -- Provider Errors --
 
@@ -21,7 +23,6 @@ export enum CardProviderErrorCode {
   ServerError = 'server_error',
   Timeout = 'timeout',
   Network = 'network',
-  MoneyAccountLinkedToDifferentCard = 'money_account_linked_to_different_card',
   Unknown = 'unknown',
 }
 
@@ -58,6 +59,39 @@ export class CardLinkageInProgressError extends Error {
   }
 }
 
+export class CardRedeemWithdrawalInProgressError extends Error {
+  constructor(message = 'A Card redeem withdrawal is already in progress') {
+    super(message);
+    this.name = 'CardRedeemWithdrawalInProgressError';
+  }
+}
+
+/** Shared redeemable wallet response (credit refund balance / mUSD Back). */
+export type RedeemWalletMode = 'credit' | 'cashback';
+
+export interface RedeemWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface RedeemWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
+  network: string;
+}
+
+export interface RedeemWithdrawParams {
+  amount: string;
+}
+
+export interface RedeemWithdrawResponse {
+  txHash: string;
+}
+
 // -- Provider Identity --
 
 export const CardProviderIds = {
@@ -69,6 +103,56 @@ export type CardProviderId =
   (typeof CardProviderIds)[keyof typeof CardProviderIds];
 
 export type CardAuthMethod = 'email_password' | 'siwe';
+
+export type CardAccountLookupResult = 'found' | 'not_found' | 'unknown';
+
+export interface CardSignInOption {
+  providerId: CardProviderId;
+  method: CardAuthMethod;
+}
+
+export type CardSignInLinkStatus = 'started' | 'completed' | 'linked';
+
+export type CardSignInLinkStage = 'identity' | 'spending';
+
+export interface CardSignInLink {
+  providerId: CardProviderId;
+  status: CardSignInLinkStatus;
+  address: string;
+  providerUserId?: string;
+  stage?: CardSignInLinkStage;
+  updatedAt: number;
+}
+
+export type CardSignInResolution =
+  | {
+      kind: 'wallet';
+      option: CardSignInOption;
+      address: string;
+      source: 'record' | 'lookup';
+    }
+  | {
+      kind: 'wallet_account_missing';
+      option: CardSignInOption;
+      address: string;
+    }
+  | {
+      kind: 'resume';
+      option: CardSignInOption;
+      address: string;
+      stage: CardSignInLinkStage | null;
+    }
+  | { kind: 'email'; option: CardSignInOption }
+  | {
+      kind: 'unresolved';
+      options: CardSignInOption[];
+      reason: 'no_match' | 'check_failed';
+    };
+
+export interface CardInitiateAuthOptions {
+  address?: string;
+  autoSignup?: boolean;
+}
 
 // -- Auth Tokens --
 
@@ -143,6 +227,7 @@ export interface CardProviderCapabilities {
   supportsSensitiveDetailsView: boolean;
   supportsTravel: boolean;
   supportsTransactionHistory: boolean;
+  supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
 }
 
@@ -229,6 +314,8 @@ export interface CardAccountStatus {
 export type CardAlertType =
   | 'kyc_pending'
   | 'card_provisioning'
+  /** Cardholder zeroed their on-chain allowance; the card needs re-approval. */
+  | 'allowance_revoked'
   | 'close_to_spending_limit'
   | 'limited_allowance';
 
@@ -297,45 +384,24 @@ export interface DelegationChallengeResponse {
 
 // -- Cashback --
 
-export interface CashbackWalletResponse {
-  id: string;
-  balance: string;
-  currency: string;
-  isWithdrawable: boolean;
-  type: string;
-}
+export type CashbackWalletResponse = RedeemWalletResponse;
 
-export interface CashbackWithdrawEstimationResponse {
-  wei: string;
-  eth: string;
-  price: string;
-  network: string;
-}
+export type CashbackWithdrawEstimationResponse =
+  RedeemWithdrawEstimationResponse;
 
-export interface CashbackWithdrawParams {
-  amount: string;
-}
+export type CashbackWithdrawParams = RedeemWithdrawParams;
 
-export interface CashbackWithdrawResponse {
-  txHash: string;
-}
+export type CashbackWithdrawResponse = RedeemWithdrawResponse;
 
 // -- Credit --
 
-export interface CreditWalletResponse {
-  id: string;
-  balance: string;
-  currency: string;
-  isWithdrawable: boolean;
-  type: string;
-}
+export type CreditWalletResponse = RedeemWalletResponse;
 
-export type CreditWithdrawEstimationResponse =
-  CashbackWithdrawEstimationResponse;
+export type CreditWithdrawEstimationResponse = RedeemWithdrawEstimationResponse;
 
-export type CreditWithdrawParams = CashbackWithdrawParams;
+export type CreditWithdrawParams = RedeemWithdrawParams;
 
-export type CreditWithdrawResponse = CashbackWithdrawResponse;
+export type CreditWithdrawResponse = RedeemWithdrawResponse;
 
 // -- Push Provisioning --
 
@@ -558,8 +624,9 @@ export interface ICardProvider {
 
   initiateAuth(
     country: string,
-    options?: { address?: string },
+    options?: CardInitiateAuthOptions,
   ): Promise<CardAuthSession>;
+  lookupAccount?(address: string): Promise<CardAccountLookupResult>;
   submitCredentials(
     session: CardAuthSession,
     credentials: CardCredentials,
@@ -652,10 +719,12 @@ export interface ICardProvider {
   getFundingSources?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult[]>;
+  getContactDetails?(tokens: CardAuthTokens): Promise<CardContactDetails>;
   patchContactDetails?(
     details: CardContactDetails,
     tokens: CardAuthTokens,
   ): Promise<void>;
+  getUserDetails?(tokens: CardAuthTokens): Promise<UserResponse>;
   getSpendingPrerequisites?(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,

@@ -51,19 +51,13 @@ describe('navigateToPerpsTransactionDetails', () => {
   it('opens Activity details for a mapped historic fill when redesign is enabled', () => {
     const navigation = createNavigation();
 
-    navigateToPerpsTransactionDetails(
-      navigation,
-      tradeTransaction,
-      true,
-      false,
-    );
+    navigateToPerpsTransactionDetails(navigation, tradeTransaction, false);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
       expect.objectContaining({
         chainId: 'eip155:42161',
         txIdentifier: 'order-1',
-        preloadKey: expect.any(String),
       }),
     );
   });
@@ -71,12 +65,7 @@ describe('navigateToPerpsTransactionDetails', () => {
   it('tags testnet deposits with Arbitrum Sepolia', () => {
     const navigation = createNavigation();
 
-    navigateToPerpsTransactionDetails(
-      navigation,
-      depositTransaction,
-      true,
-      true,
-    );
+    navigateToPerpsTransactionDetails(navigation, depositTransaction, true);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
@@ -84,22 +73,6 @@ describe('navigateToPerpsTransactionDetails', () => {
         chainId: 'eip155:421614',
         txIdentifier: '0xdeadbeef',
       }),
-    );
-  });
-
-  it('opens the legacy position screen for a mapped fill when redesign is disabled', () => {
-    const navigation = createNavigation();
-
-    navigateToPerpsTransactionDetails(
-      navigation,
-      tradeTransaction,
-      false,
-      false,
-    );
-
-    expect(navigation.navigate).toHaveBeenCalledWith(
-      Routes.PERPS.POSITION_TRANSACTION,
-      { transaction: tradeTransaction },
     );
   });
 
@@ -117,7 +90,7 @@ describe('navigateToPerpsTransactionDetails', () => {
       },
     };
 
-    navigateToPerpsTransactionDetails(navigation, unmappedTrade, true, false);
+    navigateToPerpsTransactionDetails(navigation, unmappedTrade, false);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.POSITION_TRANSACTION,
@@ -137,7 +110,7 @@ describe('navigateToPerpsTransactionDetails', () => {
       asset: 'ETH',
     };
 
-    navigateToPerpsTransactionDetails(navigation, unmappedOrder, true, false);
+    navigateToPerpsTransactionDetails(navigation, unmappedOrder, false);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.ORDER_TRANSACTION,
@@ -157,7 +130,7 @@ describe('navigateToPerpsTransactionDetails', () => {
       asset: 'ETH',
     };
 
-    navigateToPerpsTransactionDetails(navigation, unmappedFunding, true, false);
+    navigateToPerpsTransactionDetails(navigation, unmappedFunding, false);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.FUNDING_TRANSACTION,

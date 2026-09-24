@@ -101,7 +101,14 @@ jest.mock('../../app/core/Engine', () => {
       },
       CardController: {
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        getContactDetails: jest.fn().mockResolvedValue({
+          email: 'cardholder@example.com',
+          phone: '+441234567890',
+        }),
+        patchContactDetails: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
+        clearRedeemWithdrawal: jest.fn(),
+        withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',
           supportsOTP: true,
@@ -117,6 +124,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
           supportsTransactionHistory: false,
+          supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
         }),
       },
@@ -276,6 +284,9 @@ jest.mock('../../app/core/Engine', () => {
         // react-query layers run for real in component-view tests.
         getProviders: jest.fn().mockResolvedValue({ providers: [] }),
         getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getPaymentMethodsForContext: jest
+          .fn()
+          .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
@@ -353,8 +364,14 @@ jest.mock('../../app/core/Engine', () => {
         setLocation: jest.fn(),
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+        fetchQuotes: jest.fn().mockResolvedValue([]),
       },
-      PredictNextController: {},
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
+      },
+      PredictMarketDataService: {},
+      PredictLiveDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -435,7 +452,13 @@ jest.mock('../../app/core/Engine', () => {
             : 'https://app.hyperliquid.xyz/explorer',
         ),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
+        getOrderCapabilities: jest.fn().mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap', 'scale', 'chase'],
+        }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue({
@@ -443,6 +466,14 @@ jest.mock('../../app/core/Engine', () => {
           orderId: 'component-view-close',
         }),
         cancelOrder: jest.fn().mockResolvedValue({ success: true }),
+        editOrder: jest.fn().mockResolvedValue({
+          success: true,
+          orderId: 'component-view-edit-order',
+        }),
+        getChaseOrders: jest.fn().mockResolvedValue([]),
+        suspendChaseOrders: jest.fn().mockResolvedValue([]),
+        getTwapOrders: jest.fn().mockResolvedValue([]),
+        subscribeToTwapOrders: jest.fn(() => () => undefined),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {
@@ -458,13 +489,14 @@ jest.mock('../../app/core/Engine', () => {
           },
           {
             symbol: 'BTC',
-            name: 'Bitcoin',
+            name: 'BTC',
             maxLeverage: '50x',
             price: '$50,000',
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
             openInterest: '$500K',
+            szDecimals: 5,
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
@@ -507,6 +539,12 @@ jest.mock('../../app/core/Engine', () => {
         savePendingTradeConfiguration: jest.fn(),
         clearPendingTradeConfiguration: jest.fn(),
         setSelectedPaymentToken: jest.fn(),
+        setPerpsMode: jest.fn(),
+        setProLayoutPreferences: jest.fn(),
+        setSelectedOrderType: jest.fn(),
+        setOrderBookPreferences: jest.fn(),
+        setVisibleCandleCount: jest.fn(),
+        saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),

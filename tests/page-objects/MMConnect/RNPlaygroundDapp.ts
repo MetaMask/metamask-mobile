@@ -5,11 +5,10 @@ import {
   Utilities,
   getDriver,
   sleep,
-  type EncapsulatedElementType,
-  type PlaywrightElement,
+  type AppiumElement,
 } from '../../framework';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
-import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
+import AppiumUtilities from '../../framework/AppiumUtilities';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
 
 function escapeTestId(value: string): string {
@@ -22,100 +21,100 @@ function escapeTestId(value: string): string {
 }
 
 class RNPlaygroundDapp {
-  private getByTestId(testId: string): EncapsulatedElementType {
+  private getByTestId(testId: string): Promise<AppiumElement> {
     return Matchers.getElementByID(testId);
   }
 
   // App-level selectors
-  get appContainer(): EncapsulatedElementType {
+  get appContainer(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.RM_APP_CONTAINER);
   }
 
-  get appTitle(): EncapsulatedElementType {
+  get appTitle(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.RM_APP_TITLE);
   }
 
-  get connectButton(): EncapsulatedElementType {
+  get connectButton(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.CONNECT_BUTTON);
   }
 
-  get disconnectButton(): EncapsulatedElementType {
+  get disconnectButton(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.DISCONNECT_BUTTON);
   }
 
-  get scopesSection(): EncapsulatedElementType {
+  get scopesSection(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.SCOPES_SECTION);
   }
 
-  get errorSection(): EncapsulatedElementType {
+  get errorSection(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.ERROR_SECTION);
   }
 
-  get connectLegacyButton(): EncapsulatedElementType {
+  get connectLegacyButton(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.CONNECT_BUTTON_LEGACY);
   }
 
   // Legacy EVM selectors
-  get legacyEvmCard(): EncapsulatedElementType {
+  get legacyEvmCard(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
   }
 
-  get legacyEvmChainIdValue(): EncapsulatedElementType {
+  get legacyEvmChainIdValue(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
-  get legacyEvmAccountsValue(): EncapsulatedElementType {
+  get legacyEvmAccountsValue(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_ACCOUNTS_VALUE);
   }
 
-  get legacyEvmActiveAccount(): EncapsulatedElementType {
+  get legacyEvmActiveAccount(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
-  get legacyEvmResponseText(): EncapsulatedElementType {
+  get legacyEvmResponseText(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
-  get legacyEvmBtnPersonalSign(): EncapsulatedElementType {
+  get legacyEvmBtnPersonalSign(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN);
   }
 
-  get legacyEvmBtnSendTransaction(): EncapsulatedElementType {
+  get legacyEvmBtnSendTransaction(): Promise<AppiumElement> {
     return this.getByTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
     );
   }
 
-  get legacyEvmBtnSwitchPolygon(): EncapsulatedElementType {
+  get legacyEvmBtnSwitchPolygon(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_POLYGON);
   }
 
   // Dynamic selectors
-  getNetworkCheckbox(caipChainId: string): EncapsulatedElementType {
+  getNetworkCheckbox(caipChainId: string): Promise<AppiumElement> {
     return this.getByTestId(
       `dynamic-inputs-checkbox-${escapeTestId(caipChainId)}`,
     );
   }
 
-  getScopeCard(scope: string): EncapsulatedElementType {
+  getScopeCard(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD}-${escapeTestId(scope)}`,
     );
   }
 
-  getScopeNetworkName(scope: string): EncapsulatedElementType {
+  getScopeNetworkName(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD_NETWORK_NAME}-${escapeTestId(scope)}`,
     );
   }
 
-  getMethodSelect(scope: string): EncapsulatedElementType {
+  getMethodSelect(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD_METHOD_SELECT}-${escapeTestId(scope)}`,
     );
   }
 
-  getInvokeButton(scope: string): EncapsulatedElementType {
+  getInvokeButton(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD_INVOKE_BTN}-${escapeTestId(scope)}`,
     );
@@ -125,7 +124,7 @@ class RNPlaygroundDapp {
     scope: string,
     method: string,
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedScope = escapeTestId(scope);
     const escapedMethod = escapeTestId(method);
     return this.getByTestId(
@@ -137,7 +136,7 @@ class RNPlaygroundDapp {
     scope: string,
     method: string,
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedScope = escapeTestId(scope);
     const escapedMethod = escapeTestId(method);
     return this.getByTestId(
@@ -207,7 +206,7 @@ class RNPlaygroundDapp {
   }
 
   async tapLegacyEvmButton(
-    buttonGetter: EncapsulatedElementType,
+    buttonGetter: Promise<AppiumElement>,
   ): Promise<void> {
     await Gestures.waitAndTap(buttonGetter, {
       elemDescription: 'RNPlayground legacy EVM button',
@@ -222,7 +221,7 @@ class RNPlaygroundDapp {
     minScrollAttempts = 0,
     direction: 'up' | 'down' = 'up',
   ): Promise<void> {
-    const { width, height } = await PlaywrightUtilities.getDeviceScreenSize();
+    const { width, height } = await AppiumUtilities.getDeviceScreenSize();
     const amountToScroll = direction === 'up' ? 600 : -600;
     const from = { x: width / 2, y: height / 2 };
     const to = { x: width / 2, y: height / 2 - amountToScroll };
@@ -249,7 +248,7 @@ class RNPlaygroundDapp {
     for (let attempt = 0; attempt < maxScrollAttempts; attempt++) {
       try {
         const option = Matchers.getElementByText(methodName);
-        const resolved = (await Promise.resolve(option)) as PlaywrightElement;
+        const resolved = (await Promise.resolve(option)) as AppiumElement;
         const isVisible = await resolved.isVisible();
         if (isVisible) {
           await Gestures.tap(option, {
@@ -282,7 +281,7 @@ class RNPlaygroundDapp {
    * @param options - WDIO scroll options (scrollParams / percent) used by MMConnect specs
    */
   async scrollToElement(
-    elemGetter: EncapsulatedElementType,
+    elemGetter: Promise<AppiumElement>,
     options?: {
       scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
       percent?: number;

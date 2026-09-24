@@ -28,6 +28,19 @@ describe('extractPushNotificationData', () => {
     expect(result).toStrictEqual(notificationData);
   });
 
+  it('extracts Chase notification attribution from serialized Notifee data', () => {
+    const notificationData = {
+      notification_id: 'perps-chase-backgrounded-chase-1',
+      notification_type: 'chase_backgrounded',
+    };
+
+    const result = extractPushNotificationData({
+      dataStr: JSON.stringify(notificationData),
+    });
+
+    expect(result).toStrictEqual(notificationData);
+  });
+
   it('returns the wrapper for malformed serialized data', () => {
     const data = { dataStr: '{not-json' };
 

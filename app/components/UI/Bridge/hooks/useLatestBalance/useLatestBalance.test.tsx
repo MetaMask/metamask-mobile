@@ -5,7 +5,12 @@ import {
   solanaAccountId,
 } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useLatestBalance } from '.';
+import { FeatureId } from '@metamask/bridge-controller';
+import {
+  fetchAtomicTokenBalance,
+  fetchEvmAtomicBalance,
+  useLatestBalance,
+} from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
 import { act, waitFor } from '@testing-library/react-native';
@@ -95,6 +100,119 @@ describe('useLatestBalance', () => {
       timestamp: expect.any(Number),
       data: { result: 'success' },
     });
+  });
+
+  it('refetches EVM balance when featureId changes', async () => {
+    let featureId = FeatureId.UNIFIED_SWAP_BRIDGE;
+
+    const { rerender } = renderHookWithProvider(
+      () =>
+        useLatestBalance(
+          {
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId: '0x1' as Hex,
+          },
+          featureId,
+        ),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      featureId = FeatureId.LIMIT_ORDER;
+      rerender({ state: initialState });
+    });
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('records an error trace when EVM balance fetch rejects', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    mockProvider.getBalance.mockRejectedValueOnce(new Error('rpc down'));
+
+    renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.BridgeBalancesUpdated,
+        id: expect.any(String),
+        timestamp: expect.any(Number),
+        data: { result: 'error' },
+      });
+    });
+    expect(consoleError).toHaveBeenCalled();
+
+    consoleError.mockRestore();
+  });
+
+  it('keeps the cached balance when EVM fetch returns no atomic balance', async () => {
+    mockProvider.getBalance.mockResolvedValueOnce(undefined);
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          balance: '4.0',
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+    });
+
+    expect(result.current).toEqual({
+      displayBalance: '4.0',
+      atomicBalance: BigNumber.from('4000000000000000000'),
+    });
+  });
+
+  it('keeps the same balance object when a refetch returns the same amount', async () => {
+    let refreshKey = 0;
+
+    const { result, rerender } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          refreshKey,
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(result.current?.displayBalance).toBe('1.0');
+    });
+
+    const firstBalance = result.current;
+
+    await act(async () => {
+      refreshKey = 1;
+      rerender({ state: initialState });
+    });
+
+    await waitFor(() => {
+      expect(mockProvider.getBalance).toHaveBeenCalledTimes(2);
+    });
+
+    expect(result.current).toBe(firstBalance);
   });
 
   it('refetches EVM balance when refreshKey changes', async () => {
@@ -193,6 +311,23 @@ describe('useLatestBalance', () => {
         atomicBalance: BigNumber.from('20000456000'),
       });
     });
+  });
+
+  it('does not write a Solana balance when the token address is missing', async () => {
+    const state = cloneDeep(initialState);
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+      solanaAccountId;
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          decimals: 9,
+          chainId: SolScope.Mainnet,
+        }),
+      { state },
+    );
+
+    expect(result.current).toBeUndefined();
   });
 
   it('should not fetch balance when token address is missing', async () => {
@@ -1033,6 +1168,40 @@ describe('useLatestBalance', () => {
       });
     });
 
+    it('re-reads the Solana balance when featureId changes', async () => {
+      const state = cloneDeep(initialState);
+      state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+        solanaAccountId;
+      let featureId = FeatureId.UNIFIED_SWAP_BRIDGE;
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance(
+            {
+              chainId: SolScope.Mainnet,
+              address: solanaNativeTokenAddress,
+              decimals: 9,
+            },
+            featureId,
+          ),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('100.123');
+      });
+
+      await act(async () => {
+        featureId = FeatureId.LIMIT_ORDER;
+        rerender({ state });
+      });
+
+      expect(result.current).toEqual({
+        displayBalance: '100.123',
+        atomicBalance: BigNumber.from('100123000000'),
+      });
+    });
+
     it('handles empty balance string from controller by setting to 0', async () => {
       const state = cloneDeep(initialState);
       state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
@@ -1054,6 +1223,67 @@ describe('useLatestBalance', () => {
           atomicBalance: BigNumber.from('0'),
         });
       });
+    });
+  });
+
+  describe('fetchEvmAtomicBalance', () => {
+    it('returns the native balance when the token address is the zero address', async () => {
+      const balance = await fetchEvmAtomicBalance(
+        mockProvider as never,
+        '0x1234567890123456789012345678901234567890',
+        constants.AddressZero,
+        '0x1' as Hex,
+      );
+
+      expect(mockProvider.getBalance).toHaveBeenCalledWith(
+        '0x1234567890123456789012345678901234567890',
+      );
+      expect(balance).toEqual(BigNumber.from('1000000000000000000'));
+    });
+
+    it('returns the ERC20 balance when the token address is a contract', async () => {
+      const balance = await fetchEvmAtomicBalance(
+        mockProvider as never,
+        '0x1234567890123456789012345678901234567890',
+        '0x1111111111111111111111111111111111111111',
+        '0x1' as Hex,
+      );
+
+      expect(balance).toEqual(BigNumber.from('1000000'));
+    });
+
+    it('returns undefined when the token address is empty', async () => {
+      const balance = await fetchEvmAtomicBalance(
+        mockProvider as never,
+        '0x1234567890123456789012345678901234567890',
+        '',
+        '0x1' as Hex,
+      );
+
+      expect(balance).toBeUndefined();
+    });
+
+    it('returns undefined when chainId is empty', async () => {
+      const balance = await fetchEvmAtomicBalance(
+        mockProvider as never,
+        '0x1234567890123456789012345678901234567890',
+        constants.AddressZero,
+        '' as Hex,
+      );
+
+      expect(balance).toBeUndefined();
+    });
+  });
+
+  describe('fetchAtomicTokenBalance', () => {
+    it('returns the contract balanceOf result', async () => {
+      const balance = await fetchAtomicTokenBalance(
+        '0x1111111111111111111111111111111111111111',
+        '0x1234567890123456789012345678901234567890',
+        mockProvider as never,
+      );
+
+      expect(balance).toEqual(BigNumber.from('1000000'));
     });
   });
 });

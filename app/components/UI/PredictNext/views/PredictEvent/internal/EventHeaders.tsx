@@ -8,6 +8,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   createGamePresentation,
   getEventGame,
@@ -17,38 +18,35 @@ import {
 import type { PredictEvent, PredictTeam } from '../../../types';
 import { PredictEventScreenTestIds } from '../PredictEventScreen.testIds';
 
-const EventTitle = ({ children }: { children: string }) => (
-  <Text
-    testID={PredictEventScreenTestIds.TITLE}
-    accessibilityRole="header"
-    variant={TextVariant.HeadingLg}
+export const EventLoadingHeader = () => (
+  <Box
+    testID={PredictEventScreenTestIds.LOADING}
+    accessibilityLabel={strings('predict.event.loading_accessibility_label')}
+    twClassName="gap-3"
   >
-    {children}
-  </Text>
-);
-
-export const EventLoadingHeader = ({ title }: { title: string }) => (
-  <Box twClassName="gap-4">
-    <EventTitle>{title}</EventTitle>
-    <Box
-      testID={PredictEventScreenTestIds.LOADING}
-      accessibilityLabel="Loading event"
-      twClassName="gap-3"
-    >
-      <Box twClassName="h-24 rounded-xl bg-muted" />
-      <Box twClassName="h-4 w-2/3 rounded bg-muted" />
-    </Box>
+    <Box twClassName="h-24 rounded-xl bg-muted" />
+    <Box twClassName="h-4 w-2/3 rounded bg-muted" />
   </Box>
 );
 
 export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
   const tw = useTailwind();
   const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(event.imageUrl && !imageFailed);
+
+  if (!showImage && !event.subtitle) {
+    return (
+      <Box
+        testID={PredictEventScreenTestIds.STANDARD_HEADER}
+        twClassName="h-0"
+      />
+    );
+  }
 
   return (
     <Box testID={PredictEventScreenTestIds.STANDARD_HEADER} twClassName="gap-3">
       <Box twClassName="flex-row items-start gap-3">
-        {event.imageUrl && !imageFailed ? (
+        {showImage ? (
           <ExpoImage
             testID={PredictEventScreenTestIds.IMAGE}
             source={event.imageUrl}
@@ -59,18 +57,16 @@ export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
             accessible={false}
           />
         ) : null}
-        <Box twClassName="min-w-0 flex-1 gap-1">
-          <EventTitle>{event.title}</EventTitle>
-          {event.subtitle ? (
-            <Text
-              testID={PredictEventScreenTestIds.SUBTITLE}
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {event.subtitle}
-            </Text>
-          ) : null}
-        </Box>
+        {event.subtitle ? (
+          <Text
+            testID={PredictEventScreenTestIds.SUBTITLE}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="min-w-0 flex-1"
+          >
+            {event.subtitle}
+          </Text>
+        ) : null}
       </Box>
     </Box>
   );
@@ -89,27 +85,26 @@ const TeamLogo = ({
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <Box
-      twClassName="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-muted"
-      accessible={false}
-    >
+    <Box twClassName="h-14 w-14 items-center justify-center" accessible={false}>
       {team.logoUrl && !imageFailed ? (
         <ExpoImage
           testID={PredictEventScreenTestIds.teamLogo(selection)}
           source={team.logoUrl}
           recyclingKey={team.logoUrl}
           contentFit="contain"
-          style={tw.style('h-12 w-12')}
+          style={tw.style('h-14 w-14')}
           onError={() => setImageFailed(true)}
         />
       ) : (
-        <Text
-          testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Bold}
-        >
-          {abbreviation}
-        </Text>
+        <Box twClassName="h-14 w-14 items-center justify-center rounded-full bg-muted">
+          <Text
+            testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+          >
+            {abbreviation}
+          </Text>
+        </Box>
       )}
     </Box>
   );
@@ -195,7 +190,6 @@ export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
 
   return (
     <Box testID={PredictEventScreenTestIds.GAME_HEADER} twClassName="gap-6">
-      <EventTitle>{event.title}</EventTitle>
       <Box twClassName="flex-row items-start gap-2">
         <GameTeam
           team={presentation.teams.away.team}

@@ -8,10 +8,10 @@ export const SHEET_HEADER_ACTION_BUTTON_ID = 'sheet-header-action-button';
 
 // Sample consts
 export const SAMPLE_SHEETHEADER_PROPS: SheetHeaderProps = {
-  title: 'Sample Sheet Title',
+  title: 'Sample sheet title',
   onBack: () => console.log('onBack clicked'),
   actionButtonOptions: {
-    label: 'button Label',
+    label: 'Button label',
     onPress: () => console.log('label clicked'),
   },
 };

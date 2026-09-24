@@ -1,33 +1,33 @@
-import { EncapsulatedElementType, Gestures, Matchers } from '../../framework';
+import { type AppiumElement, Gestures, Matchers } from '../../framework';
 
 class ChromeBrowserView {
-  get chromeHomePageSearchBox(): EncapsulatedElementType {
+  get chromeHomePageSearchBox(): Promise<AppiumElement> {
     return Matchers.getElementByID('com.android.chrome:id/search_box_text');
   }
 
-  get chromeUrlBar(): EncapsulatedElementType {
+  get chromeUrlBar(): Promise<AppiumElement> {
     return Matchers.getElementByID('com.android.chrome:id/url_bar');
   }
 
-  get onboardingChromeWithoutAccount(): EncapsulatedElementType {
+  get onboardingChromeWithoutAccount(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       'com.android.chrome:id/signin_fre_dismiss_button',
     );
   }
 
-  get chromeNoThanksButton(): EncapsulatedElementType {
+  get chromeNoThanksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('com.android.chrome:id/no_thanks_button');
   }
 
-  get chromeMenuButton(): EncapsulatedElementType {
+  get chromeMenuButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('com.android.chrome:id/menu_button');
   }
 
-  get chromeRefreshButton(): EncapsulatedElementType {
+  get chromeRefreshButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('com.android.chrome:id/button_five');
   }
 
-  get chromeUrlEntry(): EncapsulatedElementType {
+  get chromeUrlEntry(): Promise<AppiumElement> {
     return Matchers.getElementByID('com.android.chrome:id/line_2');
   }
 

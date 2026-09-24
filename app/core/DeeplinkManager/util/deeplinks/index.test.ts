@@ -67,6 +67,14 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('dapp://portfolio.metamask.io')).toBe(true);
     });
 
+    it('identifies Solana Pay scheme deeplinks', () => {
+      expect(
+        isInternalDeepLink(
+          'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=1',
+        ),
+      ).toBe(true);
+    });
+
     it('identifies MetaMask universal links', () => {
       expect(isInternalDeepLink('https://link.metamask.io/swap')).toBe(true);
       expect(isInternalDeepLink('https://link.metamask.io/buy-crypto')).toBe(

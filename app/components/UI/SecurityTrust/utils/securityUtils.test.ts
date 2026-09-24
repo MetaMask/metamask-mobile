@@ -218,6 +218,20 @@ describe('securityUtils', () => {
         ]);
       });
 
+      it('ignores Info features such as IMPERSONATOR_LOW_CONFIDENCE when resultType is Warning', () => {
+        const features = [
+          makeFeature('IMPERSONATOR_LOW_CONFIDENCE'),
+          makeFeature('HONEYPOT'),
+        ];
+
+        const { tags, remainingCount } = getFeatureTags(features, 'Warning');
+
+        expect(tags).toEqual([
+          { label: strings('security_trust.features.negative.honeypot') },
+        ]);
+        expect(remainingCount).toBe(0);
+      });
+
       it('caps display at 3 and returns correct remainingCount', () => {
         const features = [
           makeFeature('HONEYPOT'),

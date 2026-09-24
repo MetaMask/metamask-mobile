@@ -8,6 +8,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxFlexWrap,
   BoxJustifyContent,
   Button,
   ButtonIcon,
@@ -277,40 +278,54 @@ const MoneyBalanceCard = () => {
       style={({ pressed }) => [
         styles.container,
         tw.style(
-          'flex-row items-center justify-between bg-muted',
+          'flex-row items-center justify-between gap-3 bg-muted',
           pressed && 'opacity-80',
         ),
       ]}
     >
-      <Box twClassName="min-w-0 flex-1 gap-1 pr-3">
+      <Box twClassName="w-0 min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          flexWrap={BoxFlexWrap.Wrap}
+          twClassName="w-full min-w-0"
         >
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
+            twClassName="max-w-full"
             testID={MoneyBalanceCardTestIds.LABEL}
           >
             {strings('money.balance_card.label')}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            testID={MoneyBalanceCardTestIds.CURRENCY_SUFFIX}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="shrink-0"
           >
-            {strings('money.balance_card.currency_suffix')}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-            size={ButtonIconSize.Sm}
-            onPress={handleInfoPress}
-            accessibilityLabel={strings('money.balance_card.info_sheet_title')}
-            testID={MoneyBalanceCardTestIds.INFO_BUTTON}
-          />
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID={MoneyBalanceCardTestIds.CURRENCY_SUFFIX}
+            >
+              {strings('money.balance_card.currency_suffix')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{
+                color: IconColor.IconAlternative,
+                size: IconSize.Sm,
+              }}
+              size={ButtonIconSize.Sm}
+              onPress={handleInfoPress}
+              accessibilityLabel={strings(
+                'money.balance_card.info_sheet_title',
+              )}
+              testID={MoneyBalanceCardTestIds.INFO_BUTTON}
+            />
+          </Box>
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -342,6 +357,7 @@ const MoneyBalanceCard = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.End}
+        twClassName="shrink-0"
       >
         <Button
           testID={buttonTestId}

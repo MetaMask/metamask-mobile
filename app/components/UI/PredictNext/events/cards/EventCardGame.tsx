@@ -91,7 +91,7 @@ const FeaturedGameCard = ({
           <GameCard.Score selection="home" />
           <GameCard.FeaturedTeam selection="home" />
         </GameCard.Matchup>
-        <EventCard.Body twClassName="pb-2">
+        <EventCard.Body twClassName="pb-4">
           <GameCard.ProbabilityBar />
         </EventCard.Body>
       </GameCard.Navigation>

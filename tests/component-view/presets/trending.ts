@@ -19,6 +19,7 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)
     .withMinimalKeyringController()
+    .withMinimalTokensController()
     .withPreferences({
       basicFunctionalityEnabled: true,
       useTokenDetection: false,
@@ -46,6 +47,40 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
           NetworkController: {
             selectedNetworkClientId: 'mainnet',
           },
+          EarnController: {
+            lastUpdated: 0,
+            pooled_staking: { isEligible: false },
+            lending: { positions: [], markets: [] },
+          },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {
+              ETH: { conversionRate: 2000, usdConversionRate: 2000 },
+            },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
+          },
         },
       },
     } as unknown as DeepPartial<RootState>);
@@ -60,6 +95,9 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
               ETH: { conversionRate: 2000 },
             },
             conversionRate: 2000,
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
           },
         },
       },

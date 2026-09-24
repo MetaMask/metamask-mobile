@@ -255,7 +255,11 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       };
     });
 
-  // Mock HyperLiquid Exchange API POST requests through the mobile proxy
+  // Mock HyperLiquid Exchange API POST requests through the mobile proxy.
+  // Order placement requires `response.data.statuses` with resting/filled —
+  // bare `{ status: 'ok' }` makes HyperLiquidProvider treat the order as failed
+  // ("Order failed" / funds returned toast). See integration harness
+  // createMockExchangeClient() for the canonical shape.
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
@@ -263,11 +267,83 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       return urlParam.includes('api.hyperliquid.xyz/exchange');
     })
     .asPriority(1000)
-    .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted HyperLiquid Exchange POST');
+    .thenCallback(async (request) => {
+      const bodyText = await safeGetBodyText(request);
+      let actionType: string | undefined;
+      try {
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        actionType =
+          body?.action?.type ??
+          body?.action?.a ??
+          (Array.isArray(body?.action?.orders) ? 'order' : undefined);
+      } catch {
+        /* ignore parse errors — fall through to generic ok */
+      }
+
+      logger.info(
+        `[Perps E2E Mock] Intercepted HyperLiquid Exchange POST (action=${actionType ?? 'unknown'})`,
+      );
+
+      const isOrderAction =
+        actionType === 'order' ||
+        actionType === 'batchModify' ||
+        (typeof bodyText === 'string' && bodyText.includes('"orders"'));
+
+      const isCancelAction =
+        actionType === 'cancel' ||
+        actionType === 'batchCancel' ||
+        (typeof bodyText === 'string' && bodyText.includes('"cancels"'));
+
+      // Place / modify — provider reads statuses[0].resting.oid (or filled).
+      if (isOrderAction) {
+        const oid = Date.now();
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [{ resting: { oid } }],
+              },
+            },
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      // Cancel — provider expects statuses[0] === 'success'.
+      if (isCancelAction) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'ok',
+            response: {
+              type: 'cancel',
+              data: {
+                statuses: ['success'],
+              },
+            },
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      // approveBuilderFee, setReferrer, updateLeverage, etc.
+      // Default to order-shaped success: unknown action types that still hit
+      // placeOrder must not get bare `{ status: 'ok' }` (Order failed toast).
+      const oid = Date.now();
       return {
         statusCode: 200,
-        body: JSON.stringify({ status: 'ok' }),
+        body: JSON.stringify({
+          status: 'ok',
+          response: {
+            type: 'order',
+            data: {
+              statuses: [{ resting: { oid } }],
+            },
+          },
+        }),
         headers: { 'Content-Type': 'application/json' },
       };
     });

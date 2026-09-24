@@ -7,9 +7,11 @@ import type { PasswordBottomSheetParams } from '../components/PasswordBottomShee
 import type { DaimoPayModalParams } from '../components/DaimoPayModal/DaimoPayModal';
 import type { CreditBalanceTooltipParams } from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import type { MoneyUnlinkCardSheetRouteParams } from '../components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
+import type { ImmersveRevokeAllowanceSheetRouteParams } from '../components/ImmersveRevokeAllowanceSheet/ImmersveRevokeAllowanceSheet';
 import type { ChooseYourCardParams } from '../Views/ChooseYourCard/ChooseYourCard';
 import type { ReviewOrderParams } from '../Views/ReviewOrder/ReviewOrder';
 import type { OrderCompletedParams } from '../Views/OrderCompleted/OrderCompleted';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingToken, CardUserPhase } from '../types';
 
 /**
@@ -47,6 +49,16 @@ export type CardScreensStackParamList = {
   OrderCompleted: OrderCompletedParams | undefined;
   CardCashback: undefined;
   CardCreditRedeem: undefined;
+  CardTransactionHistory: undefined;
+  CardTransactionDetails: {
+    transactionId: string;
+    transaction?: CardTransaction;
+  };
+  CardReportTransaction: {
+    transactionId: string;
+    transaction?: CardTransaction;
+  };
+  CardContactDetails: undefined;
   CardSetPin: { cardId: string };
   CardConfirmPin: { cardId: string };
   CardAuthentication:
@@ -70,7 +82,9 @@ export type CardScreensStackParamList = {
   CardOnboardingKYCProcessing:
     | { countryKey?: string; kycUrl?: string }
     | undefined;
-  CardOnboardingFundingApproval: { countryKey?: string } | undefined;
+  CardOnboardingFundingApproval:
+    | { countryKey?: string; mode?: 'onboarding' | 'reapprove' }
+    | undefined;
 };
 
 /**
@@ -78,7 +92,7 @@ export type CardScreensStackParamList = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardOnboardingStackParamList = {
-  CardOnboardingSignUp: undefined;
+  CardOnboardingSignUp: { fromMigration?: boolean } | undefined;
   CardOnboardingConfirmEmail:
     | {
         email: string;
@@ -128,6 +142,10 @@ export type CardModalsNavigationParamList = {
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
+  CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
+  CardUkMigrationModal: undefined;
+  CardDigitalWalletInstructionsModal: undefined;
+  CardSignInHelpModal: undefined;
 };
 
 /**

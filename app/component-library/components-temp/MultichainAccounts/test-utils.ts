@@ -78,6 +78,25 @@ export const createMockAccountGroup = (
 };
 
 /**
+ * Creates a mock hidden account group for testing
+ */
+export const createMockHiddenAccountGroup = (
+  id: string,
+  name: string,
+  accounts: string[] = [`account-${id}`],
+  isEntropyGroup: boolean = false,
+): AccountGroupObject => {
+  const group = createMockAccountGroup(id, name, accounts, isEntropyGroup);
+  return {
+    ...group,
+    metadata: {
+      ...group.metadata,
+      hidden: true,
+    },
+  } as unknown as AccountGroupObject;
+};
+
+/**
  * Creates a mock wallet for testing
  */
 export const createMockWallet = (

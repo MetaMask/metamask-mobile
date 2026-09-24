@@ -1,5 +1,6 @@
 import type { CaipChainId } from '@metamask/utils';
 import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar';
+import type { TradeAction } from '../utils/tradeAction';
 
 /**
  * Feed audience filter. `all` shows every trader's activity; `following` shows
@@ -14,8 +15,12 @@ export type FeedAudience = 'all' | 'following';
  */
 export type { SocialTypeFilter as FeedTypeFilter } from '../components/Filters/types';
 
-/** Trade action verb, shown after the trader username. */
-export type FeedAction = 'bought' | 'sold' | 'opened' | 'closed';
+/**
+ * Position-lifecycle stage of the trade a row announces, shown after the
+ * trader username. Rendered as `opened / added / reduced / closed` for perps
+ * and `bought / bought more / sold some / sold all` for spot when supplied.
+ */
+export type FeedAction = TradeAction;
 
 /** Perp position direction, used for the LONG / SHORT badge. */
 export type FeedPerpDirection = 'long' | 'short';
@@ -47,8 +52,13 @@ interface FeedItemBase {
   traderAddress: string;
   /** Optional avatar image url. */
   avatarUri?: string;
-  /** Trade action verb. */
-  action: FeedAction;
+  /** Optional lifecycle action supplied by the API. */
+  action?: FeedAction;
+  /**
+   * Whether the position is closed. This is separate from `action` because a
+   * missing lifecycle action must not change the position's value/P&L display.
+   */
+  isClosed?: boolean;
   /** Epoch milliseconds the trade happened. Drives relative/absolute time. */
   timestamp: number;
   /** Trade size + optional MC/price context for the position card sub-header. */

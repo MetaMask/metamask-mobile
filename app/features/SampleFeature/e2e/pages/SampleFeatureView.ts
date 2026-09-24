@@ -2,64 +2,64 @@
 import Matchers from '../../../../../tests/framework/Matchers';
 import Gestures from '../../../../../tests/framework/Gestures';
 import Assertions from '../../../../../tests/framework/Assertions';
-import { type EncapsulatedElementType } from '../../../../../tests/framework/EncapsulatedElement';
+import type { AppiumElement } from '../../../../../tests/framework/AppiumElement';
 import {
   SampleFeatureSelectorsIDs,
   SampleFeatureSelectorsText,
 } from '../selectors/SampleFeature.selectors';
 
 class SampleFeatureView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_FEATURE_CONTAINER,
     );
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SampleFeatureSelectorsText.SAMPLE_FEATURE_TITLE,
     );
   }
 
-  get description(): EncapsulatedElementType {
+  get description(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SampleFeatureSelectorsText.SAMPLE_FEATURE_DESCRIPTION,
     );
   }
 
-  get counterTitle(): EncapsulatedElementType {
+  get counterTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_TITLE,
     );
   }
 
-  get counterValue(): EncapsulatedElementType {
+  get counterValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_VALUE,
     );
   }
 
-  get incrementButton(): EncapsulatedElementType {
+  get incrementButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_INCREMENT_BUTTON,
     );
   }
 
-  get networkImage(): EncapsulatedElementType {
+  get networkImage(): Promise<AppiumElement> {
     // Assuming the network image has a testID
     return Matchers.getElementByID('network-avatar-image');
   }
 
   // Pet Name Elements
-  get petNameAddressInput(): EncapsulatedElementType {
+  get petNameAddressInput(): Promise<AppiumElement> {
     return Matchers.getElementByID('pet-name-address-input');
   }
 
-  get petNameNameInput(): EncapsulatedElementType {
+  get petNameNameInput(): Promise<AppiumElement> {
     return Matchers.getElementByID('pet-name-name-input');
   }
 
-  get addPetNameButton(): EncapsulatedElementType {
+  get addPetNameButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('add-pet-name-button');
   }
 

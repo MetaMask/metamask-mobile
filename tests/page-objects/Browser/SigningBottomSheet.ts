@@ -1,26 +1,26 @@
 import { SigningBottomSheetSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/SigningBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class SigningBottomSheet {
-  get signButton(): EncapsulatedElementType {
+  get signButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.SIGN_BUTTON);
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get personalRequest(): EncapsulatedElementType {
+  get personalRequest(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST,
     );
   }
 
-  get typedRequest(): EncapsulatedElementType {
+  get typedRequest(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SigningBottomSheetSelectorsIDs.TYPED_REQUEST,
     );

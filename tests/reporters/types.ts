@@ -155,6 +155,8 @@ export interface AppProfilingArtifact {
   testName: string;
   projectName: string | null;
   sessionId: string | null;
+  /** BrowserStack session recording URL when enrichment succeeded. */
+  videoURL: string | null;
   device: DeviceInfo;
   timestamp: string;
   profilingSummary: ProfilingSummary | null;

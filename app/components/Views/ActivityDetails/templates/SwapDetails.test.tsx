@@ -70,10 +70,11 @@ const USDT_ASSET_ID =
 const makeItem = (
   type: ActivityListItem['type'],
   data: Record<string, unknown>,
+  chainId = 'eip155:42161',
 ): ActivityListItem =>
   ({
     type,
-    chainId: 'eip155:42161',
+    chainId,
     status: 'success',
     timestamp: 1,
     hash: '0xabc',
@@ -138,6 +139,50 @@ describe('SwapDetails', () => {
     expect(capturedSentToken?.amount).toBe('10000');
   });
 
+  it('preserves a human-readable non-EVM amount when token metadata loads', () => {
+    const sunAssetId = 'tron:728126428/trc20:TSUN';
+    const item = makeItem(
+      'swap',
+      {
+        sourceToken: {
+          direction: 'out',
+          amount: '50',
+          assetId: sunAssetId,
+          symbol: 'SUN',
+        },
+      },
+      'tron:728126428',
+    ) as never;
+
+    const { rerender } = render(<SwapDetails item={item} />);
+
+    expect(capturedSentToken).toEqual(
+      expect.objectContaining({ amount: '50', symbol: 'SUN' }),
+    );
+    expect(capturedSentToken?.decimals).toBeUndefined();
+
+    jest.mocked(useTokensData).mockReturnValue({
+      [sunAssetId.toLowerCase()]: {
+        assetId: sunAssetId,
+        symbol: 'SUN',
+        decimals: 18,
+        name: 'SUN',
+        iconUrl: '',
+      },
+    });
+
+    rerender(<SwapDetails item={item} />);
+
+    expect(capturedSentToken).toEqual(
+      expect.objectContaining({
+        amount: '50',
+        symbol: 'SUN',
+        decimals: 18,
+        amountIsHumanReadable: true,
+      }),
+    );
+  });
+
   it('leaves an already-populated token unchanged (no-op when decimals are present)', () => {
     render(
       <SwapDetails
@@ -146,6 +191,46 @@ describe('SwapDetails', () => {
     );
 
     expect(capturedSentToken?.decimals).toBe(6);
+  });
+
+  it('keeps keyring swap amounts human-readable while still attaching API decimals for Swap again', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    jest.mocked(useTokensData).mockReturnValue({
+      [solAssetId.toLowerCase()]: {
+        assetId: solAssetId,
+        symbol: 'SOL',
+        decimals: 9,
+        name: 'Solana',
+        iconUrl: '',
+      },
+    });
+
+    render(
+      <SwapDetails
+        item={
+          {
+            ...makeItem('swap', {
+              sourceToken: {
+                direction: 'out',
+                amount: '1',
+                assetId: solAssetId,
+                symbol: 'SOL',
+              },
+            }),
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          } as never
+        }
+      />,
+    );
+
+    expect(capturedSentToken).toStrictEqual(
+      expect.objectContaining({
+        amount: '1',
+        decimals: 9,
+        symbol: 'SOL',
+        amountIsHumanReadable: true,
+      }),
+    );
   });
 
   describe('call-to-action', () => {

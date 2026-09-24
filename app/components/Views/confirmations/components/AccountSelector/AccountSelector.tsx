@@ -9,6 +9,7 @@ import {
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,
@@ -33,10 +34,8 @@ import { AccountSection } from '../../../../../component-library/components-temp
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import {
-  selectAccountGroupsByWallet,
-  selectAccountToGroupMap,
-} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 
@@ -54,6 +53,7 @@ export interface AccountSelectorProps {
   /** Title in the account selection bottom sheet (header). */
   selectorTitle?: string;
   style?: StyleProp<ViewStyle>;
+  isAccountAllowed?: (account: InternalAccount) => boolean;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -62,6 +62,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   label = strings('confirm.label.to'),
   selectorTitle = strings('bridge.select_recipient'),
   style,
+  isAccountAllowed,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -69,13 +70,18 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
-  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
+  const accountGroupsByWallet = useSelector(selectVisibleAccountGroupsByWallet);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getIsAccountSupported = useCallback(
-    (account: AccountId) =>
-      Boolean(internalAccountsById[account]?.scopes.includes(EthScope.Eoa)),
-    [internalAccountsById],
+    (accountId: AccountId) => {
+      const account = internalAccountsById[accountId];
+      return Boolean(
+        account?.scopes.includes(EthScope.Eoa) &&
+          (isAccountAllowed?.(account) ?? true),
+      );
+    },
+    [internalAccountsById, isAccountAllowed],
   );
 
   const openModal = useCallback(() => setIsModalVisible(true), []);

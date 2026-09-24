@@ -10,7 +10,7 @@ import {
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { Position } from '../hooks';
 import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
@@ -27,50 +27,71 @@ const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
 const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
 const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 
-export type OrderPlacementKind = 'immediate' | 'resting';
-
 /**
- * Identifies whether submitting an order creates an immediate fill or a
- * resting order. Trigger-market describes how the order executes after its
- * trigger fires; it still rests in the open-orders stream at placement time.
+ * Parses a Perps price, returning null when absent or invalid.
  *
- * @param orderType - Order type being submitted.
- * @returns The placement lifecycle for the order.
+ * @param price - Price value from a controller order or transaction.
+ * @returns The positive numeric price, or null when unavailable.
  */
-export const getOrderPlacementKind = (
-  orderType: OrderType | undefined,
-): OrderPlacementKind =>
-  orderType === undefined ||
-  (!isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType))
-    ? 'immediate'
-    : 'resting';
-
-/**
- * Selects the toast family for the placement lifecycle.
- *
- * @param orderType - Order type being submitted.
- * @returns The toast family whose confirmation copy matches placement.
- */
-export const getOrderManagementToastKey = (
-  orderType: OrderType | undefined,
-): 'market' | 'limit' =>
-  getOrderPlacementKind(orderType) === 'resting' ? 'limit' : 'market';
-
-/**
- * Parses the trigger price from an order, returning null when absent or invalid.
- * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
- */
-export const getValidTriggerPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.triggerPrice ?? '');
+export const getValidPerpsPrice = (
+  price: string | number | null | undefined,
+): number | null => {
+  const parsed =
+    typeof price === 'number' ? price : Number.parseFloat(price ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
 /**
+ * Parses the trigger price from an order, returning null when absent or invalid.
+ * Use this instead of inline `Number.parseFloat(order.triggerPrice ?? '')` + validity checks.
+ */
+export const getValidTriggerPrice = (order: Order): number | null =>
+  getValidPerpsPrice(order.triggerPrice);
+
+/**
  * Parses the execution/limit price from an order, returning null when absent or invalid.
  */
-export const getValidOrderPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.price ?? '');
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+export const getValidOrderPrice = (order: Order): number | null =>
+  getValidPerpsPrice(order.price);
+
+/**
+ * Mark price is HyperLiquid's reference for the oracle price band. Falls back
+ * to the mid price when the mark price is missing or does not parse to a finite
+ * positive number, so a NaN reference cannot silently skip the band check in
+ * {@link isPriceOutsideDeviationBand}.
+ */
+export const resolveOracleReferencePrice = (
+  markPrice: string | undefined,
+  currentPrice: number,
+): number => {
+  const parsedMarkPrice = markPrice ? Number.parseFloat(markPrice) : Number.NaN;
+  return Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+    ? parsedMarkPrice
+    : currentPrice;
+};
+
+/**
+ * Applies a percentage offset to the current limit price, falling back to the
+ * market price when no limit price is set yet. Returns '' when there is no
+ * usable base price.
+ */
+export const calculateLimitPriceForPercentage = (
+  limitPrice: string,
+  currentPrice: number,
+  percentage: number,
+): string => {
+  const parsedLimitPrice = limitPrice
+    ? Number.parseFloat(limitPrice.replace(/[$,]/g, ''))
+    : 0;
+  const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
+
+  if (!basePrice || basePrice === 0) {
+    return '';
+  }
+
+  return BigNumber(basePrice)
+    .multipliedBy(1 + percentage / 100)
+    .toString();
 };
 
 /**
@@ -111,7 +132,6 @@ export const isPriceOutsideDeviationBand = (
 };
 
 type OrderPriceLabelKey =
-  | 'perps.order.trigger_price'
   | 'perps.order.limit_price'
   | 'perps.order.market_price';
 
@@ -122,26 +142,97 @@ type OrderPriceLabelKey =
 export const isTriggerOrder = (order: Order): boolean =>
   Boolean(order.isTrigger || isTPSLOrder(order.detailedOrderType));
 
+export interface PerpsTransactionOrderLike {
+  type: 'limit' | 'market';
+  orderType?: OrderType;
+  detailedOrderType?: string;
+}
+
+/**
+ * Resolves the normalized order type for transaction-history data.
+ *
+ * @param order - Transaction order data, including legacy fields.
+ * @returns The normalized order type used by detail-row policies.
+ */
+export const resolvePerpsTransactionOrderType = (
+  order: PerpsTransactionOrderLike,
+): OrderType => {
+  // A normalized trigger type is authoritative. Ordinary market/limit values
+  // are legacy execution types and must not mask a detailed trigger label.
+  if (order.orderType && isTriggerOrderType(order.orderType)) {
+    return order.orderType;
+  }
+
+  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
+
+  if (detailedOrderType.includes('take profit')) {
+    return detailedOrderType.includes('limit')
+      ? 'take_profit_limit'
+      : 'take_profit_market';
+  }
+
+  if (detailedOrderType.includes('stop')) {
+    return detailedOrderType.includes('limit') ? 'stop_limit' : 'stop_market';
+  }
+
+  return order.orderType ?? order.type;
+};
+
+export interface PerpsOrderPriceRowVisibility {
+  showTriggerPrice: boolean;
+  showLimitPrice: boolean;
+}
+
+/**
+ * Resolves which price rows belong in an order detail view.
+ *
+ * @param orderType - Normalized placement type for the order.
+ * @returns Visibility flags for trigger and limit price rows.
+ */
+export const getOrderPriceRowVisibility = (
+  orderType: OrderType | undefined,
+): PerpsOrderPriceRowVisibility => ({
+  showTriggerPrice: orderType !== undefined && isTriggerOrderType(orderType),
+  showLimitPrice:
+    orderType !== undefined && isLimitExecutionOrderType(orderType),
+});
+
+/**
+ * Resolves the execution price shown for an open order.
+ *
+ * Hyperliquid trigger-market orders carry a limit price as a slippage cap, but
+ * that cap is not a guaranteed execution price and must display as Market.
+ * Orders without a normalized `triggerOrderType` fall back to their detailed
+ * provider order type for backwards compatibility.
+ *
+ * @param order - Open order normalized by the Perps controller.
+ * @returns The display price and its localized label key.
+ */
 export const resolveOrderDisplayPriceAndLabel = (
   order: Order,
 ): { priceValue: number | null; labelKey: OrderPriceLabelKey } => {
   const detailedOrderType = order.detailedOrderType ?? '';
   const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
-  const isLimitOrder = Boolean(
-    order.orderType === 'limit' ||
-      normalizedDetailedOrderType.includes('limit'),
-  );
-  const validTriggerPrice = getValidTriggerPrice(order);
+  const isTrigger = isTriggerOrder(order);
+  const hasDetailedLimitExecution =
+    normalizedDetailedOrderType.includes('limit');
+  const hasDetailedMarketExecution =
+    normalizedDetailedOrderType.includes('market');
+  const isLimitOrder =
+    order.triggerOrderType !== undefined
+      ? isLimitExecutionOrderType(order.triggerOrderType)
+      : hasDetailedLimitExecution ||
+        (!hasDetailedMarketExecution && order.orderType === 'limit');
   const validOrderPrice = getValidOrderPrice(order);
 
-  if (isTriggerOrder(order) && validTriggerPrice !== null) {
+  if (isTrigger && !isLimitOrder) {
     return {
-      priceValue: validTriggerPrice,
-      labelKey: 'perps.order.trigger_price',
+      priceValue: null,
+      labelKey: 'perps.order.market_price',
     };
   }
 
-  if (isLimitOrder && validOrderPrice !== null) {
+  if (isLimitOrder) {
     return {
       priceValue: validOrderPrice,
       labelKey: 'perps.order.limit_price',
@@ -423,13 +514,17 @@ export const isLimitOrderEditable = (order: Order): boolean => {
     return false;
   }
 
-  const filledSize = parseFloat(order.filledSize ?? '0');
+  const filledSize = Number.parseFloat(order.filledSize ?? '0');
   if (Number.isFinite(filledSize) && filledSize > 0) {
     return false;
   }
 
-  const originalSize = parseFloat(order.originalSize ?? order.size ?? '0');
-  const remainingSize = parseFloat(order.remainingSize ?? order.size ?? '0');
+  const originalSize = Number.parseFloat(
+    order.originalSize ?? order.size ?? '0',
+  );
+  const remainingSize = Number.parseFloat(
+    order.remainingSize ?? order.size ?? '0',
+  );
   if (
     Number.isFinite(originalSize) &&
     Number.isFinite(remainingSize) &&
@@ -580,7 +675,7 @@ export const getOrderDirection = (
   }
 
   // Existing position → infer direction based on position size
-  if (positionSize && parseFloat(positionSize) > 0) {
+  if (positionSize && Number.parseFloat(positionSize) > 0) {
     return 'long';
   }
 
@@ -591,10 +686,10 @@ export const willFlipPosition = (
   currentPosition: Position,
   orderParams: OrderParams,
 ): boolean => {
-  const currentPositionSize = parseFloat(currentPosition.size);
+  const currentPositionSize = Number.parseFloat(currentPosition.size);
   const positionDirection = currentPositionSize > 0 ? 'long' : 'short';
   const orderDirection = orderParams.isBuy ? 'long' : 'short';
-  const orderSize = parseFloat(orderParams.size);
+  const orderSize = Number.parseFloat(orderParams.size);
 
   if (orderParams.reduceOnly === true) {
     return false;
@@ -618,9 +713,10 @@ export const willFlipPosition = (
 /**
  * Returns the position direction ('long' | 'short') an order corresponds to.
  *
- * For closing orders (reduce-only or trigger) the order side is the inverse of
- * the position it acts on: a sell closes a long, a buy closes a short. For
- * opening orders the side maps directly (buy = long, sell = short).
+ * For orders classified as closing, the order side is the inverse of the
+ * position it acts on: a sell closes a long, a buy closes a short. Explicit
+ * `reduceOnly` metadata is authoritative; trigger status is only a fallback
+ * when that metadata is absent. Opening order sides map directly.
  *
  * @param order - The order object
  * @returns The position direction the order corresponds to
@@ -654,8 +750,41 @@ const formatOrderTypeString = (typeString: string): string => {
   if (normalized === 'market') {
     return strings('perps.order.market');
   }
+  if (normalized === 'stop limit') {
+    return strings('perps.order.type.stop_limit.title');
+  }
+  if (normalized === 'stop market') {
+    return strings('perps.order.type.stop_market.title');
+  }
+  if (normalized === 'take profit limit') {
+    return strings('perps.order.type.take_profit_limit.title');
+  }
+  if (normalized === 'take profit market') {
+    return strings('perps.order.type.take_profit_market.title');
+  }
 
   return capitalize(typeString);
+};
+
+const getLocalizedOrderDirectionLabel = (
+  order: Order,
+  isClosing: boolean,
+): string => {
+  const direction = resolveOrderDirection(order.side, isClosing);
+  const key = isClosing
+    ? direction === 'long'
+      ? 'perps.market.close_long'
+      : 'perps.market.close_short'
+    : direction === 'long'
+      ? 'perps.market.long_lowercase'
+      : 'perps.market.short_lowercase';
+  const label = strings(key);
+
+  // English close labels are capitalized as standalone copy but sentence case
+  // inline. Other locales retain their translated casing.
+  return isClosing && I18n.locale?.toLowerCase().startsWith('en')
+    ? label.toLocaleLowerCase('en')
+    : label;
 };
 
 /**
@@ -667,7 +796,7 @@ const formatOrderTypeString = (typeString: string): string => {
  * - Limit Short
  * - Limit Close Short
  * - Stop Market Close Long
- * - Take Profit Limit Close Short
+ * - Take Limit Close Short
  *
  * @param order - The order object
  * @returns Formatted order label string
@@ -677,20 +806,30 @@ export const formatOrderLabel = (order: Order): string => {
 
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-  const typeString = resolveOrderTypeString(order);
+  const resolvedTypeString = resolveOrderTypeString(order);
+  const isTrigger = isTriggerOrder(order);
+  const typeString = isTrigger
+    ? formatOrderTypeString(resolvedTypeString)
+    : resolvedTypeString;
+  const localizedDirection = isTrigger
+    ? getLocalizedOrderDirectionLabel(order, isClosing)
+    : direction;
 
   // Build the label: [Type] [Close?] [Direction]
-  if (isClosing) {
-    return capitalize(`${typeString} close ${direction}`);
-  }
+  const label = isTrigger
+    ? `${typeString} ${localizedDirection}`
+    : isClosing
+      ? `${typeString} close ${direction}`
+      : `${typeString} ${direction}`;
 
-  return capitalize(`${typeString} ${direction}`);
+  // Preserve the legacy Lite label path for ordinary market/limit orders.
+  return isTrigger ? label : capitalize(label);
 };
 
 /**
  * Format just the order type portion of an order label (no direction/close).
  *
- * Examples: "Limit", "Stop market", "Take profit limit"
+ * Examples: "Limit", "Stop market", "Take limit"
  *
  * @param order - The order object
  * @returns Formatted order type string for compact UI pills
@@ -714,6 +853,11 @@ export const getOrderLabelDirection = (order: Order): string => {
   }
 
   return direction;
+};
+
+export const getInlineOrderLabelDirection = (order: Order): string => {
+  const isClosing = isClosingOrder(order);
+  return getLocalizedOrderDirectionLabel(order, isClosing);
 };
 
 /**

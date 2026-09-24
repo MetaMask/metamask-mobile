@@ -217,6 +217,7 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   setTargetWalletType: (): void => undefined,
   setPendingOperationAddress: (): void => undefined,
   showHardwareWalletError: (): void => undefined,
+  cancelConnectionFlow: (): void => undefined,
   showAwaitingConfirmation: (): void => undefined,
   hideAwaitingConfirmation: (): void => undefined,
   qr: {
@@ -229,12 +230,15 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
 };
 
 function channelWithInitialValue<T>(initialValue: T) {
+  let lastDeliveredAt: number | null = null;
   return {
     subscribe: (params: { callback: (data: T) => void }): (() => void) => {
+      lastDeliveredAt = Date.now();
       params.callback(initialValue);
       return noopUnsubscribe;
     },
     getSnapshot: () => initialValue,
+    getLastDeliveredAt: () => lastDeliveredAt,
   };
 }
 

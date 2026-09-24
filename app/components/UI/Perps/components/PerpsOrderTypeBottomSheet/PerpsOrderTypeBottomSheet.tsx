@@ -30,8 +30,8 @@ interface PerpsOrderTypeBottomSheetProps {
   asset?: string;
   direction?: 'long' | 'short';
   title?: string;
-  showSelectedIcon?: boolean;
-  showTriggeredTypes?: boolean;
+  showOrderTypeIcons?: boolean;
+  availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -43,8 +43,8 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   asset = 'BTC',
   direction = 'long',
   title,
-  showSelectedIcon = false,
-  showTriggeredTypes = false,
+  showOrderTypeIcons = false,
+  availableOrderTypes,
   sheetRef: externalSheetRef,
 }) => {
   const { track } = usePerpsEventTracking();
@@ -76,8 +76,8 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       onSelect={handleSelect}
       currentOrderType={currentOrderType}
       title={title}
-      showSelectedIcon={showSelectedIcon}
-      showTriggeredTypes={showTriggeredTypes}
+      showOrderTypeIcons={showOrderTypeIcons}
+      availableOrderTypes={availableOrderTypes}
       sheetRef={externalSheetRef}
     />
   );

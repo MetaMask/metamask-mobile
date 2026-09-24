@@ -1,19 +1,20 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
-import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { useRiveTiltWriter } from '../../hooks/useRiveTiltWriter';
+import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
 import { useRiveRevealTrigger } from '../../hooks/useRiveRevealTrigger';
-import {
-  shapeCardTilt,
-  pitchToParallaxValue,
-  tiltToParallaxValue,
-} from '../../utils/parallax';
+import { shapeCardTilt } from '../../utils/parallax';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.6.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
@@ -26,9 +27,10 @@ const log = createProjectLogger('money-card-tilt');
 // These MUST match the names authored in card_tilt_v1.6.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
-// The per-variant artboards are rendered directly so the component needs no
-// imperative setup calls that could race the native view's file load. Each
-// board tilts on both axes, driven by `xValue` and `yValue`.
+// The per-variant artboards are rendered directly (not through the `MainTilt`
+// wrapper with its `cardType` enum), with their view model bound and tilted
+// via `useRiveParallaxTilt` + `dataBind`. Each board tilts on both axes,
+// driven by `xValue` and `yValue`.
 
 /** Artboard holding the virtual-card tilt. */
 const RIVE_ARTBOARD_DIGITAL = 'CardTiltDigital';
@@ -36,10 +38,7 @@ const RIVE_ARTBOARD_DIGITAL = 'CardTiltDigital';
 /** Artboard holding the metal-card tilt. */
 const RIVE_ARTBOARD_METAL = 'CardTiltMetal';
 
-/** ViewModel numbers (0-100, rest 50) driving the tilt per axis. */
-const RIVE_PROPERTY_X = 'xValue';
-const RIVE_PROPERTY_Y = 'yValue';
-
+/** ViewModel trigger playing the card's entry reveal. */
 const RIVE_TRIGGER_START = 'startAnimation';
 /** Tilt does not need it, but a trigger needs a running state machine. */
 const RIVE_STATE_MACHINE = 'State Machine 1';
@@ -74,10 +73,10 @@ const MoneyCardTiltAnimation = ({
   const flagEnabled = useSelector(selectMoneyCardTiltAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
-  // Written to via a plain ref rather than `useRiveNumber`: that hook echoes
-  // every value back to JS through setState, re-rendering at the accelerometer
-  // sample rate for values this component never reads.
-  const riveRef = useRef<RiveRef>(null);
+  // riveViewRef (state) is non-null only after the native view resolves
+  // awaitViewReady — gating the reveal on it retries a late-ready view
+  // instead of silently dropping the trigger.
+  const { riveViewRef, setHybridRef } = useRive();
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
@@ -85,33 +84,29 @@ const MoneyCardTiltAnimation = ({
     ? RIVE_ARTBOARD_METAL
     : RIVE_ARTBOARD_DIGITAL;
 
-  const writeTilt = useRiveTiltWriter({
-    riveRef,
-    xProperty: RIVE_PROPERTY_X,
-    yProperty: RIVE_PROPERTY_Y,
-    artboardName,
-    enabled: animate,
-  });
-
-  const applyTilt = useCallback(
-    (x: number, y: number) => {
-      writeTilt(
-        tiltToParallaxValue(shapeCardTilt(x)),
-        pitchToParallaxValue(shapeCardTilt(y)),
-      );
-    },
-    [writeTilt],
+  const shapeTilt = useCallback(
+    (x: number, y: number) => ({
+      x: shapeCardTilt(x),
+      y: shapeCardTilt(y),
+    }),
+    [],
   );
 
-  useDeviceOrientation(applyTilt, { enabled: animate });
+  const { riveFile } = useRiveFile(CardTiltAnimation);
+  const instance = useRiveParallaxTilt(riveFile, {
+    artboardName,
+    enabled: animate,
+    shapeTilt,
+  });
 
-  const handleError = useCallback((riveError: RNRiveError) => {
+  const handleError = useCallback((riveError: RiveError) => {
     log(`Rive error: ${riveError.message}`);
     setHasRiveError(true);
   }, []);
 
-  const handlePlay = useRiveRevealTrigger({
-    riveRef,
+  useRiveRevealTrigger({
+    instance,
+    riveViewRef,
     triggerName: RIVE_TRIGGER_START,
     enabled: playRevealOnMount && animate,
     artboardName,
@@ -129,19 +124,19 @@ const MoneyCardTiltAnimation = ({
 
   let content: React.ReactNode;
   if (animate) {
-    content = (
-      <Rive
+    content = riveFile && instance && (
+      <RiveView
         // Remount per artboard: swapping `artboardName` in place reloads the
         // artboard but leaves data binding pointing at the previous one.
         key={artboardName}
-        ref={riveRef}
-        source={CardTiltAnimation}
+        hybridRef={setHybridRef}
+        file={riveFile}
         artboardName={artboardName}
         stateMachineName={playRevealOnMount ? RIVE_STATE_MACHINE : undefined}
-        dataBinding={AutoBind(true)}
+        dataBind={instance}
+        autoPlay
         fit={Fit.Contain}
         style={size}
-        onPlay={handlePlay}
         onError={handleError}
         testID={MoneyCardTiltAnimationTestIds.RIVE}
       />

@@ -22,6 +22,11 @@ import {
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
+import { isMonadMusdAssetId } from '../utils/fiatDepositAsset';
+import {
+  acceptedAmountMatchesRequest,
+  logTransakQuoteMismatch,
+} from '../utils/transakQuoteParity';
 import {
   type Quote,
   isNativeProvider,
@@ -152,11 +157,11 @@ export function useContinueWithQuote(
     [navigation],
   );
 
-  // The aggregator-format `_quote` is used only by the caller to dispatch
+  // The aggregator-format quote is used only by the caller to dispatch
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
   // its own `TransakBuyQuote` via `transakGetBuyQuote` below.
   const continueNative = useCallback(
-    async (_quote: Quote, ctx: ContinueWithQuoteContext) => {
+    async (quote: Quote, ctx: ContinueWithQuoteContext) => {
       const { amount, assetId } = ctx;
       // Resolve every controller-coupled value through the override-first
       // ladder so headless callers (Phase 5) can drive this hook without
@@ -195,13 +200,16 @@ export function useContinueWithQuote(
         const hasToken = await transakCheckExistingToken();
 
         if (hasToken) {
-          const transakQuote = await transakGetBuyQuote(
+          const quoteArguments = [
             effectiveCurrency,
             assetId,
             effectiveChainId,
             effectivePaymentMethodId,
             String(amount),
-          );
+          ] as const;
+          // Fee-on-top: request the native quote with the default fee mode
+          // (the fee is added on top of the amount).
+          const transakQuote = await transakGetBuyQuote(...quoteArguments);
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
           }
@@ -299,6 +307,13 @@ export function useContinueWithQuote(
       };
       try {
         providerCode = quote.provider;
+        if (
+          ctx.headlessSessionId &&
+          isMonadMusdAssetId(ctx.assetId) &&
+          !acceptedAmountMatchesRequest(quote, ctx.amount)
+        ) {
+          logTransakQuoteMismatch(['fiat_amount']);
+        }
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
           quote,
@@ -345,12 +360,12 @@ export function useContinueWithQuote(
           );
 
         if (useExternalBrowser) {
-          if (effectiveOrderId && effectiveWallet) {
+          if (effectiveOrderId && effectiveWallet && network) {
             addPrecreatedOrder({
               orderId: effectiveOrderId,
               providerCode,
               walletAddress: effectiveWallet,
-              chainId: network || undefined,
+              chainId: network,
             });
           }
 

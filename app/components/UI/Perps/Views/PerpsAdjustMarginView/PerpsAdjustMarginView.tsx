@@ -12,15 +12,12 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Slider,
   KeyValueRow,
   KeyValueRowVariant,
   Icon,
   IconName,
   IconSize,
   IconColor,
-  HelpText,
-  HelpTextSeverity,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -40,19 +37,18 @@ import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsSlider from '../../components/PerpsSlider';
+import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import {
-  ImpactMoment,
-  playImpact,
-  useHaptics,
-} from '../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -184,14 +180,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     [flooredMaxAmount],
   );
 
-  const handleSliderGrip = useCallback(() => {
-    playImpact(ImpactMoment.SliderGrip);
-  }, []);
-
-  const handleSliderMark = useCallback(() => {
-    playImpact(ImpactMoment.SliderTick);
-  }, []);
-
   const handleMaxPress = useCallback(() => {
     setMarginAmountString(flooredMaxAmount.toFixed(2));
   }, [flooredMaxAmount]);
@@ -241,7 +229,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       if (liquidationPrice === 0) {
         return PERPS_CONSTANTS.FallbackDataDisplay;
       }
-      return `${distance.toFixed(0)}%`;
+      return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
     },
     [],
   );
@@ -295,9 +283,14 @@ const PerpsAdjustMarginView: React.FC = () => {
     ? strings('perps.adjust_margin.add_margin')
     : strings('perps.adjust_margin.reduce_margin');
 
+  // The route snapshot outlives the position, so once the live stream has
+  // loaded without it there is nothing left to adjust margin on.
+  const isPositionGone = !isLoading && !position;
+
   const isConfirmDisabled =
     marginAmount <= 0 ||
     isAdjusting ||
+    isPositionGone ||
     marginAmount > flooredMaxAmount ||
     Boolean(validationErrors.length);
 
@@ -439,33 +432,16 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {!isInputFocused && (
           <Box twClassName="px-4 py-4">
-            <Slider
+            <PerpsSlider
               value={sliderPercentage}
               onValueChange={handleSliderChange}
-              minimumValue={0}
-              maximumValue={100}
-              step={1}
-              showRangeLabels
-              showRangeDots
-              isDisabled={isAdjusting}
-              onGrip={handleSliderGrip}
-              onMark={handleSliderMark}
+              disabled={isAdjusting}
               testID={PerpsAdjustMarginViewSelectorsIDs.SLIDER}
             />
           </Box>
         )}
 
-        <Box twClassName="items-center justify-start px-4 my-4 min-h-10">
-          {validationErrors.map((error, index) => (
-            <HelpText
-              key={`error-${index}`}
-              severity={HelpTextSeverity.Danger}
-              twClassName="w-full justify-center text-center"
-            >
-              {error}
-            </HelpText>
-          ))}
-        </Box>
+        <PerpsValidationErrors errors={validationErrors} />
       </ScrollView>
 
       {isInputFocused && (

@@ -25,10 +25,13 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
-import { formatAskPrice } from './formatAskPrice';
+import {
+  formatAskPrice,
+  formatVolume,
+  getAskPricePercent,
+} from '../../shared/formatting';
+import { isOutcomeTradeable } from '../../shared/tradeable';
 import { formatMultiplier } from './formatMultiplier';
-import { formatVolume } from './formatVolume';
-import { getAskPricePercent } from './getAskPricePercent';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
 
@@ -264,6 +267,7 @@ const OutcomeRow = ({
       <Button
         testID={testID}
         variant={ButtonVariant.Secondary}
+        isDisabled={!isOutcomeTradeable(market, outcome)}
         onPress={() => onOrder?.(event, market, outcome)}
         twClassName={`w-16 px-0 ${fillClassName}`}
       >

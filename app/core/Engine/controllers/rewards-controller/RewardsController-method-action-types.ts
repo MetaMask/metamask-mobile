@@ -779,16 +779,6 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 };
 
 /**
- * Fetch the visible first predict on us content from the public API.
- * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
- */
-export type RewardsControllerGetFirstPredictOnUsAction = {
-  type: `RewardsController:getFirstPredictOnUs`;
-  handler: RewardsController['getFirstPredictOnUs'];
-};
-
-/**
  * Invalidate referral details cache for a subscription
  * @param subscriptionId - The subscription ID to invalidate cache for
  */
@@ -863,6 +853,17 @@ export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
 };
 
 /**
+ * Fetch the Money Account Sweepstakes aggregate volume stats.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The volume stats DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsController['getMoneyAccountSweepstakesVolumeStats'];
+};
+
+/**
  * Fetch the Money Account Sweepstakes draw proof.
  * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
  * null (pending) responses are cached in-memory for 5 minutes.
@@ -927,6 +928,18 @@ export type RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction =
 export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
   type: `RewardsController:getPerpsTradingCampaignVolume`;
   handler: RewardsController['getPerpsTradingCampaignVolume'];
+};
+
+/**
+ * Get the perps trading campaign prize ladder and currently unlocked pool.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ * @param campaignId - The campaign ID to get the prize pool for.
+ * @returns The prize pool schedule and unlocked amount for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignPrizePoolAction = {
+  type: `RewardsController:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsController['getPerpsTradingCampaignPrizePool'];
 };
 
 /**
@@ -1010,7 +1023,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
@@ -1020,8 +1032,10 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPrizePoolAction
   | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
   | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsControllerGetPerpsTradingCampaignVolumeAction;
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction
+  | RewardsControllerGetPerpsTradingCampaignPrizePoolAction;

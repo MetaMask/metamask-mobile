@@ -1,11 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
-import PerpsTPSLView from './PerpsTPSLView';
+import PerpsTPSLView, { waitForDismissal } from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 import {
   getPerpsTPSLViewSelector,
   PerpsTPSLViewSelectorsIDs,
 } from '../../Perps.testIds';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import {
   ImpactMoment,
   playImpact,
@@ -40,7 +41,14 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
 }));
+
+const mockUsePerpsLivePositions =
+  jest.requireMock('../../hooks/stream').usePerpsLivePositions;
 
 jest.mock('../../hooks/usePerpsLiquidationPrice', () => ({
   usePerpsLiquidationPrice: jest.fn(() => ({
@@ -125,6 +133,8 @@ describe('PerpsTPSLView', () => {
       slPercentInputFocused: false,
       tpUsingPercentage: false,
       slUsingPercentage: false,
+      takeProfitSign: '+' as const,
+      stopLossSign: '-' as const,
     },
     handlers: {
       handleTakeProfitPriceChange: jest.fn(),
@@ -145,6 +155,8 @@ describe('PerpsTPSLView', () => {
       handleStopLossPercentageButton: jest.fn(),
       handleTakeProfitOff: jest.fn(),
       handleStopLossOff: jest.fn(),
+      handleTakeProfitSignToggle: jest.fn(),
+      handleStopLossSignToggle: jest.fn(),
     },
     validation: {
       isValid: true,
@@ -171,6 +183,10 @@ describe('PerpsTPSLView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
     mockRouteParams = { ...defaultRouteParams };
   });
 
@@ -188,6 +204,14 @@ describe('PerpsTPSLView', () => {
     return render(<PerpsTPSLView />);
   };
 
+  const renderSheet = (overrides = {}) => {
+    mockUsePerpsTPSLForm.mockReturnValue({
+      ...defaultMockReturn,
+      ...overrides,
+    });
+    return render(<PerpsTPSLView variant="sheet" />);
+  };
+
   const getTakeProfitPriceInput = () =>
     screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT);
 
@@ -199,6 +223,49 @@ describe('PerpsTPSLView', () => {
 
   const getStopLossPercentageInput = () =>
     screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT);
+
+  it('renders take profit and stop loss RoE sign badges', () => {
+    renderView();
+
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls take profit sign toggle when the TP badge is pressed', () => {
+    const mockHandler = jest.fn();
+    renderView({
+      buttons: {
+        ...defaultMockReturn.buttons,
+        handleTakeProfitSignToggle: mockHandler,
+      },
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE),
+    );
+
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls stop loss sign toggle when the SL badge is pressed', () => {
+    const mockHandler = jest.fn();
+    renderView({
+      buttons: {
+        ...defaultMockReturn.buttons,
+        handleStopLossSignToggle: mockHandler,
+      },
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE),
+    );
+
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
 
   // ==================== User Interactions ====================
 
@@ -789,6 +856,109 @@ describe('PerpsTPSLView', () => {
     });
   });
 
+  // ==================== Stale position ====================
+
+  describe('Stale position', () => {
+    const stalePosition: Position = {
+      symbol: 'ETH',
+      entryPrice: '2800.00',
+      size: '0.5',
+      positionValue: '1400.00',
+      unrealizedPnl: '100.00',
+      marginUsed: '140.00',
+      leverage: { type: 'isolated', value: 10 },
+      liquidationPrice: '2500.00',
+      maxLeverage: 50,
+      returnOnEquity: '0.71',
+      cumulativeFunding: {
+        allTime: '0.00',
+        sinceOpen: '0.00',
+        sinceChange: '0.00',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    const renderEditingView = (onConfirm: jest.Mock) => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        position: stalePosition,
+        onConfirm,
+      };
+
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
+    };
+
+    it('submits TP/SL while the live position is still open', async () => {
+      // Arrange
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [stalePosition],
+        isInitialLoading: false,
+      });
+      renderEditingView(mockOnConfirm);
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      // Assert
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    it('does not submit TP/SL once the live stream drops the position', async () => {
+      // Arrange
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      renderEditingView(mockOnConfirm);
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      // Assert
+      expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+
+    it('keeps TP/SL submittable while live positions are still loading', async () => {
+      // Arrange
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+      renderEditingView(mockOnConfirm);
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      // Assert
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+  });
+
   // ==================== Edge Cases ====================
 
   describe('Edge Cases', () => {
@@ -831,6 +1001,254 @@ describe('PerpsTPSLView', () => {
       expect(
         screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Sheet variant', () => {
+    const takeProfitPresetId =
+      getPerpsTPSLViewSelector.takeProfitPercentageButton(
+        TP_SL_VIEW_CONFIG.TakeProfitRoePresets[0],
+      );
+    const stopLossPresetId = getPerpsTPSLViewSelector.stopLossPercentageButton(
+      TP_SL_VIEW_CONFIG.StopLossRoePresets[0],
+    );
+
+    // The liquidation distance needs a real liquidation price to derive from.
+    const positionWithLiquidation: Position = {
+      symbol: 'ETH',
+      entryPrice: '2800.00',
+      size: '0.5',
+      positionValue: '1400.00',
+      unrealizedPnl: '100.00',
+      marginUsed: '140.00',
+      leverage: { type: 'isolated', value: 10 },
+      liquidationPrice: '2500.00',
+      maxLeverage: 50,
+      returnOnEquity: '0.71',
+      cumulativeFunding: {
+        allTime: '0.00',
+        sinceOpen: '0.00',
+        sinceChange: '0.00',
+      },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    it('hides the inline RoE presets that the screen shows in its sections', () => {
+      renderSheet();
+
+      expect(screen.queryByTestId(takeProfitPresetId)).toBeNull();
+      expect(screen.queryByTestId(stopLossPresetId)).toBeNull();
+    });
+
+    it('reveals take profit presets above the keypad when that field is focused', () => {
+      renderSheet();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(screen.getByTestId(takeProfitPresetId)).toBeOnTheScreen();
+      expect(screen.queryByTestId(stopLossPresetId)).toBeNull();
+    });
+
+    it('swaps to stop loss presets when that field is focused', () => {
+      renderSheet();
+
+      fireEvent(getStopLossPercentageInput(), 'focus');
+
+      expect(screen.getByTestId(stopLossPresetId)).toBeOnTheScreen();
+      expect(screen.queryByTestId(takeProfitPresetId)).toBeNull();
+    });
+
+    it('keeps Cancel and Save visible while the keypad is open', () => {
+      renderSheet();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    // `strings` is mocked to echo the key, so these assert the key the
+    // variant resolves rather than the rendered copy.
+    it('labels the confirm action Save rather than Set', () => {
+      renderSheet();
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toHaveTextContent('perps.order.tpsl_modal.save');
+    });
+
+    it('keeps the Set label on the screen variant', () => {
+      renderView();
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toHaveTextContent('perps.tpsl.set');
+    });
+
+    it('keeps the keypad open when a section is cleared', () => {
+      renderSheet();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+      fireEvent.press(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    // The screen only offers Clear once a value exists, so seed one.
+    it('still dismisses the keypad on clear for the screen variant', () => {
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3150',
+        },
+      });
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+      fireEvent.press(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON),
+      );
+
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeNull();
+    });
+
+    // The sheet pops from its close-animation callback, so Save has to run
+    // from there. If that callback ever stops firing this hangs instead of
+    // racing the transition, which is why it is pinned.
+    it('still confirms after the sheet finishes dismissing', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
+
+      renderSheet({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+        },
+        validation: { ...defaultMockReturn.validation, hasChanges: true },
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      expect(mockOnConfirm).toHaveBeenCalled();
+    });
+
+    // Cancel starts the close; the sheet then drops Save's close callback, so
+    // without a guard Save would fall through to the timeout and submit the
+    // edit the user just discarded.
+    it('does not confirm when Save is pressed after Cancel started the close', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
+
+      renderSheet({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+        },
+        validation: { ...defaultMockReturn.validation, hasChanges: true },
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+        );
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+        );
+      });
+
+      expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+
+    // The real sheet drops its close callback when a close is already in
+    // flight, and returns before storing it. Neither BottomSheet mock
+    // reproduces that, so the guarantee is asserted on the helper directly.
+    describe('waitForDismissal', () => {
+      it('resolves once the dismissal calls back', async () => {
+        await expect(
+          waitForDismissal((afterDismiss) => afterDismiss()),
+        ).resolves.toBeUndefined();
+      });
+
+      it('resolves when the dismissal never calls back', async () => {
+        jest.useFakeTimers();
+
+        const pending = waitForDismissal(() => undefined);
+        jest.advanceTimersByTime(5000);
+
+        await expect(pending).resolves.toBeUndefined();
+        jest.useRealTimers();
+      });
+
+      it('resolves once when the callback and the timeout both fire', async () => {
+        jest.useFakeTimers();
+        let afterDismiss = () => undefined as void;
+
+        const pending = waitForDismissal((callback) => {
+          afterDismiss = callback;
+        });
+        afterDismiss();
+        jest.advanceTimersByTime(5000);
+
+        await expect(pending).resolves.toBeUndefined();
+        jest.useRealTimers();
+      });
+    });
+
+    it('shows liquidation distance and a trend icon', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        position: positionWithLiquidation,
+      };
+      renderSheet();
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
+      ).toBeOnTheScreen();
+    });
+
+    it('leaves the control arm liquidation row unchanged', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        position: positionWithLiquidation,
+      };
+      renderView();
+
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
+      ).toBeNull();
+    });
+
+    it('replaces the footer with Done on the screen variant instead', () => {
+      renderView();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).toBeNull();
     });
   });
 });

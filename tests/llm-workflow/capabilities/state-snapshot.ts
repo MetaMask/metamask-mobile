@@ -21,7 +21,7 @@ const SCREEN_DETECTION_MAP = new Map<string, ScreenName>([
 ]);
 
 export interface StateSnapshotCapabilityOptions {
-  /** Resolver returning the current iOS platform driver (may be undefined if no session). */
+  /** Resolver returning the current mobile platform driver (may be undefined if no session). */
   getPlatformDriver: () => IPlatformDriver | undefined;
 }
 

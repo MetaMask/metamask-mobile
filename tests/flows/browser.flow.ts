@@ -1,4 +1,5 @@
 import Assertions from '../framework/Assertions';
+import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import Gestures from '../framework/Gestures';
 import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
@@ -9,13 +10,38 @@ import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/B
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
+import AppiumContextHelpers from '../framework/AppiumContextHelpers';
 import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
+import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 
 /** Dapp <h1 id="logo-text">; always at the top of the page, unlike the action buttons. */
 const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
+const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
+const TEST_DAPP_LOAD_POLL_MS = 500;
+
+/**
+ * Android WebView a11y often omits the heading text even after the page has
+ * rendered. Prove load via CDP on `#logo-text` (fresh DOM query each poll).
+ */
+const waitForAndroidTestDappHeadingViaCdp = async (
+  pageUrl: string,
+): Promise<void> => {
+  await Utilities.waitUntil(
+    async () => {
+      const text = await ChromeCdpHelpers.readTextByIdInWebView(
+        pageUrl,
+        TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
+      );
+      return text?.trim().includes(TEST_DAPP_LOAD_LABEL) ?? false;
+    },
+    {
+      timeout: TEST_DAPP_LOAD_TIMEOUT_MS,
+      interval: TEST_DAPP_LOAD_POLL_MS,
+    },
+  );
+};
 
 /**
  * Waits for the test dapp to load.
@@ -30,13 +56,10 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
       Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
       {
         description: 'Browser WebView native container',
-        timeout: 30_000,
+        timeout: TEST_DAPP_LOAD_TIMEOUT_MS,
       },
     );
-    await Assertions.expectTextDisplayed(TEST_DAPP_LOAD_LABEL, {
-      timeout: 30_000,
-      description: 'Test dapp heading should be visible',
-    });
+    await waitForAndroidTestDappHeadingViaCdp(getDappUrl(0));
     return;
   }
 
@@ -87,7 +110,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
       throw new Error('Test Snaps load is only supported on Android/iOS');
     } catch (error) {
       if (attempt < MAX_RETRIES) {
-        await PlaywrightContextHelpers.switchToNativeContext().catch(
+        await AppiumContextHelpers.switchToNativeContext().catch(
           () => undefined,
         );
         await BrowserView.navigateToURL(TEST_SNAPS_URL);

@@ -67,7 +67,6 @@ import {
   RewardsDataServiceGetVipTransactionsLastUpdatedAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
-  RewardsDataServiceGetFirstPredictOnUsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
   RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
@@ -78,6 +77,7 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
@@ -86,6 +86,7 @@ import {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,
@@ -134,7 +135,6 @@ type AllowedActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -145,6 +145,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
@@ -160,6 +161,7 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
@@ -249,7 +251,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getVipTransactionsLastUpdated',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
-      'RewardsDataService:getFirstPredictOnUs',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
       'RewardsDataService:getOndoCampaignPortfolioPosition',
@@ -260,6 +261,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignPrizePool',
       'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
       'RewardsDataService:getPredictThePitchLeaderboard',
       'RewardsDataService:getPredictThePitchLeaderboardPosition',
@@ -268,6 +270,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPredictThePitchPrizePool',
       'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
       'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
       'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
       'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
       'RewardsDataService:registerMoneyAccountBinding',

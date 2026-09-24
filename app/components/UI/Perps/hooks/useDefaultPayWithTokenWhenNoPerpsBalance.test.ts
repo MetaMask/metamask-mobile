@@ -21,7 +21,7 @@ function getState(
     perpsAccount?: { spendableBalance: string } | null;
     allowlistAssets?: string[];
     isTestnet?: boolean;
-    activeProvider?: 'hyperliquid' | 'myx' | 'aggregated';
+    activeProvider?: 'hyperliquid' | 'lighter' | 'aggregated';
     defaultPayTokenWhenNoBalanceEnabled?: boolean;
   } = {},
 ) {
@@ -83,6 +83,27 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
     const { result } = runHook(
       getState({
         perpsAccount: { spendableBalance: '100' },
+        allowlistAssets: ['0xa4b1.0xusdc'],
+      }),
+    );
+
+    expect(result.current).toBeNull();
+  });
+
+  it('does not offer pay-with-token funding for Lighter without a deposit route', () => {
+    mockUsePerpsPaymentTokens.mockReturnValue([
+      {
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+        balanceFiat: 'US$500',
+        decimals: 6,
+      },
+    ] as PerpsToken[]);
+
+    const { result } = runHook(
+      getState({
+        activeProvider: 'lighter',
         allowlistAssets: ['0xa4b1.0xusdc'],
       }),
     );

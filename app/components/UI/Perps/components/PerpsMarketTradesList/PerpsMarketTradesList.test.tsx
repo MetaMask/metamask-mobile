@@ -88,6 +88,25 @@ jest.mock(
     },
 );
 
+jest.mock('../PerpsAggregatedFillsCheckbox', () => {
+  const { Pressable, Text: RNText } = jest.requireActual('react-native');
+  return function MockPerpsAggregatedFillsCheckbox({
+    testID,
+    onChange,
+    isSelected,
+  }: {
+    testID?: string;
+    onChange?: (next: boolean) => void;
+    isSelected?: boolean;
+  }) {
+    return (
+      <Pressable testID={testID} onPress={() => onChange?.(!isSelected)}>
+        <RNText>Aggregated</RNText>
+      </Pressable>
+    );
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -99,17 +118,29 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: (symbol: string) => symbol,
-  PERPS_CONSTANTS: {
-    RecentActivityLimit: 3,
-  },
-  PERPS_EVENT_VALUE: {
-    SCREEN_NAME: {
-      PERPS_MARKET_DETAILS: 'perps_market_details',
+jest.mock('@metamask/perps-controller', () => {
+  const actualConstants = jest.requireActual(
+    '@metamask/perps-controller/constants',
+  );
+
+  return {
+    getPerpsDisplaySymbol: (symbol: string) => symbol,
+    PERPS_CONSTANTS: {
+      RecentActivityLimit: 3,
     },
-  },
-}));
+    PERPS_EVENT_VALUE: {
+      SCREEN_NAME: {
+        PERPS_MARKET_DETAILS: 'perps_market_details',
+      },
+    },
+    HYPERLIQUID_TWAP_LIMITS: {
+      MinDurationMinutes: 5,
+      MaxDurationMinutes: 1440,
+      MinNotionalUsd: 100,
+    },
+    CHASE_ORDER_STATUS: actualConstants.CHASE_ORDER_STATUS,
+  };
+});
 
 describe('PerpsMarketTradesList', () => {
   const mockNavigate = jest.fn();
@@ -378,13 +409,11 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(tradeItem.parent?.parent || tradeItem);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      // Verify navigation to correct route with transaction param
-      // ID format: {orderId}-{timestamp}-{index}
+      // An open is seeded on its order, so the id names that order.
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          txIdentifier: expect.stringContaining('fill-1'),
-          preloadKey: expect.any(String),
+          txIdentifier: 'trade-ETH-OpenLong-order-fill-1',
         }),
       );
     });
@@ -399,36 +428,12 @@ describe('PerpsMarketTradesList', () => {
       const ethTrade = screen.getByText('Closed long');
       fireEvent.press(ethTrade.parent?.parent || ethTrade);
 
-      // Verify navigation with correct transformed transaction data
-      // ID format: {orderId}-{timestamp}-{index}
+      // A close is seeded on the second it landed in, not on an order: HyperLiquid can split one
+      // close across several child orders, so no single order id identifies the row.
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          txIdentifier: expect.stringContaining('fill-2'),
-          preloadKey: expect.any(String),
-        }),
-      );
-    });
-
-    it('navigates to the legacy position screen when redesign is disabled', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => false);
-      mockUsePerpsMarketFills.mockReturnValue(
-        createMockFillsReturn(mockOrderFills),
-      );
-
-      render(<PerpsMarketTradesList symbol="ETH" />);
-
-      const tradeItem = screen.getByText('Opened long');
-      fireEvent.press(tradeItem.parent?.parent || tradeItem);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        expect.objectContaining({
-          transaction: expect.objectContaining({
-            type: 'trade',
-            id: expect.stringContaining('fill-1'),
-          }),
+          txIdentifier: 'trade-ETH-CloseLong-second-1698690000',
         }),
       );
     });
@@ -530,10 +535,16 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const logoKeys = screen.getAllByTestId('logo-key');
-      // ID format: {asset}-{orderId}-{timestamp}-{index}
-      expect(logoKeys[0]).toHaveTextContent('ETH-fill-1-1698700000000-0');
-      expect(logoKeys[1]).toHaveTextContent('ETH-fill-2-1698690000000-1');
-      expect(logoKeys[2]).toHaveTextContent('ETH-fill-3-1698680000000-2');
+      // Recycling key is `{asset}-{transaction id}`; opens name their order, closes their second.
+      expect(logoKeys[0]).toHaveTextContent(
+        'ETH-trade-ETH-OpenLong-order-fill-1',
+      );
+      expect(logoKeys[1]).toHaveTextContent(
+        'ETH-trade-ETH-CloseLong-second-1698690000',
+      );
+      expect(logoKeys[2]).toHaveTextContent(
+        'ETH-trade-ETH-OpenShort-order-fill-3',
+      );
     });
   });
 

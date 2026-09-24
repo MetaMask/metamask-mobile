@@ -206,6 +206,8 @@ const mockLegacyQrKeyring = new LegacyQrKeyring({
   bridge: mockQrKeyringBridge,
 });
 const mockQrKeyring = new QrKeyring({
+  // @ts-expect-error: Property '#private' in type 'QrKeyring' refers to a
+  // different member that cannot be accessed from within type 'QrKeyring'.
   legacyKeyring: mockLegacyQrKeyring,
   entropySource: 'test-entropy-source',
 });
@@ -374,6 +376,8 @@ describe('ConnectQRHardware', () => {
 
     expect(header).toBeOnTheScreen();
     expect(StyleSheet.flatten(header.props.style).marginTop).toBe(44);
+    expect(StyleSheet.flatten(header.props.style).paddingLeft).toBe(16);
+    expect(StyleSheet.flatten(header.props.style).paddingRight).toBe(16);
   });
 
   it('excludes top and bottom edges from parent SafeAreaView because header and instruction own spacing', async () => {

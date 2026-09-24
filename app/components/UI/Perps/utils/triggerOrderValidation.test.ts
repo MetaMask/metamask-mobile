@@ -3,8 +3,11 @@ import {
   getLimitPriceValidationIssue,
   getLimitPriceValidationMessage,
   getLimitPriceCrossingWarning,
+  getLimitVsTriggerWarning,
   getOrderFormFieldIssues,
+  isAdvisoryOrderFormFieldIssue,
   getRequiredTriggerSide,
+  getScalePriceCrossingWarning,
   getTriggerPriceValidationIssue,
   getTriggerPriceValidationMessage,
 } from './triggerOrderValidation';
@@ -106,23 +109,41 @@ describe('getTriggerPriceValidationIssue', () => {
     expect(issue).toBeUndefined();
   });
 
-  it('returns required when the trigger price is empty', () => {
-    const issue = getTriggerPriceValidationIssue({
-      ...base,
-      triggerPrice: '  ',
-    });
+  it.each(triggerDirectionCases)(
+    'returns required for empty $direction $orderType trigger price',
+    ({ orderType, direction }) => {
+      const issue = getTriggerPriceValidationIssue({
+        ...base,
+        orderType,
+        direction,
+        triggerPrice: '  ',
+      });
 
-    expect(issue).toEqual({ code: 'required' });
-  });
+      expect(issue).toEqual({ code: 'required' });
+    },
+  );
 
-  it('returns positive when the trigger price is zero or non-numeric', () => {
-    expect(
-      getTriggerPriceValidationIssue({ ...base, triggerPrice: '0' }),
-    ).toEqual({ code: 'positive' });
-    expect(
-      getTriggerPriceValidationIssue({ ...base, triggerPrice: 'abc' }),
-    ).toEqual({ code: 'positive' });
-  });
+  it.each(triggerDirectionCases)(
+    'returns positive for non-positive $direction $orderType trigger prices',
+    ({ orderType, direction }) => {
+      expect(
+        getTriggerPriceValidationIssue({
+          ...base,
+          orderType,
+          direction,
+          triggerPrice: '0',
+        }),
+      ).toEqual({ code: 'positive' });
+      expect(
+        getTriggerPriceValidationIssue({
+          ...base,
+          orderType,
+          direction,
+          triggerPrice: 'abc',
+        }),
+      ).toEqual({ code: 'positive' });
+    },
+  );
 
   it('returns undefined when mid is missing even if the trigger is set', () => {
     const issue = getTriggerPriceValidationIssue({
@@ -281,6 +302,216 @@ describe('getLimitPriceCrossingWarning', () => {
   });
 });
 
+describe('getScalePriceCrossingWarning', () => {
+  it('warns that the whole ladder crosses when a long has both endpoints above the best ask', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2600',
+      endPrice: '2700',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.scale_price_above_warning');
+  });
+
+  it('warns that the whole ladder crosses when a short has both endpoints below the best bid', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2400',
+      endPrice: '2300',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.scale_price_below_warning');
+  });
+
+  it('uses partial copy when only one long endpoint crosses the best ask', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2400',
+      endPrice: '2600',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_above_partial_warning',
+    );
+  });
+
+  it('uses partial copy when only one short endpoint crosses the best bid', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2600',
+      endPrice: '2400',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_below_partial_warning',
+    );
+  });
+
+  it('treats a long endpoint resting exactly at the best ask as taker execution', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2400',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_above_partial_warning',
+    );
+  });
+
+  it('treats a short endpoint resting exactly at the best bid as taker execution', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2600',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_below_partial_warning',
+    );
+  });
+
+  it('warns for the whole ladder when both long endpoints sit at the best ask', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2500',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.scale_price_above_warning');
+  });
+
+  it('warns for the whole ladder when both short endpoints sit at the best bid', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2500',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.scale_price_below_warning');
+  });
+
+  it('returns undefined when a long ladder rests entirely below the best ask', () => {
+    expect(
+      getScalePriceCrossingWarning({
+        orderType: 'scale',
+        direction: 'long',
+        startPrice: '2400',
+        endPrice: '2499',
+        referencePrice: 2500,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when a short ladder rests entirely above the best bid', () => {
+    expect(
+      getScalePriceCrossingWarning({
+        orderType: 'scale',
+        direction: 'short',
+        startPrice: '2501',
+        endPrice: '2600',
+        referencePrice: 2500,
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each([
+    {
+      case: 'a non-scale order type',
+      input: {
+        orderType: 'limit' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: '2700',
+        referencePrice: 2500,
+      },
+    },
+    {
+      case: 'an unavailable book quote',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: '2700',
+        referencePrice: undefined,
+      },
+    },
+    {
+      case: 'a non-positive reference price',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: '2700',
+        referencePrice: 0,
+      },
+    },
+    {
+      case: 'empty endpoints',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: undefined,
+        endPrice: '',
+        referencePrice: 2500,
+      },
+    },
+    {
+      case: 'a ladder with only a start endpoint entered',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: undefined,
+        referencePrice: 2500,
+      },
+    },
+    {
+      case: 'a ladder with only an end endpoint entered',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '',
+        endPrice: '2600',
+        referencePrice: 2500,
+      },
+    },
+  ])('returns undefined for $case', ({ input }) => {
+    expect(getScalePriceCrossingWarning(input)).toBeUndefined();
+  });
+
+  it('canonicalizes endpoints to venue precision before comparing', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2400',
+      endPrice: '2500.4',
+      referencePrice: 2500,
+      szDecimals: 0,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_above_partial_warning',
+    );
+  });
+});
+
 describe('typed order price validation', () => {
   it('canonicalizes a price using venue precision', () => {
     const result = canonicalizeOrderPrice('123.456', 0);
@@ -335,5 +566,167 @@ describe('typed order price validation', () => {
     });
 
     expect(result.map(({ field }) => field)).toEqual(['triggerPrice']);
+  });
+});
+
+describe('advisory vs blocking order form field issues', () => {
+  it('treats a wrong-side trigger as advisory so the order stays placeable', () => {
+    const [issue] = getOrderFormFieldIssues({
+      orderType: 'stop_market',
+      direction: 'long',
+      triggerPrice: '2400',
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(issue.issue.code).toBe('wrong_side');
+    expect(isAdvisoryOrderFormFieldIssue(issue)).toBe(true);
+  });
+
+  it.each([
+    ['required', undefined],
+    ['positive', '0'],
+  ] as const)('keeps a %s trigger issue blocking', (code, triggerPrice) => {
+    const [issue] = getOrderFormFieldIssues({
+      orderType: 'stop_market',
+      direction: 'long',
+      triggerPrice,
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(issue.issue.code).toBe(code);
+    expect(isAdvisoryOrderFormFieldIssue(issue)).toBe(false);
+  });
+
+  it('keeps a missing limit price blocking', () => {
+    const issue = { field: 'limitPrice', issue: { code: 'required' } } as const;
+
+    expect(isAdvisoryOrderFormFieldIssue(issue)).toBe(false);
+  });
+});
+
+describe('getLimitVsTriggerWarning', () => {
+  const cases = [
+    {
+      name: 'stop limit long warns when the buy limit rests below the trigger',
+      orderType: 'stop_limit',
+      direction: 'long',
+      triggerPrice: '2500',
+      limitPrice: '2400',
+      expected: 'perps.order.validation.limit_price_below_trigger_warning',
+    },
+    {
+      name: 'stop limit short warns when the sell limit rests above the trigger',
+      orderType: 'stop_limit',
+      direction: 'short',
+      triggerPrice: '2500',
+      limitPrice: '2600',
+      expected: 'perps.order.validation.limit_price_above_trigger_warning',
+    },
+    {
+      name: 'take profit limit long warns when the buy limit rests below the trigger',
+      orderType: 'take_profit_limit',
+      direction: 'long',
+      triggerPrice: '2500',
+      limitPrice: '2400',
+      expected: 'perps.order.validation.limit_price_below_trigger_warning',
+    },
+    {
+      name: 'take profit limit short warns when the sell limit rests above the trigger',
+      orderType: 'take_profit_limit',
+      direction: 'short',
+      triggerPrice: '2500',
+      limitPrice: '2600',
+      expected: 'perps.order.validation.limit_price_above_trigger_warning',
+    },
+  ] as const;
+
+  it.each(cases)(
+    '$name',
+    ({ orderType, direction, triggerPrice, limitPrice, expected }) => {
+      expect(
+        getLimitVsTriggerWarning({
+          orderType,
+          direction,
+          triggerPrice,
+          limitPrice,
+          szDecimals: 3,
+        }),
+      ).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['long', '2500', '2600'],
+    ['short', '2500', '2400'],
+  ] as const)(
+    'stays silent for a %s limit price on the fillable side of the trigger',
+    (direction, triggerPrice, limitPrice) => {
+      expect(
+        getLimitVsTriggerWarning({
+          orderType: 'stop_limit',
+          direction,
+          triggerPrice,
+          limitPrice,
+          szDecimals: 3,
+        }),
+      ).toBeUndefined();
+    },
+  );
+
+  it('stays silent when the limit price sits exactly at the trigger', () => {
+    expect(
+      getLimitVsTriggerWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '2500',
+        limitPrice: '2500',
+        szDecimals: 3,
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each(['stop_market', 'take_profit_market', 'limit', 'market'] as const)(
+    'does not apply to %s, which has no trigger and limit pair to compare',
+    (orderType) => {
+      expect(
+        getLimitVsTriggerWarning({
+          orderType,
+          direction: 'long',
+          triggerPrice: '2500',
+          limitPrice: '2400',
+          szDecimals: 3,
+        }),
+      ).toBeUndefined();
+    },
+  );
+
+  it.each([
+    ['an unset limit price', undefined, '2500'],
+    ['an unset trigger price', '2400', undefined],
+    ['a non-positive limit price', '0', '2500'],
+  ] as const)('stays silent for %s', (_name, limitPrice, triggerPrice) => {
+    expect(
+      getLimitVsTriggerWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        limitPrice,
+        triggerPrice,
+        szDecimals: 3,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('canonicalizes both prices to venue precision before comparing', () => {
+    expect(
+      getLimitVsTriggerWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '2500.00001',
+        limitPrice: '2500.00002',
+        szDecimals: 3,
+      }),
+    ).toBeUndefined();
   });
 });

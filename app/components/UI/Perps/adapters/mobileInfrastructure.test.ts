@@ -2,7 +2,22 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
-import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import {
+  PerpsMeasurementName,
+  PerpsTraceNames,
+  type PerpsAnalyticsEvent,
+} from '@metamask/perps-controller';
+import { setMeasurement as setSentryMeasurement } from '@sentry/react-native';
+import {
+  setTraceMeasurement,
+  trace as startTrace,
+  TraceName,
+} from '../../../../util/trace';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsControllerConstructedAt,
+} from '../utils/perpsLoadingSession';
 import {
   createMobileInfrastructure,
   createMobileClientConfig,
@@ -10,7 +25,8 @@ import {
 } from './mobileInfrastructure';
 import {
   resolveTerminalGlobalSnapshotUrl,
-  TERMINAL_API_URLS,
+  TERMINAL_API_HOSTS,
+  TERMINAL_API_PATHS,
 } from '../constants/terminalApi';
 import Engine from '../../../../core/Engine';
 
@@ -50,7 +66,11 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
-  TraceName: {},
+  setTraceMeasurement: jest.fn(),
+  TraceName: {
+    PerpsMarketDataPreload: 'Perps Market Data Preload',
+    PerpsUserDataPreload: 'Perps User Data Preload',
+  },
 }));
 
 jest.mock('@sentry/react-native', () => ({
@@ -59,6 +79,11 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => 123),
+}));
+
+jest.mock('../utils/perpsLoadingSession', () => ({
+  getActivePerpsLoadingSessionTraceData: jest.fn(),
+  recordPerpsControllerConstructedAt: jest.fn(),
 }));
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -118,9 +143,147 @@ jest.mock('../../../../util/intl', () => ({
   })),
 }));
 
+const mockIsLighterProviderEnabled = jest.fn();
+jest.mock('../utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: () => mockIsLighterProviderEnabled(),
+}));
+
 describe('createMobileInfrastructure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('performance tracing', () => {
+    it('forwards the post-hydration controller timestamp', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.performance.onControllerConstructed?.(321);
+
+      expect(recordPerpsControllerConstructedAt).toHaveBeenCalledWith(321);
+    });
+
+    it.each([
+      [
+        PerpsMeasurementName.PerpsMarketDataPreload,
+        PerpsTraceNames.MarketDataPreload,
+        TraceName.PerpsMarketDataPreload,
+      ],
+      [
+        PerpsMeasurementName.PerpsUserDataPreload,
+        PerpsTraceNames.UserDataPreload,
+        TraceName.PerpsUserDataPreload,
+      ],
+    ])(
+      'targets %s to its explicit preload trace',
+      (name, coreName, traceName) => {
+        const infra = createMobileInfrastructure();
+        infra.tracer.trace({
+          name: coreName,
+          id: 'trace-id',
+          op: 'perps.preload',
+        });
+
+        infra.tracer.setMeasurement(name, 42, 'millisecond', 'trace-id');
+
+        expect(setTraceMeasurement).toHaveBeenCalledWith(
+          { name: traceName, id: 'trace-id' },
+          name,
+          42,
+          'millisecond',
+        );
+        expect(setSentryMeasurement).not.toHaveBeenCalled();
+      },
+    );
+
+    it('targets child measurements to the trace that opened their id', () => {
+      const infra = createMobileInfrastructure();
+      infra.tracer.trace({
+        name: PerpsTraceNames.MarketDataPreload,
+        id: 'trace-id',
+        op: 'perps.preload',
+      });
+
+      infra.tracer.setMeasurement(
+        'terminal_request_duration_ms',
+        17,
+        'millisecond',
+        'trace-id',
+      );
+
+      expect(setTraceMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsMarketDataPreload, id: 'trace-id' },
+        'terminal_request_duration_ms',
+        17,
+        'millisecond',
+      );
+      expect(setSentryMeasurement).not.toHaveBeenCalled();
+    });
+
+    it('does not write an explicit-id measurement without its trace', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.setMeasurement(
+        'unknown.measurement',
+        1,
+        'millisecond',
+        'missing-trace-id',
+      );
+
+      expect(setTraceMeasurement).not.toHaveBeenCalled();
+      expect(setSentryMeasurement).not.toHaveBeenCalled();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Perps tracing dropped a measurement for an unknown trace id',
+        { traceId: 'missing-trace-id', measurement: 'unknown.measurement' },
+      );
+    });
+
+    it.each([
+      [PerpsTraceNames.MarketDataPreload, TraceName.PerpsMarketDataPreload],
+      [PerpsTraceNames.UserDataPreload, TraceName.PerpsUserDataPreload],
+    ])(
+      'correlates the %s trace with the active loading session',
+      (name, traceName) => {
+        jest.mocked(getActivePerpsLoadingSessionTraceData).mockReturnValue({
+          perps_session_id: 'session-id',
+          account_generation: 1,
+          context_generation: 1,
+        });
+        const infra = createMobileInfrastructure();
+
+        infra.tracer.trace({
+          name,
+          id: 'preload-id',
+          op: 'perps.preload',
+          data: { provider: 'hyperliquid' },
+        });
+
+        expect(startTrace).toHaveBeenCalledWith({
+          name: traceName,
+          id: 'preload-id',
+          op: 'perps.preload',
+          tags: undefined,
+          data: {
+            provider: 'hyperliquid',
+            perps_session_id: 'session-id',
+            account_generation: 1,
+            context_generation: 1,
+          },
+        });
+      },
+    );
+
+    it('preserves ambient measurements without an explicit trace id', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.setMeasurement('legacy.measurement', 7, 'millisecond');
+
+      expect(setSentryMeasurement).toHaveBeenCalledWith(
+        'legacy.measurement',
+        7,
+        'millisecond',
+      );
+      expect(setTraceMeasurement).not.toHaveBeenCalled();
+    });
   });
 
   describe('metrics', () => {
@@ -316,28 +479,44 @@ describe('createMobileInfrastructure', () => {
 });
 
 describe('createMobileClientConfig', () => {
-  it('returns default config with empty strings and arrays when no env vars are set', () => {
-    // Arrange — ensure relevant env vars are absent
-    const envVars = [
-      'MM_PERPS_BLOCKED_REGIONS',
-      'MM_PERPS_HIP3_ENABLED',
-      'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
-      'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
-      'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
-      'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
-      'MM_PERPS_MYX_PROVIDER_ENABLED',
-      'MM_PERPS_MYX_APP_ID_TESTNET',
-      'MM_PERPS_MYX_API_SECRET_TESTNET',
-      'MM_PERPS_MYX_BROKER_ADDRESS_TESTNET',
-      'MM_PERPS_MYX_APP_ID_MAINNET',
-      'MM_PERPS_MYX_API_SECRET_MAINNET',
-      'MM_PERPS_MYX_BROKER_ADDRESS_MAINNET',
-    ];
-    const saved: Record<string, string | undefined> = {};
+  const envVars = [
+    'METAMASK_ENVIRONMENT',
+    'MM_PERPS_BLOCKED_REGIONS',
+    'MM_PERPS_HIP3_ENABLED',
+    'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
+    'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+    'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
+    'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
+    'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
+    'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+    'MM_PERPS_LIGHTER_API_KEY_INDEX',
+  ] as const;
+  const saved: Partial<Record<(typeof envVars)[number], string>> = {};
+
+  beforeEach(() => {
+    mockIsLighterProviderEnabled.mockReturnValue(false);
     for (const key of envVars) {
-      saved[key] = process.env[key];
+      if (process.env[key] !== undefined) {
+        saved[key] = process.env[key];
+      }
       delete process.env[key];
     }
+  });
+
+  afterEach(() => {
+    for (const key of envVars) {
+      const savedValue = saved[key];
+      if (savedValue === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = savedValue;
+      }
+      delete saved[key];
+    }
+  });
+
+  it('returns default config with empty strings and arrays when no env vars are set', () => {
+    // Arrange is provided by beforeEach.
 
     // Act
     const config = createMobileClientConfig();
@@ -353,24 +532,87 @@ describe('createMobileClientConfig', () => {
           builderAddressTestnet: '',
           builderAddressMainnet: '',
         },
-        myx: {
+        lighter: {
           enabled: false,
-          appIdTestnet: '',
-          apiSecretTestnet: '',
-          brokerAddressTestnet: '',
-          appIdMainnet: '',
-          apiSecretMainnet: '',
-          brokerAddressMainnet: '',
+          accountIndexTestnet: undefined,
+          apiKeyIndex: undefined,
         },
       },
     });
+  });
 
-    // Restore
-    for (const key of envVars) {
-      if (saved[key] !== undefined) {
-        process.env[key] = saved[key];
-      }
-    }
+  it('enables Lighter with its signer bridge when explicitly enabled', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        signerBridge: expect.any(Object),
+      }),
+    );
+  });
+
+  it('enables Lighter with its signer bridge through a production override', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        signerBridge: expect.any(Object),
+      }),
+    );
+  });
+
+  it.each(['abc', 'NaN', 'Infinity', '-1', '1.5', '0x08', ' ', '255'])(
+    'rejects malformed signer key slot %s instead of selecting another slot',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_API_KEY_INDEX',
+      );
+    },
+  );
+
+  it.each(['invalid', '-1', '1.5', '9007199254740992'])(
+    'rejects malformed Lighter account index %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+      );
+    },
+  );
+
+  it('supplies validated explicit signer indices', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+    process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = '59';
+    process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = '254';
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({ accountIndexTestnet: 59, apiKeyIndex: 254 }),
+    );
+  });
+
+  it('keeps Lighter disabled in production without an override', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(false);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual({
+      enabled: false,
+      accountIndexTestnet: undefined,
+      apiKeyIndex: undefined,
+    });
   });
 });
 
@@ -399,67 +641,89 @@ describe('getTerminalApiUrl', () => {
   it('returns dev URL for dev environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL for test environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'test';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL for e2e environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'e2e';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for beta build type', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns prd URL for production environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns prd URL for rc environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'rc';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for exp environment (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for non-beta build type in non-prod env (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'flask';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL when METAMASK_ENVIRONMENT is undefined', () => {
     delete process.env.METAMASK_ENVIRONMENT;
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for local environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'local';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL when env is dev even if build type is beta', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 });
 
@@ -490,8 +754,8 @@ describe('createMobileInfrastructure - terminalApi', () => {
     process.env.METAMASK_BUILD_TYPE = 'main';
     const infra = createMobileInfrastructure();
     expect(infra.terminalApi).toEqual({
-      marketDataUrl: TERMINAL_API_URLS.PRD,
-      globalSnapshotUrl: 'https://terminal.api.cx.metamask.io/v2/perpetuals',
+      marketDataUrl: `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+      globalSnapshotUrl: `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     });
   });
 
@@ -500,18 +764,17 @@ describe('createMobileInfrastructure - terminalApi', () => {
     delete process.env.METAMASK_BUILD_TYPE;
     const infra = createMobileInfrastructure();
     expect(infra.terminalApi?.marketDataUrl).toBe(
-      'https://terminal.dev-api.cx.metamask.io/v1/perpetuals',
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
     );
     expect(infra.terminalApi?.globalSnapshotUrl).toBe(
-      'https://terminal.dev-api.cx.metamask.io/v2/perpetuals',
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     );
 
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'beta';
     expect(createMobileInfrastructure().terminalApi).toEqual({
-      marketDataUrl: TERMINAL_API_URLS.UAT,
-      globalSnapshotUrl:
-        'https://terminal.uat-api.cx.metamask.io/v2/perpetuals',
+      marketDataUrl: `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+      globalSnapshotUrl: `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     });
   });
 });
@@ -523,7 +786,7 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'dev',
         endpoint: '  http://127.0.0.1:9332/v2/perpetuals/global-snapshot  ',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
     ).toBe('http://127.0.0.1:9332/v2/perpetuals/global-snapshot');
 
@@ -532,17 +795,17 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'production',
         endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
-        marketDataUrl: TERMINAL_API_URLS.PRD,
+        host: TERMINAL_API_HOSTS.PRD,
       }),
-    ).toBe('https://terminal.api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
     expect(
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: false,
         environment: 'dev',
         endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
   });
 
   it('derives the deployed endpoint when the dev override is blank', () => {
@@ -551,8 +814,8 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'dev',
         endpoint: '   ',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
   });
 });

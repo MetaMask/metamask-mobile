@@ -320,8 +320,8 @@ export const getNegativeFeatureLabels = (): Record<
     label: strings(
       'security_trust.features.negative.impersonator_low_confidence',
     ),
-    type: 'Warning',
-  }, // used to be Info, but now it's Warning
+    type: 'Info',
+  },
   IS_MINTABLE: {
     label: strings('security_trust.features.negative.is_mintable'),
     type: 'Info',

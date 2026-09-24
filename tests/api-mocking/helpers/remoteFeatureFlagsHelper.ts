@@ -67,6 +67,9 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
   // APIs that are not available under Detox).
   tradeTO880AbtestOnboardingInterestQuestion: 'control',
+  // Production serves a threshold array. Pin a boolean so AccountActivity
+  // subscribe tests do not depend on canonical or MetaMetrics IDs.
+  backendWebSocketConnection: true,
 };
 
 /**
@@ -106,11 +109,16 @@ export const createRemoteFeatureFlagsMock = (
         !Array.isArray(existingFlag) &&
         !Array.isArray(flagValue)
       ) {
-        // Deep merge for nested objects
-        existingObj[flagName] = deepMerge(
-          existingFlag as Record<string, unknown>,
-          flagValue as Record<string, unknown>,
-        );
+        const existingRecord = existingFlag as Record<string, unknown>;
+        const overrideRecord = flagValue as Record<string, unknown>;
+        // Versioned client-config flags must not deep-merge with RC/test fixtures:
+        // newer registry `versions` keys (e.g. 8.9.0) would otherwise outrank a flat
+        // or older versioned override and change Pay confirmation UI under E2E.
+        if ('versions' in existingRecord || 'versions' in overrideRecord) {
+          existingObj[flagName] = flagValue;
+        } else {
+          existingObj[flagName] = deepMerge(existingRecord, overrideRecord);
+        }
       } else {
         // Replace simple values, arrays, or when types don't match
         existingObj[flagName] = flagValue;
