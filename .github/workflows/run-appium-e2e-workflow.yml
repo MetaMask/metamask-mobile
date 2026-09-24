@@ -296,9 +296,10 @@ jobs:
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
-          # Pinned, not inherited: the action's default (26.6) targets the build
-          # profile for Expo SDK 57. This job only compiles WebDriverAgent, which
-          # must match the simulator runtime on `ios-e2e`, not the app's SDK.
+          # Pinned rather than inherited so this stays correct if the action
+          # default moves: the app build (build-ios-e2e.yml) uses 26.6 for Expo
+          # SDK 57, but this job only compiles WebDriverAgent, which must match
+          # the simulator runtime on `ios-e2e`, not the app's SDK.
           xcode-version: '26.3'
           setup-simulator: 'false'
           configure-keystores: 'false'

@@ -8,10 +8,18 @@ import { Theme } from '../../../../../../util/theme/models';
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
 
+/**
+ * Bottom padding for the sheet so its content clears the device's bottom
+ * system UI (home indicator on iOS, navigation bar on Android).
+ *
+ * @param platform - Platform the sheet renders on.
+ * @param screenBottomPadding - Bottom safe-area inset reported for the screen.
+ * @returns Bottom padding in dp.
+ */
 export const getBottomSheetBottomPadding = (
   platform: typeof Platform.OS,
   screenBottomPadding: number,
-) => {
+): number => {
   if (platform === 'ios' || platform === 'macos') {
     return screenBottomPadding;
   }

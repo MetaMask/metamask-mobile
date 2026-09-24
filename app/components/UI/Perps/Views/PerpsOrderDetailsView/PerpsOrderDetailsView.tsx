@@ -367,6 +367,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         </View>
       </View>
       <ScrollView
+        testID={PerpsOrderDetailsViewSelectorsIDs.SCROLL_VIEW}
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -412,6 +413,7 @@ const PerpsOrderDetailsView: React.FC = () => {
       {/* Footer Actions */}
       {canCancel ? (
         <View
+          testID={PerpsOrderDetailsViewSelectorsIDs.FOOTER}
           style={[
             styles.footer,
             Platform.OS === 'android' && {
