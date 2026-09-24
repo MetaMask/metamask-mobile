@@ -6,18 +6,11 @@ import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
-import { useContinueIdentityVerification } from './hooks/useContinueIdentityVerification';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
-const mockContinueToProvider = jest.fn();
 const mockOnSuccess = jest.fn();
-
-jest.mock('./hooks/useContinueIdentityVerification');
-const mockUseContinueIdentityVerification = jest.mocked(
-  useContinueIdentityVerification,
-);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -55,10 +48,6 @@ describe('VbaVerifyIdentity', () => {
       isLoading: false,
       error: null,
       retry: mockRetry,
-    });
-    mockUseContinueIdentityVerification.mockReturnValue({
-      isContinuing: false,
-      continueToProvider: mockContinueToProvider,
     });
   });
 
@@ -234,14 +223,14 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('starts the KYC session when continue is pressed', () => {
+  it('advances within the identity module when continue is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockContinueToProvider).toHaveBeenCalled();
+    expect(mockOnSuccess).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
