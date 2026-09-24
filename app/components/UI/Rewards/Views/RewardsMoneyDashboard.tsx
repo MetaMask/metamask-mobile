@@ -34,6 +34,7 @@ import BenefitsPreview from '../components/Benefits/BenefitsPreview';
 import RefererHeroCard from '../components/Money/RefererHeroCard';
 import RefereeHeroCard from '../components/Money/RefereeHeroCard';
 import RewardsOptInSection from '../components/Money/RewardsOptInSection';
+import PerformanceTab from '../components/Money/PerformanceTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
@@ -46,15 +47,17 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
   EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
+  PERFORMANCE_TAB: 'rewards-money-dashboard-performance-tab',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
+  PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
   CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
   BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
 } as const;
 
-type RewardsMoneyTab = 'waysToEarn' | 'earnings';
+type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
-const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings'];
+const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
 
 const hasClaimableEarnings = (claimable?: string): boolean => {
   if (!claimable) {
@@ -118,6 +121,12 @@ const RewardsMoneyDashboard: React.FC = () => {
             twClassName="h-1.5 w-1.5 rounded-full bg-success-default"
           />
         ) : undefined,
+      },
+      {
+        key: 'performance',
+        label: localizedText?.performanceTitle ?? '',
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB,
       },
     ],
     [localizedText, showEarningsDot],
@@ -250,9 +259,18 @@ const RewardsMoneyDashboard: React.FC = () => {
                     )
                   ) : null}
                 </Box>
-              ) : (
+              ) : null}
+              {activeTab === 'earnings' ? (
                 <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
-              )}
+              ) : null}
+              {activeTab === 'performance' ? (
+                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}>
+                  <PerformanceTab
+                    profileId={profileId}
+                    variant={referralMe.variant}
+                  />
+                </Box>
+              ) : null}
             </Animated.ScrollView>
           </Animated.View>
         </Box>

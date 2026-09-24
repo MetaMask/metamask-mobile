@@ -81,6 +81,17 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
   };
 });
 
+jest.mock('../components/Money/PerformanceTab', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    PERFORMANCE_TAB_TEST_IDS: {
+      CONTAINER: 'rewards-money-performance-tab',
+    },
+    default: () => <View testID="rewards-money-performance-tab" />,
+  };
+});
+
 jest.mock('../components/Benefits/BenefitsPreview', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -521,6 +532,22 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('switches to the Performance tab body', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-performance-tab')).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).not.toBeOnTheScreen();
