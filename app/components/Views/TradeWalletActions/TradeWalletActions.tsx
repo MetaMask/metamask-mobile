@@ -102,6 +102,7 @@ import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
+import TradeGlassMenu, { isTradeGlassMenuAvailable } from './TradeGlassMenu';
 import {
   MORPH_COLLAPSE,
   MORPH_CONTENT_FADE_IN,
@@ -132,6 +133,7 @@ const batchSellIconStyle = {
 const morphStyles = StyleSheet.create({
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
+  fill: { opacity: TRADE_TRAY_GLASS_FILL_OPACITY },
 });
 
 export interface TradeWalletActionsParams {
@@ -217,7 +219,13 @@ function TradeWalletActions() {
   // needs the button it came from and a measured tray height.
   const isMorphMenu =
     isSpringboardMenu && isGlassSheet && Boolean(buttonLayout);
+  // UIKit animates the frame where it can, which keeps the morph off the
+  // React Native commit path; elsewhere Reanimated drives the same geometry.
+  const isNativeMorphMenu =
+    isMorphMenu && TradeGlassMenu !== null && isTradeGlassMenuAvailable();
   const [trayHeight, setTrayHeight] = useState<number>();
+  const [isNativeMenuOpen, setIsNativeMenuOpen] = useState(true);
+  const trayWidth = windowWidth - TRAY_HORIZONTAL_INSET * 2;
   const morphRects = useMemo(() => {
     if (!buttonLayout || trayHeight === undefined) {
       return undefined;
@@ -355,6 +363,11 @@ function TradeWalletActions() {
     if (isSpringboardMenu) {
       backdropOpacity.value = withTiming(0, SPRINGBOARD_FADE_OUT);
     }
+    if (isNativeMorphMenu) {
+      // UIKit reports back through `onCollapsed` once it has shrunk away.
+      setIsNativeMenuOpen(false);
+      return;
+    }
     if (isMorphMenu) {
       morphContentOpacity.value = withTiming(0, MORPH_CONTENT_FADE_OUT);
       morphProgress.value = withTiming(0, MORPH_COLLAPSE, (finished) => {
@@ -369,6 +382,7 @@ function TradeWalletActions() {
     backdropOpacity,
     handleExitComplete,
     isMorphMenu,
+    isNativeMorphMenu,
     isSpringboardMenu,
     morphContentOpacity,
     morphProgress,
@@ -543,6 +557,40 @@ function TradeWalletActions() {
     </>
   );
 
+  // The rows are laid out at their final width and handed to UIKit, which
+  // positions and reveals them as it grows the glass out of the button.
+  const nativeMorphTray =
+    TradeGlassMenu && buttonLayout ? (
+      <TradeGlassMenu
+        style={StyleSheet.absoluteFill}
+        pointerEvents="box-none"
+        anchor={{ ...buttonLayout, y: buttonLayout.y + insetsTop }}
+        expandedHeight={trayHeight ?? 0}
+        horizontalInset={TRAY_HORIZONTAL_INSET}
+        gap={TRAY_BUTTON_GAP}
+        menuCornerRadius={TRADE_TRAY_GLASS_RADIUS}
+        colorScheme={glassColorScheme}
+        isOpen={isNativeMenuOpen}
+        onCollapsed={handleExitComplete}
+      >
+        <View
+          testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+          onLayout={(event) => setTrayHeight(event.nativeEvent.layout.height)}
+          style={[tw.style('py-4'), { width: trayWidth }]}
+        >
+          <View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFill,
+              tw.style(surfaceClass),
+              morphStyles.fill,
+            ]}
+          />
+          {actionList}
+        </View>
+      </TradeGlassMenu>
+    ) : null;
+
   // The surface is clipped to its animating frame, so the rows are laid out at
   // their final width from the first frame and are revealed rather than scaled.
   const morphTray = (
@@ -709,7 +757,9 @@ function TradeWalletActions() {
         </Pressable>
       </Animated.View>
 
-      {isMorphMenu ? (
+      {isNativeMorphMenu ? (
+        nativeMorphTray
+      ) : isMorphMenu ? (
         morphTray
       ) : (
         <>
