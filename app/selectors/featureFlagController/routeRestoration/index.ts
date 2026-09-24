@@ -7,13 +7,14 @@ import {
 import { selectRemoteFeatureFlags } from '..';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
-const DEFAULT_ROUTE_RESTORATION_ENABLED = true;
+const DEFAULT_ROUTE_RESTORATION_ENABLED = false;
 
 /**
- * Whether unlocking may return the user to the screen they left.
+ * Whether unlocking may return the user to the screen they left. Temporary
+ * rollout flag, removed once the restore window is validated.
  *
- * Staged rollout only: the flag exists to validate the restore window against a
- * slice of users before full exposure, and is removed once that is settled.
+ * Accepts a boolean or the version-gated shape; `{ enabled: false }` is a
+ * truthy object, so it must be read rather than cast.
  */
 export const selectRouteRestorationEnabled = createSelector(
   selectRemoteFeatureFlags,
@@ -24,7 +25,6 @@ export const selectRouteRestorationEnabled = createSelector(
 
     const rawFlag = remoteFeatureFlags[FeatureFlagNames.routeRestoration];
 
-    // Boolean dev-tool local overrides take precedence.
     if (typeof rawFlag === 'boolean') {
       return rawFlag;
     }
