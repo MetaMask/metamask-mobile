@@ -3621,6 +3621,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
             expect.objectContaining({
               symbol: 'ETH',
               orderType: 'scale',
+              scaleMinPrice: '2200',
+              scaleMaxPrice: '2600',
+              scaleNumOrders: 3,
+              scaleSkew: 1,
             }),
           );
         },
