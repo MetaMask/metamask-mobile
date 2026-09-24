@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import PredictPortfolioAction from './PredictPortfolioAction';
+import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 describe('PredictPortfolioAction', () => {
   const defaultProps = {
@@ -30,5 +31,15 @@ describe('PredictPortfolioAction', () => {
     fireEvent.press(screen.getByTestId(defaultProps.testID));
 
     expect(defaultProps.onPress).not.toHaveBeenCalled();
+  });
+
+  it('renders the badge when a positive count is provided', () => {
+    renderWithProvider(
+      <PredictPortfolioAction {...defaultProps} badgeCount={2} />,
+    );
+
+    expect(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE),
+    ).toBeOnTheScreen();
   });
 });
