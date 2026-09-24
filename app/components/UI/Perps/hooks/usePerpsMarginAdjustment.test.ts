@@ -422,24 +422,22 @@ describe('usePerpsMarginAdjustment', () => {
       },
     );
 
-    it('stops a removal when the fresh read no longer has the position', async () => {
+    it('submits the removal when the fresh read no longer has the position', async () => {
+      // The provider returns [] for a failed fetch too, so a missing position
+      // is not proof that it closed.
       mockGetPositions.mockResolvedValue([]);
-      const mockOnError = jest.fn();
-      const { result } = renderHook(() =>
-        usePerpsMarginAdjustment({ onError: mockOnError }),
-      );
+      mockUpdateMargin.mockResolvedValue({ success: true });
+      const { result } = renderHook(() => usePerpsMarginAdjustment());
 
       await act(async () => {
         await result.current.handleRemoveMargin('ETH', 5);
       });
 
-      expect(mockUpdateMargin).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledWith({
-        type: 'error',
-        error: 'perps.errors.position_not_found',
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
+      expect(mockUpdateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '-5',
       });
-      expect(mockOnError).not.toHaveBeenCalled();
-      expect(result.current.isAdjusting).toBe(false);
     });
 
     it('does not read positions when adding margin', async () => {
