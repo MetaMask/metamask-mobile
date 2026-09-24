@@ -27,13 +27,25 @@ async function setBackfillValue(
 }
 
 /**
- * Migration 153: schedule Braze push registration reconciliation.
+ * Migration 153: schedule Braze push unregistration for pre-fix installs.
  *
- * Devices without both notification switches enabled are scheduled for Braze
- * push unregistration on the next launch.
+ * Devices that disabled notifications before unregisterPush existed have no
+ * stored registration state. Those devices are scheduled once. An existing
+ * `unregistered` or `unregistration-pending` value is left unchanged so a
+ * completed or in-progress unregistration is not repeated.
  */
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, migrationVersion)) {
+    return state;
+  }
+
+  const storedRegistrationState = StorageWrapper.getItemSync(
+    BRAZE_PUSH_REGISTRATION_STATE,
+  );
+  if (
+    storedRegistrationState === 'unregistered' ||
+    storedRegistrationState === 'unregistration-pending'
+  ) {
     return state;
   }
 
@@ -56,8 +68,11 @@ const migration = async (state: unknown): Promise<unknown> => {
   const brazePushRegistrationState =
     notificationsEnabled && pushEnabled
       ? 'registered'
-      : 'unregistration-pending';
+      : storedRegistrationState == null
+        ? 'unregistration-pending'
+        : null;
   if (
+    brazePushRegistrationState !== null &&
     !(await setBackfillValue(
       BRAZE_PUSH_REGISTRATION_STATE,
       brazePushRegistrationState,

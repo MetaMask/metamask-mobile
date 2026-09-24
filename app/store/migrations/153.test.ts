@@ -11,6 +11,7 @@ jest.mock('@sentry/react-native', () => ({
 jest.mock('../storage-wrapper', () => ({
   __esModule: true,
   default: {
+    getItemSync: jest.fn(),
     setItem: jest.fn(),
   },
 }));
@@ -46,6 +47,7 @@ describe(`Migration ${migrationVersion}: schedule Braze push registration reconc
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsureValidState.mockReturnValue(true);
+    mockStorageWrapper.getItemSync.mockReturnValue(null);
     mockStorageWrapper.setItem.mockResolvedValue(undefined);
   });
 
@@ -115,6 +117,54 @@ describe(`Migration ${migrationVersion}: schedule Braze push registration reconc
       BRAZE_PUSH_REGISTRATION_STATE,
       'unregistration-pending',
     );
+  });
+
+  it('leaves an existing unregistered state unchanged when notifications are off', async () => {
+    mockStorageWrapper.getItemSync.mockReturnValue('unregistered');
+    const state = createState({
+      notificationsEnabled: false,
+      pushEnabled: false,
+    });
+
+    await migrate(state);
+
+    expect(mockStorageWrapper.setItem).not.toHaveBeenCalled();
+  });
+
+  it('leaves an existing unregistration-pending state unchanged', async () => {
+    mockStorageWrapper.getItemSync.mockReturnValue('unregistration-pending');
+    const state = createState({
+      notificationsEnabled: false,
+      pushEnabled: true,
+    });
+
+    await migrate(state);
+
+    expect(mockStorageWrapper.setItem).not.toHaveBeenCalled();
+  });
+
+  it('does not schedule unregistration when a registration state is already stored', async () => {
+    mockStorageWrapper.getItemSync.mockReturnValue('registered');
+    const state = createState({
+      notificationsEnabled: false,
+      pushEnabled: false,
+    });
+
+    await migrate(state);
+
+    expect(mockStorageWrapper.setItem).not.toHaveBeenCalled();
+  });
+
+  it('leaves an existing unregistered state unchanged when both switches are on', async () => {
+    mockStorageWrapper.getItemSync.mockReturnValue('unregistered');
+    const state = createState({
+      notificationsEnabled: true,
+      pushEnabled: true,
+    });
+
+    await migrate(state);
+
+    expect(mockStorageWrapper.setItem).not.toHaveBeenCalled();
   });
 
   it('reports Braze registration-state persistence failures', async () => {
