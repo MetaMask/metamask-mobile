@@ -14,6 +14,7 @@ import type {
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
+import { OrderDataRow } from './OrderDataRow';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 /** Localized fee name per server-quoted fee source. Exhaustive over the
@@ -23,33 +24,7 @@ const FEE_SOURCE_LABELS: Record<PredictOrderPreviewFeeSource, string> = {
   metamask: 'metamask_fee',
 };
 
-const QuoteRow = ({
-  label,
-  value,
-  testID,
-  valueColor,
-  bold = false,
-}: {
-  label: string;
-  value: string;
-  testID?: string;
-  valueColor?: TextColor;
-  bold?: boolean;
-}) => (
-  <Box twClassName="flex-row items-center justify-between gap-4">
-    <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-      {label}
-    </Text>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={bold ? FontWeight.Bold : FontWeight.Medium}
-      color={valueColor}
-      testID={testID}
-    >
-      {value}
-    </Text>
-  </Box>
-);
+const QuoteRow = OrderDataRow;
 
 /** Server-quoted preview rows: distinct canonical values, verbatim. */
 export const OrderPreviewRows = ({

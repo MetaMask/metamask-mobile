@@ -39,14 +39,14 @@ jest.mock(
 );
 
 jest.mock('./SocialFeedPositionCard', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({ item }: { item: { id: string } }) => (
-      <View testID={`social-feed-position-card-${item.id}`} />
+      <MockView testID={`social-feed-position-card-${item.id}`} />
     ),
     PositionCardBody: ({ item }: { item: { id: string } }) => (
-      <View testID={`social-feed-position-card-${item.id}`} />
+      <MockView testID={`social-feed-position-card-${item.id}`} />
     ),
   };
 });
@@ -187,6 +187,14 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('🐬');
   });
 
+  it('places the post age next to the cohort on the author row', () => {
+    renderShell(basePost({ timestampMs: Date.now() - 7 * 60 * 1000 }));
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-post-1`),
+    ).toHaveTextContent('7 min ago');
+  });
+
   it('omits the stat line and cohort for a trader with no stats', () => {
     renderShell(basePost({ item: itemWithoutStats('item-3', 'No stats') }));
 
@@ -273,5 +281,23 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`)
         .props.imageUrl,
     ).toBe('https://cdn.test/alice.png');
+  });
+
+  it('opens the options sheet from the more button and closes after Report', () => {
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.MORE}-post-1`),
+    );
+
+    expect(
+      screen.getByTestId('social-entry-options-bottom-sheet'),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('social-entry-options-report'));
+
+    expect(
+      screen.queryByTestId('social-entry-options-bottom-sheet'),
+    ).toBeNull();
   });
 });

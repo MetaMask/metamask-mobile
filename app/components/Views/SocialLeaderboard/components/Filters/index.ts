@@ -29,6 +29,17 @@ export type {
   RankingFilterSheetProps,
 } from './RankingFilter';
 export {
+  DEFAULT_FEED_SORT,
+  FEED_SORT_OPTIONS,
+  FeedSortFilterSelector,
+  FeedSortFilterSheet,
+} from './FeedSortFilter';
+export type {
+  FeedSort,
+  FeedSortFilterSelectorProps,
+  FeedSortFilterSheetProps,
+} from './FeedSortFilter';
+export {
   DEFAULT_LEADERBOARD_COHORT,
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
@@ -52,10 +63,12 @@ export {
   CohortFilterSelectorsIDs,
   FilterOptionSheetSelectorsIDs,
   RankingFilterSelectorsIDs,
+  FeedSortFilterSelectorsIDs,
   SortFilterSelectorsIDs,
   TimeframeFilterSelectorsIDs,
   TypeFilterSelectorsIDs,
   getCohortFilterOptionTestId,
+  getFeedSortFilterOptionTestId,
   getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,

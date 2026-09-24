@@ -11,6 +11,7 @@ export enum PredictErrorCode {
   MARKET_NOT_FOUND = 'MARKET_NOT_FOUND',
   MARKET_NOT_TRADEABLE = 'MARKET_NOT_TRADEABLE',
   QUOTE_UNAVAILABLE = 'QUOTE_UNAVAILABLE',
+  PREVIEW_EXPIRED = 'PREVIEW_EXPIRED',
   BALANCE_UNAVAILABLE = 'BALANCE_UNAVAILABLE',
   INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY',
   INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
@@ -91,6 +92,11 @@ export const predictErrorRegistry: Record<
   [PredictErrorCode.QUOTE_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'A quote is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.PREVIEW_EXPIRED]: {
+    category: 'action_failed',
+    message: 'This quote expired. Refresh to get a new one.',
     recoverable: true,
   },
   [PredictErrorCode.BALANCE_UNAVAILABLE]: {
