@@ -975,6 +975,36 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.sliderPercent).toBe(0);
       });
 
+      it('resolves a picker token to its priced pay-with option so quotes keep a source amount', () => {
+        (useLatestBalance as jest.Mock).mockReturnValue({
+          displayBalance: '100',
+          atomicBalance: '100000000',
+        });
+        const usdc = createSourceToken({
+          symbol: 'USDC',
+          currencyExchangeRate: 1,
+        });
+        const usdt = createSourceToken({
+          symbol: 'USDT',
+          address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+          currencyExchangeRate: 2,
+        });
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [usdc, usdt],
+        });
+        const { currencyExchangeRate: _rate, ...unpricedPickerUsdt } = usdt;
+
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        act(() => {
+          result.current.handleAmountChange('10');
+          result.current.handleSelectSourceToken(unpricedPickerUsdt);
+        });
+
+        expect(result.current.selectedSourceToken).toBe(usdt);
+        expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(5);
+      });
+
       it('keeps max-spend mode when the same pay-with token is re-selected', () => {
         const FULL_BALANCE = '0.10003';
         (useLatestBalance as jest.Mock).mockReturnValue({

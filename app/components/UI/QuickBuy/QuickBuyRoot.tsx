@@ -43,6 +43,8 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
+import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
+import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -225,7 +227,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
               exiting={isClosing ? undefined : exiting}
               style={shouldLockHeight ? tw.style('flex-1') : undefined}
             >
-              {renderActiveScreen(activeScreen, children)}
+              <SwapsFeatureIdProvider
+                featureId={getQuickBuyFeatureId(analyticsContext?.source)}
+              >
+                {renderActiveScreen(activeScreen, children)}
+              </SwapsFeatureIdProvider>
             </Animated.View>
           </Box>
         </QuickBuyProvider>

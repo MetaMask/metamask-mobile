@@ -12,7 +12,11 @@ import {
   createMockPopularToken,
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
-import { BridgeTokenSelector } from './BridgeTokenSelector';
+import {
+  BridgeTokenSelector,
+  BridgeTokenSelectorContent,
+} from './BridgeTokenSelector';
+import { TokenSelectorType } from '../../types';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 import {
@@ -275,6 +279,7 @@ let mockBalancesByAssetIdState = {
 
 const mockUseInitialBridgeTokens = jest.fn((_: unknown) => ({
   includeAssets: [],
+  tokensWithBalance: mockBalancesByAssetIdState.tokensWithBalance,
   fetchPopularTokens: jest.fn(),
   balancesByAssetId: mockBalancesByAssetIdState.balancesByAssetId,
   searchIncludeAssets: [],
@@ -2669,5 +2674,262 @@ describe('BridgeTokenSelector', () => {
         }),
       );
     });
+  });
+});
+
+describe('BridgeTokenSelectorContent', () => {
+  const heldUsdt = createMockToken({
+    symbol: 'USDT',
+    name: 'Tether',
+    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    balance: '10',
+  });
+  const heldDai = createMockToken({
+    symbol: 'DAI',
+    name: 'Dai',
+    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    balance: '5',
+  });
+  const zeroBalanceWeth = createMockToken({
+    symbol: 'WETH',
+    name: 'Wrapped Ether',
+    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    balance: '0',
+  });
+
+  const renderContent = (
+    props: Partial<
+      React.ComponentProps<typeof BridgeTokenSelectorContent>
+    > = {},
+  ) =>
+    renderWithReduxProvider(
+      <BridgeTokenSelectorContent
+        type={TokenSelectorType.Source}
+        onTokenPress={jest.fn()}
+        onOpenNetworkList={jest.fn()}
+        {...props}
+      />,
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockBalancesByAssetIdState = {
+      tokensWithBalance: [heldUsdt, heldDai, zeroBalanceWeth],
+      balancesByAssetId: {},
+    };
+  });
+
+  describe('balanceOnly', () => {
+    it('disables the popular and search endpoints', () => {
+      renderContent({ balanceOnly: true });
+
+      expect(mockUsePopularTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseSearchTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('renders only held tokens with a positive balance', async () => {
+      const { getByTestId, queryByTestId } = renderContent({
+        balanceOnly: true,
+      });
+
+      await waitFor(() => expect(getByTestId('token-USDT')).toBeTruthy());
+      expect(getByTestId('token-DAI')).toBeTruthy();
+      expect(queryByTestId('token-WETH')).toBeNull();
+      expect(queryByTestId('token-USDC')).toBeNull();
+    });
+
+    it('filters held tokens locally without a minimum query length', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createMockPopularToken({ symbol: 'DAX' })],
+      };
+      const { getByTestId, queryByTestId } = renderContent({
+        balanceOnly: true,
+      });
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'dai');
+
+      await waitFor(() => expect(getByTestId('token-DAI')).toBeTruthy());
+      expect(queryByTestId('token-USDT')).toBeNull();
+      expect(queryByTestId('token-DAX')).toBeNull();
+      expect(queryByTestId('skeleton-item')).toBeNull();
+    });
+
+    describe('watchlist mode', () => {
+      const watchlistToken = (
+        symbol: string,
+        address: string,
+        balance: string,
+      ) => ({
+        assetId: `eip155:1/erc20:${address}`,
+        name: symbol,
+        symbol,
+        decimals: 18,
+        balance,
+        balanceFiat: Number(balance) * 10,
+        fiatCurrency: 'usd',
+        isInWallet: balance !== '0',
+      });
+
+      beforeEach(() => {
+        mockIsWatchlistEnabled = true;
+        mockUseTokenWatchlistQuery.mockReturnValue({
+          data: [
+            watchlistToken(
+              'LINK',
+              '0x514910771af9ca656af840dff83e8264ecf986ca',
+              '3',
+            ),
+            watchlistToken(
+              'PEPE',
+              '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+              '0',
+            ),
+            watchlistToken(
+              'UNI',
+              '0x1f9840a85d5af5bf1d1762f925bdaaa4c3a4f8b5',
+              '2',
+            ),
+          ],
+          isLoading: false,
+        });
+      });
+
+      it('lists only held watchlist tokens', async () => {
+        const { getByTestId, queryByTestId } = renderContent({
+          balanceOnly: true,
+        });
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() => expect(getByTestId('token-LINK')).toBeTruthy());
+        expect(getByTestId('token-UNI')).toBeTruthy();
+        expect(queryByTestId('token-PEPE')).toBeNull();
+      });
+
+      it('searches held watchlist tokens locally without a minimum query length', async () => {
+        const { getByTestId, queryByTestId } = renderContent({
+          balanceOnly: true,
+        });
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+        fireEvent.changeText(getByTestId('bridge-token-search-input'), 'un');
+
+        await waitFor(() => expect(getByTestId('token-UNI')).toBeTruthy());
+        expect(queryByTestId('token-LINK')).toBeNull();
+        expect(queryByTestId('skeleton-item')).toBeNull();
+      });
+
+      it('removes the excluded token from watchlist results', async () => {
+        const { getByTestId, queryByTestId } = renderContent({
+          type: TokenSelectorType.Dest,
+          excludeToken: createMockToken({
+            symbol: 'LINK',
+            address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          }),
+        });
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() => expect(getByTestId('token-UNI')).toBeTruthy());
+        expect(queryByTestId('token-LINK')).toBeNull();
+      });
+    });
+
+    it('scopes held tokens to the selected network pill', () => {
+      renderWithReduxProvider(
+        <BridgeTokenSelectorContent
+          type={TokenSelectorType.Source}
+          onTokenPress={jest.fn()}
+          onOpenNetworkList={jest.fn()}
+          balanceOnly
+        />,
+        createMockStore({ tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.polygon }),
+      );
+
+      expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: [MOCK_CHAIN_IDS.polygon] }),
+      );
+    });
+  });
+
+  describe('excludeToken', () => {
+    it('removes the excluded token from held tokens regardless of address case', async () => {
+      const { getByTestId, queryByTestId } = renderContent({
+        balanceOnly: true,
+        excludeToken: {
+          ...heldUsdt,
+          address: heldUsdt.address.toLowerCase(),
+        },
+      });
+
+      await waitFor(() => expect(getByTestId('token-DAI')).toBeTruthy());
+      expect(queryByTestId('token-USDT')).toBeNull();
+    });
+
+    it('removes the excluded token from popular tokens', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC' }),
+          {
+            ...createMockPopularToken({ symbol: 'PEPE' }),
+            address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+          } as never,
+        ],
+        isLoading: false,
+      };
+      const { getByTestId, queryByTestId } = renderContent({
+        type: TokenSelectorType.Dest,
+        excludeToken: createMockToken({
+          symbol: 'PEPE',
+          address: '0x6982508145454CE325dDbE47a25d4ec3d2311933',
+        }),
+      });
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-PEPE')).toBeNull();
+    });
+
+    it('removes the excluded token from search results', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        currentSearchQuery: 'pep',
+        searchResults: [
+          createMockPopularToken({ symbol: 'PEPE2' }),
+          {
+            ...createMockPopularToken({ symbol: 'PEPE' }),
+            address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+          } as never,
+        ],
+      };
+      const { getByTestId, queryByTestId } = renderContent({
+        type: TokenSelectorType.Dest,
+        excludeToken: createMockToken({
+          symbol: 'PEPE',
+          address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        }),
+      });
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'pep');
+
+      await waitFor(() => expect(getByTestId('token-PEPE2')).toBeTruthy());
+      expect(queryByTestId('token-PEPE')).toBeNull();
+    });
+  });
+
+  it('delegates the network list to the host', () => {
+    const onOpenNetworkList = jest.fn();
+    const { getByTestId } = renderContent({ onOpenNetworkList });
+
+    fireEvent.press(getByTestId('open-network-modal'));
+
+    expect(onOpenNetworkList).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

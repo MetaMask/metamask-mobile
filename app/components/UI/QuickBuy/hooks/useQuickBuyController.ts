@@ -152,6 +152,7 @@ export interface UseQuickBuyControllerResult {
   >;
   // sell dest token (Sell mode "Receive with")
   sellDestTokenOptions: BridgeToken[];
+  positionTokenFromSetup: BridgeToken | undefined;
   selectedDestStable: BridgeToken | undefined;
   handleSelectDestStable: (token: BridgeToken) => void;
   currentCurrency: string;
@@ -1317,16 +1318,23 @@ export function useQuickBuyController(
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
+      // The shared picker returns balance tokens. Resolve the selected
+      // identity back to Quick Buy's enriched option so pricing data used to
+      // derive the quote amount is preserved.
+      const selectedToken =
+        sourceTokenOptions.find(
+          (option) => getTokenKey(option) === getTokenKey(token),
+        ) ?? token;
       const previousToken = selectedSourceToken?.symbol ?? '';
       const tokenChanged =
         !selectedSourceToken ||
-        getTokenKey(token) !== getTokenKey(selectedSourceToken);
+        getTokenKey(selectedToken) !== getTokenKey(selectedSourceToken);
 
-      if (tokenChanged && token.symbol !== previousToken) {
-        trackPayWithSelected(token.symbol, previousToken);
+      if (tokenChanged && selectedToken.symbol !== previousToken) {
+        trackPayWithSelected(selectedToken.symbol, previousToken);
       }
       isManualSelectionRef.current = true;
-      setSelectedSourceToken(token);
+      setSelectedSourceToken(selectedToken);
       // Preserve amount across pay-with changes. Only drop max-balance mode when
       // the token identity changes — re-selecting the same token must keep max
       // so we still spend the exact on-chain balance (not a fiat round-trip).
@@ -1334,7 +1342,7 @@ export function useQuickBuyController(
         setIsMaxSourceAmount(false);
       }
     },
-    [selectedSourceToken, trackPayWithSelected],
+    [selectedSourceToken, sourceTokenOptions, trackPayWithSelected],
   );
 
   const handleSelectDestStable = useCallback(
@@ -1864,6 +1872,7 @@ export function useQuickBuyController(
     setIsSourcePickerOpen,
     setSelectedSourceToken,
     sellDestTokenOptions,
+    positionTokenFromSetup,
     selectedDestStable,
     currentCurrency,
     amountDisplayMode,
