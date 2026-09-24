@@ -11,7 +11,6 @@ import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrder
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LimitOrderExecutionType,
@@ -41,8 +40,30 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
+jest.mock('../../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn().mockReturnValue({
+    selectedTab: 'limit',
+    renderedTab: 'limit',
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: {
+      displayBalance: '1.0',
+      atomicBalance: undefined,
+    },
+  }),
+}));
+
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
 }));
 
 jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
@@ -51,6 +72,20 @@ jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
 
 jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
   useLimitOrderSwapInputs: jest.fn(),
+}));
+
+// OrdersTabs is stubbed out below, so this view's data-fetching is never
+// actually exercised here; CV covers the real query wiring and rendering.
+jest.mock('../../../hooks/useLimitOrders', () => ({
+  useLimitOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
 }));
 
 jest.mock('../../../hooks/useSwapsLimitOrderPriceAdjust', () => ({
@@ -138,6 +173,7 @@ jest.mock('../../../components/SwapsInputs', () => {
 
 jest.mock('../../../components/OrdersTabs', () => ({
   __esModule: true,
+  ...jest.requireActual('../../../components/OrdersTabs'),
   default: () => null,
 }));
 
@@ -367,10 +403,6 @@ describe('BridgeLimitOrderView', () => {
     mockIsCustomPercentFocused = false;
     mockSourceAmount = '';
 
-    jest.mocked(useLatestBalance).mockReturnValue({
-      displayBalance: '1.0',
-      atomicBalance: undefined,
-    });
     jest
       .mocked(useLimitOrderSwapInputs)
       .mockImplementation(() => buildSwapInputsMock());

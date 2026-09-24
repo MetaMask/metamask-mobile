@@ -30,6 +30,7 @@ export enum FeatureFlagNames {
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  nativeTabBarEnabled = 'nativeTabBarEnabled',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

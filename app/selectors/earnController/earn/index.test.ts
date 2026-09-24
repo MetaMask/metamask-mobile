@@ -401,6 +401,82 @@ describe('Earn Controller Selectors', () => {
     ).mockReturnValue(true);
   });
 
+  describe('selectIsAaveOutputToken', () => {
+    it('returns true for a known Aave output token asset ID', () => {
+      const outputTokenAssetId = `eip155:1/erc20:${MOCK_LENDING_MARKET_USDC.outputToken.address.toLowerCase()}`;
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+        outputTokenAssetId,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the asset ID is missing', () => {
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a different output token address', () => {
+      const assetIdWithDifferentAddress =
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001';
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+        assetIdWithDifferentAddress,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for the same output token address on a different chain', () => {
+      const assetIdOnDifferentChain = `eip155:137/erc20:${MOCK_LENDING_MARKET_USDC.outputToken.address.toLowerCase()}`;
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+        assetIdOnDifferentChain,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a matching output token from a non-Aave market', () => {
+      const stateWithNonAaveMarket = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            EarnController: {
+              ...mockState.engine.backgroundState.EarnController,
+              lending: {
+                ...mockState.engine.backgroundState.EarnController.lending,
+                markets: [
+                  {
+                    ...MOCK_LENDING_MARKET_USDC,
+                    protocol: 'morpho',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+      const outputTokenAssetId = `eip155:1/erc20:${MOCK_LENDING_MARKET_USDC.outputToken.address.toLowerCase()}`;
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        stateWithNonAaveMarket as unknown as RootState,
+        outputTokenAssetId,
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe('selectEarnTokens', () => {
     it('returns pooled staking earn tokens data when no markets are present and pooled staking is disabled', () => {
       (

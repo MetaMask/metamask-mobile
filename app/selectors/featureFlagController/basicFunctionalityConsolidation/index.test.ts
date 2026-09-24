@@ -1,10 +1,15 @@
 import {
   BFT_CHILD_PREFERENCES,
   MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME,
+  type BasicFunctionalityMigrationNotification,
   selectIsBasicFunctionalityConsistent,
   selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsBasicFunctionalitySocialLoginUser,
+  selectIsExistingSocialWalletRestore,
+  selectIsInBasicFunctionalityConsolidationRollout,
   selectIsSocialLoginBasicFunctionalityLocked,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldRepairSocialLoginBasicFunctionality,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from './index';
@@ -12,6 +17,7 @@ import {
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 import { AccountType } from '../../../constants/onboarding';
 import { isBftcConsolidationBuildEnabled } from '../../../constants/featureFlags';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.60.0'),
@@ -50,7 +56,6 @@ describe('basicFunctionalityConsolidation selectors', () => {
           },
         },
         true,
-        false,
       );
 
       expect(result).toBe(true);
@@ -65,7 +70,6 @@ describe('basicFunctionalityConsolidation selectors', () => {
           },
         },
         true,
-        false,
       );
 
       expect(result).toBe(false);
@@ -75,7 +79,6 @@ describe('basicFunctionalityConsolidation selectors', () => {
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
         true,
-        false,
       );
 
       expect(result).toBe(false);
@@ -86,7 +89,6 @@ describe('basicFunctionalityConsolidation selectors', () => {
 
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
-        false,
         false,
       );
 
@@ -99,42 +101,27 @@ describe('basicFunctionalityConsolidation selectors', () => {
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
         false,
-        false,
       );
 
       expect(result).toBe(false);
     });
 
-    it('keeps the build-flag cohort after migration lands Basic Functionality on', () => {
+    it('does not use the build flag for a Basic Functionality-on wallet', () => {
       jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
 
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
         true,
-        true,
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it('does not enroll an on wallet from the build flag alone', () => {
-      jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(true);
-
-      const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
-        {},
-        true,
-        false,
       );
 
       expect(result).toBe(false);
     });
 
-    it('returns false for a persisted on wallet when the build flag is off', () => {
+    it('returns false for a Basic Functionality-on wallet when the remote flag is off', () => {
       jest.mocked(isBftcConsolidationBuildEnabled).mockReturnValue(false);
 
       const result = selectMobileUxBftcConsolidationFlagEnabled.resultFunc(
         {},
-        true,
         true,
       );
 
@@ -236,14 +223,43 @@ describe('basicFunctionalityConsolidation selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when remote flag is disabled', () => {
+    it('keeps a persisted cohort consolidated when the enrollment flag is disabled', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
         false,
         true,
         true,
       );
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('selectIsInBasicFunctionalityConsolidationRollout', () => {
+    it('covers an enrolled wallet after the enrollment flag is disabled', () => {
+      expect(
+        selectIsInBasicFunctionalityConsolidationRollout.resultFunc(
+          true,
+          false,
+        ),
+      ).toBe(true);
+    });
+
+    it('covers an unmarked wallet the enrollment flag is about to migrate', () => {
+      expect(
+        selectIsInBasicFunctionalityConsolidationRollout.resultFunc(
+          false,
+          true,
+        ),
+      ).toBe(true);
+    });
+
+    it('excludes a wallet outside the rollout', () => {
+      expect(
+        selectIsInBasicFunctionalityConsolidationRollout.resultFunc(
+          false,
+          false,
+        ),
+      ).toBe(false);
     });
   });
 
@@ -282,27 +298,109 @@ describe('basicFunctionalityConsolidation selectors', () => {
     });
   });
 
+  describe('selectIsExistingSocialWalletRestore', () => {
+    it.each([
+      AccountType.ImportedGoogle,
+      AccountType.ImportedApple,
+      AccountType.ImportedTelegram,
+    ])('detects a restored social wallet for %s', (accountType) => {
+      expect(selectIsExistingSocialWalletRestore.resultFunc(accountType)).toBe(
+        true,
+      );
+    });
+
+    it('excludes a newly created social wallet', () => {
+      expect(
+        selectIsExistingSocialWalletRestore.resultFunc(
+          AccountType.MetamaskGoogle,
+        ),
+      ).toBe(false);
+    });
+
+    it('excludes an imported SRP wallet, which onboarding enrols itself', () => {
+      expect(
+        selectIsExistingSocialWalletRestore.resultFunc(AccountType.Imported),
+      ).toBe(false);
+    });
+
+    it('returns false when no account type was recorded', () => {
+      expect(selectIsExistingSocialWalletRestore.resultFunc(undefined)).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('selectIsBasicFunctionalitySocialLoginUser', () => {
+    it.each([
+      [
+        'an onboarding account type',
+        AccountType.MetamaskGoogle,
+        undefined,
+        false,
+      ],
+      [
+        'a seedless auth connection',
+        AccountType.Metamask,
+        AuthConnection.Google,
+        false,
+      ],
+      ['a seedless vault', AccountType.Metamask, undefined, true],
+    ])(
+      'detects a social wallet from %s',
+      (_signal, accountType, authConnection, hasSeedlessVault) => {
+        expect(
+          selectIsBasicFunctionalitySocialLoginUser.resultFunc(
+            accountType,
+            authConnection,
+            hasSeedlessVault,
+            false,
+          ),
+        ).toBe(true);
+      },
+    );
+
+    it('returns false for an SRP wallet', () => {
+      expect(
+        selectIsBasicFunctionalitySocialLoginUser.resultFunc(
+          AccountType.Metamask,
+          undefined,
+          false,
+          false,
+        ),
+      ).toBe(false);
+    });
+
+    it('detects a social wallet from a linked profile marker', () => {
+      expect(
+        selectIsBasicFunctionalitySocialLoginUser.resultFunc(
+          AccountType.Imported,
+          undefined,
+          false,
+          true,
+        ),
+      ).toBe(true);
+    });
+  });
+
   describe('selectIsSocialLoginBasicFunctionalityLocked', () => {
     it('locks Basic Functionality for a social-login user during rollout', () => {
       expect(
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
           true,
           true,
-          AccountType.MetamaskGoogle,
-          undefined,
-          false,
+          true,
         ),
       ).toBe(true);
     });
 
     it('keeps an off social-login toggle enabled for recovery', () => {
+      // The repair can fail and only re-runs on unlock, so locking the off
+      // state would strand the wallet behind a greyed-out switch.
       expect(
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
           true,
           false,
-          AccountType.MetamaskGoogle,
-          undefined,
-          false,
+          true,
         ),
       ).toBe(false);
     });
@@ -312,10 +410,112 @@ describe('basicFunctionalityConsolidation selectors', () => {
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
           true,
           true,
-          AccountType.Metamask,
-          undefined,
           false,
         ),
+      ).toBe(false);
+    });
+
+    it('does not lock Basic Functionality outside the rollout', () => {
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          false,
+          true,
+          true,
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectShouldRepairSocialLoginBasicFunctionality', () => {
+    const shouldRepair = ({
+      isConsolidated = true,
+      isBasicFunctionalityEnabled = false,
+      isSocialLoginUser = true,
+      isLocallyKnownSocialLoginUser = false,
+      hasLinkedSocialLoginProfile = false,
+      migrationNotification = null,
+      isMigrationNotificationDismissed = false,
+    }: {
+      isConsolidated?: boolean;
+      isBasicFunctionalityEnabled?: boolean;
+      isSocialLoginUser?: boolean;
+      isLocallyKnownSocialLoginUser?: boolean;
+      hasLinkedSocialLoginProfile?: boolean;
+      migrationNotification?: BasicFunctionalityMigrationNotification;
+      isMigrationNotificationDismissed?: boolean;
+    }) =>
+      selectShouldRepairSocialLoginBasicFunctionality.resultFunc(
+        isConsolidated,
+        isBasicFunctionalityEnabled,
+        isSocialLoginUser,
+        isLocallyKnownSocialLoginUser,
+        hasLinkedSocialLoginProfile,
+        migrationNotification,
+        isMigrationNotificationDismissed,
+      );
+
+    it('repairs a consolidated social wallet left with Basic Functionality off', () => {
+      expect(shouldRepair({ isLocallyKnownSocialLoginUser: true })).toBe(true);
+    });
+
+    it('does not repair a social wallet that is already on', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          isLocallyKnownSocialLoginUser: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('does not repair an SRP wallet that chose to stay off', () => {
+      expect(shouldRepair({ isSocialLoginUser: false })).toBe(false);
+    });
+
+    it('leaves an unconsolidated social wallet to the one-time migration', () => {
+      expect(
+        shouldRepair({
+          isConsolidated: false,
+          hasLinkedSocialLoginProfile: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('repairs a consolidated linked-social wallet missing its notice', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+        }),
+      ).toBe(true);
+    });
+
+    it('does not repair a wallet already known to be social before sign-in', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          isLocallyKnownSocialLoginUser: true,
+          hasLinkedSocialLoginProfile: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('does not repair a linked-social wallet after notice dismissal', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+          isMigrationNotificationDismissed: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('does not repair a linked-social wallet with a scheduled notice', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+          migrationNotification: 'bottom-sheet',
+        }),
       ).toBe(false);
     });
   });

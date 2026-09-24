@@ -1,7 +1,10 @@
 import { within } from '@testing-library/react-native';
 import Engine from '../../../app/core/Engine';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
-import type { PredictGameLive } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
+import type {
+  PredictGameLive,
+  PredictQuote,
+} from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
   PredictDecimal,
@@ -419,16 +422,24 @@ export const makePredictNextSettlement = (
   ...overrides,
 });
 
-/** Delivers a live Game update to every listener the screen registered. */
-export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) => {
+const publishPredictNextLiveUpdate = (eventName: string, update: unknown) => {
   const listeners = (
     Engine.controllerMessenger.subscribe as unknown as jest.Mock
-  ).mock.calls.filter(
-    ([eventName]) => eventName === 'PredictLiveDataService:gameLiveUpdated',
-  );
+  ).mock.calls.filter(([name]) => name === eventName);
 
   listeners.forEach(([, listener]) => listener(update));
 };
+
+/** Delivers a live Game update to every listener the screen registered. */
+export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) =>
+  publishPredictNextLiveUpdate(
+    'PredictLiveDataService:gameLiveUpdated',
+    update,
+  );
+
+/** Delivers a live market quote to every listener the screen registered. */
+export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
+  publishPredictNextLiveUpdate('PredictLiveDataService:quoteUpdated', update);
 
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,

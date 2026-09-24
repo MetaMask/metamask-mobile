@@ -68,19 +68,27 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/abi-utils',
   '@metamask/assets-controller',
   '@metamask/assets-controllers',
+  '@metamask/authenticated-user-storage',
   '@metamask/base-controller',
   '@metamask/base-data-service',
   '@metamask/address-book-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
+  '@metamask/chomp-api-service',
   '@metamask/config-registry-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
+  '@metamask/delegation-controller',
+  '@metamask/delegation-core',
+  '@metamask/delegation-deployments',
   '@metamask/gas-fee-controller',
   '@metamask/kyc-controller',
+  '@metamask/money-account-balance-service',
+  '@metamask/money-account-utils',
   '@metamask/multichain-network-controller',
   '@metamask/network-enablement-controller',
+  '@metamask/notification-services-controller',
   '@metamask/phishing-controller',
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
@@ -88,6 +96,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
+  // 3.x ships ESM-only under dist/*.js (2.x used dist/index.cjs).
+  '@metamask/social-controllers',
   '@signinwithethereum',
   '@metamask/design-system-twrnc-preset',
   '@metamask/design-system-react-native',
@@ -100,6 +110,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
   '@metamask/smart-transactions-controller',
+  '@metamask/subscription-controller',
+  '@metamask/transaction-controller',
   '@metamask/transaction-pay-controller',
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.
@@ -171,6 +183,8 @@ const config = {
     '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
     '^react-native-video$': '<rootDir>/app/__mocks__/react-native-video.tsx',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
+    'wasm-wrapper\\.standalone\\.html$':
+      '<rootDir>/app/__mocks__/lighterSignerHtml.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
@@ -197,6 +211,7 @@ const config = {
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-glass-effect$': '<rootDir>/app/__mocks__/expo-glass-effect.tsx',
     '^expo-local-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-local-authentication.ts',
     '^expo-screen-orientation(/.*)?$':

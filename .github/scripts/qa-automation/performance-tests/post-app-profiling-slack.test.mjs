@@ -4,6 +4,8 @@ import {
   isUserId,
   openDirectMessage,
   buildText,
+  splitForSlack,
+  addScenarioArtifactLinks,
   postSummary,
 } from './post-app-profiling-slack.mjs';
 
@@ -38,16 +40,108 @@ test('openDirectMessage resolves the bot DM channel for a user id', async () => 
   assert.equal(calls[0].body.users, 'UEYQL2PEV');
 });
 
-test('buildText appends the run link and truncates long input', () => {
+test('buildText appends the run link without cutting the body', () => {
   assert.equal(
     buildText('hello', 'https://example.com/run'),
     'hello\n<https://example.com/run|GitHub run>',
   );
   assert.equal(buildText('hello', ''), 'hello');
+  assert.equal(buildText('x'.repeat(50_000), '').length, 50_000);
+});
 
-  const long = buildText('x'.repeat(50_000), '');
-  assert.ok(long.length < 39_000);
-  assert.match(long, /Truncated for Slack\./);
+test('splitForSlack keeps every paragraph across multiple messages', () => {
+  const first = 'a'.repeat(30_000);
+  const second = 'b'.repeat(30_000);
+  const parts = splitForSlack(`${first}\n\n${second}`, 38_000);
+
+  assert.equal(parts.length, 2);
+  assert.equal(parts.join('\n\n'), `${first}\n\n${second}`);
+});
+
+test('addScenarioArtifactLinks turns each named outcome into its download', () => {
+  const digest = addScenarioArtifactLinks(
+    [
+      '*Conclusions*',
+      '• `mod` leads *Perps open position and close it* (59058.1 ms).',
+      '',
+      '*Outliers*',
+      '• *Predict Deposit - Complete Flow Performance* — JS 37874.6 ms',
+      '• *Perps open position and close it* — JS 59058.1 ms',
+      '',
+      '*Downloads*',
+      '• analysis report',
+    ].join('\n'),
+    [
+      { id: 11, name: 'hermes-profile-15-Perps_open_position_and_close_it', expired: false },
+      {
+        id: 22,
+        name: 'hermes-profile-17-Predict_Deposit_-_Complete_Flow_Performance',
+        expired: false,
+      },
+    ],
+    {
+      repo: 'MetaMask/metamask-mobile',
+      runId: '123',
+      manifest: {
+        include: [
+          {
+            artifactName: 'hermes-profile-15-Perps_open_position_and_close_it',
+            scenario: 'Perps open position and close it',
+          },
+          {
+            artifactName:
+              'hermes-profile-17-Predict_Deposit_-_Complete_Flow_Performance',
+            scenario: 'Predict Deposit - Complete Flow Performance',
+          },
+        ],
+      },
+    },
+  );
+
+  assert.match(
+    digest,
+    /<https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/123\/artifacts\/11\|Perps open position and close it>/,
+  );
+  assert.match(
+    digest,
+    /<https:\/\/github.com\/MetaMask\/metamask-mobile\/actions\/runs\/123\/artifacts\/22\|Predict Deposit - Complete Flow Performance>/,
+  );
+  assert.equal(
+    digest.split('Perps open position and close it').length - 1,
+    2,
+  );
+  assert.doesNotMatch(digest, /\*Perps open position and close it\*/);
+  // The owner is named once, on the outlier, without notifying the team.
+  assert.equal(
+    digest.split('owner mm-perps-engineering-team').length - 1,
+    1,
+  );
+  assert.match(digest, /owner team-predict/);
+  assert.doesNotMatch(digest, /subteam|<!/);
+});
+
+test('addScenarioArtifactLinks requires at least one scenario artifact', () => {
+  assert.throws(
+    () =>
+      addScenarioArtifactLinks('*Summary*', [], {
+        repo: 'MetaMask/metamask-mobile',
+        runId: '123',
+        manifest: { include: [] },
+      }),
+    /No per-scenario Hermes profile artifacts/,
+  );
+});
+
+test('buildText labels the run link so a failure notice names its target', () => {
+  assert.equal(
+    buildText('hello', 'https://example.com/run', 'Failed performance run'),
+    'hello\n<https://example.com/run|Failed performance run>',
+  );
+  // An empty label must not produce an unclickable empty link text.
+  assert.equal(
+    buildText('hello', 'https://example.com/run', ''),
+    'hello\n<https://example.com/run|GitHub run>',
+  );
 });
 
 test('postSummary addresses a user id directly, without needing im:write', async () => {
@@ -73,6 +167,65 @@ test('postSummary addresses a user id directly, without needing im:write', async
   assert.equal(calls[0].body.channel, 'UEYQL2PEV');
   assert.match(calls[0].body.text, /\*summary\*/);
   assert.equal(calls[0].body.unfurl_links, false);
+});
+
+test('postSummary threads overflow instead of truncating', async () => {
+  const calls = [];
+  const fetchFn = async (url, init) => {
+    calls.push(JSON.parse(init.body));
+    return jsonResponse({ ok: true, ts: `ts-${calls.length}` });
+  };
+
+  await postSummary(
+    {
+      markdown: `${'a'.repeat(30_000)}\n\n${'b'.repeat(30_000)}`,
+      target: 'UEYQL2PEV',
+      token: 'token',
+      runUrl: 'https://example.com/run',
+    },
+    { fetchFn },
+  );
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].thread_ts, undefined);
+  assert.equal(calls[1].thread_ts, 'ts-1');
+  assert.doesNotMatch(calls[0].text, /Truncated for Slack/);
+  // Comparing the whole message keeps CodeQL from reading a URL substring
+  // check as a host check, and asserts the split point at the same time.
+  assert.equal(calls[0].text, 'a'.repeat(30_000));
+  assert.equal(
+    calls[1].text,
+    `${'b'.repeat(30_000)}\n<https://example.com/run|GitHub run>`,
+  );
+});
+
+test('postSummary posts weekly scenario cards in the parent thread', async () => {
+  const calls = [];
+  const fetchFn = async (url, init) => {
+    calls.push(JSON.parse(init.body));
+    return jsonResponse({ ok: true, ts: `ts-${calls.length}` });
+  };
+
+  await postSummary(
+    {
+      markdown: '*weekly index*',
+      target: 'UEYQL2PEV',
+      token: 'token',
+      runUrl: 'https://example.com/run',
+      cards: ['*Worse than last week* · *Perps add funds*'],
+    },
+    { fetchFn },
+  );
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].thread_ts, undefined);
+  // The parent keeps the index only; the run link belongs to the last card.
+  assert.equal(calls[0].text, '*weekly index*');
+  assert.equal(calls[1].thread_ts, 'ts-1');
+  assert.equal(
+    calls[1].text,
+    '*Worse than last week* · *Perps add funds*\n<https://example.com/run|GitHub run>',
+  );
 });
 
 test('postSummary falls back to opening a DM when the direct post is rejected', async () => {

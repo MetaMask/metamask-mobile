@@ -5,7 +5,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, type LayoutChangeEvent } from 'react-native';
+import {
+  ScrollView,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -13,13 +18,14 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
-  selectBridgeBalanceRefreshKey,
   selectLimitOrderCostTolerance,
-  selectSourceToken,
+  selectOrdersNetworkFilter,
   setLimitOrderCostTolerance,
+  setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
-import OrdersTabs from '../../../components/OrdersTabs';
+import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import {
   DestAssetRequireActivateBanner,
   SwapsBanners,
@@ -30,11 +36,10 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
-import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
-import { LIMIT_MOCK_OPEN_ORDERS_TAB } from './BridgeLimitOrderView.mockOpenOrders';
+import { useLimitOrders } from '../../../hooks/useLimitOrders';
+import { LimitOrderStatus } from '../../../api/limitOrders/getLimitOrders/types';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
 import LimitOrderDetails from '../../../components/LimitOrderDetails';
@@ -62,19 +67,25 @@ import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/ge
 import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
+import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-interface BridgeLimitOrderViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
+const OPEN_ORDER_STATUSES = [LimitOrderStatus.Open];
+const HISTORY_ORDER_STATUSES = [
+  LimitOrderStatus.Filled,
+  LimitOrderStatus.Expired,
+  LimitOrderStatus.Cancelled,
+  LimitOrderStatus.Failed,
+];
+const LOAD_MORE_SCROLL_THRESHOLD = 200;
 
-const BridgeLimitOrderViewContent = ({
-  latestSourceBalance,
-}: BridgeLimitOrderViewContentProps) => {
+const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -83,6 +94,14 @@ const BridgeLimitOrderViewContent = ({
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
+  const { latestSourceBalance } = useBridgeSession();
+  const [activeOrdersTab, setActiveOrdersTab] = useState(
+    OrdersTabKey.OpenOrders,
+  );
+  const walletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const ordersNetworkFilter = useSelector(selectOrdersNetworkFilter);
   const {
     destToken,
     enabledChainIds,
@@ -96,7 +115,19 @@ const BridgeLimitOrderViewContent = ({
     sourceToken,
     sourceAmount,
     isSourceNetworkGasSponsored,
-  } = useLimitOrderSwapInputs({ latestSourceBalance });
+  } = useLimitOrderSwapInputs();
+  const openOrdersQuery = useLimitOrders({
+    walletAddress,
+    status: OPEN_ORDER_STATUSES,
+    chainId: ordersNetworkFilter,
+    enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+  });
+  const historyQuery = useLimitOrders({
+    walletAddress,
+    status: HISTORY_ORDER_STATUSES,
+    chainId: ordersNetworkFilter,
+    enabled: activeOrdersTab === OrdersTabKey.History,
+  });
   const {
     commitCustomPercent,
     counterFiatRate,
@@ -207,6 +238,43 @@ const BridgeLimitOrderViewContent = ({
     closeKeypad();
   }, [blurLimitAdjustInputs, closeKeypad, commitCustomPercentIfFocused]);
 
+  const openOrders = createLimitOrdersTab({
+    orders: openOrdersQuery.orders,
+    isLoading: openOrdersQuery.isLoading,
+    isError: openOrdersQuery.isError,
+    isFetchingNextPage: openOrdersQuery.isFetchingNextPage,
+    onRetry: () => openOrdersQuery.refetch(),
+  });
+
+  const history = createLimitOrdersTab({
+    orders: historyQuery.orders,
+    isLoading: historyQuery.isLoading,
+    isError: historyQuery.isError,
+    isFetchingNextPage: historyQuery.isFetchingNextPage,
+    onRetry: () => historyQuery.refetch(),
+  });
+
+  const handleOrdersScroll = useCallback(
+    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const distanceFromBottom =
+        nativeEvent.contentSize.height -
+        nativeEvent.layoutMeasurement.height -
+        nativeEvent.contentOffset.y;
+
+      if (distanceFromBottom > LOAD_MORE_SCROLL_THRESHOLD) {
+        return;
+      }
+
+      if (activeOrdersTab === OrdersTabKey.OpenOrders) {
+        openOrdersQuery.fetchNextPage();
+        return;
+      }
+
+      historyQuery.fetchNextPage();
+    },
+    [activeOrdersTab, historyQuery, openOrdersQuery],
+  );
+
   const onSourceInputPress = useCallback(() => {
     commitCustomPercentIfFocused();
     focusAmount();
@@ -295,19 +363,23 @@ const BridgeLimitOrderViewContent = ({
         destToken,
         payingAmount: formatTokenAmountValue(sourceAmount, sourceToken?.symbol),
         triggerPrice,
-        triggerComparison: marketComparison,
         triggerToken: quotedToken,
         expiry: expiration,
-        networkFee: '0',
-        feeToken: sourceToken,
-        feeDisclaimer: '',
+        order: getLimitOrderDelegationsParams({
+          sourceToken,
+          destToken,
+          sourceAmount,
+          destTokenAmount,
+          expiresInMinutes: expirationMinutes,
+        }),
       },
     });
   }, [
     destToken,
+    destTokenAmount,
     dismissInputAndKeypad,
     expiration,
-    marketComparison,
+    expirationMinutes,
     navigation,
     quotedToken,
     sourceAmount,
@@ -321,6 +393,14 @@ const BridgeLimitOrderViewContent = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keeps the market-comparison label in sync everywhere it's shown: this
+  // screen keeps running (and this effect keeps firing) behind the
+  // confirmation modal, which reads the same Redux value instead of
+  // deriving its own, so the two surfaces never disagree.
+  useEffect(() => {
+    dispatch(setLimitOrderMarketComparison(marketComparison));
+  }, [dispatch, marketComparison]);
+
   return (
     <Box twClassName="flex-1 bg-default">
       <Box
@@ -333,6 +413,8 @@ const BridgeLimitOrderViewContent = ({
           contentContainerStyle={tw.style('grow')}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
+          onScroll={handleOrdersScroll}
+          scrollEventThrottle={16}
         >
           <Box
             twClassName="flex-1"
@@ -344,7 +426,6 @@ const BridgeLimitOrderViewContent = ({
               inputRef={inputRef}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
-              latestSourceBalance={latestSourceBalance}
               destToken={destToken}
               destTokenAmount={destTokenAmount}
               isDestAmountLoading={false}
@@ -404,7 +485,6 @@ const BridgeLimitOrderViewContent = ({
             >
               <Box onLayout={handleBannersLayout}>
                 <SwapsBanners
-                  latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
                   onAdjustSourceAmount={handleSourcePresetAmountSelect}
                 >
                   <HardwareWalletUnsupportedBanner />
@@ -424,11 +504,12 @@ const BridgeLimitOrderViewContent = ({
               />
             </Box>
 
-            <Box onTouchEnd={dismissInputAndKeypad}>
+            <Box onTouchEnd={dismissInputAndKeypad} paddingBottom={3}>
               <OrdersTabs
                 enabledChainIds={enabledChainIds}
-                openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
-                history={LIMIT_MOCK_HISTORY_TAB}
+                openOrders={openOrders}
+                history={history}
+                onTabChange={setActiveOrdersTab}
               />
             </Box>
           </Box>
@@ -467,20 +548,4 @@ const BridgeLimitOrderViewContent = ({
   );
 };
 
-const BridgeLimitOrderView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeLimitOrderViewContent latestSourceBalance={latestSourceBalance} />
-  );
-};
-
-export default BridgeLimitOrderView;
+export default BridgeLimitOrderViewContent;

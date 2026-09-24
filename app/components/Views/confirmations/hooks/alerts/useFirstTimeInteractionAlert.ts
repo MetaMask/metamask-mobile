@@ -9,7 +9,7 @@ import { selectInternalAccounts } from '../../../../../selectors/accountsControl
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { TrustSignalDisplayState } from '../../types/trustSignals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
@@ -58,7 +58,7 @@ export function useFirstTimeInteractionAlert(): Alert[] {
 
   return useMemo(() => {
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

@@ -113,6 +113,37 @@ describe('Android prerequisites', () => {
 
   it.each([
     [
+      'package:io.metamask\npackage:io.metamask.devicemcp.snapshothelper\n',
+      'co-installed device-mcp snapshot helper',
+    ],
+    [
+      'package:io.metamask\npackage:io.metamask.flask\n',
+      'co-installed flask flavor',
+    ],
+  ])(
+    'accepts the base package when other io.metamask.* packages are present: %s',
+    (packagesOutput) => {
+      mockAdb();
+      mockExecFileSync.mockImplementation((_file, args) => {
+        const command = (args as string[]).join(' ');
+        if (command === 'version') return '';
+        if (command === 'devices -l')
+          return 'List of devices attached\nemulator-5554 device\n';
+        if (command.includes('getprop')) return '1';
+        if (command.includes('list packages')) return packagesOutput;
+        if (command.includes('resolve-activity'))
+          return 'io.metamask/io.metamask.MainActivity';
+        return '';
+      });
+
+      expect(() =>
+        validateAndroidPrerequisites({ platform: 'android' }),
+      ).not.toThrow();
+    },
+  );
+
+  it.each([
+    [
       'priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true\n' +
         'io.metamask/.MainActivity\n',
       'real shorthand output with metadata',

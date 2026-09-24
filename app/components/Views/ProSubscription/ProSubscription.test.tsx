@@ -5,7 +5,12 @@ import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
-const mockNavigation = { goBack: mockGoBack, replace: mockReplace };
+const mockSetParams = jest.fn();
+const mockNavigation = {
+  goBack: mockGoBack,
+  replace: mockReplace,
+  setParams: mockSetParams,
+};
 const mockRoute = { params: {} };
 
 jest.mock('@react-navigation/native', () => ({
@@ -29,14 +34,25 @@ jest.mock('./screens/Benefits', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({
     onSuccess,
+    onPlanChange,
     initialPlan,
   }: {
-    onSuccess: () => void;
+    onSuccess: (plan: { planId: string }) => void;
+    onPlanChange?: (planId: string) => void;
     initialPlan?: string;
   }) => (
-    <TouchableOpacity testID="mock-benefits" onPress={onSuccess}>
-      <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        testID="mock-benefits"
+        onPress={() => onSuccess({ planId: initialPlan ?? 'annual' })}
+      >
+        <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        testID="mock-select-monthly"
+        onPress={() => onPlanChange?.('monthly')}
+      />
+    </>
   );
 });
 
@@ -140,12 +156,20 @@ describe('ProSubscription', () => {
       expect(getByTestId('mock-benefits-plan')).toHaveTextContent('monthly');
     });
 
-    it('passes undefined initialPlan when route params are empty', () => {
+    it('passes the default annual plan when route params are empty', () => {
       mockRoute.params = {};
 
       const { getByTestId } = render(<ProSubscription />);
 
-      expect(getByTestId('mock-benefits-plan')).toHaveTextContent('none');
+      expect(getByTestId('mock-benefits-plan')).toHaveTextContent('annual');
+    });
+
+    it('writes the selected plan to route params', () => {
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-select-monthly'));
+
+      expect(mockSetParams).toHaveBeenCalledWith({ initialPlan: 'monthly' });
     });
   });
 });

@@ -28,6 +28,7 @@ import {
   CommonActions,
   StackActions,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   RouteProp,
@@ -46,6 +47,8 @@ import {
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSelectedCountry,
+  selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
@@ -58,6 +61,7 @@ import {
   CardStatus,
   FundingAssetStatus,
   CardProviderIds,
+  type CardAction,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
@@ -105,7 +109,9 @@ import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
-import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
+import { useCardEnableCard } from './hooks/useCardEnableCard';
+import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
+import { useFundingAccountName } from '../../hooks/useFundingAccountName';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import {
   CardActions,
@@ -124,7 +130,11 @@ interface CardHomeRouteParams {
   fromCardOnboarding?: boolean;
 }
 
-const SETUP_ALERT_TYPES = new Set(['kyc_pending', 'card_provisioning']);
+const SETUP_ALERT_TYPES = new Set([
+  'kyc_pending',
+  'card_provisioning',
+  'allowance_revoked',
+]);
 
 const CardHome = () => {
   // --- Data ---
@@ -144,6 +154,7 @@ const CardHome = () => {
     selectMetalCardCheckoutFeatureFlag,
   );
   const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
@@ -157,14 +168,12 @@ const CardHome = () => {
 
   const isFrozen = data?.card?.status === CardStatus.FROZEN;
 
-  const hasSetupActions = (data?.actions ?? []).some(
-    (a) => a.type === 'enable_card',
-  );
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const isImmersve = activeProviderId === CardProviderIds.Immersve;
   const { state: ukMigrationState, refresh: refreshUkMigrationState } =
     useCardUkMigrationState();
   const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const hasCompletedMigration = useSelector(selectHasCompletedCardMigration);
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -172,22 +181,25 @@ const CardHome = () => {
   const isUkMigrationEligible = isCardUkMigrationEligible(ukMigrationState, {
     providerId: activeProviderId,
     regionCode: migrationRegionCode,
+    hasCompletedMigration,
   });
   const isUkMigrationForced =
     isUkMigrationEligible && ukMigrationState.phase === 'forced';
   const isUkMigrationSoft =
     isUkMigrationEligible && ukMigrationState.phase === 'soft';
+  const selectedCountry = useSelector(selectCardSelectedCountry);
+  const immersveLegalRegionCode = data?.card?.regionCode ?? selectedCountry;
   const {
     permanentDocuments: immersveLegalDocuments,
     isLoading: isImmersveLegalDocsLoading,
     error: immersveLegalDocsError,
     refetch: refetchImmersveLegalDocs,
-  } = useImmersveSupportedRegions(data?.card?.regionCode, {
-    enabled: isImmersve && Boolean(data?.card?.regionCode),
+  } = useImmersveSupportedRegions(immersveLegalRegionCode, {
+    enabled: isImmersve && Boolean(immersveLegalRegionCode),
   });
   const immersveLegalDocsUnavailable = Boolean(
     isImmersve &&
-      Boolean(data?.card?.regionCode) &&
+      Boolean(immersveLegalRegionCode) &&
       !isImmersveLegalDocsLoading &&
       (immersveLegalDocsError || immersveLegalDocuments.length === 0),
   );
@@ -218,14 +230,34 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
-  const { initiateProvisioning, isProvisioning, canAddToWallet } =
-    useCardProvisioning(data);
-
   const {
-    pendingAction: immersvePendingAction,
-    resumePendingAction,
-    isReconciling: isReconcilingImmersveProvisioning,
-  } = useImmersveCardProvisioning(data);
+    initiateProvisioning,
+    isProvisioning,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+  } = useCardProvisioning(data);
+  const isBaanxInternational =
+    activeProviderId === CardProviderIds.Baanx &&
+    userLocation === 'international';
+  const showDigitalWalletInstructions =
+    (isImmersve || isBaanxInternational) &&
+    !isPushProvisioningLoading &&
+    !canAddToWallet;
+
+  const { canEnableCard, enableCard, provisioningView } =
+    useCardEnableCard(data);
+
+  const effectiveActions = useMemo<CardAction[]>(() => {
+    const providerActions = data?.actions ?? [];
+    return canEnableCard &&
+      !providerActions.some((a) => a.type === 'enable_card')
+      ? [...providerActions, { type: 'enable_card' }]
+      : providerActions;
+  }, [data?.actions, canEnableCard]);
+
+  const hasSetupActions = effectiveActions.some(
+    (a) => a.type === 'enable_card',
+  );
 
   // --- Money Account linkage ---
   const {
@@ -293,18 +325,28 @@ const CardHome = () => {
   );
 
   // --- Auth state transition: navigate to auth screen on logout ---
+  // Defer the redirect until Card Home is focused. A provider switch during
+  // UK migration marks the user signed out while SignUp is on top; replacing
+  // the focused route from this background screen unmounts that flow.
   const wasAuthenticated = useRef(isAuthenticated);
+  const pendingAuthRedirect = useRef(false);
   useEffect(() => {
-    const wasAuth = wasAuthenticated.current;
-    wasAuthenticated.current = isAuthenticated;
     if (
-      wasAuth &&
+      wasAuthenticated.current &&
       !isAuthenticated &&
       lastUnauthenticatedReason !== 'onboarding_token_revoked'
     ) {
+      pendingAuthRedirect.current = true;
+    }
+    if (isAuthenticated) {
+      pendingAuthRedirect.current = false;
+    }
+    wasAuthenticated.current = isAuthenticated;
+    if (pendingAuthRedirect.current && isFocused) {
+      pendingAuthRedirect.current = false;
       navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
     }
-  }, [isAuthenticated, lastUnauthenticatedReason, navigation]);
+  }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
 
   const hasHandledOnboardingTokenRevocation = useRef(false);
   useEffect(() => {
@@ -495,8 +537,7 @@ const CardHome = () => {
     SETUP_ALERT_TYPES.has(a.type),
   );
 
-  const hasAlertOnlyState =
-    hasSetupAlerts && (data?.actions ?? []).length === 0;
+  const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
 
   const showSpendingLimitProgress =
     isAuthenticated &&
@@ -525,6 +566,9 @@ const CardHome = () => {
     primaryToken?.isMoneyAccountEntry,
     primaryToken?.walletAddress,
   ]);
+
+  const canRevokeAllowance = useCardRevokeAllowance(data);
+  const fundingAccountName = useFundingAccountName();
 
   const fallbackFundingSourceSymbol = useMemo(() => {
     if (!canUnlinkMoneyAccount) return undefined;
@@ -657,9 +701,7 @@ const CardHome = () => {
             onDismissSpendingLimitWarning={() =>
               setIsSpendingLimitWarningDismissed(true)
             }
-            hasPendingVerification={Boolean(immersvePendingAction)}
-            onContinueVerification={resumePendingAction}
-            isReconcilingProvisioning={isReconcilingImmersveProvisioning}
+            provisioningView={provisioningView}
           />
         </Box>
 
@@ -769,15 +811,15 @@ const CardHome = () => {
             )}
 
           {!isUkMigrationForced &&
-            ((data?.actions ?? []).length > 0 || isLoading) && (
+            (effectiveActions.length > 0 || isLoading) && (
               <Box twClassName="w-full mt-4">
                 <CardActionsButtons
-                  actions={data?.actions ?? []}
+                  actions={effectiveActions}
                   isLoading={isLoading}
                   isSwapEnabled={isSwapEnabled}
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
-                  onEnableCard={actions.enableCardAction}
+                  onEnableCard={enableCard ?? actions.enableCardAction}
                 />
               </Box>
             )}
@@ -878,10 +920,18 @@ const CardHome = () => {
             onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
+            onContactDetails={actions.contactDetailsAction}
+            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            onDigitalWalletInstructions={
+              actions.digitalWalletInstructionsAction
+            }
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
             }
+            showRevokeAllowance={canRevokeAllowance}
+            onRevokeAllowance={actions.revokeAllowanceAction}
+            fundingAccountName={fundingAccountName}
             onOrderMetalCard={actions.orderMetalCardAction}
             onChangeAsset={actions.changeAssetAction}
             hasPriorityTokenBalance={hasPriorityTokenBalance}
@@ -895,6 +945,7 @@ const CardHome = () => {
                     )
                 : undefined
             }
+            showTransactionHistoryDuringSetup={isImmersve && hasSetupActions}
           />
         )}
 

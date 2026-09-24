@@ -8,6 +8,13 @@ import {
   parseArgs,
   resolveLatestRun,
   resolveRunsInWindow,
+  resolveRunsInRange,
+  sampleRunsAcrossNewestDays,
+  planWeeklyRuns,
+  loadCollectedReports,
+  runsToRetryWithLeftoverBudget,
+  reportsForRuns,
+  isReusableCollectedReport,
   findHermesProfiles,
   findAndroidSourcemaps,
   sourcemapVariant,
@@ -22,6 +29,8 @@ import {
   buildAiBriefing,
   buildMarkdown,
   buildSlack,
+  buildConclusions,
+  writeScenarioArtifacts,
   median,
   scenarioFrameTotals,
   aggregateWindow,
@@ -53,6 +62,344 @@ function profile(fileName, overrides = {}) {
     ...overrides,
   };
 }
+
+test('parseArgs supports weekly, collection and scheduled exception modes', () => {
+  const weekly = parseArgs(['--weekly', '--now', '2026-09-21T09:00:00.000Z']);
+  assert.equal(weekly.weekly, true);
+  assert.equal(weekly.skipAi, true);
+  assert.equal(weekly.skipScenarioArtifacts, true);
+  assert.equal(weekly.now, '2026-09-21T09:00:00.000Z');
+
+  // Every run in the week is analyzed; only the rebuild time is bounded.
+  assert.equal(weekly.maxRunsPerWeek, null);
+  assert.equal(weekly.maxAnalysisMinutes, 25);
+  assert.equal(parseArgs(['--max-runs-per-week', '4']).maxRunsPerWeek, 4);
+  assert.equal(
+    parseArgs(['--max-analysis-minutes', '40']).maxAnalysisMinutes,
+    40,
+  );
+
+  const collect = parseArgs(['--collect-only', '--run', '99']);
+  assert.equal(collect.collectOnly, true);
+  assert.equal(collect.skipAi, true);
+  assert.equal(collect.skipScenarioArtifacts, true);
+  assert.equal(collect.run, '99');
+
+  const scheduled = parseArgs(['--scheduled-exception', '--run', '100']);
+  assert.equal(scheduled.scheduledException, true);
+  assert.equal(scheduled.collectOnly, true);
+  assert.equal(scheduled.skipAi, false);
+  assert.equal(scheduled.skipScenarioArtifacts, true);
+  assert.equal(scheduled.run, '100');
+  assert.equal(
+    parseArgs(['--scheduled-exception', '--skip-ai', '--run', '100']).skipAi,
+    true,
+  );
+});
+
+test('resolveRunsInRange keeps a half-open scheduled window', () => {
+  const runs = [
+    {
+      databaseId: 1,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2026-09-14T00:00:00Z',
+    },
+    {
+      databaseId: 2,
+      event: 'workflow_dispatch',
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2026-09-16T00:00:00Z',
+    },
+    {
+      databaseId: 3,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'failure',
+      createdAt: '2026-09-20T18:00:00Z',
+    },
+    {
+      databaseId: 4,
+      event: 'schedule',
+      status: 'completed',
+      conclusion: 'success',
+      createdAt: '2026-09-21T00:00:00Z',
+    },
+  ];
+
+  const selected = resolveRunsInRange(runs, {
+    sinceIso: '2026-09-14T00:00:00Z',
+    untilIso: '2026-09-21T00:00:00Z',
+  });
+
+  assert.deepEqual(
+    selected.map((run) => run.databaseId),
+    [3, 1],
+  );
+});
+
+test('sampleRunsAcrossNewestDays covers the newest days instead of expired early-week runs', () => {
+  const monday = Array.from({ length: 4 }, (_, index) => ({
+    databaseId: index + 1,
+    createdAt: `2026-09-14T0${index}:00:00Z`,
+  }));
+  const sunday = Array.from({ length: 4 }, (_, index) => ({
+    databaseId: index + 11,
+    createdAt: `2026-09-20T0${index}:00:00Z`,
+  }));
+  // Newest first, as GitHub run lists are sorted.
+  const runs = [...sunday, ...monday];
+
+  const sampled = sampleRunsAcrossNewestDays(runs, 4);
+
+  assert.deepEqual(
+    sampled.map((run) => run.databaseId),
+    [11, 12, 1, 2],
+  );
+  assert.equal(sampleRunsAcrossNewestDays(runs.slice(0, 3), 6).length, 3);
+});
+
+test('sampleRunsAcrossNewestDays still returns one run when the limit is one', () => {
+  const runs = [
+    { databaseId: 3, createdAt: '2026-09-20T00:00:00Z' },
+    { databaseId: 2, createdAt: '2026-09-19T00:00:00Z' },
+    { databaseId: 1, createdAt: '2026-09-14T00:00:00Z' },
+  ];
+
+  assert.deepEqual(sampleRunsAcrossNewestDays(runs, 1), [runs[0]]);
+});
+
+test('sampleRunsAcrossNewestDays round-robins two days instead of draining one', () => {
+  const runs = [
+    { databaseId: 20, createdAt: '2026-09-20T12:00:00Z' },
+    { databaseId: 19, createdAt: '2026-09-20T06:00:00Z' },
+    { databaseId: 18, createdAt: '2026-09-19T12:00:00Z' },
+    { databaseId: 17, createdAt: '2026-09-19T06:00:00Z' },
+  ];
+
+  assert.deepEqual(
+    sampleRunsAcrossNewestDays(runs, 2).map((run) => run.databaseId),
+    [20, 18],
+  );
+});
+
+test('planWeeklyRuns keeps every run when no cap is given', () => {
+  const runs = Array.from({ length: 10 }, (_, index) => ({
+    databaseId: index + 1,
+    createdAt: `2026-09-1${index}T00:00:00Z`,
+  }));
+
+  const plan = planWeeklyRuns(runs, new Map([['2', {}]]));
+
+  assert.equal(plan.selected.length, 10);
+  assert.equal(plan.skipped, 0);
+});
+
+test('planWeeklyRuns keeps every collected run and caps the rest', () => {
+  const runs = Array.from({ length: 10 }, (_, index) => ({
+    databaseId: index + 1,
+  }));
+  const collected = new Map([
+    ['2', {}],
+    ['7', {}],
+  ]);
+
+  const plan = planWeeklyRuns(runs, collected, 3);
+
+  const selectedIds = plan.selected.map((run) => run.databaseId);
+  assert.ok(selectedIds.includes(2));
+  assert.ok(selectedIds.includes(7));
+  assert.equal(plan.selected.length, 5);
+  assert.equal(plan.skipped, 5);
+});
+
+test('collected reports from an older schema are not reused', () => {
+  const scenario = {
+    scenario: 'Perps add funds',
+    attempts: [0],
+    profiles: [],
+    jsWorkMs: 10,
+    jsDutyPct: 20,
+  };
+
+  assert.equal(
+    isReusableCollectedReport({ meta: { runId: '1' }, scenarios: [scenario] }),
+    true,
+  );
+  // Reports written before per-scenario attempts existed crashed the window.
+  assert.equal(
+    isReusableCollectedReport({
+      meta: { runId: '1' },
+      scenarios: [{ ...scenario, attempts: undefined }],
+    }),
+    false,
+  );
+  assert.equal(
+    isReusableCollectedReport({
+      meta: { runId: '1', mode: 'lookback-window' },
+      scenarios: [scenario],
+    }),
+    false,
+  );
+  assert.equal(
+    isReusableCollectedReport({ meta: { runId: '1' }, scenarios: [] }),
+    false,
+  );
+  assert.equal(isReusableCollectedReport({ scenarios: [scenario] }), false);
+});
+
+test('the newest analysis of a run wins over an older one', () => {
+  const analysisRuns = [
+    // gh run list is newest first.
+    { databaseId: 300, status: 'completed', conclusion: 'success', createdAt: '2026-09-19T12:00:00Z' },
+    { databaseId: 200, status: 'completed', conclusion: 'failure', createdAt: '2026-09-18T12:00:00Z' },
+    { databaseId: 100, status: 'completed', conclusion: 'success', createdAt: '2026-09-17T12:00:00Z' },
+    { databaseId: 50, status: 'completed', conclusion: 'success', createdAt: '2026-08-01T12:00:00Z' },
+  ];
+  const reports = {
+    300: { meta: { runId: '900', analysis: 'newest' }, scenarios: [] },
+    100: { meta: { runId: '900', analysis: 'older' }, scenarios: [] },
+    50: { meta: { runId: '800', analysis: 'out of window' }, scenarios: [] },
+  };
+
+  const collected = loadCollectedReports(
+    'MetaMask/metamask-mobile',
+    '2026-09-14T00:00:00.000Z',
+    '2026-09-21T00:00:00.000Z',
+    {
+      listAnalysisRuns: () => analysisRuns,
+      readReport: (_repo, analysisRunId) => reports[analysisRunId] || null,
+    },
+  );
+
+  assert.equal(collected.get('900').meta.analysis, 'newest');
+  // A failed analysis and one outside the window are not history.
+  assert.equal(collected.has('800'), false);
+  assert.equal(collected.size, 1);
+});
+
+test('reportsForRuns keeps the week when one run lost its artifacts', async () => {
+  const outputDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'weekly-reports-'),
+  );
+  const analyze = async ({ runId }) => {
+    if (runId === '2') {
+      throw new Error('No named Hermes profiles found under hermes-cpuprofiles/');
+    }
+    return {
+      meta: { runId, profileCount: 1, symbolicatedProfileCount: 1 },
+      scenarios: [],
+    };
+  };
+
+  const { reports, skipped } = await reportsForRuns({
+    args: { repo: 'MetaMask/metamask-mobile' },
+    runs: [{ databaseId: 1 }, { databaseId: 2 }, { databaseId: 3 }],
+    collectedByRunId: new Map(),
+    outputDirectory,
+    skillAnalyzerPath: 'analyzer.cjs',
+    label: 'this-week',
+    analyze,
+  });
+
+  assert.deepEqual(
+    reports.map((report) => report.meta.runId),
+    ['1', '3'],
+  );
+  assert.equal(skipped.length, 1);
+  assert.equal(skipped[0].runId, '2');
+});
+
+test('reportsForRuns stops rebuilding runs once the time budget is gone', async () => {
+  const outputDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'weekly-budget-'),
+  );
+  let clockMs = 0;
+  const analyze = async ({ runId }) => {
+    clockMs += 60_000;
+    return { meta: { runId }, scenarios: [] };
+  };
+
+  const { reports, skipped } = await reportsForRuns({
+    args: {},
+    // Newest first, so the budget buys the runs most likely to still exist.
+    runs: [
+      { databaseId: 4 },
+      { databaseId: 3 },
+      { databaseId: 2 },
+      { databaseId: 1 },
+    ],
+    collectedByRunId: new Map([['1', { meta: {}, scenarios: [] }]]),
+    outputDirectory,
+    skillAnalyzerPath: 'analyzer.cjs',
+    label: 'this-week',
+    deadlineMs: 120_000,
+    clock: () => clockMs,
+    analyze,
+  });
+
+  // A collected report costs nothing, so it survives an exhausted budget.
+  assert.deepEqual(
+    reports.map((report) => report.meta.runId),
+    ['4', '3', '1'],
+  );
+  assert.deepEqual(skipped, [
+    { runId: '2', reason: 'analysis time budget exhausted' },
+  ]);
+});
+
+test('leftover budget retries dropped runs only on days that already have data', () => {
+  const runs = [
+    { databaseId: 9, createdAt: '2026-09-17T06:00:00Z' },
+    { databaseId: 8, createdAt: '2026-09-16T06:00:00Z' },
+    { databaseId: 7, createdAt: '2026-09-14T06:00:00Z' },
+    { databaseId: 6, createdAt: '2026-09-17T00:00:00Z' },
+  ];
+  const skipped = [
+    { runId: '9', reason: 'analysis time budget exhausted' },
+    { runId: '8', reason: 'analysis time budget exhausted' },
+    // A day with no data at all must not come back and shift the comparison.
+    { runId: '7', reason: 'analysis time budget exhausted' },
+    { runId: '6', reason: 'No named Hermes profiles found' },
+  ];
+
+  const retry = runsToRetryWithLeftoverBudget(runs, skipped, [
+    '2026-09-16',
+    '2026-09-17',
+  ]);
+
+  assert.deepEqual(
+    retry.map((run) => run.databaseId),
+    [9, 8],
+  );
+  assert.deepEqual(runsToRetryWithLeftoverBudget(runs, [], ['2026-09-17']), []);
+});
+
+test('reportsForRuns prefers a collected report over re-analysis', async () => {
+  const outputDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'weekly-collected-'),
+  );
+  let analyzed = 0;
+
+  const { reports } = await reportsForRuns({
+    args: {},
+    runs: [{ databaseId: 7, url: 'https://example.com/7', createdAt: 'x' }],
+    collectedByRunId: new Map([['7', { meta: {}, scenarios: [] }]]),
+    outputDirectory,
+    skillAnalyzerPath: 'analyzer.cjs',
+    label: 'this-week',
+    analyze: async () => {
+      analyzed += 1;
+      return { meta: {}, scenarios: [] };
+    },
+  });
+
+  assert.equal(analyzed, 0);
+  assert.equal(reports[0].meta.runId, '7');
+  assert.equal(reports[0].meta.runUrl, 'https://example.com/7');
+});
 
 test('parseArgs supports local Hermes-only analysis', () => {
   const args = parseArgs([
@@ -572,7 +919,7 @@ test('reports mention a retry only when the scenario had several attempts', () =
   );
 });
 
-test('Slack leads with a testing disclaimer and keeps sourcemaps as a caveat', () => {
+test('Slack keeps sourcemaps as a caveat and does not lead with a disclaimer', () => {
   const report = {
     meta: { runId: '1', profileCount: 2, symbolicatedProfileCount: 0, ai: false },
     scenarios: groupProfiles([
@@ -582,8 +929,7 @@ test('Slack leads with a testing disclaimer and keeps sourcemaps as a caveat', (
     aiAnalysis: null,
   };
   const slack = buildSlack(report);
-  const [, disclaimer] = slack.split('\n');
-  assert.match(disclaimer, /testing experiment, not a production alert/);
+  assert.doesNotMatch(slack, /production alert/);
   assert.match(
     slack,
     /2\/2 profiles had no matching sourcemap, so frame names cannot be traced/,
@@ -603,6 +949,90 @@ test('Slack omits the sourcemap caveat once every profile is symbolicated', () =
     aiAnalysis: null,
   };
   assert.doesNotMatch(buildSlack(report), /no matching sourcemap/);
+});
+
+test('Slack keeps the full Notes block and links the analysis artifact', () => {
+  const notes = `${'fast-equals dominates Predict Deposit. '.repeat(40)}metroRequire is an outlier.`;
+  const report = {
+    meta: {
+      runId: '35217706350',
+      profileCount: 1,
+      symbolicatedProfileCount: 1,
+      ai: true,
+      analysisArtifactsUrl:
+        'https://github.com/MetaMask/metamask-mobile/actions/runs/88#artifacts',
+    },
+    scenarios: groupProfiles([
+      profile('browserstack-android-Cold_Start.cpuprofile', {
+        symbolicated: true,
+      }),
+    ]),
+    aiAnalysis: notes,
+  };
+  const slack = buildSlack(report);
+  const markdown = buildMarkdown(report);
+
+  assert.match(slack, /\*Notes\*/);
+  assert.equal(slack.includes(notes), true);
+  assert.match(slack, /\*Downloads\*/);
+  assert.match(slack, /app-profiling-analysis/);
+  assert.match(markdown, /## Downloads/);
+  assert.match(markdown, /per-scenario JSON/);
+});
+
+test('writeScenarioArtifacts packages every segment and retry by scenario', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scenario-artifacts-'));
+  const raw = path.join(root, 'profiles');
+  fs.mkdirSync(raw);
+  const firstPath = path.join(
+    raw,
+    'browserstack-android-Perps.cpuprofile',
+  );
+  const retryPath = path.join(
+    raw,
+    'browserstack-android-Perps.retry-1.cpuprofile',
+  );
+  fs.writeFileSync(firstPath, '{"first":true}');
+  fs.writeFileSync(retryPath, '{"retry":true}');
+  const profiles = [
+    {
+      ...profile(path.basename(firstPath)),
+      sourcePath: firstPath,
+      analysisPath: firstPath,
+    },
+    {
+      ...profile(path.basename(retryPath)),
+      sourcePath: retryPath,
+      analysisPath: retryPath,
+    },
+  ];
+  const scenarios = groupProfiles(profiles);
+
+  const artifacts = writeScenarioArtifacts(
+    root,
+    profiles,
+    scenarios,
+    '35217706350',
+  );
+
+  assert.equal(artifacts.length, 1);
+  assert.match(artifacts[0].artifactName, /^hermes-profile-01-Perps$/);
+  assert.deepEqual(
+    fs
+      .readdirSync(path.join(artifacts[0].path, 'raw'))
+      .sort(),
+    [path.basename(firstPath), path.basename(retryPath)].sort(),
+  );
+  assert.match(
+    fs.readFileSync(path.join(artifacts[0].path, 'README.md'), 'utf8'),
+    /Performance run: 35217706350/,
+  );
+  assert.deepEqual(
+    JSON.parse(
+      fs.readFileSync(path.join(root, 'scenario-artifacts.json'), 'utf8'),
+    ),
+    { include: artifacts },
+  );
 });
 
 test('a worst first attempt is never labelled retry 0', () => {
@@ -657,6 +1087,146 @@ test('Slack suppresses frames below five percent of JS work', () => {
   };
   assert.match(buildSlack(report), /No single frame reached 5% of JS work/);
   assert.doesNotMatch(buildSlack(report), /Top JS contributor: `smallFrame`/);
+});
+
+test('Slack conclusions name a repeated frame once instead of listing every scenario', () => {
+  const modFrame = {
+    name: 'mod',
+    selfMs: 2000,
+    url: '/node_modules/@metamask/key-tree/node_modules/@noble/curves/abstract/modular.js',
+    line: 39,
+  };
+  const files = [
+    'browserstack-android-Asset_View.cpuprofile',
+    'browserstack-android-Swap_flow.cpuprofile',
+    'browserstack-android-Predict_Deposit.cpuprofile',
+    'browserstack-android-Perps_add_funds.cpuprofile',
+    'browserstack-android-Money_Home_empty.cpuprofile',
+  ];
+  const profiles = files.map((fileName, index) =>
+    profile(fileName, {
+      symbolicated: true,
+      skillAudit: {
+        captureLengthMs: index === 4 ? 115000 : 40000,
+        jsWorkMs: index === 4 ? 60000 : 20000,
+        runtimeAndIdleMs: index === 4 ? 55000 : 20000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [
+          {
+            ...modFrame,
+            selfMs: index === 4 ? 18000 : 2000,
+          },
+        ],
+      },
+    }),
+  );
+  profiles.push(
+    profile('browserstack-android-Aggregated_Balance.cpuprofile', {
+      symbolicated: true,
+      skillAudit: {
+        captureLengthMs: 38000,
+        jsWorkMs: 23000,
+        runtimeAndIdleMs: 15000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [
+          {
+            name: 'isPropertyEqual',
+            selfMs: 2100,
+            url: '/node_modules/fast-equals/dist/cjs/index.cjs',
+            line: 281,
+          },
+        ],
+      },
+    }),
+  );
+  profiles.push(
+    profile('android-onboarding-Cold_Start_To_Onboarding.cpuprofile', {
+      symbolicated: true,
+      skillAudit: {
+        captureLengthMs: 17000,
+        jsWorkMs: 1200,
+        runtimeAndIdleMs: 16000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ ...modFrame, selfMs: 50 }],
+      },
+    }),
+  );
+  const report = {
+    meta: {
+      runId: '1',
+      profileCount: profiles.length,
+      symbolicatedProfileCount: profiles.length,
+      ai: false,
+    },
+    scenarios: groupProfiles(profiles),
+    aiAnalysis: null,
+  };
+  const slack = buildSlack(report);
+  const markdown = buildMarkdown(report);
+  const conclusions = buildConclusions(report).join('\n');
+
+  assert.match(slack, /\*Conclusions\*/);
+  assert.match(conclusions, /`mod`.*is the top JS contributor in 5\/7 scenarios/);
+  assert.match(conclusions, /`isPropertyEqual`/);
+  assert.match(conclusions, /Low JS duty/);
+  assert.match(markdown, /## Conclusions/);
+  assert.doesNotMatch(slack, /\*Highest-signal scenarios/);
+  const topContributorHits = slack.split('Top JS contributor: `mod`').length - 1;
+  assert.ok(
+    topContributorHits <= 5,
+    `expected at most 5 repeated mod outcome lines, got ${topContributorHits}`,
+  );
+});
+
+test('conclusions still name the leading hotspot when it is not dominant', () => {
+  const profiles = [
+    profile('browserstack-android-Wallet.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 40000,
+        jsWorkMs: 20000,
+        runtimeAndIdleMs: 20000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'mod', selfMs: 4000 }],
+      },
+    }),
+    profile('browserstack-android-Send.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 35000,
+        jsWorkMs: 18000,
+        runtimeAndIdleMs: 17000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'mod', selfMs: 3500 }],
+      },
+    }),
+    profile('browserstack-android-Perps.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 50000,
+        jsWorkMs: 30000,
+        runtimeAndIdleMs: 20000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'isPropertyEqual', selfMs: 2100 }],
+      },
+    }),
+    profile('browserstack-android-Swap.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 22000,
+        jsWorkMs: 12000,
+        runtimeAndIdleMs: 10000,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [{ name: 'renderRow', selfMs: 900 }],
+      },
+    }),
+  ];
+  const conclusions = buildConclusions({
+    meta: { runId: '2', profileCount: 4, symbolicatedProfileCount: 0, ai: false },
+    scenarios: groupProfiles(profiles),
+    aiAnalysis: null,
+  }).join('\n');
+
+  assert.match(conclusions, /`mod` leads 2 scenarios/);
+  assert.doesNotMatch(conclusions, /is the top JS contributor/);
+  assert.match(conclusions, /`isPropertyEqual`/);
+  assert.match(conclusions, /`renderRow`/);
 });
 
 function windowScenario(
@@ -829,6 +1399,35 @@ test('aggregateWindow reports per-run medians and how often a frame stayed hot',
   assert.equal(warmStart.runsObserved, 1);
 });
 
+test('aggregateWindow places the peak in time, not in processing order', () => {
+  const [perps] = threeRunWindow().scenarios;
+
+  // Runs 1, 2, 3 are chronological; the peak is run 3, the newest.
+  assert.equal(perps.peakRunId, '3');
+  assert.equal(perps.runsAfterPeak, 0);
+  assert.equal(perps.latestRunId, '3');
+  assert.equal(perps.latestJsWorkMs, 400);
+  assert.equal(perps.tailRuns, 2);
+  assert.equal(perps.tailMedianJsWorkMs, 260);
+  assert.equal(perps.earlierMedianJsWorkMs, 100);
+});
+
+test('aggregateWindow counts the runs a scenario ran after its peak', () => {
+  const window = aggregateWindow(
+    [
+      windowRunReport('1', [windowScenario('Perps', { jsWorkMs: 400 })]),
+      windowRunReport('2', [windowScenario('Perps', { jsWorkMs: 100 })]),
+      windowRunReport('3', [windowScenario('Perps', { jsWorkMs: 110 })]),
+    ],
+    { lookbackHours: 168 },
+  );
+  const [perps] = window.scenarios;
+
+  assert.equal(perps.peakRunId, '1');
+  assert.equal(perps.runsAfterPeak, 2);
+  assert.equal(perps.tailMedianJsWorkMs, 105);
+});
+
 test('window digest drops frames that were hot in only one run', () => {
   const [perps] = threeRunWindow().scenarios;
   assert.equal(
@@ -902,11 +1501,13 @@ test('a flat profile is named instead of hiding its repeated frames', () => {
 
 test('window Slack digest separates the median from the spikiest run', () => {
   const slack = buildWindowSlack(threeRunWindow());
-  const [, disclaimer] = slack.split('\n');
-  assert.match(disclaimer, /testing experiment, not a production alert/);
+  assert.doesNotMatch(slack, /production alert/);
   assert.match(slack, /last 24h/);
-  assert.match(slack, /median JS 120\.0 ms \(range 100\.0 ms – 400\.0 ms\)/);
-  assert.match(slack, /Spikiest run <[^|]+\|3> at 400\.0 ms \(3\.33× the median\)/);
+  assert.match(slack, /median JS work 120\.0 ms \(range 100\.0 ms – 400\.0 ms\)/);
+  assert.match(
+    slack,
+    /Spikiest run <[^|]+\|3> at JS work 400\.0 ms \(3\.33× the median\)/,
+  );
   assert.match(
     slack,
     /`formatDate` 48\.0 ms median self, 40\.0% of JS work, hot in 3\/3 runs/,
