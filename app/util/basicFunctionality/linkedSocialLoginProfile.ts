@@ -1,4 +1,7 @@
-import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
+import type {
+  AuthenticationControllerState,
+  ProfileSignInInfo,
+} from '@metamask/profile-sync-controller/auth';
 
 import type { RootExtendedMessenger } from '../../core/Engine/types';
 
@@ -6,6 +9,27 @@ const SOCIAL_LOGIN_IDENTIFIER_TYPES = new Set(['GOOGLE', 'APPLE', 'TELEGRAM']);
 
 interface PairedIdentifier {
   type: string;
+}
+
+/**
+ * Returns whether the profile aliases reported at sign-in include a social
+ * identifier.
+ *
+ * Aliases are the only social signal the released controller keeps: its
+ * service layer rebuilds the stored profile from a fixed set of fields, so
+ * paired identifiers never reach `srpSessionData`.
+ *
+ * @param profileAliases - Aliases from the profileSignIn event.
+ * @returns Whether an alias is paired with a social provider.
+ */
+export function profileAliasesIncludeSocialLogin(
+  profileAliases: ProfileSignInInfo['profileAliases'],
+): boolean {
+  return profileAliases.some((alias) =>
+    alias.identifierIds?.some((identifier) =>
+      SOCIAL_LOGIN_IDENTIFIER_TYPES.has(identifier.type),
+    ),
+  );
 }
 
 /**
@@ -36,7 +60,8 @@ export function authenticationStateIncludesLinkedSocialLogin(
 /**
  * Mirrors AuthenticationController social-profile signals into a client-owned
  * persisted marker. Checks the current state first because subscriptions do
- * not replay persisted state.
+ * not replay persisted state, then watches both the stored paired identifiers
+ * and the aliases reported at sign-in.
  *
  * @param messenger - Root Engine messenger.
  * @param onLinkedSocialLoginProfile - Called when linked social metadata is
@@ -59,4 +84,13 @@ export function registerLinkedSocialLoginProfileSync(
       onLinkedSocialLoginProfile();
     }
   });
+
+  messenger.subscribe(
+    'AuthenticationController:profileSignIn',
+    ({ profileAliases }) => {
+      if (profileAliasesIncludeSocialLogin(profileAliases)) {
+        onLinkedSocialLoginProfile();
+      }
+    },
+  );
 }
