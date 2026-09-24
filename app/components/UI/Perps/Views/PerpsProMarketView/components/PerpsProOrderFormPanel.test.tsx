@@ -160,6 +160,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   feeDiscountPercentage: 10,
   marginMode: 'isolated' as 'isolated' | 'cross',
   isMarginModeLocked: false,
+  refreshMarginModeLock: jest.fn(),
   onMarginModeSelect: jest.fn(),
 };
 
@@ -872,6 +873,16 @@ describe('PerpsProOrderFormPanel', () => {
       pickCrossFromMarginSheet();
 
       expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
+    });
+
+    it('re-reads the venue margin mode lock when the margin sheet opens', () => {
+      renderPanel();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+      );
+
+      expect(mockHookResult.refreshMarginModeLock).toHaveBeenCalledTimes(1);
     });
 
     it('labels the margin control with the active cross margin mode', () => {

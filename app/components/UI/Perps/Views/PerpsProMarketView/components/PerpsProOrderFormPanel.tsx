@@ -241,6 +241,7 @@ const PerpsProOrderFormPanel = ({
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
+    refreshMarginModeLock,
     onMarginModeSelect,
   } = usePerpsProOrderForm({
     market,
@@ -264,7 +265,10 @@ const PerpsProOrderFormPanel = ({
   const { styles } = useStyles(createStyles, {});
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
-  const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
+  const openMarginMode = useCallback(() => {
+    refreshMarginModeLock();
+    setIsMarginModeVisible(true);
+  }, [refreshMarginModeLock]);
   const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
   const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
   const openTwapDuration = useCallback(

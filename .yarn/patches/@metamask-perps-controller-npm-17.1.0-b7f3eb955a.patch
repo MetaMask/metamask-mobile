@@ -1,0 +1,391 @@
+diff --git a/dist/PerpsController-method-action-types.d.ts b/dist/PerpsController-method-action-types.d.ts
+index fbbf8f5b53ca0e3951f09f9321eeca10c186ae9a..316430c55c71cb8e8d7a3803ce42e2152797166d 100644
+--- a/dist/PerpsController-method-action-types.d.ts
++++ b/dist/PerpsController-method-action-types.d.ts
+@@ -89,6 +89,18 @@ export type PerpsControllerGetOrderCapabilitiesAction = {
+     type: `PerpsController:getOrderCapabilities`;
+     handler: PerpsController['getOrderCapabilities'];
+ };
++/**
++ * Get the margin mode the market is currently locked to by an open
++ * position or resting order, through the active provider route used by
++ * order placement. Never throws; failures report an unavailable status.
++ *
++ * @param params - Market and optional provider route.
++ * @returns The provider-reported margin-mode lock.
++ */
++export type PerpsControllerGetMarginModeLockAction = {
++    type: `PerpsController:getMarginModeLock`;
++    handler: PerpsController['getMarginModeLock'];
++};
+ /**
+  * Build a Scale price ladder using the active provider's venue rules.
+  *
+@@ -1231,5 +1243,5 @@ export type PerpsControllerIsCurrentlyReinitializingAction = {
+ /**
+  * Union of all PerpsController action types.
+  */
+-export type PerpsControllerMethodActions = PerpsControllerGetCachedMarketDataForActiveProviderAction | PerpsControllerGetCachedUserDataForActiveProviderAction | PerpsControllerGetUserDataSnapshotAction | PerpsControllerInitAction | PerpsControllerGetActiveProviderAction | PerpsControllerGetActiveProviderOrNullAction | PerpsControllerGetOrderCapabilitiesAction | PerpsControllerGetScalePriceLadderAction | PerpsControllerPlaceOrderAction | PerpsControllerEditOrderAction | PerpsControllerCancelOrderAction | PerpsControllerGetTwapOrdersAction | PerpsControllerGetChaseOrdersAction | PerpsControllerSuspendChaseOrdersAction | PerpsControllerCancelOrdersAction | PerpsControllerClosePositionAction | PerpsControllerClosePositionsAction | PerpsControllerUpdatePositionTPSLAction | PerpsControllerUpdateMarginAction | PerpsControllerFlipPositionAction | PerpsControllerDepositWithConfirmationAction | PerpsControllerDepositWithOrderAction | PerpsControllerClearDepositResultAction | PerpsControllerClearWithdrawResultAction | PerpsControllerUpdateWithdrawalStatusAction | PerpsControllerCompleteWithdrawalFromHistoryAction | PerpsControllerUpdateWithdrawalProgressAction | PerpsControllerGetWithdrawalProgressAction | PerpsControllerWithdrawAction | PerpsControllerGetPositionsAction | PerpsControllerGetOrderFillsAction | PerpsControllerGetPendingManualRecoveriesAction | PerpsControllerGetRecoveredDispatchesAction | PerpsControllerAcknowledgeRecoveredDispatchAction | PerpsControllerGetOrdersAction | PerpsControllerGetOpenOrdersAction | PerpsControllerGetFundingAction | PerpsControllerGetAccountStateAction | PerpsControllerGetHistoricalPortfolioAction | PerpsControllerGetMarketsAction | PerpsControllerGetMarketDataWithPricesAction | PerpsControllerStartMarketDataPreloadAction | PerpsControllerStopMarketDataPreloadAction | PerpsControllerGetAvailableDexsAction | PerpsControllerFetchHistoricalCandlesAction | PerpsControllerCalculateLiquidationPriceAction | PerpsControllerPreviewPositionModifyAction | PerpsControllerCalculateMaintenanceMarginAction | PerpsControllerGetMaxLeverageAction | PerpsControllerValidateOrderAction | PerpsControllerValidateClosePositionAction | PerpsControllerValidateWithdrawalAction | PerpsControllerGetWithdrawalRoutesAction | PerpsControllerSetAttributionContextAction | PerpsControllerGetAttributionContextAction | PerpsControllerClearAttributionContextAction | PerpsControllerToggleTestnetAction | PerpsControllerSwitchProviderAction | PerpsControllerGetCurrentNetworkAction | PerpsControllerGetMarketCategoriesAction | PerpsControllerGetWebSocketConnectionStateAction | PerpsControllerSubscribeToConnectionStateAction | PerpsControllerReconnectAction | PerpsControllerSubscribeToPricesAction | PerpsControllerSubscribeToPositionsAction | PerpsControllerSubscribeToOrderFillsAction | PerpsControllerSubscribeToTwapOrdersAction | PerpsControllerSubscribeToOrdersAction | PerpsControllerSubscribeToAccountAction | PerpsControllerSubscribeToOrderBookAction | PerpsControllerSubscribeToCandlesAction | PerpsControllerSubscribeToOICapsAction | PerpsControllerSetLiveDataConfigAction | PerpsControllerCalculateFeesAction | PerpsControllerApproveSubscriptionBuilderFeeAction | PerpsControllerInvalidateSubscriptionBenefitsAction | PerpsControllerDisconnectAction | PerpsControllerStartEligibilityMonitoringAction | PerpsControllerStopEligibilityMonitoringAction | PerpsControllerRefreshEligibilityAction | PerpsControllerGetBlockExplorerUrlAction | PerpsControllerIsFirstTimeUserOnCurrentNetworkAction | PerpsControllerMarkTutorialCompletedAction | PerpsControllerMarkFirstOrderCompletedAction | PerpsControllerResetFirstTimeUserStateAction | PerpsControllerClearPendingTransactionRequestsAction | PerpsControllerGetTradeConfigurationAction | PerpsControllerSaveTradeConfigurationAction | PerpsControllerSavePendingTradeConfigurationAction | PerpsControllerGetPendingTradeConfigurationAction | PerpsControllerClearPendingTradeConfigurationAction | PerpsControllerGetMarketFilterPreferencesAction | PerpsControllerSaveMarketFilterPreferencesAction | PerpsControllerGetMaxSlippageAction | PerpsControllerSetMaxSlippageAction | PerpsControllerGetOrderBookPreferencesAction | PerpsControllerSetOrderBookPreferencesAction | PerpsControllerGetSelectedOrderTypeAction | PerpsControllerSetSelectedOrderTypeAction | PerpsControllerGetVisibleCandleCountAction | PerpsControllerSetVisibleCandleCountAction | PerpsControllerGetProLayoutPreferencesAction | PerpsControllerSetProLayoutPreferencesAction | PerpsControllerSetPerpsModeAction | PerpsControllerSetSelectedPaymentTokenAction | PerpsControllerResetSelectedPaymentTokenAction | PerpsControllerGetOrderBookGroupingAction | PerpsControllerSaveOrderBookGroupingAction | PerpsControllerToggleWatchlistMarketAction | PerpsControllerIsWatchlistMarketAction | PerpsControllerGetWatchlistMarketsAction | PerpsControllerRecordMarketViewedAction | PerpsControllerGetRecentlyViewedMarketsAction | PerpsControllerIsCurrentlyReinitializingAction;
++export type PerpsControllerMethodActions = PerpsControllerGetCachedMarketDataForActiveProviderAction | PerpsControllerGetCachedUserDataForActiveProviderAction | PerpsControllerGetUserDataSnapshotAction | PerpsControllerInitAction | PerpsControllerGetActiveProviderAction | PerpsControllerGetActiveProviderOrNullAction | PerpsControllerGetOrderCapabilitiesAction | PerpsControllerGetMarginModeLockAction | PerpsControllerGetScalePriceLadderAction | PerpsControllerPlaceOrderAction | PerpsControllerEditOrderAction | PerpsControllerCancelOrderAction | PerpsControllerGetTwapOrdersAction | PerpsControllerGetChaseOrdersAction | PerpsControllerSuspendChaseOrdersAction | PerpsControllerCancelOrdersAction | PerpsControllerClosePositionAction | PerpsControllerClosePositionsAction | PerpsControllerUpdatePositionTPSLAction | PerpsControllerUpdateMarginAction | PerpsControllerFlipPositionAction | PerpsControllerDepositWithConfirmationAction | PerpsControllerDepositWithOrderAction | PerpsControllerClearDepositResultAction | PerpsControllerClearWithdrawResultAction | PerpsControllerUpdateWithdrawalStatusAction | PerpsControllerCompleteWithdrawalFromHistoryAction | PerpsControllerUpdateWithdrawalProgressAction | PerpsControllerGetWithdrawalProgressAction | PerpsControllerWithdrawAction | PerpsControllerGetPositionsAction | PerpsControllerGetOrderFillsAction | PerpsControllerGetPendingManualRecoveriesAction | PerpsControllerGetRecoveredDispatchesAction | PerpsControllerAcknowledgeRecoveredDispatchAction | PerpsControllerGetOrdersAction | PerpsControllerGetOpenOrdersAction | PerpsControllerGetFundingAction | PerpsControllerGetAccountStateAction | PerpsControllerGetHistoricalPortfolioAction | PerpsControllerGetMarketsAction | PerpsControllerGetMarketDataWithPricesAction | PerpsControllerStartMarketDataPreloadAction | PerpsControllerStopMarketDataPreloadAction | PerpsControllerGetAvailableDexsAction | PerpsControllerFetchHistoricalCandlesAction | PerpsControllerCalculateLiquidationPriceAction | PerpsControllerPreviewPositionModifyAction | PerpsControllerCalculateMaintenanceMarginAction | PerpsControllerGetMaxLeverageAction | PerpsControllerValidateOrderAction | PerpsControllerValidateClosePositionAction | PerpsControllerValidateWithdrawalAction | PerpsControllerGetWithdrawalRoutesAction | PerpsControllerSetAttributionContextAction | PerpsControllerGetAttributionContextAction | PerpsControllerClearAttributionContextAction | PerpsControllerToggleTestnetAction | PerpsControllerSwitchProviderAction | PerpsControllerGetCurrentNetworkAction | PerpsControllerGetMarketCategoriesAction | PerpsControllerGetWebSocketConnectionStateAction | PerpsControllerSubscribeToConnectionStateAction | PerpsControllerReconnectAction | PerpsControllerSubscribeToPricesAction | PerpsControllerSubscribeToPositionsAction | PerpsControllerSubscribeToOrderFillsAction | PerpsControllerSubscribeToTwapOrdersAction | PerpsControllerSubscribeToOrdersAction | PerpsControllerSubscribeToAccountAction | PerpsControllerSubscribeToOrderBookAction | PerpsControllerSubscribeToCandlesAction | PerpsControllerSubscribeToOICapsAction | PerpsControllerSetLiveDataConfigAction | PerpsControllerCalculateFeesAction | PerpsControllerApproveSubscriptionBuilderFeeAction | PerpsControllerInvalidateSubscriptionBenefitsAction | PerpsControllerDisconnectAction | PerpsControllerStartEligibilityMonitoringAction | PerpsControllerStopEligibilityMonitoringAction | PerpsControllerRefreshEligibilityAction | PerpsControllerGetBlockExplorerUrlAction | PerpsControllerIsFirstTimeUserOnCurrentNetworkAction | PerpsControllerMarkTutorialCompletedAction | PerpsControllerMarkFirstOrderCompletedAction | PerpsControllerResetFirstTimeUserStateAction | PerpsControllerClearPendingTransactionRequestsAction | PerpsControllerGetTradeConfigurationAction | PerpsControllerSaveTradeConfigurationAction | PerpsControllerSavePendingTradeConfigurationAction | PerpsControllerGetPendingTradeConfigurationAction | PerpsControllerClearPendingTradeConfigurationAction | PerpsControllerGetMarketFilterPreferencesAction | PerpsControllerSaveMarketFilterPreferencesAction | PerpsControllerGetMaxSlippageAction | PerpsControllerSetMaxSlippageAction | PerpsControllerGetOrderBookPreferencesAction | PerpsControllerSetOrderBookPreferencesAction | PerpsControllerGetSelectedOrderTypeAction | PerpsControllerSetSelectedOrderTypeAction | PerpsControllerGetVisibleCandleCountAction | PerpsControllerSetVisibleCandleCountAction | PerpsControllerGetProLayoutPreferencesAction | PerpsControllerSetProLayoutPreferencesAction | PerpsControllerSetPerpsModeAction | PerpsControllerSetSelectedPaymentTokenAction | PerpsControllerResetSelectedPaymentTokenAction | PerpsControllerGetOrderBookGroupingAction | PerpsControllerSaveOrderBookGroupingAction | PerpsControllerToggleWatchlistMarketAction | PerpsControllerIsWatchlistMarketAction | PerpsControllerGetWatchlistMarketsAction | PerpsControllerRecordMarketViewedAction | PerpsControllerGetRecentlyViewedMarketsAction | PerpsControllerIsCurrentlyReinitializingAction;
+ //# sourceMappingURL=PerpsController-method-action-types.d.ts.map
+\ No newline at end of file
+diff --git a/dist/PerpsController.d.ts b/dist/PerpsController.d.ts
+index bb44a121cc5521a68e5b75a2bea0f8b225e0c5f4..1646f1d37522e4a7c7fc691998807cfecb4fb06f 100644
+--- a/dist/PerpsController.d.ts
++++ b/dist/PerpsController.d.ts
+@@ -6,7 +6,7 @@ import { CandlePeriod } from './constants/chartConfig.js';
+ import type { SortOptionId, OrderBookPreferences, ProLayoutPreferences, PerpsMode } from './constants/perpsConfig.js';
+ import type { PerpsControllerMethodActions } from './PerpsController-method-action-types.js';
+ import { WebSocketConnectionState } from './types/index.js';
+-import type { AccountState, AssetRoute, CancelOrderParams, CancelOrderResult, CancelOrdersParams, CancelOrdersResult, ChaseOrder, ChaseOrderMaxDistanceReached, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositWithConfirmationParams, EditOrderParams, FeeCalculationParams, FeeCalculationResult, FlipPositionParams, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetMarketDataWithPricesParams, GetMarketsParams, GetOrderCapabilitiesParams, GetScalePriceLadderParams, GetOrderFillsParams, GetOrdersParams, GetPositionsParams, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, MarginResult, MarketInfo, Order, OrderDirection, OrderFill, OrderParams, OrderResult, PerpsControllerConfig, PerpsMarketData, PerpsOrderCapabilities, PerpsScalePriceLadder, PerpsPendingManualRecovery, PerpsRecoveredDispatch, Position, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribePositionsParams, SubscribePricesParams, SwitchProviderResult, ToggleTestnetResult, TwapOrder, UpdateMarginParams, UpdatePositionTPSLParams, WithdrawParams, WithdrawResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, OrderType, PerpsPlatformDependencies, PerpsActiveProviderMode, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsProviderType, PerpsUserDataSnapshot, PerpsSelectedPaymentToken, PerpsRemoteFeatureFlagState, MarketTypeFilter } from './types/index.js';
++import type { AccountState, AssetRoute, CancelOrderParams, CancelOrderResult, CancelOrdersParams, CancelOrdersResult, ChaseOrder, ChaseOrderMaxDistanceReached, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositWithConfirmationParams, EditOrderParams, FeeCalculationParams, FeeCalculationResult, FlipPositionParams, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetMarketDataWithPricesParams, GetMarketsParams, GetOrderCapabilitiesParams, GetMarginModeLockParams, PerpsMarginModeLock, GetScalePriceLadderParams, GetOrderFillsParams, GetOrdersParams, GetPositionsParams, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, MarginResult, MarketInfo, Order, OrderDirection, OrderFill, OrderParams, OrderResult, PerpsControllerConfig, PerpsMarketData, PerpsOrderCapabilities, PerpsScalePriceLadder, PerpsPendingManualRecovery, PerpsRecoveredDispatch, Position, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribePositionsParams, SubscribePricesParams, SwitchProviderResult, ToggleTestnetResult, TwapOrder, UpdateMarginParams, UpdatePositionTPSLParams, WithdrawParams, WithdrawResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, OrderType, PerpsPlatformDependencies, PerpsActiveProviderMode, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsProviderType, PerpsUserDataSnapshot, PerpsSelectedPaymentToken, PerpsRemoteFeatureFlagState, MarketTypeFilter } from './types/index.js';
+ import type { SortDirection } from './types/index.js';
+ import type { LighterAuthConfig, LighterSignerBridge } from './types/lighter-types.js';
+ import type { PerpsControllerAllowedActions, PerpsControllerAllowedEvents } from './types/messenger.js';
+@@ -386,6 +386,11 @@ export declare class PerpsController extends BaseController<'PerpsController', P
+      * @returns Provider-owned order capabilities.
+      */
+     getOrderCapabilities(params: GetOrderCapabilitiesParams): Promise<PerpsOrderCapabilities>;
++    /**
++     * Get the margin mode the market is currently locked to by an open
++     * position or resting order. Never throws; failures report an unavailable status.
++     */
++    getMarginModeLock(params: GetMarginModeLockParams): Promise<PerpsMarginModeLock>;
+     /**
+      * Build a Scale price ladder using the active provider's venue rules.
+      *
+diff --git a/dist/PerpsController.js b/dist/PerpsController.js
+index 09be08d4a00eb4cebc40a39713ac58059759d168..71c583f565676280b3c9b19e67966e107bc294c3 100644
+--- a/dist/PerpsController.js
++++ b/dist/PerpsController.js
+@@ -426,6 +426,7 @@ const MESSENGER_EXPOSED_METHODS = [
+     'getOrderBookGrouping',
+     'getOrderBookPreferences',
+     'getOrderCapabilities',
++    'getMarginModeLock',
+     'getScalePriceLadder',
+     'getOrderFills',
+     'getOrders',
+@@ -1868,6 +1869,48 @@ export class PerpsController extends BaseController {
+             return this.#getUnavailableOrderCapabilities('provider_unavailable', resolvedProviderId);
+         }
+     }
++    /**
++     * Get the margin mode the market is currently locked to by an open
++     * position or resting order, through the active provider route used by
++     * order placement. Never throws; failures report an unavailable status.
++     *
++     * @param params - Market and optional provider route.
++     * @returns The provider-reported margin-mode lock.
++     */
++    async getMarginModeLock(params) {
++        let activeProvider;
++        try {
++            activeProvider = await this.#getActiveProviderWhenReady();
++        }
++        catch (error) {
++            this.#debugLog('PerpsController: Margin mode lock unavailable', {
++                error: ensureError(error, 'PerpsController.getMarginModeLock').message,
++            });
++            return this.#getUnavailableOrderCapabilities('provider_unavailable', params.providerId);
++        }
++        const resolvedProviderId = params.providerId ?? this.#getDirectProviderId(activeProvider);
++        if (this.#hasConflictingProviderRoute(params.providerId, activeProvider)) {
++            return this.#getUnavailableOrderCapabilities('provider_not_routable', resolvedProviderId);
++        }
++        if (!activeProvider.getMarginModeLock) {
++            return this.#getUnavailableOrderCapabilities('not_implemented', resolvedProviderId);
++        }
++        try {
++            const lock = await activeProvider.getMarginModeLock(params);
++            if (lock.status === 'unavailable' &&
++                lock.providerId === undefined &&
++                resolvedProviderId !== undefined) {
++                return { ...lock, providerId: resolvedProviderId };
++            }
++            return lock;
++        }
++        catch (error) {
++            this.#debugLog('PerpsController: Margin mode lock unavailable', {
++                error: ensureError(error, 'PerpsController.getMarginModeLock').message,
++            });
++            return this.#getUnavailableOrderCapabilities('provider_unavailable', resolvedProviderId);
++        }
++    }
+     /**
+      * Build a Scale price ladder using the active provider's venue rules.
+      *
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index dd779c07dfcd14d621070bb1776ef2fba370912c..84cfd3ce49347a7603b1ad568391734378ba918c 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -28,11 +28,11 @@
+  */
+ export { PerpsController, getDefaultPerpsControllerState, InitializationState, PerpsMode, DEFAULT_ORDER_BOOK_PREFERENCES, DEFAULT_PERPS_MODE, DEFAULT_PRO_LAYOUT_PREFERENCES, DEFAULT_SELECTED_ORDER_TYPE, } from './PerpsController.js';
+ export type { OrderBookListCurrency, OrderBookListMetric, OrderBookPreferences, PerpsControllerState, PerpsControllerOptions, PerpsControllerMessenger, PerpsControllerGetStateAction, PerpsControllerActions, PerpsControllerChaseOrderMaxDistanceReachedEvent, PerpsControllerEvents, ProLayoutPreferences, ProOrdersSideFilter, ProOrdersSortDirection, ProOrdersSortField, ProPositionsSideFilter, ProPositionsSortDirection, ProPositionsSortField, } from './PerpsController.js';
+-export type { PerpsControllerApproveSubscriptionBuilderFeeAction, PerpsControllerCalculateFeesAction, PerpsControllerCalculateLiquidationPriceAction, PerpsControllerCalculateMaintenanceMarginAction, PerpsControllerPreviewPositionModifyAction, PerpsControllerCancelOrderAction, PerpsControllerCancelOrdersAction, PerpsControllerClearDepositResultAction, PerpsControllerClearPendingTradeConfigurationAction, PerpsControllerClearPendingTransactionRequestsAction, PerpsControllerClearWithdrawResultAction, PerpsControllerClosePositionAction, PerpsControllerClosePositionsAction, PerpsControllerClearAttributionContextAction, PerpsControllerCompleteWithdrawalFromHistoryAction, PerpsControllerDepositWithConfirmationAction, PerpsControllerDepositWithOrderAction, PerpsControllerDisconnectAction, PerpsControllerEditOrderAction, PerpsControllerFetchHistoricalCandlesAction, PerpsControllerFlipPositionAction, PerpsControllerGetAccountStateAction, PerpsControllerGetActiveProviderAction, PerpsControllerGetActiveProviderOrNullAction, PerpsControllerGetAttributionContextAction, PerpsControllerGetAvailableDexsAction, PerpsControllerGetBlockExplorerUrlAction, PerpsControllerGetCachedMarketDataForActiveProviderAction, PerpsControllerGetCachedUserDataForActiveProviderAction, PerpsControllerGetUserDataSnapshotAction, PerpsControllerGetCurrentNetworkAction, PerpsControllerGetFundingAction, PerpsControllerGetChaseOrdersAction, PerpsControllerGetTwapOrdersAction, PerpsControllerGetHistoricalPortfolioAction, PerpsControllerGetMarketDataWithPricesAction, PerpsControllerGetMarketFilterPreferencesAction, PerpsControllerGetMarketCategoriesAction, PerpsControllerGetMarketsAction, PerpsControllerGetMaxLeverageAction, PerpsControllerGetOpenOrdersAction, PerpsControllerGetOrderBookGroupingAction, PerpsControllerGetOrderBookPreferencesAction, PerpsControllerGetOrderCapabilitiesAction, PerpsControllerGetScalePriceLadderAction, PerpsControllerGetOrderFillsAction, PerpsControllerGetOrdersAction, PerpsControllerGetPendingManualRecoveriesAction, PerpsControllerGetPendingTradeConfigurationAction, PerpsControllerGetPositionsAction, PerpsControllerGetSelectedOrderTypeAction, PerpsControllerGetRecoveredDispatchesAction, PerpsControllerAcknowledgeRecoveredDispatchAction, PerpsControllerGetTradeConfigurationAction, PerpsControllerGetRecentlyViewedMarketsAction, PerpsControllerGetWatchlistMarketsAction, PerpsControllerGetVisibleCandleCountAction, PerpsControllerGetWebSocketConnectionStateAction, PerpsControllerGetWithdrawalProgressAction, PerpsControllerGetWithdrawalRoutesAction, PerpsControllerInitAction, PerpsControllerInvalidateSubscriptionBenefitsAction, PerpsControllerIsCurrentlyReinitializingAction, PerpsControllerIsFirstTimeUserOnCurrentNetworkAction, PerpsControllerIsWatchlistMarketAction, PerpsControllerMarkFirstOrderCompletedAction, PerpsControllerMarkTutorialCompletedAction, PerpsControllerPlaceOrderAction, PerpsControllerReconnectAction, PerpsControllerRecordMarketViewedAction, PerpsControllerRefreshEligibilityAction, PerpsControllerResetFirstTimeUserStateAction, PerpsControllerResetSelectedPaymentTokenAction, PerpsControllerSaveMarketFilterPreferencesAction, PerpsControllerGetProLayoutPreferencesAction, PerpsControllerSetProLayoutPreferencesAction, PerpsControllerSetPerpsModeAction, PerpsControllerSetOrderBookPreferencesAction, PerpsControllerSetSelectedOrderTypeAction, PerpsControllerSaveOrderBookGroupingAction, PerpsControllerSavePendingTradeConfigurationAction, PerpsControllerSaveTradeConfigurationAction, PerpsControllerSetAttributionContextAction, PerpsControllerSetLiveDataConfigAction, PerpsControllerSetSelectedPaymentTokenAction, PerpsControllerSetVisibleCandleCountAction, PerpsControllerStartEligibilityMonitoringAction, PerpsControllerStartMarketDataPreloadAction, PerpsControllerSuspendChaseOrdersAction, PerpsControllerStopEligibilityMonitoringAction, PerpsControllerStopMarketDataPreloadAction, PerpsControllerSubscribeToAccountAction, PerpsControllerSubscribeToCandlesAction, PerpsControllerSubscribeToConnectionStateAction, PerpsControllerSubscribeToOICapsAction, PerpsControllerSubscribeToOrderBookAction, PerpsControllerSubscribeToOrderFillsAction, PerpsControllerSubscribeToOrdersAction, PerpsControllerSubscribeToTwapOrdersAction, PerpsControllerSubscribeToPositionsAction, PerpsControllerSubscribeToPricesAction, PerpsControllerSwitchProviderAction, PerpsControllerToggleTestnetAction, PerpsControllerToggleWatchlistMarketAction, PerpsControllerUpdateMarginAction, PerpsControllerUpdatePositionTPSLAction, PerpsControllerUpdateWithdrawalProgressAction, PerpsControllerUpdateWithdrawalStatusAction, PerpsControllerValidateClosePositionAction, PerpsControllerValidateOrderAction, PerpsControllerValidateWithdrawalAction, PerpsControllerWithdrawAction, } from './PerpsController-method-action-types.js';
++export type { PerpsControllerApproveSubscriptionBuilderFeeAction, PerpsControllerCalculateFeesAction, PerpsControllerCalculateLiquidationPriceAction, PerpsControllerCalculateMaintenanceMarginAction, PerpsControllerPreviewPositionModifyAction, PerpsControllerCancelOrderAction, PerpsControllerCancelOrdersAction, PerpsControllerClearDepositResultAction, PerpsControllerClearPendingTradeConfigurationAction, PerpsControllerClearPendingTransactionRequestsAction, PerpsControllerClearWithdrawResultAction, PerpsControllerClosePositionAction, PerpsControllerClosePositionsAction, PerpsControllerClearAttributionContextAction, PerpsControllerCompleteWithdrawalFromHistoryAction, PerpsControllerDepositWithConfirmationAction, PerpsControllerDepositWithOrderAction, PerpsControllerDisconnectAction, PerpsControllerEditOrderAction, PerpsControllerFetchHistoricalCandlesAction, PerpsControllerFlipPositionAction, PerpsControllerGetAccountStateAction, PerpsControllerGetActiveProviderAction, PerpsControllerGetActiveProviderOrNullAction, PerpsControllerGetAttributionContextAction, PerpsControllerGetAvailableDexsAction, PerpsControllerGetBlockExplorerUrlAction, PerpsControllerGetCachedMarketDataForActiveProviderAction, PerpsControllerGetCachedUserDataForActiveProviderAction, PerpsControllerGetUserDataSnapshotAction, PerpsControllerGetCurrentNetworkAction, PerpsControllerGetFundingAction, PerpsControllerGetChaseOrdersAction, PerpsControllerGetTwapOrdersAction, PerpsControllerGetHistoricalPortfolioAction, PerpsControllerGetMarketDataWithPricesAction, PerpsControllerGetMarketFilterPreferencesAction, PerpsControllerGetMarketCategoriesAction, PerpsControllerGetMarketsAction, PerpsControllerGetMaxLeverageAction, PerpsControllerGetOpenOrdersAction, PerpsControllerGetOrderBookGroupingAction, PerpsControllerGetOrderBookPreferencesAction, PerpsControllerGetOrderCapabilitiesAction, PerpsControllerGetMarginModeLockAction, PerpsControllerGetScalePriceLadderAction, PerpsControllerGetOrderFillsAction, PerpsControllerGetOrdersAction, PerpsControllerGetPendingManualRecoveriesAction, PerpsControllerGetPendingTradeConfigurationAction, PerpsControllerGetPositionsAction, PerpsControllerGetSelectedOrderTypeAction, PerpsControllerGetRecoveredDispatchesAction, PerpsControllerAcknowledgeRecoveredDispatchAction, PerpsControllerGetTradeConfigurationAction, PerpsControllerGetRecentlyViewedMarketsAction, PerpsControllerGetWatchlistMarketsAction, PerpsControllerGetVisibleCandleCountAction, PerpsControllerGetWebSocketConnectionStateAction, PerpsControllerGetWithdrawalProgressAction, PerpsControllerGetWithdrawalRoutesAction, PerpsControllerInitAction, PerpsControllerInvalidateSubscriptionBenefitsAction, PerpsControllerIsCurrentlyReinitializingAction, PerpsControllerIsFirstTimeUserOnCurrentNetworkAction, PerpsControllerIsWatchlistMarketAction, PerpsControllerMarkFirstOrderCompletedAction, PerpsControllerMarkTutorialCompletedAction, PerpsControllerPlaceOrderAction, PerpsControllerReconnectAction, PerpsControllerRecordMarketViewedAction, PerpsControllerRefreshEligibilityAction, PerpsControllerResetFirstTimeUserStateAction, PerpsControllerResetSelectedPaymentTokenAction, PerpsControllerSaveMarketFilterPreferencesAction, PerpsControllerGetProLayoutPreferencesAction, PerpsControllerSetProLayoutPreferencesAction, PerpsControllerSetPerpsModeAction, PerpsControllerSetOrderBookPreferencesAction, PerpsControllerSetSelectedOrderTypeAction, PerpsControllerSaveOrderBookGroupingAction, PerpsControllerSavePendingTradeConfigurationAction, PerpsControllerSaveTradeConfigurationAction, PerpsControllerSetAttributionContextAction, PerpsControllerSetLiveDataConfigAction, PerpsControllerSetSelectedPaymentTokenAction, PerpsControllerSetVisibleCandleCountAction, PerpsControllerStartEligibilityMonitoringAction, PerpsControllerStartMarketDataPreloadAction, PerpsControllerSuspendChaseOrdersAction, PerpsControllerStopEligibilityMonitoringAction, PerpsControllerStopMarketDataPreloadAction, PerpsControllerSubscribeToAccountAction, PerpsControllerSubscribeToCandlesAction, PerpsControllerSubscribeToConnectionStateAction, PerpsControllerSubscribeToOICapsAction, PerpsControllerSubscribeToOrderBookAction, PerpsControllerSubscribeToOrderFillsAction, PerpsControllerSubscribeToOrdersAction, PerpsControllerSubscribeToTwapOrdersAction, PerpsControllerSubscribeToPositionsAction, PerpsControllerSubscribeToPricesAction, PerpsControllerSwitchProviderAction, PerpsControllerToggleTestnetAction, PerpsControllerToggleWatchlistMarketAction, PerpsControllerUpdateMarginAction, PerpsControllerUpdatePositionTPSLAction, PerpsControllerUpdateWithdrawalProgressAction, PerpsControllerUpdateWithdrawalStatusAction, PerpsControllerValidateClosePositionAction, PerpsControllerValidateOrderAction, PerpsControllerValidateWithdrawalAction, PerpsControllerWithdrawAction, } from './PerpsController-method-action-types.js';
+ export { HyperLiquidProvider } from './providers/HyperLiquidProvider.js';
+ export { ChaseOrderSuspensionError } from './providers/AggregatedPerpsProvider.js';
+ export { WebSocketConnectionState, PerpsAnalyticsEvent, MARKET_CATEGORIES, MarketCategory, } from './types/index.js';
+-export type { RawLedgerUpdate, UserHistoryItem, GetUserHistoryParams, TradeConfiguration, OrderType, TriggerOrderType, StrategyOrderType, OrdinaryOrderType, OrderExecution, TriggerDirection, TpslLinkage, PositionTriggerOrder, MarketType, MarketTypeFilter, InputMethod, TradeAction, TrackingData, TPSLTrackingData, OrderParams, MarginMode, OrderResult, ScaleOrderChild, ChaseOrder, ChaseOrderMaxDistanceReached, ChaseOrderStatus, TwapOrder, TwapOrderFill, TwapOrderStatus, PerpsPendingManualRecovery, PerpsRecoveredDispatch, Position, AccountState, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, UpdateMarginParams, MarginResult, FlipPositionParams, InitializeResult, ReadyToTradeResult, DisconnectResult, MarketInfo, PerpsMarketData, ToggleTestnetResult, AssetRoute, SwitchProviderResult, CancelOrderParams, CancelOrderResult, BatchCancelOrdersParams, CancelOrdersParams, CancelOrdersResult, EditOrderParams, DepositParams, DepositWithConfirmationParams, DepositResult, DepositStatus, DepositFlowType, DepositStepInfo, WithdrawParams, WithdrawResult, TransferBetweenDexsParams, TransferBetweenDexsResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, LiveDataConfig, PerpsControllerConfig, PriceUpdate, OrderFill, CheckEligibilityParams, GetPositionsParams, GetAccountStateParams, GetUserDataSnapshotParams, PerpsUserDataSnapshot, GetOrderFillsParams, GetOrFetchFillsParams, GetOrdersParams, GetFundingParams, GetSupportedPathsParams, GetAvailableDexsParams, GetMarketsParams, GetMarketDataWithPricesParams, SortField, SortDirection, SubscribePricesParams, SubscribePositionsParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribeAccountParams, SubscribeOICapsParams, SubscribeCandlesParams, OrderBookLevel, OrderBookData, SubscribeOrderBookParams, LiquidationPriceParams, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, PositionModifyPreviewSource, PositionModifyPreviewKind, PositionPreviewValue, PositionModifyPreviewCurrent, PositionModifyPreviewOpen, PositionModifyPreviewFullClose, PositionModifyPreviewUnsupported, PositionModifyPreviewNone, FeeCalculationParams, FeeCalculationResult, GetOrderCapabilitiesParams, GetScalePriceLadderParams, OrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilitiesUnavailableReason, RoutedOrderCapabilitiesUnavailableReason, DirectProviderScalePriceLadderUnavailableReason, ScalePriceLadderUnavailableReason, DirectProviderOrderCapabilities, PerpsOrderCapabilities, PerpsScalePriceLadder, PerpsSubscriptionBenefits, PerpsSubscriptionUsage, PerpsSubscriptionFeeWaiverStatus, PerpsFeeSource, PerpsFeeResolution, UpdatePositionTPSLParams, Order, Funding, PerpsProvider, PerpsProviderType, PerpsActiveProviderMode, AggregationMode, RoutingStrategy, AggregatedProviderConfig, ProviderError, AggregatedAccountState, PerpsLogger, PerpsTraceName, PerpsTraceValue, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsMetrics, PerpsDebugLogger, PerpsStreamManager, PerpsPerformance, PerpsTracer, PerpsTypedMessageParams, PerpsTransactionParams, PerpsAddTransactionOptions, PerpsInternalAccount, PerpsRemoteFeatureFlagState, PerpsPlatformDependencies, PerpsTerminalMarketService, PerpsGlobalSnapshotRequest, PerpsGlobalSnapshotResult, TerminalAssetMetadata, PerpsCacheType, InvalidateCacheParams, PerpsCacheInvalidator, MarketDataFormatters, PaymentToken, PerpsSelectedPaymentToken, VersionGatedFeatureFlag, } from './types/index.js';
++export type { RawLedgerUpdate, UserHistoryItem, GetUserHistoryParams, TradeConfiguration, OrderType, TriggerOrderType, StrategyOrderType, OrdinaryOrderType, OrderExecution, TriggerDirection, TpslLinkage, PositionTriggerOrder, MarketType, MarketTypeFilter, InputMethod, TradeAction, TrackingData, TPSLTrackingData, OrderParams, MarginMode, OrderResult, ScaleOrderChild, ChaseOrder, ChaseOrderMaxDistanceReached, ChaseOrderStatus, TwapOrder, TwapOrderFill, TwapOrderStatus, PerpsPendingManualRecovery, PerpsRecoveredDispatch, Position, AccountState, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, UpdateMarginParams, MarginResult, FlipPositionParams, InitializeResult, ReadyToTradeResult, DisconnectResult, MarketInfo, PerpsMarketData, ToggleTestnetResult, AssetRoute, SwitchProviderResult, CancelOrderParams, CancelOrderResult, BatchCancelOrdersParams, CancelOrdersParams, CancelOrdersResult, EditOrderParams, DepositParams, DepositWithConfirmationParams, DepositResult, DepositStatus, DepositFlowType, DepositStepInfo, WithdrawParams, WithdrawResult, TransferBetweenDexsParams, TransferBetweenDexsResult, GetHistoricalPortfolioParams, HistoricalPortfolioResult, LiveDataConfig, PerpsControllerConfig, PriceUpdate, OrderFill, CheckEligibilityParams, GetPositionsParams, GetAccountStateParams, GetUserDataSnapshotParams, PerpsUserDataSnapshot, GetOrderFillsParams, GetOrFetchFillsParams, GetOrdersParams, GetFundingParams, GetSupportedPathsParams, GetAvailableDexsParams, GetMarketsParams, GetMarketDataWithPricesParams, SortField, SortDirection, SubscribePricesParams, SubscribePositionsParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribeAccountParams, SubscribeOICapsParams, SubscribeCandlesParams, OrderBookLevel, OrderBookData, SubscribeOrderBookParams, LiquidationPriceParams, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, PositionModifyPreviewSource, PositionModifyPreviewKind, PositionPreviewValue, PositionModifyPreviewCurrent, PositionModifyPreviewOpen, PositionModifyPreviewFullClose, PositionModifyPreviewUnsupported, PositionModifyPreviewNone, FeeCalculationParams, FeeCalculationResult, GetOrderCapabilitiesParams, GetMarginModeLockParams, MarginModeLockReason, MarginModeLockUnavailableReason, PerpsMarginModeLock, GetScalePriceLadderParams, OrderCapabilitiesUnavailableReason, DirectProviderOrderCapabilitiesUnavailableReason, RoutedOrderCapabilitiesUnavailableReason, DirectProviderScalePriceLadderUnavailableReason, ScalePriceLadderUnavailableReason, DirectProviderOrderCapabilities, PerpsOrderCapabilities, PerpsScalePriceLadder, PerpsSubscriptionBenefits, PerpsSubscriptionUsage, PerpsSubscriptionFeeWaiverStatus, PerpsFeeSource, PerpsFeeResolution, UpdatePositionTPSLParams, Order, Funding, PerpsProvider, PerpsProviderType, PerpsActiveProviderMode, AggregationMode, RoutingStrategy, AggregatedProviderConfig, ProviderError, AggregatedAccountState, PerpsLogger, PerpsTraceName, PerpsTraceValue, PerpsAnalyticsProperties, PerpsAttributionContext, PerpsMetrics, PerpsDebugLogger, PerpsStreamManager, PerpsPerformance, PerpsTracer, PerpsTypedMessageParams, PerpsTransactionParams, PerpsAddTransactionOptions, PerpsInternalAccount, PerpsRemoteFeatureFlagState, PerpsPlatformDependencies, PerpsTerminalMarketService, PerpsGlobalSnapshotRequest, PerpsGlobalSnapshotResult, TerminalAssetMetadata, PerpsCacheType, InvalidateCacheParams, PerpsCacheInvalidator, MarketDataFormatters, PaymentToken, PerpsSelectedPaymentToken, VersionGatedFeatureFlag, } from './types/index.js';
+ export { PerpsTraceNames, PerpsTraceOperations, isVersionGatedFeatureFlag, } from './types/index.js';
+ export type { TestResultStatus, TestResult, SDKTestType, HyperliquidAsset, CandleStick, CandleData, OrderFormState, OrderDirection, ReconnectOptions, ExtendedAssetMeta, ExtendedPerpDex, } from './types/index.js';
+ export type { BaseTransactionResult, LastTransactionResult, TransactionStatus, TransactionRecord, } from './types/index.js';
+diff --git a/dist/providers/AggregatedPerpsProvider.d.ts b/dist/providers/AggregatedPerpsProvider.d.ts
+index 93114cca8b9d75e62cb02af6b64c363fb015c68a..45d7816a6ab2a9f94bf68672edaf1391db905eef 100644
+--- a/dist/providers/AggregatedPerpsProvider.d.ts
++++ b/dist/providers/AggregatedPerpsProvider.d.ts
+@@ -16,7 +16,7 @@
+ import type { CaipAccountId } from '@metamask/utils';
+ import { ProviderRouter } from '../routing/ProviderRouter.js';
+ import { WebSocketConnectionState } from '../types/index.js';
+-import type { AccountState, AggregatedProviderConfig, AssetRoute, BatchCancelOrdersParams, CancelOrderParams, CancelOrderResult, CancelOrdersResult, ChaseOrder, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderCapabilitiesParams, GetScalePriceLadderParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, PerpsOrderCapabilities, PerpsScalePriceLadder, PerpsPendingManualRecovery, PerpsRecoveredDispatch, PerpsProviderType, Position, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, TwapOrder, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult, RawLedgerUpdate, PerpsReadOptions, PerpsFeeResolution } from '../types/index.js';
++import type { AccountState, AggregatedProviderConfig, AssetRoute, BatchCancelOrdersParams, CancelOrderParams, CancelOrderResult, CancelOrdersResult, ChaseOrder, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderCapabilitiesParams, GetMarginModeLockParams, PerpsMarginModeLock, GetScalePriceLadderParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, PerpsOrderCapabilities, PerpsScalePriceLadder, PerpsPendingManualRecovery, PerpsRecoveredDispatch, PerpsProviderType, Position, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, TwapOrder, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult, RawLedgerUpdate, PerpsReadOptions, PerpsFeeResolution } from '../types/index.js';
+ /** Error returned when only some providers suspend their Chase orders. */
+ export declare class ChaseOrderSuspensionError extends Error {
+     readonly suspendedOrders: ChaseOrder[];
+@@ -76,6 +76,7 @@ export declare class AggregatedPerpsProvider implements PerpsProvider {
+      * @returns Capabilities from the selected provider.
+      */
+     getOrderCapabilities(params: GetOrderCapabilitiesParams): Promise<PerpsOrderCapabilities>;
++    getMarginModeLock(params: GetMarginModeLockParams): Promise<PerpsMarginModeLock>;
+     /**
+      * Normalize a Scale price ladder through the selected provider route.
+      *
+diff --git a/dist/providers/AggregatedPerpsProvider.js b/dist/providers/AggregatedPerpsProvider.js
+index 5dc5d7f358c0aafbe48b21e82d91332d6b81c94f..f27dfd31c3d841a0e741572a3809c4656d5dddc3 100644
+--- a/dist/providers/AggregatedPerpsProvider.js
++++ b/dist/providers/AggregatedPerpsProvider.js
+@@ -206,6 +206,49 @@ export class AggregatedPerpsProvider {
+             };
+         }
+     }
++    /**
++     * Resolve the margin-mode lock with the same explicit-provider/default-
++     * provider selection used by order placement.
++     *
++     * @param params - Market and optional provider route.
++     * @returns The lock reported by the selected provider.
++     */
++    async getMarginModeLock(params) {
++        const providerId = params.providerId ?? this.#defaultProvider;
++        const provider = this.#providers.get(providerId);
++        if (!provider) {
++            return {
++                status: 'unavailable',
++                providerId,
++                reason: 'provider_not_found',
++            };
++        }
++        if (!provider.getMarginModeLock) {
++            return { status: 'unavailable', providerId, reason: 'not_implemented' };
++        }
++        try {
++            const lock = await provider.getMarginModeLock({ ...params, providerId });
++            if (lock.providerId !== undefined && lock.providerId !== providerId) {
++                return {
++                    status: 'unavailable',
++                    providerId,
++                    reason: 'provider_not_routable',
++                };
++            }
++            return { ...lock, providerId };
++        }
++        catch (error) {
++            this.#deps.debugLogger.log('[AggregatedPerpsProvider] Margin mode lock unavailable', {
++                providerId,
++                error: error instanceof Error ? error.message : String(error),
++            });
++            return {
++                status: 'unavailable',
++                providerId,
++                reason: 'provider_unavailable',
++            };
++        }
++    }
+     /**
+      * Normalize a Scale price ladder through the selected provider route.
+      *
+diff --git a/dist/providers/HyperLiquidProvider.d.ts b/dist/providers/HyperLiquidProvider.d.ts
+index 53dd73fcd7146519848af82bab94be14b3b54a43..aa7b246564e850db0ce304c3f56eea03c3c443db 100644
+--- a/dist/providers/HyperLiquidProvider.d.ts
++++ b/dist/providers/HyperLiquidProvider.d.ts
+@@ -2,7 +2,7 @@ import { CaipAccountId } from '@metamask/utils';
+ import type { ExchangeClient } from '@nktkas/hyperliquid';
+ import type { CandlePeriod } from '../constants/chartConfig.js';
+ import { WebSocketConnectionState } from '../services/HyperLiquidClientService.js';
+-import type { AccountState, AssetRoute, BatchCancelOrdersParams, CancelOrderParams, CancelOrderResult, CancelOrdersResult, ChaseOrder, ChaseOrderMaxDistanceReached, CandleData, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderCapabilitiesParams, GetScalePriceLadderParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, GetUserDataSnapshotParams, HistoricalPortfolioResult, InitializeResult, PerpsPlatformDependencies, PerpsProvider, PerpsScalePriceLadder, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, DirectProviderOrderCapabilities, Position, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, TransferBetweenDexsParams, TransferBetweenDexsResult, TwapOrder, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult, RawLedgerUpdate, PerpsReadOptions, PerpsUserDataSnapshot, PerpsFeeResolution } from '../types/index.js';
++import type { AccountState, AssetRoute, BatchCancelOrdersParams, CancelOrderParams, CancelOrderResult, CancelOrdersResult, ChaseOrder, ChaseOrderMaxDistanceReached, CandleData, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderCapabilitiesParams, GetMarginModeLockParams, PerpsMarginModeLock, GetScalePriceLadderParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, GetUserDataSnapshotParams, HistoricalPortfolioResult, InitializeResult, PerpsPlatformDependencies, PerpsProvider, PerpsScalePriceLadder, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, PositionModifyPreviewParams, PositionModifyPreviewResult, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, DirectProviderOrderCapabilities, Position, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribeTwapOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, TransferBetweenDexsParams, TransferBetweenDexsResult, TwapOrder, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult, RawLedgerUpdate, PerpsReadOptions, PerpsUserDataSnapshot, PerpsFeeResolution } from '../types/index.js';
+ import type { PerpsControllerMessengerBase } from '../types/messenger.js';
+ type ChaseOrderMaxDistanceReachedHandler = (event: ChaseOrderMaxDistanceReached) => void;
+ type HyperLiquidProviderOptions = {
+@@ -46,6 +46,7 @@ export declare class HyperLiquidProvider implements PerpsProvider {
+      * @returns Supported strategy order types.
+      */
+     getOrderCapabilities(params: GetOrderCapabilitiesParams): Promise<DirectProviderOrderCapabilities>;
++    getMarginModeLock(params: GetMarginModeLockParams): Promise<PerpsMarginModeLock>;
+     /**
+      * Normalize a Scale price ladder with HyperLiquid market precision.
+      *
+diff --git a/dist/providers/HyperLiquidProvider.js b/dist/providers/HyperLiquidProvider.js
+index e7178c1396358450b873f66ea77ef3654181f4d3..a60a19f563f5033b1f4f5062aa497af6f5aa9164 100644
+--- a/dist/providers/HyperLiquidProvider.js
++++ b/dist/providers/HyperLiquidProvider.js
+@@ -830,6 +830,37 @@ export class HyperLiquidProvider {
+         const result = await this.#getOrderCapabilityMarket(params.symbol);
+         return result.status === 'ready' ? HYPERLIQUID_ORDER_CAPABILITIES : result;
+     }
++    /**
++     * Report the margin mode HyperLiquid currently binds to a market, so
++     * clients can match what order placement will accept.
++     *
++     * @param params - Market and optional provider route.
++     * @returns The current lock, or unavailable when it cannot be read.
++     */
++    async getMarginModeLock(params) {
++        const lifecycleGeneration = this.#lifecycleGeneration;
++        try {
++            await this.#ensureClientsInitialized();
++            this.#clientService.ensureInitialized();
++            const lock = await this.#readMarginModeLock(params.symbol);
++            this.#assertProviderLifecycleCurrent(lifecycleGeneration, 'Margin mode lock read');
++            return lock
++                ? { status: 'locked', providerId: this.protocolId, ...lock }
++                : { status: 'unlocked', providerId: this.protocolId };
++        }
++        catch (error) {
++            this.#deps.debugLogger.log('HyperLiquid: Margin mode lock unavailable', {
++                symbol: params.symbol,
++                error: ensureError(error, 'HyperLiquidProvider.getMarginModeLock')
++                    .message,
++            });
++            return {
++                status: 'unavailable',
++                providerId: this.protocolId,
++                reason: 'provider_unavailable',
++            };
++        }
++    }
+     /**
+      * Normalize a Scale price ladder with HyperLiquid market precision.
+      *
+@@ -3375,16 +3406,31 @@ export class HyperLiquidProvider {
+             // unavailable there until that account-mode-aware path is supported.
+             throw new Error(PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED);
+         }
++        const lock = await this.#readMarginModeLock(params.symbol);
++        if (lock && lock.marginMode !== params.marginMode) {
++            throw new Error(lock.reason === 'position'
++                ? PERPS_ERROR_CODES.ORDER_MARGIN_MODE_POSITION_OPEN
++                : PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN);
++        }
++    }
++    /**
++     * Read the margin mode the venue currently binds to an asset. An open
++     * position fixes it first; otherwise a resting order or active TWAP fixes
++     * the mode reported by the asset's leverage data.
++     *
++     * @param symbol - Market symbol, including its DEX route when applicable.
++     * @returns The locked mode and its cause, or null when nothing locks it.
++     * @throws When the target DEX positions cannot be read.
++     */
++    async #readMarginModeLock(symbol) {
++        const { dex: dexName } = parseAssetName(symbol);
+         const { answered, positions } = await this.#queryDexPositions(dexName);
+         if (!answered) {
+             throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+         }
+-        const position = positions.find((item) => item.symbol === params.symbol);
++        const position = positions.find((item) => item.symbol === symbol);
+         if (position) {
+-            if (position.leverage.type !== params.marginMode) {
+-                throw new Error(PERPS_ERROR_CODES.ORDER_MARGIN_MODE_POSITION_OPEN);
+-            }
+-            return;
++            return { marginMode: position.leverage.type, reason: 'position' };
+         }
+         const user = await this.#walletService.getUserAddressWithDefault();
+         const infoClient = this.#clientService.getInfoClient();
+@@ -3397,7 +3443,7 @@ export class HyperLiquidProvider {
+         // collateral, which must not run as part of pre-sign validation.
+         const latestTwaps = new Map();
+         for (const entry of twapHistory) {
+-            if (entry.state.coin !== params.symbol) {
++            if (entry.state.coin !== symbol) {
+                 continue;
+             }
+             const previous = latestTwaps.get(entry.twapId);
+@@ -3419,15 +3465,14 @@ export class HyperLiquidProvider {
+                     return true;
+             }
+         });
+-        if (orders.some((order) => order.coin === params.symbol) || hasActiveTwap) {
++        if (orders.some((order) => order.coin === symbol) || hasActiveTwap) {
+             const asset = await infoClient.activeAssetData({
+                 user,
+-                coin: params.symbol,
++                coin: symbol,
+             });
+-            if (asset.leverage.type !== params.marginMode) {
+-                throw new Error(PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN);
+-            }
++            return { marginMode: asset.leverage.type, reason: 'open_order' };
+         }
++        return null;
+     }
+     /**
+      * Prepares asset for trading by updating leverage if specified
+diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
+index d5173397330d02c050f0218c41a8a41732d8f642..702a58f15e41ceedd5a35d0a0b251b37e51121f6 100644
+--- a/dist/types/index.d.ts
++++ b/dist/types/index.d.ts
+@@ -1298,6 +1298,34 @@ export type GetOrderCapabilitiesParams = {
+     providerId?: PerpsProviderType;
+ };
+ /** Inputs for a provider-normalized Scale price ladder preview. */
++/** Market and optional route whose current margin-mode lock is requested. */
++export type GetMarginModeLockParams = {
++    /** Provider-specific market identifier, including any routing prefix. */
++    symbol: string;
++    providerId?: PerpsProviderType;
++};
++/** What fixes the asset's margin mode on the venue. */
++export type MarginModeLockReason = 'position' | 'open_order';
++/** Reasons the current margin-mode lock cannot be reported. */
++export type MarginModeLockUnavailableReason = 'provider_unavailable' | 'provider_not_found' | 'provider_not_routable' | 'not_implemented';
++/**
++ * Margin mode an asset is bound to on the venue. `locked` means an open
++ * position or resting order/TWAP fixes the mode, so orders in the other mode
++ * are rejected; `unlocked` means either mode is accepted.
++ */
++export type PerpsMarginModeLock = Readonly<{
++    status: 'locked';
++    providerId: PerpsProviderType;
++    marginMode: MarginMode;
++    reason: MarginModeLockReason;
++}> | Readonly<{
++    status: 'unlocked';
++    providerId: PerpsProviderType;
++}> | Readonly<{
++    status: 'unavailable';
++    providerId?: PerpsProviderType;
++    reason: MarginModeLockUnavailableReason;
++}>;
+ export type GetScalePriceLadderParams = {
+     /** Market symbol, including its provider route when applicable. */
+     symbol: string;
+@@ -1512,6 +1540,12 @@ export type PerpsProvider = {
+      * omit this hook; the controller then reports capabilities as unavailable.
+      */
+     getOrderCapabilities?(params: GetOrderCapabilitiesParams): Promise<PerpsOrderCapabilities>;
++    /**
++     * Return the margin mode the market is currently locked to by an open
++     * position or resting order. Providers may omit this hook; the controller
++     * then reports the lock as unavailable.
++     */
++    getMarginModeLock?(params: GetMarginModeLockParams): Promise<PerpsMarginModeLock>;
+     /**
+      * Normalize a Scale ladder using the selected provider's venue rules.
+      *

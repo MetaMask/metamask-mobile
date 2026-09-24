@@ -406,6 +406,23 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+let mockMarginModeLock: {
+  status: 'locked' | 'unlocked' | 'unavailable';
+  providerId: 'hyperliquid';
+  marginMode?: 'isolated' | 'cross';
+  reason?: 'position' | 'open_order' | 'provider_unavailable';
+} | null = null;
+const mockRefreshMarginModeLock = jest.fn();
+jest.mock('../../../../hooks/usePerpsMarginModeLock', () => ({
+  usePerpsMarginModeLock: () => ({
+    lock: mockMarginModeLock,
+    isResolved:
+      mockMarginModeLock !== null &&
+      mockMarginModeLock.status !== 'unavailable',
+    refresh: mockRefreshMarginModeLock,
+  }),
+}));
+
 jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
   class MockChaseOrderRequestError extends Error {
     code: 'context_not_ready' | 'stale_request';
@@ -630,6 +647,7 @@ describe('usePerpsProOrderForm', () => {
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
     mockExecuteOrder.mockResolvedValue({ success: true });
     mockChaseOrders = [];
+    mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
     mockGetChaseOrders.mockResolvedValue([]);
   });
 
@@ -3729,6 +3747,137 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    describe('resting order or TWAP on the market', () => {
+      beforeEach(() => {
+        mockMarginModeLock = {
+          status: 'locked',
+          providerId: 'hyperliquid',
+          marginMode: 'cross',
+          reason: 'open_order',
+        };
+      });
+
+      it('follows the venue margin mode and locks the picker', () => {
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('isolated');
+        });
+
+        expect(result.current.marginMode).toBe('cross');
+        expect(result.current.isMarginModeLocked).toBe(true);
+      });
+
+      it('sends the venue margin mode with the order', async () => {
+        const { result } = renderWithCrossMargin();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ marginMode: 'cross' }),
+        );
+      });
+
+      it('ignores the venue lock when Cross is unavailable', () => {
+        const { result } = renderProForm();
+
+        expect(result.current.marginMode).toBe('isolated');
+        expect(result.current.isMarginModeLocked).toBe(false);
+      });
+    });
+
+    it('re-reads the venue margin mode lock after an order is placed', () => {
+      renderWithCrossMargin();
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.();
+      });
+
+      expect(mockRefreshMarginModeLock).toHaveBeenCalledTimes(1);
+    });
+
+    it('locks the picker on the current mode while the venue lock is unknown', () => {
+      mockMarginModeLock = null;
+      const { result } = renderWithCrossMargin();
+
+      expect(result.current.marginMode).toBe('isolated');
+      expect(result.current.isMarginModeLocked).toBe(true);
+    });
+
+    it('locks the picker when the venue reports the lock as unavailable', () => {
+      mockMarginModeLock = {
+        status: 'unavailable',
+        providerId: 'hyperliquid',
+        reason: 'provider_unavailable',
+      };
+      const { result } = renderWithCrossMargin();
+
+      expect(result.current.isMarginModeLocked).toBe(true);
+    });
+
+    it('disables Place Order and places nothing while the venue lock is unknown', async () => {
+      mockMarginModeLock = null;
+      const { result } = renderWithCrossMargin();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('holds Place Order after an account switch until the new lock resolves', async () => {
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+
+      mockSelectedAddress = '0xaccount-b';
+      mockMarginModeLock = null;
+      rerender({});
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
+      rerender({});
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'cross' }),
+      );
+    });
+
+    it('keeps Place Order enabled without a lock answer when Cross is unavailable', () => {
+      mockMarginModeLock = null;
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('keeps the picker free when the venue reports no lock', () => {
+      mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isMarginModeLocked).toBe(false);
     });
 
     describe('existing cross position', () => {
