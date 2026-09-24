@@ -27,6 +27,7 @@ export const QuickBuySheetSelectorsIDs = {
   SELL_PILL_PREFIX: 'quick-buy-sell-pill-',
   PAY_WITH_ROW_PREFIX: 'quick-buy-pay-with-row-',
   CHAIN_FILTER_PREFIX: 'quick-buy-chain-filter-',
+  TRADE_MODE_TOGGLE: 'quick-buy-trade-mode-toggle',
   TRADE_MODE_BUY: 'quick-buy-trade-mode-buy',
   TRADE_MODE_SELL: 'quick-buy-trade-mode-sell',
   DISABLED_AMOUNT: 'quick-buy-disabled-amount',

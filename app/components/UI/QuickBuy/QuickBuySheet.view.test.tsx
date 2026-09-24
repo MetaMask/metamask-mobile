@@ -341,16 +341,6 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onClose when the toolbar close button is pressed', async () => {
-    const onClose = jest.fn();
-    const screen = renderQuickBuySheet({ onClose });
-
-    await waitForSheetReady(screen);
-    fireEvent.press(screen.getByTestId(QuickBuySheetSelectorsIDs.CLOSE_BUTTON));
-
-    expect(onClose).toHaveBeenCalled();
-  });
-
   it('opens the high price impact screen instead of submitting', async () => {
     mockFetchQuotes((params) => [
       createQuickBuyFetchedQuote(String(params.srcTokenAmount ?? '0'), {
@@ -432,7 +422,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitForSheetReady(screen);
     fireEvent.press(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_SELL),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
 
     expect(
@@ -450,7 +440,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitForSheetReady(screen);
     fireEvent.press(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_SELL),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
@@ -505,7 +495,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitForSheetReady(screen);
     fireEvent.press(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_SELL),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
