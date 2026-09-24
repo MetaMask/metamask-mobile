@@ -26,23 +26,46 @@ export enum CardProviderErrorCode {
   Unknown = 'unknown',
 }
 
+export interface CardProviderErrorMeta {
+  requestId?: string;
+  reported?: boolean;
+}
+
 export class CardProviderError extends Error {
   readonly code: CardProviderErrorCode;
   readonly statusCode?: number;
   readonly errorCode?: string;
+  readonly requestId?: string;
+  /** True when a lower layer already sent this failure to Sentry. */
+  readonly reported: boolean;
 
   constructor(
     code: CardProviderErrorCode,
     message: string,
     statusCode?: number,
     errorCode?: string,
+    meta?: CardProviderErrorMeta,
   ) {
     super(message);
     this.name = 'CardProviderError';
     this.code = code;
     this.statusCode = statusCode;
     this.errorCode = errorCode;
+    this.requestId = meta?.requestId;
+    this.reported = meta?.reported ?? false;
   }
+}
+
+/**
+ * True when BaanxService (or another choke point) already logged this failure.
+ * Duck-typed so CardApiError can be recognized without a service import.
+ */
+export function isCardErrorReported(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { reported?: unknown }).reported === true
+  );
 }
 
 export function isCardAuthTokenError(error: unknown): boolean {

@@ -49,6 +49,7 @@ import {
   FundingAssetStatus,
   ICardProvider,
   isCardAuthTokenError,
+  isCardErrorReported,
 } from '../provider-types';
 import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
 import { minorUnitsToDecimal } from './utils/currencyMinorUnits';
@@ -117,7 +118,7 @@ function reportAndMap(
   const isAuthFailure =
     isCardAuthTokenError(error) ||
     (error instanceof CardApiError && error.statusCode === 401);
-  if (!isAuthFailure) {
+  if (!isAuthFailure && !isCardErrorReported(error)) {
     Logger.error(
       error as Error,
       getErrorContext(method, {
@@ -132,6 +133,20 @@ function reportAndMap(
 }
 
 function mapApiError(error: unknown, operation: string): CardProviderError {
+  const mapped = mapApiErrorCore(error, operation);
+  if (!(error instanceof CardApiError)) {
+    return mapped;
+  }
+  return new CardProviderError(
+    mapped.code,
+    mapped.message,
+    mapped.statusCode,
+    mapped.errorCode,
+    { requestId: error.requestId, reported: error.reported },
+  );
+}
+
+function mapApiErrorCore(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
     if (error.statusCode === 401) {
@@ -617,6 +632,8 @@ export class ImmersveProvider implements ICardProvider {
           CardProviderErrorCode.InvalidCredentials,
           'Refresh token rejected',
           error.statusCode,
+          undefined,
+          { requestId: error.requestId, reported: error.reported },
         );
       }
       reportAndMap(error, 'refreshTokens');
@@ -661,7 +678,9 @@ export class ImmersveProvider implements ICardProvider {
     try {
       await this.service.post('/auth/logout', {}, tokens);
     } catch (error) {
-      Logger.error(error as Error, getErrorContext('logout'));
+      if (!isCardErrorReported(error)) {
+        Logger.error(error as Error, getErrorContext('logout'));
+      }
     }
   }
 
@@ -966,7 +985,9 @@ export class ImmersveProvider implements ICardProvider {
       if (isCardAuthTokenError(error)) {
         throw error;
       }
-      Logger.error(error as Error, getErrorContext('getCardHomeData'));
+      if (!isCardErrorReported(error)) {
+        Logger.error(error as Error, getErrorContext('getCardHomeData'));
+      }
       return emptyCardHomeData();
     }
   }
@@ -1220,10 +1241,12 @@ export class ImmersveProvider implements ICardProvider {
           .get<ImmersveFundingSourceDetail>(`/api/funding-source/${id}`, tokens)
           .catch((error) => {
             if (isCardAuthTokenError(error)) throw error;
-            Logger.error(
-              error as Error,
-              getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
-            );
+            if (!isCardErrorReported(error)) {
+              Logger.error(
+                error as Error,
+                getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
+              );
+            }
             return null;
           }),
       ),

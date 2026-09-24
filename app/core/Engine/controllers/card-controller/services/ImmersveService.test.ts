@@ -1,9 +1,29 @@
 import { create, isAxiosError } from 'axios';
+import Logger from '../../../../../util/Logger';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 import { ImmersveService } from './ImmersveService';
 import { CardApiError } from './BaanxService';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');
+jest.mock('uuid', () => ({
+  v4: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+}));
+jest.mock('../../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn((_request: unknown, fn: (context?: unknown) => unknown) =>
+      fn(undefined),
+    ),
+    annotateTrace: jest.fn(),
+  };
+});
 
 const mockCreate = create as jest.Mock;
 const mockRequest = jest.fn();
@@ -274,6 +294,128 @@ describe('ImmersveService', () => {
       const service = createService();
 
       await expect(service.get('/api/accounts')).rejects.toThrow(TypeError);
+    });
+
+    it('sends a request id, traces the call, and omits bodies from dev logs', async () => {
+      const devGlobal = global as { __DEV__?: boolean };
+      const previousDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      mockRequest.mockResolvedValue({ status: 200, data: { pin: '1337' } });
+      (isAxiosError as unknown as jest.Mock).mockReturnValue(false);
+      const service = createService();
+
+      await service.request(
+        '/api/cards/550e8400-e29b-41d4-a716-446655440000/set-pin',
+        {
+          method: 'POST',
+          body: { newPin: '1337' },
+          tokenSet: TOKEN_SET,
+        },
+      );
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { newPin: '1337' },
+          headers: expect.objectContaining({
+            Authorization: 'Bearer access-token',
+            'x-mm-request-id': 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          }),
+        }),
+      );
+      expect(trace).toHaveBeenCalledWith(
+        {
+          name: TraceName.CardApiRequest,
+          op: TraceOperation.CardDataFetch,
+          tags: {
+            card_endpoint: '/api/cards/:id/set-pin',
+            card_method: 'POST',
+            card_provider: 'immersve',
+            card_location: 'international',
+          },
+        },
+        expect.any(Function),
+      );
+      expect(annotateTrace).toHaveBeenCalledWith(undefined, {
+        card_http_status: 200,
+        card_outcome: 'success',
+      });
+      const requestLog = jest
+        .mocked(Logger.log)
+        .mock.calls.find((call) => call[1] === 'request');
+      expect(JSON.stringify(requestLog)).not.toContain('1337');
+      expect(requestLog?.[3]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: '[redacted]' }),
+        }),
+      );
+      devGlobal.__DEV__ = previousDev;
+    });
+
+    it('logs Immersve failures once and skips routine 401s', async () => {
+      const axiosError = new Error('Request failed') as Error & {
+        isAxiosError: boolean;
+        response: { status: number; data: { errorCode: string } };
+      };
+      axiosError.isAxiosError = true;
+      axiosError.response = { status: 500, data: { errorCode: 'upstream' } };
+      mockRequest.mockRejectedValue(axiosError);
+      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+      const service = createService();
+
+      await expect(service.get('/api/accounts/42')).rejects.toMatchObject({
+        statusCode: 500,
+        outcome: 'http_5xx',
+        requestId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        reported: true,
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(CardApiError),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            provider: 'immersve',
+            card_endpoint: '/api/accounts/:id',
+            card_request_id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          }),
+          context: expect.objectContaining({ name: 'ImmersveService' }),
+        }),
+      );
+
+      jest.mocked(Logger.error).mockClear();
+      axiosError.response = {
+        status: 401,
+        data: { errorCode: 'unauthorized' },
+      };
+      await expect(service.get('/api/accounts')).rejects.toMatchObject({
+        statusCode: 401,
+        reported: false,
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('logs 401s on the token refresh endpoint', async () => {
+      const axiosError = new Error('Request failed') as Error & {
+        isAxiosError: boolean;
+        response: { status: number; data: string };
+      };
+      axiosError.isAxiosError = true;
+      axiosError.response = { status: 401, data: 'Unauthorized' };
+      mockRequest.mockRejectedValue(axiosError);
+      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+      const service = createService();
+
+      await expect(service.post('/auth/token', {})).rejects.toMatchObject({
+        statusCode: 401,
+        reported: true,
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(CardApiError),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            card_endpoint: '/auth/token',
+            provider: 'immersve',
+          }),
+        }),
+      );
     });
   });
 });

@@ -1,9 +1,9 @@
-import { create, isAxiosError, type AxiosInstance } from 'axios';
-import Logger from '../../../../../util/Logger';
+import { create, type AxiosInstance } from 'axios';
 import type { CardAuthTokens } from '../provider-types';
-import { CardApiError } from './BaanxService';
+import { observeCardHttpCall } from './cardHttpObservability';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
+const AUTH_TOKEN_ENDPOINT = '/auth/token';
 
 interface RequestOptions {
   method?: string;
@@ -30,55 +30,31 @@ export class ImmersveService {
   }
 
   async request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+    const method = opts.method ?? 'GET';
     const headers: Record<string, string> = { ...opts.headers };
 
     if (opts.tokenSet) {
       headers.Authorization = `Bearer ${opts.tokenSet.accessToken}`;
     }
 
-    if (__DEV__) {
-      const isSetPin = path.includes('/set-pin');
-      Logger.log('[ImmersveService]', 'request', path, {
-        method: opts.method ?? 'GET',
-        headers,
-        // Never log PIN or other sensitive set-pin body fields.
-        body: isSetPin ? '[redacted]' : opts.body,
-      });
-    }
-
-    try {
-      const response = await this.client.request<T>({
-        baseURL: opts.baseURL ?? this.getBaseUrl(),
-        url: path,
-        method: opts.method ?? 'GET',
-        headers,
-        data: opts.body,
-        timeout: opts.timeout ?? DEFAULT_TIMEOUT_MS,
-      });
-
-      if (__DEV__) {
-        Logger.log('[ImmersveService]', 'response', path, {
-          status: response.status,
-          data: response.data,
-        });
-      }
-
-      return response.data;
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const status =
-          error.response?.status ?? (error.code === 'ECONNABORTED' ? 408 : 0);
-        const rawData = error.response?.data;
-        const body =
-          typeof rawData === 'string'
-            ? rawData
-            : rawData != null
-              ? JSON.stringify(rawData)
-              : '';
-        throw new CardApiError(status, path, body);
-      }
-      throw error;
-    }
+    return observeCardHttpCall({
+      provider: 'immersve',
+      serviceName: 'ImmersveService',
+      path,
+      method,
+      location: opts.tokenSet?.location ?? 'international',
+      headers,
+      alwaysReportEndpoints: [AUTH_TOKEN_ENDPOINT],
+      execute: () =>
+        this.client.request<T>({
+          baseURL: opts.baseURL ?? this.getBaseUrl(),
+          url: path,
+          method,
+          headers,
+          data: opts.body,
+          timeout: opts.timeout ?? DEFAULT_TIMEOUT_MS,
+        }),
+    });
   }
 
   async get<T>(path: string, tokenSet?: CardAuthTokens): Promise<T> {

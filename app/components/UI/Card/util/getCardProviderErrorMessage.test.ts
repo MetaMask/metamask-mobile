@@ -1,4 +1,7 @@
-import { getCardProviderErrorMessage } from './getCardProviderErrorMessage';
+import {
+  getCardProviderErrorMessage,
+  getCreditLoadErrorValues,
+} from './getCardProviderErrorMessage';
 import {
   CardProviderError,
   CardProviderErrorCode,
@@ -144,6 +147,40 @@ describe('getCardProviderErrorMessage', () => {
       expect(result).toBe(
         'mocked_card.card_authentication.errors.unknown_error',
       );
+    });
+  });
+});
+
+describe('getCreditLoadErrorValues', () => {
+  beforeEach(() => {
+    mockStrings.mockImplementation((key: string) => `mocked_${key}`);
+  });
+
+  it('returns the localized message without a reference when there is no request id', () => {
+    const values = getCreditLoadErrorValues(
+      new CardProviderError(CardProviderErrorCode.ServerError, 'down', 500),
+    );
+
+    expect(values).toEqual({
+      message: 'mocked_card.card_authentication.errors.server_error',
+    });
+    expect(values).not.toHaveProperty('reference');
+  });
+
+  it('adds the first 8 characters of the request id', () => {
+    const values = getCreditLoadErrorValues(
+      new CardProviderError(
+        CardProviderErrorCode.Timeout,
+        'timed out',
+        408,
+        undefined,
+        { requestId: 'abcd1234-rest-of-id' },
+      ),
+    );
+
+    expect(values).toEqual({
+      message: 'mocked_card.card_authentication.errors.timeout_error',
+      reference: 'abcd1234',
     });
   });
 });

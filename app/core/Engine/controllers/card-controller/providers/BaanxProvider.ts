@@ -285,6 +285,20 @@ function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
 }
 
 function mapApiError(error: unknown, operation: string): CardProviderError {
+  const mapped = mapApiErrorCore(error, operation);
+  if (!(error instanceof CardApiError)) {
+    return mapped;
+  }
+  return new CardProviderError(
+    mapped.code,
+    mapped.message,
+    mapped.statusCode,
+    mapped.errorCode,
+    { requestId: error.requestId, reported: error.reported },
+  );
+}
+
+function mapApiErrorCore(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
     if (error.statusCode === 401) {
@@ -502,6 +516,8 @@ export class BaanxProvider implements ICardProvider {
           CardProviderErrorCode.InvalidCredentials,
           'Refresh token rejected',
           error.statusCode,
+          undefined,
+          { requestId: error.requestId, reported: error.reported },
         );
       }
       throw mapApiError(error, 'refreshTokens');
@@ -1052,9 +1068,6 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
-      }
       throw mapApiError(error, 'getCashbackWallet');
     }
   }
@@ -1068,12 +1081,6 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(
-          error as Error,
-          getErrorContext('getCashbackWithdrawEstimation'),
-        );
-      }
       throw mapApiError(error, 'getCashbackWithdrawEstimation');
     }
   }
@@ -1089,9 +1096,6 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('withdrawCashback'));
-      }
       throw mapApiError(error, 'withdrawCashback');
     }
   }
@@ -1105,9 +1109,6 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('getCreditWallet'));
-      }
       throw mapApiError(error, 'getCreditWallet');
     }
   }
@@ -1121,12 +1122,6 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(
-          error as Error,
-          getErrorContext('getCreditWithdrawEstimation'),
-        );
-      }
       throw mapApiError(error, 'getCreditWithdrawEstimation');
     }
   }
@@ -1142,9 +1137,6 @@ export class BaanxProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      if (!isCardAuthTokenError(error)) {
-        Logger.error(error as Error, getErrorContext('withdrawCredit'));
-      }
       throw mapApiError(error, 'withdrawCredit');
     }
   }

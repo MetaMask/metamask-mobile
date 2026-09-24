@@ -74,6 +74,7 @@ import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinka
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import useCreditBalance from '../../hooks/useCreditBalance';
+import { getCreditLoadErrorValues } from '../../util/getCardProviderErrorMessage';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import MoneyCardTiltAnimation from '../../../Money/components/MoneyCardTiltAnimation';
@@ -265,6 +266,10 @@ const CardHome = () => {
   } = useMoneyAccountCardLinkage();
   const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy();
   const credit = useCreditBalance();
+  const creditLoadErrorValues = useMemo(
+    () => (credit.error ? getCreditLoadErrorValues(credit.error) : undefined),
+    [credit.error],
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const hasMetalCard = data?.card?.type === CardType.METAL;
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -813,7 +818,27 @@ const CardHome = () => {
             )}
         </Box>
 
+        {credit.error &&
+          !credit.isLoading &&
+          creditLoadErrorValues &&
+          !hasSetupActions &&
+          !hasAlertOnlyState &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="mx-4 mt-4"
+              testID={CardHomeSelectors.CREDIT_LOAD_ERROR}
+            >
+              <CardMessageBox
+                messageType={CardMessageBoxType.CreditLoadFailed}
+                values={creditLoadErrorValues}
+                onConfirm={credit.refetch}
+                onConfirmLoading={credit.isRefetching}
+              />
+            </Box>
+          )}
+
         {credit.hasCredit &&
+          !credit.error &&
           !hasSetupActions &&
           !hasAlertOnlyState &&
           !isUkMigrationForced && (

@@ -707,10 +707,12 @@ describe('BaanxProvider', () => {
         expect(get).toHaveBeenCalledWith('/v1/wallet/reward', tokens);
       });
 
-      it('logs and maps non-auth failures', async () => {
-        const get = jest
-          .fn()
-          .mockRejectedValue(new CardApiError(500, '/v1/wallet/reward', ''));
+      it('maps non-auth failures without logging', async () => {
+        const apiError = new CardApiError(500, '/v1/wallet/reward', '', {
+          requestId: 'req-reward-1',
+        });
+        apiError.reported = true;
+        const get = jest.fn().mockRejectedValue(apiError);
         const provider = new BaanxProvider({
           service: { get, apiKey: 'k' } as unknown as BaanxService,
         });
@@ -718,8 +720,10 @@ describe('BaanxProvider', () => {
         await expect(provider.getCashbackWallet(tokens)).rejects.toMatchObject({
           name: 'CardProviderError',
           code: CardProviderErrorCode.ServerError,
+          requestId: 'req-reward-1',
+          reported: true,
         });
-        expect(Logger.error).toHaveBeenCalled();
+        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -759,7 +763,7 @@ describe('BaanxProvider', () => {
         );
       });
 
-      it('logs and maps non-auth failures', async () => {
+      it('maps non-auth failures without logging', async () => {
         const get = jest
           .fn()
           .mockRejectedValue(
@@ -774,7 +778,7 @@ describe('BaanxProvider', () => {
         ).rejects.toMatchObject({
           code: CardProviderErrorCode.ServerError,
         });
-        expect(Logger.error).toHaveBeenCalled();
+        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -814,7 +818,7 @@ describe('BaanxProvider', () => {
         );
       });
 
-      it('logs and maps non-auth failures', async () => {
+      it('maps non-auth failures without logging', async () => {
         const post = jest
           .fn()
           .mockRejectedValue(
@@ -829,7 +833,7 @@ describe('BaanxProvider', () => {
         ).rejects.toMatchObject({
           code: CardProviderErrorCode.ServerError,
         });
-        expect(Logger.error).toHaveBeenCalled();
+        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -869,7 +873,7 @@ describe('BaanxProvider', () => {
         expect(get).toHaveBeenCalledWith('/v1/wallet/credit', tokens);
       });
 
-      it('logs and maps non-auth failures', async () => {
+      it('maps non-auth failures without logging', async () => {
         const get = jest
           .fn()
           .mockRejectedValue(new CardApiError(500, '/v1/wallet/credit', ''));
@@ -880,7 +884,7 @@ describe('BaanxProvider', () => {
         await expect(provider.getCreditWallet(tokens)).rejects.toMatchObject({
           code: CardProviderErrorCode.ServerError,
         });
-        expect(Logger.error).toHaveBeenCalled();
+        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -920,7 +924,7 @@ describe('BaanxProvider', () => {
         );
       });
 
-      it('logs and maps non-auth failures', async () => {
+      it('maps non-auth failures without logging', async () => {
         const get = jest
           .fn()
           .mockRejectedValue(
@@ -935,7 +939,7 @@ describe('BaanxProvider', () => {
         ).rejects.toMatchObject({
           code: CardProviderErrorCode.ServerError,
         });
-        expect(Logger.error).toHaveBeenCalled();
+        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -975,7 +979,7 @@ describe('BaanxProvider', () => {
         );
       });
 
-      it('logs and maps non-auth failures', async () => {
+      it('maps non-auth failures without logging', async () => {
         const post = jest
           .fn()
           .mockRejectedValue(
@@ -990,7 +994,7 @@ describe('BaanxProvider', () => {
         ).rejects.toMatchObject({
           code: CardProviderErrorCode.ServerError,
         });
-        expect(Logger.error).toHaveBeenCalled();
+        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {

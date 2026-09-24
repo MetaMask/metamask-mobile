@@ -1075,6 +1075,27 @@ describe('CardController — auth methods', () => {
       expect(controller.state.isAuthenticated).toBe(true);
     });
 
+    it('does not log a refresh failure that was already reported', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('needs_refresh');
+      provider.refreshTokens.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'refresh down',
+          503,
+          undefined,
+          { requestId: 'req-refresh-1', reported: true },
+        ),
+      );
+      const controller = buildController(provider, { isAuthenticated: true });
+      jest.mocked(Logger.error).mockClear();
+
+      await controller.validateAndRefreshSession();
+
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('clears tokens and returns unauthenticated when tokens are expired', async () => {
       const provider = buildMockProvider();
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -4311,6 +4332,81 @@ describe('CardController — data pass-throughs', () => {
         'Cashback not supported',
       );
     });
+
+    it('emits a completed wallet load with duration and no secrets', async () => {
+      const wallet = { id: 'w1', balance: '10', currency: 'musd' };
+      const provider = buildMockProvider({
+        getCashbackWallet: jest.fn().mockResolvedValue(wallet),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+      mockTrackAnalyticsEvent.mockClear();
+
+      await controller.getCashbackWallet();
+
+      const events = mockTrackAnalyticsEvent.mock.calls.map(
+        ([event]) =>
+          event as { name: string; properties: Record<string, unknown> },
+      );
+      const completed = events.filter(
+        (event) => event.name === 'Card Wallet Load Completed',
+      );
+      expect(completed).toHaveLength(1);
+      expect(completed[0].properties).toMatchObject({
+        provider: 'baanx',
+        mode: 'cashback',
+        endpoint: '/v1/wallet/reward',
+        outcome: 'success',
+        status_code: null,
+        reason: null,
+        duration_ms: expect.any(Number),
+      });
+      expect(JSON.stringify(completed[0].properties)).not.toContain('10');
+      expect(completed[0].properties).not.toHaveProperty('request_id');
+    });
+
+    it('emits a failed wallet load and skips a second Sentry log when already reported', async () => {
+      const apiError = new CardApiError(503, '/v1/wallet/reward', '');
+      apiError.reported = true;
+      const provider = buildMockProvider({
+        getCashbackWallet: jest.fn().mockRejectedValue(apiError),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+      mockTrackAnalyticsEvent.mockClear();
+      jest.mocked(Logger.error).mockClear();
+
+      await expect(controller.getCashbackWallet()).rejects.toBe(apiError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      const failed = mockTrackAnalyticsEvent.mock.calls
+        .map(
+          ([event]) =>
+            event as { name: string; properties: Record<string, unknown> },
+        )
+        .filter((event) => event.name === 'Card Wallet Load Failed');
+      expect(failed).toHaveLength(1);
+      expect(failed[0].properties).toMatchObject({
+        mode: 'cashback',
+        endpoint: '/v1/wallet/reward',
+        outcome: 'http_5xx',
+        status_code: 503,
+        duration_ms: expect.any(Number),
+      });
+    });
+
+    it('still returns the wallet when analytics throws', async () => {
+      const wallet = { id: 'w1', balance: '1', currency: 'musd' };
+      const provider = buildMockProvider({
+        getCashbackWallet: jest.fn().mockResolvedValue(wallet),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+      mockTrackAnalyticsEvent.mockImplementationOnce(() => {
+        throw new Error('analytics down');
+      });
+
+      await expect(controller.getCashbackWallet()).resolves.toStrictEqual(
+        wallet,
+      );
+    });
   });
 
   describe('getUserDetails', () => {
@@ -4964,6 +5060,43 @@ describe('CardController — data pass-throughs', () => {
       await expect(controller.getCreditWallet()).rejects.toThrow(
         'Credit not supported',
       );
+    });
+
+    it('emits a failed credit load with the provider error code', async () => {
+      const providerError = new CardProviderError(
+        CardProviderErrorCode.Timeout,
+        'timed out',
+        408,
+        undefined,
+        { requestId: 'req-credit-1', reported: true },
+      );
+      const provider = buildMockProvider({
+        getCreditWallet: jest.fn().mockRejectedValue(providerError),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+      mockTrackAnalyticsEvent.mockClear();
+      jest.mocked(Logger.error).mockClear();
+
+      await expect(controller.getCreditWallet()).rejects.toBe(providerError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      const failed = mockTrackAnalyticsEvent.mock.calls
+        .map(
+          ([event]) =>
+            event as { name: string; properties: Record<string, unknown> },
+        )
+        .filter((event) => event.name === 'Card Wallet Load Failed');
+      expect(failed).toHaveLength(1);
+      expect(failed[0].properties).toMatchObject({
+        provider: 'baanx',
+        mode: 'credit',
+        endpoint: '/v1/wallet/credit',
+        outcome: 'timeout',
+        status_code: 408,
+        reason: 'timeout',
+        duration_ms: expect.any(Number),
+      });
+      expect(failed[0].properties).not.toHaveProperty('request_id');
     });
   });
 

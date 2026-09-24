@@ -1,34 +1,18 @@
-import axios, { isAxiosError, type AxiosInstance } from 'axios';
-import Logger from '../../../../../util/Logger';
+import { create, type AxiosInstance } from 'axios';
 import type { CardAuthTokens } from '../provider-types';
 import type { CardLocation } from '../../../../../components/UI/Card/types';
+import { observeCardHttpCall } from './cardHttpObservability';
+
+export {
+  CardApiError,
+  classifyCardHttpOutcome,
+  normalizeCardEndpoint,
+  type CardApiErrorMeta,
+  type CardHttpOutcome,
+} from './cardHttpObservability';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
-
-export class CardApiError extends Error {
-  readonly statusCode: number;
-  readonly path: string;
-  readonly responseBody: string;
-  readonly errorCode?: string;
-
-  constructor(statusCode: number, path: string, responseBody: string) {
-    super(`Card API error ${statusCode} on ${path}`);
-    this.name = 'CardApiError';
-    this.statusCode = statusCode;
-    this.path = path;
-    this.responseBody = responseBody;
-    this.errorCode = parseErrorCode(responseBody);
-  }
-}
-
-function parseErrorCode(body: string): string | undefined {
-  try {
-    const code = (JSON.parse(body) as { errorCode?: unknown }).errorCode;
-    return typeof code === 'string' ? code : undefined;
-  } catch {
-    return undefined;
-  }
-}
+const AUTH_TOKEN_ENDPOINT = '/v1/auth/oauth/token';
 
 interface RequestOptions {
   method?: string;
@@ -46,7 +30,7 @@ export class BaanxService {
 
   constructor({ apiKey, baseUrl }: { apiKey: string; baseUrl: string }) {
     this.apiKey_ = apiKey;
-    this.client = axios.create({
+    this.client = create({
       baseURL: baseUrl,
       timeout: DEFAULT_TIMEOUT_MS,
       headers: {
@@ -78,6 +62,7 @@ export class BaanxService {
       opts.location ??
       (opts.tokenSet?.location as CardLocation | undefined) ??
       this.currentLocation;
+    const method = opts.method ?? 'GET';
     const headers: Record<string, string> = {
       'x-us-env': String(effectiveLocation === 'us'),
       ...opts.headers,
@@ -87,46 +72,23 @@ export class BaanxService {
       headers.Authorization = `Bearer ${opts.tokenSet.accessToken}`;
     }
 
-    if (__DEV__) {
-      Logger.log('[BaanxService]', 'request', path, {
-        method: opts.method ?? 'GET',
-        headers,
-        body: opts.body,
-      });
-    }
-
-    try {
-      const response = await this.client.request<T>({
-        url: path,
-        method: opts.method ?? 'GET',
-        headers,
-        data: opts.body,
-        timeout: opts.timeout ?? DEFAULT_TIMEOUT_MS,
-      });
-
-      if (__DEV__) {
-        Logger.log('[BaanxService]', 'response', path, {
-          status: response.status,
-          data: response.data,
-        });
-      }
-
-      return response.data;
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const status =
-          error.response?.status ?? (error.code === 'ECONNABORTED' ? 408 : 0);
-        const rawData = error.response?.data;
-        const body =
-          typeof rawData === 'string'
-            ? rawData
-            : rawData != null
-              ? JSON.stringify(rawData)
-              : '';
-        throw new CardApiError(status, path, body);
-      }
-      throw error;
-    }
+    return observeCardHttpCall({
+      provider: 'baanx',
+      serviceName: 'BaanxService',
+      path,
+      method,
+      location: effectiveLocation,
+      headers,
+      alwaysReportEndpoints: [AUTH_TOKEN_ENDPOINT],
+      execute: () =>
+        this.client.request<T>({
+          url: path,
+          method,
+          headers,
+          data: opts.body,
+          timeout: opts.timeout ?? DEFAULT_TIMEOUT_MS,
+        }),
+    });
   }
 
   async get<T>(

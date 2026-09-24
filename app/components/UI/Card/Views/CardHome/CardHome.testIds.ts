@@ -44,6 +44,7 @@ export const CardHomeSelectors = {
   LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM: 'link-money-account-divider-bottom',
   CREDIT_BALANCE_INFO_BUTTON: 'credit-balance-info-button',
   CREDIT_BANNER: 'credit-banner',
+  CREDIT_LOAD_ERROR: 'credit-load-error',
   CARD_ARRIVAL_RIVE: 'card-arrival-rive',
   UK_MIGRATION_REQUIRED_BANNER: 'card-home-uk-migration-required-banner',
   UK_MIGRATION_SOFT_BANNER: 'card-home-uk-migration-soft-banner',

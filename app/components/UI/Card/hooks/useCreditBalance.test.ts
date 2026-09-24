@@ -82,6 +82,9 @@ describe('useCreditBalance', () => {
       expect(result.current.hasCredit).toBe(true);
     });
 
+    expect(typeof result.current.refetch).toBe('function');
+    expect(result.current.isRefetching).toBe(false);
+
     expect(result.current.creditBalanceNumber).toBe(12.5);
     expect(result.current.creditFiatNumber).toBe(12.5);
     expect(result.current.error).toBeNull();

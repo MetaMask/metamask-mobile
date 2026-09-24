@@ -10618,7 +10618,13 @@
       "title": "Refund balance: {{amount}}",
       "description": "Spend it or move it to your Money account to keep earning on your balance.",
       "description_no_money_account": "Spend it or redeem it to your wallet.",
-      "confirm_button_label": "Move funds"
+      "confirm_button_label": "Move funds",
+      "load_failed": {
+        "title": "Couldn't load your refund balance",
+        "description": "{{message}}",
+        "description_with_reference": "{{message}} Reference: {{reference}}",
+        "confirm_button_label": "Try again"
+      }
     },
     "change_asset": {
       "title": "Change token and network",

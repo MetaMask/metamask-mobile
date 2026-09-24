@@ -80,6 +80,10 @@ import {
   CardType,
   type RegistrationSettingsResponse,
 } from '../../types';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
@@ -334,17 +338,23 @@ jest.mock('./hooks/useCardEnableCard', () => ({
   }),
 }));
 
+const mockCreditRefetch = jest.fn();
+const mockUseCreditBalance = jest.fn(() => ({
+  wallet: null as { balance: string } | null,
+  creditBalance: '0',
+  creditBalanceNumber: 0,
+  creditCurrency: undefined as string | undefined,
+  creditFiatNumber: undefined as number | undefined,
+  hasCredit: false,
+  isLoading: false,
+  error: null as Error | null,
+  refetch: mockCreditRefetch,
+  isRefetching: false,
+}));
+
 jest.mock('../../hooks/useCreditBalance', () => ({
   __esModule: true,
-  default: jest.fn(() => ({
-    wallet: null,
-    creditBalance: '0',
-    creditBalanceNumber: 0,
-    creditCurrency: undefined,
-    creditFiatNumber: undefined,
-    hasCredit: false,
-    isLoading: false,
-  })),
+  default: () => mockUseCreditBalance(),
 }));
 
 jest.mock('../../hooks/useCardFreeze', () => ({
@@ -808,6 +818,26 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
       return `Earn up to ~${apy}% APY`;
+    }
+    if (key === 'card.credit_banner.load_failed.title') {
+      return "Couldn't load your refund balance";
+    }
+    if (key === 'card.credit_banner.load_failed.confirm_button_label') {
+      return 'Try again';
+    }
+    if (key === 'card.credit_banner.load_failed.description') {
+      return String(
+        (params as { message?: string } | undefined)?.message ?? '',
+      );
+    }
+    if (key === 'card.credit_banner.load_failed.description_with_reference') {
+      const typed = params as
+        | { message?: string; reference?: string }
+        | undefined;
+      return `${typed?.message ?? ''} Reference: ${typed?.reference ?? ''}`;
+    }
+    if (key === 'card.card_authentication.errors.server_error') {
+      return 'Server error. Please try again later.';
     }
     if (key === 'card.card_home.manage_card_options.cashback') {
       const cashbackPercentage = (
@@ -7449,6 +7479,151 @@ describe('CardHome Component', () => {
         badge_reasons: ['card_migration'],
       });
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('credit load error', () => {
+    const creditLoadError = () =>
+      new CardProviderError(
+        CardProviderErrorCode.ServerError,
+        'down',
+        500,
+        undefined,
+        { requestId: 'abcd1234-rest-of-id' },
+      );
+
+    beforeEach(() => {
+      mockUseCreditBalance.mockReset();
+      mockUseCreditBalance.mockImplementation(() => ({
+        wallet: null,
+        creditBalance: '0',
+        creditBalanceNumber: 0,
+        creditCurrency: undefined,
+        creditFiatNumber: undefined,
+        hasCredit: false,
+        isLoading: false,
+        error: null,
+        refetch: mockCreditRefetch,
+        isRefetching: false,
+      }));
+      mockCreditRefetch.mockClear();
+    });
+
+    it('shows a retryable error with a request reference', () => {
+      mockUseCreditBalance.mockReturnValue({
+        wallet: null,
+        creditBalance: '0',
+        creditBalanceNumber: 0,
+        creditCurrency: undefined,
+        creditFiatNumber: undefined,
+        hasCredit: false,
+        isLoading: false,
+        error: creditLoadError(),
+        refetch: mockCreditRefetch,
+        isRefetching: false,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CREDIT_LOAD_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText("Couldn't load your refund balance"),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Server error. Please try again later. Reference: abcd1234',
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByText('Try again'));
+      expect(mockCreditRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the refund banner when a refetch fails but cached credit remains', () => {
+      mockUseCreditBalance.mockReturnValue({
+        wallet: { balance: '12.5' },
+        creditBalance: '12.5',
+        creditBalanceNumber: 12.5,
+        creditCurrency: 'usdc',
+        creditFiatNumber: undefined,
+        hasCredit: true,
+        isLoading: false,
+        error: creditLoadError(),
+        refetch: mockCreditRefetch,
+        isRefetching: false,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CREDIT_LOAD_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CREDIT_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the error while the credit wallet is still loading', () => {
+      mockUseCreditBalance.mockReturnValue({
+        wallet: null,
+        creditBalance: '0',
+        creditBalanceNumber: 0,
+        creditCurrency: undefined,
+        creditFiatNumber: undefined,
+        hasCredit: false,
+        isLoading: true,
+        error: creditLoadError(),
+        refetch: mockCreditRefetch,
+        isRefetching: false,
+      });
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CREDIT_LOAD_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the error during forced card setup', () => {
+      mockUseCreditBalance.mockReturnValue({
+        wallet: null,
+        creditBalance: '0',
+        creditBalanceNumber: 0,
+        creditCurrency: undefined,
+        creditFiatNumber: undefined,
+        hasCredit: false,
+        isLoading: false,
+        error: creditLoadError(),
+        refetch: mockCreditRefetch,
+        isRefetching: false,
+      });
+      setupMockSelectors({
+        isAuthenticated: true,
+        ukMigrationState: {
+          phase: 'forced',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CREDIT_LOAD_ERROR),
+      ).not.toBeOnTheScreen();
     });
   });
 });

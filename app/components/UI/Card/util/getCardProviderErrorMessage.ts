@@ -33,3 +33,16 @@ export function getCardProviderErrorMessage(err: unknown): string {
   }
   return strings('card.card_authentication.errors.unknown_error');
 }
+
+/** Localized credit-load copy plus an opaque request-id prefix for support. */
+export function getCreditLoadErrorValues(
+  error: unknown,
+): Record<string, string> {
+  const message = getCardProviderErrorMessage(error);
+  const requestId =
+    error instanceof CardProviderError ? error.requestId : undefined;
+  if (!requestId) {
+    return { message };
+  }
+  return { message, reference: requestId.slice(0, 8) };
+}
