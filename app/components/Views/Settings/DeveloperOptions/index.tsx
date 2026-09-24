@@ -14,6 +14,7 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
+import CL24BenchmarkDeveloperOptionsSection from './CL24BenchmarkDeveloperOptionsSection';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
@@ -86,6 +87,9 @@ const DeveloperOptions = () => {
             })}
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
+        {process.env.CL24_BENCHMARK_ENABLED === 'true' && (
+          <CL24BenchmarkDeveloperOptionsSection />
+        )}
         <SentryTest />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
