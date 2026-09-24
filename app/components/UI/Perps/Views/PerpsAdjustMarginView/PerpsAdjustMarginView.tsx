@@ -167,7 +167,12 @@ const PerpsAdjustMarginView: React.FC = () => {
     if (isInputFocused) {
       return [];
     }
-    if (marginAmount > submitLimitAmount && marginAmount > 0) {
+    // The zero-removable explanation replaces an error on a retained amount.
+    if (
+      !hasNoRemovableMargin &&
+      marginAmount > submitLimitAmount &&
+      marginAmount > 0
+    ) {
       return [
         isAddMode
           ? strings('perps.adjust_margin.exceeds_available')
@@ -175,7 +180,13 @@ const PerpsAdjustMarginView: React.FC = () => {
       ];
     }
     return [];
-  }, [isInputFocused, marginAmount, submitLimitAmount, isAddMode]);
+  }, [
+    isInputFocused,
+    hasNoRemovableMargin,
+    marginAmount,
+    submitLimitAmount,
+    isAddMode,
+  ]);
 
   const amountHasError = validationErrors.length > 0;
 

@@ -755,6 +755,55 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
   });
 
+  const renderRemoveWithNoLimitLeft = (before: () => void) => {
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(before);
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      maxAmount: 0,
+      exchangeMaxAmount: 0,
+    });
+    rerender(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+  };
+
+  it('explains a zero limit instead of an error on a retained amount', () => {
+    renderRemoveWithNoLimitLeft(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(50);
+    });
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    ).toBeDisabled();
+  });
+
+  it('explains a zero limit instead of an earlier submission error', () => {
+    renderRemoveWithNoLimitLeft(() => {
+      mockMarginAdjustmentOptions?.onError?.('Margin update failed');
+    });
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+    expect(screen.queryByText('Margin update failed')).not.toBeOnTheScreen();
+  });
+
   it('hides the zero-state explanation while margin can be removed', () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
