@@ -20,6 +20,13 @@ describe('getVbaDestinationForSnapshot', () => {
       ['empty', snapshot()],
       ['vendor terms done', snapshot({ vendorTermsAcceptedLocally: true })],
       [
+        'session exists without vendor disclaimers recorded',
+        snapshot({
+          sessionExists: true,
+          vendorTermsAcceptedLocally: true,
+        }),
+      ],
+      [
         'email and vendor terms done',
         snapshot({
           sessionExists: true,
@@ -111,6 +118,7 @@ describe('getVbaDestinationForSnapshot', () => {
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
         "provider done": "identityVerification",
+        "session exists without vendor disclaimers recorded": "identityVerification",
         "session pending before provider terms": "identityVerification",
         "sumsub submitted": "kycPending",
         "vendor terms done": "email",

@@ -34,8 +34,7 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   },
   {
     id: 'email',
-    isComplete: (snapshot) =>
-      snapshot.sessionExists && snapshot.vendorDisclaimersComplete,
+    isComplete: (snapshot) => snapshot.sessionExists,
   },
   {
     id: 'identityVerification',
