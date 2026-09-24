@@ -177,6 +177,7 @@ const RoeSignBadge: React.FC<{
       onPress={onPress}
       testID={testID}
       accessibilityLabel={accessibilityLabel}
+      accessibilityValue={{ text: sign }}
       twClassName="shrink-0 self-center"
     />
   );
