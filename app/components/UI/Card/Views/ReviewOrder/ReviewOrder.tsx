@@ -186,7 +186,7 @@ const ReviewOrder = () => {
           fontWeight={FontWeight.Regular}
           twClassName={
             isRenews
-              ? 'text-alternative underline decoration-dotted'
+              ? 'text-text-alternative underline decoration-dotted'
               : 'text-alternative'
           }
         >
@@ -245,7 +245,7 @@ const ReviewOrder = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-alternative mt-2"
+            twClassName="text-text-alternative mt-2"
             fontWeight={FontWeight.Regular}
             testID={ReviewOrderSelectors.SUBTITLE}
           >

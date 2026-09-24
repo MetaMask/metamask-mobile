@@ -47,7 +47,7 @@ const LimitOptionItem: React.FC<LimitOptionItemProps> = ({
         </Text>
       }
     />
-    <Text variant={TextVariant.BodySm} twClassName="text-alternative mt-1 ml-8">
+    <Text variant={TextVariant.BodySm} twClassName="text-text-alternative mt-1 ml-8">
       {description}
     </Text>
 
