@@ -1,29 +1,29 @@
 import { createSelector } from 'reselect';
 import {
+  getDefaultSubscriptionControllerState,
+  MoneyAccountFeature,
   PRODUCT_TYPES,
-  SUBSCRIPTION_STATUSES,
+  selectHasEntitlement,
+  selectIsActiveSubscriber,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
   type Subscription,
   type SubscriptionControllerState,
-  type SubscriptionStatus,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
 import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
+const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
- * Statuses that grant subscription benefits. Mirrors Core's
- * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
- * exports.
+ * Core's entitlement selectors require a defined controller state, but the
+ * Redux slice is absent until the Engine hydrates. Falling back to default
+ * state makes those selectors fail closed instead of throwing.
  */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-  SUBSCRIPTION_STATUSES.provisional,
-]);
+const DEFAULT_CONTROLLER_STATE: SubscriptionControllerState =
+  getDefaultSubscriptionControllerState();
 
 const hasProduct = (
   subscription: Subscription,
@@ -91,23 +91,6 @@ export const selectTrialedSubscriptionProducts = createSelector(
 );
 
 /**
- * Selects whether the user has an active Money Account Plus (Pro)
- * subscription. Active covers `active`, `trialing`, and `provisional`.
- *
- * @param state - The root Redux state.
- * @returns True when a subscription grants Money Account Plus.
- */
-export const selectIsMoneyAccountPlusSubscriber = createSelector(
-  selectSubscriptions,
-  (subscriptions) =>
-    subscriptions.some(
-      (subscription) =>
-        ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
-        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
-    ),
-);
-
-/**
  * Selects the current subscription that contains the given product. A
  * subscription may contain multiple products; matching is by
  * `subscription.products`.
@@ -158,3 +141,61 @@ export const selectLastSelectedPaymentMethodByProduct = (
   selectSubscriptionControllerState(state)?.lastSelectedPaymentMethod?.[
     productType
   ];
+
+/**
+ * Selects whether the user has an active Money Account Plus subscription.
+ * Active covers `active`, `trialing`, and `provisional`; every other status
+ * fails closed.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether the user is an active Plus subscriber.
+ */
+export const selectIsMoneyAccountPlusSubscriber = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    selectIsActiveSubscriber(
+      subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    ),
+);
+
+/**
+ * Selects whether the user still holds any Money Account Plus entitlement.
+ *
+ * Entitlements are granted by the server independently of subscription
+ * status, so a `past_due` or `paused` subscriber keeps paid access until the
+ * server revokes it. Omitted entitlements are stored as an empty map, so this
+ * fails closed once access ends.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether at least one Plus feature entitlement is granted.
+ */
+export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    MONEY_ACCOUNT_PLUS_FEATURES.some((feature) =>
+      selectHasEntitlement(
+        subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+        PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+        feature,
+      ),
+    ),
+);
+
+/**
+ * Selects whether a single Money Account Plus feature is entitled. Not
+ * memoized because the feature argument varies per call site.
+ *
+ * @param state - The root Redux state.
+ * @param feature - The Plus feature to check.
+ * @returns Whether the feature entitlement is granted.
+ */
+export const selectHasMoneyAccountPlusEntitlement = (
+  state: RootState,
+  feature: MoneyAccountFeature,
+): boolean =>
+  selectHasEntitlement(
+    selectSubscriptionControllerState(state) ?? DEFAULT_CONTROLLER_STATE,
+    PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    feature,
+  );
