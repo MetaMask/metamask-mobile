@@ -25,7 +25,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -72,8 +72,8 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
-import superheroAvatar from '../../../../images/socialV1/superhero.png';
 import Routes from '../../../../constants/navigation/Routes';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 
 const LANDING_INDEX = 0;
@@ -479,13 +479,10 @@ const SocialV1View: React.FC = () => {
               'social_leaderboard.my_profile.open_profile',
             )}
           >
-            <Image
-              source={
-                myProfile?.imageUrl
-                  ? { uri: myProfile.imageUrl }
-                  : superheroAvatar
-              }
-              style={tw.style('w-10 h-10 rounded-full')}
+            <ProfileAvatar
+              imageUrl={myProfile?.imageUrl}
+              avatarPresetId={myProfile?.avatarPresetId}
+              size="sm"
             />
           </Pressable>
         }

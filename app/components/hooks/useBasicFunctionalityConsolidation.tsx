@@ -115,7 +115,7 @@ export function useBasicFunctionalityConsolidation(): void {
 
   // The onboarding-session latch only guards wallets onboarding has not yet
   // enrolled. A social repair targets an already-enrolled wallet, so it runs in
-  // the session that finds Basic Functionality off rather than the next launch.
+  // the session that finds Basic Functionality off or a missing notice.
   const shouldRunConsolidation =
     (isFlagEnabled && !isConsolidated && !isOnboardingSession.current) ||
     shouldRepairSocialLoginBasicFunctionality;

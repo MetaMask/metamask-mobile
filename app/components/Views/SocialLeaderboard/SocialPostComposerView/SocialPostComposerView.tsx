@@ -41,7 +41,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useTheme } from '../../../../util/theme';
-import superheroAvatar from '../../../../images/socialV1/superhero.png';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../SocialV1View/feed/components/SocialFeedPositionCard';
@@ -243,11 +243,10 @@ const SocialPostComposerView: React.FC = () => {
           keyboardShouldPersistTaps="always"
         >
           <Box gap={3} twClassName="w-full">
-            <Image
-              source={
-                profile?.imageUrl ? { uri: profile.imageUrl } : superheroAvatar
-              }
-              style={tw.style('w-10 h-10 rounded-full')}
+            <ProfileAvatar
+              imageUrl={profile?.imageUrl}
+              avatarPresetId={profile?.avatarPresetId}
+              size="sm"
             />
             <TextInput
               ref={inputRef}

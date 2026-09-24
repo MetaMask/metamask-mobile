@@ -9952,9 +9952,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.49.1":
-  version: 0.49.1
-  resolution: "@metamask/design-system-react-native@npm:0.49.1"
+"@metamask/design-system-react-native@npm:^0.50.0":
+  version: 0.50.0
+  resolution: "@metamask/design-system-react-native@npm:0.50.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.39.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -9970,7 +9970,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/24e2c42fbd5588c661b407373804d7017a9b8079ca75447e3f779e61775a5c9af8369d55eb1181fa7a6b6c6e3c856e31b6f2e924bb87b9607f49eafddd30a73d
+  checksum: 10/e9500a7b8dfc590ce648c92619507c3327bd4a07651c0be1b2c2c4d35ca7dd7783e1be490d968b8ced40e3d48d6c6097319775e041d5234b9b41cbbe5d9f6c77
   languageName: node
   linkType: hard
 
@@ -11320,9 +11320,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^17.3.0":
-  version: 17.3.0
-  resolution: "@metamask/perps-controller@npm:17.3.0"
+"@metamask/perps-controller@npm:^17.4.0":
+  version: 17.4.0
+  resolution: "@metamask/perps-controller@npm:17.4.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -11334,7 +11334,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
-  checksum: 10/cffe29b9913582424ee4861100051cbdd8059170e49eacb414de88c15ff72f7be701d0f9dfa430251afdd0cbfe19dfdf2024533c562b30ccaccf5d1ae7390bd4
+  checksum: 10/8f65c1531beadd1b95eb7337a955a99ec03195b01f951d42f905cb2a0bd79cb461d02c3bc637f9fe93a996d481f0b143627a6e28238e3d01b2006b48bbabaf41
   languageName: node
   linkType: hard
 
@@ -11552,21 +11552,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^23.0.0":
-  version: 23.0.0
-  resolution: "@metamask/ramps-controller@npm:23.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    bignumber.js: "npm:^9.1.2"
-    fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/5def986d4632048786eec2207afbc157cd61cbd7cf5ea2ca6351843f858615b0ca0f27694d74c8b850da3cdf0a515f334baa0f31800a0448108b5e1f87742b34
-  languageName: node
-  linkType: hard
-
 "@metamask/ramps-controller@npm:^24.0.0":
   version: 24.0.0
   resolution: "@metamask/ramps-controller@npm:24.0.0"
@@ -11579,6 +11564,21 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
   checksum: 10/3280b8362570428aca86058d5e1fa5e90ead803c0515c344ed878d150f6debc80354504e624799898a5cc34c6d6a4ceaf0502dbfad805ffcf474dad2f9b824a4
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:^25.0.0":
+  version: 25.0.0
+  resolution: "@metamask/ramps-controller@npm:25.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^32.2.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    bignumber.js: "npm:^9.1.2"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/3d9aea4cfb1c81b28de69b01f04788f21a95030dbed70d644fbbdfbbd28ad9017d96946e790b903f849a7bd19574b8e817b6d94d1f401c4b10077dbc79e09bcf
   languageName: node
   linkType: hard
 
@@ -39375,7 +39375,7 @@ __metadata:
     "@metamask/core-backend": "npm:^11.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
-    "@metamask/design-system-react-native": "npm:^0.49.1"
+    "@metamask/design-system-react-native": "npm:^0.50.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.12.0"
     "@metamask/design-tokens": "npm:^11.1.0"
     "@metamask/device-mcp": "npm:^0.4.2"
@@ -39438,7 +39438,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^17.3.0"
+    "@metamask/perps-controller": "npm:^17.4.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -39447,7 +39447,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^32.1.1"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^23.0.0"
+    "@metamask/ramps-controller": "npm:^25.0.0"
     "@metamask/react-data-query": "npm:^1.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
