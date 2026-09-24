@@ -83,6 +83,7 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
+import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -563,6 +564,7 @@ export type RootStackParamList = {
   RampVbaKycPending: undefined;
   RampVbaKycRejected: undefined;
   RampVbaOnboardingError: undefined;
+  RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
