@@ -1,6 +1,7 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
 import { initializeLedgerDmkMode } from '../../Ledger/dmk';
+import Logger from '../../../util/Logger';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -47,6 +48,10 @@ export function initializeWallet({
   const useDmk = initializeLedgerDmkMode({
     ...(remoteFeatureFlagState?.remoteFeatureFlags ?? {}),
     ...(remoteFeatureFlagState?.localOverrides ?? {}),
+  });
+
+  Logger.log('Ledger mode:', {
+    stack: useDmk ? 'dmk' : 'legacy',
   });
 
   const transactionControllerInitMessenger =
