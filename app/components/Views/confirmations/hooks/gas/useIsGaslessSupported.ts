@@ -61,10 +61,7 @@ export function useIsGaslessSupported() {
         (result) => result.chainId.toLowerCase() === chainId.toLowerCase(),
       );
 
-      return Boolean(
-        chainSupport &&
-          (!chainSupport.delegationAddress || chainSupport.isSupported),
-      );
+      return Boolean(chainSupport);
     }, [chainId, payingAccount, shouldCheck7702Eligibility]);
 
   const isHardwareWallet = Boolean(

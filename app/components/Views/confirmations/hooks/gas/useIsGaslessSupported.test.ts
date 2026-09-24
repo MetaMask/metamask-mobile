@@ -256,6 +256,36 @@ describe('useIsGaslessSupported', () => {
       });
     });
 
+    it('returns isSupported true for Monad when the paying account has a non-MetaMask delegation', async () => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0x8f',
+        txParams: { from: '0xMoneyAccount', to: '0xabc' },
+      } as unknown as TransactionMeta);
+      useTransactionPayingAccountMock.mockReturnValue('0xPayingAccount');
+      isRelaySupportedMock.mockResolvedValue(true);
+      isAtomicBatchSupportedMock.mockResolvedValue([
+        {
+          chainId: '0x8f',
+          isSupported: false,
+          delegationAddress: '0xOtherDelegation',
+          upgradeContractAddress: '0xUpgrade',
+        },
+      ]);
+
+      const state = merge({}, transferTransactionStateMock);
+      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
+        state,
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          isSupported: true,
+          isSmartTransaction: false,
+          pending: false,
+        });
+      });
+    });
+
     it('returns isSupported true for Monad when the paying account supports atomic batches', async () => {
       mockUseTransactionMetadataRequest.mockReturnValue({
         chainId: '0x8f',
