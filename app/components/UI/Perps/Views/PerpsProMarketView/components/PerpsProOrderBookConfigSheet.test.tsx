@@ -4,6 +4,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { mockTheme } from '../../../../../../util/theme';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
   ImpactMoment,
@@ -183,6 +184,51 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(selectedState('config-sheet-grouping-1')).toEqual(
       expect.objectContaining({ selected: true }),
     );
+  });
+
+  it('renders the FilterButton chips at the design size', () => {
+    const { getByTestId } = renderSheet();
+
+    const chipStyle = (id: string) =>
+      StyleSheet.flatten(getByTestId(id).props.style);
+
+    for (const id of [
+      'config-sheet-currency-base',
+      'config-sheet-currency-usd',
+      'config-sheet-metric-size',
+      'config-sheet-grouping-1',
+    ]) {
+      expect(chipStyle(id).height).toBe(40);
+    }
+  });
+
+  it('renders section titles in the default text colour', () => {
+    const { getByText } = renderSheet();
+
+    const titleColor = (label: string) =>
+      StyleSheet.flatten(getByText(label).props.style).color;
+
+    expect(titleColor('Listed by')).toBe(mockTheme.colors.text.default);
+    expect(titleColor('Group by')).toBe(mockTheme.colors.text.default);
+    expect(titleColor('Listed by')).not.toBe(mockTheme.colors.text.alternative);
+  });
+
+  it('outlines only the unselected FilterButtons', () => {
+    const { getByTestId } = renderSheet({ currency: 'base' });
+
+    const selectedStyle = StyleSheet.flatten(
+      getByTestId('config-sheet-currency-base').props.style,
+    );
+    const unselectedStyle = StyleSheet.flatten(
+      getByTestId('config-sheet-currency-usd').props.style,
+    );
+
+    expect(unselectedStyle.borderWidth).toBe(1);
+    expect(unselectedStyle.borderColor).toBe(mockTheme.colors.border.muted);
+
+    // Selected is a muted fill only — no visible outline.
+    expect(selectedStyle.borderColor).toBe('transparent');
+    expect(selectedStyle.backgroundColor).toBeTruthy();
   });
 
   it('renders the order-book layout options with the current side selected', () => {

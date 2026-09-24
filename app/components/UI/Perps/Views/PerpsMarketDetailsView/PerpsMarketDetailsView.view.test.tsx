@@ -814,7 +814,7 @@ describe('PerpsMarketDetailsView', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        within(marketSummary).getByTestId(
+        screen.getByTestId(
           PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();

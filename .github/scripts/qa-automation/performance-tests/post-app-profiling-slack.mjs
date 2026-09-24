@@ -21,6 +21,13 @@
  */
 
 import fs from 'fs';
+import path from 'path';
+import {
+  listRunArtifacts,
+  linkScenarioNames,
+  readManifest,
+  scenarioDownloadMap,
+} from './link-scenario-artifacts.mjs';
 
 const SLACK_API = 'https://slack.com/api';
 /** Slack rejects text over 40k; leave room for the footer. */
@@ -75,43 +82,154 @@ async function openDirectMessage(target, token, options = {}) {
 
 function buildText(markdown, runUrl, runLabel = 'GitHub run') {
   let text = String(markdown || '').trim();
-  if (text.length > MAX_TEXT_LENGTH) {
-    text = `${text.slice(0, MAX_TEXT_LENGTH)}\n_Truncated for Slack._`;
-  }
   if (runUrl) {
     text = `${text}\n<${runUrl}|${runLabel || 'GitHub run'}>`;
   }
   return text;
 }
 
+/**
+ * Slack rejects a single chat.postMessage over 40k characters. Split on
+ * blank lines instead of cutting mid-sentence. A paragraph longer than the
+ * budget is split on newlines, then hard-sliced only as a last resort so
+ * nothing is dropped.
+ */
+function splitForSlack(markdown, maxLength = MAX_TEXT_LENGTH) {
+  const text = String(markdown || '').trim();
+  if (text.length === 0) {
+    return [''];
+  }
+  if (text.length <= maxLength) {
+    return [text];
+  }
+
+  const parts = [];
+  let current = '';
+  const append = (chunk) => {
+    const next = current ? `${current}\n\n${chunk}` : chunk;
+    if (next.length <= maxLength) {
+      current = next;
+      return;
+    }
+    if (current) {
+      parts.push(current);
+    }
+    if (chunk.length <= maxLength) {
+      current = chunk;
+      return;
+    }
+    for (let offset = 0; offset < chunk.length; offset += maxLength) {
+      const slice = chunk.slice(offset, offset + maxLength);
+      if (offset + maxLength >= chunk.length) {
+        current = slice;
+      } else {
+        parts.push(slice);
+      }
+    }
+  };
+
+  for (const paragraph of text.split(/\n{2,}/)) {
+    if (paragraph.length <= maxLength) {
+      append(paragraph);
+      continue;
+    }
+    for (const line of paragraph.split('\n')) {
+      append(line);
+    }
+  }
+  if (current) {
+    parts.push(current);
+  }
+  return parts;
+}
+
+function addScenarioArtifactLinks(markdown, artifacts, { repo, runId, manifest }) {
+  const mappings = scenarioDownloadMap(artifacts, manifest, repo, runId);
+  if (mappings.length === 0) {
+    throw new Error('No per-scenario Hermes profile artifacts were published');
+  }
+  return linkScenarioNames(markdown, mappings);
+}
+
 async function post(channel, text, token, options) {
-  const body = await slackApi(
-    'chat.postMessage',
-    token,
-    {
-      channel,
-      text,
-      unfurl_links: false,
-      unfurl_media: false,
-    },
-    options,
-  );
+  const payload = {
+    channel,
+    text,
+    unfurl_links: false,
+    unfurl_media: false,
+  };
+  if (options?.threadTs) {
+    payload.thread_ts = options.threadTs;
+  }
+  const body = await slackApi('chat.postMessage', token, payload, options);
   return { channel, ts: body.ts };
+}
+
+async function postAllParts(
+  channel,
+  parts,
+  token,
+  options,
+  runUrl,
+  runLabel,
+) {
+  let parentTs = null;
+  let last = null;
+  for (let index = 0; index < parts.length; index += 1) {
+    const isLast = index === parts.length - 1;
+    const text = buildText(parts[index], isLast ? runUrl : '', runLabel);
+    last = await post(channel, text, token, {
+      ...options,
+      threadTs: parentTs || undefined,
+    });
+    if (!parentTs) {
+      parentTs = last.ts;
+    }
+  }
+  return { parentTs, last };
 }
 
 /**
  * Posts the summary, addressing a user id directly first because that only
  * needs `chat:write`. Opening the DM explicitly needs the extra `im:write`
  * scope, so it is a fallback rather than the default path.
+ *
+ * Messages that exceed Slack's 40k limit are posted as a thread, not cut.
  */
 async function postSummary(
-  { markdown, target, token, runUrl, runLabel },
+  { markdown, target, token, runUrl, runLabel, cards = [] },
   options = {},
 ) {
-  const text = buildText(markdown, runUrl, runLabel);
+  const footerReserve = runUrl ? 400 : 0;
+  const parts = splitForSlack(markdown, MAX_TEXT_LENGTH - footerReserve);
+  const cardParts = cards.flatMap((card) =>
+    splitForSlack(card, MAX_TEXT_LENGTH - footerReserve),
+  );
+
+  const deliver = async (channel) => {
+    const posted = await postAllParts(
+      channel,
+      parts,
+      token,
+      options,
+      cardParts.length > 0 ? '' : runUrl,
+      runLabel,
+    );
+    let last = posted.last;
+    for (let index = 0; index < cardParts.length; index += 1) {
+      const isLast = index === cardParts.length - 1;
+      last = await post(
+        channel,
+        buildText(cardParts[index], isLast ? runUrl : '', runLabel),
+        token,
+        { ...options, threadTs: posted.parentTs },
+      );
+    }
+    return last;
+  };
 
   try {
-    return await post(target, text, token, options);
+    return await deliver(target);
   } catch (error) {
     if (!isUserId(target)) {
       throw error;
@@ -122,7 +240,18 @@ async function postSummary(
   }
 
   const channel = await openDirectMessage(target, token, options);
-  return post(channel, text, token, options);
+  return deliver(channel);
+}
+
+function readSlackCards(markdownPath) {
+  const cardsPath = path.join(path.dirname(markdownPath), 'slack-cards.json');
+  if (!fs.existsSync(cardsPath)) {
+    return [];
+  }
+  const parsed = JSON.parse(fs.readFileSync(cardsPath, 'utf8'));
+  return Array.isArray(parsed)
+    ? parsed.filter((card) => typeof card === 'string' && card.trim())
+    : [];
 }
 
 async function main() {
@@ -144,12 +273,37 @@ async function main() {
     return;
   }
 
+  let markdown = fs.readFileSync(markdownPath, 'utf8');
+  const githubToken = process.env.GITHUB_TOKEN;
+  const githubRepository = process.env.GITHUB_REPOSITORY;
+  const githubRunId = process.env.GITHUB_RUN_ID;
+  if (githubToken && githubRepository && githubRunId) {
+    const artifacts = await listRunArtifacts(
+      githubRepository,
+      githubRunId,
+      githubToken,
+    );
+    const hasScenarioArtifacts = artifacts.some((artifact) =>
+      String(artifact.name || '').startsWith('hermes-profile-'),
+    );
+    if (hasScenarioArtifacts) {
+      markdown = addScenarioArtifactLinks(markdown, artifacts, {
+        repo: githubRepository,
+        runId: githubRunId,
+        manifest: readManifest(markdownPath),
+      });
+    } else {
+      console.log('ℹ️ No per-scenario Hermes artifacts; posting digest as-is');
+    }
+  }
+
   const result = await postSummary({
-    markdown: fs.readFileSync(markdownPath, 'utf8'),
+    markdown,
     target,
     token,
     runUrl: process.env.GITHUB_RUN_URL,
     runLabel: process.env.GITHUB_RUN_LABEL,
+    cards: readSlackCards(markdownPath),
   });
   console.log(`✅ Slack message sent to ${result.channel} (ts=${result.ts})`);
 }
@@ -160,4 +314,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { isUserId, openDirectMessage, buildText, postSummary };
+export {
+  isUserId,
+  openDirectMessage,
+  buildText,
+  splitForSlack,
+  addScenarioArtifactLinks,
+  postSummary,
+  readSlackCards,
+};

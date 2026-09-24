@@ -95,6 +95,8 @@ export interface CancelSurveyStepProps {
   onBack: () => void;
   onKeepMembership: () => void;
   onCancelConfirm: () => void;
+  isSubmitting: boolean;
+  errorMessage: string | null;
 }
 
 const CancelSurveyStep = ({
@@ -107,6 +109,8 @@ const CancelSurveyStep = ({
   onBack,
   onKeepMembership,
   onCancelConfirm,
+  isSubmitting,
+  errorMessage,
 }: CancelSurveyStepProps) => {
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -187,6 +191,7 @@ const CancelSurveyStep = ({
             onPress={onBack}
             accessibilityLabel={strings('navigation.back')}
             testID={CancelMembershipTestIds.BACK_BUTTON}
+            isDisabled={isSubmitting}
           />
         }
       />
@@ -350,6 +355,7 @@ const CancelSurveyStep = ({
           onPress={onKeepMembership}
           testID={CancelMembershipTestIds.KEEP_BUTTON}
           isFullWidth
+          isDisabled={isSubmitting}
         >
           {strings('pro_hub.cancel_membership.keep_membership')}
         </Button>
@@ -359,9 +365,21 @@ const CancelSurveyStep = ({
           onPress={onCancelConfirm}
           testID={CancelMembershipTestIds.CANCEL_BUTTON}
           isFullWidth
+          isDisabled={isSubmitting}
+          isLoading={isSubmitting}
         >
           {strings('pro_hub.cancel_membership.cancel')}
         </Button>
+        {errorMessage && (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            twClassName="text-center"
+            testID={CancelMembershipTestIds.ERROR_MESSAGE}
+          >
+            {errorMessage}
+          </Text>
+        )}
       </Box>
     </>
   );
