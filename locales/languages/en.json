@@ -11501,7 +11501,7 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
-      "money_account_deposit": "Deposit to Money Account",
+      "money_account_deposit": "Added to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
       "default": "Transaction details"
     },
