@@ -183,12 +183,6 @@ export function startSplashRevealTax(): void {
     trace({
       name: TraceName.SplashRevealTax,
       op: TraceOperation.UIStartup,
-      // `UI Startup` is still open at `appServicesReady` — it does not end
-      // until `App`'s mount effect, which runs after the gate unblocks. Without
-      // this the span would be absorbed into that trace instead of being
-      // queryable on its own, which is the whole point of keeping it separate
-      // from the unlock CUF. Same reason as `DeeplinkPerformance`.
-      forceTransaction: true,
     }),
   );
 }
@@ -231,11 +225,6 @@ export function startAppStartToUnlockLaidOut(): void {
       name: TraceName.AppStartToUnlockLaidOut,
       op: TraceOperation.UIStartup,
       startTime: Performance.appLaunchTime,
-      // A top-level CUF, so it must be its own transaction rather than a span
-      // hanging off whatever trace happens to be open. `HomepageReady` gets
-      // away without this because it starts at unlock submit, long after
-      // `UI Startup` has ended; this one can start while it is still live.
-      forceTransaction: true,
     }),
   );
 }

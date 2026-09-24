@@ -79,15 +79,6 @@ describe('startupStageSpans', () => {
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
-    it('is not forced to a transaction, so it stays inside the UIStartup tree', () => {
-      startPostInitGap();
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({ name: TraceName.PostInitGap }),
-      );
-      expect(mockTrace.mock.calls[0][0].forceTransaction).toBeUndefined();
-    });
-
     it('nests under UIStartup rather than becoming a root transaction', () => {
       // A root span is sampled independently, never appears in the UIStartup
       // tree, and is dropped by `excludeEvents` if it times out instead of
@@ -130,17 +121,6 @@ describe('startupStageSpans', () => {
       endAppStartToUnlockLaidOut();
 
       expect(mockEndTrace).not.toHaveBeenCalled();
-    });
-
-    it('is forced to a transaction so it stays independently queryable', () => {
-      startAppStartToUnlockLaidOut();
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.AppStartToUnlockLaidOut,
-          forceTransaction: true,
-        }),
-      );
     });
 
     it('closes only on the first native layout', () => {
@@ -193,19 +173,6 @@ describe('startupStageSpans', () => {
       endSplashRevealTax();
 
       expect(mockEndTrace).not.toHaveBeenCalled();
-    });
-
-    it('is forced to a transaction so it stays independently queryable', () => {
-      // `UI Startup` is still open at `appServicesReady`, so without this the
-      // span is absorbed into that trace rather than queryable on its own.
-      startSplashRevealTax();
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.SplashRevealTax,
-          forceTransaction: true,
-        }),
-      );
     });
   });
 
