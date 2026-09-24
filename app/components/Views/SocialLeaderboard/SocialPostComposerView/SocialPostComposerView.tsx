@@ -167,8 +167,7 @@ const SocialPostComposerView: React.FC = () => {
       authorHandle: profile?.handle ?? 'giga-whale',
       authorImageUrl: profile?.imageUrl,
       timestampMs: Date.now(),
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       gifUri: gifUri ?? undefined,
       item,
     });

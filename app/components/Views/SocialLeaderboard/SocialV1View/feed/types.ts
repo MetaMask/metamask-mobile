@@ -123,8 +123,15 @@ export interface SocialV1FeedPost {
   authorHandle: string;
   authorImageUrl?: string | null;
   timestampMs: number;
-  likeCount: number;
-  commentCount: number;
+  /**
+   * Swap-comment id for the Call this post reacts to. Absent on pending
+   * composer posts and on live rows with no authorComment. The heart still
+   * renders; picks stay session-local until a Call id exists.
+   */
+  commentId?: string;
+  reactions: { emotion: string; count: number }[];
+  /** Session/API viewer emotion when known. */
+  userReaction?: string | null;
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;
