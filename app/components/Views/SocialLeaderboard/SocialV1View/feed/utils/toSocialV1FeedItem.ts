@@ -12,6 +12,7 @@ import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
 import { markMocked, type SocialV1MockedField } from '../mockMarker';
 import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
+import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
 
@@ -169,7 +170,8 @@ export function toSocialV1FeedItem(
     followerCount: card.actor.followerCount ?? null,
   };
 
-  const commentText = core.authorComment?.text?.trim();
+  const authorComment = readAuthorComment(core);
+  const commentText = authorComment?.text?.trim();
   const comment = commentText || undefined;
 
   const base = {
