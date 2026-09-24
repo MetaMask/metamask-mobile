@@ -2374,7 +2374,7 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId('referral-invite-sheet')).toBeNull();
     });
 
-    it('shows the accepted toast on accept', () => {
+    it('opens the referral activated splash on accept', () => {
       // Arrange
       const { getByTestId } = render(<RewardsDashboard />);
 
@@ -2382,8 +2382,8 @@ describe('RewardsDashboard', () => {
       acceptInvite(getByTestId);
 
       // Assert
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: 'success' }),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_REFERRAL_ACCEPTED_SPLASH_VIEW,
       );
     });
 

@@ -67,6 +67,7 @@ import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPe
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
+import RewardsReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsReferralAcceptedSplashView';
 import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
@@ -1036,6 +1037,16 @@ const MainNavigator = () => {
         name={Routes.REWARDS_FLOW}
         component={RewardsNavigator}
         options={{ headerShown: false }}
+      />
+      {/*
+       * Root-level rather than a REWARDS_FLOW screen: the flow is pushed with
+       * the root-stack transition, and this confirmation needs to fade in and
+       * out over the dashboard like the Money onboarding tour.
+       */}
+      <NativeStack.Screen
+        name={Routes.REWARDS_REFERRAL_ACCEPTED_SPLASH_VIEW}
+        component={RewardsReferralAcceptedSplashView}
+        options={{ headerShown: false, ...fadeNativeOptions }}
       />
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}

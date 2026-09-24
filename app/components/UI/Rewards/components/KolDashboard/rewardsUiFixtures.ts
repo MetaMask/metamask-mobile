@@ -15,6 +15,8 @@ export const REWARDS_UI_DEFAULT_PERSONA: RewardsUiPersona = 'kol';
 export const KOL_INVITE_FIXTURE = {
   referralCode: KOL_REFERRAL_CODE_FALLBACK,
   codeLength: 6,
+  /** Matches the `invited_benefit_offer_ends` copy on the referred dashboard. */
+  offerDurationDays: 30,
 };
 
 /**

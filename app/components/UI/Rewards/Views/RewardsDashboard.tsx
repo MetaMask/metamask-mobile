@@ -549,13 +549,11 @@ const RewardsDashboard: React.FC = () => {
       setIsInviteSheetVisible(false);
       setHasOptedInAccounts(false);
       setDashboardTab('waysToEarn');
-      showToast(
-        RewardsToastOptions.success(
-          strings('rewards.kol.invite_accepted_toast'),
-        ),
-      );
+      // The sheet unmounts with this render, so the splash fades in over the
+      // referred dashboard the user returns to when they dismiss it.
+      navigation.navigate(Routes.REWARDS_REFERRAL_ACCEPTED_SPLASH_VIEW);
     },
-    [RewardsToastOptions, showToast],
+    [navigation],
   );
 
   const handleDeclineInvite = useCallback(() => {
