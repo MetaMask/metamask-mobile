@@ -2374,18 +2374,22 @@ export class RewardsDataService {
    * Register (or re-assert) the Money Account holder address for a subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @param timestamp - The timestamp (ms) included in the signed message.
+   * @param signature - The Money Account signature of the binding message.
    * @returns `'bound'` on 201/200, or `'conflict'` when the address is already
    * bound to a different subscription (409).
    */
   async registerMoneyAccountBinding(
     subscriptionId: string,
     moneyAccountAddress: string,
+    timestamp: number,
+    signature: string,
   ): Promise<'bound' | 'conflict'> {
     const response = await this.makeRequest(
-      '/wr/money-account/binding',
+      '/wr/money-account/binding/signed',
       {
         method: 'POST',
-        body: JSON.stringify({ moneyAccountAddress }),
+        body: JSON.stringify({ moneyAccountAddress, timestamp, signature }),
       },
       subscriptionId,
     );

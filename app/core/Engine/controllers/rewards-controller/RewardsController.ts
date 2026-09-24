@@ -4120,6 +4120,7 @@ export class RewardsController extends BaseController<
 
   /**
    * Register (or re-assert) the Money Account holder address for a subscription.
+   * The request carries a personal_sign signature from the Money Account.
    * Results are memoized in-session so repeated re-asserts do not re-POST, and
    * a discovered conflict is returned synchronously on subsequent calls.
    * @param moneyAccountAddress - The Money Account holder address to bind.
@@ -4140,12 +4141,24 @@ export class RewardsController extends BaseController<
       return cached;
     }
 
+    const timestamp = Date.now();
+    const message = `metamask-rewards:money-account-binding:${subscriptionId}:${moneyAccountAddress.toLowerCase()}:${timestamp}`;
+    const signature = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: '0x' + Buffer.from(message, 'utf8').toString('hex'),
+        from: moneyAccountAddress,
+      },
+    );
+
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Registering Money Account binding');
       return (await this.messenger.call(
         'RewardsDataService:registerMoneyAccountBinding',
         subscriptionId,
         moneyAccountAddress,
+        timestamp,
+        signature,
       )) as 'bound' | 'conflict';
     }, subscriptionId);
 
