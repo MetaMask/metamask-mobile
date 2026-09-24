@@ -36,6 +36,78 @@ export const SPRINGBOARD_FADE_OUT: WithTimingConfig = {
   reduceMotion: ReduceMotion.Never,
 };
 
+// The glass path grows the surface's own frame instead of scaling its layer:
+// `UIGlassEffect` renders its refraction at the layer's size, so a scaled glass
+// layer warps and its corner radius visibly wobbles mid-flight.
+export const MORPH_COLLAPSE: WithTimingConfig = {
+  duration: 180,
+  easing: Easing.in(Easing.cubic),
+  reduceMotion: ReduceMotion.System,
+};
+
+// Content arrives at its final size and cross-fades, so labels never stretch.
+export const MORPH_CONTENT_FADE_IN: WithTimingConfig = {
+  duration: 140,
+  easing: Easing.out(Easing.quad),
+  reduceMotion: ReduceMotion.Never,
+};
+
+export const MORPH_CONTENT_FADE_OUT: WithTimingConfig = {
+  duration: 90,
+  easing: Easing.in(Easing.quad),
+  reduceMotion: ReduceMotion.Never,
+};
+
+/** A menu edge, in the coordinates the morph animates between. */
+export interface MorphRect {
+  left: number;
+  bottom: number;
+  width: number;
+  height: number;
+  borderRadius: number;
+}
+
+/**
+ * The button rect the menu grows out of, and the rect it settles into: the
+ * full-width tray sitting a gap above the button it was opened from.
+ */
+export const getMorphRects = ({
+  buttonLayout,
+  containerHeight,
+  containerWidth,
+  horizontalInset,
+  gap,
+  trayHeight,
+  trayRadius,
+}: {
+  buttonLayout: { x: number; y: number; width: number; height: number };
+  containerHeight: number;
+  containerWidth: number;
+  horizontalInset: number;
+  gap: number;
+  trayHeight: number;
+  trayRadius: number;
+}): { from: MorphRect; to: MorphRect } => {
+  const buttonBottom = containerHeight - buttonLayout.y - buttonLayout.height;
+
+  return {
+    from: {
+      left: buttonLayout.x,
+      bottom: buttonBottom,
+      width: buttonLayout.width,
+      height: buttonLayout.height,
+      borderRadius: buttonLayout.height / 2,
+    },
+    to: {
+      left: horizontalInset,
+      bottom: buttonBottom + buttonLayout.height + gap,
+      width: containerWidth - horizontalInset * 2,
+      height: trayHeight,
+      borderRadius: trayRadius,
+    },
+  };
+};
+
 /** Pops the menu out from its `transformOrigin`, like a SpringBoard menu. */
 export const springboardEnter = (): LayoutAnimation => {
   'worklet';

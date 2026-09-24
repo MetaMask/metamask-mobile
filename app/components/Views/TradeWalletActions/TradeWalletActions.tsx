@@ -18,9 +18,11 @@ import {
 import Animated, {
   Easing,
   FadeOutDown,
+  interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
   type EntryOrExitLayoutType,
 } from 'react-native-reanimated';
@@ -101,13 +103,22 @@ import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 import {
+  MORPH_COLLAPSE,
+  MORPH_CONTENT_FADE_IN,
+  MORPH_CONTENT_FADE_OUT,
   SPRINGBOARD_FADE_IN,
   SPRINGBOARD_FADE_OUT,
+  SPRINGBOARD_SPRING,
+  getMorphRects,
   springboardEnter,
   springboardExit,
 } from './TradeWalletActions.animations';
 
 const bottomMaskHeight = 35;
+// The `px-4` gutter the tray sits in and the `mb-4` it clears the bar by, as
+// numbers, because the morph animates the surface's own frame.
+const TRAY_HORIZONTAL_INSET = 16;
+const TRAY_BUTTON_GAP = 16;
 // The trade-focused sheet sits on a blur with its own edge, so its page is not dimmed.
 const TRADE_FOCUSED_BACKDROP_OPACITY = 0.2;
 export const TRADE_FOCUSED_BORDER_OPACITY = 0.2;
@@ -116,6 +127,12 @@ const animationDuration = AnimationDuration.Fast;
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
+
+// The morph surface stays hidden until the rows report the height it grows to.
+const morphStyles = StyleSheet.create({
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+});
 
 export interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -196,16 +213,68 @@ function TradeWalletActions() {
     [],
   );
 
+  // Glass grows its own frame out of the button rather than scaling, which
+  // needs the button it came from and a measured tray height.
+  const isMorphMenu =
+    isSpringboardMenu && isGlassSheet && Boolean(buttonLayout);
+  const [trayHeight, setTrayHeight] = useState<number>();
+  const morphRects = useMemo(() => {
+    if (!buttonLayout || trayHeight === undefined) {
+      return undefined;
+    }
+    return getMorphRects({
+      // Same window-to-container correction the tray's bottom spacer makes.
+      buttonLayout: { ...buttonLayout, y: buttonLayout.y + insetsTop },
+      containerHeight: screenHeight,
+      containerWidth: windowWidth,
+      horizontalInset: TRAY_HORIZONTAL_INSET,
+      gap: TRAY_BUTTON_GAP,
+      trayHeight,
+      trayRadius: TRADE_TRAY_GLASS_RADIUS,
+    });
+  }, [buttonLayout, insetsTop, screenHeight, trayHeight, windowWidth]);
+
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
 
-  const sheetProgress = useSharedValue(isSpringboardMenu ? 1 : 0);
+  const sheetProgress = useSharedValue(0);
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
     opacity: isGlassSheet ? 1 : sheetProgress.value,
     transform: [{ translateY: (1 - sheetProgress.value) * 50 }],
   }));
+
+  const morphProgress = useSharedValue(0);
+  const morphContentOpacity = useSharedValue(0);
+  const morphAnimatedStyle = useAnimatedStyle(() => {
+    if (!morphRects) {
+      return {};
+    }
+    const { from, to } = morphRects;
+    const progress = morphProgress.value;
+    const between = (start: number, end: number) =>
+      interpolate(progress, [0, 1], [start, end]);
+
+    return {
+      left: between(from.left, to.left),
+      bottom: between(from.bottom, to.bottom),
+      width: between(from.width, to.width),
+      height: between(from.height, to.height),
+      borderRadius: between(from.borderRadius, to.borderRadius),
+    };
+  });
+  const morphContentAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: morphContentOpacity.value,
+  }));
+
+  useEffect(() => {
+    if (!isMorphMenu || !morphRects) {
+      return;
+    }
+    morphProgress.value = withSpring(1, SPRINGBOARD_SPRING);
+    morphContentOpacity.value = withTiming(1, MORPH_CONTENT_FADE_IN);
+  }, [isMorphMenu, morphContentOpacity, morphProgress, morphRects]);
 
   useEffect(() => {
     backdropOpacity.value = withTiming(
@@ -214,9 +283,9 @@ function TradeWalletActions() {
         ? SPRINGBOARD_FADE_IN
         : { duration: animationDuration, easing: Easing.linear },
     );
-    if (!isSpringboardMenu) {
-      sheetProgress.value = withTiming(1, { duration: animationDuration });
-    }
+    sheetProgress.value = isSpringboardMenu
+      ? 1
+      : withTiming(1, { duration: animationDuration });
   }, [backdropOpacity, isSpringboardMenu, isTradeFocusedArm, sheetProgress]);
 
   const springboardAnchorStyle = useMemo<ViewStyle>(
@@ -266,13 +335,45 @@ function TradeWalletActions() {
     navigation.goBack();
   }, [navigation]);
 
+  const handleExitComplete = useCallback(() => {
+    const callback = postCallback.current;
+    postCallback.current = undefined;
+
+    dismissRootModalFlow();
+
+    if (callback) {
+      // Defer navigation until RootModalFlow is fully dismissed so screens
+      // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+      requestAnimationFrame(() => {
+        callback();
+      });
+    }
+  }, [dismissRootModalFlow]);
+
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     if (isSpringboardMenu) {
       backdropOpacity.value = withTiming(0, SPRINGBOARD_FADE_OUT);
     }
+    if (isMorphMenu) {
+      morphContentOpacity.value = withTiming(0, MORPH_CONTENT_FADE_OUT);
+      morphProgress.value = withTiming(0, MORPH_COLLAPSE, (finished) => {
+        if (finished) {
+          runOnJS(handleExitComplete)();
+        }
+      });
+      return;
+    }
     setIsVisible(false);
-  }, [backdropOpacity, isSpringboardMenu, onDismiss]);
+  }, [
+    backdropOpacity,
+    handleExitComplete,
+    isMorphMenu,
+    isSpringboardMenu,
+    morphContentOpacity,
+    morphProgress,
+    onDismiss,
+  ]);
 
   const onActionSelected = useCallback(
     (callback: () => void | Promise<void>) => {
@@ -359,21 +460,6 @@ function TradeWalletActions() {
     }, [handleNavigateBack]),
   );
 
-  const handleExitComplete = useCallback(() => {
-    const callback = postCallback.current;
-    postCallback.current = undefined;
-
-    dismissRootModalFlow();
-
-    if (callback) {
-      // Defer navigation until RootModalFlow is fully dismissed so screens
-      // on MainNavigator (e.g. StakeModals) are not opened underneath it.
-      requestAnimationFrame(() => {
-        callback();
-      });
-    }
-  }, [dismissRootModalFlow]);
-
   const exitingWithNavigateBack = useMemo<EntryOrExitLayoutType>(() => {
     if (!isSpringboardMenu) {
       return FadeOutDown.duration(animationDuration).withCallback(
@@ -456,6 +542,45 @@ function TradeWalletActions() {
       />
     </>
   );
+
+  // The surface is clipped to its animating frame, so the rows are laid out at
+  // their final width from the first frame and are revealed rather than scaled.
+  const morphTray = (
+    <Animated.View
+      style={[
+        tw.style('absolute overflow-hidden'),
+        glassBorderStyle,
+        morphRects ? morphStyles.visible : morphStyles.hidden,
+        morphAnimatedStyle,
+      ]}
+    >
+      <GlassView
+        glassEffectStyle="regular"
+        colorScheme={glassColorScheme}
+        testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+        style={StyleSheet.absoluteFill}
+      />
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          tw.style(surfaceClass),
+          { opacity: TRADE_TRAY_GLASS_FILL_OPACITY },
+        ]}
+      />
+      <Animated.View
+        onLayout={(event) => setTrayHeight(event.nativeEvent.layout.height)}
+        style={[
+          tw.style('absolute bottom-0 left-0 py-4'),
+          { width: windowWidth - TRAY_HORIZONTAL_INSET * 2 },
+          morphContentAnimatedStyle,
+        ]}
+      >
+        {actionList}
+      </Animated.View>
+    </Animated.View>
+  );
+
   const sheetContent = (
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
@@ -584,23 +709,29 @@ function TradeWalletActions() {
         </Pressable>
       </Animated.View>
 
-      {visible && (
-        <Animated.View
-          collapsable={false}
-          entering={isSpringboardMenu ? springboardEnter : undefined}
-          exiting={exitingWithNavigateBack}
-          style={isSpringboardMenu ? springboardAnchorStyle : undefined}
-        >
-          {sheetContent}
-        </Animated.View>
+      {isMorphMenu ? (
+        morphTray
+      ) : (
+        <>
+          {visible && (
+            <Animated.View
+              collapsable={false}
+              entering={isSpringboardMenu ? springboardEnter : undefined}
+              exiting={exitingWithNavigateBack}
+              style={isSpringboardMenu ? springboardAnchorStyle : undefined}
+            >
+              {sheetContent}
+            </Animated.View>
+          )}
+          <View
+            style={tw.style('pointer-events-none', {
+              height: buttonLayout
+                ? screenHeight - buttonLayout.y - insetsTop
+                : bottomSpacerHeight,
+            })}
+          />
+        </>
       )}
-      <View
-        style={tw.style('pointer-events-none', {
-          height: buttonLayout
-            ? screenHeight - buttonLayout.y - insetsTop
-            : bottomSpacerHeight,
-        })}
-      />
     </View>
   );
 }

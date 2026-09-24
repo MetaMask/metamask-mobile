@@ -119,10 +119,24 @@ jest.mock('react-native-reanimated', () => {
       }),
     },
     runOnJS: (fn: () => void) => fn,
+    interpolate: (
+      value: number,
+      input: [number, number],
+      output: [number, number],
+    ) =>
+      output[0] +
+      ((value - input[0]) / (input[1] - input[0])) * (output[1] - output[0]),
     withSpring: (value: number, config?: unknown) =>
       mockWithSpring(value, config),
-    withTiming: (value: number, config?: unknown) =>
-      mockWithTiming(value, config),
+    withTiming: (
+      value: number,
+      config?: unknown,
+      callback?: (finished: boolean) => void,
+    ) => {
+      const result = mockWithTiming(value, config);
+      callback?.(true);
+      return result;
+    },
   };
 });
 
@@ -845,6 +859,109 @@ describe('TradeWalletActions', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('glass morph menu', () => {
+    const morphParams = {
+      onDismiss: mockOnDismiss,
+      buttonLayout: { height: 100, width: 100, x: 654, y: 321 },
+      hasBottomNotch: false,
+    };
+    const TRAY_HEIGHT = 240;
+
+    const renderMorphTray = () => {
+      const screen = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      // The surface only knows where to grow to once the rows have measured.
+      const [contentProps] = mockAnimatedView.mock.calls.find(
+        ([props]) => props.onLayout,
+      ) as [{ onLayout: (event: unknown) => void }];
+      act(() => {
+        contentProps.onLayout({
+          nativeEvent: { layout: { height: TRAY_HEIGHT } },
+        });
+      });
+
+      return screen;
+    };
+
+    beforeEach(() => {
+      mockIsTradeFocusedArm = true;
+      mockIsGlassEnabled = true;
+      mockUseParams.mockReturnValue(morphParams);
+      mockAnimatedView.mockClear();
+      mockGlassView.mockClear();
+      mockWithSpring.mockClear();
+      mockWithTiming.mockClear();
+    });
+
+    afterEach(() => {
+      mockIsTradeFocusedArm = false;
+      mockIsGlassEnabled = false;
+    });
+
+    it('grows the glass surface out of the button instead of scaling it', () => {
+      renderMorphTray();
+
+      expect(mockAnimatedView).not.toHaveBeenCalledWith(
+        expect.objectContaining({ entering: springboardEnter }),
+      );
+      expect(mockWithSpring).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ stiffness: 322, damping: 26 }),
+      );
+
+      // The surface starts as the button's own circle and is clipped to it, so
+      // the rows are revealed by the growing frame rather than scaled into it.
+      // The last render is the one after the rows reported their height.
+      const morphCalls = mockAnimatedView.mock.calls.filter(([props]) => {
+        const style = StyleSheet.flatten(props.style);
+        return style?.overflow === 'hidden';
+      });
+      expect(StyleSheet.flatten(morphCalls.at(-1)?.[0].style)).toMatchObject({
+        left: morphParams.buttonLayout.x,
+        width: morphParams.buttonLayout.width,
+        height: morphParams.buttonLayout.height,
+        borderRadius: morphParams.buttonLayout.height / 2,
+      });
+    });
+
+    it('draws the rows on the glass surface rather than inside it', () => {
+      renderMorphTray();
+
+      expect(mockGlassView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          glassEffectStyle: 'regular',
+          testID: WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER,
+        }),
+      );
+      const [glassProps] = mockGlassView.mock.calls[0];
+      expect(StyleSheet.flatten(glassProps.style)).toMatchObject(
+        StyleSheet.flatten(StyleSheet.absoluteFill),
+      );
+    });
+
+    it('collapses back into the button and then dismisses', async () => {
+      const { getByTestId } = renderMorphTray();
+      mockWithTiming.mockClear();
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+      );
+
+      expect(mockOnDismiss).toHaveBeenCalled();
+      expect(mockWithTiming).toHaveBeenCalledWith(
+        0,
+        expect.objectContaining({ duration: 180 }),
+      );
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockGoToSwaps).toHaveBeenCalled();
     });
   });
 

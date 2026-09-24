@@ -1,6 +1,7 @@
 import { ReduceMotion } from 'react-native-reanimated';
 
 import {
+  getMorphRects,
   springboardEnter,
   springboardExit,
 } from './TradeWalletActions.animations';
@@ -98,5 +99,37 @@ describe('springboardExit', () => {
         reduceMotion: ReduceMotion.System,
       }),
     );
+  });
+});
+
+describe('getMorphRects', () => {
+  const rects = getMorphRects({
+    buttonLayout: { x: 300, y: 700, width: 60, height: 60 },
+    containerHeight: 900,
+    containerWidth: 400,
+    horizontalInset: 16,
+    gap: 16,
+    trayHeight: 240,
+    trayRadius: 24,
+  });
+
+  it('starts as the opening button, as a circle', () => {
+    expect(rects.from).toEqual({
+      left: 300,
+      bottom: 140,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+    });
+  });
+
+  it('settles as the full-width tray a gap above that button', () => {
+    expect(rects.to).toEqual({
+      left: 16,
+      bottom: 216,
+      width: 368,
+      height: 240,
+      borderRadius: 24,
+    });
   });
 });
