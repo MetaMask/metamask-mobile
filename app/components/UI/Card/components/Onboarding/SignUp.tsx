@@ -744,7 +744,7 @@ const SignUp = () => {
                 'card.card_onboarding.set_phone_number.phone_number_label',
               )}
             </Label>
-            <Box twClassName="flex flex-row items-center justify-center gap-2">
+            <Box twClassName="flex-row items-center justify-center gap-2">
               <Box twClassName="w-26">
                 <SelectField
                   value={`${phoneRegion?.emoji ?? ''} +${phoneRegion?.areaCode ?? ''}`}

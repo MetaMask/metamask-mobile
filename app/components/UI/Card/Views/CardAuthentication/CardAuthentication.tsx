@@ -82,6 +82,8 @@ import SignInOtpFields, { CODE_LENGTH } from './components/SignInOtpFields';
 import { useResetOnResolvedKind } from './useResetOnResolvedKind';
 import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
+const RESEND_COOLDOWN_SECONDS = 60;
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
   CardAuthentication:
@@ -187,7 +189,7 @@ const CardAuthentication = () => {
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-  const [resendCooldown, setResendCooldown] = useState(60);
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const dispatch = useDispatch();
   const lastTrackedAuthView = useRef<string | null>(null);
   const seenLinkedAddressRef = useRef<string | null>(null);
@@ -361,7 +363,7 @@ const CardAuthentication = () => {
   useEffect(() => {
     if (!isOtpStep) return;
     triggerStepAction(undefined, {
-      onSuccess: () => setResendCooldown(60),
+      onSuccess: () => setResendCooldown(RESEND_COOLDOWN_SECONDS),
       onError: (err) =>
         Logger.log('CardAuthentication::Send OTP login failed', err),
     });
@@ -676,7 +678,7 @@ const CardAuthentication = () => {
   const handleResendOtp = useCallback(() => {
     if (resendCooldown > 0 || otpLoading) return;
     triggerStepAction(undefined, {
-      onSuccess: () => setResendCooldown(60),
+      onSuccess: () => setResendCooldown(RESEND_COOLDOWN_SECONDS),
       onError: (err) =>
         Logger.log('CardAuthentication::Resend OTP failed', err),
     });
@@ -685,7 +687,7 @@ const CardAuthentication = () => {
   const handleBackToLogin = useCallback(() => {
     setConfirmCode('');
     setLatestValueSubmitted(null);
-    setResendCooldown(60);
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
     setBanner(null);
     resetToLogin();
   }, [resetToLogin]);

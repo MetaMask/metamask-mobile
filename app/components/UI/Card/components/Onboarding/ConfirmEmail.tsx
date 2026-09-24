@@ -34,6 +34,7 @@ import useRegions from '../../hooks/useRegions';
 import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 const CODE_LENGTH = 6;
+const RESEND_COOLDOWN_SECONDS = 60;
 
 const ConfirmEmail = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -41,7 +42,7 @@ const ConfirmEmail = () => {
   const codeInputRef = useRef<TextInput>(null);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const [confirmCode, setConfirmCode] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(60);
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const { getRegionByCode } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -111,7 +112,7 @@ const ConfirmEmail = () => {
       const { contactVerificationId: newContactVerificationId } =
         await sendEmailVerification(email);
       dispatch(setContactVerificationId(newContactVerificationId));
-      setResendCooldown(60); // 1 minute cooldown
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch {
       // Allow error message to display
     }
