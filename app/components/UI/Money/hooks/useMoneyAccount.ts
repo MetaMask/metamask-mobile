@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
@@ -216,7 +216,16 @@ export function useMoneyAccountDeposit() {
         clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
           if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
-            navigation.goBack();
+            if (options?.forceBottomSheet) {
+              const rootState = NavigationService.navigation.getRootState();
+              NavigationService.navigation.dispatch({
+                ...CommonActions.goBack(),
+                source: rootState.routes[rootState.index].key,
+                target: rootState.key,
+              });
+            } else {
+              navigation.goBack();
+            }
           }
           showToast(
             MoneyToastOptions.deposit.failed({ intent: options?.intent }),
