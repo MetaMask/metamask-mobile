@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { useIsProSubscriber, useProAccess } from './useIsProSubscriber';
+import { useIsPlusSubscriber, usePlusAccess } from './usePlusAccess';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -12,7 +12,7 @@ jest.mock('./useMoneyAccountPlusAccess', () => ({
 
 const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
 
-describe('useIsProSubscriber', () => {
+describe('useIsPlusSubscriber', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -39,24 +39,24 @@ describe('useIsProSubscriber', () => {
     ({ access, expected }) => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(access);
 
-      const { result } = renderHook(() => useIsProSubscriber());
+      const { result } = renderHook(() => useIsPlusSubscriber());
 
       expect(result.current).toBe(expected);
     },
   );
 });
 
-describe('useProAccess', () => {
+describe('usePlusAccess', () => {
   it('marks unresolved access as unknown rather than subscribed', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Unknown,
     );
 
-    const { result } = renderHook(() => useProAccess());
+    const { result } = renderHook(() => usePlusAccess());
 
     expect(result.current).toEqual({
-      isProSubscriber: false,
-      isProAccessUnknown: true,
+      isPlusSubscriber: false,
+      isPlusAccessUnknown: true,
     });
   });
 });

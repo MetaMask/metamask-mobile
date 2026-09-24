@@ -112,7 +112,7 @@ import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
+import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -140,7 +140,7 @@ const MoneyHomeView = () => {
   // Pro entry point: keep subscription state fresh only while the Pro flow is
   // enabled so we do not generate API traffic for users without the flow.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isProSubscriber, isProAccessUnknown } = useProAccess();
+  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
   useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   const {
@@ -398,7 +398,7 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    const destination = isProSubscriber
+    const destination = isPlusSubscriber
       ? {
           button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
           label_key: 'pro_subscription.pro',
@@ -423,15 +423,15 @@ const MoneyHomeView = () => {
     navigation.navigate(destination.route, {
       source: 'money_header',
     });
-  }, [navigation, isProSubscriber, trackButtonClicked]);
+  }, [navigation, isPlusSubscriber, trackButtonClicked]);
 
   // The header only slots the button; this view owns whether the user may see
   // the Pro entry point, what it says, and where it goes. Access stays hidden
   // rather than guessed while subscriptions are unresolved.
   const proButton: MoneyHeaderProButton | undefined =
-    isProSubscriptionEnabled && !isProAccessUnknown
+    isProSubscriptionEnabled && !isPlusAccessUnknown
       ? {
-          label: isProSubscriber
+          label: isPlusSubscriber
             ? strings('pro_subscription.pro')
             : strings('pro_subscription.join_pro'),
           onPress: handleGetProPress,
