@@ -454,6 +454,32 @@ module.exports = {
         'jest/no-restricted-matchers': 'off',
       },
     },
+    // ── Redux action shapes must be type aliases (redux 5) ──
+    // redux 5's `UnknownAction` carries an index signature
+    // (`[extraProps: string]: unknown`). TypeScript only gives *type aliases* an
+    // implicit index signature, never interfaces, so an action declared as an
+    // `interface` is not assignable to `Dispatch<UnknownAction>` and cannot be
+    // dispatched.
+    //
+    // The repo-wide rule above prefers `interface`, and its own TODO says the
+    // intent is to move to `type` eventually. These files have to lead that
+    // move because redux 5 leaves no alternative.
+    {
+      // Scoped to the files that actually dispatch these actions, so the
+      // repo-wide `interface` preference still applies everywhere else.
+      files: [
+        'app/actions/accounts/index.ts',
+        'app/actions/experimental/index.ts',
+        'app/actions/legalNotices/index.ts',
+        'app/actions/onboarding/index.ts',
+        'app/actions/rpcEvents/index.ts',
+        'app/actions/security/index.ts',
+        'app/reducers/banners/index.test.ts',
+      ],
+      rules: {
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      },
+    },
     // ── Perps controller Core-alignment override ──
     // Enforces the same ESLint rules that Core's @metamask/eslint-config
     // applies to packages/perps-controller so that code written in mobile
