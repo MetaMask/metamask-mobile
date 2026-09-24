@@ -10473,7 +10473,7 @@
         },
         "unverified": {
           "title": "Verification required",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification status unavailable",
@@ -10794,8 +10794,8 @@
       "sign_in_help_got_it": "Got it",
       "errors": {
         "invalid_credentials": "Invalid login details",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "Email is required",
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
