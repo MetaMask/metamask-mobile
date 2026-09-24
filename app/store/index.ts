@@ -1,5 +1,5 @@
 import { AnyAction } from 'redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, Tuple } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, Persistor } from 'redux-persist';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import { rootSaga } from './sagas';
@@ -7,7 +7,7 @@ import rootReducer, { RootState } from '../reducers';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { hasTestOverrides } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
@@ -20,7 +20,9 @@ import {
   expireAttributionIfStale,
 } from '../core/redux/slices/attribution';
 
-// TODO: Improve type safety by using real Action types instead of `AnyAction`
+// TODO: `AnyAction` is deprecated in redux 5 in favour of `UnknownAction`.
+// Still exported, so this compiles, but it should be replaced with real Action
+// types (or `UnknownAction`) rather than left indefinitely.
 const pReducer = persistReducer<RootState, AnyAction>(
   persistConfig,
   rootReducer,
@@ -45,11 +47,14 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
-  const middlewares = [sagaMiddleware, thunk];
-
   store = configureStore({
     reducer: pReducer,
-    middleware: middlewares,
+    // RTK 2 requires `middleware` to be a callback returning a `Tuple`.
+    // Returning our own Tuple replaces the default middleware entirely, which
+    // is what passing a plain array did in RTK 1. Deliberately NOT using
+    // `getDefaultMiddleware()` here: it would newly add `immutableCheck` and
+    // `serializableCheck` in dev, which are expensive on a wallet-sized state.
+    middleware: () => new Tuple(sagaMiddleware, thunk),
     preloadedState: initialState,
     devTools: false,
     enhancers: (getDefaultEnhancers) =>
