@@ -5,12 +5,8 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProOrderCard from './PerpsProOrderCard';
-import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
-jest.mock('../../../hooks/usePerpsLocale', () => ({
-  usePerpsLocale: jest.fn(() => 'en-US'),
-}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -69,43 +65,6 @@ describe('PerpsProOrderCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useSelector as jest.Mock).mockReturnValue(false);
-    (usePerpsLocale as jest.Mock).mockReturnValue('en-US');
-  });
-
-  it('groups large prices and sizes in the order summary', () => {
-    render(
-      <PerpsProOrderCard
-        order={{
-          ...baseOrder,
-          originalSize: '1200',
-          size: '1200',
-          price: '76000',
-        }}
-      />,
-    );
-
-    expect(screen.getByText('1,200 SOL')).toBeOnTheScreen();
-    expect(screen.getByText('$76,000')).toBeOnTheScreen();
-    expect(screen.getByText('$91,200,000')).toBeOnTheScreen();
-  });
-
-  it('uses locale-specific separators in the order summary', () => {
-    (usePerpsLocale as jest.Mock).mockReturnValue('de-DE');
-
-    render(
-      <PerpsProOrderCard
-        order={{
-          ...baseOrder,
-          originalSize: '1200',
-          size: '1200',
-          price: '76000',
-        }}
-      />,
-    );
-
-    expect(screen.getByText('1.200 SOL')).toBeOnTheScreen();
-    expect(screen.getByText('$76.000')).toBeOnTheScreen();
-    expect(screen.getByText('$91.200.000')).toBeOnTheScreen();
   });
 
   it('renders stop order details and display-only cancel control', () => {

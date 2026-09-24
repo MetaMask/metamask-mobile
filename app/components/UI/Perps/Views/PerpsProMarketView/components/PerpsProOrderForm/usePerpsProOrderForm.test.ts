@@ -16,7 +16,6 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { formatProPerpsPrice } from '../../../../utils/formatUtils';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
@@ -1027,37 +1026,6 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.chaseReferencePrice).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
-    });
-
-    it('formats the chase reference price with market entry-price decimals', () => {
-      // Arrange
-      mockLivePrice = '77288.50';
-      mockSizeDecimals = 5;
-      mockMarketData = { szDecimals: 5, maxLeverage: 40 };
-
-      // Act
-      const { result } = renderProForm();
-
-      // Assert
-      expect(result.current.chaseReferencePrice).toBe(
-        formatProPerpsPrice(77288.5, { szDecimals: 5 }),
-      );
-    });
-
-    it('keeps sub-cent chase prices instead of collapsing them to a 2-decimal floor', () => {
-      // Arrange
-      mockLivePrice = '0.001234';
-      mockSizeDecimals = 0;
-      mockMarketData = { szDecimals: 0, maxLeverage: 50 };
-
-      // Act
-      const { result } = renderProForm();
-
-      // Assert
-      expect(result.current.chaseReferencePrice).toBe(
-        formatProPerpsPrice(0.001234, { szDecimals: 0 }),
-      );
-      expect(result.current.chaseReferencePrice).not.toMatch(/<\s*\$0\.01/u);
     });
 
     it('shows a failure message when market data loading fails', () => {

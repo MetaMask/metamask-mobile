@@ -26,11 +26,6 @@ import {
   formatLimitPriceInput,
   formatPerpsPrice,
   formatPositionTriggerSummary,
-  formatProPerpsFiat,
-  formatProPerpsPrice,
-  formatProPercentage,
-  formatProPnl,
-  formatProPositionSize,
   formatPerpsInput,
   normalizePerpsNumericInput,
 } from './formatUtils';
@@ -495,29 +490,20 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('locale-aware Pro formatting', () => {
-    it.each([
-      ['en-US', '$76,000'],
-      ['de-DE', '$76.000'],
-      ['fr-FR', '$76\u202f000'],
-    ])('formats fiat values for %s', (locale, expected) => {
-      expect(
-        formatProPerpsFiat(76000, { ranges: PRICE_RANGES_UNIVERSAL }, locale),
-      ).toBe(expected);
-    });
-
-    it.each([
-      ['en-US', '1,200'],
-      ['de-DE', '1.200'],
-      ['fr-FR', '1\u202f200'],
-    ])('groups position sizes for %s', (locale, expected) => {
-      expect(formatProPositionSize('1200', undefined, locale)).toBe(expected);
-    });
-
+  describe('locale-aware input formatting', () => {
     it('preserves locale decimal separators and trailing zeros', () => {
       expect(formatPerpsInput('1200.50', 'en-US')).toBe('1,200.50');
       expect(formatPerpsInput('1200.50', 'de-DE')).toBe('1.200,50');
       expect(formatPerpsInput('1200.50', 'fr-FR')).toBe('1\u202f200,50');
+    });
+
+    it('preserves integer digits beyond the safe integer range', () => {
+      expect(formatPerpsInput('9007199254740993.125', 'en-US')).toBe(
+        '9,007,199,254,740,993.125',
+      );
+      expect(formatPerpsInput('9007199254740993.125', 'de-DE')).toBe(
+        '9.007.199.254.740.993,125',
+      );
     });
 
     it('formats and normalizes input without formatToParts support', () => {
@@ -569,6 +555,17 @@ describe('formatUtils', () => {
       );
     });
 
+    it.each([
+      ['en-US', '1,200', '1200'],
+      ['en-US', '1.200', '1.200'],
+      ['de-DE', '1,200', '1.200'],
+      ['de-DE', '1.200', '1200'],
+      ['fr-FR', '1,200', '1.200'],
+      ['fr-FR', '1\u202f200', '1200'],
+    ])('normalizes %s input "%s" to "%s"', (locale, input, expected) => {
+      expect(normalizePerpsNumericInput(input, locale)).toBe(expected);
+    });
+
     it('preserves partial decimal input', () => {
       expect(normalizePerpsNumericInput('1000.', 'en-US')).toBe('1000.');
       expect(normalizePerpsNumericInput('1000,', 'de-DE')).toBe('1000.');
@@ -576,12 +573,9 @@ describe('formatUtils', () => {
       expect(formatPerpsInput('1000.', 'de-DE')).toBe('1.000,');
     });
 
-    it('localizes price, PnL, and percentage output', () => {
-      expect(formatProPerpsPrice(76000, { szDecimals: null }, 'de-DE')).toBe(
-        '$76.000',
-      );
-      expect(formatProPnl(-1200, 'de-DE')).toBe('-$1.200,00');
-      expect(formatProPercentage(12.5, 2, 'de-DE')).toBe('+12,50%');
+    it('returns non-numeric input unchanged', () => {
+      expect(normalizePerpsNumericInput('12abc.3', 'en-US')).toBe('12abc.3');
+      expect(formatPerpsInput('12abc.3', 'en-US')).toBe('12abc.3');
     });
   });
 

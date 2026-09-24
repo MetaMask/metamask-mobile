@@ -150,6 +150,7 @@ const PerpsProCompactInput = React.forwardRef<
   ) => {
     const tw = useTailwind();
     const locale = usePerpsLocale();
+    const inputLocaleRef = useRef(locale);
     const inputRef = useRef<TextInput>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [displayValue, setDisplayValue] = useState(() =>
@@ -196,15 +197,23 @@ const PerpsProCompactInput = React.forwardRef<
         } as const)
       : undefined;
     const handleFocus = () => {
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
+      }
       setIsFocused(true);
       onFocus?.();
     };
     const handleChangeText = (nextValue: string) => {
       setDisplayValue(nextValue);
-      onChangeText(normalizePerpsNumericInput(nextValue, locale));
+      onChangeText(
+        normalizePerpsNumericInput(nextValue, inputLocaleRef.current),
+      );
     };
     const handleBlur = () => {
-      const canonicalValue = normalizePerpsNumericInput(displayValue, locale);
+      const canonicalValue = normalizePerpsNumericInput(
+        displayValue,
+        inputLocaleRef.current,
+      );
       setIsFocused(false);
       setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
@@ -216,6 +225,9 @@ const PerpsProCompactInput = React.forwardRef<
     const handleFieldPress = () => {
       if (isDisabled) {
         return;
+      }
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
       }
       setIsFocused(true);
       onFieldPress?.();
@@ -234,8 +246,6 @@ const PerpsProCompactInput = React.forwardRef<
         value={displayValue}
         onChangeText={handleChangeText}
         keyboardType={keyboardType}
-        returnKeyType="done"
-        onSubmitEditing={Keyboard.dismiss}
         onFocus={handleFocus}
         onBlur={handleBlur}
         isDisabled={isDisabled}

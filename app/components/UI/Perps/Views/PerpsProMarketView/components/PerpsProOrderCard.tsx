@@ -29,11 +29,10 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
-import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
-  formatProPerpsFiat,
-  formatProPositionSize,
+  formatPerpsFiat,
+  formatPositionSize,
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -125,17 +124,10 @@ const KeyValueItem = ({
   );
 };
 
-const formatOptionalPrice = (
-  price: string | undefined,
-  locale: string,
-): string => {
+const formatOptionalPrice = (price?: string): string => {
   const parsedPrice = Number.parseFloat(price ?? '');
   return Number.isFinite(parsedPrice) && parsedPrice > 0
-    ? formatProPerpsFiat(
-        parsedPrice,
-        { ranges: PRICE_RANGES_UNIVERSAL },
-        locale,
-      )
+    ? formatPerpsFiat(parsedPrice, { ranges: PRICE_RANGES_UNIVERSAL })
     : PERPS_CONSTANTS.FallbackPriceDisplay;
 };
 
@@ -155,7 +147,6 @@ const PerpsProOrderCard = ({
   isEditSizeDisabled = false,
 }: PerpsProOrderCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const locale = usePerpsLocale();
   const displaySymbol = getPerpsDisplaySymbol(order.symbol);
   const isClosing = isClosingOrder(order);
   const positionDirection = getOrderPositionDirection(order);
@@ -172,7 +163,7 @@ const PerpsProOrderCard = ({
   const directionSeverity = isBuySide
     ? TagSeverity.Success
     : TagSeverity.Danger;
-  const size = formatProPositionSize(order.originalSize, undefined, locale);
+  const size = formatPositionSize(order.originalSize);
   const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
   const estimatedOrderPrice =
     getValidOrderPrice(order) ?? getValidTriggerPrice(order);
@@ -182,23 +173,20 @@ const PerpsProOrderCard = ({
   const orderValue =
     estimatedOrderPrice === null
       ? PERPS_CONSTANTS.FallbackPriceDisplay
-      : formatProPerpsFiat(
+      : formatPerpsFiat(
           Number.parseFloat(order.originalSize) * estimatedOrderPrice,
           {
             ranges: PRICE_RANGES_UNIVERSAL,
           },
-          locale,
         );
   const price =
     priceValue === null
       ? labelKey === 'perps.order.market_price'
         ? strings('perps.order.market')
         : PERPS_CONSTANTS.FallbackPriceDisplay
-      : formatProPerpsFiat(
-          priceValue,
-          { ranges: PRICE_RANGES_UNIVERSAL },
-          locale,
-        );
+      : formatPerpsFiat(priceValue, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        });
   // Figma (Stop card): "Price below $101.00". Non-trigger: fallback display.
   let triggerCondition = PERPS_CONSTANTS.FallbackPriceDisplay;
   if (isTriggerOrder(order) && validTriggerPrice !== null) {
@@ -210,22 +198,17 @@ const PerpsProOrderCard = ({
     });
     if (conditionKey) {
       triggerCondition = strings(conditionKey, {
-        price: formatProPerpsFiat(
-          validTriggerPrice,
-          {
-            ranges: PRICE_RANGES_UNIVERSAL,
-            minimumDecimals: 2,
-            stripTrailingZeros: false,
-          },
-          locale,
-        ),
+        price: formatPerpsFiat(validTriggerPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+          minimumDecimals: 2,
+          stripTrailingZeros: false,
+        }),
       });
     }
   }
   const tpSl = `${formatOptionalPrice(
     order.takeProfitPrice,
-    locale,
-  )} / ${formatOptionalPrice(order.stopLossPrice, locale)}`;
+  )} / ${formatOptionalPrice(order.stopLossPrice)}`;
 
   const handlePress = onPress ? () => onPress(order) : undefined;
 
