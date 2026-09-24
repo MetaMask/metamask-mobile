@@ -12,18 +12,25 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useMemo } from 'react';
-import { Image } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Image, Pressable, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import { formatFeedTimestamp } from '../../../utils/formatters';
+import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { MOCK_MARKER } from '../mockMarker';
+import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
 import {
   buildTraderStatLabels,
   resolveTraderCohort,
   traderCohortEmoji,
 } from '../utils/traderStats';
+import ReactionChip from './ReactionChip';
+import ReactionPickerBalloon, {
+  type ReactionPickerAnchor,
+} from './ReactionPickerBalloon';
 import RotatingTraderStat from './RotatingTraderStat';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
@@ -37,6 +44,38 @@ const AVATAR_SIZE = 32;
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
+  const reactionAnchorRef = useRef<View>(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
+    null,
+  );
+  const { reactions, pickEmotion } = useFeedPostReaction(
+    post.commentId,
+    post.reactions,
+    post.userReaction ?? null,
+  );
+
+  const chips = visibleReactions(reactions);
+
+  const openPicker = useCallback(() => {
+    reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
+      setPickerAnchor({ x, y, width, height });
+      setPickerVisible(true);
+    });
+  }, []);
+
+  const closePicker = useCallback(() => {
+    setPickerVisible(false);
+  }, []);
+
+  const handlePick = useCallback(
+    (emotion: string) => {
+      setPickerVisible(false);
+      void pickEmotion(emotion);
+    },
+    [pickEmotion],
+  );
+
   const author = post.item.author;
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
   const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
@@ -143,34 +182,54 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         </Box>
       ) : null}
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={4}
+      <View
+        ref={reactionAnchorRef}
+        collapsable={false}
+        style={tw.style('self-start')}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
+        <Pressable
+          accessibilityRole="button"
+          testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+          onPress={openPicker}
         >
-          <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
-            {post.likeCount}
-          </Text>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <Icon name={IconName.Messages} size={IconSize.Sm} />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
-            {post.commentCount}
-          </Text>
-        </Box>
-        <Box twClassName="flex-1" />
-        <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} />
-      </Box>
+          {chips.length === 0 ? (
+            <Animated.View
+              entering={FadeIn.duration(140)}
+              exiting={FadeOut.duration(100)}
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="pl-2"
+              >
+                <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
+              </Box>
+            </Animated.View>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              {chips.map((reaction) => (
+                <ReactionChip
+                  key={reaction.emotion}
+                  emotion={reaction.emotion}
+                  count={reaction.count}
+                  testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+                />
+              ))}
+            </Box>
+          )}
+        </Pressable>
+      </View>
+
+      <ReactionPickerBalloon
+        visible={pickerVisible}
+        anchor={pickerAnchor}
+        onClose={closePicker}
+        onPick={handlePick}
+      />
     </Box>
   );
 };

@@ -18,6 +18,8 @@ function renderLimitOrderRow(order: LimitOrder) {
   });
 }
 
+// Row press and the details sheet it opens are covered in
+// LimitOrderTabRow.view.test.tsx, which drives real navigation.
 describe('LimitOrderRow', () => {
   it('renders an open order with its remaining time and staked amount', () => {
     const { getByText } = renderLimitOrderRow(MOCK_LIMIT_OPEN_ORDER);

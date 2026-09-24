@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "은행 계좌",
       "title": "Pix 키 받기",
       "description": "모든 은행 계좌에서 머니 계정으로 직접 송금할 수 있습니다.",

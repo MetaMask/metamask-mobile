@@ -14,7 +14,7 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
-  VBA_GET_PIX_KEY = 'vba_get_pix_key',
+  VBA_CREATE_VIRTUAL_BANK_ACCOUNT = 'vba_create_virtual_bank_account',
   VBA_KYC_EMAIL = 'vba_kyc_email',
   EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
   PRO_SUBSCRIPTION = 'pro_subscription',

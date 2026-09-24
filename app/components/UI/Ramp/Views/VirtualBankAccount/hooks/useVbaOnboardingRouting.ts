@@ -13,7 +13,7 @@ import {
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
-import { hasAcceptedVbaTermsOne } from '../vbaTermsOneStorage';
+import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 
 export const navigateToVbaOnboardingRoute = (
   navigation: AppNavigationProp,
@@ -63,9 +63,9 @@ export const useOpenVbaOnboarding = (
           });
         const snapshot: VbaOnboardingSnapshot = {
           ...accountSnapshot,
-          termsOneAccepted:
+          vendorTermsAcceptedLocally:
             accountSnapshot.vendorDisclaimersComplete ||
-            (await hasAcceptedVbaTermsOne(walletAddress)),
+            (await hasAcceptedVbaVendorTerms(walletAddress)),
         };
         const route = getVbaRouteForSnapshot(snapshot);
         Logger.log('[vba-onboarding] resume', { source, snapshot, route });

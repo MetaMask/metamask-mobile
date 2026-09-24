@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Compte bancaire",
       "title": "Obtenez votre Pix Key",
       "description": "Transférez directement des fonds depuis n'importe quel compte bancaire vers votre compte Money.",

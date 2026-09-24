@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "बैंक अकाउंट",
       "title": "अपनी Pix Key पाएं",
       "description": "किसी भी बैंक अकाउंट से सीधे अपने मनी अकाउंट में पैसे भेजें।",
