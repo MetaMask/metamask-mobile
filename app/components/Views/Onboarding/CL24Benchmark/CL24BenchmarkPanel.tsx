@@ -39,6 +39,23 @@ function formatMilliseconds(value: number): string {
   return `${value.toFixed(1)} ms`;
 }
 
+function yieldForPaint(): Promise<void> {
+  const schedule =
+    typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame
+      : (callback: () => void) => {
+          setTimeout(callback, 0);
+        };
+
+  return new Promise((resolve) => {
+    schedule(() => {
+      schedule(() => {
+        resolve();
+      });
+    });
+  });
+}
+
 function formatResult(result: CL24BenchmarkResult): string {
   return (
     Object.entries(result.summary) as [
@@ -75,6 +92,8 @@ const CL24BenchmarkPanel = () => {
     setIsRunning(true);
 
     try {
+      // Let the spinner paint before CPU-bound DKM work blocks the JS thread.
+      await yieldForPaint();
       const benchmarkResult = await runCL24Benchmark(metadata);
       setResult(benchmarkResult);
       Logger.log('[CL24 benchmark]', JSON.stringify(benchmarkResult, null, 2));

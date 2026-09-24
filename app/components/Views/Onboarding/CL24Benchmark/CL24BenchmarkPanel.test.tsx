@@ -92,6 +92,10 @@ describe('CL24BenchmarkPanel', () => {
       getByTestId(OnboardingSelectorIDs.CL24_BENCHMARK_RUNNING),
     ).toBeOnTheScreen();
 
+    await waitFor(() => {
+      expect(mockRunCL24Benchmark).toHaveBeenCalledTimes(1);
+    });
+
     await act(async () => {
       resolveBenchmark(createResult());
     });
