@@ -136,6 +136,7 @@ import PerpsMoreSection, {
   type PerpsMoreItem,
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsWatchOnlyBanner from '../../components/PerpsWatchOnlyBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
@@ -1168,6 +1169,7 @@ const PerpsHomeView = () => {
               setTitleSectionHeight(event.nativeEvent.layout.height)
             }
           >
+            <PerpsWatchOnlyBanner twClassName="mx-4 mb-4" />
             {isServiceInterruptionBannerEnabled && (
               <Box twClassName="px-4 mb-4">
                 <PerpsServiceInterruptionBanner

@@ -23,6 +23,7 @@ import {
   qrKeyringBridge,
 } from './keyrings';
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
+import { WatchOnlyKeyring } from '../../WatchOnly/WatchOnlyKeyring';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -193,6 +194,32 @@ describe('wallet-init/keyrings', () => {
       await expect(moneyKeyring.addAccounts(1)).rejects.toThrow(
         'Unable to get mnemonic to initialize MoneyKeyring',
       );
+    });
+  });
+
+  describe('watch-only keyring builder (__DEV__-gated)', () => {
+    const originalDev = global.__DEV__;
+
+    afterEach(() => {
+      global.__DEV__ = originalDev;
+    });
+
+    it('registers the watch-only builder when __DEV__ is true', () => {
+      global.__DEV__ = true;
+
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+      const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
+
+      expect(byType[WatchOnlyKeyring.type]()).toBeInstanceOf(WatchOnlyKeyring);
+    });
+
+    it('omits the watch-only builder when __DEV__ is false', () => {
+      global.__DEV__ = false;
+
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+      const types = builders.map((b) => b.type);
+
+      expect(types).not.toContain(WatchOnlyKeyring.type);
     });
   });
 

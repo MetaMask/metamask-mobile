@@ -102,6 +102,7 @@ import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsHomeSection from '../../components/PerpsHomeSection/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsWatchOnlyBanner from '../../components/PerpsWatchOnlyBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
   type OhlcData,
@@ -201,6 +202,7 @@ import {
 } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   BUTTON_COLOR_VARIANTS,
@@ -415,6 +417,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const scrollViewRef = useRef<Animated.ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
+  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -2089,6 +2092,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             </Box>
           )}
 
+          <PerpsWatchOnlyBanner twClassName="mx-4 mb-4" />
+
           {/* Service Interruption Banner */}
           {/* Outer flag guard avoids mounting the padded wrapper (and banner hooks) when disabled.
               The banner also returns null via the same flag when mounted. */}
@@ -2182,8 +2187,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         </Animated.ScrollView>
       </View>
 
-      {/* Fixed Actions Footer */}
-      {hasLongShortButtons && !isTradingHalted && (
+      {/* Fixed Actions Footer — hidden for watch-only accounts, which cannot sign */}
+      {hasLongShortButtons && !isTradingHalted && !isWatchOnly && (
         <View style={styles.actionsFooter}>
           {/* Show Modify/Close buttons when position exists */}
           {hasLongShortButtons && existingPosition && (

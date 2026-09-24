@@ -74,4 +74,35 @@ describe('DeveloperOptions', () => {
 
     expect(queryByText('Perpetual Trading')).not.toBeOnTheScreen();
   });
+
+  it('does not render the watch-only section outside dev builds', () => {
+    const { queryByTestId } = renderScreen(
+      DeveloperOptions,
+      { name: 'DeveloperOptions' },
+      { state: initialState },
+    );
+
+    expect(
+      queryByTestId('developer-options-watch-only-start-button'),
+    ).toBeNull();
+  });
+
+  it('renders the watch-only section in dev builds', () => {
+    const originalDev = global.__DEV__;
+    global.__DEV__ = true;
+
+    try {
+      const { getByTestId } = renderScreen(
+        DeveloperOptions,
+        { name: 'DeveloperOptions' },
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId('developer-options-watch-only-start-button'),
+      ).toBeOnTheScreen();
+    } finally {
+      global.__DEV__ = originalDev;
+    }
+  });
 });

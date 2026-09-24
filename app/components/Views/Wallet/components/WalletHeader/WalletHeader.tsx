@@ -1,4 +1,5 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
@@ -15,6 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
+import Tag from '../../../../../component-library/components/Tags/Tag';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -29,7 +32,11 @@ interface TouchAreaSlop {
   right: number;
 }
 
-const accountPickerContainerStyle: ViewStyle = { flex: 1 };
+const accountPickerContainerStyle: ViewStyle = {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'center',
+};
 
 export interface WalletHeaderProps {
   displayName: string;
@@ -63,6 +70,12 @@ const WalletHeader = ({
   headerAccountPickerStyle,
 }: WalletHeaderProps) => {
   const hasAccountsMenuAttention = useAccountsMenuAttention();
+  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
+  // PickerAccount spreads `style` into an object, so pass a single merged one.
+  const pickerStyle = useMemo<ViewStyle>(
+    () => ({ ...headerAccountPickerStyle, flexShrink: 1 }),
+    [headerAccountPickerStyle],
+  );
 
   const handleAccountPickerPress = useCallback(() => {
     navigation.navigate(...createAccountSelectorNavDetails({}));
@@ -142,8 +155,14 @@ const WalletHeader = ({
           onPress={handleAccountPickerPress}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={touchAreaSlop}
-          style={headerAccountPickerStyle}
+          style={pickerStyle}
         />
+        {isWatchOnly && (
+          <Tag
+            label={strings('accounts.watch_only')}
+            testID={WalletViewSelectorsIDs.WATCH_ONLY_TAG}
+          />
+        )}
       </View>
     </HeaderRoot>
   );

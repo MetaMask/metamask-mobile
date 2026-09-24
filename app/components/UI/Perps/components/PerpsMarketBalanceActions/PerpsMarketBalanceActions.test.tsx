@@ -13,6 +13,8 @@ import {
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { getDefaultPerpsControllerState } from '@metamask/perps-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 
 // TypeScript interfaces for component props
 interface MockComponentProps {
@@ -20,6 +22,7 @@ interface MockComponentProps {
   testID?: string;
   onPress?: () => void;
   disabled?: boolean;
+  isDisabled?: boolean;
   style?:
     | StyleProp<ViewStyle>
     | ((state: { pressed: boolean }) => StyleProp<ViewStyle>);
@@ -92,6 +95,7 @@ jest.mock('../../hooks', () => ({
     isEligibilityModalVisible: false,
     closeEligibilityModal: jest.fn(),
     isEligible: true,
+    isWatchOnly: false,
     isProcessing: false,
     error: null,
   })),
@@ -170,13 +174,14 @@ jest.mock('@metamask/design-system-react-native', () => {
       onPress,
       testID,
       disabled,
+      isDisabled,
       ...props
     }: MockComponentProps) => (
       <TouchableOpacity
         onPress={onPress}
         testID={testID}
-        disabled={disabled}
-        accessibilityState={{ disabled }}
+        disabled={disabled ?? isDisabled}
+        accessibilityState={{ disabled: disabled ?? isDisabled }}
         {...props}
       >
         <Text>{children}</Text>
@@ -357,6 +362,16 @@ describe('PerpsMarketBalanceActions', () => {
         },
         PreferencesController: {
           privacyMode,
+        },
+        AccountTreeController: {
+          accountTree: { wallets: {} },
+          selectedAccountGroup: null,
+        },
+        AccountsController: {
+          internalAccounts: { accounts: {}, selectedAccount: '' },
+        },
+        KeyringController: {
+          keyrings: [],
         },
       },
     },
@@ -872,6 +887,62 @@ describe('PerpsMarketBalanceActions', () => {
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Watch-only account', () => {
+    it('disables add funds and withdraw buttons when the account is watch-only', () => {
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const watchOnlyAddress = '0x1234567890123456789012345678901234567890';
+
+      const state = createMockState();
+      state.engine.backgroundState.AccountTreeController = {
+        accountTree: {
+          wallets: {
+            [walletId]: {
+              id: walletId,
+              metadata: { name: 'Test Wallet' },
+              groups: {
+                [groupId]: {
+                  id: groupId,
+                  accounts: ['watch-only-account'],
+                  metadata: { name: 'Test Group' },
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: groupId,
+      };
+      state.engine.backgroundState.AccountsController = {
+        internalAccounts: {
+          accounts: {
+            'watch-only-account': {
+              ...createMockInternalAccount(
+                watchOnlyAddress,
+                'Watched Account',
+                KeyringTypes.watchOnly,
+              ),
+              id: 'watch-only-account',
+            },
+          },
+          selectedAccount: '',
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state },
+        false, // Disable NavigationContainer
+      );
+
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeDisabled();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeDisabled();
     });
   });
 

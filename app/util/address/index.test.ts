@@ -13,9 +13,11 @@ import {
   isQRHardwareAccount,
   getAddressAccountType,
   isHardwareAccount,
+  isWatchOnlyAccount,
   resemblesAddress,
   getKeyringByAddress,
   getLabelTextByAddress,
+  getLabelTextByInternalAccount,
   isSnapAccount,
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
@@ -40,7 +42,9 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import {
   internalAccount1,
   MOCK_SOLANA_ACCOUNT,
+  createMockInternalAccount,
 } from '../test/accountsControllerTestUtils';
+import Engine from '../../core/Engine';
 
 jest.mock('../../store', () => ({
   store: {
@@ -568,6 +572,54 @@ describe('isHardwareAccount,', () => {
     ).toBeFalsy();
   });
 });
+describe('isWatchOnlyAccount', () => {
+  const watchOnlyAddress = '0x1234567890123456789012345678901234567890';
+  let originalKeyrings: typeof Engine.context.KeyringController.state.keyrings;
+
+  beforeEach(() => {
+    originalKeyrings = Engine.context.KeyringController.state.keyrings;
+  });
+
+  afterEach(() => {
+    Engine.context.KeyringController.state.keyrings = originalKeyrings;
+  });
+
+  it('returns true for an address in the watch-only keyring', () => {
+    Engine.context.KeyringController.state.keyrings = [
+      ...originalKeyrings,
+      {
+        accounts: [watchOnlyAddress],
+        type: KeyringTypes.watchOnly,
+        metadata: { id: 'watch-only-keyring', name: '' },
+      },
+    ];
+
+    expect(isWatchOnlyAccount(watchOnlyAddress)).toBe(true);
+  });
+
+  it('returns false for an address in a non-watch-only keyring', () => {
+    expect(isWatchOnlyAccount(mockHDKeyringAddress)).toBe(false);
+  });
+
+  it('returns false for an address with no matching keyring', () => {
+    expect(
+      isWatchOnlyAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBe(false);
+  });
+});
+
+describe('getLabelTextByInternalAccount', () => {
+  it('returns the watch-only label for a watch-only account', () => {
+    const account = createMockInternalAccount(
+      '0x1234567890123456789012345678901234567890',
+      'Watched Account',
+      KeyringTypes.watchOnly,
+    );
+
+    expect(getLabelTextByInternalAccount(account)).toBe('Watch-only');
+  });
+});
+
 describe('getLabelTextByAddress,', () => {
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
     expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');

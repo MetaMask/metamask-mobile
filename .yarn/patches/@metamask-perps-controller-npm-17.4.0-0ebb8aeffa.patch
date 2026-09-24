@@ -1,0 +1,140 @@
+diff --git a/dist/perpsErrorCodes.d.ts b/dist/perpsErrorCodes.d.ts
+index c2c427c6a3571d8bece66e2b4d11930a51e33ef1..74f8012f5d73874002aa8953f04302db1dac780f 100644
+--- a/dist/perpsErrorCodes.d.ts
++++ b/dist/perpsErrorCodes.d.ts
+@@ -84,6 +84,7 @@ export declare const PERPS_ERROR_CODES: {
+     readonly SUBSCRIPTION_CLIENT_NOT_AVAILABLE: 'SUBSCRIPTION_CLIENT_NOT_AVAILABLE';
+     readonly NO_ACCOUNT_SELECTED: 'NO_ACCOUNT_SELECTED';
+     readonly KEYRING_LOCKED: 'KEYRING_LOCKED';
++    readonly WATCH_ONLY_ACCOUNT: 'WATCH_ONLY_ACCOUNT';
+     readonly INVALID_ADDRESS_FORMAT: 'INVALID_ADDRESS_FORMAT';
+     readonly EXCHANGE_ACCOUNT_NOT_FOUND: 'EXCHANGE_ACCOUNT_NOT_FOUND';
+     readonly EXCHANGE_MULTI_SIG_REQUIRED: 'EXCHANGE_MULTI_SIG_REQUIRED';
+diff --git a/dist/perpsErrorCodes.js b/dist/perpsErrorCodes.js
+index 22afb4e1054dc8f040023f53dd01c97951f54b5a..5001ac453f0844086b8e439cf31e6dff4ea4b444 100644
+--- a/dist/perpsErrorCodes.js
++++ b/dist/perpsErrorCodes.js
+@@ -94,6 +94,7 @@ export const PERPS_ERROR_CODES = {
+     // Wallet/account errors
+     NO_ACCOUNT_SELECTED: 'NO_ACCOUNT_SELECTED',
+     KEYRING_LOCKED: 'KEYRING_LOCKED',
++    WATCH_ONLY_ACCOUNT: 'WATCH_ONLY_ACCOUNT',
+     INVALID_ADDRESS_FORMAT: 'INVALID_ADDRESS_FORMAT',
+     // Wallet has no account on the exchange yet (HyperLiquid creates accounts
+     // server-side on the first USDC credit). Actionable: the user must fund the
+diff --git a/dist/providers/HyperLiquidProvider.js b/dist/providers/HyperLiquidProvider.js
+index e7178c1396358450b873f66ea77ef3654181f4d3..c2038644306bf6dedd9331f08efde946df00a2fc 100644
+--- a/dist/providers/HyperLiquidProvider.js
++++ b/dist/providers/HyperLiquidProvider.js
+@@ -1511,7 +1511,8 @@ export class HyperLiquidProvider {
+             // the unified balance. Hardware wallets remain deferred to action time to
+             // avoid repeated signing prompts while browsing.
+             await this.#ensureUnifiedAccountEnabled({
+-                allowUserSigning: !this.#walletService.isSelectedHardwareWallet(),
++                allowUserSigning: !this.#walletService.isSelectedHardwareWallet() &&
++                    !this.#walletService.isSelectedWatchOnly(),
+             });
+         })();
+         // Await initialization - keep the promise so subsequent calls resolve immediately
+@@ -1606,6 +1607,10 @@ export class HyperLiquidProvider {
+         return context;
+     }
+     async #ensureReadyForTrading(options) {
++        // Watch-only accounts have no keys: refuse before any signing.
++        if (this.#walletService.isSelectedWatchOnly()) {
++            throw new Error(PERPS_ERROR_CODES.WATCH_ONLY_ACCOUNT);
++        }
+         // First ensure basic initialization is complete
+         await this.#ensureReady();
+         // dexAbstraction users were deferred during init to avoid an EIP-712 prompt
+diff --git a/dist/services/HyperLiquidWalletService.d.ts b/dist/services/HyperLiquidWalletService.d.ts
+index 2caced1011dec5f2b5393a4696983eed09fe121a..d2fb4de638ffc9999af43a90ecb0d6b165e58795 100644
+--- a/dist/services/HyperLiquidWalletService.d.ts
++++ b/dist/services/HyperLiquidWalletService.d.ts
+@@ -22,6 +22,7 @@ export declare class HyperLiquidWalletService {
+      * @returns True for MetaMask hardware keyrings; false for software accounts.
+      */
+     isSelectedHardwareWallet(): boolean;
++    isSelectedWatchOnly(): boolean;
+     /**
+      * Create wallet adapter that implements AbstractViemJsonRpcAccount interface
+      * Required by @nktkas/hyperliquid SDK for signing transactions
+diff --git a/dist/services/HyperLiquidWalletService.js b/dist/services/HyperLiquidWalletService.js
+index cefa86d7a54773f0ee68b52b58e7d6f44762e937..00bd0b0c8598f34f85f27457dad6bd2113bed6e6 100644
+--- a/dist/services/HyperLiquidWalletService.js
++++ b/dist/services/HyperLiquidWalletService.js
+@@ -1,7 +1,7 @@
+ import { hasProperty, isValidHexAddress, parseCaipAccountId, } from '@metamask/utils';
+ import { getChainId } from '../constants/hyperLiquidConfig.js';
+ import { PERPS_ERROR_CODES } from '../perpsErrorCodes.js';
+-import { getSelectedEvmAccountDetailsFromMessenger, getSelectedEvmAccountFromMessenger, } from '../utils/accountUtils.js';
++import { getSelectedEvmAccountDetailsFromMessenger, getSelectedEvmAccountFromMessenger, isSelectedEvmAccountWatchOnly, } from '../utils/accountUtils.js';
+ // Mirrors KeyringTypes from @metamask/keyring-controller. Inlined to keep this
+ // service portable between mobile and the core monorepo.
+ const HARDWARE_KEYRING_TYPES = new Set([
+@@ -53,7 +53,13 @@ export class HyperLiquidWalletService {
+      * @param msgParams - The typed message parameters including data and sender address.
+      * @returns The signature string.
+      */
++    isSelectedWatchOnly() {
++        return isSelectedEvmAccountWatchOnly(this.#messenger);
++    }
+     async #signTypedMessage(msgParams) {
++        if (this.isSelectedWatchOnly()) {
++            throw new Error(PERPS_ERROR_CODES.WATCH_ONLY_ACCOUNT);
++        }
+         if (!this.isKeyringUnlocked()) {
+             throw new Error(PERPS_ERROR_CODES.KEYRING_LOCKED);
+         }
+diff --git a/dist/services/LighterWalletService.js b/dist/services/LighterWalletService.js
+index 73b87203cc94dc593a8b0459e6c69e4fff04b85d..48215ce7d4f750d07f322b1e3ca6ae1f97831a62 100644
+--- a/dist/services/LighterWalletService.js
++++ b/dist/services/LighterWalletService.js
+@@ -19,7 +19,7 @@
+  */
+ import { bytesToHex } from '@metamask/utils';
+ import { PERPS_ERROR_CODES } from '../perpsErrorCodes.js';
+-import { getSelectedEvmAccountFromMessenger } from '../utils/accountUtils.js';
++import { getSelectedEvmAccountFromMessenger, isSelectedEvmAccountWatchOnly, } from '../utils/accountUtils.js';
+ export class LighterWalletService {
+     #isTestnet;
+     #deps;
+@@ -65,6 +65,9 @@ export class LighterWalletService {
+      */
+     async signPersonalMessage(message) {
+         if (this.#messenger) {
++            if (isSelectedEvmAccountWatchOnly(this.#messenger)) {
++                throw new Error(PERPS_ERROR_CODES.WATCH_ONLY_ACCOUNT);
++            }
+             const { isUnlocked } = this.#messenger.call('KeyringController:getState');
+             if (!isUnlocked) {
+                 throw new Error(PERPS_ERROR_CODES.KEYRING_LOCKED);
+diff --git a/dist/utils/accountUtils.d.ts b/dist/utils/accountUtils.d.ts
+index 8a163016bc3b63612a0edf42b6d5f923926f6886..1f0c0066e7016808c9e62db7f126b2eff27e36db 100644
+--- a/dist/utils/accountUtils.d.ts
++++ b/dist/utils/accountUtils.d.ts
+@@ -16,6 +16,7 @@ type SelectedEvmAccountMessenger = {
+     call(actionType: 'AccountsController:getSelectedAccount' | 'AccountTreeController:getAccountsFromSelectedAccountGroup'): unknown;
+ };
+ export declare function getSelectedEvmAccountDetailsFromMessenger(messenger: SelectedEvmAccountMessenger): InternalAccount | PerpsInternalAccount | undefined;
++export declare function isSelectedEvmAccountWatchOnly(messenger: SelectedEvmAccountMessenger): boolean;
+ export declare function getSelectedEvmAccountFromMessenger(messenger: SelectedEvmAccountMessenger): {
+     address: string;
+ } | undefined;
+diff --git a/dist/utils/accountUtils.js b/dist/utils/accountUtils.js
+index c4d7584f34accdb0d98f7263ce58c143543ec26f..304a543e0f1456c01adf7aea4831afaadb21008a 100644
+--- a/dist/utils/accountUtils.js
++++ b/dist/utils/accountUtils.js
+@@ -45,6 +45,12 @@ export function getSelectedEvmAccountDetailsFromMessenger(messenger) {
+         return undefined;
+     }
+ }
++// Mirrors KeyringTypes.watchOnly from @metamask/keyring-controller.
++const WATCH_ONLY_KEYRING_TYPE = 'Watch Only Keyring';
++export function isSelectedEvmAccountWatchOnly(messenger) {
++    const account = getSelectedEvmAccountDetailsFromMessenger(messenger);
++    return account?.metadata?.keyring?.type === WATCH_ONLY_KEYRING_TYPE;
++}
+ export function getSelectedEvmAccountFromMessenger(messenger) {
+     const evmAccount = getSelectedEvmAccountDetailsFromMessenger(messenger);
+     return evmAccount ? { address: evmAccount.address } : undefined;

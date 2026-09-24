@@ -150,6 +150,18 @@ jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
   }),
 }));
 
+const mockWatchOnlyStart = jest.fn();
+const mockWatchOnlyStop = jest.fn();
+const mockWatchOnlyGetStatus = jest.fn();
+
+jest.mock('../../core/WatchOnly/WatchOnlySession', () => ({
+  WatchOnlySession: {
+    start: (...args: unknown[]) => mockWatchOnlyStart(...args),
+    stop: (...args: unknown[]) => mockWatchOnlyStop(...args),
+    getStatus: (...args: unknown[]) => mockWatchOnlyGetStatus(...args),
+  },
+}));
+
 // Authentication pulls in the full auth/keychain stack; stub the singleton.
 jest.mock('../../core/Authentication', () => ({
   __esModule: true,
@@ -688,6 +700,44 @@ describe('AgenticService.install', () => {
       suppressError: true,
     });
     expect(mockClearAllChannels).toHaveBeenCalledTimes(1);
+  });
+
+  describe('watch-only bridge methods', () => {
+    beforeEach(() => {
+      mockWatchOnlyStart.mockReset();
+      mockWatchOnlyStop.mockReset();
+      mockWatchOnlyGetStatus.mockReset();
+    });
+
+    it('startWatchOnly delegates to WatchOnlySession.start with the address', async () => {
+      mockWatchOnlyStart.mockResolvedValue({ active: true, address: '0xabc' });
+
+      const result = await bridge().startWatchOnly('0xabc');
+
+      expect(mockWatchOnlyStart).toHaveBeenCalledWith('0xabc');
+      expect(result).toEqual({ active: true, address: '0xabc' });
+    });
+
+    it('stopWatchOnly delegates to WatchOnlySession.stop', async () => {
+      mockWatchOnlyStop.mockResolvedValue({ active: false, address: null });
+
+      const result = await bridge().stopWatchOnly();
+
+      expect(mockWatchOnlyStop).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ active: false, address: null });
+    });
+
+    it('getWatchOnlyStatus delegates to WatchOnlySession.getStatus', () => {
+      mockWatchOnlyGetStatus.mockReturnValue({
+        active: true,
+        address: '0xabc',
+      });
+
+      const result = bridge().getWatchOnlyStatus();
+
+      expect(mockWatchOnlyGetStatus).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ active: true, address: '0xabc' });
+    });
   });
 
   it('listAccounts returns mapped accounts', () => {

@@ -13,6 +13,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { selectIsSelectedAccountWatchOnly } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -121,7 +122,11 @@ describe('usePerpsHomeActions', () => {
       action(),
     );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useSelector as jest.Mock).mockReturnValue(true);
+    // Default: eligible, not watch-only. selectIsSelectedAccountWatchOnly is
+    // matched by reference so it stays false unless a test overrides it.
+    (useSelector as jest.Mock).mockImplementation(
+      (selector: unknown) => selector !== selectIsSelectedAccountWatchOnly,
+    );
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     });
@@ -493,7 +498,9 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleWithdraw - eligible user geo-block tracking', () => {
     it('tracks eligible withdrawal with IS_GEO_BLOCKED: false', async () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as jest.Mock).mockImplementation(
+        (selector: unknown) => selector !== selectIsSelectedAccountWatchOnly,
+      );
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -516,10 +523,12 @@ describe('usePerpsHomeActions', () => {
   describe('handleWithdraw - feature flag enabled (withdraw to any token)', () => {
     beforeEach(() => {
       // First call: selectPerpsEligibility → true
-      // Second call: selectSelectedInternalAccountAddress → address string
-      // Third call: selectPayQuoteConfig → { enabled: true }
+      // Second call: selectIsSelectedAccountWatchOnly → false
+      // Third call: selectSelectedInternalAccountAddress → address string
+      // Fourth call: selectPayQuoteConfig → { enabled: true }
       (useSelector as jest.Mock)
         .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false)
         .mockReturnValueOnce('0x1234567890abcdef1234567890abcdef12345678')
         .mockReturnValueOnce({ enabled: true });
     });
@@ -652,6 +661,41 @@ describe('usePerpsHomeActions', () => {
       } finally {
         jest.useRealTimers();
       }
+    });
+  });
+
+  describe('watch-only account', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+    });
+
+    it('exposes isWatchOnly as true when the selected account is watch-only', () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      expect(result.current.isWatchOnly).toBe(true);
+    });
+
+    it('does not start the deposit flow when the account is watch-only', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(playImpact).not.toHaveBeenCalled();
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to the withdraw screen when the account is watch-only', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 });

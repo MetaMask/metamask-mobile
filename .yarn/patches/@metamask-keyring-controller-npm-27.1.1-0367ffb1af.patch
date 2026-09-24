@@ -1,0 +1,52 @@
+diff --git a/dist/KeyringController.cjs b/dist/KeyringController.cjs
+index 1a79c8a50a1b49aec1e83df7e6457a22eaac1267..91a33a4fdb8fcf751f79c2b0e0bd6ddbe4d1c56b 100644
+--- a/dist/KeyringController.cjs
++++ b/dist/KeyringController.cjs
+@@ -113,6 +113,7 @@ var KeyringTypes;
+     KeyringTypes["lattice"] = "Lattice Hardware";
+     KeyringTypes["snap"] = "Snap Keyring";
+     KeyringTypes["money"] = "Money Keyring";
++    KeyringTypes["watchOnly"] = "Watch Only Keyring";
+     /* eslint-enable @typescript-eslint/naming-convention */
+ })(KeyringTypes || (exports.KeyringTypes = KeyringTypes = {}));
+ /**
+diff --git a/dist/KeyringController.d.cts b/dist/KeyringController.d.cts
+index b709085df6044862663e890b06ba2d75c5f637a0..02258d939fecb2516745af75e09a28278846e93d 100644
+--- a/dist/KeyringController.d.cts
++++ b/dist/KeyringController.d.cts
+@@ -27,7 +27,8 @@ export declare enum KeyringTypes {
+     ledger = "Ledger Hardware",
+     lattice = "Lattice Hardware",
+     snap = "Snap Keyring",
+-    money = "Money Keyring"
++    money = "Money Keyring",
++    watchOnly = "Watch Only Keyring"
+ }
+ /**
+  * Custody keyring types are a special case, as they are not a single type
+diff --git a/dist/KeyringController.d.mts b/dist/KeyringController.d.mts
+index 73dda61114d178f7d69f11731078f1e4709713a6..9184fca25e161e599a2518a20ddc40c8150ad353 100644
+--- a/dist/KeyringController.d.mts
++++ b/dist/KeyringController.d.mts
+@@ -27,7 +27,8 @@ export declare enum KeyringTypes {
+     ledger = "Ledger Hardware",
+     lattice = "Lattice Hardware",
+     snap = "Snap Keyring",
+-    money = "Money Keyring"
++    money = "Money Keyring",
++    watchOnly = "Watch Only Keyring"
+ }
+ /**
+  * Custody keyring types are a special case, as they are not a single type
+diff --git a/dist/KeyringController.mjs b/dist/KeyringController.mjs
+index 269af5f5dfc7e57ba3b99217b65ed157ed7b41df..d119c8128937bd50503bc8c509a444acdd1054f4 100644
+--- a/dist/KeyringController.mjs
++++ b/dist/KeyringController.mjs
+@@ -93,6 +93,7 @@ export var KeyringTypes;
+     KeyringTypes["lattice"] = "Lattice Hardware";
+     KeyringTypes["snap"] = "Snap Keyring";
+     KeyringTypes["money"] = "Money Keyring";
++    KeyringTypes["watchOnly"] = "Watch Only Keyring";
+     /* eslint-enable @typescript-eslint/naming-convention */
+ })(KeyringTypes || (KeyringTypes = {}));
+ /**
