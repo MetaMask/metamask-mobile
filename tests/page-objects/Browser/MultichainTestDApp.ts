@@ -117,14 +117,16 @@ class MultichainTestDApp {
     );
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
 
+    // Do not require performance.navigation.type === 'reload'. After CDP
+    // location.reload() Android WebViews often report type 'navigate' (or no
+    // navigation entry yet) while the page is already complete — that miss
+    // burned the full CONNECT_TIMEOUT_MS on createSession (flaky 3/51).
     const deadline = Date.now() + CONNECT_TIMEOUT_MS;
     while (Date.now() < deadline) {
       const loaded = await ChromeCdpHelpers.evaluateInWebView<boolean>(
         getMultichainTestDappBaseUrl(),
         `(() => {
-          const navigation = performance.getEntriesByType('navigation')[0];
           return document.readyState === 'complete' &&
-            navigation?.type === 'reload' &&
             Boolean(document.getElementById(${JSON.stringify(
               SELECTORS.AUTO_CONNECT_BUTTON,
             )}));

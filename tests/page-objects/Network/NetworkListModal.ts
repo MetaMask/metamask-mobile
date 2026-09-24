@@ -150,10 +150,26 @@ class NetworkListModal {
       return;
     }
 
-    await Gestures.swipe(this.selectNetwork, 'down', {
-      speed: 'slow',
-      percentage: 0.9,
-    });
+    // Parity with Android: a single swipe can miss the dismiss threshold on
+    // iOS under load, leaving the sheet up when the next deeplink expects a
+    // clean wallet home (NFT interstitial never mounts).
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.swipe(this.selectNetwork, 'down', {
+          speed: 'slow',
+          percentage: 0.9,
+        });
+        await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+          timeout: 5_000,
+          description: 'Network selector dismissed (iOS)',
+        });
+      },
+      {
+        timeout: 25_000,
+        interval: 1_000,
+        description: 'Dismiss iOS network selector sheet',
+      },
+    );
   }
 
   async tapTestNetworkSwitch(): Promise<void> {
