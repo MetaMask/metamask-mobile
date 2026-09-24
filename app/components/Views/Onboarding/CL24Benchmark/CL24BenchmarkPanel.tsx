@@ -132,7 +132,7 @@ const CL24BenchmarkPanel = () => {
             twClassName="text-default text-center"
             testID={OnboardingSelectorIDs.CL24_BENCHMARK_RESULT}
           >
-            Median (min–max), 5 samples{'\n'}
+            Median (min–max), 5 samples, party-1 CPU{'\n'}
             {formatResult(result)}
           </Text>
           <Button
