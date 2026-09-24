@@ -2,9 +2,7 @@ import { bytesToHex, remove0x, type Hex } from '@metamask/utils';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
-import {
-  AccountImportStrategy,
-} from '@metamask/keyring-controller';
+import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import type { MoneyAccount } from '@metamask/money-account-controller';
@@ -177,10 +175,15 @@ export class MoneyAccountMigrationPocService {
       () => this.teardown(inventory),
       onBeforePhase,
     );
+    const inventoryForExit = await runMigrationPhase(
+      'wrap-source-musd',
+      () => this.wrapSourceMusd(inventory),
+      onBeforePhase,
+    );
     const sourceDelegation = await runMigrationPhase(
       'execute-exit-batch',
       () =>
-        this.executeExitBatch(inventory, {
+        this.executeExitBatch(inventoryForExit, {
           bPrivateKey,
           cPrivateKey,
         }),
@@ -342,6 +345,15 @@ export class MoneyAccountMigrationPocService {
     }
   }
 
+  async wrapSourceMusd(
+    inventory: MigrationInventory,
+  ): Promise<MigrationInventory> {
+    if (BigInt(inventory.vmUsd) !== 0n || BigInt(inventory.musd) === 0n) {
+      return inventory;
+    }
+    throw new Error('wrap-source-musd-not-implemented');
+  }
+
   // async revokeChompIntents(_hashes: Hex[]): Promise<void> {
   // }
 
@@ -483,7 +495,10 @@ export class MoneyAccountMigrationPocService {
         },
       );
 
-    return { transactionMeta: transactionMeta.transactionMeta, sourceDelegation };
+    return {
+      transactionMeta: transactionMeta.transactionMeta,
+      sourceDelegation,
+    };
   }
 
   async awaitExitBatch(transaction: TransactionMeta | Hex): Promise<void> {

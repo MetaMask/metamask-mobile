@@ -3,9 +3,7 @@ import { Hex, bytesToHex } from '@metamask/utils';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
-import {
-  TransactionStatus,
-} from '@metamask/transaction-controller';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import { awaitTransactionConfirmed } from '../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
@@ -331,6 +329,7 @@ describe('MoneyAccountMigrationPocService', () => {
     openGates(service);
     jest.spyOn(service, 'collectInventory').mockResolvedValue(plan());
     jest.spyOn(service, 'teardown').mockResolvedValue();
+    jest.spyOn(service, 'wrapSourceMusd').mockResolvedValue(plan());
     jest
       .spyOn(service, 'executeExitBatch')
       .mockResolvedValue(sourceDelegationFixture());
@@ -352,11 +351,73 @@ describe('MoneyAccountMigrationPocService', () => {
       'collect-blockers',
       'assert-atomic-batch-support',
       'teardown',
+      'wrap-source-musd',
       'execute-exit-batch',
       'persist-residual-delegation',
       'reprovision',
       'verify-old-inert',
     ]);
+  });
+
+  it('prompts wrap-source-musd after teardown and before execute-exit-batch', async () => {
+    const service = new MoneyAccountMigrationPocService();
+    openGates(service);
+    jest.spyOn(service, 'collectInventory').mockResolvedValue(plan());
+    jest.spyOn(service, 'teardown').mockResolvedValue();
+    jest.spyOn(service, 'wrapSourceMusd').mockResolvedValue(plan());
+    jest
+      .spyOn(service, 'executeExitBatch')
+      .mockResolvedValue(sourceDelegationFixture());
+    jest.spyOn(service, 'persistResidualDelegation').mockResolvedValue();
+    jest.spyOn(service, 'reprovision').mockResolvedValue();
+    jest.spyOn(service, 'verifyOldInert').mockResolvedValue();
+    const onBeforePhase = jest.fn().mockResolvedValue(undefined);
+
+    await service.migrate({
+      source: SOURCE,
+      destination: DEST,
+      ...MIGRATION_KEYS,
+      onBeforePhase,
+    });
+
+    expect(onBeforePhase.mock.calls.map(([phase]) => phase)).toEqual([
+      'resolve-destination',
+      'collect-inventory',
+      'collect-blockers',
+      'assert-atomic-batch-support',
+      'teardown',
+      'wrap-source-musd',
+      'execute-exit-batch',
+      'persist-residual-delegation',
+      'reprovision',
+      'verify-old-inert',
+    ]);
+  });
+
+  it('returns the same inventory when vmUSD is already present', async () => {
+    const service = new MoneyAccountMigrationPocService();
+    const inventory = plan({ vmUsd: '10', musd: '12' });
+    const collect = jest.spyOn(service, 'collectInventory');
+
+    const result = await service.wrapSourceMusd(inventory);
+
+    expect(result).toBe(inventory);
+    expect(collect).not.toHaveBeenCalled();
+    expect(mockCall).not.toHaveBeenCalledWith(
+      'TransactionController:addTransactionBatch',
+      expect.anything(),
+    );
+  });
+
+  it('returns the same inventory when mUSD is zero', async () => {
+    const service = new MoneyAccountMigrationPocService();
+    const inventory = plan({ vmUsd: '0', musd: '0' });
+    const collect = jest.spyOn(service, 'collectInventory');
+
+    const result = await service.wrapSourceMusd(inventory);
+
+    expect(result).toBe(inventory);
+    expect(collect).not.toHaveBeenCalled();
   });
 
   it('stops before a phase when its prompt is rejected', async () => {
@@ -899,8 +960,7 @@ describe('MoneyAccountMigrationPocService', () => {
                 chainId: '0x8f',
                 boringVault: BORING_VAULT,
                 tellerAddress: '0x9999999999999999999999999999999999999999',
-                accountantAddress:
-                  '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                accountantAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 lensAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
               },
             },
@@ -959,9 +1019,7 @@ describe('MoneyAccountMigrationPocService', () => {
       }),
     );
     expect(mockKeyringController.importAccountWithStrategy).toHaveBeenCalled();
-    expect(mockKeyringController.removeAccount).toHaveBeenCalledWith(
-      C_ADDRESS,
-    );
+    expect(mockKeyringController.removeAccount).toHaveBeenCalledWith(C_ADDRESS);
   });
 
   it('removes a newly imported C when transaction submission fails', async () => {
@@ -974,8 +1032,7 @@ describe('MoneyAccountMigrationPocService', () => {
                 chainId: '0x8f',
                 boringVault: BORING_VAULT,
                 tellerAddress: '0x9999999999999999999999999999999999999999',
-                accountantAddress:
-                  '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                accountantAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 lensAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
               },
             },
@@ -1013,9 +1070,7 @@ describe('MoneyAccountMigrationPocService', () => {
       ),
     ).rejects.toThrow('submit-failed');
 
-    expect(mockKeyringController.removeAccount).toHaveBeenCalledWith(
-      C_ADDRESS,
-    );
+    expect(mockKeyringController.removeAccount).toHaveBeenCalledWith(C_ADDRESS);
   });
 
   it('does not remove a pre-existing C account', async () => {
