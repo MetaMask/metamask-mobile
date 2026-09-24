@@ -129,6 +129,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'uuid',
   '@metamask/wallet',
   '@metamask/passkey-controller',
+  '@metamask/accounts-controller',
 ];
 
 const config = {
