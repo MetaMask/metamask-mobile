@@ -49,6 +49,7 @@ android/app/bin/
 android/app/gradle*
 android/app/_build*
 android/libs
+android/app/src/main/java/inline/
 .cxx/
 .kotlin/
 
