@@ -184,24 +184,6 @@ export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
 );
 
 /**
- * Selects whether a single Money Account Plus feature is entitled. Not
- * memoized because the feature argument varies per call site.
- *
- * @param state - The root Redux state.
- * @param feature - The Plus feature to check.
- * @returns Whether the feature entitlement is granted.
- */
-export const selectHasMoneyAccountPlusEntitlement = (
-  state: RootState,
-  feature: MoneyAccountFeature,
-): boolean =>
-  selectHasEntitlement(
-    selectSubscriptionControllerState(state) ?? DEFAULT_CONTROLLER_STATE,
-    PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-    feature,
-  );
-
-/**
  * Selects persisted Money Account Plus benefit usage for the current billing
  * period. Undefined until `getBenefits()` has stored a snapshot.
  *
