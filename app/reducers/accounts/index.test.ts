@@ -7,7 +7,7 @@ const intialState: Readonly<iAccountEvent> = {
 };
 
 const emptyAction: iAccountActions = {
-  type: null,
+  type: '',
   reloadAccounts: false,
 };
 

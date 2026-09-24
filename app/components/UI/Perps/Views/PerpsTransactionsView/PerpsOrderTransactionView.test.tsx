@@ -332,7 +332,9 @@ describe('PerpsOrderTransactionView', () => {
     });
 
     // Mock useSelector to return null for no account
-    (useSelector as unknown as jest.Mock).mockImplementationOnce(() => () => null);
+    (useSelector as unknown as jest.Mock).mockImplementationOnce(
+      () => () => null,
+    );
 
     const { getByTestId } = render(<PerpsOrderTransactionView />);
 

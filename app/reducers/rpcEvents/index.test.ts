@@ -2,7 +2,7 @@ import { ActionType, iEventAction } from '../../actions/rpcEvents';
 import reducer, { RPCStageTypes, iEventGroup, isWhitelistedRPC } from './index';
 
 const emptyAction: iEventAction = {
-  type: null,
+  type: '',
   rpcName: '',
 };
 

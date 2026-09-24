@@ -520,18 +520,20 @@ describe('OndoCampaignDetailsView', () => {
     jest.clearAllMocks();
     mockRouteState.params = { campaignId: 'campaign-1' };
     resetOndoCampaignDetailsSessionAutoNavigationForTests();
-    (useSelector as unknown as jest.Mock).mockImplementation((selector: unknown) => {
-      if (selector === selectReferralCode) {
+    (useSelector as unknown as jest.Mock).mockImplementation(
+      (selector: unknown) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectIsMetamaskNotificationsEnabled) {
+          return true;
+        }
+        if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+          return true;
+        }
         return null;
-      }
-      if (selector === selectIsMetamaskNotificationsEnabled) {
-        return true;
-      }
-      if (selector === selectIsMetaMaskPushNotificationsEnabled) {
-        return true;
-      }
-      return null;
-    });
+      },
+    );
     mockIsTokenTradable.mockReturnValue(true);
     mockOndoCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);

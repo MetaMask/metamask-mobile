@@ -379,7 +379,9 @@ const createTestStore = (initialState = {}) =>
           },
           ...initialState,
         },
-        action = { type: '', payload: null },
+        action: { type: string; payload?: Record<string, unknown> } = {
+          type: '',
+        },
       ) => {
         switch (action.type) {
           case 'card/setOnboardingData':
