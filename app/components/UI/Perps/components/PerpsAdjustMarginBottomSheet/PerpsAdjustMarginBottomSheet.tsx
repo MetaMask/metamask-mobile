@@ -227,17 +227,28 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     [flooredMaxAmount, marginAmount],
   );
 
+  const hasNoRemovableMargin =
+    !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
+
   const validationError = useMemo(() => {
-    if (isInputFocused || marginAmount <= submitLimitAmount) {
+    // The zero-removable explanation replaces an error on a retained amount.
+    if (
+      isInputFocused ||
+      hasNoRemovableMargin ||
+      marginAmount <= submitLimitAmount
+    ) {
       return null;
     }
     return isAddMode
       ? strings('perps.adjust_margin.exceeds_available')
       : strings('perps.errors.marginValidation.exceedsMaxRemovable');
-  }, [submitLimitAmount, isAddMode, isInputFocused, marginAmount]);
-
-  const hasNoRemovableMargin =
-    !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
+  }, [
+    submitLimitAmount,
+    isAddMode,
+    isInputFocused,
+    hasNoRemovableMargin,
+    marginAmount,
+  ]);
 
   const isPositionGone = !isLoading && !position;
   const positionError = isPositionGone
@@ -249,7 +260,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     ? strings('perps.adjust_margin.position_data_unavailable')
     : null;
   const displayedError =
-    positionError ?? positionDataError ?? submissionError ?? validationError;
+    positionError ??
+    positionDataError ??
+    (hasNoRemovableMargin ? null : submissionError) ??
+    validationError;
   const isValidationErrorDisplayed =
     Boolean(validationError) && displayedError === validationError;
   const hasInvalidAmount =
