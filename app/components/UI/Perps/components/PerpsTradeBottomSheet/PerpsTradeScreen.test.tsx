@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
 import PerpsTradeScreen from './PerpsTradeScreen';
+import type PerpsSlider from '../PerpsSlider';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigateTo = jest.fn();
@@ -15,6 +16,7 @@ let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
   | undefined;
 let mockPerpsTokenLogoProps: { symbol: string; size: number } | undefined;
+let mockPerpsSliderProps: React.ComponentProps<typeof PerpsSlider> | undefined;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
@@ -27,7 +29,10 @@ jest.mock('./PerpsTradeBottomSheet', () => ({
 
 jest.mock('../PerpsSlider', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: React.ComponentProps<typeof PerpsSlider>) => {
+    mockPerpsSliderProps = props;
+    return null;
+  },
 }));
 
 jest.mock('../PerpsOICapWarning', () => ({
@@ -120,6 +125,7 @@ describe('PerpsTradeScreen errors', () => {
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
+    mockPerpsSliderProps = undefined;
   });
 
   it('propagates every form error to an accessible alert', () => {
@@ -289,6 +295,26 @@ describe('PerpsTradeScreen errors', () => {
     render(<PerpsTradeScreen {...defaultProps} />);
 
     expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
+  });
+
+  it('renders the same full-size slider as the close-position sheet', () => {
+    render(<PerpsTradeScreen {...defaultProps} sliderMaximum={250} />);
+
+    expect(mockPerpsSliderProps).toEqual(
+      expect.objectContaining({
+        value: 10,
+        minimumValue: 0,
+        maximumValue: 250,
+        step: 1,
+        showPercentageLabels: true,
+        disabled: false,
+        onValueChange: defaultProps.onSliderValueChange,
+        onDragEnd: defaultProps.onSliderDragEnd,
+      }),
+    );
+    // Both A/B bottom sheets share one slider control, so the Trade sheet
+    // must not opt into a different variant.
+    expect(mockPerpsSliderProps).not.toHaveProperty('variant');
   });
 
   it('opens Auto close for a limit order that has no limit price yet', () => {
