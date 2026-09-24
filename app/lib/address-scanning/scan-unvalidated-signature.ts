@@ -1,5 +1,6 @@
 import {
   extractSignatureAddresses,
+  MAX_SIGNATURE_ADDRESSES_CEILING,
   type PhishingController,
 } from '@metamask/phishing-controller';
 import { isBlockaidPreferenceEnabled } from '../../util/blockaid';
@@ -8,12 +9,12 @@ import Logger from '../../util/Logger';
 const METHOD_SIGN_TYPED_DATA_V3 = 'eth_signTypedData_v3';
 const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 
-type ParsedTypedDataMessage = {
+interface ParsedTypedDataMessage {
   domain?: Record<string, unknown>;
   message?: Record<string, unknown>;
   primaryType?: string;
   types?: Record<string, unknown>;
-};
+}
 
 /**
  * Lightweight EIP-712 parse for address extraction.
@@ -107,6 +108,7 @@ export function scanUnvalidatedSignatureAddresses(options: {
 
   const { addresses } = extractSignatureAddresses(typedDataMessage, {
     exclude: signerAddress ? [signerAddress] : [],
+    maxAddresses: MAX_SIGNATURE_ADDRESSES_CEILING,
   });
 
   for (const address of addresses) {

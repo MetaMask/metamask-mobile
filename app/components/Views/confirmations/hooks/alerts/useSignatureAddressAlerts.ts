@@ -5,7 +5,10 @@ import {
   MessageParamsTyped,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { extractSignatureAddresses } from '@metamask/phishing-controller';
+import {
+  extractSignatureAddresses,
+  MAX_SIGNATURE_ADDRESSES_CEILING,
+} from '@metamask/phishing-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../../util/address';
@@ -60,6 +63,7 @@ export function useSignatureTrustSignalAlerts(): Alert[] {
     const signer = signatureRequest.messageParams?.from;
     return extractSignatureAddresses(parsed, {
       exclude: typeof signer === 'string' ? [signer] : [],
+      maxAddresses: MAX_SIGNATURE_ADDRESSES_CEILING,
     });
   }, [signatureRequest, isSecurityAlertsEnabled]);
 

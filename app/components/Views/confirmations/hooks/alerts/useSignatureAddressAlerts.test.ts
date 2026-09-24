@@ -260,7 +260,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
   it('returns overflow caution alert when address cap is exceeded', () => {
     const types: { name: string; type: string }[] = [];
     const message: Record<string, string> = {};
-    for (let i = 0; i < 12; i += 1) {
+    for (let i = 0; i < 52; i += 1) {
       types.push({ name: `addr${i}`, type: 'address' });
       message[`addr${i}`] = `0x${String(i).padStart(40, '0')}`;
     }
@@ -273,7 +273,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     mockUseSignatureRequest.mockReturnValue(makeTypedSignRequest(typedData));
     mockParseTypedDataMessage.mockReturnValue(typedData);
     mockUseAddressTrustSignals.mockReturnValue(
-      new Array(10).fill({
+      new Array(50).fill({
         state: TrustSignalDisplayState.Unknown,
         label: null,
       }),

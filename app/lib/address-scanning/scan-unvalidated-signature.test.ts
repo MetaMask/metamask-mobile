@@ -218,4 +218,29 @@ describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
       addr2,
     );
   });
+
+  it('scans up to the 50-address ceiling', async () => {
+    const message: Record<string, string> = {};
+    const fields: { name: string; type: string }[] = [];
+    for (let index = 1; index <= 12; index += 1) {
+      const name = `recipient${index}`;
+      message[name] = `0x${index.toString(16).padStart(40, '0')}`;
+      fields.push({ name, type: 'address' });
+    }
+    const phishingController = makePhishingController();
+
+    scanUnvalidatedSignatureAddresses({
+      request: makeRequest('eth_signTypedData_v4', SIGNER_ADDRESS, {
+        types: { Transfer: fields },
+        primaryType: 'Transfer',
+        message,
+      }),
+      chainId: CHAIN_ID,
+      phishingController,
+    });
+
+    await Promise.resolve();
+
+    expect(phishingController.scanAddress).toHaveBeenCalledTimes(12);
+  });
 });

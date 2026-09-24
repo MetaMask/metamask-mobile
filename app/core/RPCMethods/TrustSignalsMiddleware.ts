@@ -15,6 +15,7 @@ import {
   scanAddress,
   scanUrl,
 } from '../../lib/address-scanning/address-scan-util';
+import { scanUnvalidatedSignatureAddresses } from '../../lib/address-scanning/scan-unvalidated-signature';
 
 /**
  * JSON-RPC request with networkClientId and origin
@@ -123,6 +124,14 @@ async function handleEthSignTypedData(
   if (!typedDataMessage) {
     return;
   }
+
+  // Start generic message-field scans as soon as the request arrives. PPOM may
+  // call this again after a non-flagged verdict; scanAddress is cache-backed.
+  scanUnvalidatedSignatureAddresses({
+    request: req,
+    chainId,
+    phishingController,
+  });
 
   const verifyingContract = typedDataMessage.domain?.verifyingContract;
   if (verifyingContract) {
