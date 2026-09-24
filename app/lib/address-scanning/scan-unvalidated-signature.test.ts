@@ -1,3 +1,4 @@
+import type { PhishingController } from '@metamask/phishing-controller';
 import { scanUnvalidatedSignatureAddresses } from './scan-unvalidated-signature';
 
 const MALICIOUS_ADDRESS = '0x0000000000000000000000000000000000000bad';
@@ -16,26 +17,21 @@ jest.mock('../../util/blockaid', () => ({
   isBlockaidPreferenceEnabled: jest.fn(),
 }));
 
-jest.mock('./address-scan-util', () => ({
-  parseTypedDataMessage: jest.fn(),
-  scanAddress: jest.fn(),
-}));
-
 const mockIsBlockaidPreferenceEnabled = jest.requireMock(
   '../../util/blockaid',
 ).isBlockaidPreferenceEnabled;
 
-const mockParseTypedDataMessage = jest.requireMock(
-  './address-scan-util',
-).parseTypedDataMessage;
-
-const mockScanAddress = jest.requireMock('./address-scan-util').scanAddress;
+const makePhishingController = () =>
+  ({
+    scanAddress: jest.fn().mockResolvedValue(undefined),
+  }) as unknown as PhishingController & {
+    scanAddress: jest.Mock;
+  };
 
 describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBlockaidPreferenceEnabled.mockReturnValue(true);
-    mockParseTypedDataMessage.mockReturnValue(TYPED_DATA_V4);
   });
 
   const makeRequest = (
@@ -47,8 +43,8 @@ describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
     params: [signer, typeof data === 'string' ? data : JSON.stringify(data)],
   });
 
-  it('scans extracted address fields for v4 typed data', () => {
-    const phishingController = {} as never;
+  it('scans extracted address fields for v4 typed data', async () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
       request: makeRequest(
         'eth_signTypedData_v4',
@@ -59,15 +55,16 @@ describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
       phishingController,
     });
 
-    expect(mockScanAddress).toHaveBeenCalledWith(
-      phishingController,
+    await Promise.resolve();
+
+    expect(phishingController.scanAddress).toHaveBeenCalledWith(
       CHAIN_ID,
       MALICIOUS_ADDRESS,
     );
   });
 
-  it('scans extracted address fields for v3 typed data', () => {
-    const phishingController = {} as never;
+  it('scans extracted address fields for v3 typed data', async () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
       request: makeRequest(
         'eth_signTypedData_v3',
@@ -78,38 +75,42 @@ describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
       phishingController,
     });
 
-    expect(mockScanAddress).toHaveBeenCalledWith(
-      phishingController,
+    await Promise.resolve();
+
+    expect(phishingController.scanAddress).toHaveBeenCalledWith(
       CHAIN_ID,
       MALICIOUS_ADDRESS,
     );
   });
 
   it('does nothing for non-typed-data methods', () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
       request: {
         method: 'personal_sign',
         params: [SIGNER_ADDRESS, '0xdeadbeef'],
       },
       chainId: CHAIN_ID,
-      phishingController: {} as never,
+      phishingController,
     });
 
-    expect(mockScanAddress).not.toHaveBeenCalled();
+    expect(phishingController.scanAddress).not.toHaveBeenCalled();
   });
 
   it('does nothing for v1 typed data method', () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
       request: { method: 'eth_signTypedData', params: [SIGNER_ADDRESS, '{}'] },
       chainId: CHAIN_ID,
-      phishingController: {} as never,
+      phishingController,
     });
 
-    expect(mockScanAddress).not.toHaveBeenCalled();
+    expect(phishingController.scanAddress).not.toHaveBeenCalled();
   });
 
   it('does nothing when Blockaid preference is disabled', () => {
     mockIsBlockaidPreferenceEnabled.mockReturnValue(false);
+    const phishingController = makePhishingController();
 
     scanUnvalidatedSignatureAddresses({
       request: makeRequest(
@@ -118,56 +119,56 @@ describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
         TYPED_DATA_V4,
       ),
       chainId: CHAIN_ID,
-      phishingController: {} as never,
+      phishingController,
     });
 
-    expect(mockScanAddress).not.toHaveBeenCalled();
+    expect(phishingController.scanAddress).not.toHaveBeenCalled();
   });
 
   it('does nothing when params are missing', () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
       request: { method: 'eth_signTypedData_v4' },
       chainId: CHAIN_ID,
-      phishingController: {} as never,
+      phishingController,
     });
 
-    expect(mockScanAddress).not.toHaveBeenCalled();
+    expect(phishingController.scanAddress).not.toHaveBeenCalled();
   });
 
-  it('does nothing when parseTypedDataMessage returns null', () => {
-    mockParseTypedDataMessage.mockReturnValue(null);
-
+  it('does nothing when typed data cannot be parsed', () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
-      request: makeRequest(
-        'eth_signTypedData_v4',
-        SIGNER_ADDRESS,
-        TYPED_DATA_V4,
-      ),
+      request: {
+        method: 'eth_signTypedData_v4',
+        params: [SIGNER_ADDRESS, 'not-valid-json{'],
+      },
       chainId: CHAIN_ID,
-      phishingController: {} as never,
+      phishingController,
     });
 
-    expect(mockScanAddress).not.toHaveBeenCalled();
+    expect(phishingController.scanAddress).not.toHaveBeenCalled();
   });
 
-  it('excludes the signer address', () => {
-    mockParseTypedDataMessage.mockReturnValue({
-      types: { T: [{ name: 'addr', type: 'address' }] },
-      primaryType: 'T',
-      message: { addr: SIGNER_ADDRESS },
-    });
-
+  it('excludes the signer address', async () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
-      request: makeRequest('eth_signTypedData_v4', SIGNER_ADDRESS, {}),
+      request: makeRequest('eth_signTypedData_v4', SIGNER_ADDRESS, {
+        types: { T: [{ name: 'addr', type: 'address' }] },
+        primaryType: 'T',
+        message: { addr: SIGNER_ADDRESS },
+      }),
       chainId: CHAIN_ID,
-      phishingController: {} as never,
+      phishingController,
     });
 
-    expect(mockScanAddress).not.toHaveBeenCalled();
+    await Promise.resolve();
+
+    expect(phishingController.scanAddress).not.toHaveBeenCalled();
   });
 
-  it('accepts typed data as an object in params[1]', () => {
-    const phishingController = {} as never;
+  it('accepts typed data as an object in params[1]', async () => {
+    const phishingController = makePhishingController();
     scanUnvalidatedSignatureAddresses({
       request: {
         method: 'eth_signTypedData_v4',
@@ -177,42 +178,42 @@ describe('scanUnvalidatedSignatureAddresses (mobile)', () => {
       phishingController,
     });
 
-    expect(mockScanAddress).toHaveBeenCalledWith(
-      phishingController,
+    await Promise.resolve();
+
+    expect(phishingController.scanAddress).toHaveBeenCalledWith(
       CHAIN_ID,
       MALICIOUS_ADDRESS,
     );
   });
 
-  it('scans multiple addresses from nested message types', () => {
+  it('scans multiple addresses from nested message types', async () => {
     const addr1 = '0x0000000000000000000000000000000000000001';
     const addr2 = '0x0000000000000000000000000000000000000002';
-    mockParseTypedDataMessage.mockReturnValue({
-      types: {
-        Pair: [
-          { name: 'a', type: 'address' },
-          { name: 'b', type: 'address' },
-        ],
-      },
-      primaryType: 'Pair',
-      message: { a: addr1, b: addr2 },
-    });
+    const phishingController = makePhishingController();
 
-    const phishingController = {} as never;
     scanUnvalidatedSignatureAddresses({
-      request: makeRequest('eth_signTypedData_v4', SIGNER_ADDRESS, {}),
+      request: makeRequest('eth_signTypedData_v4', SIGNER_ADDRESS, {
+        types: {
+          Pair: [
+            { name: 'a', type: 'address' },
+            { name: 'b', type: 'address' },
+          ],
+        },
+        primaryType: 'Pair',
+        message: { a: addr1, b: addr2 },
+      }),
       chainId: CHAIN_ID,
       phishingController,
     });
 
-    expect(mockScanAddress).toHaveBeenCalledTimes(2);
-    expect(mockScanAddress).toHaveBeenCalledWith(
-      phishingController,
+    await Promise.resolve();
+
+    expect(phishingController.scanAddress).toHaveBeenCalledTimes(2);
+    expect(phishingController.scanAddress).toHaveBeenCalledWith(
       CHAIN_ID,
       addr1,
     );
-    expect(mockScanAddress).toHaveBeenCalledWith(
-      phishingController,
+    expect(phishingController.scanAddress).toHaveBeenCalledWith(
       CHAIN_ID,
       addr2,
     );
