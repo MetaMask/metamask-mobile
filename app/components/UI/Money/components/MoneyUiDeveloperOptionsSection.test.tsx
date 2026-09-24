@@ -1,8 +1,12 @@
 import React from 'react';
 import { Alert } from 'react-native';
+import { Wallet } from 'ethers';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import {
-  MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID,
+  MONEY_DEV_MIGRATION_B_ADDRESS_TEST_ID,
+  MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID,
+  MONEY_DEV_MIGRATION_C_ADDRESS_TEST_ID,
+  MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID,
   MONEY_DEV_MIGRATION_STATUS_TEST_ID,
   MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID,
   MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID,
@@ -22,6 +26,8 @@ const mockMigrate = jest.fn();
 interface MigrationParams {
   source: string;
   destination: string;
+  bPrivateKey: string;
+  cPrivateKey: string;
   onBeforePhase?: (phase: string) => Promise<void>;
 }
 
@@ -77,7 +83,25 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 }));
 
 const MOCK_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
-const MOCK_DESTINATION = '0x1111111111111111111111111111111111111111';
+const MOCK_B_PRIVATE_KEY =
+  '0x0123456789012345678901234567890123456789012345678901234567890123';
+const MOCK_C_PRIVATE_KEY =
+  '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const MOCK_B_ADDRESS = new Wallet(MOCK_B_PRIVATE_KEY).address;
+const MOCK_C_ADDRESS = new Wallet(MOCK_C_PRIVATE_KEY).address;
+
+const enterMigrationKeys = (
+  getByTestId: ReturnType<typeof render>['getByTestId'],
+) => {
+  fireEvent.changeText(
+    getByTestId(MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID),
+    MOCK_B_PRIVATE_KEY,
+  );
+  fireEvent.changeText(
+    getByTestId(MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID),
+    MOCK_C_PRIVATE_KEY,
+  );
+};
 
 const confirmRunAlert = () => {
   jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
@@ -283,13 +307,58 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       ).toBeDisabled();
     });
 
-    it('does not call migrate when destination equals the money account', () => {
+    it('renders secure B/C key fields and derived addresses', () => {
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(
+        getByTestId(MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID).props
+          .secureTextEntry,
+      ).toBe(true);
+      expect(
+        getByTestId(MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID).props
+          .secureTextEntry,
+      ).toBe(true);
+
+      enterMigrationKeys(getByTestId);
+
+      expect(getByTestId(MONEY_DEV_MIGRATION_B_ADDRESS_TEST_ID)).toHaveTextContent(
+        `Account B address: ${MOCK_B_ADDRESS}`,
+      );
+      expect(getByTestId(MONEY_DEV_MIGRATION_C_ADDRESS_TEST_ID)).toHaveTextContent(
+        `Account C address: ${MOCK_C_ADDRESS}`,
+      );
+    });
+
+    it('clears private key fields after the migration finishes', async () => {
+      confirmRunAlert();
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      enterMigrationKeys(getByTestId);
+      await act(async () => {
+        fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
+      });
+
+      expect(
+        getByTestId(MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID).props
+          .value,
+      ).toBe('');
+      expect(
+        getByTestId(MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID).props
+          .value,
+      ).toBe('');
+    });
+
+    it('does not call migrate when a private key is invalid', () => {
       confirmRunAlert();
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
       fireEvent.changeText(
-        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
-        MOCK_ADDRESS,
+        getByTestId(MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID),
+        'not-a-private-key',
+      );
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID),
+        MOCK_C_PRIVATE_KEY,
       );
       fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
 
@@ -300,17 +369,16 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       confirmRunAlert();
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      fireEvent.changeText(
-        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
-        MOCK_DESTINATION,
-      );
+      enterMigrationKeys(getByTestId);
       await act(async () => {
         fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
       });
 
       expect(mockMigrate).toHaveBeenCalledWith({
         source: MOCK_ADDRESS,
-        destination: MOCK_DESTINATION,
+        destination: MOCK_B_ADDRESS,
+        bPrivateKey: MOCK_B_PRIVATE_KEY,
+        cPrivateKey: MOCK_C_PRIVATE_KEY,
         onBeforePhase: expect.any(Function),
       });
       expect(getByTestId(MONEY_DEV_MIGRATION_STATUS_TEST_ID)).toHaveTextContent(
@@ -327,10 +395,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       confirmRunAlert();
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      fireEvent.changeText(
-        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
-        MOCK_DESTINATION,
-      );
+      enterMigrationKeys(getByTestId);
       await act(async () => {
         fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
       });
@@ -351,10 +416,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       mockMigrate.mockRejectedValue(new Error('exit-batch-failed'));
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      fireEvent.changeText(
-        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
-        MOCK_DESTINATION,
-      );
+      enterMigrationKeys(getByTestId);
       await act(async () => {
         fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
       });
@@ -368,10 +430,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      fireEvent.changeText(
-        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
-        MOCK_DESTINATION,
-      );
+      enterMigrationKeys(getByTestId);
       fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
 
       expect(mockMigrate).not.toHaveBeenCalled();
@@ -379,13 +438,10 @@ describe('MoneyUiDeveloperOptionsSection', () => {
   });
 
   describe('unprompted migration POC with phase timings', () => {
-    const enterDestination = (
+    const enterMigrationInputs = (
       getByTestId: ReturnType<typeof render>['getByTestId'],
     ) => {
-      fireEvent.changeText(
-        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
-        MOCK_DESTINATION,
-      );
+      enterMigrationKeys(getByTestId);
     };
 
     it('disables the timing run button when destination is empty', () => {
@@ -402,7 +458,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
         .mockImplementation(() => undefined);
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      enterDestination(getByTestId);
+      enterMigrationInputs(getByTestId);
       await act(async () => {
         fireEvent.press(
           getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
@@ -411,7 +467,9 @@ describe('MoneyUiDeveloperOptionsSection', () => {
 
       expect(mockMigrate).toHaveBeenCalledWith({
         source: MOCK_ADDRESS,
-        destination: MOCK_DESTINATION,
+        destination: MOCK_B_ADDRESS,
+        bPrivateKey: MOCK_B_PRIVATE_KEY,
+        cPrivateKey: MOCK_C_PRIVATE_KEY,
         onBeforePhase: expect.any(Function),
       });
       expect(alertSpy).not.toHaveBeenCalledWith(
@@ -432,7 +490,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
         .mockImplementation(() => undefined);
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      enterDestination(getByTestId);
+      enterMigrationInputs(getByTestId);
       await act(async () => {
         fireEvent.press(
           getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
@@ -459,7 +517,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
         .mockImplementation(() => undefined);
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      enterDestination(getByTestId);
+      enterMigrationInputs(getByTestId);
       await act(async () => {
         fireEvent.press(
           getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),
@@ -492,7 +550,7 @@ describe('MoneyUiDeveloperOptionsSection', () => {
         .mockImplementation(() => undefined);
       const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
 
-      enterDestination(getByTestId);
+      enterMigrationInputs(getByTestId);
       await act(async () => {
         fireEvent.press(
           getByTestId(MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID),

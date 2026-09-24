@@ -76,3 +76,9 @@ export type MigrateParams = {
   source: Hex;
   destination: Hex;
 };
+
+/** Developer-only POC inputs. Private keys are never persisted in a snapshot. */
+export interface MoneyAccountMigrationPocParams extends MigrateParams {
+  bPrivateKey: string;
+  cPrivateKey: string;
+}

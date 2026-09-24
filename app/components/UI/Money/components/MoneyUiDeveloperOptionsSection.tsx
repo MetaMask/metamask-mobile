@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -30,24 +30,33 @@ import {
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Logger from '../../../../util/Logger';
-import { isValidHexAddress } from '../../../../util/address';
 import {
   MoneyAccountMigrationPoc,
   type MigrationPhasePrompt,
 } from '../../../../lib/Money/migration/MoneyAccountMigrationPocService';
+import { deriveAddressFromPrivateKey } from '../../../../lib/Money/migration/MoneyAccountMigrationDelegatedBatch';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 
-export const MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID =
-  'money-dev-migration-destination-input';
+export const MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID =
+  'money-dev-migration-b-private-key-input';
+export const MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID =
+  'money-dev-migration-c-private-key-input';
+export const MONEY_DEV_MIGRATION_B_ADDRESS_TEST_ID =
+  'money-dev-migration-b-address';
+export const MONEY_DEV_MIGRATION_C_ADDRESS_TEST_ID =
+  'money-dev-migration-c-address';
 export const MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID =
   'money-dev-run-migration-button';
 export const MONEY_DEV_RUN_MIGRATION_PERF_BUTTON_TEST_ID =
   'money-dev-run-migration-perf-button';
 export const MONEY_DEV_MIGRATION_STATUS_TEST_ID = 'money-dev-migration-status';
 
-type PhaseTiming = { phase: string; durationMs: number };
+interface PhaseTiming {
+  phase: string;
+  durationMs: number;
+}
 
 const formatPhaseTimings = (
   timings: PhaseTiming[],
@@ -78,14 +87,39 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const earnBannerDismissedCount = Object.keys(
     earnBannerDismissedTokens,
   ).length;
-  const [destinationAddress, setDestinationAddress] = useState('');
+  const [bPrivateKey, setBPrivateKey] = useState('');
+  const [cPrivateKey, setCPrivateKey] = useState('');
   const [isMigrationRunning, setIsMigrationRunning] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null);
-  const trimmedDestination = destinationAddress.trim();
+  const trimmedBPrivateKey = bPrivateKey.trim();
+  const trimmedCPrivateKey = cPrivateKey.trim();
+  const bAddress = useMemo(() => {
+    if (!trimmedBPrivateKey) {
+      return null;
+    }
+    try {
+      return deriveAddressFromPrivateKey(trimmedBPrivateKey);
+    } catch {
+      return null;
+    }
+  }, [trimmedBPrivateKey]);
+  const cAddress = useMemo(() => {
+    if (!trimmedCPrivateKey) {
+      return null;
+    }
+    try {
+      return deriveAddressFromPrivateKey(trimmedCPrivateKey);
+    } catch {
+      return null;
+    }
+  }, [trimmedCPrivateKey]);
   const canRunMigration =
     Boolean(moneyAccountAddress) &&
-    isValidHexAddress(trimmedDestination) &&
-    trimmedDestination.toLowerCase() !== moneyAccountAddress?.toLowerCase() &&
+    Boolean(bAddress) &&
+    Boolean(cAddress) &&
+    bAddress?.toLowerCase() !== moneyAccountAddress?.toLowerCase() &&
+    cAddress?.toLowerCase() !== moneyAccountAddress?.toLowerCase() &&
+    bAddress?.toLowerCase() !== cAddress?.toLowerCase() &&
     !isMigrationRunning;
 
   const handleResetOnboardingSeenState = useCallback(() => {
@@ -110,6 +144,11 @@ export const MoneyUiDeveloperOptionsSection = () => {
     dispatch(clearMoneyEarnBannerDismissedTokens());
   }, [dispatch]);
 
+  const clearMigrationKeys = useCallback(() => {
+    setBPrivateKey('');
+    setCPrivateKey('');
+  }, []);
+
   const promptBeforeMigrationPhase = useCallback<MigrationPhasePrompt>(
     (phase) =>
       new Promise<void>((resolve, reject) => {
@@ -131,7 +170,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   );
 
   const runMigration = useCallback(async () => {
-    if (!moneyAccountAddress || !isValidHexAddress(trimmedDestination)) {
+    if (!moneyAccountAddress || !bAddress || !cAddress) {
       return;
     }
     setIsMigrationRunning(true);
@@ -139,13 +178,16 @@ export const MoneyUiDeveloperOptionsSection = () => {
     try {
       await MoneyAccountMigrationPoc.migrate({
         source: moneyAccountAddress as Hex,
-        destination: trimmedDestination as Hex,
+        destination: bAddress,
+        bPrivateKey: trimmedBPrivateKey,
+        cPrivateKey: trimmedCPrivateKey,
         onBeforePhase: promptBeforeMigrationPhase,
       });
       setMigrationStatus('Migration finished');
       Logger.log('MoneyUiDeveloperOptionsSection: migration POC finished', {
         source: moneyAccountAddress,
-        destination: trimmedDestination,
+        destination: bAddress,
+        submitter: cAddress,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -156,8 +198,17 @@ export const MoneyUiDeveloperOptionsSection = () => {
       );
     } finally {
       setIsMigrationRunning(false);
+      clearMigrationKeys();
     }
-  }, [moneyAccountAddress, promptBeforeMigrationPhase, trimmedDestination]);
+  }, [
+    bAddress,
+    cAddress,
+    clearMigrationKeys,
+    moneyAccountAddress,
+    promptBeforeMigrationPhase,
+    trimmedBPrivateKey,
+    trimmedCPrivateKey,
+  ]);
 
   const handleRunMigration = useCallback(() => {
     if (!canRunMigration || !moneyAccountAddress) {
@@ -165,16 +216,16 @@ export const MoneyUiDeveloperOptionsSection = () => {
     }
     Alert.alert(
       'Run Money Account migration POC?',
-      `Moves funds on Monad from ${moneyAccountAddress} to ${trimmedDestination}. Import the destination private key via Settings → Import Account first. Do not paste a private key here.`,
+      `Moves all vmUSD from ${moneyAccountAddress} through ${bAddress} and deposits the resulting mUSD back into B. Account C (${cAddress}) submits the atomic batch. Developer POC only; keys are cleared after the run.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Run', onPress: runMigration },
       ],
     );
-  }, [canRunMigration, moneyAccountAddress, runMigration, trimmedDestination]);
+  }, [bAddress, cAddress, canRunMigration, moneyAccountAddress, runMigration]);
 
   const runMigrationWithTimings = useCallback(async () => {
-    if (!moneyAccountAddress || !isValidHexAddress(trimmedDestination)) {
+    if (!moneyAccountAddress || !bAddress || !cAddress) {
       return;
     }
     setIsMigrationRunning(true);
@@ -222,7 +273,9 @@ export const MoneyUiDeveloperOptionsSection = () => {
     try {
       await MoneyAccountMigrationPoc.migrate({
         source: moneyAccountAddress as Hex,
-        destination: trimmedDestination as Hex,
+        destination: bAddress,
+        bPrivateKey: trimmedBPrivateKey,
+        cPrivateKey: trimmedCPrivateKey,
         onBeforePhase: recordPhaseStart,
       });
       dumpTimings();
@@ -235,14 +288,22 @@ export const MoneyUiDeveloperOptionsSection = () => {
       dumpTimings(message);
     } finally {
       setIsMigrationRunning(false);
+      clearMigrationKeys();
     }
-  }, [moneyAccountAddress, trimmedDestination]);
+  }, [
+    bAddress,
+    cAddress,
+    clearMigrationKeys,
+    moneyAccountAddress,
+    trimmedBPrivateKey,
+    trimmedCPrivateKey,
+  ]);
 
   const handleRunMigrationWithTimings = useCallback(() => {
     if (!canRunMigration || !moneyAccountAddress) {
       return;
     }
-    void runMigrationWithTimings();
+    runMigrationWithTimings();
   }, [canRunMigration, moneyAccountAddress, runMigrationWithTimings]);
 
   return (
@@ -355,22 +416,53 @@ export const MoneyUiDeveloperOptionsSection = () => {
           style={styles.desc}
         >
           {
-            'POC: migrate Money Account footprint on Monad. Destination must be an address you control. Import its private key via Settings → Import Account, then paste that address here — never paste a private key.'
+            'Developer-only POC: paste the private keys for MFA account B and temporary submitter C. Keys are kept in memory only, never logged or persisted, and cleared after the run.'
           }
         </Text>
         <TextField
-          placeholder="0x destination address"
-          value={destinationAddress}
-          onChangeText={setDestinationAddress}
+          placeholder="Account B private key"
+          value={bPrivateKey}
+          onChangeText={setBPrivateKey}
           isDisabled={isMigrationRunning}
           twClassName="w-full"
           style={styles.accessory}
           inputProps={{
             autoCapitalize: 'none',
             autoCorrect: false,
-            testID: MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID,
+            secureTextEntry: true,
+            testID: MONEY_DEV_MIGRATION_B_PRIVATE_KEY_INPUT_TEST_ID,
           }}
         />
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+          testID={MONEY_DEV_MIGRATION_B_ADDRESS_TEST_ID}
+        >
+          {`Account B address: ${bAddress ?? 'Invalid private key'}`}
+        </Text>
+        <TextField
+          placeholder="Account C private key"
+          value={cPrivateKey}
+          onChangeText={setCPrivateKey}
+          isDisabled={isMigrationRunning}
+          twClassName="w-full"
+          style={styles.accessory}
+          inputProps={{
+            autoCapitalize: 'none',
+            autoCorrect: false,
+            secureTextEntry: true,
+            testID: MONEY_DEV_MIGRATION_C_PRIVATE_KEY_INPUT_TEST_ID,
+          }}
+        />
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+          testID={MONEY_DEV_MIGRATION_C_ADDRESS_TEST_ID}
+        >
+          {`Account C address: ${cAddress ?? 'Invalid private key'}`}
+        </Text>
         <Button
           variant={ButtonVariant.Secondary}
           style={styles.accessory}

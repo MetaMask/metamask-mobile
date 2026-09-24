@@ -1,9 +1,10 @@
-import { bytesToHex, type Hex } from '@metamask/utils';
-import { Interface } from '@ethersproject/abi';
+import { bytesToHex, remove0x, type Hex } from '@metamask/utils';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
-import { toHex } from '@metamask/controller-utils';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
+import {
+  AccountImportStrategy,
+} from '@metamask/keyring-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import type { MoneyAccount } from '@metamask/money-account-controller';
@@ -18,8 +19,11 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../../core/Engine';
 import {
+  createDelegation,
+  getDeleGatorEnvironment,
   ROOT_AUTHORITY,
   getDelegationHashOffchain,
+  type Delegation,
 } from '../../../core/Delegation';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
 import {
@@ -28,11 +32,22 @@ import {
 } from '../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import { toCardFundingToken } from '../../../components/UI/Card/util/toCardTokenAllowance';
 import { getVedaTokenConfig } from '../../../components/UI/Card/util/vedaToken';
+import { applySlippage } from '../../../components/UI/Money/utils/moneyAccountTransactions';
 import { MoneyAccountBalanceServiceQueryKeys } from '../../../components/UI/Money/queryKeys';
 import { isMoneyAccountDelegatedForCard } from '../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { FEATURE_FLAG_NAME as GAS_FEES_SPONSORED_FLAG } from '../../../selectors/featureFlagController/gasFeesSponsored';
 import { getMoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
-import type { MigrationBlocker, MigrationInventory } from './types';
+import {
+  buildMigrationExecutionContexts,
+  buildMigrationRedemption,
+  deriveAddressFromPrivateKey,
+  getMusdAmountForShares,
+  type MigrationExecutionContexts,
+} from './MoneyAccountMigrationDelegatedBatch';
+import type {
+  MigrationBlocker,
+  MigrationInventory,
+  MoneyAccountMigrationPocParams,
+} from './types';
 
 const STUB_DESTINATION_ADDRESS =
   '0x2222222222222222222222222222222222222222' as Hex;
@@ -61,8 +76,6 @@ const STUB_DESTINATION_ACCOUNT: MoneyAccount = {
 // Money account is avaiable on monad only
 const DEFAULT_CHAIN_ID = '0x8f' as Hex;
 const PENDING_READ = { blockTag: 'pending' } as const;
-const ERC20 = new Interface(abiERC20);
-const ZERO_VALUE = '0x0' as Hex;
 const MIGRATION_ORIGIN = 'metamask:money-account-migration';
 const INNER_TX_RETRIES = 5;
 const INNER_TX_RETRY_MS = 50;
@@ -72,78 +85,15 @@ const FAILED_TX_STATUSES = new Set<TransactionStatus>([
   TransactionStatus.rejected,
 ]);
 
-interface ExitCall {
-  to: Hex;
-  data: Hex;
-  value: Hex;
-}
-
-const buildExitCalls = (
-  inventory: MigrationInventory,
-  {
-    boringVault,
-    musdAddress,
-    cardSpender,
-    nativeSweepWei,
-  }: {
-    boringVault?: string;
-    musdAddress: Hex;
-    cardSpender?: string;
-    nativeSweepWei: bigint;
-  },
-): ExitCall[] => {
-  const calls: ExitCall[] = [];
-  if (BigInt(inventory.vmUsd) > 0n) {
-    if (!boringVault) {
-      throw new Error('missing-vault-config');
-    }
-    calls.push({
-      to: boringVault as Hex,
-      data: ERC20.encodeFunctionData('transfer', [
-        inventory.destination,
-        inventory.vmUsd,
-      ]) as Hex,
-      value: ZERO_VALUE,
-    });
-  }
-  if (BigInt(inventory.musd) > 0n) {
-    calls.push({
-      to: musdAddress,
-      data: ERC20.encodeFunctionData('transfer', [
-        inventory.destination,
-        inventory.musd,
-      ]) as Hex,
-      value: ZERO_VALUE,
-    });
-  }
-  if (BigInt(inventory.vaultAllowance) > 0n) {
-    if (!boringVault) {
-      throw new Error('missing-vault-config');
-    }
-    calls.push({
-      to: musdAddress,
-      data: ERC20.encodeFunctionData('approve', [boringVault, '0']) as Hex,
-      value: ZERO_VALUE,
-    });
-  }
-  if (BigInt(inventory.cardAllowance) > 0n && cardSpender) {
-    calls.push({
-      to: musdAddress,
-      data: ERC20.encodeFunctionData('approve', [cardSpender, '0']) as Hex,
-      value: ZERO_VALUE,
-    });
-  }
-  if (nativeSweepWei > 0n) {
-    calls.push({
-      to: inventory.destination,
-      data: '0x',
-      value: toHex(nativeSweepWei),
-    });
-  }
-  return calls;
-};
-
 export type MigrationPhasePrompt = (phase: string) => Promise<void>;
+
+interface MigrationKeyParams
+  extends Pick<MoneyAccountMigrationPocParams, 'bPrivateKey' | 'cPrivateKey'> {}
+
+interface MigrationSubmission {
+  transactionMeta: TransactionMeta;
+  sourceDelegation: Delegation;
+}
 
 const findInnerTxForBatch = async (batchId: Hex): Promise<TransactionMeta> => {
   const messenger = Engine.controllerMessenger;
@@ -184,10 +134,14 @@ export class MoneyAccountMigrationPocService {
   async migrate({
     source,
     destination,
+    bPrivateKey,
+    cPrivateKey,
     onBeforePhase,
   }: {
     source: Hex;
     destination?: Hex;
+    bPrivateKey: string;
+    cPrivateKey: string;
     onBeforePhase?: MigrationPhasePrompt;
   }): Promise<void> {
     const dest = await runMigrationPhase<Hex>(
@@ -223,9 +177,13 @@ export class MoneyAccountMigrationPocService {
       () => this.teardown(inventory),
       onBeforePhase,
     );
-    await runMigrationPhase(
+    const sourceDelegation = await runMigrationPhase(
       'execute-exit-batch',
-      () => this.executeExitBatch(inventory),
+      () =>
+        this.executeExitBatch(inventory, {
+          bPrivateKey,
+          cPrivateKey,
+        }),
       onBeforePhase,
     );
     await runMigrationPhase(
@@ -235,6 +193,7 @@ export class MoneyAccountMigrationPocService {
           inventory.source,
           inventory.destination,
           inventory.chainId,
+          sourceDelegation,
         ),
       onBeforePhase,
     );
@@ -404,78 +363,134 @@ export class MoneyAccountMigrationPocService {
     });
   }
 
-  async executeExitBatch(inventory: MigrationInventory): Promise<void> {
-    const exitBatchId = await this.submitExitBatch(inventory);
-    if (!exitBatchId) {
-      throw new Error('exit-batch-not-submitted');
-    }
-    await this.awaitExitBatch(exitBatchId);
+  async executeExitBatch(
+    inventory: MigrationInventory,
+    keys: MigrationKeyParams,
+  ): Promise<Delegation> {
+    return this.withTemporarySubmitter(keys.cPrivateKey, async () => {
+      const submission = await this.submitExitBatch(inventory, keys);
+      if (!submission) {
+        throw new Error('exit-batch-not-submitted');
+      }
+      await this.awaitExitBatch(submission.transactionMeta);
+      return submission.sourceDelegation;
+    });
   }
 
-  async submitExitBatch(inventory: MigrationInventory): Promise<Hex | null> {
+  async submitExitBatch(
+    inventory: MigrationInventory,
+    { bPrivateKey, cPrivateKey }: MigrationKeyParams,
+  ): Promise<MigrationSubmission | null> {
     const messenger = Engine.controllerMessenger;
     const flagState = await messenger.call(
       'RemoteFeatureFlagController:getState',
     );
+    const vmUsdShares = BigInt(inventory.vmUsd);
+    if (vmUsdShares === 0n) {
+      return null;
+    }
     const vaultConfig = getMoneyAccountVaultConfig(
       flagState.remoteFeatureFlags,
     );
-    const sponsored = Boolean(
-      (
-        flagState.remoteFeatureFlags?.[GAS_FEES_SPONSORED_FLAG] as
-          | Record<string, boolean>
-          | undefined
-      )?.[inventory.chainId],
-    );
-    let cardSpender: string | undefined;
-    if (BigInt(inventory.cardAllowance) > 0n) {
-      const home = await Engine.context.CardController.getCardHomeData(
-        inventory.source,
-      );
-      cardSpender = getVedaTokenConfig(
-        home.delegationSettings,
-      )?.delegationContract;
+    if (!vaultConfig) {
+      throw new Error('missing-vault-config');
     }
-    const calls = buildExitCalls(inventory, {
-      boringVault: vaultConfig?.boringVault,
-      musdAddress:
-        MUSD_TOKEN_ADDRESS_BY_CHAIN[inventory.chainId] ?? MUSD_TOKEN_ADDRESS,
-      cardSpender,
-      nativeSweepWei: sponsored ? BigInt(inventory.nativeWei) : 0n,
-    });
-    if (calls.length === 0) {
-      return null;
-    }
+
     const networkClientId = await messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       inventory.chainId,
     );
-    const { batchId } = await messenger.call(
-      'TransactionController:addTransactionBatch',
-      {
-        from: inventory.source,
-        networkClientId,
-        origin: MIGRATION_ORIGIN,
-        requireApproval: false,
-        disableHook: false,
-        disableSequential: true,
-        isGasFeeSponsored: sponsored,
-        atomic: true,
-        transactions: calls.map((call) => ({
-          params: {
-            to: call.to,
-            data: call.data,
-            value: call.value,
-          },
-          type: TransactionType.contractInteraction,
-        })),
-      },
+    const { provider } = await messenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
     );
-    return batchId ?? null;
+    const ethersProvider = new Web3Provider(provider);
+    const musdAddress =
+      MUSD_TOKEN_ADDRESS_BY_CHAIN[inventory.chainId] ?? MUSD_TOKEN_ADDRESS;
+    const accountant = new Contract(
+      vaultConfig.accountantAddress,
+      ['function getRate() view returns (uint256 rate)'],
+      ethersProvider,
+    );
+    const exchangeRate = BigInt((await accountant.getRate()).toString());
+    const musdAmount = getMusdAmountForShares(vmUsdShares, exchangeRate);
+    if (musdAmount === 0n) {
+      throw new Error('vmusd-balance-too-small');
+    }
+
+    const lens = new Contract(
+      vaultConfig.lensAddress,
+      [
+        'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
+      ],
+      ethersProvider,
+    );
+    const expectedMint = BigInt(
+      (
+        await lens.previewDeposit(
+          musdAddress,
+          musdAmount.toString(),
+          vaultConfig.boringVault,
+          vaultConfig.accountantAddress,
+        )
+      ).toString(),
+    );
+    const contexts: MigrationExecutionContexts =
+      buildMigrationExecutionContexts({
+        source: inventory.source,
+        destination: inventory.destination,
+        musdAddress,
+        boringVault: vaultConfig.boringVault as Hex,
+        tellerAddress: vaultConfig.tellerAddress as Hex,
+        vmUsdShares,
+        musdAmount,
+        minimumMint: applySlippage(expectedMint),
+      });
+    const sourceDelegation = await this.createSourceDelegation(
+      inventory.source,
+      inventory.destination,
+      inventory.chainId,
+    );
+    const environment = getDeleGatorEnvironment(
+      parseInt(inventory.chainId, 16),
+    );
+    const submitter = deriveAddressFromPrivateKey(cPrivateKey);
+    const redemption = await buildMigrationRedemption({
+      chainId: inventory.chainId,
+      environment,
+      sourceDelegation,
+      source: inventory.source,
+      destination: inventory.destination,
+      submitter,
+      bPrivateKey,
+      contexts,
+    });
+
+    const transactionMeta =
+      await Engine.context.TransactionController.addTransaction(
+        {
+          from: submitter,
+          to: environment.DelegationManager,
+          data: redemption.transactionData,
+          value: '0x0',
+        },
+        {
+          networkClientId,
+          origin: MIGRATION_ORIGIN,
+          requireApproval: false,
+          isInternal: true,
+          type: TransactionType.contractInteraction,
+        },
+      );
+
+    return { transactionMeta: transactionMeta.transactionMeta, sourceDelegation };
   }
 
-  async awaitExitBatch(batchId: Hex): Promise<void> {
-    const innerTx = await findInnerTxForBatch(batchId);
+  async awaitExitBatch(transaction: TransactionMeta | Hex): Promise<void> {
+    const innerTx =
+      typeof transaction === 'string'
+        ? await findInnerTxForBatch(transaction)
+        : transaction;
     if (innerTx.status === TransactionStatus.confirmed) {
       return;
     }
@@ -492,27 +507,89 @@ export class MoneyAccountMigrationPocService {
     });
   }
 
+  async createSourceDelegation(
+    source: Hex,
+    destination: Hex,
+    chainId: Hex,
+  ): Promise<Delegation> {
+    const unsigned = createDelegation({
+      from: source,
+      to: destination,
+      caveats: [],
+    });
+    const signature = (await Engine.controllerMessenger.call(
+      'DelegationController:signDelegation',
+      { delegation: unsigned, chainId },
+    )) as Hex;
+    return { ...unsigned, signature };
+  }
+
+  async withTemporarySubmitter<T>(
+    privateKey: string,
+    operation: (address: Hex) => Promise<T>,
+  ): Promise<T> {
+    const address = deriveAddressFromPrivateKey(privateKey);
+    const { KeyringController } = Engine.context;
+    const accounts = (await KeyringController.getAccounts()) ?? [];
+    const wasAlreadyImported = accounts.some(
+      (account) => account.toLowerCase() === address.toLowerCase(),
+    );
+    if (!wasAlreadyImported) {
+      await KeyringController.importAccountWithStrategy(
+        AccountImportStrategy.privateKey,
+        [remove0x(privateKey)],
+      );
+    }
+    let result: T | undefined;
+    let operationError: unknown;
+    try {
+      result = await operation(address);
+    } catch (error) {
+      operationError = error;
+    }
+
+    if (!wasAlreadyImported) {
+      try {
+        await KeyringController.removeAccount(address);
+      } catch {
+        if (operationError === undefined) {
+          throw new Error('temporary-submitter-cleanup-failed');
+        }
+      }
+    }
+
+    if (operationError !== undefined) {
+      throw operationError;
+    }
+    return result as T;
+  }
+
   async persistResidualDelegation(
     source: Hex,
     destination: Hex,
     chainId: Hex,
+    existingDelegation?: Delegation,
   ): Promise<void> {
     const messenger = Engine.controllerMessenger;
-    const salt = bytesToHex(
-      globalThis.crypto.getRandomValues(new Uint8Array(32)),
-    );
-    const unsigned = {
-      delegate: destination,
-      delegator: source,
-      authority: ROOT_AUTHORITY as Hex,
-      caveats: [],
-      salt,
-    };
-    const signature = (await messenger.call(
-      'DelegationController:signDelegation',
-      { delegation: unsigned, chainId },
-    )) as Hex;
-    const signedDelegation = { ...unsigned, signature };
+    const signedDelegation =
+      existingDelegation ??
+      (await (async () => {
+        const salt = bytesToHex(
+          globalThis.crypto.getRandomValues(new Uint8Array(32)),
+        );
+        const unsigned = {
+          delegate: destination,
+          delegator: source,
+          authority: ROOT_AUTHORITY as Hex,
+          caveats: [],
+          salt,
+        };
+        const signature = (await messenger.call(
+          'DelegationController:signDelegation',
+          { delegation: unsigned, chainId },
+        )) as Hex;
+        return { ...unsigned, signature };
+      })());
     await messenger.call('AuthenticatedUserStorageService:createDelegation', {
       signedDelegation,
       metadata: {
