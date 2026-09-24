@@ -10885,6 +10885,7 @@
       "retry_button": "Retry"
     },
     "main_title": "Rewards",
+    "pro_member_badge_label": "Member",
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
