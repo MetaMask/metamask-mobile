@@ -127,6 +127,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@sumsub/react-native-mobilesdk-module',
   '@braze/react-native-sdk',
   'uuid',
+  '@metamask/wallet',
 ];
 
 const config = {
