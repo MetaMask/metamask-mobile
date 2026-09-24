@@ -34,7 +34,7 @@ const createStyles = (theme) => {
       paddingBottom: 12,
       paddingLeft: 16,
       paddingRight: 16,
-      borderRadius: 12,
+      borderRadius: 9999,
       borderWidth: 0,
     },
     selectedLabel: {
