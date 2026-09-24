@@ -2,7 +2,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
 import { Hex } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
 /**
@@ -19,6 +22,7 @@ import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmart
  */
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
 
   const { chainId, txParams } = transactionMeta ?? {};
 
@@ -37,12 +41,34 @@ export function useIsGaslessSupported() {
         return undefined;
       }
 
-      return isRelaySupported(chainId as Hex);
-    }, [chainId, shouldCheck7702Eligibility]);
+      if (!chainId || !payingAccount) {
+        return false;
+      }
 
-  const fromAddress = txParams?.from;
+      const relaySupported = await isRelaySupported(chainId as Hex);
+      if (
+        !relaySupported ||
+        chainId.toLowerCase() !== CHAIN_IDS.MONAD.toLowerCase()
+      ) {
+        return relaySupported;
+      }
+
+      const atomicBatchSupport = await isAtomicBatchSupported({
+        address: payingAccount,
+        chainIds: [chainId as Hex],
+      });
+      const chainSupport = atomicBatchSupport.find(
+        (result) => result.chainId.toLowerCase() === chainId.toLowerCase(),
+      );
+
+      return Boolean(
+        chainSupport &&
+          (!chainSupport.delegationAddress || chainSupport.isSupported),
+      );
+    }, [chainId, payingAccount, shouldCheck7702Eligibility]);
+
   const isHardwareWallet = Boolean(
-    fromAddress && isHardwareAccount(fromAddress),
+    payingAccount && isHardwareAccount(payingAccount),
   );
 
   const is7702Supported = Boolean(

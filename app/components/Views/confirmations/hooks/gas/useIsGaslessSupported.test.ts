@@ -9,11 +9,14 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 
 jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../../util/transactions/transaction-relay');
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../transactions/useTransactionPayingAccount');
 jest.mock('./useGaslessSupportedSmartTransactions');
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
@@ -60,6 +63,10 @@ describe('useIsGaslessSupported', () => {
     useGaslessSupportedSmartTransactions,
   );
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+  const isAtomicBatchSupportedMock = jest.mocked(isAtomicBatchSupported);
+  const useTransactionPayingAccountMock = jest.mocked(
+    useTransactionPayingAccount,
+  );
 
   beforeEach(() => {
     mockUseTransactionMetadataRequest.mockReturnValue({
@@ -73,6 +80,7 @@ describe('useIsGaslessSupported', () => {
       pending: false,
     });
     isHardwareAccountMock.mockReturnValue(false);
+    useTransactionPayingAccountMock.mockReturnValue('0x123');
   });
 
   describe('Gasless Smart Transactions', () => {
@@ -215,6 +223,62 @@ describe('useIsGaslessSupported', () => {
       await waitFor(() => {
         expect(result.current).toEqual({
           isSupported: false,
+          isSmartTransaction: false,
+          pending: false,
+        });
+      });
+    });
+
+    it('returns isSupported false for Monad when the paying account has no atomic batch support', async () => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0x8f',
+        txParams: { from: '0xMoneyAccount', to: '0xabc' },
+      } as unknown as TransactionMeta);
+      useTransactionPayingAccountMock.mockReturnValue('0xPayingAccount');
+      isRelaySupportedMock.mockResolvedValue(true);
+      isAtomicBatchSupportedMock.mockResolvedValue([]);
+
+      const state = merge({}, transferTransactionStateMock);
+      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
+        state,
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          isSupported: false,
+          isSmartTransaction: false,
+          pending: false,
+        });
+      });
+      expect(isAtomicBatchSupportedMock).toHaveBeenCalledWith({
+        address: '0xPayingAccount',
+        chainIds: ['0x8f'],
+      });
+    });
+
+    it('returns isSupported true for Monad when the paying account supports atomic batches', async () => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0x8f',
+        txParams: { from: '0xMoneyAccount', to: '0xabc' },
+      } as unknown as TransactionMeta);
+      useTransactionPayingAccountMock.mockReturnValue('0xPayingAccount');
+      isRelaySupportedMock.mockResolvedValue(true);
+      isAtomicBatchSupportedMock.mockResolvedValue([
+        {
+          chainId: '0x8f',
+          isSupported: true,
+          delegationAddress: '0xDelegation',
+        },
+      ]);
+
+      const state = merge({}, transferTransactionStateMock);
+      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
+        state,
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          isSupported: true,
           isSmartTransaction: false,
           pending: false,
         });
