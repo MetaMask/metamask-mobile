@@ -13,7 +13,7 @@ import {
   TitleHub,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
+import DottedUnderline from '../../../DottedUnderline';
 import TextShimmer from '../TextShimmer';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';

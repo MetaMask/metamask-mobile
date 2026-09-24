@@ -59,4 +59,20 @@ describe('ExplorePill', () => {
     );
     expect(queryByText('+1.00%')).toBeNull();
   });
+
+  it('marks the pill selected when isSelected is set', () => {
+    const { getByTestId } = render(
+      <ExplorePill
+        onPress={jest.fn()}
+        testID="pill"
+        leading={<Text>L</Text>}
+        title="BTC"
+        isSelected
+      />,
+    );
+
+    expect(getByTestId('pill').props.accessibilityState).toEqual({
+      selected: true,
+    });
+  });
 });

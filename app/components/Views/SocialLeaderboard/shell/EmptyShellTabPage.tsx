@@ -40,19 +40,21 @@ import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPo
 import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
-import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import {
   DEFAULT_FEED_SORT,
   FeedSortFilterSelector,
   FeedSortFilterSheet,
   type FeedSort,
 } from '../components/Filters';
-import SocialTabFilterBar from './filters/SocialTabFilterBar';
+import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
+import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import SocialTabFilterBar from './filters/SocialTabFilterBar';
 import type {
   SocialV1FeedPost,
   SocialV1FeedTab,
+  SocialV1HotToken,
 } from '../SocialV1View/feed/types';
 
 /** Insert the Popular traders rail after this many Trending posts. */
@@ -133,8 +135,40 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedHotTokenId, setSelectedHotTokenId] = useState<string | null>(
+    null,
+  );
   const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+
+  const selectedStillPresent =
+    selectedHotTokenId != null &&
+    posts.some(
+      (post) => getSocialV1HotTokenId(post.item) === selectedHotTokenId,
+    );
+  const activeHotTokenId = selectedStillPresent ? selectedHotTokenId : null;
+
+  useEffect(() => {
+    if (selectedHotTokenId && !selectedStillPresent) {
+      setSelectedHotTokenId(null);
+    }
+  }, [selectedHotTokenId, selectedStillPresent]);
+
+  const filteredPosts = useMemo(() => {
+    if (!activeHotTokenId) {
+      return posts;
+    }
+    return posts.filter(
+      (post) => getSocialV1HotTokenId(post.item) === activeHotTokenId,
+    );
+  }, [activeHotTokenId, posts]);
+
+  const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
+    setSelectedHotTokenId((current) =>
+      current === token.id ? null : token.id,
+    );
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
 
   /**
    * Pull-to-refresh, and the only recovery path once a later fetch fails:
@@ -225,15 +259,15 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [],
   );
 
-  const showPopularTraders = tab === 'trending';
+  const showPopularTraders = tab === 'trending' && activeHotTokenId === null;
   const showFollowingChrome = tab === 'following';
   const showHotTokens = tab === 'trending';
 
   const sortedPosts = useMemo(() => {
     if (tab !== 'following' || feedSort === 'most_recent') {
-      return posts;
+      return filteredPosts;
     }
-    return [...posts].sort((left, right) => {
+    return [...filteredPosts].sort((left, right) => {
       const leftTotal = left.reactions.reduce(
         (sum, reaction) => sum + reaction.count,
         0,
@@ -244,7 +278,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       );
       return rightTotal - leftTotal;
     });
-  }, [feedSort, posts, tab]);
+  }, [feedSort, filteredPosts, tab]);
 
   type FeedBlock =
     | { key: string; kind: 'posts'; posts: SocialV1FeedPost[] }
@@ -268,7 +302,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       blocks.push({ key: 'trailing', kind: 'posts', posts: trailingPosts });
     }
     return blocks;
-  }, [sortedPosts, showPopularTraders]);
+  }, [showPopularTraders, sortedPosts]);
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
@@ -321,7 +355,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           // to both screen edges, so the horizontal padding sits on the posts
           // rather than on the page.
           <Box twClassName="pb-8 gap-6">
-            {showHotTokens ? <HotTokensCarousel /> : null}
+            {showHotTokens ? (
+              <HotTokensCarousel
+                posts={posts}
+                isLoading={isLoading}
+                selectedTokenId={activeHotTokenId}
+                onTokenPress={handleHotTokenPress}
+              />
+            ) : null}
             {pendingPost ? (
               <Box twClassName="px-4">
                 <SocialFeedPostingBanner
