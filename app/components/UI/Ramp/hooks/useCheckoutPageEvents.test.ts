@@ -92,7 +92,7 @@ function setup(
 }
 
 describe('useCheckoutPageEvents', () => {
-  const mockGetBuyWidgetData = jest.fn();
+  const mockGetFallbackBuyWidgetData = jest.fn();
   const mockOpenHostedBuyWidget = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockBuild = jest.fn();
@@ -117,7 +117,7 @@ describe('useCheckoutPageEvents', () => {
       createEventBuilder: mockCreateEventBuilder,
     });
     mockUseRampsQuotes.mockReturnValue({
-      getBuyWidgetData: mockGetBuyWidgetData,
+      getFallbackBuyWidgetData: mockGetFallbackBuyWidgetData,
     });
     mockUseOpenHostedBuyWidget.mockReturnValue({
       openHostedBuyWidget: mockOpenHostedBuyWidget,
@@ -303,7 +303,7 @@ describe('useCheckoutPageEvents', () => {
 
   describe('onFallbackPress', () => {
     it('fetches the hosted widget from the fallback URL with the provider redirect and opens it', async () => {
-      mockGetBuyWidgetData.mockResolvedValue({
+      mockGetFallbackBuyWidgetData.mockResolvedValue({
         url: 'https://pay.coinbase.com/hosted',
         orderId: 'cb-order-1',
       });
@@ -325,16 +325,9 @@ describe('useCheckoutPageEvents', () => {
           error_code: 'ERROR_CODE_GUEST_TRANSACTION_LIMIT',
         },
       });
-      expect(mockGetBuyWidgetData).toHaveBeenCalledWith(
-        expect.objectContaining({
-          provider: 'coinbase-m',
-          quote: expect.objectContaining({
-            buyURL: expect.stringContaining(
-              'redirectUrl=metamask%3A%2F%2Fon-ramp%2Fproviders%2Fcoinbase-m',
-            ),
-          }),
-        }),
-      );
+      expect(mockGetFallbackBuyWidgetData).toHaveBeenCalledWith(FALLBACK, {
+        redirectUrl: 'metamask://on-ramp/providers/coinbase-m',
+      });
       expect(mockOpenHostedBuyWidget).toHaveBeenCalledWith({
         url: 'https://pay.coinbase.com/hosted',
         redirectUrl: 'metamask://on-ramp/providers/coinbase-m',
@@ -348,7 +341,7 @@ describe('useCheckoutPageEvents', () => {
     });
 
     it('reports an error and resets pending when the widget fetch fails', async () => {
-      mockGetBuyWidgetData.mockRejectedValue(new Error('boom'));
+      mockGetFallbackBuyWidgetData.mockRejectedValue(new Error('boom'));
       const { hook, onError } = setup();
 
       await act(async () => {
@@ -361,7 +354,7 @@ describe('useCheckoutPageEvents', () => {
     });
 
     it('reports an error when the widget response has no url', async () => {
-      mockGetBuyWidgetData.mockResolvedValue({ url: '' });
+      mockGetFallbackBuyWidgetData.mockResolvedValue({ url: '' });
       const { hook, onError } = setup();
 
       await act(async () => {
@@ -382,14 +375,14 @@ describe('useCheckoutPageEvents', () => {
       });
 
       expect(onFallbackOpened).toHaveBeenCalledTimes(1);
-      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
+      expect(mockGetFallbackBuyWidgetData).not.toHaveBeenCalled();
       expect(onError).toHaveBeenCalledTimes(1);
       expect(hook.result.current.isFallbackPending).toBe(false);
     });
 
     it('ignores a second press while the first hand-off is pending', async () => {
       let resolveWidget: (value: unknown) => void = () => undefined;
-      mockGetBuyWidgetData.mockReturnValue(
+      mockGetFallbackBuyWidgetData.mockReturnValue(
         new Promise((resolve) => {
           resolveWidget = resolve;
         }),
@@ -410,7 +403,7 @@ describe('useCheckoutPageEvents', () => {
       });
 
       expect(onFallbackOpened).toHaveBeenCalledTimes(1);
-      expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
+      expect(mockGetFallbackBuyWidgetData).toHaveBeenCalledTimes(1);
     });
   });
 });

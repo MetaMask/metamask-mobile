@@ -1,24 +1,4 @@
-import type { Quote } from '@metamask/ramps-controller';
-
 import { coinbaseCheckoutPageEventAdapter } from './coinbaseEmbedded';
-
-/** Hosted-widget fallback the API attaches to a quote; not yet in the published `BuyWidget` type. */
-export interface BuyWidgetFallback {
-  url: string;
-  browser: 'IN_APP_OS_BROWSER' | 'APP_BROWSER';
-}
-
-interface BuyWidgetWithFallback {
-  fallback?: BuyWidgetFallback;
-}
-
-export function getQuoteBuyWidgetFallback(
-  quote: Quote,
-): BuyWidgetFallback | undefined {
-  const fallback = (quote.quote?.buyWidget as BuyWidgetWithFallback | undefined)
-    ?.fallback;
-  return fallback?.url ? fallback : undefined;
-}
 
 /** Provider-neutral vocabulary each adapter maps its page events onto. */
 export type CheckoutPageEventKind =

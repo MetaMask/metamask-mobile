@@ -20,11 +20,11 @@ import {
   acceptedAmountMatchesRequest,
   logTransakQuoteMismatch,
 } from '../utils/transakQuoteParity';
-import { getQuoteBuyWidgetFallback } from '../utils/checkoutPageEvents';
 import {
   checkGooglePayAvailability,
   needsGooglePayPreflight,
 } from '../utils/googlePayAvailability';
+import { getBuyWidgetFallback } from '@metamask/ramps-controller';
 import {
   type Quote,
   isNativeProvider,
@@ -389,7 +389,7 @@ export function useContinueWithQuote(
             cryptocurrency: effectiveCryptoSymbol,
             orderId: buyWidget.orderId?.trim() || undefined,
             headlessSessionId: ctx.headlessSessionId,
-            fallbackBuyWidget: getQuoteBuyWidgetFallback(quote),
+            fallbackBuyWidget: getBuyWidgetFallback(quote),
           }),
         );
       } catch (error) {

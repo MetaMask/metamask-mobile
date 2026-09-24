@@ -307,7 +307,7 @@ describe('Checkout', () => {
   const mockAddOrder = jest.fn();
   const mockGetOrderFromCallback = jest.fn();
   const mockAddPrecreatedOrder = jest.fn();
-  const mockGetBuyWidgetData = jest.fn();
+  const mockGetFallbackBuyWidgetData = jest.fn();
   const mockOpenHostedBuyWidget = jest.fn();
   const mockHeadlessEntrySetOptions = jest.fn();
   const mockNavigation = {
@@ -350,9 +350,9 @@ describe('Checkout', () => {
       getOrderFromCallback: mockGetOrderFromCallback,
       addPrecreatedOrder: mockAddPrecreatedOrder,
     });
-    mockGetBuyWidgetData.mockResolvedValue(null);
+    mockGetFallbackBuyWidgetData.mockResolvedValue(null);
     mockUseRampsQuotes.mockReturnValue({
-      getBuyWidgetData: mockGetBuyWidgetData,
+      getFallbackBuyWidgetData: mockGetFallbackBuyWidgetData,
     });
     mockOpenHostedBuyWidget.mockResolvedValue(undefined);
     mockUseOpenHostedBuyWidget.mockReturnValue({
@@ -2300,10 +2300,10 @@ describe('Checkout', () => {
         expect(queryByTestId('checkout-webview')).toBeNull();
       });
 
-      it('tapping the fallback action fetches the hosted widget with the rewritten redirect URL and opens it, without popping the sheet itself', async () => {
+      it('tapping the fallback action fetches the hosted widget with the provider redirect URL and opens it, without popping the sheet itself', async () => {
         const mockParentPop = jest.fn();
         mockNavigation.getParent.mockReturnValue({ pop: mockParentPop });
-        mockGetBuyWidgetData.mockResolvedValueOnce({
+        mockGetFallbackBuyWidgetData.mockResolvedValueOnce({
           url: 'https://pay.coinbase.com/buy?sessionToken=hosted-token',
           orderId: 'coinbase-m/orders/hosted-1',
         });
@@ -2319,15 +2319,10 @@ describe('Checkout', () => {
           fireEvent.press(getByText('Continue with your Coinbase account'));
         });
 
-        expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
-        const requestedQuote = mockGetBuyWidgetData.mock.calls[0][0];
-        expect(requestedQuote.provider).toBe('coinbase-m');
-        const requestedUrl = new URL(requestedQuote.quote.buyURL);
-        expect(requestedUrl.searchParams.get('sessionToken')).toBe(
-          'fallback-token',
-        );
-        expect(requestedUrl.searchParams.get('redirectUrl')).toBe(
-          'metamask://on-ramp/providers/coinbase-m',
+        expect(mockGetFallbackBuyWidgetData).toHaveBeenCalledTimes(1);
+        expect(mockGetFallbackBuyWidgetData).toHaveBeenCalledWith(
+          coinbaseParamsWithFallback.fallbackBuyWidget,
+          { redirectUrl: 'metamask://on-ramp/providers/coinbase-m' },
         );
 
         expect(mockOpenHostedBuyWidget).toHaveBeenCalledWith({
@@ -2344,7 +2339,9 @@ describe('Checkout', () => {
       });
 
       it('shows the fixed error when fetching the hosted widget fails, leaving the sheet mounted', async () => {
-        mockGetBuyWidgetData.mockRejectedValueOnce(new Error('network down'));
+        mockGetFallbackBuyWidgetData.mockRejectedValueOnce(
+          new Error('network down'),
+        );
         mockUseParams.mockReturnValue(coinbaseParamsWithFallback);
 
         const { getByText, getByTestId } = renderWithProvider(
@@ -2371,7 +2368,7 @@ describe('Checkout', () => {
       });
 
       it('shows the fixed error when the hosted hand-off itself rejects, leaving the sheet mounted', async () => {
-        mockGetBuyWidgetData.mockResolvedValueOnce({
+        mockGetFallbackBuyWidgetData.mockResolvedValueOnce({
           url: 'https://pay.coinbase.com/buy?sessionToken=hosted-token',
           orderId: 'coinbase-m/orders/hosted-1',
         });
@@ -2403,14 +2400,14 @@ describe('Checkout', () => {
         expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
       });
 
-      it('does not call getBuyWidgetData twice when the fallback action is pressed twice in a row', async () => {
-        let resolveGetBuyWidgetData:
+      it('does not call getFallbackBuyWidgetData twice when the fallback action is pressed twice in a row', async () => {
+        let resolveGetFallbackBuyWidgetData:
           | ((value: { url: string; orderId: string }) => void)
           | undefined;
-        mockGetBuyWidgetData.mockImplementationOnce(
+        mockGetFallbackBuyWidgetData.mockImplementationOnce(
           () =>
             new Promise((resolve) => {
-              resolveGetBuyWidgetData = resolve;
+              resolveGetFallbackBuyWidgetData = resolve;
             }),
         );
         mockUseParams.mockReturnValue(coinbaseParamsWithFallback);
@@ -2426,10 +2423,10 @@ describe('Checkout', () => {
           fireEvent.press(getByText('Continue with your Coinbase account'));
         });
 
-        expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
+        expect(mockGetFallbackBuyWidgetData).toHaveBeenCalledTimes(1);
 
         await act(async () => {
-          resolveGetBuyWidgetData?.({
+          resolveGetFallbackBuyWidgetData?.({
             url: 'https://pay.coinbase.com/buy?sessionToken=hosted-token',
             orderId: 'coinbase-m/orders/hosted-1',
           });

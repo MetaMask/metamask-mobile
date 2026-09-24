@@ -1,12 +1,6 @@
 import { isExternalBrowserQuote, type Quote } from '@metamask/ramps-controller';
 import { getRampCallbackBaseUrl } from './getRampCallbackBaseUrl';
 
-function withRedirectUrl(url: string, redirectUrl: string): string {
-  const parsed = new URL(url);
-  parsed.searchParams.set('redirectUrl', redirectUrl);
-  return parsed.toString();
-}
-
 /**
  * Returns a quote with buyURL rewritten to use the given redirect URL.
  * Ideally this logic would live in the API or controller — the client
@@ -19,37 +13,19 @@ export function buildQuoteWithRedirectUrl(
   const buyURL = quote.quote?.buyURL;
   if (!buyURL) return quote;
 
+  const buyUrl = new URL(buyURL);
+  buyUrl.searchParams.set('redirectUrl', redirectUrl);
   return {
     ...quote,
     quote: {
       ...quote.quote,
-      buyURL: withRedirectUrl(buyURL, redirectUrl),
+      buyURL: buyUrl.toString(),
     },
   };
 }
 
 export function getProviderDeeplinkRedirectUrl(providerCode: string): string {
   return `metamask://on-ramp/providers/${providerCode}`;
-}
-
-// Minimal Quote-shaped object for `getBuyWidgetData` (it reads only `buyURL`),
-// built from a bare fallback buy-widget URL.
-export function buildFallbackWidgetQuote(
-  url: string,
-  providerCode: string,
-): Quote {
-  return {
-    provider: providerCode,
-    quote: {
-      amountIn: 0,
-      amountOut: 0,
-      paymentMethod: '',
-      buyURL: withRedirectUrl(
-        url,
-        getProviderDeeplinkRedirectUrl(providerCode),
-      ),
-    },
-  };
 }
 
 /**

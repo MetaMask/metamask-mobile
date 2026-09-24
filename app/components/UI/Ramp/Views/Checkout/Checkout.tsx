@@ -15,7 +15,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import type { RampsOrder } from '@metamask/ramps-controller';
+import type { BuyWidgetFallback, RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -76,7 +76,6 @@ import {
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
 import type { RampSurface } from '../../types/depositAnalytics';
-import type { BuyWidgetFallback } from '../../utils/checkoutPageEvents';
 
 interface CheckoutParams {
   url: string;

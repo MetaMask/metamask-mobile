@@ -1,19 +1,14 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { BuyWidgetFallback } from '@metamask/ramps-controller';
 
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import type { FunnelBaseProps } from '../utils/webviewFunnelAnalytics';
-import {
-  getCheckoutPageEventAdapter,
-  type BuyWidgetFallback,
-} from '../utils/checkoutPageEvents';
-import {
-  buildFallbackWidgetQuote,
-  getProviderDeeplinkRedirectUrl,
-} from '../utils/buildQuoteWithRedirectUrl';
+import { getCheckoutPageEventAdapter } from '../utils/checkoutPageEvents';
+import { getProviderDeeplinkRedirectUrl } from '../utils/buildQuoteWithRedirectUrl';
 import { useRampsQuotes } from './useRampsQuotes';
 import { useOpenHostedBuyWidget } from './useOpenHostedBuyWidget';
 
@@ -65,7 +60,7 @@ export function useCheckoutPageEvents({
   onFallbackOpened,
 }: UseCheckoutPageEventsParams): UseCheckoutPageEventsResult {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { getBuyWidgetData } = useRampsQuotes();
+  const { getFallbackBuyWidgetData } = useRampsQuotes();
   const { openHostedBuyWidget } = useOpenHostedBuyWidget();
   const adapter = useMemo(
     () => getCheckoutPageEventAdapter(providerCode),
@@ -223,8 +218,10 @@ export function useCheckoutPageEvents({
     }
 
     try {
-      const hostedBuyWidget = await getBuyWidgetData(
-        buildFallbackWidgetQuote(fallbackBuyWidget.url, providerCode),
+      const redirectUrl = getProviderDeeplinkRedirectUrl(providerCode);
+      const hostedBuyWidget = await getFallbackBuyWidgetData(
+        fallbackBuyWidget,
+        { redirectUrl },
       );
       if (!hostedBuyWidget?.url) {
         throw new Error('No hosted widget URL available for provider');
@@ -232,7 +229,7 @@ export function useCheckoutPageEvents({
 
       await openHostedBuyWidget({
         url: hostedBuyWidget.url,
-        redirectUrl: getProviderDeeplinkRedirectUrl(providerCode),
+        redirectUrl,
         providerCode,
         orderId: hostedBuyWidget.orderId,
         walletAddress,
@@ -253,7 +250,7 @@ export function useCheckoutPageEvents({
     limitErrorCode,
     fallbackBuyWidget,
     providerCode,
-    getBuyWidgetData,
+    getFallbackBuyWidgetData,
     openHostedBuyWidget,
     walletAddress,
     chainId,
