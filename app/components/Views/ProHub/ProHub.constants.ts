@@ -1,4 +1,8 @@
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BannerAlertSeverity,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 export interface ProHubStats {
   /** Formatted currency string for lifetime Pro earnings. */
@@ -11,6 +15,8 @@ export interface ProHubStats {
   musdBack: string;
   /** Share of spend returned as mUSD, as a percentage. */
   musdBackRate: number;
+  /** Formatted date by which funds must be added to keep the membership. */
+  addFundsDueDate: string;
 }
 
 export interface AlsoIncludedItem {
@@ -28,7 +34,79 @@ export const MOCK_PRO_HUB_STATS: ProHubStats = {
   moneyBalanceApy: 7,
   musdBack: '$0.00',
   musdBackRate: 3,
+  addFundsDueDate: 'Oct 12',
 };
+
+export const MembershipBannerKind = {
+  ActiveLowBalance: 'activeLowBalance',
+  ActiveRenewalFailed: 'activeRenewalFailed',
+  Overdue: 'overdue',
+  Deactivated: 'deactivated',
+} as const;
+
+export type MembershipBannerKind =
+  (typeof MembershipBannerKind)[keyof typeof MembershipBannerKind];
+
+export interface MembershipBannerState {
+  kind: MembershipBannerKind;
+  statusKey: string;
+  iconColor: IconColor;
+  bannerSeverity: BannerAlertSeverity;
+  titleKey: string;
+  descriptionKey: string;
+  actionKey: string;
+  interpolatesDate: boolean;
+}
+
+export const MEMBERSHIP_BANNER_STATES: Record<
+  MembershipBannerKind,
+  MembershipBannerState
+> = {
+  [MembershipBannerKind.ActiveLowBalance]: {
+    kind: MembershipBannerKind.ActiveLowBalance,
+    statusKey: 'pro_hub.membership_status.active',
+    iconColor: IconColor.PrimaryDefault,
+    bannerSeverity: BannerAlertSeverity.Info,
+    titleKey: 'pro_hub.membership_alert.low_balance.title',
+    descriptionKey: 'pro_hub.membership_alert.low_balance.description',
+    actionKey: 'pro_hub.membership_alert.low_balance.action',
+    interpolatesDate: true,
+  },
+  [MembershipBannerKind.ActiveRenewalFailed]: {
+    kind: MembershipBannerKind.ActiveRenewalFailed,
+    statusKey: 'pro_hub.membership_status.active',
+    iconColor: IconColor.WarningDefault,
+    bannerSeverity: BannerAlertSeverity.Warning,
+    titleKey: 'pro_hub.membership_alert.renewal_failed.title',
+    descriptionKey: 'pro_hub.membership_alert.renewal_failed.description',
+    actionKey: 'pro_hub.membership_alert.renewal_failed.action',
+    interpolatesDate: false,
+  },
+  [MembershipBannerKind.Overdue]: {
+    kind: MembershipBannerKind.Overdue,
+    statusKey: 'pro_hub.membership_status.overdue',
+    iconColor: IconColor.ErrorDefault,
+    bannerSeverity: BannerAlertSeverity.Danger,
+    titleKey: 'pro_hub.membership_alert.payment_failed.title',
+    descriptionKey: 'pro_hub.membership_alert.payment_failed.description',
+    actionKey: 'pro_hub.membership_alert.payment_failed.action',
+    interpolatesDate: false,
+  },
+  [MembershipBannerKind.Deactivated]: {
+    kind: MembershipBannerKind.Deactivated,
+    statusKey: 'pro_hub.membership_status.deactivated',
+    iconColor: IconColor.ErrorDefault,
+    bannerSeverity: BannerAlertSeverity.Danger,
+    titleKey: 'pro_hub.membership_alert.inactive.title',
+    descriptionKey: 'pro_hub.membership_alert.inactive.description',
+    actionKey: 'pro_hub.membership_alert.inactive.action',
+    interpolatesDate: false,
+  },
+};
+
+// TODO: replace with real membership status from the API.
+export const MOCK_MEMBERSHIP_BANNER_KIND =
+  MembershipBannerKind.ActiveLowBalance;
 
 export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [
   {
