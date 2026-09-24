@@ -459,14 +459,14 @@ class WalletView extends WalletHomeSectionsBase {
   }
 
   async tapWalletSwapButtonWithRecovery(
-    driver: Browser,
+    appiumDriver: Browser,
     recovery: LocatorRecoveryProvider | undefined,
     onRecovered?: SelfHealingTapOptions['onRecovered'],
   ): Promise<void> {
     await tapWithSelfHealingLocator({
       intent: 'tap Swap on the wallet home',
       primary: () => this.walletSwapButton,
-      driver,
+      driver: appiumDriver,
       recovery,
       onRecovered,
     });
@@ -479,14 +479,14 @@ class WalletView extends WalletHomeSectionsBase {
   }
 
   async tapWalletSendButtonWithRecovery(
-    driver: Browser,
+    appiumDriver: Browser,
     recovery: LocatorRecoveryProvider | undefined,
     onRecovered?: SelfHealingTapOptions['onRecovered'],
   ): Promise<void> {
     await tapWithSelfHealingLocator({
       intent: 'tap Send on the wallet home',
       primary: () => this.walletSendButton,
-      driver,
+      driver: appiumDriver,
       recovery,
       onRecovered,
     });
