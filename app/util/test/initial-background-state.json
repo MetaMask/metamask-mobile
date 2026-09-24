@@ -903,6 +903,7 @@
     "predictThePitchPrizePool": {},
     "moneyAccountSweepstakesStats": {},
     "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesVolumeStats": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
     "campaignParticipantStatus": {},

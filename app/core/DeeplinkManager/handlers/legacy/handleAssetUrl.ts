@@ -106,7 +106,9 @@ const parseSource = (value: string | null): TokenDetailsSource | undefined =>
  * epoch in seconds or milliseconds, or an ISO-8601 string. Returns undefined
  * when absent/unparseable or when the timestamp is in the future.
  */
-const parseTimeToOpenSeconds = (value: string | null): number | undefined => {
+export const parseTimeToOpenSeconds = (
+  value: string | null,
+): number | undefined => {
   if (!value) return undefined;
   const numeric = Number(value);
   let triggeredMs: number;

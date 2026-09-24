@@ -27,6 +27,7 @@ import React, {
 } from 'react';
 import {
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -41,7 +42,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useTheme } from '../../../../util/theme';
-import superheroAvatar from '../../../../images/socialV1/superhero.png';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../SocialV1View/feed/components/SocialFeedPositionCard';
@@ -56,6 +57,7 @@ import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
 } from './mapPositionToFeedItem';
+import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 
@@ -81,6 +83,7 @@ const SocialPostComposerView: React.FC = () => {
   } | null>(null);
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
+  const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
 
   const composerAuthor = useMemo(
     () => ({
@@ -142,8 +145,20 @@ const SocialPostComposerView: React.FC = () => {
   }, []);
 
   const handleGifChipPress = useCallback(() => {
-    focusComposer();
-  }, [focusComposer]);
+    setIsShareSheetOpen(false);
+    setIsGifSheetOpen((open) => {
+      const next = !open;
+      if (next) {
+        Keyboard.dismiss();
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectGif = useCallback((nextGifUri: string) => {
+    setGifUri(nextGifUri);
+    setIsGifSheetOpen(false);
+  }, []);
 
   // Focusing mid-transition drops the keyboard on the native stack push, so
   // wait until the screen has settled before raising it.
@@ -167,8 +182,7 @@ const SocialPostComposerView: React.FC = () => {
       authorHandle: profile?.handle ?? 'giga-whale',
       authorImageUrl: profile?.imageUrl,
       timestampMs: Date.now(),
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       gifUri: gifUri ?? undefined,
       item,
     });
@@ -243,11 +257,10 @@ const SocialPostComposerView: React.FC = () => {
           keyboardShouldPersistTaps="always"
         >
           <Box gap={3} twClassName="w-full">
-            <Image
-              source={
-                profile?.imageUrl ? { uri: profile.imageUrl } : superheroAvatar
-              }
-              style={tw.style('w-10 h-10 rounded-full')}
+            <ProfileAvatar
+              imageUrl={profile?.imageUrl}
+              avatarPresetId={profile?.avatarPresetId}
+              size="sm"
             />
             <TextInput
               ref={inputRef}
@@ -322,14 +335,19 @@ const SocialPostComposerView: React.FC = () => {
           alignItems={BoxAlignItems.Center}
           gap={2}
           twClassName="px-4 pt-3"
-          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+          style={tw.style({
+            paddingBottom: isGifSheetOpen ? 8 : Math.max(insets.bottom, 12),
+          })}
         >
           {selectedPosition ? null : (
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Sm}
               startIconName={IconName.Card}
-              onPress={() => setIsShareSheetOpen(true)}
+              onPress={() => {
+                setIsGifSheetOpen(false);
+                setIsShareSheetOpen(true);
+              }}
               testID={SocialPostComposerViewSelectorsIDs.POSITION_CHIP}
             >
               {strings('social_leaderboard.composer.chip_position')}
@@ -341,12 +359,22 @@ const SocialPostComposerView: React.FC = () => {
               size={ButtonSize.Sm}
               startIconName={IconName.Sparkle}
               onPress={handleGifChipPress}
+              accessibilityState={{ selected: isGifSheetOpen }}
+              twClassName={
+                isGifSheetOpen ? 'border border-primary-default' : undefined
+              }
               testID={SocialPostComposerViewSelectorsIDs.GIF_CHIP}
             >
               {strings('social_leaderboard.composer.chip_gif')}
             </Button>
           )}
         </Box>
+        {isGifSheetOpen ? (
+          <GifPickerSheet
+            onSelect={handleSelectGif}
+            onClose={() => setIsGifSheetOpen(false)}
+          />
+        ) : null}
       </KeyboardAvoidingView>
 
       {isShareSheetOpen ? (

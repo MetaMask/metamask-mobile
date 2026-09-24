@@ -6,12 +6,18 @@ import type {
 export const RECURRING_ORDERS_STALE_TIME = 5 * 60 * 1000;
 export const RECURRING_ORDERS_PAGE_LIMIT = 20;
 export const RECURRING_SWAPS_PAGE_LIMIT = 20;
+export const RECURRING_ORDERS_QUERY_KEY =
+  'RecurringOrdersDataService:getRecurringOrders' as const;
 
 export type RecurringOrdersQueryParams = Omit<
   GetRecurringOrdersQuery,
   'cursor'
 >;
 export type RecurringSwapsQueryParams = Omit<GetRecurringSwapsQuery, 'cursor'>;
+export type RecurringOrdersQueryKey = readonly [
+  typeof RECURRING_ORDERS_QUERY_KEY,
+  RecurringOrdersQueryParams,
+];
 
 export const recurringOrdersQueries = {
   getRecurringOrders: ({
@@ -28,10 +34,7 @@ export const recurringOrdersQueries = {
     };
 
     return {
-      queryKey: [
-        'RecurringOrdersDataService:getRecurringOrders',
-        params,
-      ] as const,
+      queryKey: [RECURRING_ORDERS_QUERY_KEY, params] as const,
       staleTime: RECURRING_ORDERS_STALE_TIME,
     };
   },

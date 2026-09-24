@@ -10,12 +10,15 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import type { QuoteParams } from '../SwapQuotesProvider/utils';
 import { SwapsFeatureIdProvider } from '../SwapsFeatureIdProvider';
 import type { FeatureId } from '@metamask/bridge-controller';
+import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
 
 export const BridgeSessionContext = createContext<{
   selectedTab: BridgeTabKey;
   renderedTab: BridgeTabKey;
   setSelectedTab: (tab: BridgeTabKey) => void;
   setRenderedTab: (tab: BridgeTabKey) => void;
+  recurringOrdersTab?: OrdersTabKey;
+  setRecurringOrdersTab?: (tab: OrdersTabKey) => void;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   quoteParams: QuoteParams;
   setQuoteParams: (quoteParams: QuoteParams) => void;
@@ -38,6 +41,9 @@ export const BridgeSessionProvider = ({
   // of holding up that feedback.
   const [selectedTab, setSelectedTab] = useState(BridgeTabKey.Market);
   const [renderedTab, setRenderedTab] = useState(BridgeTabKey.Market);
+  const [recurringOrdersTab, setRecurringOrdersTab] = useState(
+    OrdersTabKey.OpenOrders,
+  );
   const featureIdToUse = featureId ?? TAB_TO_FEATURE_ID[renderedTab];
 
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
@@ -61,11 +67,19 @@ export const BridgeSessionProvider = ({
       renderedTab,
       setSelectedTab,
       setRenderedTab,
+      recurringOrdersTab,
+      setRecurringOrdersTab,
       latestSourceBalance,
       quoteParams,
       setQuoteParams,
     }),
-    [selectedTab, renderedTab, latestSourceBalance, quoteParams],
+    [
+      selectedTab,
+      renderedTab,
+      recurringOrdersTab,
+      latestSourceBalance,
+      quoteParams,
+    ],
   );
 
   return (
