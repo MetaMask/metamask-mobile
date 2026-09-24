@@ -180,7 +180,7 @@ const createActiveQuote = (
   ) as EnrichedQuickBuyQuote;
 
 const setupDefaultMocks = () => {
-  (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+  (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
   mockUseRampNavigation.mockReturnValue({
     goToBuy: mockGoToBuy,
   } as unknown as ReturnType<typeof useRampNavigation>);

@@ -136,7 +136,7 @@ describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
     jest.mocked(useABTest).mockReturnValue({
       variant: { orderByValue: false },
       variantName: 'control',

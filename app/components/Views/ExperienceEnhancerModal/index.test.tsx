@@ -37,7 +37,7 @@ describe('ExperienceEnhancerModal', () => {
   const dispatchMock = jest.fn();
 
   beforeEach(() => {
-    (useDispatch as jest.Mock).mockReturnValue(dispatchMock);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(dispatchMock);
   });
 
   afterEach(() => {

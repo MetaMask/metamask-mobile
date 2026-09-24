@@ -774,7 +774,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const render = (Component: React.ComponentType) =>
+// react-redux 9 surfaces ownProps as required on connected components, so a
+// bare `React.ComponentType` (meaning `ComponentType<{}>`) no longer accepts
+// `Wallet`. The navigator supplies those props at runtime.
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const render = (Component: React.ComponentType<any>) =>
   renderScreen(
     Component,
     {

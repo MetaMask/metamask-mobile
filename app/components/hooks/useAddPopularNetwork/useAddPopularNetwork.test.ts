@@ -63,7 +63,7 @@ describe('useAddPopularNetwork', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
     (useSelector as unknown as jest.Mock).mockReturnValue({});
     (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,

@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, RenderHookOptions } from '@testing-library/react-hooks';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { useSnapNameResolution } from './useSnapNameResolution';
-import type { DeepPartial } from '@reduxjs/toolkit';
+import type { DeepPartial } from '../../../util/test/renderWithProvider';
 import { RootState } from '../../../reducers';
 import { Provider } from 'react-redux';
 import configureStore from '../../../util/test/configureStore';

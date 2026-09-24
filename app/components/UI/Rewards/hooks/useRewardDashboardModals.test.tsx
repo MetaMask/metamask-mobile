@@ -115,7 +115,7 @@ describe('useRewardDashboardModals', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     });
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
     // Mock both selectors that are used in the hook
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectInternalAccountsByGroupId) {

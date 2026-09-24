@@ -256,7 +256,7 @@ describe('Complete Component', () => {
       params: {},
     });
 
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
 
     const { getCardBaanxToken } = jest.requireMock('../../util/cardTokenVault');
     getCardBaanxToken.mockResolvedValue({

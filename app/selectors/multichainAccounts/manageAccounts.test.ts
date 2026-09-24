@@ -8,7 +8,7 @@ import {
   AccountTreeControllerState,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
-import { DeepPartial } from 'redux';
+import type { DeepPartial } from '../../util/test/renderWithProvider';
 import {
   AccountGroupId,
   AccountGroupType,

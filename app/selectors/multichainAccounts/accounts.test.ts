@@ -1,6 +1,6 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
-import { DeepPartial } from 'redux';
+import type { DeepPartial } from '../../util/test/renderWithProvider';
 import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
 import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';

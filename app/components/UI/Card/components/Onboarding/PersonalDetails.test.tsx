@@ -347,7 +347,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   reset: mockReset,
 });
 
-(useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+(useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
 
 const mockAllRegions = [
   { key: 'US', name: 'United States', emoji: '🇺🇸', areaCode: '1' },
@@ -431,7 +431,7 @@ describe('PersonalDetails Component', () => {
       reset: mockReset,
     });
 
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
 
     (useCardSDK as jest.Mock).mockReturnValue({
       sdk: null,

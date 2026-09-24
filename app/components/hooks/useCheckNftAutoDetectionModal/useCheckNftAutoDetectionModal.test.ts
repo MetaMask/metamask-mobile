@@ -60,7 +60,7 @@ describe('useCheckNftAutoDetectionModal', () => {
   };
 
   beforeEach(() => {
-    (useDispatch as jest.Mock).mockReturnValue(dispatchMock);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(dispatchMock);
     (useNavigation as jest.Mock).mockReturnValue({ navigate: navigateMock });
     mockSelectors();
     (isMainNet as unknown as jest.Mock).mockReturnValue(true);

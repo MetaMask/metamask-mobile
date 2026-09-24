@@ -35,7 +35,7 @@ describe('useCheckMultiRpcModal', () => {
   const navigateMock = jest.fn();
 
   beforeEach(() => {
-    (useDispatch as jest.Mock).mockReturnValue(dispatchMock);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(dispatchMock);
     (useNavigation as jest.Mock).mockReturnValue({ navigate: navigateMock });
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {

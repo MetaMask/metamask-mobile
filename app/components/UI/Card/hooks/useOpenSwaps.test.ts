@@ -111,7 +111,7 @@ describe('useOpenSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
 
     // Mock selector and hook return values
     (
