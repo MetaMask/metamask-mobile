@@ -1,3 +1,4 @@
+import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 
@@ -38,10 +39,18 @@ export interface LimitOrderConfirmationModalParams {
    * Expiration label, e.g. "7 days".
    */
   expiry: string;
+  /**
+   * Unformatted order parameters used to request the delegations to sign.
+   * Built by the caller, which is the only place holding the raw asset ids and
+   * minimal-unit amounts. `costTolerance` is excluded on purpose: this screen
+   * reads the live value from state, since it can still be edited while the
+   * sheet is open.
+   */
+  order: Omit<LimitOrderDelegationsParams, 'costTolerance'>;
 }
 
 export interface LimitOrderConfirmationModalProps
-  extends LimitOrderConfirmationModalParams {
+  extends Omit<LimitOrderConfirmationModalParams, 'order'> {
   /**
    * Cost tolerance label, e.g. "2%". Read from state by the host screen so
    * edits made in the cost tolerance modal are reflected here.

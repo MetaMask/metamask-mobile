@@ -109,6 +109,9 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
+import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
+import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -132,6 +135,12 @@ const MoneyHomeView = () => {
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
+
+  // Pro entry point: keep subscription state fresh only while the Pro flow is
+  // enabled so we do not generate API traffic for users without the flow.
+  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const isProSubscriber = useIsProSubscriber();
+  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
@@ -388,10 +397,32 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+    const destination = isProSubscriber
+      ? {
+          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+          label_key: 'pro_subscription.pro',
+          redirect_target: SCREEN_NAMES.PRO_HUB,
+          route: Routes.PRO_HUB.ROOT,
+        }
+      : {
+          button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+          label_key: 'pro_subscription.join_pro',
+          redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+          route: Routes.PRO_SUBSCRIPTION.ROOT,
+        };
+
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      component_name: COMPONENT_NAMES.MONEY_HEADER,
+      button_intent: destination.button_intent,
+      label_key: destination.label_key,
+      redirect_target: destination.redirect_target,
+    });
+
+    navigation.navigate(destination.route, {
       source: 'money_header',
     });
-  }, [navigation]);
+  }, [navigation, isProSubscriber, trackButtonClicked]);
 
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.

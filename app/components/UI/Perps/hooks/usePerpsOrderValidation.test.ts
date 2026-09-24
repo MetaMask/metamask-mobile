@@ -1188,7 +1188,9 @@ describe('usePerpsOrderValidation', () => {
           expect(result.current.isValidating).toBe(false);
         });
 
-        expect(result.current.isValid).toBe(false);
+        // A wrong-side trigger is advice, not a blocker: the user is told
+        // about it and can still place the order.
+        expect(result.current.isValid).toBe(true);
         expect(result.current.errors).toEqual([]);
         expect(result.current.fieldIssues).toEqual(
           expect.arrayContaining([
