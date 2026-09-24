@@ -149,16 +149,20 @@ export class WalletHomeSections {
   }
 
   async scrollAndTapPerpsSection(): Promise<void> {
+    const overshootSwipe = { direction: 'up' as const, percentage: 0.2 };
     try {
       await WalletHomeScroll.scrollAndTapSection(
         this.perpsSectionHeader,
         'Perpetuals section',
+        'down',
+        { overshootSwipe },
       );
     } catch {
       await WalletHomeScroll.scrollAndTapSection(
         this.perpsSectionHeader,
         'Perpetuals section',
         'up',
+        { overshootSwipe },
       );
     }
   }
