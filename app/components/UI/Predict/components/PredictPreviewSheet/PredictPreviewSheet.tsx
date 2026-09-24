@@ -84,7 +84,10 @@ const PredictPreviewSheet = forwardRef<
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-3 flex-1 min-w-0"
+              // Without an avatar the header's own px-2 leaves the text at 8px,
+              // so pad to match the 16px inset of the sheet body below.
+              twClassName={`gap-3 flex-1 min-w-0 ${image ? '' : 'pl-2'}`}
+              testID="preview-sheet-header-content"
             >
               {image && (
                 <Image

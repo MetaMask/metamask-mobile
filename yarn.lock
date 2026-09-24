@@ -11548,9 +11548,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^25.0.0":
-  version: 25.0.0
-  resolution: "@metamask/ramps-controller@npm:25.0.0"
+"@metamask/ramps-controller@npm:^25.1.0":
+  version: 25.1.0
+  resolution: "@metamask/ramps-controller@npm:25.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -11559,7 +11559,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/3d9aea4cfb1c81b28de69b01f04788f21a95030dbed70d644fbbdfbbd28ad9017d96946e790b903f849a7bd19574b8e817b6d94d1f401c4b10077dbc79e09bcf
+  checksum: 10/771883fc87841f7031a71e89f436a0bece0eb9023b836a051bc8540ffd3a0679d653ce0273a03954336c7e911adc1c876006ff4d83b6c213acc8ce9c61f361bd
   languageName: node
   linkType: hard
 
@@ -39428,7 +39428,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^32.1.1"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^25.0.0"
+    "@metamask/ramps-controller": "npm:^25.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
