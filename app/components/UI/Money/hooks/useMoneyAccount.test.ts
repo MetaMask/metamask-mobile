@@ -1,3 +1,7 @@
+import {
+  StackRouter,
+  type StackNavigationState,
+} from '@react-navigation/routers';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -548,7 +552,8 @@ describe('useMoneyAccountDeposit', () => {
         key: 'confirmation-modal',
         name: Routes.CONFIRMATION_REQUEST_MODAL,
       });
-      jest.mocked(NavigationService.navigation.getRootState).mockReturnValue({
+      const appState: StackNavigationState<Record<string, undefined>> = {
+        preloadedRoutes: [],
         stale: false,
         type: 'stack',
         key: 'root-stack',
@@ -574,7 +579,40 @@ describe('useMoneyAccountDeposit', () => {
             name: Routes.CONFIRMATION_REQUEST_MODAL,
           },
         ],
+      };
+      jest.mocked(NavigationService.navigation.getRootState).mockReturnValue({
+        stale: false,
+        type: 'stack',
+        key: 'wrapper-stack',
+        index: 0,
+        routeNames: ['NavigationChildren'],
+        routes: [
+          {
+            key: 'navigation-children',
+            name: 'NavigationChildren',
+            state: appState,
+          },
+        ],
       });
+      let recoveredState = appState;
+      jest
+        .mocked(NavigationService.navigation.dispatch)
+        .mockImplementationOnce((action) => {
+          if (typeof action === 'function')
+            throw new Error('Expected targeted action');
+          expect(action.target).toBe(appState.key);
+          const nextState = StackRouter({}).getStateForAction(
+            appState,
+            action,
+            {
+              routeNames: appState.routeNames,
+              routeParamList: {},
+              routeGetIdList: {},
+            },
+          );
+          if (!nextState) throw new Error('Modal dismissal was not handled');
+          recoveredState = nextState;
+        });
       const { result } = renderHook(() => useMoneyAccountDeposit());
 
       await act(async () => {
@@ -588,6 +626,9 @@ describe('useMoneyAccountDeposit', () => {
         source: 'confirmation-modal',
         target: 'root-stack',
       });
+      expect(recoveredState.index).toBe(0);
+      expect(recoveredState.routes).toEqual([appState.routes[0]]);
+      expect(recoveredState.routes[0].state?.index).toBe(1);
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
     },
