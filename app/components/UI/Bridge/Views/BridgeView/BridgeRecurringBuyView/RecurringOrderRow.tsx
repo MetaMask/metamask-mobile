@@ -27,7 +27,7 @@ function getStatusTag(order: RecurringOrder) {
 
   if (order.status === 'cancelled') {
     return (
-      <Tag severity={TagSeverity.Neutral}>
+      <Tag severity={TagSeverity.Danger}>
         {strings('bridge.recurring.cancelled')}
       </Tag>
     );
