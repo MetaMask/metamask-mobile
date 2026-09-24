@@ -235,7 +235,7 @@ index 53dd73fcd7146519848af82bab94be14b3b54a43..aa7b246564e850db0ce304c3f56eea03
       * Normalize a Scale price ladder with HyperLiquid market precision.
       *
 diff --git a/dist/providers/HyperLiquidProvider.js b/dist/providers/HyperLiquidProvider.js
-index e7178c1396358450b873f66ea77ef3654181f4d3..0caec2b0752670328b2cba671561f20e63f2a3cf 100644
+index e7178c1396358450b873f66ea77ef3654181f4d3..7271adc884d97fc6ef0190b79df250f1f83db3fe 100644
 --- a/dist/providers/HyperLiquidProvider.js
 +++ b/dist/providers/HyperLiquidProvider.js
 @@ -830,6 +830,37 @@ export class HyperLiquidProvider {
@@ -276,7 +276,7 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..0caec2b0752670328b2cba671561f20e
      /**
       * Normalize a Scale price ladder with HyperLiquid market precision.
       *
-@@ -3375,29 +3406,55 @@ export class HyperLiquidProvider {
+@@ -3375,29 +3406,56 @@ export class HyperLiquidProvider {
              // unavailable there until that account-mode-aware path is supported.
              throw new Error(PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED);
          }
@@ -294,7 +294,8 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..0caec2b0752670328b2cba671561f20e
 +     *
 +     * @param symbol - Market symbol, including its DEX route when applicable.
 +     * @returns The locked mode and its cause, or null when nothing locks it.
-+     * @throws When the target DEX positions cannot be read.
++     * @throws When the target DEX positions cannot be read, or when the
++     * selected account changes during the read.
 +     */
 +    async #readMarginModeLock(symbol) {
 +        const { dex: dexName } = parseAssetName(symbol);
@@ -339,7 +340,7 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..0caec2b0752670328b2cba671561f20e
                  continue;
              }
              const previous = latestTwaps.get(entry.twapId);
-@@ -3419,15 +3476,14 @@ export class HyperLiquidProvider {
+@@ -3419,15 +3477,15 @@ export class HyperLiquidProvider {
                      return true;
              }
          });
@@ -353,6 +354,7 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..0caec2b0752670328b2cba671561f20e
 -            if (asset.leverage.type !== params.marginMode) {
 -                throw new Error(PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN);
 -            }
++            await assertSameAccount();
 +            return { marginMode: asset.leverage.type, reason: 'open_order' };
          }
 +        return null;
