@@ -725,6 +725,7 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<void>;
   getUserDetails?(tokens: CardAuthTokens): Promise<UserResponse>;
+  requestAccountClosure?(tokens: CardAuthTokens): Promise<void>;
   getSpendingPrerequisites?(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,

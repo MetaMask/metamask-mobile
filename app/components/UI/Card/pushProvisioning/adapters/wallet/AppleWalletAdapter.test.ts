@@ -258,6 +258,20 @@ describe('AppleWalletAdapter', () => {
         );
       });
 
+      it('forwards primaryAccountIdentifier when provided', async () => {
+        const primaryAccountIdentifier = '91ad6fea3b52ca58d60d7fd310f789ec';
+
+        await adapter.provisionCard({
+          ...mockProvisionParams,
+          primaryAccountIdentifier,
+        });
+
+        expect(mockAddCardToAppleWallet).toHaveBeenCalledWith(
+          expect.objectContaining({ primaryAccountIdentifier }),
+          expect.any(Function),
+        );
+      });
+
       it('uses fallback cardholderName when not provided', async () => {
         const params = {
           ...mockProvisionParams,
@@ -454,6 +468,16 @@ describe('AppleWalletAdapter', () => {
       expect(result.isAvailable).toBe(true);
       expect(result.canAddCard).toBe(true);
       expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
+    });
+
+    it('matches an existing pass by the PAN suffix', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('active');
+
+      const result = await adapter.getEligibility('1234');
+
+      expect(mockGetCardStatusBySuffix).toHaveBeenCalledWith('1234');
+      expect(result.canAddCard).toBe(false);
+      expect(result.existingCardStatus).toBe('active');
     });
   });
 

@@ -1776,6 +1776,8 @@ class AuthenticationService {
 
         Engine.context.SeedlessOnboardingController.clearState();
 
+        Engine.context.KycController.clearState();
+
         await depositResetProviderToken();
 
         // Cancel any running bulk link saga before resetting rewards state

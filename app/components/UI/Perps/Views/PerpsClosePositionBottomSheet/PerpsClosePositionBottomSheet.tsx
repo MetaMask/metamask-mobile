@@ -16,11 +16,13 @@ import {
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import Keypad from '../../../../Base/Keypad';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
+import PerpsSwapIcon from '../../components/PerpsSwapIcon';
+import { PerpsInlineInfoScreen } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
@@ -85,6 +87,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
   const [showTokenAmount, setShowTokenAmount] = useState(false);
+  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
 
   const handleDisplayToggle = useCallback(
     () => setShowTokenAmount((current) => !current),
@@ -138,11 +141,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [effectiveOrderType, handleOrderTypeChange]);
 
   const handleMarginTooltipPress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.CLOSE_POSITION_MODALS, {
-      screen: Routes.PERPS.MODALS.TOOLTIP,
-      params: { contentKey: 'margin' },
-    });
-  }, [navigation]);
+    setIsMarginInfoVisible(true);
+  }, []);
 
   const totalFeeRate =
     (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
@@ -180,6 +180,21 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     isEditingLimitPrice,
   ]);
 
+  if (isMarginInfoVisible) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={navigation.goBack}
+        testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
+      >
+        <PerpsInlineInfoScreen
+          contentKey="margin"
+          onBack={() => setIsMarginInfoVisible(false)}
+        />
+      </BottomSheet>
+    );
+  }
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -191,11 +206,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         isLong={isLong}
         leverage={livePosition.leverage?.value}
         currentPrice={currentPrice}
-        orderTypeLabel={
-          effectiveOrderType === 'market'
-            ? strings('perps.order.market')
-            : strings('perps.order.limit')
-        }
+        orderType={effectiveOrderType === 'market' ? 'market' : 'limit'}
         isOrderTypeToggleVisible={isClosePositionLimitOrderEnabled}
         isOrderTypeToggleDisabled={isClosing}
         onOrderTypeToggle={handleOrderTypeToggle}
@@ -218,6 +229,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         displayToggleTestID={
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE
         }
+        displayToggleIcon={<PerpsSwapIcon direction="vertical" />}
       />
 
       {!isEditingLimitPrice && (
@@ -274,14 +286,22 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           />
 
           {feePercentage ? (
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              twClassName="pt-2 text-center"
+            <Box
+              twClassName="flex-row items-center justify-center gap-2 pt-2"
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
-              {strings('perps.trade_sheet.includes_fee', { feePercentage })}
-            </Text>
+              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
+                <RewardsVipBadge />
+              ) : null}
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('perps.trade_sheet.includes_fee', {
+                  feePercentage,
+                })}
+              </Text>
+            </Box>
           ) : null}
         </>
       )}

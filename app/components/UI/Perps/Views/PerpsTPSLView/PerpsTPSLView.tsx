@@ -1073,7 +1073,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       ? strings('perps.tpsl.gain_roe_placeholder')
       : strings('perps.tpsl.loss_roe_placeholder');
 
-  const reviewFooter = (
+  const reviewFooter = isSheet ? (
+    <BottomSheetFooter primaryButtonProps={setButtonProps} />
+  ) : (
     <BottomSheetFooter
       buttonsAlignment={ButtonsAlignment.Horizontal}
       secondaryButtonProps={cancelButtonProps}
@@ -1545,12 +1547,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
-        <BottomSheetHeader
-          onBack={handleBack}
-          backButtonProps={{ testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON }}
-        >
-          {strings('perps.tpsl.title')}
-        </BottomSheetHeader>
+        <BottomSheetHeader>{strings('perps.tpsl.title')}</BottomSheetHeader>
         {body}
       </BottomSheet>
     );
