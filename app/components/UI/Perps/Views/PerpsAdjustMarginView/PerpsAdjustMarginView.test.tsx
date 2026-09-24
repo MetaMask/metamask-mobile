@@ -504,6 +504,62 @@ describe('PerpsAdjustMarginView', () => {
         screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
       ).toHaveTextContent('150.00');
     });
+
+    it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+      render(<PerpsAdjustMarginView />);
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onAmountChanged?: (maxAmount: number) => void;
+      };
+      act(() => {
+        options.onAmountChanged?.(150);
+      });
+
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(100);
+      });
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('150.00');
+    });
+
+    it('keeps the fresh limit through price ticks and drops it on a newer position', () => {
+      const { rerender } = render(<PerpsAdjustMarginView />);
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onAmountChanged?: (maxAmount: number) => void;
+      };
+      const slideToMax = () =>
+        act(() => {
+          (
+            screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+              .props as { onValueChange: (v: number) => void }
+          ).onValueChange(100);
+        });
+      const renderLive = (maxAmount: number, position = mockPosition) => {
+        mockUsePerpsAdjustMarginData.mockReturnValue({
+          ...removeModeData,
+          position,
+          maxAmount,
+        });
+        rerender(<PerpsAdjustMarginView />);
+      };
+      const amountDisplay = () =>
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
+      act(() => {
+        options.onAmountChanged?.(150);
+      });
+
+      renderLive(199);
+      slideToMax();
+      expect(amountDisplay()).toHaveTextContent('150.00');
+
+      renderLive(250, { ...mockPosition });
+      slideToMax();
+      expect(amountDisplay()).toHaveTextContent('250.00');
+    });
   });
 
   describe('error handling', () => {

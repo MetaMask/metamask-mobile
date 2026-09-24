@@ -780,4 +780,100 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       'perps.adjust_margin.amount_accessibility_label, 150.00',
     );
   });
+
+  it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(100);
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveProp(
+      'accessibilityLabel',
+      'perps.adjust_margin.amount_accessibility_label, 150.00',
+    );
+  });
+
+  it('keeps the fresh limit through price ticks and drops it on a newer position', () => {
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    const slideToMax = () =>
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+            .props as { onValueChange: (percentage: number) => void }
+        ).onValueChange(100);
+      });
+    const renderLive = (maxAmount: number, livePosition = position) => {
+      mockUsePerpsAdjustMarginData.mockImplementation(
+        ({ inputAmount }: { inputAmount: number }) => ({
+          ...createMarginData('remove', inputAmount),
+          position: livePosition,
+          maxAmount,
+        }),
+      );
+      rerender(
+        <PerpsAdjustMarginBottomSheet
+          position={position}
+          initialMode="remove"
+        />,
+      );
+    };
+    const expectAmount = (amount: string) =>
+      expect(screen.getByTestId('amount-display')).toHaveProp(
+        'accessibilityLabel',
+        `perps.adjust_margin.amount_accessibility_label, ${amount}`,
+      );
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    renderLive(199);
+    slideToMax();
+    expectAmount('150.00');
+
+    renderLive(250, { ...position });
+    slideToMax();
+    expectAmount('250.00');
+  });
+
+  it('drops the fresh limit when switching modes', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_MODE_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.REMOVE_MODE_BUTTON,
+      ),
+    );
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(100);
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveProp(
+      'accessibilityLabel',
+      'perps.adjust_margin.amount_accessibility_label, 200.00',
+    );
+  });
 });
