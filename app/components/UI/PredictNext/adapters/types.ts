@@ -1,6 +1,7 @@
 import type {
   FetchFeedParams,
   FetchPortfolioPageParams,
+  FetchSearchParams,
   PredictActivityPage,
   PredictBalance,
   PredictEntityId,
@@ -13,6 +14,7 @@ import type {
   PredictOrderPreviewParams,
   PredictPositionsPage,
   PredictReadOptions,
+  PredictSearchResults,
   PredictVenueStatus,
 } from '../types';
 
@@ -53,4 +55,8 @@ export interface VenueMarketDataAdapter {
     range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<PredictMarketHistory>;
+  searchEvents(
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictSearchResults>;
 }

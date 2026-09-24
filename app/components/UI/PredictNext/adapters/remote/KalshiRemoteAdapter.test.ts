@@ -69,6 +69,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
+  searchEvents: jest.fn(),
   fetchOrderPreview: jest.fn(),
 });
 
@@ -231,6 +232,43 @@ describe('KalshiRemoteAdapter', () => {
     const result = adapter.marketData.fetchMarketHistory(marketId, range);
 
     await expect(result).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('parses search results and forwards params and cancellation', async () => {
+    client.searchEvents.mockResolvedValue({
+      venueId: 'kalshi',
+      events: [createEvent()],
+    });
+    const signal = new AbortController().signal;
+
+    const result = await adapter.marketData.searchEvents(
+      { q: 'chiefs', limit: 20 },
+      { signal },
+    );
+
+    expect(result.events[0].id).toBe('event-1');
+    expect(client.searchEvents).toHaveBeenCalledWith(
+      adapter.venueId,
+      { q: 'chiefs', limit: 20 },
+      { signal },
+    );
+  });
+
+  it.each([
+    ['response Venue ID', { venueId: 'other' }],
+    ['Event Venue ID', { events: [createEvent({ venueId: 'other' })] }],
+  ])('rejects search results with another %s', async (_field, overrides) => {
+    client.searchEvents.mockResolvedValue({
+      venueId: 'kalshi',
+      events: [],
+      ...overrides,
+    });
+
+    await expect(
+      adapter.marketData.searchEvents({ q: 'chiefs' }),
+    ).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
     );
   });

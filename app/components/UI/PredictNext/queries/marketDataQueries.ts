@@ -1,5 +1,6 @@
 import type {
   FetchFeedParams,
+  FetchSearchParams,
   PredictEntityId,
   PredictEvent,
   PredictFeed,
@@ -7,6 +8,7 @@ import type {
   PredictMarketHistory,
   PredictMarketHistoryRange,
   PredictQueryDescriptor,
+  PredictSearchResults,
   PredictVenueId,
   PredictVenueStatus,
 } from '../types';
@@ -15,6 +17,7 @@ export const MARKET_DATA_VENUE_STATUS_STALE_TIME = 60_000;
 export const MARKET_DATA_FEED_STALE_TIME = 60_000;
 export const MARKET_DATA_EVENT_STALE_TIME = 60_000;
 export const MARKET_DATA_MARKET_HISTORY_STALE_TIME = 60_000;
+export const MARKET_DATA_SEARCH_STALE_TIME = 60_000;
 
 export type FeedParams = Omit<FetchFeedParams, 'cursor'>;
 
@@ -55,12 +58,19 @@ export interface MarketDataQueries {
       PredictMarketHistoryRange,
     ]
   >;
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:searchEvents', PredictVenueId, FetchSearchParams]
+  >;
 }
 
 export type GetVenueStatusResult = PredictVenueStatus;
 export type GetFeedResult = PredictFeed;
 export type GetEventResult = PredictEvent;
 export type GetMarketHistoryResult = PredictMarketHistory;
+export type SearchEventsResult = PredictSearchResults;
 
 export const marketDataQueries: MarketDataQueries = {
   getVenueStatus: (venueId) => ({
@@ -90,6 +100,12 @@ export const marketDataQueries: MarketDataQueries = {
     ],
     family: ['PredictMarketDataService:getMarketHistory', venueId, marketId],
     staleTime: MARKET_DATA_MARKET_HISTORY_STALE_TIME,
+    scope: 'venue',
+  }),
+  searchEvents: (venueId, params) => ({
+    queryKey: ['PredictMarketDataService:searchEvents', venueId, params],
+    family: ['PredictMarketDataService:searchEvents', venueId],
+    staleTime: MARKET_DATA_SEARCH_STALE_TIME,
     scope: 'venue',
   }),
 };

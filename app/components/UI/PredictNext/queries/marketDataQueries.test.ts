@@ -8,6 +8,7 @@ import {
   MARKET_DATA_EVENT_STALE_TIME,
   MARKET_DATA_FEED_STALE_TIME,
   MARKET_DATA_MARKET_HISTORY_STALE_TIME,
+  MARKET_DATA_SEARCH_STALE_TIME,
   MARKET_DATA_VENUE_STATUS_STALE_TIME,
   marketDataQueries,
 } from './marketDataQueries';
@@ -39,6 +40,19 @@ describe('market data query descriptors', () => {
       queryKey: ['PredictMarketDataService:getFeed', venueId, feedId, params],
       family: ['PredictMarketDataService:getFeed', venueId, feedId],
       staleTime: MARKET_DATA_FEED_STALE_TIME,
+      scope: 'venue',
+    });
+  });
+
+  it('qualifies search queries by Venue and search parameters', () => {
+    const params = { q: 'chiefs', limit: 20 };
+
+    const descriptor = marketDataQueries.searchEvents(venueId, params);
+
+    expect(descriptor).toEqual({
+      queryKey: ['PredictMarketDataService:searchEvents', venueId, params],
+      family: ['PredictMarketDataService:searchEvents', venueId],
+      staleTime: MARKET_DATA_SEARCH_STALE_TIME,
       scope: 'venue',
     });
   });

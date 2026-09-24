@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from '@metamask/react-data-query';
 import { useEvent } from './useEvent';
 import { useFeed } from './useFeed';
 import { useMarketHistory } from './useMarketHistory';
+import { SEARCH_RESULT_LIMIT, useSearchEvents } from './useSearchEvents';
 import { useVenueStatus } from './useVenueStatus';
 import type { PredictEntityId, PredictFeedId, PredictVenueId } from '../types';
 
@@ -91,6 +92,28 @@ describe('PredictNext market data hooks', () => {
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],
+    });
+  });
+
+  it('trims the search query and disables blank searches', () => {
+    useSearchEvents(venueId, '  chiefs ');
+    useSearchEvents(venueId, '   ');
+
+    expect(mockedUseQuery).toHaveBeenNthCalledWith(1, {
+      queryKey: [
+        'PredictMarketDataService:searchEvents',
+        venueId,
+        { q: 'chiefs', limit: SEARCH_RESULT_LIMIT },
+      ],
+      enabled: true,
+    });
+    expect(mockedUseQuery).toHaveBeenNthCalledWith(2, {
+      queryKey: [
+        'PredictMarketDataService:searchEvents',
+        venueId,
+        { q: '', limit: SEARCH_RESULT_LIMIT },
+      ],
+      enabled: false,
     });
   });
 

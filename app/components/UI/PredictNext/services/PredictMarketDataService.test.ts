@@ -29,6 +29,7 @@ jest.mock('../../../../util/trace', () => ({
     PredictNextGetFeed: 'PredictNext Get Feed',
     PredictNextGetEvent: 'PredictNext Get Event',
     PredictNextGetMarketHistory: 'PredictNext Get Market History',
+    PredictNextSearchEvents: 'PredictNext Search Events',
   },
   TraceOperation: {
     PredictDataFetch: 'predict.data_fetch',
@@ -52,6 +53,7 @@ const createMarketData = (): jest.Mocked<VenueMarketDataAdapter> => ({
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
+  searchEvents: jest.fn(),
 });
 
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
@@ -123,6 +125,42 @@ describe('PredictMarketDataService', () => {
     const result = await service.getFeed(KALSHI_VENUE_ID, feedId, {});
 
     expect(result.nextCursor).toBeUndefined();
+  });
+
+  it('traces searches without the query text and forwards cancellation', async () => {
+    const marketData = createMarketData();
+    marketData.searchEvents.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      events: [],
+    });
+    const service = buildService(marketData);
+    const signal = new AbortController().signal;
+
+    await service.searchEvents(
+      KALSHI_VENUE_ID,
+      { q: 'chiefs', limit: 20 },
+      { signal },
+    );
+
+    expect(marketData.searchEvents).toHaveBeenCalledWith(
+      { q: 'chiefs', limit: 20 },
+      { signal },
+    );
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextSearchEvents,
+      op: TraceOperation.PredictDataFetch,
+      id: expect.stringMatching(/^searchEvents-\d+$/u),
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId: KALSHI_VENUE_ID,
+      },
+      data: { queryLength: 6, limit: 20 },
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextSearchEvents,
+      id: expect.stringMatching(/^searchEvents-\d+$/u),
+      data: { success: true, eventCount: 0 },
+    });
   });
 
   it('traces Market history fetches with safe metadata and point count', async () => {
