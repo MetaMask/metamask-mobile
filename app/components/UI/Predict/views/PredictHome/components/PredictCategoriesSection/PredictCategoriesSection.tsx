@@ -1,19 +1,10 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
-  FontWeight,
+  IconName,
+  MainActionButton,
   SectionHeader,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  default as Icon,
-  IconColor,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -43,7 +34,6 @@ interface PredictCategoriesSectionProps {
 const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   testID = PREDICT_CATEGORIES_SECTION_TEST_IDS.SECTION,
 }) => {
-  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(
@@ -82,29 +72,15 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
 
       <Box twClassName="flex-row gap-3">
         {PREDICT_HOME_CATEGORIES.map((category) => (
-          <TouchableOpacity
+          <MainActionButton
             key={category.id}
             testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
             onPress={() => handlePress(category)}
-            accessibilityRole="button"
             accessibilityLabel={strings(category.titleKey)}
-            style={tw.style('flex-1')}
-          >
-            <Box twClassName="items-center justify-center gap-2 rounded-xl bg-muted py-4 px-2">
-              <Icon
-                name={category.iconName}
-                size={IconSize.Lg}
-                color={IconColor.Default}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings(category.titleKey)}
-              </Text>
-            </Box>
-          </TouchableOpacity>
+            iconName={category.iconName as IconName}
+            label={strings(category.titleKey)}
+            twClassName="flex-1 py-4"
+          />
         ))}
       </Box>
     </Box>
