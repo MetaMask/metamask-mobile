@@ -2,9 +2,11 @@
  * Integration tests — perps margin-mode lock and placement validation.
  *
  * Real `HyperLiquidProvider` (the patched `@metamask/perps-controller`
- * build) runs; only the venue I/O boundary is mocked via the harness. Covers
- * the lock read (position, resting order, active TWAP, unlocked, failures)
- * and the matching placement validation for explicit `marginMode` orders.
+ * build) runs. The harness mocks the venue I/O boundary and also the generic
+ * `validateOrderParams` helper; the margin-mode lock read and its placement
+ * validation run unmocked inside the provider. Covers the lock read
+ * (position, resting order, active TWAP, unlocked, failures) and the matching
+ * placement validation for explicit `marginMode` orders.
  *
  * Reference: tests/integration/AGENTS.md · MetaMask/skills integration-test
  */
