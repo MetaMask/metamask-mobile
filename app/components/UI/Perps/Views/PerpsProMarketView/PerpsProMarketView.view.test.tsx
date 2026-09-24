@@ -3338,66 +3338,62 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
-  itForPlatforms(
-    'submits a stop-market order with triggerPrice',
-    async () => {
-      const validateOrder = jest.mocked(
-        Engine.context.PerpsController.validateOrder,
-      );
-      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
-      validateOrder.mockClear();
-      placeOrder.mockClear();
-      renderProMarketWithTriggeredOrdersFlag(true);
-      const sizeInput = await findSizeInput();
-      fireEvent.changeText(sizeInput, '100');
+  itForPlatforms('submits a stop-market order with triggerPrice', async () => {
+    const validateOrder = jest.mocked(
+      Engine.context.PerpsController.validateOrder,
+    );
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    validateOrder.mockClear();
+    placeOrder.mockClear();
+    renderProMarketWithTriggeredOrdersFlag(true);
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
 
-      await selectTriggeredOrderType(
-        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
-      );
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+    );
 
-      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
-      fireEvent.changeText(triggerInput, '2600');
-      fireEvent(triggerInput, 'blur');
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    fireEvent.changeText(triggerInput, '2600');
+    fireEvent(triggerInput, 'blur');
 
-      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      let finalValidation: Promise<unknown> | undefined;
-      await waitFor(
-        () => {
-          const idx = validateOrder.mock.calls.findIndex(
-            ([params]) =>
-              params.orderType === 'stop_market' &&
-              params.triggerPrice === '2600',
-          );
-          expect(idx).toBeGreaterThanOrEqual(0);
-          finalValidation = validateOrder.mock.results[idx]
-            ?.value as Promise<unknown>;
-        },
-        { timeout: TIMEOUT_MS },
-      );
-      await act(async () => {
-        await finalValidation;
-      });
-      await waitFor(
-        () => expect(placeOrderButton).not.toBeDisabled(),
-        { timeout: TIMEOUT_MS },
-      );
-      fireEvent.press(placeOrderButton);
+    const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    let finalValidation: Promise<unknown> | undefined;
+    await waitFor(
+      () => {
+        const idx = validateOrder.mock.calls.findIndex(
+          ([params]) =>
+            params.orderType === 'stop_market' &&
+            params.triggerPrice === '2600',
+        );
+        expect(idx).toBeGreaterThanOrEqual(0);
+        finalValidation = validateOrder.mock.results[idx]
+          ?.value as Promise<unknown>;
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    await act(async () => {
+      await finalValidation;
+    });
+    await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+      timeout: TIMEOUT_MS,
+    });
+    fireEvent.press(placeOrderButton);
 
-      await waitFor(
-        () => {
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              orderType: 'stop_market',
-              triggerPrice: '2600',
-            }),
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
-      expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
-    },
-  );
+    await waitFor(
+      () => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'stop_market',
+            triggerPrice: '2600',
+          }),
+        );
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('price');
+  });
 
   itForPlatforms(
     'submits a take-profit-limit order with triggerPrice and limit price',
@@ -3443,10 +3439,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await act(async () => {
         await finalValidation;
       });
-      await waitFor(
-        () => expect(placeOrderButton).not.toBeDisabled(),
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
       fireEvent.press(placeOrderButton);
 
       await waitFor(
@@ -3504,10 +3499,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await act(async () => {
         await finalValidation;
       });
-      await waitFor(
-        () => expect(placeOrderButton).not.toBeDisabled(),
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
       fireEvent.press(placeOrderButton);
 
       await waitFor(
@@ -3537,10 +3531,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.changeText(sizeInput, '100');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(
-        () => expect(placeOrderButton).not.toBeDisabled(),
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
       fireEvent.press(placeOrderButton);
 
       await waitFor(
@@ -3574,26 +3567,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await openScaleOrderForm();
 
       fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
-      fireEvent.changeText(
-        screen.getByTestId(ids.SCALE_START_PRICE),
-        '2600',
-      );
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2600');
       fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
-      fireEvent.changeText(
-        screen.getByTestId(ids.SCALE_END_PRICE),
-        '2200',
-      );
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
       fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
-      fireEvent.changeText(
-        screen.getByTestId(ids.SCALE_TOTAL_ORDERS),
-        '3',
-      );
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
       await waitFor(
         () => {
-          expect(
-            screen.getByTestId(`${ids.NOTICE}-scale`),
-          ).toHaveTextContent(
+          expect(screen.getByTestId(`${ids.NOTICE}-scale`)).toHaveTextContent(
             strings('perps.pro_order_form.scale.validation.invalid_range'),
           );
           expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
@@ -3621,26 +3603,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await openScaleOrderForm();
 
       fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
-      fireEvent.changeText(
-        screen.getByTestId(ids.SCALE_START_PRICE),
-        '2200',
-      );
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2200');
       fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
-      fireEvent.changeText(
-        screen.getByTestId(ids.SCALE_END_PRICE),
-        '2600',
-      );
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2600');
       fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
-      fireEvent.changeText(
-        screen.getByTestId(ids.SCALE_TOTAL_ORDERS),
-        '3',
-      );
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-      await waitFor(
-        () => expect(placeOrderButton).not.toBeDisabled(),
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => expect(placeOrderButton).not.toBeDisabled(), {
+        timeout: TIMEOUT_MS,
+      });
       fireEvent.press(placeOrderButton);
 
       await waitFor(
