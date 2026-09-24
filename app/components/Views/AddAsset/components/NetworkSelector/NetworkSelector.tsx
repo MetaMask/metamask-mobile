@@ -40,10 +40,11 @@ const NetworkSelector = ({
     <Box twClassName="px-4 pt-4" testID="add-asset-network-selector">
       <TouchableOpacity
         style={tw.style(
-          'border border-default rounded-lg flex-row items-center p-4 mb-4 mt-1',
+          'border border-default rounded-full flex-row items-center p-4 mb-4 mt-1',
         )}
         onPress={openNetworkSelector}
         onLongPress={openNetworkSelector}
+        testID="add-asset-network-selector-button"
       >
         {selectedNetwork ? (
           <Box twClassName="mr-2">
