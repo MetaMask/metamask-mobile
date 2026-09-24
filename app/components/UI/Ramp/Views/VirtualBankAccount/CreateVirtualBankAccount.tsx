@@ -72,8 +72,10 @@ const CreateVirtualBankAccount = () => {
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(async () => {
+    // Persist Terms 1 locally. Email creates the vendor session and flushes
+    // these accepted ids to the account before routing to Terms 2.
     if (await acceptDisclaimers()) {
-      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
     }
   }, [acceptDisclaimers, navigation]);
 
