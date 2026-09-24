@@ -112,14 +112,14 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -147,7 +147,7 @@ jobs:
 
       - name: Setup Java (Android)
         if: inputs.platform == 'android'
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -188,7 +188,7 @@ jobs:
         run: fastlane --version
 
       - name: Download donor artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: donor
@@ -466,14 +466,14 @@ jobs:
       # from colliding. `build-env-main-rc-*` still matches the pattern post-rc-build-comment
       # downloads, and build-announce reads the platform off the directory name.
       - name: Upload sourcemaps
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ inputs.platform }}-sourcemaps-${{ inputs.build_name }}-repack
           path: sourcemaps/${{ inputs.platform }}
           if-no-files-found: warn
 
       - name: Upload build environment JSON
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: build-env-${{ inputs.build_name }}-${{ inputs.platform }}-repack
           path: build-env.json
@@ -484,7 +484,7 @@ jobs:
       # nothing for the native fallback to collide with; if it does get published and the
       # job fails later, purge-partial-repack-artifacts in the caller clears it.
       - name: Upload repacked artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ steps.donor.outputs.output }}

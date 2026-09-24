@@ -60,11 +60,11 @@ jobs:
       - name: Check pull request merge queue status
         id: skip-merge-queue
         if: github.event_name == 'merge_group'
-        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@v1
+        uses: MetaMask/github-tools/.github/actions/check-skip-merge-queue@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
 
       - name: Checkout repository
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 1
 
@@ -141,7 +141,7 @@ jobs:
 
       - name: Setup Node.js for E2E requirement computation
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
 

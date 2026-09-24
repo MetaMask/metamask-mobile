@@ -134,7 +134,7 @@ jobs:
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ inputs.ref }}
@@ -146,7 +146,7 @@ jobs:
       # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
         with:
           path: |
             ~/.cache/yarn
@@ -155,7 +155,7 @@ jobs:
 
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') || '' }}
@@ -204,7 +204,7 @@ jobs:
       - name: Restore .metamask folder
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.platform != '' }}
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -271,7 +271,7 @@ jobs:
 
       - name: Save node_modules cache
         if: inputs.use-cache
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             node_modules
@@ -311,7 +311,7 @@ jobs:
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: node-modules-${{ inputs.platform }}.tar.zst
@@ -322,7 +322,7 @@ jobs:
 
       - name: Upload node_modules artifact (zip)
         if: inputs.upload-artifact && !inputs.use-tarball
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
           path: |

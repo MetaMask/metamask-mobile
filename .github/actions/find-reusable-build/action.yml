@@ -100,7 +100,7 @@ runs:
   steps:
     - name: Search prior runs for matching fingerprint
       id: lookup
-      uses: actions/github-script@v9
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       continue-on-error: true
       env:
         TARGET_FINGERPRINT: ${{ inputs.fingerprint }}

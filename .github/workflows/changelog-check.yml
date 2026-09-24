@@ -14,7 +14,7 @@ jobs:
     if: false
     steps:
       - name: Check changelog
-        uses: MetaMask/github-tools/.github/actions/check-changelog@v1
+        uses: MetaMask/github-tools/.github/actions/check-changelog@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           base-branch: ${{ github.event.pull_request.base.ref }}
           head-ref: ${{ github.head_ref }}

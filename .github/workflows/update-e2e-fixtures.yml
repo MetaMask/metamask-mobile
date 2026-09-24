@@ -49,7 +49,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Get PR details
         id: pr
@@ -90,7 +90,7 @@ jobs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Determine whether this PR is from a fork
         id: is-fork
@@ -111,7 +111,7 @@ jobs:
       PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
       RUN_ID: ${{ steps.validate-ci.outputs.RUN_ID }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
@@ -198,12 +198,12 @@ jobs:
 
       - name: Checkout
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
       - name: Setup Node for shard selection
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.nvmrc'
 
@@ -321,7 +321,7 @@ jobs:
     if: ${{ !cancelled() && needs.update-fixtures.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
@@ -347,7 +347,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: .nvmrc
           cache: yarn
@@ -417,7 +417,7 @@ jobs:
       - is-fork-pull-request
       - check-status
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Post comment if the update failed
         run: |

@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Get token
         id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        uses: MetaMask/github-tools/.github/actions/get-token@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
           permissions: |
@@ -30,7 +30,7 @@ jobs:
             members: read
 
       - name: Merge approved PR
-        uses: MetaMask/github-tools/.github/actions/merge-approved-pr@v1
+        uses: MetaMask/github-tools/.github/actions/merge-approved-pr@7e0d74bc7b79ce9601e52f58d5e4d36c19591df9 # v1.19.0
         with:
           pr-number: ${{ github.event.issue.number }}
           # Merge PRs from version-bump/X.Y.Z into main
