@@ -203,6 +203,12 @@ export const LIQUIDATION_DISTANCE_DECIMALS = 2;
 export const MARGIN_REMOVAL_PRICE_MOVE_BUFFER = 0.01;
 
 /**
+ * How long a remove-margin form trusts a fresh read that stopped a removal
+ * over the live stream. Later submissions are still re-checked before sending.
+ */
+export const MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS = 10_000;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */

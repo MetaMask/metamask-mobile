@@ -4,6 +4,7 @@ import {
   SegmentedControl,
 } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import { MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS } from '../../constants/perpsConfig';
 import React from 'react';
 import {
   PerpsAdjustMarginBottomSheetSelectorsIDs,
@@ -843,13 +844,15 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expectAmountAtMax('250.00');
   });
 
-  it('drops the fresh limit once the live max catches up to it', () => {
+  it('drops the fresh limit after the hold window', () => {
+    jest.useFakeTimers();
     const { renderLive, expectAmountAtMax } = setUpFreshLimit();
 
-    renderLive(140, pnlTick);
-    renderLive(250, { ...pnlTick, unrealizedPnl: '120' });
+    act(() => jest.advanceTimersByTime(MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS));
+    renderLive(250, pnlTick);
 
     expectAmountAtMax('250.00');
+    jest.useRealTimers();
   });
 
   it('drops the fresh limit when switching modes', () => {

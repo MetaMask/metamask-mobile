@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { Position } from '@metamask/perps-controller';
+import { MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS } from '../constants/perpsConfig';
 
 interface UsePerpsFreshRemovalLimitParams {
   /** Safe max from a fresh read that stopped a removal, or null. */
@@ -16,7 +17,7 @@ const floorUsd = (value: number) => Math.floor(value * 100) / 100;
 
 /**
  * Keeps a remove-margin form within the limit a fresh read returned after it
- * stopped a removal, until the stream catches up to it or the position itself
+ * stopped a removal, for a bounded window or until the position itself
  * changes. The stream re-sends positions on every PnL tick, so a change means
  * size, entry, leverage or collateral (margin net of unrealized PnL).
  *
@@ -44,10 +45,15 @@ export const usePerpsFreshRemovalLimit = ({
     setFreshMaxAmount(null);
   }, [positionShape, setFreshMaxAmount]);
   useEffect(() => {
-    if (freshMaxAmount !== null && snapshotMaxAmount <= freshMaxAmount) {
-      setFreshMaxAmount(null);
+    if (freshMaxAmount === null) {
+      return undefined;
     }
-  }, [snapshotMaxAmount, freshMaxAmount, setFreshMaxAmount]);
+    const timer = setTimeout(
+      () => setFreshMaxAmount(null),
+      MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [freshMaxAmount, setFreshMaxAmount]);
 
   const capToFreshMax = (amount: number) =>
     freshMaxAmount === null || isAddMode

@@ -4,6 +4,7 @@ import Logger from '../../../../../util/Logger';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS } from '../../constants/perpsConfig';
 import {
   PerpsAdjustMarginViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
@@ -558,13 +559,15 @@ describe('PerpsAdjustMarginView', () => {
       expect(amountAtMax()).toHaveTextContent('250.00');
     });
 
-    it('drops the fresh limit once the live max catches up to it', () => {
+    it('drops the fresh limit after the hold window', () => {
+      jest.useFakeTimers();
       const { renderLive, amountAtMax } = setUpFreshLimit();
 
-      renderLive(140, pnlTick);
-      renderLive(250, { ...pnlTick, unrealizedPnl: '120' });
+      act(() => jest.advanceTimersByTime(MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS));
+      renderLive(250, pnlTick);
 
       expect(amountAtMax()).toHaveTextContent('250.00');
+      jest.useRealTimers();
     });
   });
 
