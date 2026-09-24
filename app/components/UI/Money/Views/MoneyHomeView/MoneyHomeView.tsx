@@ -425,9 +425,6 @@ const MoneyHomeView = () => {
     });
   }, [navigation, isPlusSubscriber, trackButtonClicked]);
 
-  // The header only slots the button; this view owns whether the user may see
-  // the Pro entry point, what it says, and where it goes. Access stays hidden
-  // rather than guessed while subscriptions are unresolved.
   const proButton: MoneyHeaderProButton | undefined =
     isProSubscriptionEnabled && !isPlusAccessUnknown
       ? {
