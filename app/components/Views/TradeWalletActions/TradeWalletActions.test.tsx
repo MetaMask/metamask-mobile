@@ -236,6 +236,21 @@ jest.mock('../../../component-library/hooks/useLiquidGlass', () => ({
     glassColorScheme: 'dark',
   }),
 }));
+let mockIsNativeMenuAvailable = false;
+const mockTradeGlassMenu = jest.fn();
+jest.mock('./TradeGlassMenu', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: { children?: React.ReactNode }) => {
+      mockTradeGlassMenu(props);
+      return ReactActual.createElement(View, null, props.children);
+    },
+    isTradeGlassMenuAvailable: () => mockIsNativeMenuAvailable,
+  };
+});
+
 jest.mock('expo-glass-effect', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -962,6 +977,100 @@ describe('TradeWalletActions', () => {
       );
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();
+    });
+  });
+
+  describe('native glass morph menu', () => {
+    const morphParams = {
+      onDismiss: mockOnDismiss,
+      buttonLayout: { height: 100, width: 100, x: 654, y: 321 },
+      hasBottomNotch: false,
+    };
+    const TRAY_HEIGHT = 240;
+
+    const renderNativeTray = () => {
+      const screen = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      fireEvent(
+        screen.getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+        'layout',
+        { nativeEvent: { layout: { height: TRAY_HEIGHT } } },
+      );
+
+      return screen;
+    };
+
+    const lastMenuProps = () =>
+      mockTradeGlassMenu.mock.calls.at(-1)?.[0] as {
+        isOpen: boolean;
+        expandedHeight: number;
+        anchor: { x: number; y: number };
+        onCollapsed: () => void;
+      };
+
+    beforeEach(() => {
+      mockIsTradeFocusedArm = true;
+      mockIsGlassEnabled = true;
+      mockIsNativeMenuAvailable = true;
+      mockUseParams.mockReturnValue(morphParams);
+      mockTradeGlassMenu.mockClear();
+    });
+
+    afterEach(() => {
+      mockIsTradeFocusedArm = false;
+      mockIsGlassEnabled = false;
+      mockIsNativeMenuAvailable = false;
+    });
+
+    it('hands UIKit the button to grow from and the measured height', () => {
+      renderNativeTray();
+
+      expect(lastMenuProps()).toMatchObject({
+        isOpen: true,
+        expandedHeight: TRAY_HEIGHT,
+        anchor: expect.objectContaining({
+          x: morphParams.buttonLayout.x,
+          width: morphParams.buttonLayout.width,
+        }),
+      });
+    });
+
+    it('waits for UIKit to finish collapsing before dismissing', async () => {
+      const { getByTestId } = renderNativeTray();
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+      );
+
+      expect(mockOnDismiss).toHaveBeenCalled();
+      expect(lastMenuProps().isOpen).toBe(false);
+      // Dismissing early would tear the menu down mid-animation.
+      expect(mockParentGoBack).not.toHaveBeenCalled();
+
+      await act(async () => {
+        lastMenuProps().onCollapsed();
+      });
+
+      expect(mockParentGoBack).toHaveBeenCalled();
+      expect(mockGoToSwaps).toHaveBeenCalled();
+    });
+
+    it('falls back to the Reanimated morph where UIKit cannot drive it', () => {
+      mockIsNativeMenuAvailable = false;
+
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockTradeGlassMenu).not.toHaveBeenCalled();
+      expect(mockGlassView).toHaveBeenCalled();
     });
   });
 

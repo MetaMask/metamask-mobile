@@ -189,6 +189,11 @@
       "prettier --write"
     ]
   },
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
