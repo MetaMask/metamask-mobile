@@ -62,10 +62,11 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
-import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
-import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import {
+  PerpsInlineInfoScreen,
+  type PerpsInlineInfoContentKey,
+} from '../PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 
 export type PerpsAdjustMarginMode = 'add' | 'remove';
 
@@ -117,7 +118,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [selectedTooltip, setSelectedTooltip] =
-    useState<PerpsTooltipContentKey | null>(null);
+    useState<PerpsInlineInfoContentKey | null>(null);
   const screenType =
     mode === 'add'
       ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
@@ -194,7 +195,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
-    currentPrice,
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition.symbol,
@@ -426,6 +426,23 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const isConfirmDisabled =
     hasInvalidAmount || isAdjusting || isPositionGone || isPositionDataInvalid;
 
+  if (selectedTooltip) {
+    return (
+      <>
+        <BottomSheet
+          ref={sheetRef}
+          goBack={handleNavigationGoBack}
+          testID={PerpsAdjustMarginBottomSheetSelectorsIDs.CONTAINER}
+        >
+          <PerpsInlineInfoScreen
+            contentKey={selectedTooltip}
+            onBack={() => setSelectedTooltip(null)}
+          />
+        </BottomSheet>
+      </>
+    );
+  }
+
   return (
     <>
       <BottomSheet
@@ -443,12 +460,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
             fontWeight: FontWeight.Bold,
             accessibilityRole: 'header',
           }}
-          description={
-            <LivePriceHeader
-              symbol={routePosition.symbol}
-              currentPrice={currentPrice}
-            />
-          }
           endAccessory={
             <SegmentedControl
               accessible={false}
@@ -570,6 +581,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               keyEndButtonIconProps={{
                 iconName: IconName.Info,
                 onPress: () => setSelectedTooltip('liquidation_price'),
+                testID:
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_INFO,
                 accessibilityLabel: `${strings(
                   'perps.adjust_margin.liquidation_price',
                 )} ${strings('navigation.info')}`,
@@ -586,6 +599,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               keyEndButtonIconProps={{
                 iconName: IconName.Info,
                 onPress: () => setSelectedTooltip('liquidation_distance'),
+                testID:
+                  PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_INFO,
                 accessibilityLabel: `${strings(
                   'perps.adjust_margin.liquidation_distance',
                 )} ${strings('navigation.info')}`,
@@ -665,15 +680,6 @@ const PerpsAdjustMarginBottomSheet: React.FC<
           />
         )}
       </BottomSheet>
-
-      {selectedTooltip && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={() => setSelectedTooltip(null)}
-          contentKey={selectedTooltip}
-          key={selectedTooltip}
-        />
-      )}
     </>
   );
 };
