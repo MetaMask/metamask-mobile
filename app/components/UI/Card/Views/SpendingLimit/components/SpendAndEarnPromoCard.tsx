@@ -110,11 +110,9 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
-      accessibilityRole="button"
       accessibilityLabel={resolvedAccessibilityLabel}
       testID={testID}
-      activeOpacity={0.85}
+      activeOpacity={1}
       style={tw.style('mb-6')}
     >
       <Box twClassName="p-4 rounded-2xl bg-background-muted gap-3">
