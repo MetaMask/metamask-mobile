@@ -70,7 +70,7 @@ describe('useSocialShellFilters', () => {
     expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
   });
 
-  it('resetDraft restores the draft to the applied state', () => {
+  it('resetDraftToDefaults restores the draft to defaults without applying', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
@@ -82,9 +82,28 @@ describe('useSocialShellFilters', () => {
     expect(result.current.draft.timeframe).toBe('1h');
 
     act(() => {
-      result.current.resetDraft();
+      result.current.resetDraftToDefaults();
     });
     expect(result.current.draft.timeframe).toBe('7d');
+    expect(result.current.applied.leaderboard.timeframe).toBe('7d');
+  });
+
+  it('does not treat leftover leaderboard ranges as active filters', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('leaderboard');
+    });
+    act(() => {
+      result.current.updateDraft({
+        marketCap: { min: 10, max: 20 },
+      });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
   it('changing type reconciles the network against the new type', () => {

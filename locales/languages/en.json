@@ -1117,18 +1117,21 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Get your Pix Key",
-      "description": "Send funds directly to your Money account from any bank account.",
-      "benefit_deposit_pix": "Deposit with",
-      "benefit_payments": "Send local and international payments",
-      "agreements_disclosures_title": "Agreements and disclosures",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "agreement_text": "By continuing, you agree to the terms and conditions above.",
-      "powered_by_moonpay": "Powered by MoonPay.",
-      "button": "Agree and continue"
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " and ",
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1156,11 +1159,40 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again.",
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Email is missing. Go back and enter your email."
+    },
+    "kyc_pending": {
+      "title": "Verification in progress",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Check status"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Try again"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Try again"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Try again"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Options",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Popular"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
@@ -1253,6 +1285,11 @@
         "size_at_price": "{{size}} at {{price}}",
         "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
+      "trader_stats": {
+        "pnl_30d": "{{pnl}} P&L (30d)",
+        "followers": "{{count}} followers",
+        "win_rate": "{{winRate}} win rate"
+      },
       "no_data": "No data",
       "position_card": {
         "copy_trade": "Copy trade",
@@ -1277,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1304,11 +1347,15 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Filters",
-        "show_results": "Show results",
+        "title": "Custom filters",
+        "show_results": "Apply",
+        "apply": "Apply",
+        "reset": "Reset",
         "section": {
-          "type": "Type",
-          "trader_cohort": "Trader cohort",
+          "type": "Asset",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Traders",
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
@@ -1320,13 +1367,19 @@
           "perps": "Perps",
           "predictions": "Predictions"
         },
+        "verification": {
+          "all": "All",
+          "verified": "Verified",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "All",
           "following": "Following",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Verified"
         },
         "timeframe": {
           "1h": "1H",
@@ -1443,7 +1496,39 @@
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
       "share_first_trade": "Share your first trade",
+      "debug_reset_profile": "debug: reset profile",
+      "no_profile_title": "Create your profile",
+      "no_profile_description": "Claim a username to show up on the feed.",
+      "create_profile": "Create profile",
       "retry": "Try again"
+    },
+    "profile_onboarding": {
+      "intro_title": "See trades as they happen",
+      "live_activity": "Live activity",
+      "bought": "bought",
+      "sold": "sold",
+      "just_now": "just now",
+      "seconds_ago": "{{count}}s",
+      "connect_x": "Connect X account",
+      "create_manually": "Create profile manually",
+      "claim_username": "Claim a username",
+      "username_label": "Username",
+      "display_name_label": "Display name",
+      "username_available": "Username available · metamask.io/{{handle}}",
+      "username_invalid": "Use letters, numbers, and hyphens.",
+      "shuffle_username": "Suggest a username",
+      "pick_look": "Pick your look",
+      "camera": "Camera",
+      "photos": "Photos",
+      "link_account": "Link an account",
+      "link_account_description": "Activity from this account will appear on your profile starting today.",
+      "share_trading_activity": "Share trading activity",
+      "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
+      "feed_awaits": "The feed awaits",
+      "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
+      "hi": "Hi!",
+      "lets_go": "Let's go",
+      "continue": "Continue"
     },
     "manage_profile": {
       "title": "Manage profile",
@@ -1552,7 +1637,10 @@
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
-      "show_fiat_value": "Show fiat value"
+      "show_fiat_value": "Show fiat value",
+      "max_leverage_accessibility_label": "Up to {{maxLeverage}}x leverage",
+      "margin_info_accessibility_label": "About margin",
+      "liquidation_price_info_accessibility_label": "About liquidation price"
     },
     "mode": {
       "lite": "Lite",
@@ -2001,6 +2089,8 @@
         "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
+        "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
@@ -2082,7 +2172,8 @@
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "price_unavailable": "Price information unavailable"
+        "price_unavailable": "Price information unavailable",
+        "description": "If the price hits liquidation, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
       },
       "type": {
         "title": "Order type",
@@ -2240,7 +2331,8 @@
       "increment_label": "Increase slippage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "slippage": "Slippage",
-      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size."
+      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size.",
+      "exceeds_max_reduce_size": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Reduce the order size."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
@@ -2306,6 +2398,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "already_closed": "Position already closed",
       "already_closed_subtitle": "This position was filled or closed already",
+      "already_in_progress": "Close already in progress",
+      "already_in_progress_subtitle": "Wait for it to finish before closing again",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
       "failed_to_place_close_order": "Failed to place close order",
@@ -2512,14 +2606,14 @@
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
-      "marginAdjustmentFailed": "Unable to adjust margin. Please try again.",
-      "tpslUpdateFailed": "Unable to update take profit/stop loss. Please try again.",
-      "orderRejected": "Order was rejected. Please check your parameters and try again.",
+      "marginAdjustmentFailed": "Unable to adjust margin. Try again.",
+      "tpslUpdateFailed": "Unable to update take profit/stop loss. Try again.",
+      "orderRejected": "Order was rejected. Check your parameters and try again.",
       "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
-      "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
-      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
-      "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
-      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
+      "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
+      "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "networkErrorSimple": "Network error occurred. Check your connection and try again.",
+      "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
@@ -2528,12 +2622,12 @@
       },
       "networkError": {
         "title": "Network error",
-        "description": "There was a problem connecting to the network. Please try again.",
+        "description": "There was a problem connecting to the network. Try again.",
         "retry": "Try again"
       },
       "unknown": {
         "title": "Something went wrong",
-        "description": "An unexpected error occurred. Please try again later.",
+        "description": "An unexpected error occurred. Try again later.",
         "retry": "Retry"
       },
       "marginValidation": {
@@ -2581,7 +2675,7 @@
         "position_count_plural": "{{count}} positions"
       },
       "details": {
-        "error_message": "Position data not found. Please go back and try again.",
+        "error_message": "Position data not found. Go back and try again.",
         "section_title": "Position"
       },
       "account": {
@@ -2609,7 +2703,7 @@
     "market": {
       "details": {
         "title": "Market details",
-        "error_message": "Market data not found. Please go back and try again."
+        "error_message": "Market data not found. Go back and try again."
       },
       "statistics": "Overview",
       "stats": "Stats",
@@ -3035,6 +3129,7 @@
     },
     "transactions": {
       "title": "Perps",
+      "aggregated": "Aggregated",
       "tabs": {
         "trades": "Trades",
         "orders": "Orders",
@@ -3209,6 +3304,9 @@
       "close_button": "Close",
       "history_button": "View activity",
       "available": "Available"
+    },
+    "price_alerts": {
+      "open": "Open price alerts"
     }
   },
   "market_insights": {
@@ -3290,17 +3388,40 @@
       "predict_balance": "Predict balance",
       "total": "Total",
       "price_details": "Price details",
-      "confirm": "Confirm",
       "terms": "By continuing, you accept the platform terms.",
       "learn_more": "Learn more",
       "submitting": "Submitting your order…",
-      "success_title": "Order submitted",
       "done": "Done",
       "close": "Close",
       "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
-      "retry": "Try again"
+      "retry": "Try again",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Review your order",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order filled",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Filled",
+      "average_fill_price": "Avg. fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Try again"
     }
   },
   "predict": {
@@ -3808,7 +3929,7 @@
       "no_funds_enough_try_token": "Not enough funds. Try a different token.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
-      "order_failed_generic": "Transaction failed. Please try again.",
+      "order_failed_generic": "Transaction failed. Try again.",
       "market_busy_title": "Market busy",
       "market_busy_body_buy": "The market is moving fast, so we couldn't buy at {{price}}. Try again at the best available price?",
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
@@ -3835,7 +3956,7 @@
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "unavailable_title": "Withdrawals temporarily unavailable",
-      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_description": "For urgent assistance, contact Customer Service.",
       "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdrawal",
@@ -3870,7 +3991,7 @@
       "title": "Couldn't connect to Predictions",
       "description": "Check your connection and try again. If it continues, try a different network.",
       "description_short": "Couldn't connect to Predictions. Check your connection and try again.",
-      "chart_connection_error": "There is an issue connecting. Please try again later.",
+      "chart_connection_error": "There is an issue connecting. Try again later.",
       "retry": "Try again"
     },
     "error_messages": {
@@ -4075,7 +4196,7 @@
     "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
     "discover_nfts": "Import NFTs",
     "no_transactions": "You have no transactions",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Switch network to view transactions",
     "send_button": "Send",
     "deposit_button": "Deposit",
     "copy_address": "Copy",
@@ -4101,6 +4222,7 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "Enable NFT autodetection",
     "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
@@ -4235,7 +4357,7 @@
       "search_link": "Enable it from Settings.",
       "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
       "custom_warning_link": "scams and security risks.",
-      "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+      "custom_info_desc": "Token detection is not available on this network yet. Import the token manually and make sure you trust it. Learn about ",
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security tips"
     }
@@ -4440,7 +4562,7 @@
     "remove_hardware_account": "Remove hardware account",
     "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
     "remove_snap_account": "Remove snap account",
-    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
     "remove_account_alert_cancel_btn": "Cancel",
     "remove_account_title_with_account_name": "Remove {{accountName}}?",
@@ -4609,7 +4731,7 @@
     "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
-    "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
+    "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
     "autolock_immediately": "Immediately",
     "autolock_never": "Never",
     "autolock_after": "After {{time}} seconds",
@@ -4763,7 +4885,7 @@
     "add_chain_title": "Add a network",
     "add_chain_search_placeholder": "Search by name, chain ID, or currency",
     "add_chain_loading": "Loading networks…",
-    "add_chain_error": "Failed to load networks. Please try again.",
+    "add_chain_error": "Failed to load networks. Try again.",
     "add_chain_retry": "Retry",
     "add_chain_added": "Added",
     "add_chain_or": "or",
@@ -4867,7 +4989,7 @@
     "delete_data_status_title": "Deletion task status",
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
-    "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue, please try again later.",
+    "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue. Try again later.",
     "ok": "OK",
     "clear_sdk_connections_title": "Clear all MetaMask SDK connections",
     "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
@@ -5071,7 +5193,7 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES crypto - test form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, report it to MetaMask support.",
     "developer_options": {
       "title": "Developer options",
       "generate_trace_test": "Generate trace test",
@@ -5244,7 +5366,7 @@
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Account couldn't connect",
-    "info": "Please scan the QR code on the site to reconnect to MetaMask"
+    "info": "Scan the QR code on the site to reconnect to MetaMask"
   },
   "app_information": {
     "title": "Information",
@@ -5358,7 +5480,7 @@
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
-    "save_error": "Failed to save price alert. Please try again.",
+    "save_error": "Failed to save price alert. Try again.",
     "delete_success": "Price alert deleted.",
     "delete_error": "Failed to delete price alert. Try again.",
     "toggle_error": "Failed to update price alert. Try again.",
@@ -6212,7 +6334,8 @@
   "duplicate_address": {
     "title": "This is a duplicate address",
     "body": "Your contact list shows this address on more than one chain. Be sure to select the correct contact before you send any funds.",
-    "button": "Got it"
+    "button": "Got it",
+    "accessibility_label": "Show ambiguous address information"
   },
   "transaction_submitted": {
     "title": "Transaction submitted",
@@ -7122,6 +7245,12 @@
     "order_status_cancelled": "Cancelled",
     "webview_no_url_provided": "No URL was provided to continue",
     "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Settings",
       "use_new_buy_experience": "More ways to buy",
@@ -8433,7 +8562,6 @@
       "add": "Add",
       "convert_cta": "Convert your crypto",
       "no_fee": "No fee",
-      "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
@@ -8443,13 +8571,11 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get",
       "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
-      "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
@@ -8471,7 +8597,6 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "manage_card": "Manage",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
@@ -9180,6 +9305,8 @@
       "limit": "Limit",
       "recurring": "Recurring"
     },
+    "generic_error_toast_title": "Something went wrong",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Open orders",
@@ -9195,12 +9322,18 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expiry: {{timeLeft}}",
+      "days_left": "{{count}}d left",
+      "hours_left": "{{count}}h left",
+      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
       "expired_after": "Expired after {{duration}}",
+      "duration_days": "{{count}}d",
+      "duration_hours": "{{count}}h",
+      "duration_minutes": "{{count}}m",
       "canceled": "Canceled",
       "canceled_at": "Canceled at {{date}}",
       "failed": "Failed",
@@ -9233,9 +9366,15 @@
       "trigger_condition": "Trigger condition",
       "expiry_label": "Expiry",
       "confirm_order": "Confirm order",
+      "status": "Status",
+      "in_progress": "In progress",
+      "submitted": "Submitted",
+      "cancel_order": "Cancel order",
+      "cancel_order_confirmation": "Do you really want to cancel your order?",
       "edit_cost_tolerance": "Edit cost tolerance",
       "try_again": "Try again",
-      "error_calculation_network_fees": "Couldn't calculate the network fee."
+      "error_calculation_network_fees": "Couldn't calculate the network fee.",
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
     },
     "recurring": {
       "you_get": "You get",
@@ -10252,10 +10391,10 @@
     "card_home": {
       "title": "Card",
       "authentication_error": "Your session has expired. Log in again.",
-      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
@@ -10270,8 +10409,8 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
-      "enable_card_error": "Failed to enable card. Please try again later.",
-      "view_card_details_error": "Unable to load card details. Please try again.",
+      "enable_card_error": "Failed to enable card. Try again later.",
+      "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "card_details": {
@@ -10295,7 +10434,7 @@
         },
         "no_card": {
           "title": "You need to enable your card",
-          "description": "Please enable your card to start spending"
+          "description": "Enable your card to start spending"
         },
         "frozen": {
           "title": "Your card is frozen",
@@ -10303,7 +10442,7 @@
         },
         "blocked": {
           "title": "Your card is blocked",
-          "description": "Please contact support to unblock your card"
+          "description": "Contact support to unblock your card"
         },
         "kyc_pending": {
           "title": "Verification in progress",
@@ -10319,20 +10458,20 @@
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
-          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Check back shortly to enable your card."
         },
         "rejected": {
           "title": "Verification not approved",
-          "description": "We were unable to verify your identity. Please contact support for assistance.",
-          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
+          "description": "We were unable to verify your identity. Contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Contact our support team at {{email}} for assistance and we'll help you resolve this issue."
         },
         "unverified": {
           "title": "Verification required",
-          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification status unavailable",
-          "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
+          "description": "We couldn't check your verification status. Try again later or contact support if the issue persists."
         },
         "ok_button": "OK"
       },
@@ -10342,7 +10481,7 @@
         "view_card_details_description": "Card number, expiration and CVV",
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin_error": "Failed to load PIN. Try again.",
         "set_pin": "Set a 4-digit PIN",
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
@@ -10364,7 +10503,7 @@
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
         "unfreeze_card_description": "Resume all spending on your card",
-        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_error": "Failed to update card status. Try again.",
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
@@ -10485,7 +10624,7 @@
       "update_error": "Failed to update spending limit",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
-      "load_error": "Unable to load tokens. Please try again.",
+      "load_error": "Unable to load tokens. Try again.",
       "retry": "Try again",
       "on_linea": "on Linea",
       "account_label": "Account",
@@ -10509,9 +10648,9 @@
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
       "withdrawal_success": "Withdrawal completed successfully",
-      "withdrawal_failed": "Withdrawal failed. Please try again.",
+      "withdrawal_failed": "Withdrawal failed. Try again.",
       "no_cashback": "No mUSD back available",
-      "loading_error": "Failed to load mUSD back. Please try again.",
+      "loading_error": "Failed to load mUSD back. Try again.",
       "funding_required": {
         "title": "Set up Linea funding",
         "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
@@ -10533,8 +10672,8 @@
       "withdraw_to_money_account": "Move to Money account",
       "withdraw_unavailable": "Redemption unavailable",
       "withdrawal_success": "Redemption completed successfully",
-      "withdrawal_failed": "Redemption failed. Please try again.",
-      "loading_error": "Failed to load credit. Please try again.",
+      "withdrawal_failed": "Redemption failed. Try again.",
+      "loading_error": "Failed to load credit. Try again.",
       "funding_required": {
         "title": "Set up funding",
         "description": "You need at least one approved funding source before redeeming your credit.",
@@ -10609,9 +10748,7 @@
       "signup_button": "Sign up",
       "forgot_password_button": "Forgot password?",
       "account_label": "Account",
-      "account_helper_linked": "This is the account you set your card up with.",
       "account_helper_pick": "Choose the account you set your card up with. We'll check it before asking you to sign.",
-      "account_mismatch": "This isn't the account your card is linked to.",
       "fork_title": "How do you usually sign in?",
       "fork_body": "We didn't find a card on the accounts you use most. Pick how you set yours up.",
       "fork_body_api_error": "We couldn't check how your card was set up. Try again, or tell us how you sign in.",
@@ -10626,6 +10763,7 @@
       "resume_back": "Back to your update",
       "resume_use_current_card": "Use your current card instead",
       "resume_progress_identity": "Identity verified",
+      "resume_progress_identity_pending": "Verify your identity",
       "resume_progress_spending": "Set up spending",
       "banner_account_missing_title": "Your card is linked to an account that isn't on this device",
       "banner_account_missing_body": "Import the Secret Recovery Phrase that holds your card account, or choose another account on this device.",
@@ -10650,30 +10788,30 @@
       "sign_in_help_got_it": "Got it",
       "errors": {
         "invalid_credentials": "Invalid login details",
-        "invalid_otp_code": "Incorrect code, please try again",
-        "unknown_error": "Unknown error, please try again later",
+        "invalid_otp_code": "Incorrect code. Try again.",
+        "unknown_error": "Unknown error. Try again later.",
         "email_required": "Email is required",
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
         "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "timeout_error": "Request timed out. Please check your connection and try again.",
-        "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "network_error": "Network error. Check your connection and try again.",
+        "timeout_error": "Request timed out. Check your connection and try again.",
+        "server_error": "Server error. Try again later.",
+        "configuration_error": "Service is temporarily unavailable. Try again later.",
         "forbidden_error": "This action isn't available for your account.",
         "account_check_failed": "We couldn't check this account. Try again."
       }
     },
     "card_forgot_password": {
-      "load_error": "Something went wrong loading the page. Please try again.",
+      "load_error": "Something went wrong loading the page. Try again.",
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
-      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",
       "back_to_login_button": "Back to login",
@@ -10690,22 +10828,22 @@
       "success_title": "Card added!",
       "success_message": "Your MetaMask Card has been added to {{walletName}}.",
       "error_title": "Unable to add card",
-      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
-      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Set up your wallet and try again.",
       "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
-      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
-      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
-      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
-      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
-      "error_card_not_found": "Card not found. Please try again.",
+      "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
+      "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "Card provider is not available for your region.",
-      "error_card_id_mismatch": "Card verification failed. Please try again.",
-      "error_card_not_active": "Your card is not active. Please activate your card first.",
-      "error_network": "Network error occurred. Please check your connection and try again.",
-      "error_timeout": "The request timed out. Please try again.",
-      "error_server": "Server error occurred. Please try again later.",
-      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_card_id_mismatch": "Card verification failed. Try again.",
+      "error_card_not_active": "Your card is not active. Activate your card first.",
+      "error_network": "Network error occurred. Check your connection and try again.",
+      "error_timeout": "The request timed out. Try again.",
+      "error_server": "Server error occurred. Try again later.",
+      "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
       "try_again": "Try again",
       "cancel": "Cancel"
@@ -10752,7 +10890,7 @@
     },
     "version_guard": {
       "title": "Update required",
-      "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
+      "description": "A newer version of MetaMask is required to use Rewards. Update to continue.",
       "update_button": "Update MetaMask"
     },
     "season_error": {
@@ -10796,15 +10934,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.",
     "error_messages": {
       "unknown_error": "Unknown error occurred",
-      "something_went_wrong": "Something went wrong. Please try again shortly.",
-      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "something_went_wrong": "Something went wrong. Try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Switch account to continue.",
       "request_rejected": "You rejected the request.",
-      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly.",
-      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "failed_to_claim_reward": "Failed to claim reward. Try again shortly.",
+      "service_not_available": "Service is not available at the moment. Try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "You have already been referred by another user.",
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
       "invalid_bonus_code": "Invalid bonus code",
@@ -10884,7 +11022,7 @@
       "swap_title": "Swap",
       "perps_title": "Perps",
       "error_title": "Failed to load transactions",
-      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "error_description": "Something went wrong while loading your transactions. Try again.",
       "retry_button": "Retry",
       "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
@@ -10942,13 +11080,13 @@
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
-      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
       "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
       "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
@@ -11199,6 +11337,7 @@
       "total_volume": "Total volume",
       "top_return": "Top return",
       "top_pnl": "Top PnL",
+      "total_yield": "Total yield",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
@@ -12002,18 +12141,31 @@
       "stay_question_placeholder": "Describe what would have made you stay",
       "keep_membership": "Keep membership",
       "cancel": "Cancel",
+      "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
+      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
       "success": {
         "title": "Plan canceled",
         "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
         "description_suffix": ".",
+        "immediate_description": "Your Pro plan was canceled successfully and your benefits have ended.",
         "done": "Done"
       }
     }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
+    "description": "{{monthlyPrice}}/mo ({{annualPrice}} for annual membership)",
+    "description_monthly": "{{monthlyPrice}}/mo",
+    "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "pro": "Pro",
+    "pricing": {
+      "loading": "Loading plans...",
+      "error": "We couldn't load plan prices. Try again.",
+      "unavailable": "Pro plans aren't available right now. Try again later.",
+      "malformed": "We couldn't read plan prices. Try again.",
+      "retry": "Retry"
+    },
     "benefits": {
       "apy": {
         "title": "Up to 7% APY on Money account",
@@ -12045,16 +12197,17 @@
     "plans": {
       "annual": {
         "label": "Annual",
-        "price": "$49.99",
-        "sub_price": "($4.15/mo)",
+        "price": "{{price}}",
+        "sub_price": "({{price}}/mo)",
         "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "cta": "Join Pro for {{price}}/month"
       },
       "monthly": {
         "label": "Monthly",
-        "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
-      }
+        "price": "{{price}}/mo",
+        "cta": "Join Pro for {{price}}/month"
+      },
+      "trial": "{{days}}-day free trial"
     },
     "benefits_description": {
       "apy": {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { act, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import EmptyShellTabPage from './EmptyShellTabPage';
 import {
@@ -18,6 +18,8 @@ import {
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
+import { FeedSortFilterSelectorsIDs } from '../components/Filters';
+import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -42,6 +44,13 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
       }),
   };
 });
+
+// Reanimated's useFrameCallback registers on the UI runtime via a 0ms timeout.
+// Unmount in this suite races that mock and throws
+// `Cannot set properties of undefined (setting 'startTime')`.
+jest.mock('../SocialV1View/feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
 
 // See the view suite: the real hook needs keyring state and React Query, and
 // this suite is about the shell.
@@ -140,8 +149,7 @@ describe('EmptyShellTabPage', () => {
         id: 'composed-1',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({
           id: 'composed-item',
           comment: 'this is alpha',
@@ -212,6 +220,26 @@ describe('EmptyShellTabPage', () => {
       expect(ids.indexOf(id)).toBeLessThan(carouselIndex);
     });
     expect(ids.indexOf(fourth)).toBeGreaterThan(carouselIndex);
+  });
+
+  it('scrolls the Following filter bar with the feed', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    const scroll = within(screen.getByTestId('following-page-scroll'));
+
+    expect(
+      scroll.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR),
+    ).toBeOnTheScreen();
+    expect(
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('omits the Popular traders carousel on Following', () => {

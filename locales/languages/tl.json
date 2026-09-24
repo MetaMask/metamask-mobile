@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Kunin ang iyong Pix Key",
       "description": "Magpadala ng mga pondo direkta sa iyong Money account mula sa alinmang bank account.",

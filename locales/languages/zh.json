@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "银行账户",
       "title": "获取您的 Pix Key",
       "description": "将资金从任何银行账户直接发送到您的 Money Account。",

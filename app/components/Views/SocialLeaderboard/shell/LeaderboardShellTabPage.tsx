@@ -1,6 +1,7 @@
 import { Box } from '@metamask/design-system-react-native';
 import React, { useEffect, useState } from 'react';
 import TopTradersView from '../TopTradersView';
+import type { SocialShellFilters } from './filters';
 import {
   SOCIAL_V1_TRADER_ROW_HEIGHT,
   SocialV1TraderRow,
@@ -28,6 +29,9 @@ export interface LeaderboardShellTabPageProps {
    */
   pageRef?: React.Ref<SocialTabPageHandle>;
   containerTestID: string;
+  appliedFilters?: SocialShellFilters;
+  onOpenFilters?: () => void;
+  isFilterActive?: boolean;
 }
 
 /**
@@ -39,6 +43,9 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   onScroll,
   pageRef,
   containerTestID,
+  appliedFilters,
+  onOpenFilters,
+  isFilterActive = false,
 }) => {
   // Latches on: once the list has loaded, leaving the tab must not tear it down
   // and refetch on the way back.
@@ -62,6 +69,9 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
           revealPreviousOrder
           onScroll={onScroll}
           pageRef={pageRef}
+          v1AppliedFilters={appliedFilters}
+          onOpenCustomFilters={onOpenFilters}
+          isCustomFilterActive={isFilterActive}
         />
       )}
     </Box>

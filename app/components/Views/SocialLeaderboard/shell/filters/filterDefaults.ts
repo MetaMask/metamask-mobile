@@ -2,6 +2,7 @@ import type {
   SocialFilterNetwork,
   SocialFilterTimeframe,
   SocialFilterType,
+  SocialFilterVerification,
   SocialRangeFilter,
   SocialShellFilters,
   SocialTraderCohort,
@@ -13,6 +14,10 @@ import {
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
 import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../components/Filters/filterOptions';
+import type {
+  SocialTimeframe,
+  SocialTypeFilter,
+} from '../../components/Filters';
 
 /**
  * Market cap slider bounds (USD billions). Matches the screenshot labels
@@ -35,6 +40,7 @@ export const VOLUME_24H_RANGE: SocialRangeFilter = {
 export const DEFAULT_FILTERS: SocialShellFilters = {
   type: 'all',
   traderCohort: 'all',
+  verification: 'all',
   timeframe: '7d',
   network: 'all',
   marketCap: { ...MARKET_CAP_RANGE },
@@ -62,6 +68,12 @@ export const TYPE_OPTIONS: SocialFilterType[] = [
   'predictions',
 ];
 
+export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = [
+  'all',
+  'tokens',
+  'perps',
+];
+
 export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   all: 'social_leaderboard.shell.filters.type.all',
   tokens: 'social_leaderboard.shell.filters.type.tokens',
@@ -69,26 +81,35 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   predictions: 'social_leaderboard.shell.filters.type.predictions',
 };
 
-/**
- * Cohort options per tab. Live trades surfaces `following`;
- * Leaderboard does not (All/Shrimp/Dolphin/Whale/KOL).
- */
-export const COHORT_OPTIONS_WITH_FOLLOWING: SocialTraderCohort[] = [
+export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = [
+  'all',
+  'shrimp',
+  'dolphin',
+  'whale',
+];
+
+export const COHORT_OPTIONS_LIVE_TRADES: SocialTraderCohort[] = [
   'all',
   'following',
   'shrimp',
   'dolphin',
   'whale',
-  'kol',
 ];
 
-export const COHORT_OPTIONS_WITHOUT_FOLLOWING: SocialTraderCohort[] = [
+export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'all',
+  'following',
   'shrimp',
   'dolphin',
   'whale',
-  'kol',
+  'verified',
 ];
+
+/** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
+export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE_TRADES;
+
+/** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
+export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
 
 export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   all: 'social_leaderboard.shell.filters.trader_cohort.all',
@@ -96,12 +117,28 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   shrimp: 'social_leaderboard.shell.filters.trader_cohort.shrimp',
   dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
   whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
-  kol: 'social_leaderboard.shell.filters.trader_cohort.kol',
+  verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
 };
 
-/** Emoji prefixes shown on the cohort chips (matches the Figma screenshots). */
 export const COHORT_LEADING_EMOJI: Partial<Record<SocialTraderCohort, string>> =
-  LEADERBOARD_COHORT_LEADING_EMOJI;
+  {
+    shrimp: LEADERBOARD_COHORT_LEADING_EMOJI.shrimp,
+    dolphin: LEADERBOARD_COHORT_LEADING_EMOJI.dolphin,
+    whale: LEADERBOARD_COHORT_LEADING_EMOJI.whale,
+  };
+
+export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [
+  'all',
+  'verified',
+  'unverified',
+];
+
+export const VERIFICATION_LABEL_KEY: Record<SocialFilterVerification, string> =
+  {
+    all: 'social_leaderboard.shell.filters.verification.all',
+    verified: 'social_leaderboard.shell.filters.verification.verified',
+    unverified: 'social_leaderboard.shell.filters.verification.unverified',
+  };
 
 export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = [
   '1h',
@@ -160,3 +197,26 @@ export const TYPE_CHAINS: Record<SocialFilterType, readonly string[]> = {
   // this once the predictions endpoint lands.
   predictions: SPOT_CHAINS,
 };
+
+/**
+ * Maps a sheet type onto the three leaderboard queries (`all` / `tokens` /
+ * `perps`). Predictions ride the tokens query until a dedicated ranking exists.
+ */
+export const toLeaderboardTypeFilter = (
+  type: SocialFilterType,
+): SocialTypeFilter => {
+  if (type === 'perps') {
+    return 'perps';
+  }
+  if (type === 'tokens' || type === 'predictions') {
+    return 'tokens';
+  }
+  return 'all';
+};
+
+/**
+ * `useTopTraders` only accepts `7d` | `30d`. Shorter sheet windows use 7d.
+ */
+export const toLeaderboardTimeframe = (
+  timeframe: SocialFilterTimeframe,
+): SocialTimeframe => (timeframe === '30d' ? '30d' : '7d');

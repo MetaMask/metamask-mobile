@@ -673,6 +673,83 @@ describe('BaanxProvider', () => {
     });
   });
 
+  describe('requestAccountClosure', () => {
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      accessTokenExpiresAt: 1,
+      refreshTokenExpiresAt: 2,
+      location: 'international',
+      providerUserId: 'baanx-user-1',
+    };
+
+    it('posts /v1/user/closure with providerUserId', async () => {
+      const post = jest.fn().mockResolvedValue(undefined);
+      const get = jest.fn();
+      const provider = new BaanxProvider({
+        service: { post, get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await provider.requestAccountClosure(tokens);
+
+      expect(post).toHaveBeenCalledWith(
+        '/v1/user/closure',
+        { userId: 'baanx-user-1' },
+        tokens,
+      );
+      expect(get).not.toHaveBeenCalled();
+    });
+
+    it('falls back to GET /v1/user when providerUserId is missing', async () => {
+      const { providerUserId: _providerUserId, ...tokensWithoutUserId } =
+        tokens;
+      const post = jest.fn().mockResolvedValue(undefined);
+      const get = jest.fn().mockResolvedValue({ id: 'from-profile' });
+      const provider = new BaanxProvider({
+        service: { post, get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await provider.requestAccountClosure(tokensWithoutUserId);
+
+      expect(get).toHaveBeenCalledWith('/v1/user', tokensWithoutUserId);
+      expect(post).toHaveBeenCalledWith(
+        '/v1/user/closure',
+        { userId: 'from-profile' },
+        tokensWithoutUserId,
+      );
+    });
+
+    it('resolves when closure was already requested (400)', async () => {
+      const post = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(400, '/v1/user/closure', ''));
+      const provider = new BaanxProvider({
+        service: { post, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await expect(
+        provider.requestAccountClosure(tokens),
+      ).resolves.toBeUndefined();
+    });
+
+    it('throws a mapped error on a 500', async () => {
+      const post = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(500, '/v1/user/closure', ''));
+      const provider = new BaanxProvider({
+        service: { post, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await expect(
+        provider.requestAccountClosure(tokens),
+      ).rejects.toMatchObject({
+        name: 'CardProviderError',
+        code: CardProviderErrorCode.ServerError,
+        statusCode: 500,
+      });
+    });
+  });
+
   describe('cashback and credit wallet APIs', () => {
     const tokens: CardAuthTokens = {
       accessToken: 'at',
