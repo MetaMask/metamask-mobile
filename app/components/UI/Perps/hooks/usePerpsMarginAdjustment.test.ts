@@ -97,7 +97,17 @@ jest.mock('@metamask/perps-controller', () => ({
 describe('usePerpsMarginAdjustment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetPositions.mockResolvedValue([]);
+    // Positions with ample margin so removals are not stopped by re-validation
+    mockGetPositions.mockResolvedValue(
+      ['ETH', 'BTC'].map((symbol) => ({
+        symbol,
+        size: '1',
+        entryPrice: '1000',
+        positionValue: '1000',
+        marginUsed: '100000',
+        leverage: { type: 'isolated', value: 10 },
+      })),
+    );
   });
 
   it('returns handleAddMargin, handleRemoveMargin functions and isAdjusting state', () => {
@@ -411,6 +421,26 @@ describe('usePerpsMarginAdjustment', () => {
         });
       },
     );
+
+    it('stops a removal when the fresh read no longer has the position', async () => {
+      mockGetPositions.mockResolvedValue([]);
+      const mockOnError = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsMarginAdjustment({ onError: mockOnError }),
+      );
+
+      await act(async () => {
+        await result.current.handleRemoveMargin('ETH', 5);
+      });
+
+      expect(mockUpdateMargin).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith({
+        type: 'error',
+        error: 'perps.errors.position_not_found',
+      });
+      expect(mockOnError).not.toHaveBeenCalled();
+      expect(result.current.isAdjusting).toBe(false);
+    });
 
     it('does not read positions when adding margin', async () => {
       mockUpdateMargin.mockResolvedValue({ success: true });

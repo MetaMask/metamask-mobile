@@ -260,7 +260,10 @@ const PerpsAdjustMarginView: React.FC = () => {
     }
 
     // Prevent submission if amount exceeds max removable (extra safety for remove mode)
-    if (!isAddMode && marginAmount > submitLimitAmount) {
+    if (
+      !isAddMode &&
+      (hasNoRemovableMargin || marginAmount > submitLimitAmount)
+    ) {
       return;
     }
 
@@ -287,6 +290,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     isAdjusting,
     validationErrors.length,
     submitLimitAmount,
+    hasNoRemovableMargin,
     newLiquidationPrice,
     newLiquidationDistance,
     handleAddMargin,
@@ -303,6 +307,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const isPositionGone = !isLoading && !position;
 
   const isConfirmDisabled =
+    hasNoRemovableMargin ||
     marginAmount <= 0 ||
     isAdjusting ||
     isPositionGone ||

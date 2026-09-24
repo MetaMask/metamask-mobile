@@ -457,6 +457,39 @@ describe('PerpsAdjustMarginView', () => {
       expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 200);
     });
 
+    it('blocks a retained amount once no margin can be removed', async () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+        exchangeMaxAmount: 250,
+      });
+      const { rerender } = render(<PerpsAdjustMarginView />);
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(50);
+      });
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+        maxAmount: 0,
+        exchangeMaxAmount: 150,
+      });
+
+      rerender(<PerpsAdjustMarginView />);
+      const confirmButton = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+      expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+    });
+
     it('sets the amount to the new safe max when removable margin shrank before submit', () => {
       render(<PerpsAdjustMarginView />);
       const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
