@@ -1,4 +1,4 @@
-import React, { useCallback, type RefObject } from 'react';
+import React, { useCallback, useState, type RefObject } from 'react';
 import { type TextInput } from 'react-native';
 import {
   Box,
@@ -49,12 +49,15 @@ interface ContactFormFieldsProps {
 }
 
 const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
   const onCopy = useCallback(async () => {
     if (!addressToCopy) {
       return;
     }
 
     await ClipboardManager.setString(addressToCopy);
+    setIsCopied(true);
     toast({
       title: strings('notifications.address_copied_to_clipboard'),
       hasNoTimeout: false,
@@ -72,6 +75,11 @@ const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
       isFullWidth
       onPress={onCopy}
       testID={AddContactViewSelectorsIDs.COPY_BUTTON}
+      accessibilityLabel={
+        isCopied
+          ? strings('transactions.address_copied_to_clipboard')
+          : strings('wallet_creation_error.copy')
+      }
     >
       {strings('wallet_creation_error.copy')}
     </Button>
