@@ -55,7 +55,7 @@ index bb44a121cc5521a68e5b75a2bea0f8b225e0c5f4..1646f1d37522e4a7c7fc691998807cfe
       * Build a Scale price ladder using the active provider's venue rules.
       *
 diff --git a/dist/PerpsController.js b/dist/PerpsController.js
-index 09be08d4a00eb4cebc40a39713ac58059759d168..71c583f565676280b3c9b19e67966e107bc294c3 100644
+index 09be08d4a00eb4cebc40a39713ac58059759d168..74e1f8389d017b32e3ab988806a12c4dba1a5d42 100644
 --- a/dist/PerpsController.js
 +++ b/dist/PerpsController.js
 @@ -426,6 +426,7 @@ const MESSENGER_EXPOSED_METHODS = [
@@ -66,7 +66,7 @@ index 09be08d4a00eb4cebc40a39713ac58059759d168..71c583f565676280b3c9b19e67966e10
      'getScalePriceLadder',
      'getOrderFills',
      'getOrders',
-@@ -1868,6 +1869,48 @@ export class PerpsController extends BaseController {
+@@ -1868,6 +1869,53 @@ export class PerpsController extends BaseController {
              return this.#getUnavailableOrderCapabilities('provider_unavailable', resolvedProviderId);
          }
      }
@@ -87,14 +87,14 @@ index 09be08d4a00eb4cebc40a39713ac58059759d168..71c583f565676280b3c9b19e67966e10
 +            this.#debugLog('PerpsController: Margin mode lock unavailable', {
 +                error: ensureError(error, 'PerpsController.getMarginModeLock').message,
 +            });
-+            return this.#getUnavailableOrderCapabilities('provider_unavailable', params.providerId);
++            return this.#getUnavailableMarginModeLock('provider_unavailable', params.providerId);
 +        }
 +        const resolvedProviderId = params.providerId ?? this.#getDirectProviderId(activeProvider);
 +        if (this.#hasConflictingProviderRoute(params.providerId, activeProvider)) {
-+            return this.#getUnavailableOrderCapabilities('provider_not_routable', resolvedProviderId);
++            return this.#getUnavailableMarginModeLock('provider_not_routable', resolvedProviderId);
 +        }
 +        if (!activeProvider.getMarginModeLock) {
-+            return this.#getUnavailableOrderCapabilities('not_implemented', resolvedProviderId);
++            return this.#getUnavailableMarginModeLock('not_implemented', resolvedProviderId);
 +        }
 +        try {
 +            const lock = await activeProvider.getMarginModeLock(params);
@@ -109,8 +109,13 @@ index 09be08d4a00eb4cebc40a39713ac58059759d168..71c583f565676280b3c9b19e67966e10
 +            this.#debugLog('PerpsController: Margin mode lock unavailable', {
 +                error: ensureError(error, 'PerpsController.getMarginModeLock').message,
 +            });
-+            return this.#getUnavailableOrderCapabilities('provider_unavailable', resolvedProviderId);
++            return this.#getUnavailableMarginModeLock('provider_unavailable', resolvedProviderId);
 +        }
++    }
++    #getUnavailableMarginModeLock(reason, providerId) {
++        return providerId
++            ? { status: 'unavailable', providerId, reason }
++            : { status: 'unavailable', reason };
 +    }
      /**
       * Build a Scale price ladder using the active provider's venue rules.
@@ -230,7 +235,7 @@ index 53dd73fcd7146519848af82bab94be14b3b54a43..aa7b246564e850db0ce304c3f56eea03
       * Normalize a Scale price ladder with HyperLiquid market precision.
       *
 diff --git a/dist/providers/HyperLiquidProvider.js b/dist/providers/HyperLiquidProvider.js
-index e7178c1396358450b873f66ea77ef3654181f4d3..a60a19f563f5033b1f4f5062aa497af6f5aa9164 100644
+index e7178c1396358450b873f66ea77ef3654181f4d3..0caec2b0752670328b2cba671561f20e63f2a3cf 100644
 --- a/dist/providers/HyperLiquidProvider.js
 +++ b/dist/providers/HyperLiquidProvider.js
 @@ -830,6 +830,37 @@ export class HyperLiquidProvider {
@@ -271,7 +276,7 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..a60a19f563f5033b1f4f5062aa497af6
      /**
       * Normalize a Scale price ladder with HyperLiquid market precision.
       *
-@@ -3375,16 +3406,31 @@ export class HyperLiquidProvider {
+@@ -3375,29 +3406,55 @@ export class HyperLiquidProvider {
              // unavailable there until that account-mode-aware path is supported.
              throw new Error(PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED);
          }
@@ -293,11 +298,22 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..a60a19f563f5033b1f4f5062aa497af6
 +     */
 +    async #readMarginModeLock(symbol) {
 +        const { dex: dexName } = parseAssetName(symbol);
++        // Each venue read resolves the selected account on its own. Pin one
++        // account for the whole read so positions and orders from different
++        // accounts can never be combined.
++        const user = await this.#walletService.getUserAddressWithDefault();
++        const assertSameAccount = async () => {
++            const current = await this.#walletService.getUserAddressWithDefault();
++            if (current.toLowerCase() !== user.toLowerCase()) {
++                throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
++            }
++        };
          const { answered, positions } = await this.#queryDexPositions(dexName);
          if (!answered) {
              throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
          }
 -        const position = positions.find((item) => item.symbol === params.symbol);
++        await assertSameAccount();
 +        const position = positions.find((item) => item.symbol === symbol);
          if (position) {
 -            if (position.leverage.type !== params.marginMode) {
@@ -306,9 +322,15 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..a60a19f563f5033b1f4f5062aa497af6
 -            return;
 +            return { marginMode: position.leverage.type, reason: 'position' };
          }
-         const user = await this.#walletService.getUserAddressWithDefault();
+-        const user = await this.#walletService.getUserAddressWithDefault();
          const infoClient = this.#clientService.getInfoClient();
-@@ -3397,7 +3443,7 @@ export class HyperLiquidProvider {
+         const [orders, twapHistory] = await Promise.all([
+             this.#fetchOpenOrders({ dexName }),
+             infoClient.twapHistory({ user }),
+         ]);
++        await assertSameAccount();
+         // Native TWAP schedules are absent from frontendOpenOrders before a slice
+         // rests or fills. Read history directly: getTwapOrders can rebalance HIP-3
          // collateral, which must not run as part of pre-sign validation.
          const latestTwaps = new Map();
          for (const entry of twapHistory) {
@@ -317,7 +339,7 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..a60a19f563f5033b1f4f5062aa497af6
                  continue;
              }
              const previous = latestTwaps.get(entry.twapId);
-@@ -3419,15 +3465,14 @@ export class HyperLiquidProvider {
+@@ -3419,15 +3476,14 @@ export class HyperLiquidProvider {
                      return true;
              }
          });

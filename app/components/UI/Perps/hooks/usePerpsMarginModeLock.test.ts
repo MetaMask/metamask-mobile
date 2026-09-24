@@ -141,6 +141,27 @@ describe('usePerpsMarginModeLock', () => {
     },
   );
 
+  it('drops the old answer when re-enabled until the fresh read resolves', async () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) =>
+        usePerpsMarginModeLock({ symbol: 'BTC', enabled }),
+      { initialProps: { enabled: true } },
+    );
+    await waitFor(() => expect(result.current.isResolved).toBe(true));
+    rerender({ enabled: false });
+    const pendingRead = deferred<typeof UNLOCKED>();
+    mockGetMarginModeLock.mockReturnValueOnce(pendingRead.promise);
+
+    rerender({ enabled: true });
+
+    expect(result.current.lock).toBeNull();
+    expect(result.current.isResolved).toBe(false);
+    await act(async () => {
+      pendingRead.resolve(UNLOCKED);
+    });
+    expect(result.current.lock).toEqual(UNLOCKED);
+  });
+
   it('re-reads the lock when the refresh key changes', async () => {
     const { rerender } = renderHook(
       ({ refreshKey }: { refreshKey?: string }) =>

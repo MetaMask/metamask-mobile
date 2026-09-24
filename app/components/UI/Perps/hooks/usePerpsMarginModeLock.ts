@@ -68,6 +68,8 @@ export const usePerpsMarginModeLock = ({
   useEffect(() => {
     let isCurrent = true;
     if (!enabled) {
+      // Drop the old answer so re-enabling reads as unknown until a fresh read.
+      setReadResult(null);
       return () => {
         isCurrent = false;
       };

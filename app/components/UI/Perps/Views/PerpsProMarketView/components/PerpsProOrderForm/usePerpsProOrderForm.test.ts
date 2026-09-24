@@ -3868,6 +3868,37 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(false);
     });
 
+    it('re-reads the venue lock when the screen regains focus', () => {
+      const { rerender } = renderHook(
+        ({ isScreenFocused }: { isScreenFocused: boolean }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: true,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: jest.fn().mockResolvedValue('hyperliquid'),
+            chaseProviderId: 'hyperliquid',
+            isScreenFocused,
+            isCrossMarginAvailable: true,
+          }),
+        { initialProps: { isScreenFocused: true } },
+      );
+      expect(mockRefreshMarginModeLock).not.toHaveBeenCalled();
+
+      rerender({ isScreenFocused: false });
+      rerender({ isScreenFocused: true });
+
+      expect(mockRefreshMarginModeLock).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps the picker free when the venue reports no lock', () => {
       mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
       const { result } = renderWithCrossMargin();

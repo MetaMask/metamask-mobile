@@ -900,6 +900,15 @@ export const usePerpsProOrderForm = ({
     enabled: isCrossMarginAvailableForMarket,
     refreshKey: currentMarketPosition?.leverage?.type,
   });
+  // Re-read on return to the screen: orders placed or canceled elsewhere may
+  // have changed the venue lock while this form stayed mounted.
+  const wasScreenFocusedRef = useRef(isScreenFocused);
+  useEffect(() => {
+    if (isScreenFocused && !wasScreenFocusedRef.current) {
+      refreshMarginModeLock();
+    }
+    wasScreenFocusedRef.current = isScreenFocused;
+  }, [isScreenFocused, refreshMarginModeLock]);
   const venueLockedMarginMode =
     marginModeLock?.status === 'locked' ? marginModeLock.marginMode : undefined;
   // The venue refuses a mode change while a position, resting order, or TWAP
