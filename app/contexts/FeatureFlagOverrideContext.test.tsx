@@ -532,7 +532,7 @@ describe('FeatureFlagOverrideContext', () => {
       );
     });
 
-    it('classifies a version-gated A/B test group array as abTest', () => {
+    it('classifies a version-gated A/B test group array as abTest and exposes its arms', () => {
       const abGroups = [
         { name: 'control', scope: { type: 'threshold', value: 0.5 } },
         { name: 'treatment', scope: { type: 'threshold', value: 1 } },
@@ -546,6 +546,7 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.featureFlags.myAbFlag.type).toBe(
         FeatureFlagType.FeatureFlagAbTest,
       );
+      expect(result.current.featureFlags.myAbFlag.abTestOptions).toBe(abGroups);
     });
 
     it('does not classify a version-gated A/B flag as abTest below its minimum version', () => {
@@ -561,6 +562,9 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.featureFlags.myAbFlag.type).toBe(
         FeatureFlagType.FeatureFlagObject,
       );
+      expect(
+        result.current.featureFlags.myAbFlag.abTestOptions,
+      ).toBeUndefined();
     });
 
     it('handles flags with null/undefined values', () => {

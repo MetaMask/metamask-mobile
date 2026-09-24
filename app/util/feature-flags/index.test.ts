@@ -1,7 +1,6 @@
 import { getVersion } from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 
-import { getBaseSemVerVersion } from '../version';
 import {
   getFeatureFlagType,
   isAbTestOptionsArray,
@@ -14,7 +13,7 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 jest.mock('../version', () => ({
-  getBaseSemVerVersion: jest.fn(),
+  getBaseSemVerVersion: jest.fn(() => '8.13.0'),
 }));
 
 jest.mock('compare-versions', () => ({
@@ -279,56 +278,82 @@ describe('Feature Flags Utility Functions', () => {
   });
 
   describe('resolveVersionedFlagValue', () => {
-    const mockedGetBaseSemVerVersion = jest.mocked(getBaseSemVerVersion);
     const arms = [{ name: 'control', scope: { type: 'threshold', value: 1 } }];
 
-    beforeEach(() => {
-      mockedGetBaseSemVerVersion.mockReturnValue('8.13.0');
-    });
+    // The client version is read once at module load, so cases that need a
+    // different build version load a fresh copy of the module.
+    const loadWithClientVersion = (clientVersion: string) => {
+      jest.resetModules();
+      jest.doMock('../version', () => ({
+        getBaseSemVerVersion: () => clientVersion,
+      }));
+      const { resolveVersionedFlagValue: resolve } =
+        jest.requireActual<typeof import('./index')>('./index');
+      return resolve;
+    };
 
-    it('returns non-versioned values unchanged', () => {
-      expect(resolveVersionedFlagValue(arms)).toBe(arms);
-      expect(resolveVersionedFlagValue(true)).toBe(true);
-      expect(resolveVersionedFlagValue(null)).toBeNull();
-      expect(resolveVersionedFlagValue(undefined)).toBeUndefined();
+    it.each([
+      ['a threshold array', arms],
+      ['a boolean', true],
+      ['null', null],
+      ['undefined', undefined],
+    ])('returns %s unchanged', (_label, value) => {
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(value);
     });
 
     it('returns the entry for the highest version the build satisfies', () => {
       const older = [{ name: 'old', scope: { type: 'threshold', value: 1 } }];
+      const value = {
+        versions: { '8.10.0': older, '8.13.0': arms, '8.20.0': older },
+      };
 
-      expect(
-        resolveVersionedFlagValue({
-          versions: { '8.10.0': older, '8.13.0': arms, '8.20.0': older },
-        }),
-      ).toBe(arms);
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(arms);
     });
 
     it('returns undefined when the build is below every version', () => {
-      mockedGetBaseSemVerVersion.mockReturnValue('8.12.0');
+      const resolve = loadWithClientVersion('8.12.0');
+      const value = { versions: { '8.13.0': arms } };
 
-      expect(
-        resolveVersionedFlagValue({ versions: { '8.13.0': arms } }),
-      ).toBeUndefined();
+      const result = resolve(value);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('does not match a v-prefixed key on the same version, like the controller', () => {
+      const value = { versions: { 'v8.13.0': arms } };
+
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBeUndefined();
     });
 
     it('returns the value unchanged when a version key is not semver', () => {
       const value = { versions: { latest: arms } };
 
-      expect(resolveVersionedFlagValue(value)).toBe(value);
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(value);
     });
 
     it('returns the value unchanged when versions is not an object', () => {
       const value = { versions: [arms] };
 
-      expect(resolveVersionedFlagValue(value)).toBe(value);
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(value);
     });
 
     it('returns undefined when the build version is unknown', () => {
-      mockedGetBaseSemVerVersion.mockReturnValue('unknown');
+      const resolve = loadWithClientVersion('unknown');
+      const value = { versions: { '8.13.0': arms } };
 
-      expect(
-        resolveVersionedFlagValue({ versions: { '8.13.0': arms } }),
-      ).toBeUndefined();
+      const result = resolve(value);
+
+      expect(result).toBeUndefined();
     });
   });
 

@@ -28,16 +28,11 @@ import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
   FeatureFlagType,
-  isAbTestOptionsArray,
   isMinimumRequiredVersionSupported,
-  resolveVersionedFlagValue,
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import {
-  selectRawRemoteFeatureFlags,
-  selectFeatureFlagThresholdGroups,
-} from '../../../selectors/featureFlagController';
+import { selectFeatureFlagThresholdGroups } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
@@ -55,7 +50,6 @@ interface AbTestType {
 }
 
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
-  const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
   const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
   const tw = useTailwind();
   const theme = useTheme();
@@ -188,17 +182,10 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           />
         );
       case FeatureFlagType.FeatureFlagAbTest: {
-        const rawValue = resolveVersionedFlagValue(
-          rawRemoteFeatureFlags[flag.key],
-        );
-        const abTestOptions = isAbTestOptionsArray(rawValue)
-          ? rawValue
-          : undefined;
-        const isOptionsAvailable = abTestOptions !== undefined;
+        const { abTestOptions } = flag;
 
         const handleSelectOption = (name: string) => {
-          if (!abTestOptions) return;
-          const selectedOption = abTestOptions.find(
+          const selectedOption = abTestOptions?.find(
             (option) => option.name === name,
           );
           if (selectedOption === undefined) {
@@ -222,16 +209,14 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Box
             twClassName="flex-1 ml-2 justify-center min-w-[160px]"
-            pointerEvents={isOptionsAvailable ? 'auto' : 'none'}
+            pointerEvents={abTestOptions ? 'auto' : 'none'}
           >
             <SelectOptionSheet
               options={
-                abTestOptions
-                  ? abTestOptions.map((option) => ({
-                      label: option.name,
-                      value: option.name,
-                    }))
-                  : []
+                abTestOptions?.map((option) => ({
+                  label: option.name,
+                  value: option.name,
+                })) ?? []
               }
               label={flag.key}
               defaultValue={selectedName}

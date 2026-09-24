@@ -896,6 +896,7 @@ describe('FeatureFlagOverride', () => {
         { name: 'control', scope: { type: 'threshold', value: 0.5 } },
         { name: 'treatment', scope: { type: 'threshold', value: 1 } },
       ];
+
       renderWithProviders({ gatedAbFlag: { versions: { '1.0.0': arms } } }, {});
 
       expect(screen.getByTestId('select-drop-down')).toBeOnTheScreen();
@@ -906,6 +907,7 @@ describe('FeatureFlagOverride', () => {
       const arms = [
         { name: 'control', scope: { type: 'threshold', value: 1 } },
       ];
+
       renderWithProviders(
         { gatedAbFlag: { versions: { '999.0.0': arms } } },
         {},
