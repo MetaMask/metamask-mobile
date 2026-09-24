@@ -63,15 +63,21 @@ const getPerpsNumberFormatter = (
 };
 
 const getPerpsLocaleSeparators = (locale?: string): PerpsLocaleSeparators => {
-  const parts = getPerpsNumberFormatter(locale, {
+  const groupingFormatter = getPerpsNumberFormatter(locale, {
     useGrouping: true,
+    maximumFractionDigits: 0,
+  });
+  const decimalFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: false,
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
-  }).formatToParts(1000.1);
+  });
+  const groupedInteger = Array.from(groupingFormatter.format(1000));
+  const formattedDecimal = Array.from(decimalFormatter.format(1.1));
 
   return {
-    grouping: parts.find((part) => part.type === 'group')?.value ?? ',',
-    decimal: parts.find((part) => part.type === 'decimal')?.value ?? '.',
+    grouping: groupedInteger.slice(1, -3).join('') || ',',
+    decimal: formattedDecimal.slice(1, -1).join('') || '.',
   };
 };
 
