@@ -18,7 +18,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import { useSearchEvents } from '../../hooks/useSearchEvents';
+import {
+  SEARCH_QUERY_MAX_LENGTH,
+  useSearchEvents,
+} from '../../hooks/useSearchEvents';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { PredictEventCard } from '../../events/cards';
 import { PredictNextRoutes } from '../../navigation/routes';
@@ -203,6 +206,7 @@ export const PredictSearchScreen = () => {
           autoFocus: true,
           inputProps: {
             autoCorrect: false,
+            maxLength: SEARCH_QUERY_MAX_LENGTH,
             returnKeyType: 'search',
             testID: PredictSearchScreenTestIds.INPUT,
           },
