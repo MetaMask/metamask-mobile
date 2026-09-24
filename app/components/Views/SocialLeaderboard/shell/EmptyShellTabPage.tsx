@@ -40,11 +40,21 @@ import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPo
 import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
+import {
+  DEFAULT_FEED_SORT,
+  FeedSortFilterSelector,
+  FeedSortFilterSheet,
+  type FeedSort,
+} from '../components/Filters';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
+import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
+import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import SocialTabFilterBar from './filters/SocialTabFilterBar';
 import type {
   SocialV1FeedPost,
   SocialV1FeedTab,
+  SocialV1HotToken,
 } from '../SocialV1View/feed/types';
 
 /** Insert the Popular traders rail after this many Trending posts. */
@@ -91,6 +101,8 @@ export interface EmptyShellTabPageProps {
   pageRef?: React.Ref<SocialTabPageHandle>;
   containerTestID: string;
   scrollTestID: string;
+  onOpenFilters?: () => void;
+  isFilterActive?: boolean;
 }
 
 /**
@@ -104,6 +116,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   pageRef,
   containerTestID,
   scrollTestID,
+  onOpenFilters,
+  isFilterActive = false,
 }) => {
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
@@ -121,6 +135,40 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedHotTokenId, setSelectedHotTokenId] = useState<string | null>(
+    null,
+  );
+  const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+
+  const selectedStillPresent =
+    selectedHotTokenId != null &&
+    posts.some(
+      (post) => getSocialV1HotTokenId(post.item) === selectedHotTokenId,
+    );
+  const activeHotTokenId = selectedStillPresent ? selectedHotTokenId : null;
+
+  useEffect(() => {
+    if (selectedHotTokenId && !selectedStillPresent) {
+      setSelectedHotTokenId(null);
+    }
+  }, [selectedHotTokenId, selectedStillPresent]);
+
+  const filteredPosts = useMemo(() => {
+    if (!activeHotTokenId) {
+      return posts;
+    }
+    return posts.filter(
+      (post) => getSocialV1HotTokenId(post.item) === activeHotTokenId,
+    );
+  }, [activeHotTokenId, posts]);
+
+  const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
+    setSelectedHotTokenId((current) =>
+      current === token.id ? null : token.id,
+    );
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
 
   /**
    * Pull-to-refresh, and the only recovery path once a later fetch fails:
@@ -211,7 +259,26 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [],
   );
 
-  const showPopularTraders = tab === 'trending';
+  const showPopularTraders = tab === 'trending' && activeHotTokenId === null;
+  const showFollowingChrome = tab === 'following';
+  const showHotTokens = tab === 'trending';
+
+  const sortedPosts = useMemo(() => {
+    if (tab !== 'following' || feedSort === 'most_recent') {
+      return filteredPosts;
+    }
+    return [...filteredPosts].sort((left, right) => {
+      const leftTotal = left.reactions.reduce(
+        (sum, reaction) => sum + reaction.count,
+        0,
+      );
+      const rightTotal = right.reactions.reduce(
+        (sum, reaction) => sum + reaction.count,
+        0,
+      );
+      return rightTotal - leftTotal;
+    });
+  }, [feedSort, filteredPosts, tab]);
 
   type FeedBlock =
     | { key: string; kind: 'posts'; posts: SocialV1FeedPost[] }
@@ -219,10 +286,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const feedBlocks = useMemo((): FeedBlock[] => {
     const leadingPosts = showPopularTraders
-      ? posts.slice(0, TRENDING_POPULAR_TRADERS_INSERT_AFTER)
-      : posts;
+      ? sortedPosts.slice(0, TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+      : sortedPosts;
     const trailingPosts = showPopularTraders
-      ? posts.slice(TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+      ? sortedPosts.slice(TRENDING_POPULAR_TRADERS_INSERT_AFTER)
       : [];
 
     const blocks: FeedBlock[] = [
@@ -235,7 +302,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       blocks.push({ key: 'trailing', kind: 'posts', posts: trailingPosts });
     }
     return blocks;
-  }, [posts, showPopularTraders]);
+  }, [showPopularTraders, sortedPosts]);
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
@@ -269,6 +336,18 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         }
         testID={scrollTestID}
       >
+        {showFollowingChrome ? (
+          <SocialTabFilterBar
+            onOpenFilters={onOpenFilters}
+            isFilterActive={isFilterActive}
+            filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
+          >
+            <FeedSortFilterSelector
+              value={feedSort}
+              onPress={() => setIsSortSheetOpen(true)}
+            />
+          </SocialTabFilterBar>
+        ) : null}
         {hasBeenActive ? (
           // No top padding: `SocialV1View` already offsets the pager from the
           // tabs bar by 16, and adding another 16 here is what made the space
@@ -276,7 +355,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           // to both screen edges, so the horizontal padding sits on the posts
           // rather than on the page.
           <Box twClassName="pb-8 gap-6">
-            <HotTokensCarousel />
+            {showHotTokens ? (
+              <HotTokensCarousel
+                posts={posts}
+                isLoading={isLoading}
+                selectedTokenId={activeHotTokenId}
+                onTokenPress={handleHotTokenPress}
+              />
+            ) : null}
             {pendingPost ? (
               <Box twClassName="px-4">
                 <SocialFeedPostingBanner
@@ -362,6 +448,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           </Box>
         ) : null}
       </Animated.ScrollView>
+      {showFollowingChrome ? (
+        <FeedSortFilterSheet
+          isOpen={isSortSheetOpen}
+          value={feedSort}
+          onChange={setFeedSort}
+          onClose={() => setIsSortSheetOpen(false)}
+        />
+      ) : null}
     </Box>
   );
 };
