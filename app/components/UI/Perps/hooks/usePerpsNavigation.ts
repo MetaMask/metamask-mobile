@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
@@ -13,6 +14,7 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
+import { selectPerpsProvider } from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -22,7 +24,15 @@ import {
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  CONFIRMATION_HEADER_CONFIG,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
+import { usePerpsProvider } from './usePerpsProvider';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 import {
   navigateToPerpsHomeTarget,
   resetToPerpsHomeTarget,
@@ -66,7 +76,7 @@ export interface PerpsNavigationHandlers {
   navigateToAdjustMargin: (
     position: Position,
     mode: 'add' | 'remove',
-    options?: { enableHaptics?: boolean },
+    options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
   ) => void;
   navigateToClosePosition: (
     position: Position,
@@ -233,15 +243,84 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const { switchProvider } = usePerpsProvider();
+  const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
       const useBottomSheet = Boolean(params.useBottomSheet);
+      const orderProvider = params.providerId ?? activeProvider;
+      const handleOrderError = (error: unknown) => {
+        const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
+        Logger.error(err, {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
+          [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+        });
+
+        showToast(
+          PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+        );
+      };
+      const switchToOrderProvider = async () => {
+        if (params.providerId === undefined) {
+          return;
+        }
+        const result = await switchProvider(params.providerId);
+        if (!result.success) {
+          throw new Error(
+            result.error ??
+              `Failed to switch perps provider to ${params.providerId}`,
+          );
+        }
+      };
+      // Lighter has no deposit-with-order route. Switch first so the form uses
+      // Lighter's balance and market metadata, including from aggregated mode.
+      if (orderProvider === 'lighter') {
+        if (
+          params.providerId === 'lighter' &&
+          activeProvider !== undefined &&
+          activeProvider !== params.providerId
+        ) {
+          switchToOrderProvider()
+            .then(() => navigation.navigate(Routes.PERPS.BALANCE_ORDER, params))
+            .catch(handleOrderError);
+          return;
+        }
+        navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
+        return;
+      }
+      const depositProvider =
+        activeProvider === undefined ||
+        activeProvider === PROVIDER_CONFIG.AggregatedProvider
+          ? PROVIDER_CONFIG.DefaultProvider
+          : activeProvider;
+      let createOrder = depositWithOrder;
+      if (
+        params.providerId !== undefined &&
+        params.providerId !== depositProvider
+      ) {
+        createOrder = async () => {
+          await switchToOrderProvider();
+          return depositWithOrder();
+        };
+      }
+      if (useBottomSheet) {
+        startPerpsTradeSheetInteractiveTrace(
+          params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        );
+      }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
-        depositWithOrder,
+        createOrder,
       )
         .then(() => {
           navigation.navigate(
@@ -256,28 +335,17 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
-          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
-          Logger.error(err, {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
-          });
-
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
-          });
-
-          showToast(
-            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
-          );
+          if (useBottomSheet) {
+            failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
+          }
+          handleOrderError(error);
         });
     },
     [
       navigation,
       depositWithOrder,
+      switchProvider,
+      activeProvider,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
       track,
@@ -295,12 +363,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       mode: 'add' | 'remove',
-      options?: { enableHaptics?: boolean },
+      options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
     ) => {
       navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
         position,
         mode,
         enableHaptics: options?.enableHaptics,
+        ...(options?.useBottomSheet ? { useBottomSheet: true } : {}),
       });
     },
     [navigation],

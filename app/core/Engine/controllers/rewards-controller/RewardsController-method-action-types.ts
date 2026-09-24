@@ -853,6 +853,17 @@ export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
 };
 
 /**
+ * Fetch the Money Account Sweepstakes aggregate volume stats.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The volume stats DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsController['getMoneyAccountSweepstakesVolumeStats'];
+};
+
+/**
  * Fetch the Money Account Sweepstakes draw proof.
  * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
  * null (pending) responses are cached in-memory for 5 minutes.
@@ -1021,6 +1032,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPrizePoolAction
   | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
   | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction

@@ -606,6 +606,45 @@ describe('usePerpsOrderValidation', () => {
       expect(mockValidateOrder).toHaveBeenCalledTimes(2);
     });
 
+    it('keeps validity false until a value entered during suspended validation is checked', async () => {
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        {
+          initialProps: {
+            ...defaultParams,
+            skipValidation: false,
+          },
+        },
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValid).toBe(true);
+      });
+
+      rerender({
+        ...defaultParams,
+        positionSize: '0.003',
+        skipValidation: true,
+      });
+      expect(result.current.isValid).toBe(false);
+
+      rerender({
+        ...defaultParams,
+        positionSize: '0.003',
+        skipValidation: false,
+      });
+      expect(result.current.isValid).toBe(false);
+      expect(result.current.isValidating).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValid).toBe(true);
+      });
+    });
+
     it('reports a new local error while protocol validation remains debounced', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
       const { result, rerender } = renderHook(
@@ -1149,7 +1188,9 @@ describe('usePerpsOrderValidation', () => {
           expect(result.current.isValidating).toBe(false);
         });
 
-        expect(result.current.isValid).toBe(false);
+        // A wrong-side trigger is advice, not a blocker: the user is told
+        // about it and can still place the order.
+        expect(result.current.isValid).toBe(true);
         expect(result.current.errors).toEqual([]);
         expect(result.current.fieldIssues).toEqual(
           expect.arrayContaining([

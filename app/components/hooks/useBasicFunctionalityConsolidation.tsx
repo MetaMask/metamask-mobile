@@ -115,7 +115,7 @@ export function useBasicFunctionalityConsolidation(): void {
 
   // The onboarding-session latch only guards wallets onboarding has not yet
   // enrolled. A social repair targets an already-enrolled wallet, so it runs in
-  // the session that finds Basic Functionality off rather than the next launch.
+  // the session that finds Basic Functionality off or a missing notice.
   const shouldRunConsolidation =
     (isFlagEnabled && !isConsolidated && !isOnboardingSession.current) ||
     shouldRepairSocialLoginBasicFunctionality;
@@ -143,8 +143,11 @@ export function useBasicFunctionalityConsolidation(): void {
       });
   }, [completedOnboarding, dispatch, isUnlocked, shouldRunConsolidation]);
 
-  // Gating on `isUnlocked` keeps the notice off the lock screen. Clearing the
-  // presented ref while locked lets it present once the wallet is unlocked.
+  // `isUnlocked` is not enough on its own to keep the notice off the lock
+  // screen, since the keyring unlocks before Login hands the session over.
+  // Mounting on the wallet stack is what guarantees the handoff has happened;
+  // `isUnlocked` covers LockScreen, which covers the wallet without
+  // unmounting it. Clearing the ref while locked lets it present on unlock.
   useEffect(() => {
     if (!shouldShowBottomSheet || !isUnlocked) {
       hasPresentedBottomSheet.current = false;

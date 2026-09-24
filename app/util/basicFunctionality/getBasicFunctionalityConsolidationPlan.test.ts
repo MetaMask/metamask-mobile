@@ -33,6 +33,18 @@ describe('getBasicFunctionalityConsolidationPlan', () => {
     });
   });
 
+  it('treats Basic Functionality off with every child on as mixed', () => {
+    const preferences = createPreferences(true);
+    preferences.basicFunctionalityEnabled = false;
+
+    expect(
+      getBasicFunctionalityConsolidationPlan(preferences, false),
+    ).toStrictEqual({
+      landingState: true,
+      notification: 'toast',
+    });
+  });
+
   it('schedules a toast and enables mixed settings above the threshold', () => {
     const preferences = createPreferences(false);
     BFT_CHILD_PREFERENCES.slice(

@@ -19,6 +19,7 @@ import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import {
   getOrderFormFieldIssues,
+  isAdvisoryOrderFormFieldIssue,
   canonicalizeOrderPrice,
   type OrderFormFieldIssue,
 } from '../utils/triggerOrderValidation';
@@ -382,7 +383,9 @@ const buildValidationOutcome = ({
     isValid:
       protocolValid &&
       requestLocalErrors.length === 0 &&
-      requestFieldIssues.length === 0,
+      !requestFieldIssues.some(
+        (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+      ),
   };
 
   return {
@@ -508,7 +511,9 @@ export function usePerpsOrderValidation(
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
-  const isLocallyValid = localErrors.length === 0 && fieldIssues.length === 0;
+  const isLocallyValid =
+    localErrors.length === 0 &&
+    !fieldIssues.some((issue) => !isAdvisoryOrderFormFieldIssue(issue));
 
   const combinedErrors = useMemo(
     () =>
@@ -681,6 +686,10 @@ export function usePerpsOrderValidation(
     // Pro intentionally maps its CTA spinner only to active placement.
     setValidation((prev) => ({
       ...prev,
+      // Values typed while validation is suspended have never been checked.
+      // Invalidate the previous result synchronously so the CTA cannot submit
+      // one render with stale validity when the keypad closes.
+      protocolValid: skipValidation ? false : prev.protocolValid,
       isValidating: !skipValidation,
     }));
 

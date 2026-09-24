@@ -31,7 +31,7 @@ import {
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
   isPerpsOrderKind,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
   shouldShowPlusSign,
   type Status,
   type TokenAmount,
@@ -51,6 +51,8 @@ import {
   resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
+/* eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list cache hook */
+import { useCachedEvmTransaction } from '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -255,19 +257,17 @@ function perpsPositionSubtitle(
   );
 }
 
-function getPredictActivity(item: ActivityListItem) {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
+function getPredictEventTitle(item: ActivityListItem): string | undefined {
+  return 'eventTitle' in item.data
+    ? (item.data.eventTitle as string | undefined)
+    : undefined;
 }
 
 function predictMarketSubtitle(item: ActivityListItem): string | undefined {
-  return getPredictActivity(item)?.title;
+  return getPredictEventTitle(item);
 }
 
-function protocolSubtitle(item: ActivityListItem): string | undefined {
-  const rawData =
-    item.raw?.type === 'apiEvmTransaction' ? item.raw.data : undefined;
-  const protocol = rawData?.transactionProtocol;
-
+function protocolSubtitle(protocol?: string) {
   if (
     !protocol ||
     protocol === 'GENERIC' ||
@@ -394,15 +394,11 @@ function enrichSpendingCapToken(
   }
   const symbol = token.symbol ?? listToken?.symbol;
   const decimals = token.decimals ?? listToken?.decimals;
-  const isUnlimitedApproval =
-    token.amount !== undefined
-      ? isUnlimitedApprovalAmount(token.amount, decimals)
-      : token.isUnlimitedApproval;
+
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
     ...(decimals === undefined ? {} : { decimals }),
-    ...(isUnlimitedApproval ? { isUnlimitedApproval: true } : {}),
   };
 }
 
@@ -514,6 +510,7 @@ function resolveCoreContent(
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
   isMoneyAccountCounterparty = false,
+  transactionProtocol?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -579,7 +576,7 @@ function resolveCoreContent(
             ),
             failed: strings('transactions.activity_swap_failed'),
           }),
-          subtitle: protocolSubtitle(item),
+          subtitle: protocolSubtitle(transactionProtocol),
           primaryToken: sourceToken,
         };
       }
@@ -592,7 +589,7 @@ function resolveCoreContent(
         }),
         subtitle:
           tokenPairSubtitle(sourceToken, destinationToken) ??
-          protocolSubtitle(item),
+          protocolSubtitle(transactionProtocol),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -694,7 +691,7 @@ function resolveCoreContent(
           pending: withOptionalSymbol(labels.pending, displayNoun),
           failed: labels.failed,
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken: isNamelessNftBuy ? undefined : token,
       };
     }
@@ -761,7 +758,7 @@ function resolveCoreContent(
               ? 'Deposit failed'
               : 'Withdrawal failed',
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken,
         secondaryToken:
           primaryToken === destinationToken ? sourceToken : destinationToken,
@@ -781,7 +778,7 @@ function resolveCoreContent(
           pending: withOptionalSymbol(labels.pending, nftName),
           failed: labels.failed,
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken: item.data.paymentToken,
       };
     }
@@ -844,7 +841,7 @@ function resolveCoreContent(
           failed: 'Interaction failed',
         }),
         subtitle:
-          protocolSubtitle(item) ??
+          protocolSubtitle(transactionProtocol) ??
           (item.data.to ? `With ${shortAddress(item.data.to)}` : undefined),
         primaryToken: item.data.token,
       };
@@ -895,7 +892,8 @@ function resolveCoreContent(
       return {
         title: resolveFallbackTitle(item),
         subtitle:
-          perpsPositionSubtitle(item, formatters) ?? protocolSubtitle(item),
+          perpsPositionSubtitle(item, formatters) ??
+          protocolSubtitle(transactionProtocol),
         primaryToken: 'token' in item.data ? item.data.token : undefined,
       };
   }
@@ -919,14 +917,15 @@ function resolveAmount(
 ): string | undefined {
   if (!token) return undefined;
 
-  const displayAmount = token.isUnlimitedApproval
+  const isUnlimited = isSpendingCapUnlimited(token.amount, token.decimals);
+  const displayAmount = isUnlimited
     ? strings('confirm.unlimited')
     : getHumanReadableTokenAmount(token);
   if (displayAmount === undefined) {
     return undefined;
   }
 
-  const amount = token.isUnlimitedApproval
+  const amount = isUnlimited
     ? withOptionalSymbol(displayAmount, token.symbol)
     : formatTokenDisplayAmount(formatters, displayAmount, token.symbol);
 
@@ -1171,12 +1170,17 @@ export function useActivityListItemRowContent(
     ? strings('transaction_details.label.money_account')
     : accountGroupName;
 
+  const cachedEvmTransaction = useCachedEvmTransaction({
+    chainId: item.chainId,
+    txHash: item.hash,
+  });
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
     isMoneyAccountCounterparty,
+    cachedEvmTransaction?.transactionProtocol,
   );
 
   let basePrimaryToken: TokenAmount | undefined;
@@ -1299,9 +1303,12 @@ export function useActivityListItemRowContent(
       ? item.data.sourceToken?.symbol
       : undefined
     : undefined;
-  const predictIconUrl = isPredictTradeKind(item.type)
-    ? getPredictActivity(item)?.icon
-    : undefined;
+  const predictIconUrl =
+    isPredictTradeKind(item.type) &&
+    'icon' in item.data &&
+    typeof item.data.icon === 'string'
+      ? item.data.icon
+      : undefined;
 
   let avatarTokens: TokenAmount[];
   if (isSpendingCap && spendingCapToken) {

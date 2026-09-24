@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
+import { useCallback, useRef, useState } from 'react';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -8,7 +8,11 @@ import usePerpsToasts from './usePerpsToasts';
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { translatePerpsError } from '../utils/translatePerpsError';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;
@@ -26,21 +30,42 @@ export function usePerpsMarginAdjustment(
 ) {
   const { updateMargin } = usePerpsTrading();
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const isAdjustingRef = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
 
   const handleMarginUpdate = useCallback(
     async (symbol: string, amount: number, action: 'add' | 'remove') => {
+      if (isAdjustingRef.current) {
+        return;
+      }
+
+      isAdjustingRef.current = true;
       setIsAdjusting(true);
       DevLogger.log(
         `usePerpsMarginAdjustment: Setting isAdjusting to true (action: ${action})`,
       );
 
-      try {
-        // Convert amount to string with proper sign
-        // Positive for add, negative for remove
-        const adjustmentAmount = action === 'remove' ? -amount : amount;
+      // Positive for add, negative for remove
+      const adjustmentAmount = action === 'remove' ? -amount : amount;
+      const trackAdjustment = (
+        status:
+          | typeof PERPS_EVENT_VALUE.STATUS.SUCCESS
+          | typeof PERPS_EVENT_VALUE.STATUS.FAILED,
+        errorMessage?: string,
+      ) => {
+        track(MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION, {
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+          [PERPS_EVENT_PROPERTY.ACTION]: action,
+          [PERPS_EVENT_PROPERTY.STATUS]: status,
+          ...(errorMessage && {
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+          }),
+        });
+      };
 
+      try {
         const result = await updateMargin({
           symbol,
           amount: adjustmentAmount.toString(),
@@ -63,12 +88,15 @@ export function usePerpsMarginAdjustment(
                 ),
           );
 
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.SUCCESS);
+
           // Call success callback if provided
           options?.onSuccess?.();
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
-          const errorMessage = result.error || strings('perps.errors.unknown');
+          const errorMessage = translatePerpsError(result.error);
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -106,10 +134,8 @@ export function usePerpsMarginAdjustment(
           },
         });
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknown');
+        const errorMessage = translatePerpsError(error);
+        trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -121,6 +147,7 @@ export function usePerpsMarginAdjustment(
         options?.onError?.(errorMessage);
       } finally {
         DevLogger.log('usePerpsMarginAdjustment: Setting isAdjusting to false');
+        isAdjustingRef.current = false;
         setIsAdjusting(false);
       }
     },
@@ -129,6 +156,7 @@ export function usePerpsMarginAdjustment(
       showToast,
       PerpsToastOptions.positionManagement.margin,
       options,
+      track,
     ],
   );
 

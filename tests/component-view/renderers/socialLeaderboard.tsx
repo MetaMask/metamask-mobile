@@ -9,6 +9,7 @@
 
 import '../mocks';
 import React from 'react';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
@@ -20,6 +21,8 @@ import {
   initialStateSocialLeaderboard,
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
+import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import { createStateFixture } from '../stateFixture';
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -73,6 +76,73 @@ export function renderTopTradersViewWithRoutes(
   return renderScreenWithRoutes(
     TopTradersView as unknown as React.ComponentType,
     { name: Routes.SOCIAL.V0 },
+    extraRoutes,
+    { state },
+  );
+}
+
+/**
+ * Renders profile onboarding with an EVM account that has a native mainnet
+ * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
+ * must mount and list only the EVM account.
+ */
+export function renderSocialProfileOnboarding(
+  extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
+) {
+  const state = createStateFixture()
+    .withMinimalAccounts()
+    .withMinimalKeyringController()
+    .withMinimalMainnetNetwork()
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'sol-1': {
+                  id: 'sol-1',
+                  address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
+                  metadata: {
+                    name: 'Solana Account',
+                    importTime: 1,
+                    keyring: { type: 'Snap Keyring' },
+                  },
+                  options: {},
+                  methods: [],
+                  type: SolAccountType.DataAccount,
+                  scopes: [SolScope.Mainnet],
+                },
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+              },
+            },
+          },
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/slip44:60': { type: 'native', decimals: 18 },
+            },
+            assetsBalance: {
+              'acc-1': {
+                'eip155:1/slip44:60': { amount: '1' },
+              },
+            },
+          },
+        },
+      },
+    })
+    .build();
+
+  return renderScreenWithRoutes(
+    SocialProfileOnboardingView as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     extraRoutes,
     { state },
   );
