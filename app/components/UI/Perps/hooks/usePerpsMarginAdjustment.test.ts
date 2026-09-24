@@ -324,22 +324,6 @@ describe('usePerpsMarginAdjustment', () => {
       leverage: { type: 'isolated', value: 10 },
     };
 
-    it('reads a fresh position before submitting a removal', async () => {
-      mockGetPositions.mockResolvedValue([freshPosition]);
-      mockUpdateMargin.mockResolvedValue({ success: true });
-      const { result } = renderHook(() => usePerpsMarginAdjustment());
-
-      await act(async () => {
-        await result.current.handleRemoveMargin('ETH', 5);
-      });
-
-      expect(mockGetPositions).toHaveBeenCalledWith({ skipCache: true });
-      expect(mockUpdateMargin).toHaveBeenCalledWith({
-        symbol: 'ETH',
-        amount: '-5',
-      });
-    });
-
     it('stops a removal the fresh position no longer covers and reports the new safe max', async () => {
       mockGetPositions.mockResolvedValue([freshPosition]);
       const mockOnAmountChanged = jest.fn();
@@ -366,8 +350,26 @@ describe('usePerpsMarginAdjustment', () => {
       expect(result.current.isAdjusting).toBe(false);
     });
 
-    it('submits a removal above the safe max that the exchange still accepts', async () => {
-      mockGetPositions.mockResolvedValue([freshPosition]);
+    it.each<[string, object[] | Error, number]>([
+      ['within the safe max', [freshPosition], 5],
+      ['above the safe max the exchange still accepts', [freshPosition], 9],
+      ['the fresh read fails', new Error('network down'), 12],
+      ['leverage is missing', [{ ...freshPosition, leverage: undefined }], 12],
+      [
+        'marginUsed is not a number',
+        [{ ...freshPosition, marginUsed: 'NaN' }],
+        12,
+      ],
+      ['positionValue is zero', [{ ...freshPosition, positionValue: '0' }], 12],
+      // The provider returns [] for a failed fetch too, so a missing position
+      // is not proof that it closed.
+      ['the fresh read no longer has the position', [], 5],
+    ])('submits the removal when %s', async (_label, freshRead, amount) => {
+      if (freshRead instanceof Error) {
+        mockGetPositions.mockRejectedValue(freshRead);
+      } else {
+        mockGetPositions.mockResolvedValue(freshRead);
+      }
       mockUpdateMargin.mockResolvedValue({ success: true });
       const mockOnAmountChanged = jest.fn();
       const { result } = renderHook(() =>
@@ -375,68 +377,14 @@ describe('usePerpsMarginAdjustment', () => {
       );
 
       await act(async () => {
-        await result.current.handleRemoveMargin('ETH', 9);
+        await result.current.handleRemoveMargin('ETH', amount);
       });
 
+      expect(mockGetPositions).toHaveBeenCalledWith({ skipCache: true });
       expect(mockOnAmountChanged).not.toHaveBeenCalled();
       expect(mockUpdateMargin).toHaveBeenCalledWith({
         symbol: 'ETH',
-        amount: '-9',
-      });
-    });
-
-    it('submits the removal when the fresh position read fails', async () => {
-      mockGetPositions.mockRejectedValue(new Error('network down'));
-      mockUpdateMargin.mockResolvedValue({ success: true });
-      const { result } = renderHook(() => usePerpsMarginAdjustment());
-
-      await act(async () => {
-        await result.current.handleRemoveMargin('ETH', 12);
-      });
-
-      expect(mockUpdateMargin).toHaveBeenCalledWith({
-        symbol: 'ETH',
-        amount: '-12',
-      });
-    });
-
-    it.each([
-      ['leverage is missing', { leverage: undefined }],
-      ['marginUsed is not a number', { marginUsed: 'NaN' }],
-      ['positionValue is zero', { positionValue: '0' }],
-    ])(
-      'submits the removal when the fresh position is unusable (%s)',
-      async (_label, override) => {
-        mockGetPositions.mockResolvedValue([{ ...freshPosition, ...override }]);
-        mockUpdateMargin.mockResolvedValue({ success: true });
-        const { result } = renderHook(() => usePerpsMarginAdjustment());
-
-        await act(async () => {
-          await result.current.handleRemoveMargin('ETH', 12);
-        });
-
-        expect(mockUpdateMargin).toHaveBeenCalledWith({
-          symbol: 'ETH',
-          amount: '-12',
-        });
-      },
-    );
-
-    it('submits the removal when the fresh read no longer has the position', async () => {
-      // The provider returns [] for a failed fetch too, so a missing position
-      // is not proof that it closed.
-      mockGetPositions.mockResolvedValue([]);
-      mockUpdateMargin.mockResolvedValue({ success: true });
-      const { result } = renderHook(() => usePerpsMarginAdjustment());
-
-      await act(async () => {
-        await result.current.handleRemoveMargin('ETH', 5);
-      });
-
-      expect(mockGetPositions).toHaveBeenCalledTimes(1);
-      expect(mockUpdateMargin).toHaveBeenCalledWith({
-        symbol: 'ETH',
-        amount: '-5',
+        amount: `-${amount}`,
       });
     });
 

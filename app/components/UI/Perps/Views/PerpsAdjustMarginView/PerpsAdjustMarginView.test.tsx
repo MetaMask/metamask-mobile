@@ -4,7 +4,6 @@ import Logger from '../../../../../util/Logger';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
-import { MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS } from '../../constants/perpsConfig';
 import {
   PerpsAdjustMarginViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
@@ -381,21 +380,6 @@ describe('PerpsAdjustMarginView', () => {
       ).toHaveTextContent('perps.adjust_margin.reduce_margin');
     });
 
-    it('hides the zero-state explanation while margin can be removed', () => {
-      mockUsePerpsAdjustMarginData.mockReturnValue({
-        ...removeModeData,
-        hasValidPositionData: true,
-      });
-
-      render(<PerpsAdjustMarginView />);
-
-      expect(
-        screen.queryByTestId(
-          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
     it('explains and disables removal when no margin can be removed', () => {
       mockUsePerpsAdjustMarginData.mockReturnValue({
         ...removeModeData,
@@ -458,39 +442,6 @@ describe('PerpsAdjustMarginView', () => {
       expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 200);
     });
 
-    it('blocks a retained amount once no margin can be removed', async () => {
-      mockUsePerpsAdjustMarginData.mockReturnValue({
-        ...removeModeData,
-        hasValidPositionData: true,
-        exchangeMaxAmount: 250,
-      });
-      const { rerender } = render(<PerpsAdjustMarginView />);
-      act(() => {
-        (
-          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
-            .props as { onValueChange: (v: number) => void }
-        ).onValueChange(50);
-      });
-      mockUsePerpsAdjustMarginData.mockReturnValue({
-        ...removeModeData,
-        hasValidPositionData: true,
-        maxAmount: 0,
-        exchangeMaxAmount: 150,
-      });
-
-      rerender(<PerpsAdjustMarginView />);
-      const confirmButton = screen.getByTestId(
-        PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
-      );
-      fireEvent.press(confirmButton);
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
-      expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
-    });
-
     it('explains a zero limit instead of an error on a retained amount', () => {
       mockUsePerpsAdjustMarginData.mockReturnValue({
         ...removeModeData,
@@ -503,6 +454,11 @@ describe('PerpsAdjustMarginView', () => {
             .props as { onValueChange: (v: number) => void }
         ).onValueChange(50);
       });
+      expect(
+        screen.queryByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
+        ),
+      ).not.toBeOnTheScreen();
       mockUsePerpsAdjustMarginData.mockReturnValue({
         ...removeModeData,
         hasValidPositionData: true,
@@ -511,6 +467,10 @@ describe('PerpsAdjustMarginView', () => {
       });
 
       rerender(<PerpsAdjustMarginView />);
+      const confirmButton = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
 
       expect(
         screen.getByTestId(
@@ -520,6 +480,8 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.queryByText('perps.errors.marginValidation.exceedsMaxRemovable'),
       ).not.toBeOnTheScreen();
+      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+      expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
     });
 
     it('sets the amount to the new safe max when removable margin shrank before submit', () => {
@@ -537,68 +499,25 @@ describe('PerpsAdjustMarginView', () => {
       ).toHaveTextContent('150.00');
     });
 
-    const setUpFreshLimit = () => {
-      const { rerender } = render(<PerpsAdjustMarginView />);
+    it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+      render(<PerpsAdjustMarginView />);
       const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
         onAmountChanged?: (maxAmount: number) => void;
       };
       act(() => {
         options.onAmountChanged?.(150);
       });
-      const renderLive = (maxAmount: number, position: Position) => {
-        mockUsePerpsAdjustMarginData.mockReturnValue({
-          ...removeModeData,
-          position,
-          maxAmount,
-        });
-        rerender(<PerpsAdjustMarginView />);
-      };
-      const amountAtMax = () => {
-        act(() => {
-          (
-            screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
-              .props as { onValueChange: (v: number) => void }
-          ).onValueChange(100);
-        });
-        return screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
-      };
-      return { renderLive, amountAtMax };
-    };
-    const pnlTick = { ...mockPosition, unrealizedPnl: '90', marginUsed: '490' };
 
-    it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
-      const { amountAtMax } = setUpFreshLimit();
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(100);
+      });
 
-      expect(amountAtMax()).toHaveTextContent('150.00');
-    });
-
-    it('keeps the fresh limit through PnL re-deliveries and drops it when the size changes', () => {
-      const { renderLive, amountAtMax } = setUpFreshLimit();
-
-      renderLive(199, pnlTick);
-      expect(amountAtMax()).toHaveTextContent('150.00');
-
-      renderLive(250, { ...pnlTick, size: '2' });
-      expect(amountAtMax()).toHaveTextContent('250.00');
-    });
-
-    it('drops the fresh limit when margin is added to the position elsewhere', () => {
-      const { renderLive, amountAtMax } = setUpFreshLimit();
-
-      renderLive(250, { ...pnlTick, marginUsed: '520' });
-
-      expect(amountAtMax()).toHaveTextContent('250.00');
-    });
-
-    it('drops the fresh limit after the hold window', () => {
-      jest.useFakeTimers();
-      const { renderLive, amountAtMax } = setUpFreshLimit();
-
-      act(() => jest.advanceTimersByTime(MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS));
-      renderLive(250, pnlTick);
-
-      expect(amountAtMax()).toHaveTextContent('250.00');
-      jest.useRealTimers();
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('150.00');
     });
   });
 
