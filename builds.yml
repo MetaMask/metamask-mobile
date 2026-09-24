@@ -432,6 +432,8 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # Onboarding CL24 DKM compute harness (Hermes). Keep off on rc/prod.
+      CL24_BENCHMARK_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 

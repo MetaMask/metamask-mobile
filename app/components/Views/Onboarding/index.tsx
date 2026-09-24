@@ -119,6 +119,7 @@ import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
+import CL24Benchmark from './CL24Benchmark';
 import {
   presentIosGoogleLoginUnsupportedBlockingSheet,
   presentIosGoogleLoginUnsupportedBlockingSheetRehydration,
@@ -1341,6 +1342,11 @@ const Onboarding = () => {
                 : strings('onboarding.import_using_srp')}
             </Button>
           </ThemeProvider>
+          {process.env.CL24_BENCHMARK_ENABLED === 'true' && (
+            <ThemeProvider theme={Theme.Light}>
+              <CL24Benchmark />
+            </ThemeProvider>
+          )}
         </OnboardingAnimation>
       </Box>
     ),
