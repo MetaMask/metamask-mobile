@@ -8,7 +8,7 @@ import { useKycEmailVerification } from './useKycEmailVerification';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockGetState = jest.fn();
-const mockGetVbaTermsOneAcceptance = jest.fn();
+const mockGetVbaVendorTermsAcceptance = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -47,9 +47,9 @@ jest.mock('../../../../../../selectors/rampsController', () => ({
   ),
 }));
 
-jest.mock('../vbaTermsOneStorage', () => ({
-  getVbaTermsOneAcceptance: (...args: unknown[]) =>
-    mockGetVbaTermsOneAcceptance(...args),
+jest.mock('../vbaVendorTermsStorage', () => ({
+  getVbaVendorTermsAcceptance: (...args: unknown[]) =>
+    mockGetVbaVendorTermsAcceptance(...args),
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -87,7 +87,7 @@ describe('useKycEmailVerification', () => {
     mockKycController.hasCompletedVendorDisclaimers.mockResolvedValue(false);
     mockKycController.reset.mockResolvedValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockGetVbaTermsOneAcceptance.mockResolvedValue({
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue({
       disclaimerIds: ['privacy', 'terms'],
     });
   });
@@ -117,7 +117,7 @@ describe('useKycEmailVerification', () => {
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
-  it('starts the session then navigates to Terms 2', async () => {
+  it('starts the session then navigates to provider terms', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result, '  user@example.com  ');
@@ -126,16 +126,16 @@ describe('useKycEmailVerification', () => {
       vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockGetVbaTermsOneAcceptance).toHaveBeenCalledWith('0xabc');
+    expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
     expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
       disclaimerIds: ['privacy', 'terms'],
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_VERIFY_IDENTITY);
   });
 
-  it('does not navigate when locally accepted Terms 1 ids are unavailable', async () => {
+  it('does not navigate when locally accepted vendor terms are unavailable', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockGetVbaTermsOneAcceptance.mockResolvedValue(null);
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result);
@@ -148,9 +148,9 @@ describe('useKycEmailVerification', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates without flushing when the account already recorded Terms 1', async () => {
+  it('navigates when the account already recorded vendor terms', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockGetVbaTermsOneAcceptance.mockResolvedValue(null);
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
     mockKycController.hasCompletedVendorDisclaimers.mockResolvedValue(true);
     const { result } = renderHook(() => useKycEmailVerification());
 

@@ -75,7 +75,7 @@ describe('CreateVirtualBankAccount', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('stores Terms 1 locally before advancing to email', async () => {
+  it('stores vendor terms locally before advancing to email', async () => {
     const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
     const button = getByTestId(

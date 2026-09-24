@@ -16,7 +16,7 @@ describe('getVbaRouteForSnapshot', () => {
   it('maps snapshot facts onto funnel routes', () => {
     const cases: [string, VbaOnboardingSnapshot][] = [
       ['empty', snapshot()],
-      ['terms one done', snapshot({ termsOneAccepted: true })],
+      ['terms one done', snapshot({ vendorTermsAcceptedLocally: true })],
       [
         'email and vendor terms done',
         snapshot({
@@ -78,9 +78,9 @@ describe('getVbaRouteForSnapshot', () => {
     );
   });
 
-  it('lists Terms 1 before email in the client-owned funnel', () => {
+  it('lists vendor terms before email in the client-owned funnel', () => {
     expect(VBA_FUNNEL.map(({ id }) => id)).toStrictEqual([
-      'termsOne',
+      'vendorTerms',
       'email',
       'providerTerms',
       'sumsub',
