@@ -154,15 +154,23 @@ const SocialV1View: React.FC = () => {
   const {
     openTab,
     draft,
+    applied,
     hasActiveFilters,
     openSheet,
     closeSheet,
     updateDraft,
     applyFilters,
+    resetDraftToDefaults,
   } = useSocialShellFilters();
 
   const handleOpenLiveTradesFilters = useCallback(() => {
     openSheet('liveTrades');
+  }, [openSheet]);
+  const handleOpenFollowingFilters = useCallback(() => {
+    openSheet('following');
+  }, [openSheet]);
+  const handleOpenLeaderboardFilters = useCallback(() => {
+    openSheet('leaderboard');
   }, [openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
@@ -571,6 +579,9 @@ const SocialV1View: React.FC = () => {
                       onScroll={scrollHandlers[tab]}
                       pageRef={pageRef}
                       containerTestID={testIds.container}
+                      appliedFilters={applied.leaderboard}
+                      onOpenFilters={handleOpenLeaderboardFilters}
+                      isFilterActive={hasActiveFilters('leaderboard')}
                     />
                   ) : tab === 'liveTrades' ? (
                     <LiveTradesView
@@ -591,6 +602,12 @@ const SocialV1View: React.FC = () => {
                       pageRef={pageRef}
                       containerTestID={testIds.container}
                       scrollTestID={testIds.scroll}
+                      onOpenFilters={
+                        tab === 'following'
+                          ? handleOpenFollowingFilters
+                          : undefined
+                      }
+                      isFilterActive={hasActiveFilters('following')}
                     />
                   )}
                 </View>
@@ -606,6 +623,7 @@ const SocialV1View: React.FC = () => {
           draft={draft}
           onChange={updateDraft}
           onApply={applyFilters}
+          onReset={resetDraftToDefaults}
           onClose={closeSheet}
         />
       ) : null}

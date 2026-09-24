@@ -3,6 +3,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
   Icon,
   IconName,
@@ -17,7 +19,9 @@ import { Image, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
-import { formatFeedTimestamp } from '../../../utils/formatters';
+import { strings } from '../../../../../../../locales/i18n';
+import SocialEntryOptionsBottomSheet from '../../../components/SocialEntryOptionsBottomSheet';
+import { formatFeedPostAge } from '../../../utils/formatters';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { MOCK_MARKER } from '../mockMarker';
 import { visibleReactions } from '../reactions';
@@ -46,6 +50,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -71,7 +76,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const handlePick = useCallback(
     (emotion: string) => {
       setPickerVisible(false);
-      void pickEmotion(emotion);
+      pickEmotion(emotion).catch(() => undefined);
     },
     [pickEmotion],
   );
@@ -109,7 +114,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
           />
           {/* The name row and the stat line share a column so the stats sit
               under the name rather than under the avatar. */}
-          <Box twClassName="flex-1 min-w-0">
+          <Box twClassName="flex-1 min-w-0 overflow-hidden">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -148,6 +153,14 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
                   {cohortEmoji}
                 </Text>
               ) : null}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextMuted}
+                twClassName="shrink-0"
+                testID={`${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`}
+              >
+                {formatFeedPostAge(post.timestampMs)}
+              </Text>
             </Box>
             <RotatingTraderStat
               labels={statLabels}
@@ -155,9 +168,14 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
             />
           </Box>
         </Box>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
-          {formatFeedTimestamp(post.timestampMs)}
-        </Text>
+        <ButtonIcon
+          iconName={IconName.MoreHorizontal}
+          size={ButtonIconSize.Md}
+          onPress={() => setOptionsOpen(true)}
+          accessibilityLabel={strings('social_leaderboard.entry_options.title')}
+          twClassName="shrink-0"
+          testID={`${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`}
+        />
       </Box>
 
       {post.item.comment ? (
@@ -229,6 +247,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
         anchor={pickerAnchor}
         onClose={closePicker}
         onPick={handlePick}
+      />
+      <SocialEntryOptionsBottomSheet
+        isOpen={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
       />
     </Box>
   );

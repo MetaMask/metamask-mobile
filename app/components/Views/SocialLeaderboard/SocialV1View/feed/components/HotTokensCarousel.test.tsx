@@ -8,6 +8,7 @@ import HotTokensCarousel from './HotTokensCarousel';
 import {
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
 jest.mock('../hooks/useSocialV1HotTokens');
@@ -45,14 +46,18 @@ describe('HotTokensCarousel', () => {
     ).toHaveTextContent('NVIDIA');
   });
 
-  it('renders on a single row', () => {
+  it('renders the chips inside the carousel container', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel />);
 
     expect(
-      screen.getByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-0`),
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID).props
+        .horizontal,
+    ).toBe(true);
     expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
     ).not.toBeOnTheScreen();
@@ -103,5 +108,28 @@ describe('HotTokensCarousel', () => {
     const { toJSON } = renderWithProvider(<HotTokensCarousel />);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('duplicates the chips once the track overflows the viewport', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+    fireEvent(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
+      'layout',
+      { nativeEvent: { layout: { width: 200, height: 40 } } },
+    );
+    fireEvent(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID),
+      'layout',
+      { nativeEvent: { layout: { width: 800, height: 40 } } },
+    );
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc-loop')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda-loop')),
+    ).toBeOnTheScreen();
   });
 });
