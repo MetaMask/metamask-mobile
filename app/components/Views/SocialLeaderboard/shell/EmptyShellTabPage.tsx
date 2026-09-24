@@ -41,10 +41,12 @@ import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/componen
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
+import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import type {
   SocialV1FeedPost,
   SocialV1FeedTab,
+  SocialV1HotToken,
 } from '../SocialV1View/feed/types';
 
 /** Insert the Popular traders rail after this many Trending posts. */
@@ -121,6 +123,38 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedHotTokenId, setSelectedHotTokenId] = useState<string | null>(
+    null,
+  );
+
+  const selectedStillPresent =
+    selectedHotTokenId != null &&
+    posts.some(
+      (post) => getSocialV1HotTokenId(post.item) === selectedHotTokenId,
+    );
+  const activeHotTokenId = selectedStillPresent ? selectedHotTokenId : null;
+
+  useEffect(() => {
+    if (selectedHotTokenId && !selectedStillPresent) {
+      setSelectedHotTokenId(null);
+    }
+  }, [selectedHotTokenId, selectedStillPresent]);
+
+  const visiblePosts = useMemo(() => {
+    if (!activeHotTokenId) {
+      return posts;
+    }
+    return posts.filter(
+      (post) => getSocialV1HotTokenId(post.item) === activeHotTokenId,
+    );
+  }, [activeHotTokenId, posts]);
+
+  const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
+    setSelectedHotTokenId((current) =>
+      current === token.id ? null : token.id,
+    );
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
 
   /**
    * Pull-to-refresh, and the only recovery path once a later fetch fails:
@@ -211,7 +245,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [],
   );
 
-  const showPopularTraders = tab === 'trending';
+  const showPopularTraders = tab === 'trending' && activeHotTokenId === null;
 
   type FeedBlock =
     | { key: string; kind: 'posts'; posts: SocialV1FeedPost[] }
@@ -219,10 +253,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const feedBlocks = useMemo((): FeedBlock[] => {
     const leadingPosts = showPopularTraders
-      ? posts.slice(0, TRENDING_POPULAR_TRADERS_INSERT_AFTER)
-      : posts;
+      ? visiblePosts.slice(0, TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+      : visiblePosts;
     const trailingPosts = showPopularTraders
-      ? posts.slice(TRENDING_POPULAR_TRADERS_INSERT_AFTER)
+      ? visiblePosts.slice(TRENDING_POPULAR_TRADERS_INSERT_AFTER)
       : [];
 
     const blocks: FeedBlock[] = [
@@ -235,7 +269,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       blocks.push({ key: 'trailing', kind: 'posts', posts: trailingPosts });
     }
     return blocks;
-  }, [posts, showPopularTraders]);
+  }, [showPopularTraders, visiblePosts]);
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
@@ -276,7 +310,12 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           // to both screen edges, so the horizontal padding sits on the posts
           // rather than on the page.
           <Box twClassName="pb-8 gap-6">
-            <HotTokensCarousel />
+            <HotTokensCarousel
+              posts={posts}
+              isLoading={isLoading}
+              selectedTokenId={activeHotTokenId}
+              onTokenPress={handleHotTokenPress}
+            />
             {pendingPost ? (
               <Box twClassName="px-4">
                 <SocialFeedPostingBanner

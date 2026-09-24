@@ -6,7 +6,13 @@ export type SocialV1SpotSide = 'buy' | 'sell';
 export type SocialV1FeedTab = 'trending' | 'following';
 
 export interface SocialV1FeedAsset {
+  /** Ticker shown on the position card (`BTC`, `NVDA`). */
   symbol: string;
+  /**
+   * Human name from the feed row when it is a real name and not the ticker
+   * or a raw market id (`Ethereum`, `NVIDIA`).
+   */
+  name?: string;
   avatar: PositionTokenAvatarData;
 }
 
@@ -155,15 +161,16 @@ export interface UseSocialV1FeedResult {
 
 /** One chip in the feed's hot-tokens carousel. */
 export interface SocialV1HotToken {
-  /** Stable key, also used as the chip's test ID suffix. */
+  /** Stable key (`asset:<SYMBOL>`), also the chip's test ID suffix. */
   id: string;
   /**
-   * Perps market symbol (e.g. `BTC`, `NVDA`, or a HIP-3 `dex:SYMBOL`). Drives
-   * icon resolution, which falls back to a monogram when no icon is published.
+   * Icon symbol. Perps keep the raw market id (`xyz:NVDA`); spot uses the
+   * ticker. The chip renders `avatar`, which carries the same value.
    */
   symbol: string;
-  /** Editorial label -- the topic's name, not the ticker (e.g. `Bitcoin perps`). */
+  /** Chip title: the asset name when the feed has one, otherwise the ticker. */
   label: string;
+  avatar: PositionTokenAvatarData;
 }
 
 export interface UseSocialV1HotTokensResult {

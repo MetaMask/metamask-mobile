@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import EmptyShellTabPage from './EmptyShellTabPage';
 import {
@@ -18,6 +18,7 @@ import {
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
+import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -262,6 +263,67 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-block-trailing'),
+    ).toBeOnTheScreen();
+  });
+
+  it('filters the feed to the asset of a pressed hot-token chip', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:BTC')),
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-eth-closed'),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-aapl-closed'),
+    ).toBeNull();
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:BTC')).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+  });
+
+  it('clears the asset filter when the selected chip is pressed again', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:ETH')),
+    );
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:ETH')),
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-eth-closed'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('popular-traders-carousel-section'),
     ).toBeOnTheScreen();
   });
 

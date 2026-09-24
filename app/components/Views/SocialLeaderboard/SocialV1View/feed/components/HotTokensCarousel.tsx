@@ -1,29 +1,31 @@
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
-import PerpsTokenLogo from '../../../../../UI/Perps/components/PerpsTokenLogo';
+import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { PillScrollList } from '../../../../../UI/Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
-import type { SocialV1HotToken } from '../types';
+import type { SocialV1FeedPost, SocialV1HotToken } from '../types';
 import {
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
-/**
- * Icon diameter in pixels, matching the Perps pill rails. `PerpsTokenLogo`
- * takes pixels rather than an `AvatarTokenSize` token.
- */
-const LOGO_SIZE = 24;
+const EMPTY_POSTS: SocialV1FeedPost[] = [];
 
 export interface HotTokensCarouselProps {
-  /** Opens the topic. Omitted until the hot-topic destination exists. */
+  /** Loaded feed posts the ranking is counted from. */
+  posts?: readonly SocialV1FeedPost[];
+  /** True during the feed's first fetch, before any post is on screen. */
+  isLoading?: boolean;
+  /** Chip id of the asset currently filtering the feed. */
+  selectedTokenId?: string | null;
+  /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
 }
 
 /**
- * HotTokensCarousel -- the rail of trending-topic chips above the Social V1
- * feed.
+ * HotTokensCarousel -- the rail of asset chips above the Social V1 feed.
  *
  * Built on the shared `PillScrollList` + `ExplorePill` pair that the Perps and
  * Crypto Movers rails use, pinned to a single row. That gives it the same pill
@@ -32,31 +34,38 @@ export interface HotTokensCarouselProps {
  * advertises that there is more to scroll. The caller must therefore render it
  * outside its own horizontal padding.
  *
- * Icons resolve by perps market symbol through `PerpsTokenLogo` -- the same
- * path the What's Happening pills and the feed's position cards use -- ending
- * at a two-letter monogram when a symbol has no published icon.
+ * Chips are the assets that appear most often in `posts`. Icons go through
+ * `PositionTokenAvatar`, the same resolution the position cards use, so a perp
+ * keeps its raw market id and a spot token keeps its image URL.
  */
 const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
+  posts = EMPTY_POSTS,
+  isLoading = false,
+  selectedTokenId = null,
   onTokenPress,
 }) => {
-  const { tokens, isLoading } = useSocialV1HotTokens();
+  const { tokens, isLoading: showSkeleton } = useSocialV1HotTokens(
+    posts,
+    isLoading,
+    selectedTokenId,
+  );
 
   const renderItem = useCallback(
     (token: SocialV1HotToken) => (
       <ExplorePill
         testID={getSocialV1HotTokenChipTestId(token.id)}
+        isSelected={token.id === selectedTokenId}
         leading={
-          <PerpsTokenLogo
-            symbol={token.symbol}
-            size={LOGO_SIZE}
-            recyclingKey={token.symbol}
+          <PositionTokenAvatar
+            position={token.avatar}
+            size={AvatarTokenSize.Sm}
           />
         }
         title={token.label}
         onPress={() => onTokenPress?.(token)}
       />
     ),
-    [onTokenPress],
+    [onTokenPress, selectedTokenId],
   );
 
   const keyExtractor = useCallback((token: SocialV1HotToken) => token.id, []);
@@ -64,14 +73,14 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   // `PillScrollList` renders its wrapper either way. Returning null instead
   // lets the page's gap collapse, rather than leaving a rail-shaped hole above
   // the first post.
-  if (!isLoading && tokens.length === 0) {
+  if (!showSkeleton && tokens.length === 0) {
     return null;
   }
 
   return (
     <PillScrollList
       data={tokens}
-      isLoading={isLoading}
+      isLoading={showSkeleton}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       Skeleton={SectionPillsSkeleton}
