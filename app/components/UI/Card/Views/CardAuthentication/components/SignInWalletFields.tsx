@@ -26,7 +26,6 @@ interface SignInWalletFieldsProps {
   displayAccountLabel?: string;
   displayAccountAddress?: string;
   avatarAccountType: AccountAvatarVariant;
-  accountMismatch: boolean;
   walletError: string | null;
   showSoftLink: boolean;
   onBack?: () => void;
@@ -39,7 +38,6 @@ const SignInWalletFields = ({
   displayAccountLabel,
   displayAccountAddress,
   avatarAccountType,
-  accountMismatch,
   walletError,
   showSoftLink,
   onBack,
@@ -81,26 +79,14 @@ const SignInWalletFields = ({
             ) : undefined
           }
         />
-        {accountMismatch ? (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default mt-1"
-            testID={CardAuthenticationSelectors.ACCOUNT_MISMATCH_ERROR}
-          >
-            {strings('card.card_authentication.account_mismatch')}
-          </Text>
-        ) : (
+        {origin === 'manual' ? (
           <Text
             variant={TextVariant.BodySm}
             twClassName="text-text-alternative mt-1"
           >
-            {strings(
-              origin === 'linked' || origin === 'resume'
-                ? 'card.card_authentication.account_helper_linked'
-                : 'card.card_authentication.account_helper_pick',
-            )}
+            {strings('card.card_authentication.account_helper_pick')}
           </Text>
-        )}
+        ) : null}
         {walletError ? (
           <Text
             variant={TextVariant.BodySm}

@@ -28,6 +28,7 @@ import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader, {
+  type MoneyHeaderProButton,
   type MoneyHeaderProps,
 } from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -109,9 +110,9 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
+import useSubscriptions from '../../../../hooks/useSubscriptions';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -139,8 +140,8 @@ const MoneyHomeView = () => {
   // Pro entry point: keep subscription state fresh only while the Pro flow is
   // enabled so we do not generate API traffic for users without the flow.
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const isProSubscriber = useIsProSubscriber();
-  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
+  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
+  useSubscriptions({ enabled: isProSubscriptionEnabled });
 
   const {
     trackButtonClicked,
@@ -397,7 +398,7 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    const destination = isProSubscriber
+    const destination = isPlusSubscriber
       ? {
           button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
           label_key: 'pro_subscription.pro',
@@ -422,7 +423,17 @@ const MoneyHomeView = () => {
     navigation.navigate(destination.route, {
       source: 'money_header',
     });
-  }, [navigation, isProSubscriber, trackButtonClicked]);
+  }, [navigation, isPlusSubscriber, trackButtonClicked]);
+
+  const proButton: MoneyHeaderProButton | undefined =
+    isProSubscriptionEnabled && !isPlusAccessUnknown
+      ? {
+          label: isPlusSubscriber
+            ? strings('pro_subscription.pro')
+            : strings('pro_subscription.join_pro'),
+          onPress: handleGetProPress,
+        }
+      : undefined;
 
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.
@@ -442,14 +453,14 @@ const MoneyHomeView = () => {
   const headerProps: MoneyHeaderProps = isPushed
     ? {
         onMenuPress: handleMenuPress,
-        onGetProPress: handleGetProPress,
+        proButton,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
       }
     : {
         onMenuPress: handleMenuPress,
-        onGetProPress: handleGetProPress,
+        proButton,
       };
 
   const handleAddPress = useCallback(

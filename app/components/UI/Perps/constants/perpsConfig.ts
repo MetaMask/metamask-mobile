@@ -223,6 +223,10 @@ export const TP_SL_VIEW_CONFIG = {
   // default USD configuration which only allows 2 decimal places
   KeypadCurrencyCode: 'USD_PERPS' as const,
   KeypadDecimals: 5,
+
+  // Longest wait for a sheet close animation before confirming anyway.
+  // Comfortably past the animation, short enough not to read as a hang.
+  DismissTimeoutMs: 1000,
 } as const;
 
 /**
@@ -289,6 +293,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
   /** Delay between attempts. */
   RetryDelayMs: 1000,
 } as const;
+
+/**
+ * Longest a filled market close keeps its market locked while the positions
+ * stream catches up. Bounded so a stalled stream cannot block closing.
+ */
+export const PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS = 10_000;
 
 /** Extra capability requests after transient provider unavailability. */
 export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
