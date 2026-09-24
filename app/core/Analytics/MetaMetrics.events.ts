@@ -588,7 +588,7 @@ enum EVENT_NAME {
   NOTIFICATIONS_MENU_OPENED = 'InApp Notifications Menu Opened',
   NOTIFICATION_CLICKED = 'InApp Notification Clicked',
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'InApp Notifications Marked All as Read',
-  NOTIFICATION_DETAIL_CLICKED = 'InApp Notification Detail Clicked',
+  NOTIFICATION_DETAIL_ITEM_CLICKED = 'InApp Notification Detail Item Clicked',
 
   // Push Notifications
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
@@ -676,6 +676,7 @@ enum EVENT_NAME {
   CARD_SIWE_AUTH_STARTED = 'Card SIWE Auth Started',
   CARD_SIWE_AUTH_COMPLETED = 'Card SIWE Auth Completed',
   CARD_SIWE_AUTH_FAILED = 'Card SIWE Auth Failed',
+  CARD_SIGN_IN_RESOLVED = 'Card Sign In Resolved',
   CARD_FUNDING_PROCESS_STARTED = 'Card Funding Process Started',
   CARD_FUNDING_PROCESS_COMPLETED = 'Card Funding Process Completed',
   CARD_FUNDING_PROCESS_FAILED = 'Card Funding Process Failed',
@@ -1595,8 +1596,8 @@ const events = {
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
     EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
   ),
-  NOTIFICATION_DETAIL_CLICKED: generateOpt(
-    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
+  NOTIFICATION_DETAIL_ITEM_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_ITEM_CLICKED,
   ),
 
   // Push Notifications Flow
@@ -1948,6 +1949,7 @@ const events = {
   CARD_SIWE_AUTH_STARTED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_STARTED),
   CARD_SIWE_AUTH_COMPLETED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_COMPLETED),
   CARD_SIWE_AUTH_FAILED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_FAILED),
+  CARD_SIGN_IN_RESOLVED: generateOpt(EVENT_NAME.CARD_SIGN_IN_RESOLVED),
   CARD_FUNDING_PROCESS_STARTED: generateOpt(
     EVENT_NAME.CARD_FUNDING_PROCESS_STARTED,
   ),

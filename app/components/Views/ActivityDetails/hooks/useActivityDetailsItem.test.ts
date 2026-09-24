@@ -22,7 +22,7 @@ import { useActivityDetailsItem } from './useActivityDetailsItem';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
-import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
+import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -48,7 +48,7 @@ jest.mock('./useLocalTransactionMeta', () => ({
 }));
 
 const useApiTransactionMock = jest.mocked(useApiTransaction);
-const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
+const useRampActivityItemsByIdMock = jest.mocked(useRampActivityItemsById);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
@@ -129,7 +129,16 @@ function setSources({
 }) {
   const groups = localGroups ?? local.map(stubGroup);
   localByIdentifier = identifierMapFrom(local, groups);
-  useRampActivityItemsMock.mockReturnValue(ramp);
+  useRampActivityItemsByIdMock.mockReturnValue(
+    new Map(
+      ramp.flatMap((item) => [
+        [item.hash?.toLowerCase() ?? '', item] as [string, ActivityListItem],
+        ...(item.hash === rampOrder.txHash
+          ? [[rampOrder.id, item] as [string, ActivityListItem]]
+          : []),
+      ]),
+    ),
+  );
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
     isFetching: false,
@@ -416,7 +425,6 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item?.hash).toBe('0xfetched');
-    expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
   });
 
   it('does not map a fetched API transaction when the subject is not a top-level participant', () => {

@@ -3,7 +3,9 @@ import {
   getLimitPriceValidationIssue,
   getLimitPriceValidationMessage,
   getLimitPriceCrossingWarning,
+  getLimitVsTriggerWarning,
   getOrderFormFieldIssues,
+  isAdvisoryOrderFormFieldIssue,
   getRequiredTriggerSide,
   getScalePriceCrossingWarning,
   getTriggerPriceValidationIssue,
@@ -564,5 +566,167 @@ describe('typed order price validation', () => {
     });
 
     expect(result.map(({ field }) => field)).toEqual(['triggerPrice']);
+  });
+});
+
+describe('advisory vs blocking order form field issues', () => {
+  it('treats a wrong-side trigger as advisory so the order stays placeable', () => {
+    const [issue] = getOrderFormFieldIssues({
+      orderType: 'stop_market',
+      direction: 'long',
+      triggerPrice: '2400',
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(issue.issue.code).toBe('wrong_side');
+    expect(isAdvisoryOrderFormFieldIssue(issue)).toBe(true);
+  });
+
+  it.each([
+    ['required', undefined],
+    ['positive', '0'],
+  ] as const)('keeps a %s trigger issue blocking', (code, triggerPrice) => {
+    const [issue] = getOrderFormFieldIssues({
+      orderType: 'stop_market',
+      direction: 'long',
+      triggerPrice,
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(issue.issue.code).toBe(code);
+    expect(isAdvisoryOrderFormFieldIssue(issue)).toBe(false);
+  });
+
+  it('keeps a missing limit price blocking', () => {
+    const issue = { field: 'limitPrice', issue: { code: 'required' } } as const;
+
+    expect(isAdvisoryOrderFormFieldIssue(issue)).toBe(false);
+  });
+});
+
+describe('getLimitVsTriggerWarning', () => {
+  const cases = [
+    {
+      name: 'stop limit long warns when the buy limit rests below the trigger',
+      orderType: 'stop_limit',
+      direction: 'long',
+      triggerPrice: '2500',
+      limitPrice: '2400',
+      expected: 'perps.order.validation.limit_price_below_trigger_warning',
+    },
+    {
+      name: 'stop limit short warns when the sell limit rests above the trigger',
+      orderType: 'stop_limit',
+      direction: 'short',
+      triggerPrice: '2500',
+      limitPrice: '2600',
+      expected: 'perps.order.validation.limit_price_above_trigger_warning',
+    },
+    {
+      name: 'take profit limit long warns when the buy limit rests below the trigger',
+      orderType: 'take_profit_limit',
+      direction: 'long',
+      triggerPrice: '2500',
+      limitPrice: '2400',
+      expected: 'perps.order.validation.limit_price_below_trigger_warning',
+    },
+    {
+      name: 'take profit limit short warns when the sell limit rests above the trigger',
+      orderType: 'take_profit_limit',
+      direction: 'short',
+      triggerPrice: '2500',
+      limitPrice: '2600',
+      expected: 'perps.order.validation.limit_price_above_trigger_warning',
+    },
+  ] as const;
+
+  it.each(cases)(
+    '$name',
+    ({ orderType, direction, triggerPrice, limitPrice, expected }) => {
+      expect(
+        getLimitVsTriggerWarning({
+          orderType,
+          direction,
+          triggerPrice,
+          limitPrice,
+          szDecimals: 3,
+        }),
+      ).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['long', '2500', '2600'],
+    ['short', '2500', '2400'],
+  ] as const)(
+    'stays silent for a %s limit price on the fillable side of the trigger',
+    (direction, triggerPrice, limitPrice) => {
+      expect(
+        getLimitVsTriggerWarning({
+          orderType: 'stop_limit',
+          direction,
+          triggerPrice,
+          limitPrice,
+          szDecimals: 3,
+        }),
+      ).toBeUndefined();
+    },
+  );
+
+  it('stays silent when the limit price sits exactly at the trigger', () => {
+    expect(
+      getLimitVsTriggerWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '2500',
+        limitPrice: '2500',
+        szDecimals: 3,
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each(['stop_market', 'take_profit_market', 'limit', 'market'] as const)(
+    'does not apply to %s, which has no trigger and limit pair to compare',
+    (orderType) => {
+      expect(
+        getLimitVsTriggerWarning({
+          orderType,
+          direction: 'long',
+          triggerPrice: '2500',
+          limitPrice: '2400',
+          szDecimals: 3,
+        }),
+      ).toBeUndefined();
+    },
+  );
+
+  it.each([
+    ['an unset limit price', undefined, '2500'],
+    ['an unset trigger price', '2400', undefined],
+    ['a non-positive limit price', '0', '2500'],
+  ] as const)('stays silent for %s', (_name, limitPrice, triggerPrice) => {
+    expect(
+      getLimitVsTriggerWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        limitPrice,
+        triggerPrice,
+        szDecimals: 3,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('canonicalizes both prices to venue precision before comparing', () => {
+    expect(
+      getLimitVsTriggerWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '2500.00001',
+        limitPrice: '2500.00002',
+        szDecimals: 3,
+      }),
+    ).toBeUndefined();
   });
 });

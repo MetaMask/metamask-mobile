@@ -1,14 +1,29 @@
 import { createSelector } from 'reselect';
-import type {
-  CachedLastSelectedPaymentMethod,
-  ProductType,
-  Subscription,
-  SubscriptionControllerState,
+import {
+  getDefaultSubscriptionControllerState,
+  MoneyAccountFeature,
+  PRODUCT_TYPES,
+  selectHasEntitlement,
+  selectIsActiveSubscriber,
+  type CachedLastSelectedPaymentMethod,
+  type ProductType,
+  type Subscription,
+  type SubscriptionControllerState,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
+import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
+const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
+
+/**
+ * Core's entitlement selectors require a defined controller state, but the
+ * Redux slice is absent until the Engine hydrates. Falling back to default
+ * state makes those selectors fail closed instead of throwing.
+ */
+const DEFAULT_CONTROLLER_STATE: SubscriptionControllerState =
+  getDefaultSubscriptionControllerState();
 
 const hasProduct = (
   subscription: Subscription,
@@ -37,6 +52,18 @@ export const selectSubscriptionControllerState = (
 export const selectSubscriptionPricing = createSelector(
   selectSubscriptionControllerState,
   (subscriptionControllerState) => subscriptionControllerState?.pricing,
+);
+
+/**
+ * Selects Money Account Plus monthly and annual plans derived from cached
+ * pricing. Matching is by product name and billing interval, not array index.
+ *
+ * @param state - The root Redux state.
+ * @returns Mapped Plus pricing, including unavailable and malformed status.
+ */
+export const selectMoneyAccountPlusPricing = createSelector(
+  selectSubscriptionPricing,
+  mapMoneyAccountPlusPricing,
 );
 
 /**
@@ -114,3 +141,61 @@ export const selectLastSelectedPaymentMethodByProduct = (
   selectSubscriptionControllerState(state)?.lastSelectedPaymentMethod?.[
     productType
   ];
+
+/**
+ * Selects whether the user has an active Money Account Plus subscription.
+ * Active covers `active`, `trialing`, and `provisional`; every other status
+ * fails closed.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether the user is an active Plus subscriber.
+ */
+export const selectIsMoneyAccountPlusSubscriber = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    selectIsActiveSubscriber(
+      subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    ),
+);
+
+/**
+ * Selects whether the user still holds any Money Account Plus entitlement.
+ *
+ * Entitlements are granted by the server independently of subscription
+ * status, so a `past_due` or `paused` subscriber keeps paid access until the
+ * server revokes it. Omitted entitlements are stored as an empty map, so this
+ * fails closed once access ends.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether at least one Plus feature entitlement is granted.
+ */
+export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): boolean =>
+    MONEY_ACCOUNT_PLUS_FEATURES.some((feature) =>
+      selectHasEntitlement(
+        subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
+        PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+        feature,
+      ),
+    ),
+);
+
+/**
+ * Selects whether a single Money Account Plus feature is entitled. Not
+ * memoized because the feature argument varies per call site.
+ *
+ * @param state - The root Redux state.
+ * @param feature - The Plus feature to check.
+ * @returns Whether the feature entitlement is granted.
+ */
+export const selectHasMoneyAccountPlusEntitlement = (
+  state: RootState,
+  feature: MoneyAccountFeature,
+): boolean =>
+  selectHasEntitlement(
+    selectSubscriptionControllerState(state) ?? DEFAULT_CONTROLLER_STATE,
+    PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    feature,
+  );

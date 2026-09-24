@@ -12,15 +12,29 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../hooks/useMoneyAccountPlusAccess';
+import Engine from '../../../core/Engine';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
-import type { PlanId } from './screens/Benefits/Benefits.constants';
+import {
+  DEFAULT_PLAN,
+  type PlanId,
+} from './screens/Benefits/Benefits.constants';
+import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
-type ProSubscriptionScreen = 'benefits' | 'success';
+const ProSubscriptionScreen = {
+  Benefits: 'benefits',
+  Success: 'success',
+} as const;
+
+type ProSubscriptionScreen =
+  (typeof ProSubscriptionScreen)[keyof typeof ProSubscriptionScreen];
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -33,30 +47,77 @@ const ProSubscription = () => {
       >
     >();
 
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const [currentScreen, setCurrentScreen] =
-    useState<ProSubscriptionScreen>('benefits');
+  const proAccess = useMoneyAccountPlusAccess();
+  const [currentScreen, setCurrentScreen] = useState<ProSubscriptionScreen>(
+    ProSubscriptionScreen.Benefits,
+  );
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>(
+    (route.params?.initialPlan as PlanId | undefined) ?? DEFAULT_PLAN,
+  );
+  const [checkoutPlan, setCheckoutPlan] = useState<
+    SelectedPlusPlan | undefined
+  >();
 
-  // Guard: dismiss immediately if the Pro feature flag is off.
+  // Dismiss when the Pro flag is off, and send anyone already entitled to the
+  // hub so an existing subscriber never lands on the upsell.
   useEffect(() => {
-    if (!isProSubscriptionEnabled) {
+    if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
+      return;
     }
-  }, [isProSubscriptionEnabled, navigation]);
+
+    // On the success screen the user has just subscribed, so becoming a
+    // subscriber is expected — let them read the confirmation instead of
+    // yanking them to the hub.
+    if (
+      proAccess === MoneyAccountPlusAccess.Subscriber &&
+      currentScreen !== ProSubscriptionScreen.Success
+    ) {
+      navigation.replace(Routes.PRO_HUB.ROOT);
+    }
+  }, [proAccess, currentScreen, navigation]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSuccess = useCallback(() => {
-    setCurrentScreen('success');
+  const handlePlanChange = useCallback(
+    (planId: PlanId) => {
+      setSelectedPlan(planId);
+      navigation.setParams({ initialPlan: planId });
+    },
+    [navigation],
+  );
+
+  const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
+    setCheckoutPlan(plan);
+    setCurrentScreen(ProSubscriptionScreen.Success);
   }, []);
 
-  const handleSubscriptionOnSuccess = useCallback(() => {
-    navigation.replace(Routes.PRO_HUB.ROOT, {
-      source: 'pro_subscription_success',
-    });
+  const handleSubscriptionOnSuccess = useCallback(async () => {
+    // Card checkout completes outside the controller, so wait for canonical
+    // state before opening the hub. Stay on success if the refresh fails:
+    // Pro Hub would otherwise treat empty state as non-subscriber and bounce.
+    try {
+      await Engine.context.SubscriptionController.getSubscriptions();
+    } catch {
+      return;
+    }
+    navigation.replace(Routes.PRO_HUB.ROOT);
   }, [navigation]);
+
+  let screenContent: React.ReactNode = null;
+  if (currentScreen === ProSubscriptionScreen.Benefits) {
+    screenContent = (
+      <Benefits
+        onSuccess={handleSuccess}
+        onPlanChange={handlePlanChange}
+        initialPlan={selectedPlan}
+      />
+    );
+  } else if (checkoutPlan) {
+    screenContent = <Success onSuccess={handleSubscriptionOnSuccess} />;
+  }
 
   return (
     <SafeAreaView
@@ -73,14 +134,9 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {currentScreen === 'benefits' ? (
-        <Benefits
-          onSuccess={handleSuccess}
-          initialPlan={route.params?.initialPlan as PlanId | undefined}
-        />
-      ) : (
-        <Success onSuccess={handleSubscriptionOnSuccess} />
-      )}
+      {(proAccess === MoneyAccountPlusAccess.Eligible ||
+        currentScreen === ProSubscriptionScreen.Success) &&
+        screenContent}
     </SafeAreaView>
   );
 };

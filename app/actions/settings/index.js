@@ -64,6 +64,13 @@ export function setBasicFunctionalityConsolidatedEnabled(
   };
 }
 
+export function setHasLinkedSocialLoginProfile(hasLinkedSocialLoginProfile) {
+  return {
+    type: 'SET_HAS_LINKED_SOCIAL_LOGIN_PROFILE',
+    hasLinkedSocialLoginProfile,
+  };
+}
+
 export function setBasicFunctionalityMigrationNotification(
   basicFunctionalityMigrationNotification,
 ) {
@@ -96,14 +103,11 @@ export function consolidateBasicFunctionality() {
       return;
     }
 
-    // Social-login wallets must stay on for the whole rollout, so a persisted
-    // cohort member whose Basic Functionality is off is migrated again to put
-    // it back on. Every other consolidated wallet is already done.
+    // Social repairs run independently of the live rollout flag: they either
+    // turn Basic Functionality back on or schedule a notice that was missed
+    // before linked-social profile metadata became available.
     const isConsolidated =
       state.settings?.isBasicFunctionalityConsolidatedEnabled === true;
-    if (isConsolidated && state.settings?.basicFunctionalityEnabled === true) {
-      return;
-    }
 
     const {
       getBasicFunctionalityConsolidationPlan,
@@ -118,7 +122,19 @@ export function consolidateBasicFunctionality() {
       accountType: state.onboarding?.accountType,
       authConnection: seedlessState?.authConnection,
       hasSeedlessVault: seedlessState?.vault != null,
+      hasLinkedSocialLoginProfile:
+        state.settings?.hasLinkedSocialLoginProfile === true,
     });
+
+    // A linked-social profile can become known only after SRP sign-in. Repair
+    // wallets that were already consolidated before that signal arrived by
+    // scheduling the social migration notice without rewriting preferences.
+    if (isConsolidated && state.settings?.basicFunctionalityEnabled === true) {
+      if (shouldRepairSocialLogin) {
+        dispatch(setBasicFunctionalityMigrationNotification('bottom-sheet'));
+      }
+      return;
+    }
 
     // An off SRP wallet that already migrated chose that state deliberately.
     if (isConsolidated && !isSocialLogin) {
@@ -147,11 +163,6 @@ export function consolidateBasicFunctionality() {
         (preference) => preferenceState[preference] === landingState,
       );
 
-    const Engine = require('../../core/Engine').default;
-    await Engine.context.MultichainAccountService.setBasicFunctionality(
-      landingState,
-    );
-
     syncConsolidatedBasicFunctionalityPreferences(landingState);
     // Persist cohort membership before flipping BF so mixed/social wallets that
     // land ON keep the build-flag rollout instead of briefly reading LD as off.
@@ -164,6 +175,20 @@ export function consolidateBasicFunctionality() {
           : notification,
       ),
     );
+
+    // Landing ON aligns every wallet through the snap providers, which is slow
+    // and network-dependent. Awaiting it would hold the notice back for the
+    // rest of the session, and a rejection would drop the whole migration with
+    // no retry, so run it as best effort like the user-initiated toggle does.
+    const Engine = require('../../core/Engine').default;
+    Engine.context.MultichainAccountService.setBasicFunctionality(
+      landingState,
+    ).catch((error) => {
+      console.error(
+        'Failed to set basic functionality on MultichainAccountService while consolidating:',
+        error,
+      );
+    });
 
     // A social repair re-runs an already-reported migration, so it does not
     // emit the event a second time.

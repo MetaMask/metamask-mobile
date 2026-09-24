@@ -6,6 +6,7 @@ import {
 import decodeTransaction from './utils';
 import { strings } from '../../../../locales/i18n';
 import { toFormattedAddress } from '../../../util/address';
+import { TX_CONFIRMED } from '../../../constants/transaction';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -371,6 +372,50 @@ describe('Transaction Element Utils', () => {
         summarySecondaryTotalAmount: undefined,
         txChainId: '0x89',
       });
+    });
+
+    it('labels a locally submitted token transfer as received for the recipient account', async () => {
+      const recipient = '0x1234567890abcdef1234567890abcdef12345678';
+      const tokenAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
+      const args = {
+        tx: {
+          txParams: {
+            to: tokenAddress,
+            from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+            data: `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'52daf0'.padStart(64, '0')}`,
+            gas: '0x12345',
+            maxFeePerGas: '0x123456789',
+            maxPriorityFeePerGas: '0x123456789',
+            estimatedBaseFee: '0xABCDEF123',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+          status: TX_CONFIRMED,
+        },
+        currentCurrency: 'usd',
+        contractExchangeRates: {},
+        totalGas: '0x64',
+        actionKey: 'key',
+        primaryCurrency: 'ETH',
+        selectedAddress: recipient,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        tokens: {
+          [tokenAddress]: {
+            symbol: 'USDC',
+            decimals: 6,
+          },
+        },
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      expect(transactionElement).toEqual(
+        expect.objectContaining({
+          actionKey: 'Received USDC',
+          renderTo: recipient,
+          transactionType: 'transaction_received_token',
+        }),
+      );
     });
 
     it.each([

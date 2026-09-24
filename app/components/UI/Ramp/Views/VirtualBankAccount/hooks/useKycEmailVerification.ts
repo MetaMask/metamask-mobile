@@ -43,7 +43,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         email: trimmedEmail,
       });
 
-      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
+      navigation.navigate(Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT);
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
