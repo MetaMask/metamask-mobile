@@ -71,8 +71,23 @@ describe('HotTokensCarousel', () => {
     expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
   });
 
-  // Chips are inert until the hot-topic destination exists; pressing one must
-  // not throw when no handler is wired.
+  it('marks the selected asset chip', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')).props
+        .accessibilityState,
+    ).toEqual({ selected: false });
+  });
+
+  // Pressing a chip with no handler is a no-op rather than a throw, so a page
+  // can mount the rail before it wires filtering.
   it('stays inert when no press handler is supplied', () => {
     arrange([mockHotToken()]);
 
