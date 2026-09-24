@@ -20,8 +20,57 @@ import {
 } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
+import { decodeTransferData } from '../util/transactions';
 import TransactionTypes from './TransactionTypes';
 import { getNotificationSkipPredicates } from './notificationSkipPredicates';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { FUNGIBLE_ASSET_TYPES } from './Assets/accountGroupAssetLoader';
+
+/**
+ * Resolves the real counterparty address a transaction affects, other than
+ * the sender.
+ *
+ * For plain value transfers (native ETH, contract calls, etc.) `txParams.to`
+ * already is the counterparty. For ERC-20/721/1155 transfer methods,
+ * however, `txParams.to` is the *token contract* address — the actual
+ * recipient is encoded in the call data — so it must be decoded instead.
+ *
+ * @param {object} transactionMeta - The confirmed transaction metadata.
+ * @returns {string | undefined} The recipient address, if one can be
+ * determined.
+ */
+function getTransactionRecipientAddress(transactionMeta) {
+  const { type, txParams } = transactionMeta;
+  const { to, data } = txParams ?? {};
+
+  const isErc20Transfer = type === TransactionType.tokenMethodTransfer;
+  const isErc721OrErc1155Transfer =
+    type === TransactionType.tokenMethodTransferFrom ||
+    type === TransactionType.tokenMethodSafeTransferFrom;
+
+  if (!data || (!isErc20Transfer && !isErc721OrErc1155Transfer)) {
+    return to;
+  }
+
+  try {
+    if (isErc20Transfer) {
+      const [decodedToAddress] = decodeTransferData('transfer', data);
+      return decodedToAddress ?? to;
+    }
+    // transferFrom(from, to, tokenId): recipient is the 2nd decoded value.
+    const [, decodedToAddress] = decodeTransferData('transferFrom', data);
+    return decodedToAddress ?? to;
+  } catch (error) {
+    // Calldata can be malformed/truncated; fall back to the token contract
+    // address rather than throwing, since the sender's balance should still
+    // be refreshed even if the recipient can't be determined.
+    Logger.error(
+      error,
+      'Failed to decode transfer recipient for post-transaction asset refresh',
+    );
+    return to;
+  }
+}
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -284,39 +333,51 @@ class NotificationManager {
             assetType: originalTransaction.assetType,
           },
         });
-        const {
-          TokenBalancesController,
-          TokenDetectionController,
-          AccountTrackerController,
-          NetworkController,
-        } = Engine.context;
+        const { AssetsController, AccountsController } = Engine.context;
 
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          transactionMeta.chainId,
-        );
-        // account balances for ETH txs
-        // Detect assets and tokens for ERC20 txs
-        // Detect assets for ERC721 txs
-        // right after a transaction was confirmed
-        const pollPromises = [
-          AccountTrackerController.refresh([networkClientId]),
-          TokenBalancesController.updateBalances({
-            chainIds: [transactionMeta.chainId],
-          }),
+        // Force-refresh balances and detected tokens for the affected chain
+        // right after a transaction was confirmed. AssetsController is the
+        // sole source of truth for asset balances and detection.
+        //
+        // Refresh both the sender and (if the tx recipient is also one of the
+        // user's own wallet accounts, e.g. a send between own accounts) the
+        // recipient, so neither is left showing a stale balance until the
+        // next poll. For token transfers, `txParams.to` is the token
+        // contract, not the recipient, so it must be decoded separately.
+        const { from } = transactionMeta.txParams;
+        const recipient = getTransactionRecipientAddress(transactionMeta);
+        const accountsToRefresh = [from, recipient]
+          .filter(Boolean)
+          .map((address) => AccountsController.getAccountByAddress(address))
+          .filter(Boolean);
+        const uniqueAccountsToRefresh = [
+          ...new Map(
+            accountsToRefresh.map((account) => [account.id, account]),
+          ).values(),
         ];
-        switch (originalTransaction.assetType) {
-          case 'ERC20': {
-            pollPromises.push(
-              ...[
-                TokenDetectionController.detectTokens({
-                  chainIds: [transactionMeta.chainId],
-                }),
-              ],
+        if (uniqueAccountsToRefresh.length > 0) {
+          try {
+            const caipChainId = toEvmCaipChainId(transactionMeta.chainId);
+            AssetsController.getAssets(uniqueAccountsToRefresh, {
+              forceUpdate: true,
+              bypassServerCache: true,
+              chainIds: [caipChainId],
+              assetTypes: FUNGIBLE_ASSET_TYPES,
+            }).catch((error) => {
+              Logger.error(error, 'Failed to refresh assets after transaction');
+            });
+          } catch (error) {
+            // transactionMeta.chainId can be missing/malformed on legacy or
+            // partially-hydrated transaction metadata; toEvmCaipChainId
+            // throws synchronously in that case, and this callback also
+            // runs endTrace/ReviewManager/listener cleanup below, so a
+            // throw here must never be allowed to skip them.
+            Logger.error(
+              error,
+              'Failed to build CAIP chain ID for post-transaction asset refresh',
             );
-            break;
           }
         }
-        Promise.all(pollPromises);
         endTrace({
           name: TraceName.TransactionConfirmed,
           data: {

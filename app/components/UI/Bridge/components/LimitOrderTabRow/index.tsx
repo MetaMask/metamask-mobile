@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Tag,
   TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   LimitOrderStatus,
   type LimitOrder,
@@ -117,12 +120,20 @@ interface LimitOrderTabRowProps {
 }
 
 export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
+  const navigation = useNavigation<AppNavigationProp>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
   const slots = getLimitOrderRowSlots(
     order,
     sourceToken.symbol,
     destinationToken.symbol,
   );
+
+  const handlePress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL,
+      params: { order },
+    });
+  }, [navigation, order]);
 
   return (
     <OpenOrderRow
@@ -131,6 +142,9 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
         source: sourceToken.symbol,
         dest: destinationToken.symbol,
       })}
+      // Only an order that is still open can be cancelled, which is all the
+      // details sheet offers today.
+      onPress={order.status === LimitOrderStatus.Open ? handlePress : undefined}
       {...slots}
     />
   );

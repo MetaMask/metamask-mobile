@@ -2,9 +2,10 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import GetPixKey from './GetPixKey';
-import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
+import CreateVirtualBankAccount from './CreateVirtualBankAccount';
+import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -22,18 +23,23 @@ const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockRetry = jest.fn();
 const mockAcceptDisclaimers = jest.fn();
 
-const loadedDisclaimer = {
+const privacyDisclaimer = {
   id: 'd-1',
-  url: 'https://iron.example/tc',
-  display_name: 'Iron T&C',
+  url: 'https://moonpay.example/privacy',
+  display_name: "MoonPay's Privacy Policy",
+};
+const termsDisclaimer = {
+  id: 'd-2',
+  url: 'https://moonpay.example/terms',
+  display_name: "MoonPay's Terms and Conditions",
 };
 
-describe('GetPixKey', () => {
+describe('CreateVirtualBankAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [loadedDisclaimer],
+      disclaimers: [privacyDisclaimer, termsDisclaimer],
       isLoading: false,
       isAccepting: false,
       error: null,
@@ -43,40 +49,47 @@ describe('GetPixKey', () => {
     mockAcceptDisclaimers.mockResolvedValue(true);
   });
 
-  it('renders the title, benefits, and agree and continue button', () => {
-    const { getByText, getByTestId } = renderWithProvider(<GetPixKey />);
+  it('renders the activation design', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount />,
+    );
 
-    expect(getByText('Get your Pix Key')).toBeOnTheScreen();
-    expect(getByText('Deposit with')).toBeOnTheScreen();
-    expect(getByText('pix')).toBeOnTheScreen();
+    expect(getByText('Activate your Virtual Bank Account')).toBeOnTheScreen();
+    expect(getByText('Receive money locally')).toBeOnTheScreen();
+    expect(getByText('Add money with ease')).toBeOnTheScreen();
+    expect(getByText('Manage multiple currencies')).toBeOnTheScreen();
     expect(
-      getByText('Send local and international payments'),
-    ).toBeOnTheScreen();
-    expect(getByText('Powered by MoonPay.')).toBeOnTheScreen();
-    expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ),
     ).toBeOnTheScreen();
   });
 
   it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
-    fireEvent.press(getByTestId(GetPixKeySelectorsIDs.BACK_BUTTON));
+    fireEvent.press(
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON),
+    );
 
     expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('records vendor disclaimers before navigating to verify identity', async () => {
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
-    const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
 
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.VBA_VERIFY_IDENTITY,
+      );
     });
   });
 
@@ -90,13 +103,15 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(<GetPixKey />);
+    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
 
     expect(
-      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ),
     ).toBeDisabled();
   });
 
@@ -110,28 +125,34 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
 
-    const { queryByTestId, getByTestId } = renderWithProvider(<GetPixKey />);
+    const { queryByTestId, getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount />,
+    );
 
     expect(
-      queryByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_LOADING),
+      queryByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(`${GetPixKeySelectorsIDs.DISCLAIMER_LINK}-d-1`),
+      queryByTestId(
+        `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-d-1`,
+      ),
     ).not.toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ),
     ).toBeDisabled();
   });
 
   it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
     const spy = jest.spyOn(Linking, 'openURL');
-    const { getByText } = renderWithProvider(<GetPixKey />);
+    const { getByText } = renderWithProvider(<CreateVirtualBankAccount />);
 
-    expect(getByText('Iron T&C')).toBeOnTheScreen();
+    expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
 
-    fireEvent.press(getByText('Iron T&C'));
+    fireEvent.press(getByText("MoonPay's Privacy Policy"));
 
-    expect(spy).toHaveBeenCalledWith('https://iron.example/tc');
+    expect(spy).toHaveBeenCalledWith('https://moonpay.example/privacy');
   });
 
   it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
@@ -144,13 +165,17 @@ describe('GetPixKey', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId, getByText } = renderWithProvider(<GetPixKey />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <CreateVirtualBankAccount />,
+    );
 
     expect(
-      getByTestId(GetPixKeySelectorsIDs.DISCLAIMERS_ERROR),
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ),
     ).toBeDisabled();
 
     fireEvent.press(getByText('Try again'));
