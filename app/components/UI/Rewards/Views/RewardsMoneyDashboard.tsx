@@ -91,9 +91,9 @@ const RewardsMoneyDashboard: React.FC = () => {
     selectEarningsSummaryEntry(state, profileId),
   );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
-  const showEarningsDot = true; /* hasClaimableEarnings(
+  const showEarningsDot = hasClaimableEarnings(
     earningsSummaryEntry?.data?.claimable,
-  ); */
+  );
 
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
