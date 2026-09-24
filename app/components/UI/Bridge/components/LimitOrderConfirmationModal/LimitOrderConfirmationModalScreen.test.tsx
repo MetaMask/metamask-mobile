@@ -496,7 +496,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(mockToast).toHaveBeenCalledWith({
       severity: ToastSeverity.Success,
       title: 'Order created',
-      description: "We'll let you know when it’s filled.",
+      description: "We'll let you know when it's filled.",
       showCloseButton: false,
     });
   });
