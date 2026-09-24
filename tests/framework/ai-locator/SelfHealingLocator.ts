@@ -26,6 +26,8 @@ export interface SelfHealingTapOptions {
   driver: Browser;
   /** AI/MCP adapter. Recovery is disabled when this is omitted. */
   recovery?: LocatorRecoveryProvider;
+  /** Performs the framework-specific tap after a locator is resolved. */
+  tap?: (element: AppiumElement) => Promise<void>;
   /**
    * Receives recovery metadata for test attachments or reporting.
    * This callback is intentionally outside the timed performance step.
@@ -50,7 +52,7 @@ export async function tapWithSelfHealingLocator(
 ): Promise<'primary' | 'recovered'> {
   try {
     const primaryElement = await options.primary();
-    await primaryElement.click();
+    await (options.tap ?? defaultTap)(primaryElement);
     return 'primary';
   } catch (primaryError) {
     if (!options.recovery) {
@@ -69,7 +71,7 @@ export async function tapWithSelfHealingLocator(
     }
 
     const recoveredElement = await getElementForLocator(recoveredLocator);
-    await recoveredElement.click();
+    await (options.tap ?? defaultTap)(recoveredElement);
     await options.onRecovered?.({
       intent: options.intent,
       locator: recoveredLocator,
@@ -93,6 +95,10 @@ async function getElementForLocator(
     case 'nativeXPath':
       return Matchers.getElementByNativeXPath(locator.value);
   }
+}
+
+async function defaultTap(element: AppiumElement): Promise<void> {
+  await element.click();
 }
 
 function getErrorMessage(error: unknown): string {

@@ -6,7 +6,6 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 import { aiVisualTest, createTestConfig } from '../../framework/ai-visual';
-import { createClaudeLocatorRecoveryProvider } from '../../framework';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${Performance} ${PerformanceSwaps}`, () => {
@@ -27,15 +26,7 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await WalletView.tapWalletSwapButtonWithRecovery(
-        driver,
-        createClaudeLocatorRecoveryProvider(),
-        (result) =>
-          testInfo.attach('ai-locator-recovery-swap', {
-            body: JSON.stringify(result),
-            contentType: 'application/json',
-          }),
-      );
+      await WalletView.tapWalletSwapButton();
       await swapLoadTimer.measure(() => QuoteView.isVisible());
 
       const swapTimer = new TimerHelper(

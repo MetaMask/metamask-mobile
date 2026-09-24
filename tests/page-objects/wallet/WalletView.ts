@@ -8,12 +8,6 @@ import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import type { Browser } from 'webdriverio';
-import {
-  tapWithSelfHealingLocator,
-  type LocatorRecoveryProvider,
-  type SelfHealingTapOptions,
-} from '../../framework/ai-locator/SelfHealingLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
@@ -458,37 +452,9 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
-  async tapWalletSwapButtonWithRecovery(
-    appiumDriver: Browser,
-    recovery: LocatorRecoveryProvider | undefined,
-    onRecovered?: SelfHealingTapOptions['onRecovered'],
-  ): Promise<void> {
-    await tapWithSelfHealingLocator({
-      intent: 'tap Swap on the wallet home',
-      primary: () => this.walletSwapButton,
-      driver: appiumDriver,
-      recovery,
-      onRecovered,
-    });
-  }
-
   async tapWalletSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.walletSendButton, {
       elemDescription: 'Wallet Send Button',
-    });
-  }
-
-  async tapWalletSendButtonWithRecovery(
-    appiumDriver: Browser,
-    recovery: LocatorRecoveryProvider | undefined,
-    onRecovered?: SelfHealingTapOptions['onRecovered'],
-  ): Promise<void> {
-    await tapWithSelfHealingLocator({
-      intent: 'tap Send on the wallet home',
-      primary: () => this.walletSendButton,
-      driver: appiumDriver,
-      recovery,
-      onRecovered,
     });
   }
 

@@ -6,7 +6,6 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import SendView from '../../page-objects/Send/RedesignedSendView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { createClaudeLocatorRecoveryProvider } from '../../framework';
 
 const RECIPIENT_ADDRESS = '0xb1D018BE7a9cFD7AC6c5Cce00835a8F2386173d8';
 
@@ -20,15 +19,7 @@ test.describe(`${System}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
 
-      await WalletView.tapWalletSendButtonWithRecovery(
-        driver,
-        createClaudeLocatorRecoveryProvider(),
-        (result) =>
-          testInfo.attach('ai-locator-recovery-send', {
-            body: JSON.stringify(result),
-            contentType: 'application/json',
-          }),
-      );
+      await WalletView.tapWalletSendButton();
 
       await SendView.selectEthereumToken();
 
