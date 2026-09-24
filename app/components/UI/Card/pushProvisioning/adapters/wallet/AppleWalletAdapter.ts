@@ -8,6 +8,7 @@
  */
 
 import { Platform, PlatformOSType } from 'react-native';
+import type { IOSCardData } from '@expensify/react-native-wallet';
 import {
   WalletType,
   ProvisionCardParams,
@@ -23,14 +24,6 @@ import {
   logAdapterError,
 } from './utils';
 import { strings } from '../../../../../../../locales/i18n';
-
-// Types from react-native-wallet for iOS
-interface IOSCardData {
-  network: string;
-  cardHolderName: string;
-  lastDigits: string;
-  cardDescription: string;
-}
 
 /**
  * Apple Wallet Provider Adapter
@@ -107,6 +100,9 @@ export class AppleWalletAdapter
         cardDescription:
           params.cardDescription ||
           `MetaMask Card ending in ${params.lastFourDigits}`,
+        ...(params.primaryAccountIdentifier
+          ? { primaryAccountIdentifier: params.primaryAccountIdentifier }
+          : {}),
       };
 
       // Validate required fields before calling native code
