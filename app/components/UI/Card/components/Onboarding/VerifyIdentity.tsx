@@ -212,9 +212,7 @@ const VerifyIdentity = () => {
             'card.card_onboarding.verify_identity.start_verification_error',
           )}
         </Text>
-      ) : (
-        null
-      )}
+      ) : null}
     </>
   );
 
