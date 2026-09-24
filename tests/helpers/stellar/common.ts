@@ -9,6 +9,8 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagStellarAccounts } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const STELLAR_ACCOUNT_NAME = 'Stellar Account 1';
 
@@ -31,25 +33,21 @@ const assertStellarAccountVisibleInList = async (): Promise<void> => {
 };
 
 const waitForStellarAccountViaLoginDiscovery = async (): Promise<boolean> => {
+  await WalletView.tapIdenticon();
+
   try {
-    await Utilities.executeWithRetry(
-      async () => {
-        await WalletView.tapIdenticon();
-        try {
-          await assertStellarAccountVisibleInList();
-        } finally {
-          await dismissAccountListIfOpen();
-        }
-      },
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(STELLAR_ACCOUNT_NAME),
       {
-        timeout: 60_000,
-        interval: 3_000,
-        description: 'Wait for Stellar account via login discovery',
+        description: 'Stellar account discovered during login',
+        timeout: 15_000,
       },
     );
     return true;
   } catch {
     return false;
+  } finally {
+    await dismissAccountListIfOpen();
   }
 };
 
@@ -154,6 +152,11 @@ export const withStellarAccountSnap = async (
       fixture: new FixtureBuilder().withStellarEnabled().build(),
       restartDevice: true,
       currentDeviceDetails,
+      testSpecificMock: async (mockServer) => {
+        await setupRemoteFeatureFlagsMock(mockServer, {
+          ...remoteFeatureFlagStellarAccounts(),
+        });
+      },
     },
     async () => {
       await loginToAppPlaywright({ scenarioType: 'e2e' });
