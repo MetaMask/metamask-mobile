@@ -50,8 +50,6 @@ describe('MemberPricingOnTrades', () => {
       status: MoneyAccountPlusBenefitsStatus.Ready,
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
       retry: jest.fn(),
     });
   });
@@ -96,8 +94,6 @@ describe('MemberPricingOnTrades', () => {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
       resetsOn: undefined,
-      isRefreshing: true,
-      hasError: false,
       retry: jest.fn(),
     });
 
@@ -118,8 +114,6 @@ describe('MemberPricingOnTrades', () => {
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],
       resetsOn: undefined,
-      isRefreshing: false,
-      hasError: true,
       retry,
     });
 
@@ -142,8 +136,6 @@ describe('MemberPricingOnTrades', () => {
       status: MoneyAccountPlusBenefitsStatus.Incomplete,
       items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
       retry: jest.fn(),
     });
 

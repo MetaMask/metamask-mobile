@@ -83,8 +83,6 @@ describe('ProHub', () => {
       status: MoneyAccountPlusBenefitsStatus.Ready,
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
-      isRefreshing: false,
-      hasError: false,
       retry: jest.fn(),
     });
   });

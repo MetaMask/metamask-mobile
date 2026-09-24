@@ -258,7 +258,6 @@ describe('useMoneyAccountPlusBenefits', () => {
       expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
     );
 
-    expect(result.current.hasError).toBe(true);
     expect(result.current.items).toEqual([]);
   });
 
@@ -274,7 +273,7 @@ describe('useMoneyAccountPlusBenefits', () => {
       result.current.retry();
     });
 
-    await waitFor(() => expect(result.current.hasError).toBe(true));
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(2));
 
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
