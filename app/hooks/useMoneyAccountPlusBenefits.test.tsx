@@ -215,12 +215,7 @@ describe('useMoneyAccountPlusBenefits', () => {
 
     expect(mockGetBenefits).toHaveBeenCalledTimes(1);
     expect(result.current.items).toHaveLength(3);
-    expect(result.current.resetsOn).toBe(
-      new Date('2026-09-15T00:00:00.000Z').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }),
-    );
+    expect(result.current.resetsOn).toBe('Sep 15, 2026');
   });
 
   it('reports partial when a product cannot be mapped', async () => {

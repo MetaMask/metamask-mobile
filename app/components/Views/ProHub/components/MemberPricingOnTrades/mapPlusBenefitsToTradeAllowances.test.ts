@@ -123,13 +123,12 @@ describe('mapPlusBenefitsToTradeAllowances', () => {
 });
 
 describe('formatPlusPeriodEnd', () => {
-  it('formats an ISO timestamp as a short month-day string', () => {
-    expect(formatPlusPeriodEnd('2026-09-15T00:00:00.000Z')).toBe(
-      new Date('2026-09-15T00:00:00.000Z').toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }),
-    );
+  it.each([
+    ['2027-07-20T00:00:00.000Z', 'Jul 20, 2027'],
+    ['2026-09-15T00:00:00.000Z', 'Sep 15, 2026'],
+    ['2026-10-04T00:00:00.000Z', 'Oct 4, 2026'],
+  ])('formats %s as %s', (timestamp, expected) => {
+    expect(formatPlusPeriodEnd(timestamp)).toBe(expected);
   });
 
   it('returns undefined for a missing timestamp', () => {

@@ -123,8 +123,8 @@ export const mapPlusBenefitsToTradeAllowances = (
  * Formats a subscription period-end ISO timestamp for the shared reset line.
  *
  * @param currentPeriodEnd - ISO 8601 timestamp from the Plus subscription.
- * @returns A short month-day string, or undefined when the timestamp is missing
- * or unparseable.
+ * @returns A month-day-year string (e.g. `Jul 20, 2027`), or undefined when
+ * the timestamp is missing or unparseable.
  */
 export const formatPlusPeriodEnd = (
   currentPeriodEnd: string | undefined,
@@ -141,5 +141,7 @@ export const formatPlusPeriodEnd = (
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
   });
 };
