@@ -39492,7 +39492,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^29.1.0"
     "@metamask/tron-wallet-snap": "npm:^3.2.0"
     "@metamask/utils": "npm:^11.12.1"
-    "@metamask/wallet": "npm:^12.0.3"
+    "@metamask/wallet": "npm:^14.0.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
     "@noble/curves": "npm:1.9.7"
