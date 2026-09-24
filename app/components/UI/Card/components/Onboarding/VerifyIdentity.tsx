@@ -72,7 +72,7 @@ const VerifyIdentity = () => {
     data: verificationResponse,
     isLoading: startVerificationIsLoading,
     isError: startVerificationIsError,
-    error: startVeriricationErr,
+    error: startVerificationErr,
   } = useStartVerification();
 
   const { sessionUrl } = verificationResponse || {};
@@ -200,7 +200,7 @@ const VerifyIdentity = () => {
           testID="verify-identity-start-verification-error"
           twClassName="text-error-default text-center"
         >
-          {startVeriricationErr}
+          {startVerificationErr}
         </Text>
       ) : !sessionUrl && !startVerificationIsLoading ? (
         <Text
@@ -213,7 +213,7 @@ const VerifyIdentity = () => {
           )}
         </Text>
       ) : (
-        <></>
+        null
       )}
     </>
   );
