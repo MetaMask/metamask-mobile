@@ -69,8 +69,8 @@ import {
 } from '../../../Perps.testIds';
 import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
 import {
-  formatProPerpsFiat,
-  formatProPositionSize,
+  formatPerpsFiat,
+  formatPositionSize,
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -1067,11 +1067,9 @@ const PerpsProPositionsPanel = ({
     const restingPrice =
       Number.isFinite(Number.parseFloat(order.restingPrice)) &&
       Number.parseFloat(order.restingPrice) > 0
-        ? formatProPerpsFiat(
-            order.restingPrice,
-            { ranges: PRICE_RANGES_UNIVERSAL },
-            locale,
-          )
+        ? formatPerpsFiat(order.restingPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
         : PERPS_CONSTANTS.FallbackPriceDisplay;
     const maxDistance =
       order.maxDistanceBps === undefined
@@ -1206,19 +1204,11 @@ const PerpsProPositionsPanel = ({
               <Box twClassName="flex-1 gap-3">
                 <ChaseKeyValueItem
                   label={strings('perps.order.chase.card.size')}
-                  value={`${formatProPositionSize(
-                    order.originalSize,
-                    undefined,
-                    locale,
-                  )} ${displayOrderSymbol}`}
+                  value={`${formatPositionSize(order.originalSize)} ${displayOrderSymbol}`}
                 />
                 <ChaseKeyValueItem
                   label={strings('perps.order.chase.card.filled_size')}
-                  value={`${formatProPositionSize(
-                    filledSize,
-                    undefined,
-                    locale,
-                  )} ${displayOrderSymbol}`}
+                  value={`${formatPositionSize(filledSize)} ${displayOrderSymbol}`}
                 />
               </Box>
               <Box twClassName="flex-1 gap-3">

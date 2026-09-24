@@ -2,10 +2,15 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Keyboard, Pressable, Text } from 'react-native';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
   PerpsProInputKeyboardAccessory,
 } from './PerpsProCompactInput';
+
+jest.mock('../../../../hooks/usePerpsLocale', () => ({
+  usePerpsLocale: jest.fn(() => 'en-US'),
+}));
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
 // design system's real `forwardRef<TextInput>` contract.
@@ -52,6 +57,7 @@ describe('PerpsProCompactInput', () => {
     // constant — not just `mockInputFocus`, so stale call counts can't bleed
     // between tests.
     jest.clearAllMocks();
+    jest.mocked(usePerpsLocale).mockReturnValue('en-US');
   });
 
   afterEach(() => {
@@ -70,6 +76,30 @@ describe('PerpsProCompactInput', () => {
     render(<PerpsProCompactInput {...defaultProps} />);
 
     expect(mockInputFocus).not.toHaveBeenCalled();
+  });
+
+  it('keeps the editing locale when the app locale changes while focused', () => {
+    const onChangeText = jest.fn();
+    const props = { ...defaultProps, value: '1200', onChangeText };
+    const { rerender } = render(<PerpsProCompactInput {...props} />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    expect(input).toHaveProp('value', '1,200');
+
+    fireEvent(input, 'focus');
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    rerender(<PerpsProCompactInput {...props} />);
+
+    expect(input).toHaveProp('value', '1,200');
+
+    fireEvent.changeText(input, '1,200');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1200');
+
+    fireEvent(input, 'blur');
+
+    expect(onChangeText).toHaveBeenCalledTimes(1);
+    expect(input).toHaveProp('value', '1.200');
   });
 
   describe('onFieldPress', () => {

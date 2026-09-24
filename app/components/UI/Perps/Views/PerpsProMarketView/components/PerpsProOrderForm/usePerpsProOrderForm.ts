@@ -9,6 +9,7 @@ import {
   calculateMarginRequired,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
+  formatPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -76,7 +77,6 @@ import {
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
-import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
 import { usePerpsMaxSlippage } from '../../../../hooks/usePerpsMaxSlippage';
@@ -88,9 +88,8 @@ import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
-  formatProPerpsFiat,
-  formatProPerpsPrice,
-  formatProPositionSize,
+  formatPerpsFiat,
+  formatPerpsPrice,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -588,7 +587,6 @@ export const usePerpsProOrderForm = ({
   isScreenFocused = true,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
-  const locale = usePerpsLocale();
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const selectedAddressRef = useRef(normalizedSelectedAddress);
@@ -1051,15 +1049,10 @@ export const usePerpsProOrderForm = ({
       return undefined;
     }
 
-    return formatProPositionSize(
-      absolutePositionSize.toFixed(),
-      szDecimals,
-      locale,
-    );
+    return formatPositionSize(absolutePositionSize.toFixed(), szDecimals);
   }, [
     currentMarketPosition?.size,
     isAtMaxAmount,
-    locale,
     isReduceOnlyPositionLoading,
     keepReduceOnlySizeEmpty,
     reduceOnly,
@@ -3011,13 +3004,11 @@ export const usePerpsProOrderForm = ({
     }
 
     return strings('perps.pro_order_form.available_balance', {
-      amount: formatProPerpsFiat(
-        spendableBalance,
-        { ranges: PRICE_RANGES_MINIMAL_VIEW },
-        locale,
-      ),
+      amount: formatPerpsFiat(spendableBalance, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      }),
     });
-  }, [isInitialized, locale, spendableBalance]);
+  }, [isInitialized, spendableBalance]);
 
   const isTriggerOrderUnavailable =
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
@@ -3266,9 +3257,9 @@ export const usePerpsProOrderForm = ({
       }
     }
     const formatMargin = (value: number | string) =>
-      formatProPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW }, locale);
+      formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
     const formatLiquidation = (value: number | string) =>
-      formatProPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }, locale);
+      formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
     const formatBeforeAfter = (before: string, after: string) =>
       strings('perps.pro_order_form.before_after', { before, after });
 
@@ -3332,7 +3323,6 @@ export const usePerpsProOrderForm = ({
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
-    locale,
   ]);
 
   const trackScaleConfiguration = useCallback(
@@ -3366,17 +3356,10 @@ export const usePerpsProOrderForm = ({
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
-    return formatProPerpsFiat(
-      effectiveMarginRequired,
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-      locale,
-    );
-  }, [
-    effectiveMarginRequired,
-    isScaleOrder,
-    locale,
-    scaleLadderResult.success,
-  ]);
+    return formatPerpsFiat(effectiveMarginRequired, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
+    });
+  }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
     if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
@@ -3388,16 +3371,13 @@ export const usePerpsProOrderForm = ({
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
-    return formatProPerpsFiat(
-      target.toFixed(),
-      { ranges: PRICE_RANGES_UNIVERSAL },
-      locale,
-    );
+    return formatPerpsFiat(target.toFixed(), {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
   }, [
     canCalculateScaleLiquidation,
     isLiquidationCalculating,
     liquidationPrice,
-    locale,
   ]);
 
   const scaleOrder = useMemo<PerpsProScaleOrderModel>(
@@ -3475,11 +3455,9 @@ export const usePerpsProOrderForm = ({
       liquidationPrice: scaleLiquidationPrice,
       fees:
         scaleLadderResult.success && typeof estimatedFees === 'number'
-          ? formatProPerpsFiat(
-              estimatedFees,
-              { ranges: PRICE_RANGES_MINIMAL_VIEW },
-              locale,
-            )
+          ? formatPerpsFiat(estimatedFees, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
+            })
           : PERPS_CONSTANTS.FallbackPriceDisplay,
     }),
     [
@@ -3495,7 +3473,6 @@ export const usePerpsProOrderForm = ({
       scaleStartPrice,
       scaleTotalOrders,
       trackScaleConfiguration,
-      locale,
     ],
   );
 
@@ -3966,7 +3943,7 @@ export const usePerpsProOrderForm = ({
     onChaseMaxDistanceUnitChange,
     chaseReferencePrice:
       assetData.price > 0
-        ? formatProPerpsPrice(assetData.price, { szDecimals }, locale)
+        ? formatPerpsPrice(assetData.price, { szDecimals })
         : PERPS_CONSTANTS.FallbackPriceDisplay,
     onChaseMaxDistanceChange,
     onLimitPriceChange,

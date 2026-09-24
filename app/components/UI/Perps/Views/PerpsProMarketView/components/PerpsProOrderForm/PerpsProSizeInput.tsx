@@ -78,6 +78,7 @@ const PerpsProSizeInput = ({
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
   const locale = usePerpsLocale();
+  const inputLocaleRef = useRef(locale);
   const internalInputRef = useRef<TextInput>(null);
   const inputRef = externalInputRef ?? internalInputRef;
   const [isFocused, setIsFocused] = useState(false);
@@ -100,9 +101,12 @@ const PerpsProSizeInput = ({
     if (isDisabled) {
       return;
     }
+    if (!isFocused) {
+      inputLocaleRef.current = locale;
+    }
     inputRef.current?.focus();
     onFieldPress?.();
-  }, [inputRef, isDisabled, onFieldPress]);
+  }, [inputRef, isDisabled, isFocused, locale, onFieldPress]);
 
   const handleToggleDenomination = useCallback(() => {
     if (!canPressDenominationToggle) {
@@ -117,22 +121,30 @@ const PerpsProSizeInput = ({
     (nextValue: string) => {
       if (!isDisabled) {
         setDisplayValue(nextValue);
-        onChangeText(normalizePerpsNumericInput(nextValue, locale));
+        onChangeText(
+          normalizePerpsNumericInput(nextValue, inputLocaleRef.current),
+        );
       }
     },
-    [isDisabled, locale, onChangeText],
+    [isDisabled, onChangeText],
   );
 
   const handleFocus = useCallback(() => {
     if (!isDisabled) {
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
+      }
       setIsFocused(true);
       onFocus?.();
     }
-  }, [isDisabled, onFocus]);
+  }, [isDisabled, isFocused, locale, onFocus]);
 
   const handleBlur = useCallback(() => {
     if (!isDisabled) {
-      const canonicalValue = normalizePerpsNumericInput(displayValue, locale);
+      const canonicalValue = normalizePerpsNumericInput(
+        displayValue,
+        inputLocaleRef.current,
+      );
       setIsFocused(false);
       setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();

@@ -75,7 +75,6 @@ import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
-import { normalizePerpsNumericInput } from '../../utils/formatUtils';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
@@ -570,8 +569,8 @@ const PerpsProMarketView = ({
     if (!market.price) {
       return undefined;
     }
-    const normalized = normalizePerpsNumericInput(market.price);
-    const parsed = Number.parseFloat(normalized);
+    const cleaned = market.price.replace(/[$,]/g, '');
+    const parsed = Number.parseFloat(cleaned);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
   })();
 

@@ -8,12 +8,16 @@ import {
   playSelection,
 } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProSizeInput, {
   type PerpsProSizeInputProps,
 } from './PerpsProSizeInput';
 
 jest.mock('../../../../../../../util/haptics');
+jest.mock('../../../../hooks/usePerpsLocale', () => ({
+  usePerpsLocale: jest.fn(() => 'en-US'),
+}));
 
 const mockInputFocus = jest.fn();
 
@@ -72,6 +76,7 @@ const renderInput = (overrides: Partial<PerpsProSizeInputProps> = {}) =>
 describe('PerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(usePerpsLocale).mockReturnValue('en-US');
     jest.mocked(playImpact).mockClear();
     jest.mocked(playSelection).mockClear();
   });
@@ -93,6 +98,30 @@ describe('PerpsProSizeInput', () => {
     expect(onToggleDenomination).toHaveBeenCalledTimes(1);
     expect(mockInputFocus).not.toHaveBeenCalled();
     expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the editing locale when the app locale changes while focused', () => {
+    const onChangeText = jest.fn();
+    const props = { value: '1200', onChangeText };
+    const { rerender } = renderInput(props);
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+
+    expect(input).toHaveProp('value', '1,200');
+
+    fireEvent(input, 'focus');
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    rerender(<PerpsProSizeInput {...createProps(props)} />);
+
+    expect(input).toHaveProp('value', '1,200');
+
+    fireEvent.changeText(input, '1,200');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1200');
+
+    fireEvent(input, 'blur');
+
+    expect(onChangeText).toHaveBeenCalledTimes(1);
+    expect(input).toHaveProp('value', '1.200');
   });
 
   it('plays PrimaryCTA when Add funds is pressed', () => {

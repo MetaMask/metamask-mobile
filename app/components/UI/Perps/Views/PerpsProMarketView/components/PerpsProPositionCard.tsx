@@ -36,10 +36,9 @@ import {
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
-import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 import {
+  formatPerpsFiat,
   formatPositionTriggerSummary,
-  formatProPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -169,7 +168,6 @@ const PerpsProPositionCard = ({
   isEditMarginDisabled = false,
 }: PerpsProPositionCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const locale = usePerpsLocale();
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
   const {
@@ -181,7 +179,7 @@ const PerpsProPositionCard = ({
     pnlText,
     roeText,
     pnlColor,
-  } = getPerpsPositionHeaderDisplay(position, locale);
+  } = getPerpsPositionHeaderDisplay(position);
 
   const marginTypeLabel =
     position.leverage.type === 'isolated'
@@ -196,18 +194,12 @@ const PerpsProPositionCard = ({
   const markPriceNum =
     absoluteSize > 0 ? parseFloat(position.positionValue) / absoluteSize : NaN;
   const markPriceDisplay = Number.isFinite(markPriceNum)
-    ? formatProPerpsFiat(
-        markPriceNum,
-        { ranges: PRICE_RANGES_UNIVERSAL },
-        locale,
-      )
+    ? formatPerpsFiat(markPriceNum, { ranges: PRICE_RANGES_UNIVERSAL })
     : PERPS_CONSTANTS.FallbackPriceDisplay;
 
-  const entryPriceDisplay = formatProPerpsFiat(
-    position.entryPrice,
-    { ranges: PRICE_RANGES_UNIVERSAL },
-    locale,
-  );
+  const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
+    ranges: PRICE_RANGES_UNIVERSAL,
+  });
   // How far the live mark price sits from liquidation. Same formula and
   // precision as the Lite card, so both modes report the same percentage for
   // the same position.
@@ -226,36 +218,26 @@ const PerpsProPositionCard = ({
 
   const liqPriceDisplay =
     position.liquidationPrice != null
-      ? `${formatProPerpsFiat(
-          position.liquidationPrice,
-          { ranges: PRICE_RANGES_UNIVERSAL },
-          locale,
-        )}${liquidationDistanceSuffix}`
+      ? `${formatPerpsFiat(position.liquidationPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        })}${liquidationDistanceSuffix}`
       : isCross
         ? strings('perps.cross_position.no_liquidation_price')
         : PERPS_CONSTANTS.FallbackPriceDisplay;
-  const marginDisplay = formatProPerpsFiat(
-    position.marginUsed,
-    { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    locale,
-  );
+  const marginDisplay = formatPerpsFiat(position.marginUsed, {
+    ranges: PRICE_RANGES_MINIMAL_VIEW,
+  });
 
   const tpDisplay =
-    formatPositionTriggerSummary(
-      {
-        count: position.takeProfitCount,
-        price: position.takeProfitPrice,
-      },
-      locale,
-    ) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
+    formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: position.takeProfitPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const slDisplay =
-    formatPositionTriggerSummary(
-      {
-        count: position.stopLossCount,
-        price: position.stopLossPrice,
-      },
-      locale,
-    ) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
+    formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: position.stopLossPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
 
   // Positive cumulative funding is a cost (paid), negative is a payment (earned).
@@ -270,11 +252,10 @@ const PerpsProPositionCard = ({
     fundingColor = TextColor.SuccessDefault;
   }
   const fundingDisplay = isNearZeroFunding
-    ? formatProPerpsFiat(0, { ranges: PRICE_RANGES_MINIMAL_VIEW }, locale)
-    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatProPerpsFiat(
+    ? formatPerpsFiat(0, { ranges: PRICE_RANGES_MINIMAL_VIEW })
+    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
         Math.abs(fundingSinceOpen),
         { ranges: PRICE_RANGES_MINIMAL_VIEW },
-        locale,
       )}`;
 
   const handlePress = onPress ? () => onPress(position) : undefined;

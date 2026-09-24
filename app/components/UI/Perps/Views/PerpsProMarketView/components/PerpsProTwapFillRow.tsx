@@ -17,15 +17,14 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
-import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 import {
   getPerpsProTwapFillRowSelector,
   getPerpsProTwapFillValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import {
-  formatProPerpsFiat,
-  formatProPositionSize,
+  formatPerpsFiat,
+  formatPositionSize,
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -46,7 +45,6 @@ interface PerpsProTwapFillRowProps {
  */
 const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const locale = usePerpsLocale();
   const { fill, twapOrder } = row;
   const providerId = getTwapOrderProviderId(twapOrder);
   const displaySymbol = getPerpsDisplaySymbol(twapOrder.symbol);
@@ -112,11 +110,9 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
             PerpsProMarketViewSelectorsIDs.TWAP_FILL_PRICE,
           )}
         >
-          {formatProPerpsFiat(
-            Number.parseFloat(fill.price),
-            { ranges: PRICE_RANGES_UNIVERSAL },
-            locale,
-          )}
+          {formatPerpsFiat(Number.parseFloat(fill.price), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })}
         </SensitiveText>
       </Box>
       <Box
@@ -139,7 +135,7 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
           length={SensitiveTextLength.Short}
           testID={getValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_SIZE)}
         >
-          {`${formatProPositionSize(fill.size, undefined, locale)} ${displaySymbol}`}
+          {`${formatPositionSize(fill.size)} ${displaySymbol}`}
         </SensitiveText>
       </Box>
     </Box>

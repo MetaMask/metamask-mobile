@@ -12,9 +12,6 @@ import {
   type FiatRangeConfig,
   formatPerpsFiat,
   formatHyperLiquidPrice,
-  formatPercentage as controllerFormatPercentage,
-  formatPnl as controllerFormatPnl,
-  formatPositionSize as controllerFormatPositionSize,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
@@ -33,15 +30,6 @@ export {
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
 
 const DEFAULT_PERPS_LOCALE = 'en-US';
-
-type PerpsFiatFormatOptions = Parameters<typeof formatPerpsFiat>[1];
-type PerpsPositionSize = Parameters<typeof controllerFormatPositionSize>[0];
-type PerpsPositionSizeDecimals = Parameters<
-  typeof controllerFormatPositionSize
->[1];
-type PerpsPnlValue = Parameters<typeof controllerFormatPnl>[0];
-type PerpsPercentageValue = Parameters<typeof controllerFormatPercentage>[0];
-type PerpsPercentageDecimals = Parameters<typeof controllerFormatPercentage>[1];
 
 interface PerpsLocaleSeparators {
   grouping: string;
@@ -98,11 +86,7 @@ const formatNumericStringWithLocale = (
   const sign = match[1] ?? '';
   const integerPart = match[2] || '0';
   const decimalPart = match[3];
-  const integerValue = Number(integerPart);
-
-  if (!Number.isFinite(integerValue)) {
-    return value;
-  }
+  const integerValue = BigInt(integerPart);
 
   const separators = getPerpsLocaleSeparators(locale);
   const formattedInteger = getPerpsNumberFormatter(locale, {
@@ -116,37 +100,14 @@ const formatNumericStringWithLocale = (
 };
 
 /**
- * Localizes a formatter result while preserving its existing currency/sign
- * prefix and any non-numeric fallback text.
- */
-const localizeFormattedPerpsValue = (
-  formattedValue: string,
-  locale?: string,
-): string => {
-  const numericMatch = formattedValue.match(/\d[\d,]*(?:\.\d*)?/);
-
-  if (!numericMatch) {
-    return formattedValue;
-  }
-
-  const canonicalValue = numericMatch[0].replace(/,/g, '');
-  const localizedValue = formatNumericStringWithLocale(canonicalValue, locale);
-
-  return `${formattedValue.slice(
-    0,
-    numericMatch.index,
-  )}${localizedValue}${formattedValue.slice(
-    (numericMatch.index ?? 0) + numericMatch[0].length,
-  )}`;
-};
-
-/**
  * Normalizes a user-entered perps number to the canonical `.` decimal form.
  *
  * The active locale determines the meaning of a single separator. When both
  * comma and period are present, the last one is treated as the decimal
  * separator so both locale-formatted and controller-formatted values can be
  * parsed safely.
+ * The locale-blind `normalizeToDotDecimal` utility cannot distinguish a
+ * grouping separator from a decimal separator for inputs such as `1,200`.
  */
 export const normalizePerpsNumericInput = (
   value: string,
@@ -216,10 +177,8 @@ export const formatPerpsInput = (value: string, locale?: string): string => {
     return value;
   }
 
-  const formattedCanonicalValue = formatNumericStringWithLocale(value, locale);
-
-  if (formattedCanonicalValue !== value || /^[+-]?\d*(?:\.\d*)?$/.test(value)) {
-    return formattedCanonicalValue;
+  if (/^[+-]?\d*(?:\.\d*)?$/.test(value)) {
+    return formatNumericStringWithLocale(value, locale);
   }
 
   return formatNumericStringWithLocale(
@@ -227,49 +186,6 @@ export const formatPerpsInput = (value: string, locale?: string): string => {
     locale,
   );
 };
-
-/**
- * Formats a Pro-mode fiat value with locale-aware separators while retaining
- * the controller's existing range and precision behavior.
- */
-export const formatProPerpsFiat = (
-  value: Parameters<typeof formatPerpsFiat>[0],
-  options?: PerpsFiatFormatOptions,
-  locale?: string,
-): string =>
-  localizeFormattedPerpsValue(formatPerpsFiat(value, options), locale);
-
-/**
- * Formats a Pro-mode position size with locale-aware grouping.
- */
-export const formatProPositionSize = (
-  value: PerpsPositionSize,
-  szDecimals?: PerpsPositionSizeDecimals,
-  locale?: string,
-): string =>
-  formatNumericStringWithLocale(
-    String(controllerFormatPositionSize(value, szDecimals)),
-    locale,
-  );
-
-/**
- * Formats a Pro-mode PnL value with locale-aware separators.
- */
-export const formatProPnl = (value: PerpsPnlValue, locale?: string): string =>
-  localizeFormattedPerpsValue(controllerFormatPnl(value), locale);
-
-/**
- * Formats a Pro-mode percentage with locale-aware decimal separators.
- */
-export const formatProPercentage = (
-  value: PerpsPercentageValue,
-  decimals?: PerpsPercentageDecimals,
-  locale?: string,
-): string =>
-  localizeFormattedPerpsValue(
-    controllerFormatPercentage(value, decimals),
-    locale,
-  );
 
 /**
  * Formats a perps market price for display using Hyperliquid price precision
@@ -318,14 +234,11 @@ export const formatPerpsPrice = (
  * whether or not it closes the whole position. Returns `null` when the side has neither, so each
  * card can apply its own empty state.
  */
-export const formatPositionTriggerSummary = (
-  params: {
-    count?: number;
-    price?: string | null;
-    szDecimals?: number | null;
-  },
-  locale?: string,
-): string | null => {
+export const formatPositionTriggerSummary = (params: {
+  count?: number;
+  price?: string | null;
+  szDecimals?: number | null;
+}): string | null => {
   const { count = 0, price, szDecimals } = params;
 
   if (count > 1) {
@@ -333,24 +246,11 @@ export const formatPositionTriggerSummary = (
   }
 
   if (price && parseFloat(price) > 0) {
-    const formattedPrice = formatPerpsPrice(price, { szDecimals });
-    return locale
-      ? localizeFormattedPerpsValue(formattedPrice, locale)
-      : formattedPrice;
+    return formatPerpsPrice(price, { szDecimals });
   }
 
   return null;
 };
-/**
- * Formats a Pro-mode price with locale-aware separators while retaining
- * Hyperliquid precision when supplied.
- */
-export const formatProPerpsPrice = (
-  price: Parameters<typeof formatPerpsPrice>[0],
-  options?: Parameters<typeof formatPerpsPrice>[1],
-  locale?: string,
-): string =>
-  localizeFormattedPerpsValue(formatPerpsPrice(price, options), locale);
 
 /**
  * Truncates a number to 2 decimal places without rounding up.
@@ -552,16 +452,6 @@ export const formatLargeNumber = (
   // But keep as fallback for safety
   return num.toFixed(options?.rawDecimals ?? 2);
 };
-
-/**
- * Formats compact Pro-mode values with locale-aware decimal separators.
- */
-export const formatProLargeNumber = (
-  value: Parameters<typeof formatLargeNumber>[0],
-  options?: Parameters<typeof formatLargeNumber>[1],
-  locale?: string,
-): string =>
-  localizeFormattedPerpsValue(formatLargeNumber(value, options), locale);
 
 /**
  * Formats volume with appropriate magnitude suffixes

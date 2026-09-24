@@ -5,12 +5,8 @@ import { useSelector } from 'react-redux';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import PerpsProPositionCard from './PerpsProPositionCard';
-import { usePerpsLocale } from '../../../hooks/usePerpsLocale';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
-jest.mock('../../../hooks/usePerpsLocale', () => ({
-  usePerpsLocale: jest.fn(() => 'en-US'),
-}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -43,7 +39,6 @@ describe('PerpsProPositionCard', () => {
     (useSelector as jest.Mock).mockImplementation(
       (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
     );
-    (usePerpsLocale as jest.Mock).mockReturnValue('en-US');
   });
 
   it.each([null, '2500'])(
@@ -173,29 +168,6 @@ describe('PerpsProPositionCard', () => {
 
     expect(screen.getByText(/1\.5 ETH • \$4,500/)).toBeOnTheScreen();
     expect(screen.getByText('$3,000')).toBeOnTheScreen();
-  });
-
-  it('uses locale-specific separators for large position values', () => {
-    (usePerpsLocale as jest.Mock).mockReturnValue('de-DE');
-
-    render(
-      <PerpsProPositionCard
-        position={{
-          ...position,
-          size: '1200',
-          positionValue: '91200000',
-          entryPrice: '76000',
-          liquidationPrice: '50000',
-          takeProfitPrice: '80000',
-          stopLossPrice: '40000',
-        }}
-      />,
-    );
-
-    expect(screen.getByText(/1.200 ETH • \$91.200.000/)).toBeOnTheScreen();
-    expect(screen.getAllByText('$76.000')).toHaveLength(2);
-    expect(screen.getByText('$50.000 (34.21%)')).toBeOnTheScreen();
-    expect(screen.getByText('$80.000 / $40.000')).toBeOnTheScreen();
   });
 
   it('appends the liquidation distance in parentheses to the liquidation price', () => {
