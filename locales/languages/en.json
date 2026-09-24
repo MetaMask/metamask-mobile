@@ -1285,6 +1285,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -8487,7 +8493,6 @@
       "add": "Add",
       "convert_cta": "Convert your crypto",
       "no_fee": "No fee",
-      "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
@@ -8497,13 +8502,11 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get",
       "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
-      "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
@@ -8525,7 +8528,6 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "manage_card": "Manage",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {

@@ -1,7 +1,7 @@
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 
 /**
- * {@link RampsVbaOnboardingSnapshot} plus client-local pre-email vendor terms.
+ * {@link RampsVbaOnboardingSnapshot} plus client-local vendor terms.
  */
 export type VbaOnboardingSnapshot = RampsVbaOnboardingSnapshot & {
   vendorTermsAcceptedLocally: boolean;
