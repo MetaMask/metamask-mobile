@@ -159,6 +159,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsPrewarmDepositOrder } from '../../hooks/usePerpsPrewarmDepositOrder';
 import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
@@ -419,6 +420,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
+
+  // Prepare the deposit-with-order transaction up front so Long/Short opens the
+  // trade confirmation without waiting on transaction creation.
+  usePerpsPrewarmDepositOrder({
+    enabled: isEligible,
+    marketProviderId: market?.providerId,
+    transactionActiveAbTests,
+  });
 
   // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);

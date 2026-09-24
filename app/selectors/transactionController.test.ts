@@ -503,6 +503,42 @@ describe('TransactionController Selectors', () => {
       ]);
     });
 
+    it('excludes a perps deposit-and-order the user has not confirmed yet', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'prewarmed-trade',
+            chainId: '0x1',
+            time: 100,
+            type: TransactionType.perpsDepositAndOrder,
+            status: TransactionStatus.unapproved,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('includes a perps deposit-and-order once the user confirmed it', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'placed-trade',
+            chainId: '0x1',
+            time: 100,
+            type: TransactionType.perpsDepositAndOrder,
+            status: TransactionStatus.submitted,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'placed-trade' }),
+      ]);
+    });
+
     it('includes a Money deposit parent linked to the EOA through its required funding transaction', () => {
       const state = buildLocalTxState({
         transactions: [

@@ -21,13 +21,16 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
+  registerTransactionAbTestAttributionForIds,
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
-  CONFIRMATION_HEADER_CONFIG,
-  PROVIDER_CONFIG,
-} from '../constants/perpsConfig';
+  claimPrewarmedDepositOrder,
+  resolveDepositOrderProvider,
+} from '../utils/prewarmedDepositOrder';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { usePerpsProvider } from './usePerpsProvider';
 import {
   failPerpsTradeSheetInteractiveTrace,
@@ -245,6 +248,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const { depositWithOrder } = usePerpsTrading();
   const { switchProvider } = usePerpsProvider();
   const activeProvider = useSelector(selectPerpsProvider);
+  const selectedAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
 
@@ -298,11 +302,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
         return;
       }
-      const depositProvider =
-        activeProvider === undefined ||
-        activeProvider === PROVIDER_CONFIG.AggregatedProvider
-          ? PROVIDER_CONFIG.DefaultProvider
-          : activeProvider;
+      const depositProvider = resolveDepositOrderProvider(activeProvider);
       let createOrder = depositWithOrder;
       if (
         params.providerId !== undefined &&
@@ -318,10 +318,27 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
         );
       }
-      withPendingTransactionActiveAbTests(
-        params.transactionActiveAbTests,
-        createOrder,
-      )
+      // The market screen may already have prepared this transaction. Claiming it
+      // skips both creation and approval queueing; the criteria encode the
+      // provider, so a market needing a switch never matches and falls through.
+      const claimedPrewarm = selectedAccountAddress
+        ? claimPrewarmedDepositOrder({
+            accountAddress: selectedAccountAddress,
+            providerId: params.providerId ?? depositProvider,
+          })
+        : undefined;
+      const preparedOrder =
+        claimedPrewarm?.then((transactionId) => {
+          registerTransactionAbTestAttributionForIds(
+            [transactionId],
+            params.transactionActiveAbTests,
+          );
+        }) ??
+        withPendingTransactionActiveAbTests(
+          params.transactionActiveAbTests,
+          createOrder,
+        );
+      preparedOrder
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -346,6 +363,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       depositWithOrder,
       switchProvider,
       activeProvider,
+      selectedAccountAddress,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
       track,
