@@ -1,6 +1,7 @@
 import React from 'react';
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   PRODUCT_TYPES,
   SUBSCRIPTION_STATUSES,
@@ -10,12 +11,14 @@ import {
 import type { RootState } from '../reducers';
 import configureStore from '../util/test/configureStore';
 import Engine from '../core/Engine';
-import { __resetForTest } from '../core/Subscription/benefitsResolution';
+import { selectIsSignedIn } from '../selectors/identity';
+import { selectIsUnlocked } from '../selectors/keyringController';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from './useMoneyAccountPlusAccess';
 import {
+  BENEFITS_QUERY_KEY,
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './useMoneyAccountPlusBenefits';
@@ -28,13 +31,19 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
-jest.mock('../util/Logger', () => ({
-  error: jest.fn(),
-}));
-
 jest.mock('./useMoneyAccountPlusAccess', () => ({
   ...jest.requireActual('./useMoneyAccountPlusAccess'),
   useMoneyAccountPlusAccess: jest.fn(),
+}));
+
+jest.mock('../selectors/identity', () => ({
+  ...jest.requireActual('../selectors/identity'),
+  selectIsSignedIn: jest.fn(),
+}));
+
+jest.mock('../selectors/keyringController', () => ({
+  ...jest.requireActual('../selectors/keyringController'),
+  selectIsUnlocked: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -47,6 +56,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
+const mockSelectIsSignedIn = jest.mocked(selectIsSignedIn);
+const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockGetBenefits = jest.mocked(
   Engine.context.SubscriptionController.getBenefits,
 );
@@ -116,27 +127,42 @@ const createState = ({
     },
   }) as unknown as RootState;
 
+const createQueryClient = (staleTime = 0) =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0, staleTime } },
+  });
+
+const applyAuthFromState = (state: RootState) => {
+  mockSelectIsSignedIn.mockReturnValue(
+    Boolean(state.engine.backgroundState.AuthenticationController?.isSignedIn),
+  );
+  mockSelectIsUnlocked.mockReturnValue(
+    Boolean(state.engine.backgroundState.KeyringController?.isUnlocked),
+  );
+};
+
 const renderBenefits = (state: RootState) => {
+  applyAuthFromState(state);
+
+  const queryClient = createQueryClient();
+
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={configureStore(state)}>{children}</Provider>
+    <Provider store={configureStore(state)}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </Provider>
   );
 
   return renderHook(() => useMoneyAccountPlusBenefits(), { wrapper: Wrapper });
 };
 
-const flush = async () => {
-  await act(async () => {
-    await Promise.resolve();
-  });
-};
-
 describe('useMoneyAccountPlusBenefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __resetForTest();
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
+    mockSelectIsSignedIn.mockReturnValue(true);
+    mockSelectIsUnlocked.mockReturnValue(true);
     mockGetBenefits.mockResolvedValue({
       eligible: true,
       billingPeriodId: BENEFITS.billingPeriodId,
@@ -154,10 +180,21 @@ describe('useMoneyAccountPlusBenefits', () => {
     );
 
     const { result } = renderBenefits(createState());
-    await flush();
 
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+  });
+
+  it('does not fetch benefits when the user is signed out', () => {
+    renderBenefits(createState({ isSignedIn: false }));
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch benefits when the keyring is locked', () => {
+    renderBenefits(createState({ isUnlocked: false }));
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
   });
 
   it('reports loading while benefits are unresolved and uncached', () => {
@@ -171,10 +208,12 @@ describe('useMoneyAccountPlusBenefits', () => {
 
   it('maps cached benefits after a successful fetch', async () => {
     const { result } = renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready),
+    );
 
     expect(mockGetBenefits).toHaveBeenCalledTimes(1);
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
     expect(result.current.resetsOn).toBe(
       new Date('2026-09-15T00:00:00.000Z').toLocaleDateString('en-US', {
@@ -197,11 +236,13 @@ describe('useMoneyAccountPlusBenefits', () => {
         },
       }),
     );
-    await flush();
 
-    expect(result.current.status).toBe(
-      MoneyAccountPlusBenefitsStatus.Incomplete,
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Incomplete,
+      ),
     );
+
     expect(result.current.items.map((item) => item.id)).toEqual([
       'swaps',
       'perps',
@@ -212,26 +253,30 @@ describe('useMoneyAccountPlusBenefits', () => {
     mockGetBenefits.mockRejectedValue(new Error('network down'));
 
     const { result } = renderBenefits(createState());
-    await flush();
 
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed);
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
+    );
+
     expect(result.current.hasError).toBe(true);
     expect(result.current.items).toEqual([]);
   });
 
   it('keeps cached rows when a refresh fails', async () => {
     const { result } = renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready),
+    );
 
     mockGetBenefits.mockRejectedValue(new Error('network down'));
     await act(async () => {
       result.current.retry();
-      await Promise.resolve();
     });
 
+    await waitFor(() => expect(result.current.hasError).toBe(true));
+
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
-    expect(result.current.hasError).toBe(true);
     expect(result.current.items).toHaveLength(3);
   });
 
@@ -239,34 +284,51 @@ describe('useMoneyAccountPlusBenefits', () => {
     mockGetBenefits.mockRejectedValueOnce(new Error('network down'));
 
     const { result } = renderBenefits(createState());
-    await flush();
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed);
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
+    );
 
     await act(async () => {
       result.current.retry();
-      await Promise.resolve();
     });
 
-    expect(mockGetBenefits).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(2));
   });
 
-  it('clears resolution when the session ends so the next user re-fetches', async () => {
-    renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
-    expect(mockGetBenefits).toHaveBeenCalledTimes(1);
+  it('clears the query when the session ends so the next subscriber re-fetches', async () => {
+    const queryClient = createQueryClient(Infinity);
+    const state = createState({ benefits: BENEFITS });
+    applyAuthFromState(state);
 
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Eligible,
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={configureStore(state)}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </Provider>
     );
-    renderBenefits(createState({ isSignedIn: false, benefits: BENEFITS }));
-    await flush();
 
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Subscriber,
+    const { rerender } = renderHook(() => useMoneyAccountPlusBenefits(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(1));
+
+    mockSelectIsSignedIn.mockReturnValue(false);
+    await act(async () => {
+      rerender();
+    });
+
+    await waitFor(() =>
+      expect(queryClient.getQueryData(BENEFITS_QUERY_KEY)).toBeUndefined(),
     );
-    renderBenefits(createState({ benefits: BENEFITS }));
-    await flush();
 
-    expect(mockGetBenefits).toHaveBeenCalledTimes(2);
+    mockSelectIsSignedIn.mockReturnValue(true);
+    await act(async () => {
+      rerender();
+    });
+
+    await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(2));
   });
 });
