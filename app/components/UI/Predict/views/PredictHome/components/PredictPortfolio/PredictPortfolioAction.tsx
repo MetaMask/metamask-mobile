@@ -47,7 +47,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
       positionAnchorShape={BadgeWrapperPositionAnchorShape.Rectangular}
       twClassName="flex-1"
       childrenContainerProps={{
-        twClassName: 'flex-1',
+        style: { flex: 1 },
       }}
     >
       <MainActionButton
