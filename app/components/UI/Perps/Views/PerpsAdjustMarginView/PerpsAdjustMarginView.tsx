@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -72,6 +78,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { playImpact: playHapticImpact } = useHaptics();
 
   const [marginAmountString, setMarginAmountString] = useState('0');
+  const [freshMaxAmount, setFreshMaxAmount] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -96,6 +103,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       onSuccess: () => navigation.goBack(),
       onAmountChanged: (safeMaxAmount) => {
         submittedEstimateRef.current = null;
+        setFreshMaxAmount(safeMaxAmount);
         setMarginAmountString(safeMaxAmount.toFixed(2));
       },
       onError: (errorMessage) => {
@@ -135,13 +143,24 @@ const PerpsAdjustMarginView: React.FC = () => {
     inputAmount: marginAmount,
   });
 
-  const flooredMaxAmount = floorUsd(maxAmount);
+  // A stopped removal read a lower limit than the live snapshot; keep Max, the
+  // slider and the submit check within it until the stream pushes a newer
+  // position. Price ticks alone don't release it.
+  useEffect(() => {
+    setFreshMaxAmount(null);
+  }, [position]);
+  const capToFreshMax = (amount: number) =>
+    freshMaxAmount === null || isAddMode
+      ? amount
+      : Math.min(amount, freshMaxAmount);
+  const flooredMaxAmount = capToFreshMax(floorUsd(maxAmount));
   // Validate against what the exchange accepts, not the headroom-reduced max
   // offered by Max/slider, so a price tick after choosing Max does not block it.
-  const submitLimitAmount =
+  const submitLimitAmount = capToFreshMax(
     Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
       ? floorUsd(exchangeMaxAmount)
-      : flooredMaxAmount;
+      : flooredMaxAmount,
+  );
   const hasNoRemovableMargin =
     !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
 

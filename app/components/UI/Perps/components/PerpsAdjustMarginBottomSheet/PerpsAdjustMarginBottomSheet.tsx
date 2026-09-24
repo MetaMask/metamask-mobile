@@ -115,6 +115,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const { playImpact: playHapticImpact } = useHaptics();
   const [mode, setMode] = useState<PerpsAdjustMarginMode>(initialMode);
   const [marginAmountString, setMarginAmountString] = useState('0');
+  const [freshMaxAmount, setFreshMaxAmount] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [selectedTooltip, setSelectedTooltip] =
@@ -158,6 +159,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       },
       onAmountChanged: (safeMaxAmount) => {
         submittedEstimateRef.current = null;
+        setFreshMaxAmount(safeMaxAmount);
         setMarginAmountString(safeMaxAmount.toFixed(2));
       },
       onError: (errorMessage) => {
@@ -207,14 +209,26 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     inputAmount: marginAmount,
   });
 
-  const flooredMaxAmount =
-    Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0;
+  // A stopped removal read a lower limit than the live snapshot; keep Max, the
+  // slider and the submit check within it until the stream pushes a newer
+  // position. Price ticks alone don't release it.
+  useEffect(() => {
+    setFreshMaxAmount(null);
+  }, [position]);
+  const capToFreshMax = (amount: number) =>
+    freshMaxAmount === null || isAddMode
+      ? amount
+      : Math.min(amount, freshMaxAmount);
+  const flooredMaxAmount = capToFreshMax(
+    Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0,
+  );
   // Validate against what the exchange accepts, not the headroom-reduced max
   // offered by Max/slider, so a price tick after choosing Max does not block it.
-  const submitLimitAmount =
+  const submitLimitAmount = capToFreshMax(
     Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
       ? floorUsd(exchangeMaxAmount)
-      : flooredMaxAmount;
+      : flooredMaxAmount,
+  );
   const sliderPercentage = useMemo(
     () =>
       flooredMaxAmount <= 0
@@ -310,6 +324,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       }
       setMode(nextMode);
       setMarginAmountString('0');
+      setFreshMaxAmount(null);
       setIsInputFocused(false);
       setSubmissionError(null);
       submittedEstimateRef.current = null;
