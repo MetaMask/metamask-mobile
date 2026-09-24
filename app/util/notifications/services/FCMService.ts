@@ -38,9 +38,13 @@ async function analyticsTrackPushClickEvent(
 
     const properties = payload
       ? {
-          ...payload,
-        }
+        ...payload,
+      }
       : { ...(data?.deeplink && { deeplink: data.deeplink }) };
+
+    console.log("FCMDEBUG - data", data)
+    console.log("FCMDEBUG - payload", payload)
+    console.log("FCMDEBUG - properties", properties)
 
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
