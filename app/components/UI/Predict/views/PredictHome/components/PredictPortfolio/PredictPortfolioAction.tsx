@@ -1,17 +1,10 @@
 import React from 'react';
-import { Pressable } from 'react-native';
 import {
   BadgeCount,
   BadgeCountSize,
   Box,
-  ButtonIcon,
-  ButtonIconSize,
-  FontWeight,
-  IconColor,
   IconName,
-  IconSize,
-  Text,
-  TextVariant,
+  MainActionButton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
@@ -39,55 +32,26 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   const showBadge = badgeCount > 0;
 
   return (
-    <Pressable
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) =>
-        tw.style(
-          'flex-1 min-h-[74px] rounded-lg bg-muted items-center justify-center p-3',
-          pressed && 'opacity-80',
-          disabled && 'opacity-50',
-        )
-      }
-      testID={testID}
-    >
-      <Box twClassName="items-center gap-[2px]">
-        <Box twClassName="relative h-6 w-6 items-center justify-center">
-          <ButtonIcon
-            accessible={false}
-            iconName={iconName}
-            iconProps={{
-              color: disabled ? IconColor.IconMuted : IconColor.IconAlternative,
-              size: IconSize.Md,
-            }}
-            importantForAccessibility="no"
-            pointerEvents="none"
-            size={ButtonIconSize.Md}
-          />
-          {showBadge && (
-            <BadgeCount
-              count={badgeCount}
-              max={99}
-              size={BadgeCountSize.Md}
-              style={tw.style('absolute -right-2.5 -top-1.5')}
-              testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
-            />
-          )}
-        </Box>
-        {/* Locales such as Greek wrap this label onto a second line, which
-            defaults to left alignment inside the centered column. */}
-        <Text
-          fontWeight={FontWeight.Medium}
-          twClassName={`text-center ${disabled ? 'text-muted' : 'text-default'}`}
-          variant={TextVariant.BodySm}
-        >
-          {label}
-        </Text>
-      </Box>
-    </Pressable>
+    <Box twClassName="relative flex-1">
+      <MainActionButton
+        accessibilityLabel={accessibilityLabel ?? label}
+        isDisabled={disabled}
+        iconName={iconName}
+        label={label}
+        onPress={onPress}
+        testID={testID}
+        twClassName="min-h-[74px]"
+      />
+      {showBadge && (
+        <BadgeCount
+          count={badgeCount}
+          max={99}
+          size={BadgeCountSize.Md}
+          style={tw.style('absolute right-2 top-2')}
+          testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
+        />
+      )}
+    </Box>
   );
 };
 

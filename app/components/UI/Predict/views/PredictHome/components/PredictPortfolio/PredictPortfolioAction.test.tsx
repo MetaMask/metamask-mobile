@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import PredictPortfolioAction from './PredictPortfolioAction';
@@ -9,21 +9,26 @@ describe('PredictPortfolioAction', () => {
     iconName: IconName.Add,
     label: 'Add funds',
     onPress: jest.fn(),
+    testID: 'predict-portfolio-action',
   };
 
-  it('centers the label so translations that wrap stay aligned with the icon', () => {
-    renderWithProvider(<PredictPortfolioAction {...defaultProps} />);
-
-    expect(screen.getByText('Add funds')).toHaveStyle({
-      textAlign: 'center',
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('keeps the label centered when disabled', () => {
+  it('invokes the supplied callback when pressed', () => {
+    renderWithProvider(<PredictPortfolioAction {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId(defaultProps.testID));
+
+    expect(defaultProps.onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not invoke the callback when disabled', () => {
     renderWithProvider(<PredictPortfolioAction {...defaultProps} disabled />);
 
-    expect(screen.getByText('Add funds')).toHaveStyle({
-      textAlign: 'center',
-    });
+    fireEvent.press(screen.getByTestId(defaultProps.testID));
+
+    expect(defaultProps.onPress).not.toHaveBeenCalled();
   });
 });

@@ -1,24 +1,10 @@
-import React, { useCallback, useMemo, useSyncExternalStore } from 'react';
-import {
-  ScrollView,
-  TouchableOpacity,
-  useWindowDimensions,
-} from 'react-native';
-import { useSelector } from 'react-redux';
+import React, { useCallback } from 'react';
 import {
   Box,
-  FontWeight,
+  IconName,
+  MainActionButton,
   SectionHeader,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  default as Icon,
-  IconColor,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import I18n, {
@@ -77,7 +63,6 @@ export const getPredictCategoryTileWidth = (windowWidth: number): number =>
 const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   testID = PREDICT_CATEGORIES_SECTION_TEST_IDS.SECTION,
 }) => {
-  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { width: windowWidth } = useWindowDimensions();
   const categoriesConfig = useSelector(selectPredictHomeCategoriesConfig);
@@ -129,40 +114,17 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
         twClassName="px-0 pt-0 mb-1"
       />
 
-      <ScrollView
-        testID={PREDICT_CATEGORIES_SECTION_TEST_IDS.CAROUSEL}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={tw.style('-mx-4')}
-        contentContainerStyle={tw.style('px-4 gap-3')}
-      >
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={`${category.id}-${locale}`}
+      <Box twClassName="flex-row gap-3">
+        {PREDICT_HOME_CATEGORIES.map((category) => (
+          <MainActionButton
+            key={category.id}
             testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
             onPress={() => handlePress(category)}
-            accessibilityRole="button"
-            accessibilityLabel={resolvePredictHomeCategoryDisplayTitle(
-              category,
-            )}
-            style={{ width: tileWidth }}
-          >
-            <Box twClassName="aspect-square items-center justify-center gap-2 rounded-xl bg-muted p-2">
-              <Icon
-                name={category.iconName}
-                size={IconSize.Lg}
-                color={IconColor.Default}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-              >
-                {resolvePredictHomeCategoryDisplayTitle(category)}
-              </Text>
-            </Box>
-          </TouchableOpacity>
+            accessibilityLabel={strings(category.titleKey)}
+            iconName={category.iconName as IconName}
+            label={strings(category.titleKey)}
+            twClassName="flex-1 py-4"
+          />
         ))}
       </ScrollView>
     </Box>
