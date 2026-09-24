@@ -46,6 +46,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         <BadgeCount
           count={badgeCount}
           max={99}
+          pointerEvents="none"
           size={BadgeCountSize.Md}
           style={tw.style('absolute right-2 top-2')}
           testID={PREDICT_PORTFOLIO_TEST_IDS.ACTION_BADGE}
