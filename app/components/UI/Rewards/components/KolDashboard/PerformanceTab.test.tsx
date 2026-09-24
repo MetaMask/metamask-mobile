@@ -32,11 +32,13 @@ describe('PerformanceTab', () => {
   });
 
   it('renders the referrals funnel', () => {
-    const { getByTestId } = render(<PerformanceTab />);
+    const { getByTestId, queryByText } = render(<PerformanceTab />);
 
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.PERFORMANCE_FUNNEL),
     ).toBeOnTheScreen();
+    expect(queryByText('rewards.kol.funnel_confirmed')).toBeNull();
+    expect(queryByText('rewards.kol.funnel_fee_generating')).toBeNull();
   });
 
   it('previews five trade commissions and five trading rebates', () => {

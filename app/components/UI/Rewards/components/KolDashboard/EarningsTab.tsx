@@ -39,7 +39,6 @@ import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
 import { useClaimEligibilityFlow } from './ClaimEligibilityFlow';
-import ClaimExpiryNotice from './ClaimExpiryNotice';
 
 const BREAKDOWN_ROWS: {
   kind: Extract<KolEarningsHistoryKind, 'referrals' | 'commission' | 'rebate'>;
@@ -263,9 +262,6 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                   {formatUsd(available)}
                 </Text>
               </Animated.View>
-              <ClaimExpiryNotice
-                testID={KOL_DASHBOARD_SELECTORS.CLAIM_EXPIRY_NOTICE}
-              />
             </Box>
             {/* Button applies `self-start` unless it is full width, which would
                 override the row's centering, so it is wrapped to stay centered. */}

@@ -34,8 +34,6 @@ export const KOL_EARNINGS_FIXTURE = {
   referralsRecorded: 41.75,
   tradeCommissionsRecorded: 41.8,
   availableToClaim: 342.86,
-  expiringSoonAmount: 42.86,
-  expiringSoonDays: 3,
   last7Days: 91.2,
   recordedEarnings: 357.31,
   tradingRebates: 7.65,
@@ -112,16 +110,8 @@ export const KOL_PERFORMANCE_FIXTURE = {
       value: 18,
     },
     {
-      key: 'confirmed' as const,
-      value: 12,
-    },
-    {
       key: 'active' as const,
       value: 8,
-    },
-    {
-      key: 'feeGenerating' as const,
-      value: 5,
     },
   ],
   commissions: [

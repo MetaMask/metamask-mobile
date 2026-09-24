@@ -15,6 +15,7 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  SectionDivider,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -28,7 +29,6 @@ import {
   useClaimableRewards,
 } from '../../../Rewards/components/KolDashboard/rewardsClaimStore';
 import { useClaimEligibilityFlow } from '../../../Rewards/components/KolDashboard/ClaimEligibilityFlow';
-import ClaimExpiryNotice from '../../../Rewards/components/KolDashboard/ClaimExpiryNotice';
 import useMoneyToasts from '../../hooks/useMoneyToasts';
 import { MoneyClaimableRewardsCardTestIds } from './MoneyClaimableRewardsCard.testIds';
 
@@ -176,55 +176,55 @@ const MoneyClaimableRewardsCard = ({
   }
 
   return (
-    <Box
-      twClassName="mx-4 mt-2"
-      testID={MoneyClaimableRewardsCardTestIds.CONTAINER}
-    >
+    <Box testID={MoneyClaimableRewardsCardTestIds.CONTAINER}>
       {claimEligibilitySheets}
-      <Box twClassName="rounded-2xl bg-muted px-4 py-4">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Box twClassName="flex-1 pr-4">
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('money.claimable_rewards.title')}
-            </Text>
-            <Animated.View style={amountAnimatedStyle}>
-              <SensitiveText
-                variant={TextVariant.HeadingSm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={MoneyClaimableRewardsCardTestIds.AMOUNT}
+      <Box twClassName="mx-4 mt-2">
+        <Box twClassName="rounded-2xl bg-muted px-4 py-4">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+          >
+            <Box twClassName="flex-1 pr-4">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
               >
-                {formatUsd(available)}
-              </SensitiveText>
-            </Animated.View>
-            <ClaimExpiryNotice
-              testID={MoneyClaimableRewardsCardTestIds.EXPIRY_NOTICE}
-            />
-          </Box>
-          {/* Button applies `self-start` unless it is full width, which would
-              override the row's centering, so it is wrapped to stay centered. */}
-          <Box>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleClaimPress}
-              isDisabled={isCountingDown || claimableRewards <= 0}
-              testID={MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON}
-            >
-              {strings('rewards.kol.claim')}
-            </Button>
+                {strings('money.claimable_rewards.title')}
+              </Text>
+              <Animated.View style={amountAnimatedStyle}>
+                <SensitiveText
+                  variant={TextVariant.HeadingSm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                  testID={MoneyClaimableRewardsCardTestIds.AMOUNT}
+                >
+                  {formatUsd(available)}
+                </SensitiveText>
+              </Animated.View>
+            </Box>
+            {/* Button applies `self-start` unless it is full width, which would
+                override the row's centering, so it is wrapped to stay centered. */}
+            <Box>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                onPress={handleClaimPress}
+                isDisabled={isCountingDown || claimableRewards <= 0}
+                testID={MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON}
+              >
+                {strings('rewards.kol.claim')}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
+      <SectionDivider
+        marginVertical={8}
+        testID={MoneyClaimableRewardsCardTestIds.DIVIDER}
+      />
     </Box>
   );
 };

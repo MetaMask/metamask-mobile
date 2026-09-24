@@ -114,14 +114,6 @@ describe('EarningsTab', () => {
     ).toBeNull();
   });
 
-  it('renders the expiring-rewards notice on the claim card', () => {
-    const { getByTestId } = render(<EarningsTab />);
-
-    expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_EXPIRY_NOTICE),
-    ).toBeOnTheScreen();
-  });
-
   it('opens the tax form sheet when the user answers Yes', () => {
     const { getByTestId, queryByTestId } = render(<EarningsTab />);
 

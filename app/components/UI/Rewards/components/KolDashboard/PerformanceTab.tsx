@@ -33,17 +33,9 @@ const FUNNEL_COPY: Record<
     title: 'rewards.kol.funnel_code_uses',
     description: 'rewards.kol.funnel_code_uses_description',
   },
-  confirmed: {
-    title: 'rewards.kol.funnel_confirmed',
-    description: 'rewards.kol.funnel_confirmed_description',
-  },
   active: {
     title: 'rewards.kol.funnel_active',
     description: 'rewards.kol.funnel_active_description',
-  },
-  feeGenerating: {
-    title: 'rewards.kol.funnel_fee_generating',
-    description: 'rewards.kol.funnel_fee_generating_description',
   },
 };
 
