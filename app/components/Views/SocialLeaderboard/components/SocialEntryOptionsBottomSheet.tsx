@@ -12,9 +12,10 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { FullWindowOverlay } from 'react-native-screens';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { SocialEntryOptionsBottomSheetSelectorsIDs } from './SocialEntryOptionsBottomSheet.testIds';
@@ -53,51 +54,64 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
     onClose();
   }, [onClose, onReport]);
 
+  const overlay = (
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={styles.root}>
+        <Box twClassName="absolute inset-0">
+          <Pressable
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.overlay.default },
+            ]}
+            onPress={onClose}
+            accessibilityRole="button"
+            testID={SocialEntryOptionsBottomSheetSelectorsIDs.BACKDROP}
+          />
+          <BottomSheetDialog
+            onClose={onClose}
+            testID={SocialEntryOptionsBottomSheetSelectorsIDs.SHEET}
+          >
+            <BottomSheetHeader
+              onClose={onClose}
+              closeButtonProps={{
+                testID: SocialEntryOptionsBottomSheetSelectorsIDs.CLOSE_BUTTON,
+              }}
+            >
+              {strings('social_leaderboard.entry_options.title')}
+            </BottomSheetHeader>
+            <Box twClassName="pb-4">
+              <ActionListItem
+                iconName={IconName.Flag}
+                label={strings('social_leaderboard.entry_options.report')}
+                onPress={handleReport}
+                testID={SocialEntryOptionsBottomSheetSelectorsIDs.REPORT}
+              />
+            </Box>
+          </BottomSheetDialog>
+        </Box>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
+  );
+
+  // iOS PagerView page 0 (Trending) cannot present an RN Modal — even when
+  // the Modal is hosted outside the pager. FullWindowOverlay opens a new
+  // UIWindow instead (same as HardwareWalletProvider / ToasterOverlay).
+  // Nested Modals cannot present from that window, so iOS skips Modal.
+  // Android FullWindowOverlay is a plain View and would break layout.
+  if (Platform.OS === 'ios') {
+    return <FullWindowOverlay>{overlay}</FullWindowOverlay>;
+  }
+
   return (
     <Modal
       visible
       transparent
       animationType="none"
       statusBarTranslucent
+      presentationStyle="overFullScreen"
       onRequestClose={onClose}
     >
-      <SafeAreaProvider>
-        <GestureHandlerRootView style={styles.root}>
-          <Box twClassName="absolute inset-0">
-            <Pressable
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.overlay.default },
-              ]}
-              onPress={onClose}
-              accessibilityRole="button"
-              testID={SocialEntryOptionsBottomSheetSelectorsIDs.BACKDROP}
-            />
-            <BottomSheetDialog
-              onClose={onClose}
-              testID={SocialEntryOptionsBottomSheetSelectorsIDs.SHEET}
-            >
-              <BottomSheetHeader
-                onClose={onClose}
-                closeButtonProps={{
-                  testID:
-                    SocialEntryOptionsBottomSheetSelectorsIDs.CLOSE_BUTTON,
-                }}
-              >
-                {strings('social_leaderboard.entry_options.title')}
-              </BottomSheetHeader>
-              <Box twClassName="pb-4">
-                <ActionListItem
-                  iconName={IconName.Flag}
-                  label={strings('social_leaderboard.entry_options.report')}
-                  onPress={handleReport}
-                  testID={SocialEntryOptionsBottomSheetSelectorsIDs.REPORT}
-                />
-              </Box>
-            </BottomSheetDialog>
-          </Box>
-        </GestureHandlerRootView>
-      </SafeAreaProvider>
+      {overlay}
     </Modal>
   );
 };
@@ -113,8 +127,9 @@ const SocialEntryOptionsBottomSheet: React.FC<
 };
 
 /**
- * Hosts the options Modal outside `PagerView`. iOS often fails to present a
- * Modal from pager page 0 (Trending), while later tabs work.
+ * Hosts the options sheet outside `PagerView`. On iOS this is a
+ * FullWindowOverlay (PagerView page 0 cannot present RN Modal); on Android
+ * it remains a Modal.
  */
 export const SocialEntryOptionsProvider: React.FC<{
   children: React.ReactNode;

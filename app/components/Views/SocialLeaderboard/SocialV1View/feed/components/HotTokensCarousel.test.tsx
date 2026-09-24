@@ -55,10 +55,6 @@ describe('HotTokensCarousel', () => {
       screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID).props
-        .horizontal,
-    ).toBe(true);
-    expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
     ).not.toBeOnTheScreen();
   });

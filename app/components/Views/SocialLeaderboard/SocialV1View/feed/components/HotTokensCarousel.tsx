@@ -1,16 +1,11 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import React, { useCallback, useMemo, useState } from 'react';
+import { type LayoutChangeEvent, StyleSheet } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useFrameCallback,
+  useSharedValue,
+} from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
@@ -35,6 +30,22 @@ const LOGO_SIZE = 24;
 
 /** Slow news-footer crawl. */
 const MARQUEE_PIXELS_PER_SECOND = 24;
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});
+
+const wrapOffset = (x: number, width: number): number => {
+  'worklet';
+  if (width <= 0) {
+    return 0;
+  }
+  const wrapped = x % width;
+  return wrapped < 0 ? wrapped + width : wrapped;
+};
 
 export interface HotTokensCarouselProps {
   /** Opens the topic. Omitted until the hot-topic destination exists. */
@@ -95,104 +106,94 @@ const HotTokenTrack: React.FC<{
 /**
  * HotTokensCarousel -- the rail of trending-topic chips above the Social V1
  * feed. When the chips overflow the viewport they crawl like a news ticker.
- * The rail is a gesture-handler `ScrollView` so a horizontal drag scrubs the
- * chips instead of changing Social tabs, and the crawl pauses while the
- * finger is down.
+ *
+ * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
+ * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
+ * scroll gesture alive on PagerView page 0 and cancels taps on the rest of
+ * Trending (reactions, overflow menu, Popular traders). A pan on this rail
+ * still wins over the pager so scrubbing the chips does not change tabs.
  */
 const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   onTokenPress,
 }) => {
   const { tokens, isLoading } = useSocialV1HotTokens();
-  const scrollRef = useRef<ScrollView>(null);
-  const offsetRef = useRef(0);
-  const trackWidthRef = useRef(0);
-  const pausedRef = useRef(false);
-  const draggingRef = useRef(false);
-  const shouldMarqueeRef = useRef(false);
+  const offset = useSharedValue(0);
+  const dragStartOffset = useSharedValue(0);
+  const paused = useSharedValue(false);
+  const trackWidthSv = useSharedValue(0);
+  const viewportWidthSv = useSharedValue(0);
   const [trackWidth, setTrackWidth] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
 
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
-  shouldMarqueeRef.current = shouldMarquee;
 
-  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
-    setViewportWidth(event.nativeEvent.layout.width);
-  }, []);
-
-  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
-    const width = event.nativeEvent.layout.width;
-    trackWidthRef.current = width;
-    setTrackWidth(width);
-  }, []);
-
-  const wrapOffset = useCallback((x: number): number => {
-    const width = trackWidthRef.current;
-    if (width <= 0 || x < width) {
-      return x;
-    }
-    return x % width;
-  }, []);
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const wrapped = wrapOffset(event.nativeEvent.contentOffset.x);
-      if (wrapped !== event.nativeEvent.contentOffset.x) {
-        offsetRef.current = wrapped;
-        scrollRef.current?.scrollTo({ x: wrapped, animated: false });
-        return;
-      }
-      offsetRef.current = wrapped;
+  const handleViewportLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      viewportWidthSv.value = width;
+      setViewportWidth(width);
     },
-    [wrapOffset],
+    [viewportWidthSv],
   );
 
-  const pause = useCallback(() => {
-    pausedRef.current = true;
-  }, []);
+  const handleTrackLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      trackWidthSv.value = width;
+      setTrackWidth(width);
+    },
+    [trackWidthSv],
+  );
 
-  const resume = useCallback(() => {
-    if (!draggingRef.current) {
-      pausedRef.current = false;
-    }
-  }, []);
-
-  const handleScrollBeginDrag = useCallback(() => {
-    draggingRef.current = true;
-    pausedRef.current = true;
-  }, []);
-
-  const handleScrollEnd = useCallback(() => {
-    draggingRef.current = false;
-    pausedRef.current = false;
-  }, []);
-
-  useEffect(() => {
-    let frame = 0;
-    let lastMs = Date.now();
-
-    const tick = () => {
-      const now = Date.now();
-      const dtMs = now - lastMs;
-      lastMs = now;
-
-      if (shouldMarqueeRef.current && !pausedRef.current) {
-        const width = trackWidthRef.current;
-        if (width > 0) {
-          const next = wrapOffset(
-            offsetRef.current + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-10, 10])
+        .failOffsetY([-12, 12])
+        .onBegin(() => {
+          'worklet';
+          paused.value = true;
+          dragStartOffset.value = offset.value;
+        })
+        .onUpdate((event) => {
+          'worklet';
+          const width = trackWidthSv.value;
+          if (width <= 0) {
+            return;
+          }
+          offset.value = wrapOffset(
+            dragStartOffset.value - event.translationX,
+            width,
           );
-          offsetRef.current = next;
-          scrollRef.current?.scrollTo({ x: next, animated: false });
-        }
-      }
+        })
+        .onFinalize(() => {
+          'worklet';
+          paused.value = false;
+        }),
+    [dragStartOffset, offset, paused, trackWidthSv],
+  );
 
-      frame = requestAnimationFrame(tick);
-    };
+  useFrameCallback((frame) => {
+    'worklet';
+    const width = trackWidthSv.value;
+    const viewport = viewportWidthSv.value;
+    if (paused.value || width <= 0 || viewport <= 0 || width <= viewport) {
+      return;
+    }
+    const dtMs = frame.timeSincePreviousFrame ?? 0;
+    if (dtMs <= 0) {
+      return;
+    }
+    offset.value = wrapOffset(
+      offset.value + (MARQUEE_PIXELS_PER_SECOND * dtMs) / 1000,
+      width,
+    );
+  });
 
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [wrapOffset]);
+  const trackStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -offset.value }],
+  }));
 
   const loopTokens = useMemo(
     () => (shouldMarquee ? tokens : []),
@@ -208,43 +209,29 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   }
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      bounces={false}
-      directionalLockEnabled
-      nestedScrollEnabled
-      showsHorizontalScrollIndicator={false}
+    <Box
       onLayout={handleViewportLayout}
-      onScroll={handleScroll}
-      onScrollBeginDrag={handleScrollBeginDrag}
-      onScrollEndDrag={handleScrollEnd}
-      onMomentumScrollEnd={handleScrollEnd}
-      onTouchStart={pause}
-      onTouchEnd={resume}
-      onTouchCancel={resume}
-      scrollEventThrottle={16}
+      twClassName="overflow-hidden"
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-      >
-        <HotTokenTrack
-          tokens={tokens}
-          onPress={onTokenPress}
-          onLayout={handleTrackLayout}
-          testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}
-        />
-        {loopTokens.length > 0 ? (
+      <GestureDetector gesture={pan}>
+        <Animated.View style={[styles.row, trackStyle]}>
           <HotTokenTrack
-            tokens={loopTokens}
+            tokens={tokens}
             onPress={onTokenPress}
-            idSuffix="-loop"
+            onLayout={handleTrackLayout}
+            testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}
           />
-        ) : null}
-      </Box>
-    </ScrollView>
+          {loopTokens.length > 0 ? (
+            <HotTokenTrack
+              tokens={loopTokens}
+              onPress={onTokenPress}
+              idSuffix="-loop"
+            />
+          ) : null}
+        </Animated.View>
+      </GestureDetector>
+    </Box>
   );
 };
 
