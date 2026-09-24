@@ -35,10 +35,15 @@ async function setBackfillValue(
  * completed or in-progress unregistration is not repeated.
  */
 const migration = async (state: unknown): Promise<unknown> => {
+  // A bad persisted store must not be treated as "notifications off" and
+  // scheduled for unregistration.
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
+  // This key did not exist before unregisterPush. A value here means a later
+  // build already recorded the device, so this upgrade must not call
+  // unregisterPush again. Repeating it is what hits the iOS rate limit.
   const storedRegistrationState = StorageWrapper.getItemSync(
     BRAZE_PUSH_REGISTRATION_STATE,
   );
@@ -49,6 +54,8 @@ const migration = async (state: unknown): Promise<unknown> => {
     return state;
   }
 
+  // Allow notifications is the master switch. Device push is the second one.
+  // Either one off means this device should not stay registered with Braze.
   const { backgroundState } = state.engine;
   const notificationServicesState =
     hasProperty(backgroundState, 'NotificationServicesController') &&
@@ -65,6 +72,12 @@ const migration = async (state: unknown): Promise<unknown> => {
   const pushEnabled = pushServicesState?.isPushEnabled === true;
   const failedValues: string[] = [];
 
+  // Both switches on: remember that registration is still wanted. The launch
+  // path does not unregister a `registered` device.
+  // No stored state and a switch off: the pre-fix install. Mark it pending so
+  // the next launch calls unregisterPush once.
+  // Any other stored value, such as `registered` while a switch is now off:
+  // leave it. Only a missing key is the pre-fix cohort.
   const brazePushRegistrationState =
     notificationsEnabled && pushEnabled
       ? 'registered'
@@ -82,6 +95,8 @@ const migration = async (state: unknown): Promise<unknown> => {
     failedValues.push('Braze push registration state');
   }
 
+  // Throwing keeps redux-persist from saving version 153, so the next launch
+  // tries this write again instead of dropping the device.
   if (failedValues.length > 0) {
     throw new Error(
       `Migration ${migrationVersion}: Failed to persist backfill value(s): ${failedValues.join(
