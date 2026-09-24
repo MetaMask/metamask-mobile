@@ -491,6 +491,28 @@ describe('RewardsMoneyDashboard', () => {
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
   });
 
+  it('renders no earnings indicator when nothing is claimable', () => {
+    const { queryByTestId } = renderDashboard();
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
+  });
+
+  it('renders the earnings indicator when there is a claimable balance', () => {
+    const { getByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: { ...EARNINGS_SUMMARY, claimable: '50' },
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
   it('switches to an empty Earnings tab body', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 

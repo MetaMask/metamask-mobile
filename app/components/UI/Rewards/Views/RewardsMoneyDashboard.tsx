@@ -23,7 +23,10 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  selectEarningsSummaryEntry,
+  selectReferralMeEntry,
+} from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
@@ -42,6 +45,7 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   TABS: 'rewards-money-dashboard-tabs',
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
+  EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
   CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
@@ -51,6 +55,17 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
 type RewardsMoneyTab = 'waysToEarn' | 'earnings';
 
 const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings'];
+
+const hasClaimableEarnings = (claimable?: string): boolean => {
+  if (!claimable) {
+    return false;
+  }
+  try {
+    return BigInt(claimable) > 0n;
+  } catch {
+    return false;
+  }
+};
 
 const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -72,7 +87,13 @@ const RewardsMoneyDashboard: React.FC = () => {
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
+  const earningsSummaryEntry = useSelector((state: RootState) =>
+    selectEarningsSummaryEntry(state, profileId),
+  );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const showEarningsDot = true; /* hasClaimableEarnings(
+    earningsSummaryEntry?.data?.claimable,
+  ); */
 
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
@@ -91,9 +112,15 @@ const RewardsMoneyDashboard: React.FC = () => {
         label: localizedText?.earningsTab ?? '',
         content: null,
         testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB,
+        endAccessory: showEarningsDot ? (
+          <Box
+            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT}
+            twClassName="h-1.5 w-1.5 rounded-full bg-success-default"
+          />
+        ) : undefined,
       },
     ],
-    [localizedText],
+    [localizedText, showEarningsDot],
   );
 
   const headerEndAccessory = (
