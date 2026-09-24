@@ -67,7 +67,9 @@ const awaitMarketDetailsAboutReady = async (
 ) => {
   const screen = await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
   await waitFor(() => {
-    expect(within(screen).getByText(MOCK_PREDICT_MARKET.title)).toBeOnTheScreen();
+    expect(
+      within(screen).getByText(MOCK_PREDICT_MARKET.title),
+    ).toBeOnTheScreen();
   });
   await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
 };
