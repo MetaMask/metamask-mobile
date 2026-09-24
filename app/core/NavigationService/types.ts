@@ -56,6 +56,7 @@ import type {
 import type { TooltipModalRouteParams } from '../../components/Views/TooltipModal/ToolTipModal.types';
 import type { ChoosePasswordRouteParams } from '../../components/Views/ChoosePassword/ChoosePassword.types';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
+import type { ManageAccountsParams } from '../../components/Views/ManageAccounts/ManageAccounts.types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import type { AccountConnectParams } from '../../components/Views/MultichainAccounts/shared/AccountConnect.types';
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
@@ -83,6 +84,7 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
+import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -482,7 +484,7 @@ export type RootStackParamList = {
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
-  ManageAccountsView: undefined;
+  ManageAccountsView: ManageAccountsParams | undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -556,7 +558,6 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampGetPixKey: undefined;
   RampCreateVirtualBankAccount: undefined;
   RampVbaVerifyIdentity: undefined;
   RampVbaKycEmail: undefined;
@@ -564,6 +565,7 @@ export type RootStackParamList = {
   RampVbaKycPending: undefined;
   RampVbaKycRejected: undefined;
   RampVbaOnboardingError: undefined;
+  RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
