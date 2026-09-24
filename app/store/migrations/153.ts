@@ -1,9 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
-import {
-  BRAZE_PUSH_REGISTRATION_STATE,
-  LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
-} from '../../constants/storage';
+import { BRAZE_PUSH_REGISTRATION_STATE } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
 import { ensureValidState } from './util';
 
@@ -30,12 +27,10 @@ async function setBackfillValue(
 }
 
 /**
- * Migration 153: schedule independent notification consent backfills.
+ * Migration 153: schedule Braze push registration reconciliation.
  *
- * Existing users with MetaMask notifications or marketing consent enabled are
- * checked for missing AUS preferences after login. Devices without both
- * notification switches enabled are scheduled for Braze push unregistration
- * on the next launch.
+ * Devices without both notification switches enabled are scheduled for Braze
+ * push unregistration on the next launch.
  */
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, migrationVersion)) {
@@ -53,28 +48,10 @@ const migration = async (state: unknown): Promise<unknown> => {
     isObject(backgroundState.NotificationServicesPushController)
       ? backgroundState.NotificationServicesPushController
       : undefined;
-  const securityState =
-    hasProperty(state, 'security') && isObject(state.security)
-      ? state.security
-      : undefined;
   const notificationsEnabled =
     notificationServicesState?.isNotificationServicesEnabled === true;
   const pushEnabled = pushServicesState?.isPushEnabled === true;
-  const hasMarketingConsent =
-    securityState?.dataCollectionForMarketing === true;
   const failedValues: string[] = [];
-
-  if (notificationsEnabled || hasMarketingConsent) {
-    if (
-      !(await setBackfillValue(
-        LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
-        'true',
-        'legacy notification AUS backfill',
-      ))
-    ) {
-      failedValues.push('legacy notification AUS backfill');
-    }
-  }
 
   const brazePushRegistrationState =
     notificationsEnabled && pushEnabled

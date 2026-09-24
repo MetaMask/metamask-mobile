@@ -1,8 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import {
-  BRAZE_PUSH_REGISTRATION_STATE,
-  LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
-} from '../../constants/storage';
+import { BRAZE_PUSH_REGISTRATION_STATE } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
 import migrate, { migrationVersion } from './153';
 import { ensureValidState } from './util';
@@ -29,15 +26,10 @@ const mockStorageWrapper = jest.mocked(StorageWrapper);
 const createState = ({
   notificationsEnabled,
   pushEnabled,
-  marketingConsent = false,
 }: {
   notificationsEnabled?: boolean;
   pushEnabled?: boolean;
-  marketingConsent?: boolean;
 }) => ({
-  security: {
-    dataCollectionForMarketing: marketingConsent,
-  },
   engine: {
     backgroundState: {
       NotificationServicesController:
@@ -50,7 +42,7 @@ const createState = ({
   },
 });
 
-describe(`Migration ${migrationVersion}: mark legacy notification backfills`, () => {
+describe(`Migration ${migrationVersion}: schedule Braze push registration reconciliation`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsureValidState.mockReturnValue(true);
@@ -70,7 +62,7 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
     expect(mockStorageWrapper.setItem).not.toHaveBeenCalled();
   });
 
-  it('marks enabled notification users for an AUS preferences backfill', async () => {
+  it('marks devices with both notification switches enabled as registered', async () => {
     const state = createState({
       notificationsEnabled: true,
       pushEnabled: true,
@@ -78,10 +70,7 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
 
     await migrate(state);
 
-    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
-      'true',
-    );
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledTimes(1);
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
       BRAZE_PUSH_REGISTRATION_STATE,
       'registered',
@@ -116,63 +105,15 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
     );
   });
 
-  it('marks users with marketing consent for AUS backfill when notification state is disabled', async () => {
-    const state = createState({
-      notificationsEnabled: false,
-      pushEnabled: false,
-      marketingConsent: true,
-    });
-
-    await migrate(state);
-
-    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
-      'true',
-    );
-    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_REGISTRATION_STATE,
-      'unregistration-pending',
-    );
-  });
-
   it('conservatively marks devices with missing notification state for Braze unregistration', async () => {
     const state = createState({});
 
     await migrate(state);
 
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledTimes(1);
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
       BRAZE_PUSH_REGISTRATION_STATE,
       'unregistration-pending',
-    );
-    expect(mockStorageWrapper.setItem).not.toHaveBeenCalledWith(
-      LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
-      expect.anything(),
-    );
-  });
-
-  it('records each marker failure independently', async () => {
-    const state = createState({
-      notificationsEnabled: true,
-      pushEnabled: false,
-    });
-    mockStorageWrapper.setItem.mockImplementation(async (key) => {
-      if (key === LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING) {
-        throw new Error('AUS marker write failed');
-      }
-    });
-
-    await expect(migrate(state)).rejects.toThrow(
-      'Failed to persist backfill value(s): legacy notification AUS backfill',
-    );
-
-    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_REGISTRATION_STATE,
-      'unregistration-pending',
-    );
-    expect(mockCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining('AUS marker write failed'),
-      }),
     );
   });
 
