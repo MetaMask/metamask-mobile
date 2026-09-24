@@ -27,7 +27,7 @@ export const SUBSCRIPTIONS_REFETCH_INTERVAL = 5 * 60 * 1000;
  * @param options.enabled - Caller gate for fetching subscriptions.
  * @returns The subscriptions query, for callers that need fetch state.
  */
-const useSubscriptionPolling = ({
+const useSubscriptions = ({
   enabled,
 }: {
   enabled: boolean;
@@ -51,4 +51,4 @@ const useSubscriptionPolling = ({
   });
 };
 
-export default useSubscriptionPolling;
+export default useSubscriptions;

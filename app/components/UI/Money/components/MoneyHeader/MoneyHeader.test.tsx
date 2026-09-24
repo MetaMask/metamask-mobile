@@ -4,14 +4,6 @@ import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useProAccess } from '../../../../../hooks/useIsProSubscriber';
-
-jest.mock('../../../../../hooks/useProSubscriptionEnabled');
-jest.mock('../../../../../hooks/useIsProSubscriber');
-
-const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
-const mockUseProAccess = jest.mocked(useProAccess);
 
 const sharedValue = (value: number): SharedValue<number> =>
   ({ value }) as unknown as SharedValue<number>;
@@ -23,31 +15,20 @@ const pushedProps = {
   titleSectionHeight: sharedValue(0),
 };
 
-describe('MoneyHeader', () => {
-  beforeEach(() => {
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
-    });
-    mockUseProAccess.mockReturnValue({
-      isProSubscriber: false,
-      isProAccessUnknown: false,
-    });
-  });
+const proButton = {
+  label: strings('pro_subscription.join_pro'),
+  onPress: jest.fn(),
+};
 
+describe('MoneyHeader', () => {
   it('renders the menu button', () => {
-    const { getByTestId } = render(
-      <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-    );
+    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
     expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
   });
 
   it('renders the Money title alongside the menu button', () => {
-    const { getByTestId } = render(
-      <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-    );
+    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
     expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
       strings('money.title'),
@@ -59,7 +40,7 @@ describe('MoneyHeader', () => {
   it('calls onMenuPress when the menu button is pressed', () => {
     const mockOnMenuPress = jest.fn();
     const { getByTestId } = render(
-      <MoneyHeader onMenuPress={mockOnMenuPress} onGetProPress={jest.fn()} />,
+      <MoneyHeader onMenuPress={mockOnMenuPress} />,
     );
 
     fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
@@ -68,9 +49,7 @@ describe('MoneyHeader', () => {
   });
 
   it('uses the same horizontal padding as the Home page header', () => {
-    const { getByTestId } = render(
-      <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-    );
+    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
     expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toHaveStyle({
       paddingLeft: 16,
@@ -80,9 +59,7 @@ describe('MoneyHeader', () => {
 
   describe('back button', () => {
     it('is not rendered without an onBack handler', () => {
-      const { queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-      );
+      const { queryByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
       expect(
         queryByTestId(MoneyHeaderTestIds.BACK_BUTTON),
@@ -93,7 +70,6 @@ describe('MoneyHeader', () => {
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          onGetProPress={jest.fn()}
           onBack={jest.fn()}
           {...pushedProps}
         />,
@@ -107,7 +83,6 @@ describe('MoneyHeader', () => {
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          onGetProPress={jest.fn()}
           onBack={mockOnBack}
           {...pushedProps}
         />,
@@ -122,7 +97,6 @@ describe('MoneyHeader', () => {
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          onGetProPress={jest.fn()}
           onBack={jest.fn()}
           {...pushedProps}
         />,
@@ -134,17 +108,11 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
-    it('keeps the "Get Pro" button alongside the back button', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-
+    it('keeps the Pro button alongside the back button', () => {
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          onGetProPress={jest.fn()}
+          proButton={proButton}
           onBack={jest.fn()}
           {...pushedProps}
         />,
@@ -156,49 +124,9 @@ describe('MoneyHeader', () => {
   });
 
   describe('Pro button', () => {
-    it('is not shown when the Pro subscription flag is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
-      });
-
-      const { queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-      );
-
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('is shown when the Pro subscription flag is enabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-
-      const { getByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('is hidden while Plus access is unresolved', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUseProAccess.mockReturnValue({
-        isProSubscriber: false,
-        isProAccessUnknown: true,
-      });
-
+    it('is not rendered without a proButton, leaving the menu in place', () => {
       const { getByTestId, queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+        <MoneyHeader onMenuPress={jest.fn()} />,
       );
 
       expect(
@@ -207,68 +135,33 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
-    it('invites the user to join when they are not subscribed', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUseProAccess.mockReturnValue({
-        isProSubscriber: false,
-        isProAccessUnknown: false,
-      });
-
+    it('renders the caller-provided label alongside the menu', () => {
       const { getByTestId, getByLabelText } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          proButton={{ label: 'Pro', onPress: jest.fn() }}
+        />,
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        'Pro',
       );
-      expect(
-        getByLabelText(strings('pro_subscription.join_pro')),
-      ).toBeOnTheScreen();
+      expect(getByLabelText('Pro')).toBeOnTheScreen();
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
-    it('shows the Pro label when the user is already subscribed', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUseProAccess.mockReturnValue({
-        isProSubscriber: true,
-        isProAccessUnknown: false,
-      });
-
-      const { getByTestId, getByLabelText } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.pro'),
-      );
-      expect(getByLabelText(strings('pro_subscription.pro'))).toBeOnTheScreen();
-    });
-
-    it('calls onGetProPress when pressed', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-
-      const mockOnGetProPress = jest.fn();
+    it('calls the provided onPress when pressed', () => {
+      const mockOnPress = jest.fn();
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          onGetProPress={mockOnGetProPress}
+          proButton={{ label: 'Pro', onPress: mockOnPress }}
         />,
       );
 
       fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
 
-      expect(mockOnGetProPress).toHaveBeenCalledTimes(1);
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
-import useSubscriptionPolling from '../components/hooks/useSubscriptionPolling';
+import useSubscriptions from '../components/hooks/useSubscriptions';
 import {
   selectHasAnyMoneyAccountPlusEntitlement,
   selectIsMoneyAccountPlusSubscriber,
@@ -15,14 +15,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('./useProSubscriptionEnabled');
-jest.mock('../components/hooks/useSubscriptionPolling', () => ({
+jest.mock('../components/hooks/useSubscriptions', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
-const mockUseSubscriptionPolling = jest.mocked(useSubscriptionPolling);
+const mockUseSubscriptions = jest.mocked(useSubscriptions);
 
 const mockSubscriptionState = ({
   isSubscriber = false,
@@ -50,9 +50,9 @@ describe('useMoneyAccountPlusAccess', () => {
       variantName: 'treatment',
       isActive: true,
     });
-    mockUseSubscriptionPolling.mockReturnValue({
+    mockUseSubscriptions.mockReturnValue({
       isLoading: false,
-    } as ReturnType<typeof useSubscriptionPolling>);
+    } as ReturnType<typeof useSubscriptions>);
     mockSubscriptionState();
   });
 
@@ -79,9 +79,9 @@ describe('useMoneyAccountPlusAccess', () => {
 
   it('grants subscriber access even while the query is still loading', () => {
     mockSubscriptionState({ isSubscriber: true });
-    mockUseSubscriptionPolling.mockReturnValue({
+    mockUseSubscriptions.mockReturnValue({
       isLoading: true,
-    } as ReturnType<typeof useSubscriptionPolling>);
+    } as ReturnType<typeof useSubscriptions>);
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
@@ -89,9 +89,9 @@ describe('useMoneyAccountPlusAccess', () => {
   });
 
   it('stays unknown while subscriptions are unresolved and empty', () => {
-    mockUseSubscriptionPolling.mockReturnValue({
+    mockUseSubscriptions.mockReturnValue({
       isLoading: true,
-    } as ReturnType<typeof useSubscriptionPolling>);
+    } as ReturnType<typeof useSubscriptions>);
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 

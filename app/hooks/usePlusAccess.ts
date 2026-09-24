@@ -3,30 +3,30 @@ import {
   useMoneyAccountPlusAccess,
 } from './useMoneyAccountPlusAccess';
 
-export interface UseProAccessResult {
-  isProSubscriber: boolean;
-  isProAccessUnknown: boolean;
+export interface UsePlusAccessResult {
+  isPlusSubscriber: boolean;
+  isPlusAccessUnknown: boolean;
 }
 
 /**
  * Returns Plus access as two booleans for chrome that only needs to know
  * whether the user is a subscriber, or whether that answer is still unknown.
  */
-export function useProAccess(): UseProAccessResult {
+export function usePlusAccess(): UsePlusAccessResult {
   const access = useMoneyAccountPlusAccess();
 
   return {
-    isProSubscriber: access === MoneyAccountPlusAccess.Subscriber,
-    isProAccessUnknown: access === MoneyAccountPlusAccess.Unknown,
+    isPlusSubscriber: access === MoneyAccountPlusAccess.Subscriber,
+    isPlusAccessUnknown: access === MoneyAccountPlusAccess.Unknown,
   };
 }
 
 /**
- * Returns whether the user may see subscriber-only Pro chrome.
+ * Returns whether the user may see subscriber-only Plus chrome.
  *
  * True only when {@link useMoneyAccountPlusAccess} reports
  * {@link MoneyAccountPlusAccess.Subscriber}.
  */
-export function useIsProSubscriber(): boolean {
-  return useProAccess().isProSubscriber;
+export function useIsPlusSubscriber(): boolean {
+  return usePlusAccess().isPlusSubscriber;
 }

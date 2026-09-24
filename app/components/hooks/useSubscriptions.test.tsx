@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../core/Engine';
 import type { RootState } from '../../reducers';
 import configureStore from '../../util/test/configureStore';
-import useSubscriptionPolling from './useSubscriptionPolling';
+import useSubscriptions from './useSubscriptions';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -31,7 +31,7 @@ const createBackgroundState = ({
   KeyringController: { isUnlocked, keyrings: [] },
 });
 
-const renderUseSubscriptionPolling = ({
+const renderUseSubscriptions = ({
   enabled,
   isSignedIn = true,
   isUnlocked = true,
@@ -56,19 +56,19 @@ const renderUseSubscriptionPolling = ({
     </Provider>
   );
 
-  return renderHook(() => useSubscriptionPolling({ enabled }), {
+  return renderHook(() => useSubscriptions({ enabled }), {
     wrapper: Wrapper,
   });
 };
 
-describe('useSubscriptionPolling', () => {
+describe('useSubscriptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSubscriptionController.getSubscriptions.mockResolvedValue([]);
   });
 
   it('does not fetch when disabled', () => {
-    renderUseSubscriptionPolling({ enabled: false });
+    renderUseSubscriptions({ enabled: false });
 
     expect(
       mockedSubscriptionController.getSubscriptions,
@@ -76,7 +76,7 @@ describe('useSubscriptionPolling', () => {
   });
 
   it('does not fetch when the user is signed out', () => {
-    renderUseSubscriptionPolling({ enabled: true, isSignedIn: false });
+    renderUseSubscriptions({ enabled: true, isSignedIn: false });
 
     expect(
       mockedSubscriptionController.getSubscriptions,
@@ -84,7 +84,7 @@ describe('useSubscriptionPolling', () => {
   });
 
   it('does not fetch when the keyring is locked', () => {
-    renderUseSubscriptionPolling({ enabled: true, isUnlocked: false });
+    renderUseSubscriptions({ enabled: true, isUnlocked: false });
 
     expect(
       mockedSubscriptionController.getSubscriptions,
@@ -92,7 +92,7 @@ describe('useSubscriptionPolling', () => {
   });
 
   it('fetches through the controller when every gate is true', async () => {
-    const { result } = renderUseSubscriptionPolling({ enabled: true });
+    const { result } = renderUseSubscriptions({ enabled: true });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -102,7 +102,7 @@ describe('useSubscriptionPolling', () => {
   });
 
   it('reports the in-flight fetch so callers can tell unknown from empty', async () => {
-    const { result } = renderUseSubscriptionPolling({ enabled: true });
+    const { result } = renderUseSubscriptions({ enabled: true });
 
     expect(result.current.isLoading).toBe(true);
 
@@ -113,7 +113,7 @@ describe('useSubscriptionPolling', () => {
     const error = new Error('request failed');
     mockedSubscriptionController.getSubscriptions.mockRejectedValue(error);
 
-    const { result } = renderUseSubscriptionPolling({ enabled: true });
+    const { result } = renderUseSubscriptions({ enabled: true });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toBe(error);
