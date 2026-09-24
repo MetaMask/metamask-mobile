@@ -45,7 +45,6 @@ const useSubscriptions = ({
     queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
     enabled: enabled && isSignedIn && isUnlocked,
     refetchInterval: SUBSCRIPTIONS_REFETCH_INTERVAL,
-    staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
