@@ -1894,6 +1894,30 @@ class FixtureBuilder {
     return this;
   }
 
+  withStellarEnabled() {
+    merge(this.fixture.state.engine.backgroundState, {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          stellarAccounts: {
+            enabled: true,
+            featureVersion: null,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    });
+
+    return this.withNetworkEnabledMap({
+      stellar: {
+        'stellar:pubnet': true,
+        'stellar:testnet': true,
+      },
+      eip155: {
+        '0x539': true,
+      },
+    }).ensureMultichainIntroModalSuppressed();
+  }
+
   withCleanBannerState() {
     merge(this.fixture.state, {
       banners: {
