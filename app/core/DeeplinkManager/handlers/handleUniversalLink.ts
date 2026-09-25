@@ -63,7 +63,10 @@ import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
-import { handleNotificationsSettingsUrl } from './legacy/handleNotificationsSettingsUrl';
+import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from './intent/handleNotificationsSettingsUrl';
 import {
   getDeeplinkProcessedTraceContext,
   markDeeplinkInterstitialShown,
@@ -313,6 +316,16 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       handleTrendingUrl({ actionPath: actionBasedRampPath }),
     resolve: ({ actionBasedRampPath }) =>
       createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleNotificationsSettingsUrl({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createNotificationsSettingsDeeplinkIntent({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
   },
 };
 
@@ -845,12 +858,6 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.PRIVACY: {
       handlePrivacyUrl({ privacyPath: actionBasedRampPath });
-      break;
-    }
-    case SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS: {
-      handleNotificationsSettingsUrl({
-        notificationsSettingsPath: actionBasedRampPath,
-      });
       break;
     }
   }
