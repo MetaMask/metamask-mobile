@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-09-15
+ * Production defaults last synced: 2026-09-22
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -70,7 +70,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'additionalNetworksBlacklist',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: ['0x13b2'],
+    productionDefault: [],
     status: FeatureFlagStatus.Active,
   },
 
@@ -343,6 +343,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             scope: {
               type: 'threshold',
               value: 1,
+            },
+            thresholdName: 'feature is OFF',
+            thresholdVersion: 2,
+            value: {
+              enabled: false,
+            },
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
             },
             thresholdName: 'feature is ON',
             thresholdVersion: 2,
@@ -674,6 +685,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           name: 'HyperEVM',
         },
         {
+          chainId: 'eip155:5042',
+          name: 'Arc',
+        },
+        {
           chainId: 'eip155:324',
           name: 'zkSync',
         },
@@ -738,6 +753,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
             '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
           ],
+        },
+        '5042': {
+          isActiveDest: true,
+          isActiveSrc: true,
         },
         '8453': {
           batchSellDestStablecoins: [
@@ -952,6 +971,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               enabled: true,
               name: 'Wrapped Ether',
               symbol: 'WETH',
+            },
+            {
+              address: '0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42',
+              decimals: 6,
+              enabled: true,
+              name: 'EURC',
+              symbol: 'EURC',
             },
           ],
         },
@@ -4359,6 +4385,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+      minimumVersion: '8.13.0',
+      startDate: '',
+      endDate: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  // Not in the production client-config response yet. inProd stays false so
+  // the weekly registry sync does not treat this as removed from production.
+  cardUkMigrationSignInRouting: {
+    name: 'cardUkMigrationSignInRouting',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4725,7 +4767,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.10.0',
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4747,7 +4789,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.10.0',
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4758,7 +4800,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.10.0',
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5318,77 +5360,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rewardsAnnouncementModalEnabled: {
-    name: 'rewardsAnnouncementModalEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsBitcoinEnabled: {
-    name: 'rewardsBitcoinEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsDropsEnabled: {
-    name: 'rewardsDropsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsEnableCardSpend: {
-    name: 'rewardsEnableCardSpend',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '7.58.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsEnableMusdDeposit: {
-    name: 'rewardsEnableMusdDeposit',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsEnableMusdHolding: {
-    name: 'rewardsEnableMusdHolding',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsEnabled: {
-    name: 'rewardsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.57.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   /**
    * Gates RewardsMoneyController consumer reads. Remote flag exists in
    * LaunchDarkly; default remains off until rollout enables it.
@@ -5399,7 +5370,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '0.0.0',
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5422,14 +5393,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsTronEnabled: {
-    name: 'rewardsTronEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -6142,6 +6105,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  brazeEventBlocklist: {
+    name: 'brazeEventBlocklist',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      blockedEvents: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   brazeBannerHomeMinVersion: {
     name: 'brazeBannerHomeMinVersion',
     type: FeatureFlagType.Remote,
@@ -6150,25 +6125,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  brazeSegmentForwarding: {
-    name: 'brazeSegmentForwarding',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      allowedEvents: [],
-      allowedTraits: [],
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-  brazeBannerHome: {
-    name: 'brazeBannerHome',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -6386,36 +6342,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-      {
-        name: 'icons',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-      {
-        name: 'allocation',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-      {
-        name: 'iconsWithArrows',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-    ],
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -7245,14 +7174,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rewardsMissingEnrolledAccounts: {
-    name: 'rewardsMissingEnrolledAccounts',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   socialAiTSA495AbtestCardRotationInterval: {
     name: 'socialAiTSA495AbtestCardRotationInterval',
     type: FeatureFlagType.Remote,
@@ -7765,6 +7686,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsPriceAlertsEnabled: {
+    name: 'perpsPriceAlertsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictHomepageDiscoveryNbaChampionEnabled: {
     name: 'predictHomepageDiscoveryNbaChampionEnabled',
     type: FeatureFlagType.Remote,
@@ -8037,7 +7969,32 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS5010AbtestGaslessSwapRedesign',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+  immersveAppleWalletInAppProvisioningEnabled: {
+    name: 'immersveAppleWalletInAppProvisioningEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 };

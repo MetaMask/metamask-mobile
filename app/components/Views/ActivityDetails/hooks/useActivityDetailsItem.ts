@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { mapApiTransaction } from '@metamask/client-utils';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
@@ -19,7 +20,7 @@ import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
 import { isValidTransactionHash } from '../../ActivityList/hooks/activity/isValidTransactionHash';
-import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
+import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import {
   mapNonEvmTransactions,
@@ -61,19 +62,6 @@ function buildItemsByHash(
     }
   }
   return byHash;
-}
-
-function buildItemsByIdentifier(items: ActivityListItem[]) {
-  const byIdentifier = buildItemsByHash(items);
-  for (const item of items) {
-    const domainId =
-      item.raw?.type === 'rampOrder' ? item.raw.data.id : undefined;
-    const normalizedDomainId = domainId?.toLowerCase();
-    if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
-      byIdentifier.set(normalizedDomainId, item);
-    }
-  }
-  return byIdentifier;
 }
 
 function filterByChain(
@@ -134,7 +122,7 @@ export function useActivityDetailsItem(
   isFetching: boolean;
 } {
   const localByLookupKey = useSelector(selectLocalActivityItemsByIdentifier);
-  const rampActivityItems = useRampActivityItems();
+  const rampActivityItemsById = useRampActivityItemsById();
   const { data: evmTransactions, isFetching: isListFetching } =
     useTransactionsQuery();
   const groupEvmAccount = useSelector(
@@ -185,10 +173,20 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
-  const rampByIdentifier = useMemo(
-    () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
-    [rampActivityItems, chainId],
-  );
+  const rampByIdentifier = useMemo(() => {
+    const byIdentifier = new Map<string, ActivityListItem>();
+    for (const [id, item] of rampActivityItemsById) {
+      if (chainId && item.chainId !== chainId) {
+        continue;
+      }
+      const hash = item.hash?.toLowerCase();
+      if (hash) {
+        byIdentifier.set(hash, item);
+      }
+      byIdentifier.set(id, item);
+    }
+    return byIdentifier;
+  }, [rampActivityItemsById, chainId]);
   const localTransactionMeta = useLocalTransactionMeta(txIdentifier);
 
   const fetchedApiItem = useMemo(() => {
@@ -212,13 +210,10 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const activity = {
-      ...mapApiTransaction({
-        subjectAddress,
-        transaction: apiTransaction,
-      }),
-      raw: { type: 'apiEvmTransaction' as const, data: apiTransaction },
-    } as ActivityListItem;
+    const activity = mapApiTransaction({
+      subjectAddress,
+      transaction: apiTransaction,
+    }) as ActivityListItem;
     const classified = classifyPooledStakingActivity(apiTransaction, activity);
 
     if (chainId && classified.chainId !== chainId) {
@@ -254,9 +249,13 @@ export function useActivityDetailsItem(
       (fetchedApiItem?.hash?.toLowerCase() === txIdentifier.toLowerCase()
         ? fetchedApiItem
         : undefined);
+    const localConfirmedApiPending =
+      localTransactionMeta?.status === TransactionStatus.confirmed &&
+      !apiItem &&
+      isSingleTxFetching;
     const nonEvmItem = getPreferredItem(nonEvmByHash, txIdentifier);
 
-    if (localItem) {
+    if (localItem && !localConfirmedApiPending) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
     }
 
@@ -273,6 +272,7 @@ export function useActivityDetailsItem(
     rampByIdentifier,
     localTransactionMeta,
     fetchedApiItem,
+    isSingleTxFetching,
   ]);
 
   const isFetching = useMemo(() => {

@@ -28,6 +28,7 @@ import {
   CommonActions,
   StackActions,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   RouteProp,
@@ -46,6 +47,8 @@ import {
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSelectedCountry,
+  selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
@@ -151,6 +154,7 @@ const CardHome = () => {
     selectMetalCardCheckoutFeatureFlag,
   );
   const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
@@ -169,6 +173,7 @@ const CardHome = () => {
   const { state: ukMigrationState, refresh: refreshUkMigrationState } =
     useCardUkMigrationState();
   const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const hasCompletedMigration = useSelector(selectHasCompletedCardMigration);
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -176,22 +181,25 @@ const CardHome = () => {
   const isUkMigrationEligible = isCardUkMigrationEligible(ukMigrationState, {
     providerId: activeProviderId,
     regionCode: migrationRegionCode,
+    hasCompletedMigration,
   });
   const isUkMigrationForced =
     isUkMigrationEligible && ukMigrationState.phase === 'forced';
   const isUkMigrationSoft =
     isUkMigrationEligible && ukMigrationState.phase === 'soft';
+  const selectedCountry = useSelector(selectCardSelectedCountry);
+  const immersveLegalRegionCode = data?.card?.regionCode ?? selectedCountry;
   const {
     permanentDocuments: immersveLegalDocuments,
     isLoading: isImmersveLegalDocsLoading,
     error: immersveLegalDocsError,
     refetch: refetchImmersveLegalDocs,
-  } = useImmersveSupportedRegions(data?.card?.regionCode, {
-    enabled: isImmersve && Boolean(data?.card?.regionCode),
+  } = useImmersveSupportedRegions(immersveLegalRegionCode, {
+    enabled: isImmersve && Boolean(immersveLegalRegionCode),
   });
   const immersveLegalDocsUnavailable = Boolean(
     isImmersve &&
-      Boolean(data?.card?.regionCode) &&
+      Boolean(immersveLegalRegionCode) &&
       !isImmersveLegalDocsLoading &&
       (immersveLegalDocsError || immersveLegalDocuments.length === 0),
   );
@@ -317,18 +325,28 @@ const CardHome = () => {
   );
 
   // --- Auth state transition: navigate to auth screen on logout ---
+  // Defer the redirect until Card Home is focused. A provider switch during
+  // UK migration marks the user signed out while SignUp is on top; replacing
+  // the focused route from this background screen unmounts that flow.
   const wasAuthenticated = useRef(isAuthenticated);
+  const pendingAuthRedirect = useRef(false);
   useEffect(() => {
-    const wasAuth = wasAuthenticated.current;
-    wasAuthenticated.current = isAuthenticated;
     if (
-      wasAuth &&
+      wasAuthenticated.current &&
       !isAuthenticated &&
       lastUnauthenticatedReason !== 'onboarding_token_revoked'
     ) {
+      pendingAuthRedirect.current = true;
+    }
+    if (isAuthenticated) {
+      pendingAuthRedirect.current = false;
+    }
+    wasAuthenticated.current = isAuthenticated;
+    if (pendingAuthRedirect.current && isFocused) {
+      pendingAuthRedirect.current = false;
       navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
     }
-  }, [isAuthenticated, lastUnauthenticatedReason, navigation]);
+  }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
 
   const hasHandledOnboardingTokenRevocation = useRef(false);
   useEffect(() => {

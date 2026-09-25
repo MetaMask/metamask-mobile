@@ -79,6 +79,24 @@ jest.mock('./feed/components/SocialFeedPostShell', () => {
   };
 });
 
+jest.mock('./feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
+  };
+});
+
+jest.mock('./feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
+
 jest.mock('../components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
@@ -158,7 +176,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  return Reanimated;
+  return {
+    ...Reanimated,
+    useReducedMotion: jest.fn(() => false),
+  };
 });
 
 jest.mock('react-native-gesture-handler', () => {
@@ -291,8 +312,7 @@ describe('SocialV1View', () => {
         id: 'composed-focus',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({ id: 'focus-item', comment: 'focus me' }),
       });
     });
@@ -313,8 +333,7 @@ describe('SocialV1View', () => {
         id: 'composed-1',
         authorHandle: 'giga-whale',
         timestampMs: Date.now(),
-        likeCount: 0,
-        commentCount: 0,
+        reactions: [],
         item: mockOpenPerpsFeedItem({
           id: 'composed-item',
           comment: 'this is alpha',
@@ -364,15 +383,13 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
 
-  it('closes the filters bottom sheet when Show results is pressed', () => {
+  it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     );
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-show-results'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
   });
@@ -386,6 +403,19 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('opens the filters bottom sheet from the Following filter button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('omits the header back button', () => {
@@ -529,9 +559,7 @@ describe('SocialV1View', () => {
 
     fireEvent.press(filterButton());
     fireEvent.press(screen.getByTestId('social-filters-type-tokens'));
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-show-results'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     const activeStyle = StyleSheet.flatten(filterButton().props.style);
     expect(activeStyle?.backgroundColor).not.toBe(
