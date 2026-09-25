@@ -645,6 +645,19 @@ type OptionalControllers = Pick<
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
+/**
+ * Declared structurally to match `PerpsControllerAllowedActions`, which lists
+ * this action so clients that do expose it can serve it. Our
+ * `SubscriptionController` does not, so nothing delegates it and
+ * `RewardsIntegrationService` keeps using its injected `subscription`
+ * dependency. Remove once `@metamask/subscription-controller` exposes the
+ * action itself.
+ */
+interface SubscriptionControllerRegisterAddressAction {
+  type: `SubscriptionController:registerAddress`;
+  handler: (caipAccountId: string) => Promise<void>;
+}
+
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
@@ -749,6 +762,7 @@ export type GlobalActions =
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | SubscriptionControllerActions
+  | SubscriptionControllerRegisterAddressAction
   | SubscriptionServiceActions
   | ShieldControllerActions
   | ShieldApiServiceActions
