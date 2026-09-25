@@ -682,7 +682,7 @@ const BAANX_CAPABILITIES = {
   supportsFundingLimits: true,
   fundingChains: ['eip155:59144', 'eip155:8453'],
   supportsFreeze: true,
-  supportsPushProvisioning: true,
+  pushProvisioning: { applePay: true, googlePay: true },
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
   supportsPinSet: false,
