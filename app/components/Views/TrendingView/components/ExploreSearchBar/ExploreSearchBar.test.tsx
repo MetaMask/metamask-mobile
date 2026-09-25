@@ -32,7 +32,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      expect(getByTestId('explore-view-search-button')).toBeDefined();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      ).toBeDefined();
       expect(getByText('Search')).toBeDefined();
     });
 
@@ -43,7 +45,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByTestId('explore-view-search-button'));
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      );
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
@@ -76,6 +80,43 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('explore-view-search-input')).toBeDefined();
       expect(getByDisplayValue('bitcoin')).toBeDefined();
       expect(getByTestId('textfieldsearch')).toBeDefined();
+    });
+
+    it('renders the paste pill when enabled', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          pasteButtonTestID="homepage-search-paste-button"
+        />,
+      );
+
+      expect(getByTestId('homepage-search-paste-button')).toBeOnTheScreen();
+    });
+
+    it('handles the paste pill press', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          pasteButtonTestID="homepage-search-paste-button"
+        />,
+      );
+
+      fireEvent.press(getByTestId('homepage-search-paste-button'));
+      expect(mockOnPastePress).toHaveBeenCalledTimes(1);
     });
 
     it('calls onSearchChange when text is entered', () => {

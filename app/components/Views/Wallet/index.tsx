@@ -55,6 +55,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   ButtonAnimated,
+  FontWeight,
   Icon as MMDSIcon,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
@@ -133,13 +134,18 @@ import {
 import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import {
+  type SearchOrigin,
+  useHomepageSearchPaste,
+} from '../TrendingView/search/useHomepageSearchPaste';
+/* eslint-enable import-x/no-restricted-paths */
+import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -874,10 +880,38 @@ const Wallet = ({
     navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
 
-  const handleSearchPress = useCallback(() => {
-    trackExploreSearchOpened('home');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
-  }, [navigation]);
+  const {
+    isTreatment: isSearchHeaderEnabled,
+    showPastePill,
+    handlePastePress,
+  } = useHomepageSearchPaste({
+    enabled: true,
+    onPaste: (initialQuery, searchOrigin) => {
+      navigation.navigate(Routes.EXPLORE_SEARCH, {
+        entryPoint: 'home',
+        initialQuery,
+        initialQuerySource: 'clipboard',
+        ...(searchOrigin ? { searchOrigin } : {}),
+      });
+    },
+  });
+
+  const handleSearchPress = useCallback(
+    (
+      initialQuery?: string,
+      searchOrigin?: SearchOrigin,
+      pastePillVisible?: boolean,
+    ) => {
+      navigateToExploreSearch(
+        navigation,
+        isSearchHeaderEnabled,
+        initialQuery,
+        searchOrigin,
+        pastePillVisible,
+      );
+    },
+    [isSearchHeaderEnabled, navigation],
+  );
 
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1103,36 +1137,39 @@ const Wallet = ({
     </>
   ) : null;
 
-  const compactHeaderAccountName = isCompactHeader ? (
-    <ButtonAnimated
-      onPress={handleAccountHubPress}
-      style={styles.compactHeaderAccountName}
-      onLayout={handleAccountNameLayout}
-      testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON}
-      accessibilityRole="button"
-      accessibilityLabel={displayName}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+  const compactHeaderAccountName =
+    (isCompactHeader || isSearchHeaderEnabled) &&
+    !inWalletHomePostOnboardingFlow ? (
+      <ButtonAnimated
+        onPress={handleAccountHubPress}
+        style={styles.compactHeaderAccountName}
+        onLayout={handleAccountNameLayout}
+        testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON}
+        accessibilityRole="button"
+        accessibilityLabel={displayName}
       >
-        <CustomText
-          variant={TextVariant.HeadingLg}
-          numberOfLines={1}
-          twClassName="shrink"
-          testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
         >
-          {displayName}
-        </CustomText>
-        <MMDSIcon
-          name={MMDSIconName.ArrowRight}
-          size={MMDSIconSize.Md}
-          color={MMDSIconColor.IconAlternative}
-        />
-      </Box>
-    </ButtonAnimated>
-  ) : null;
+          <CustomText
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Regular}
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+          >
+            {displayName}
+          </CustomText>
+          <MMDSIcon
+            name={MMDSIconName.ArrowRight}
+            size={MMDSIconSize.Md}
+            color={MMDSIconColor.IconAlternative}
+          />
+        </Box>
+      </ButtonAnimated>
+    ) : null;
 
   const portfolioHeader = balanceBreakdownLayout ? (
     <>
@@ -1145,6 +1182,9 @@ const Wallet = ({
         </View>
       ) : null}
       {compactHeaderAccountName}
+      {isSearchHeaderEnabled && inWalletHomePostOnboardingFlow && (
+        <Box paddingTop={4} twClassName="flex-none" />
+      )}
     </>
   ) : (
     <>
@@ -1152,13 +1192,18 @@ const Wallet = ({
         <View style={styles.treatmentBannerContainer}>{bannerContent}</View>
       ) : null}
       {compactHeaderAccountName}
-      <View style={styles.portfolioHeaderCluster}>
+      <Box
+        style={styles.portfolioHeaderCluster}
+        paddingTop={
+          isSearchHeaderEnabled && inWalletHomePostOnboardingFlow ? 4 : 0
+        }
+      >
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
         {walletHomeMainAssetDetailsActions}
         {growthBanner}
         {homepageDiscoveryPills}
         {showMoneyBalanceCard && <MoneyBalanceCard />}
-      </View>
+      </Box>
     </>
   );
 
@@ -1205,6 +1250,9 @@ const Wallet = ({
                   handleSearchPress={
                     isHeaderSearchEnabled ? handleSearchPress : undefined
                   }
+                  useSearchHeaderLayout={isSearchHeaderEnabled}
+                  showSearchPastePill={showPastePill}
+                  handleSearchPastePress={handlePastePress}
                   touchAreaSlop={touchAreaSlop}
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}
@@ -1215,6 +1263,9 @@ const Wallet = ({
                   navigation={navigation}
                   isMoneyAccountVisible={isMoneyAccountVisible}
                   handleSearchPress={handleSearchPress}
+                  useSearchHeaderLayout={isSearchHeaderEnabled}
+                  showSearchPastePill={showPastePill}
+                  handleSearchPastePress={handlePastePress}
                   handleActivityPress={handleActivityPress}
                   handleCardPress={handleCardPress}
                   handleHamburgerPress={handleHamburgerPress}

@@ -134,6 +134,27 @@ describe('useInstrumentedSearchEffect', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
+  it('redacts a clipboard query from the searched event', () => {
+    renderHook(() =>
+      useInstrumentedSearchEffect({
+        searchQuery: 'clipboard-secret',
+        redactSearchQuery: true,
+        isLoading: false,
+        getPill,
+        getSections,
+      }),
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          interaction_type: 'searched',
+          search_query: '',
+        }),
+      }),
+    );
+  });
+
   it('fires again when the query changes', () => {
     const { rerender } = renderHook(
       ({ query }: { query: string }) =>

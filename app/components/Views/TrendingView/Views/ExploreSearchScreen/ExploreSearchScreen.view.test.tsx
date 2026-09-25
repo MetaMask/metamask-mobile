@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   HeaderNavBarVariant,
+  renderExploreSearchScreenWithBackStack,
   renderExploreSearchScreenWithRoutes,
 } from '../../../../../../tests/component-view/renderers/trending';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -73,6 +74,71 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(getByDisplayValue('Apple')).toBeOnTheScreen();
 
     expect(await findByText('Apple Token')).toBeOnTheScreen();
+  });
+
+  it('redacts a clipboard-prefilled query from the searched event', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderExploreSearchScreenWithRoutes({
+        initialParams: {
+          entryPoint: 'home',
+          initialQuery: 'clipboard-secret',
+          initialQuerySource: 'clipboard',
+        },
+      });
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'searched',
+              search_query: '',
+            }),
+          }),
+        );
+      });
+
+      expect(trackEventSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            search_query: 'clipboard-secret',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('cancels the homepage search handoff and returns to the previous route', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderExploreSearchScreenWithBackStack({
+        initialParams: {
+          entryPoint: 'home',
+          searchOrigin: { x: 48, y: 48, width: 220, height: 48 },
+        },
+      });
+
+    expect(
+      await findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+
+    await actButtonPress(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('attributes a deeplink search open to the deeplink entry point', async () => {

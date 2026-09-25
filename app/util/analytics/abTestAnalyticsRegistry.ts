@@ -20,7 +20,10 @@ import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../componen
 import { LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV0View/abTestConfig';
 import { SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
-import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
+import {
+  EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
+  HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_ANALYTICS_MAPPING,
+} from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import {
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
@@ -45,6 +48,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_EARN_SECTION_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING,
+  HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_ANALYTICS_MAPPING,
   PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Onboarding interest questionnaire

@@ -1,6 +1,46 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
+export const HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY = 'homeSearchPastePillABTest';
+
+export enum HomepageSearchPastePillVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export const HOMEPAGE_SEARCH_PASTE_PILL_VARIANTS: Record<
+  HomepageSearchPastePillVariant,
+  { showPastePill: boolean }
+> = {
+  [HomepageSearchPastePillVariant.Control]: {
+    showPastePill: false,
+  },
+  [HomepageSearchPastePillVariant.Treatment]: {
+    showPastePill: true,
+  },
+};
+
+export const HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage search bar paste pill',
+  variationNames: {
+    control: 'Homepage search bar without paste pill',
+    treatment: 'Homepage search bar with paste pill',
+  },
+} as const;
+
+export const HOMEPAGE_SEARCH_PASTE_PILL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_SEARCH_PASTE_PILL_AB_KEY,
+    validVariants: Object.values(HomepageSearchPastePillVariant),
+    eventNames: [EVENT_NAME.EXPLORE_SEARCH_INTERACTED],
+    eventPropertyRequirements: {
+      [EVENT_NAME.EXPLORE_SEARCH_INTERACTED]: {
+        interaction_type: 'paste',
+        entry_point: 'home',
+      },
+    },
+  };
+
 // --- Explore Search Quick Buy A/B Test (ASSETS-3380) ---
 
 export const EXPLORE_QUICK_BUY_AB_KEY = 'assetsASSETS3380AbtestExploreQuickBuy';
