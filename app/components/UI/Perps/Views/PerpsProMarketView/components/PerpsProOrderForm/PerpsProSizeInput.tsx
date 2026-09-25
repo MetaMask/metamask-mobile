@@ -88,13 +88,15 @@ const PerpsProSizeInput = ({
   const inputLocaleRef = useRef(locale);
   const internalInputRef = useRef<TextInput>(null);
   const inputRef = externalInputRef ?? internalInputRef;
-  const selectionRef = useRef<PerpsInputSelection>();
+  const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
   const shouldIgnoreNextSelectionChangeRef = useRef(false);
   const [isFocused, setIsFocused] = useState(false);
   const [displayValue, setDisplayValue] = useState(() =>
     formatPerpsInput(value, locale),
   );
-  const [selection, setSelection] = useState<PerpsInputSelection>();
+  const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
+    undefined,
+  );
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
