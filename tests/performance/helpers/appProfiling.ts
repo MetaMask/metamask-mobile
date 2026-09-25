@@ -161,6 +161,19 @@ async function probeSegmentsFrom(
 export async function resetAppProfilingSegments(
   appiumDriver: WebdriverIO.Browser = getDriver(),
 ): Promise<void> {
+  const capabilities = (appiumDriver.capabilities ?? {}) as Record<
+    string,
+    unknown
+  >;
+
+  // fullReset wipes app-scoped storage between sessions, so no leftover
+  // segments can exist. Skip the probe to avoid a guaranteed adb-pull failure
+  // (and its noisy WARN log) on every fresh BrowserStack device.
+  if (capabilities['appium:fullReset'] === true) {
+    collectedSegmentCount = 0;
+    return;
+  }
+
   const directory = deviceProfileDirectory(appiumDriver);
   let existing: Map<number, Buffer>;
   try {
