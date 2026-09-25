@@ -2,6 +2,7 @@ import { Messenger } from '@metamask/messenger';
 import {
   cancelRecurringOrder,
   getRecurringOrders,
+  getRecurringOrdersByAsset,
   getRecurringSwaps,
 } from '../api/recurringOrders';
 import {
@@ -11,6 +12,7 @@ import {
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
 import { RecurringOrderStatus } from '../api/recurringOrders.types';
 import type {
+  RecurringOrdersByAssetQueryParams,
   RecurringOrdersQueryParams,
   RecurringSwapsQueryParams,
 } from '../queries/recurringOrders';
@@ -22,17 +24,23 @@ import {
 jest.mock('../api/recurringOrders', () => ({
   cancelRecurringOrder: jest.fn(),
   getRecurringOrders: jest.fn(),
+  getRecurringOrdersByAsset: jest.fn(),
   getRecurringSwaps: jest.fn(),
 }));
 
 const mockCancelRecurringOrder = jest.mocked(cancelRecurringOrder);
 const mockGetRecurringOrders = jest.mocked(getRecurringOrders);
+const mockGetRecurringOrdersByAsset = jest.mocked(getRecurringOrdersByAsset);
 const mockGetRecurringSwaps = jest.mocked(getRecurringSwaps);
 const PARAMS: RecurringOrdersQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
   status: [RecurringOrderStatus.Open],
   chainId: 'eip155:1',
   limit: 20,
+};
+const ASSET_PARAMS: RecurringOrdersByAssetQueryParams = {
+  walletAddress: '0x1234567890123456789012345678901234567890',
+  assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
 };
 const SWAPS_PARAMS: RecurringSwapsQueryParams = { limit: 20 };
 
@@ -71,6 +79,18 @@ describe('RecurringOrdersDataService', () => {
       cursor: undefined,
     });
     expect(result.orders).toStrictEqual([MOCK_RECURRING_OPEN_ORDER]);
+  });
+
+  it('forwards asset parameters to the recurring-orders transport', async () => {
+    mockGetRecurringOrdersByAsset.mockResolvedValue([
+      MOCK_RECURRING_OPEN_ORDER,
+    ]);
+    const service = buildService();
+
+    const result = await service.getRecurringOrdersByAsset(ASSET_PARAMS);
+
+    expect(mockGetRecurringOrdersByAsset).toHaveBeenCalledWith(ASSET_PARAMS);
+    expect(result).toStrictEqual([MOCK_RECURRING_OPEN_ORDER]);
   });
 
   it('forwards cancellation to the recurring-orders transport', async () => {

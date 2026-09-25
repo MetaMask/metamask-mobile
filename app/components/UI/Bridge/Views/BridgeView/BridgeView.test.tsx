@@ -47,6 +47,7 @@ import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { BridgeTabKey } from './BridgeView.constants';
 import BridgeViewContent from '.';
 
 // Mock the account-tree-controller file that imports the problematic module
@@ -2579,6 +2580,30 @@ describe('BridgeView', () => {
         await Promise.resolve();
       });
     };
+
+    it('opens the initial tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Recurring,
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
 
     it('navigates to the next tab on a left swipe', async () => {
       const { getByTestId, queryByTestId } = renderScreen(
