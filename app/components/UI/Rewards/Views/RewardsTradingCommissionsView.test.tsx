@@ -4,6 +4,7 @@ import type { ReferralLocalizedText } from '../../../../core/Engine/controllers/
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useCommissions } from '../hooks/useCommissions';
 import { useSessionProfileId } from '../hooks/useReferralMe';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../components/Money/TradingActivityListSkeleton';
 import RewardsTradingCommissionsView, {
   REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS,
 } from './RewardsTradingCommissionsView';
@@ -94,5 +95,86 @@ describe('RewardsTradingCommissionsView', () => {
     );
 
     expect(loadMore).toHaveBeenCalled();
+  });
+
+  it('shows activity rows while the first page is loading', () => {
+    (useCommissions as jest.Mock).mockReturnValue({
+      items: null,
+      isLoading: true,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <RewardsTradingCommissionsView />,
+      {
+        state: {
+          rewardsMoney: {
+            referralMe: {
+              [PROFILE_ID]: {
+                loading: false,
+                error: false,
+                data: { localized_text: LOCALIZED_TEXT },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent(
+      getByTestId(REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS.SKELETON_SLOT),
+      'layout',
+      {
+        nativeEvent: { layout: { height: 280, width: 200, x: 0, y: 0 } },
+      },
+    );
+
+    expect(
+      getAllByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.ROW),
+    ).toHaveLength(5);
+  });
+
+  it('shows a transactions error instead of the referral-details message', () => {
+    (useCommissions as jest.Mock).mockReturnValue({
+      items: null,
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: new Error('failed'),
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <RewardsTradingCommissionsView />,
+      {
+        state: {
+          rewardsMoney: {
+            referralMe: {
+              [PROFILE_ID]: {
+                loading: false,
+                error: false,
+                data: { localized_text: LOCALIZED_TEXT },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+    expect(queryByText('Referral details couldn’t be loaded')).toBeNull();
   });
 });

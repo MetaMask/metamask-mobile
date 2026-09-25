@@ -270,7 +270,7 @@ describe('useGetVipTransactions', () => {
     expect(result.current.transactions).toEqual(cached);
   });
 
-  it('hides cached transactions while an enabled first-page fetch is in flight', async () => {
+  it('keeps cached transactions visible while an enabled first-page fetch is in flight', async () => {
     let resolveFetch: (value: typeof MOCK_PAGE_1) => void = () => undefined;
     mockCall.mockImplementation(
       () =>
@@ -289,8 +289,8 @@ describe('useGetVipTransactions', () => {
       expect(mockCall).toHaveBeenCalled();
     });
 
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.transactions).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.transactions).toEqual([MOCK_TX]);
 
     await act(async () => {
       resolveFetch(MOCK_PAGE_1);
