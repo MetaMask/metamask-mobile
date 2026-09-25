@@ -536,24 +536,27 @@ describe('AcceptInviteSheet', () => {
     },
   );
   describe('analytics', () => {
-    it('tracks Rewards Money Referral Offer Viewed once on mount with the prefilled code', async () => {
+    it('tracks viewed once on mount with the prefilled code', async () => {
       await renderSheet('KOL1');
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_VIEWED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
         referral_code: 'KOL1',
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('tracks Rewards Money Referral Offer Viewed without a code when none was prefilled', async () => {
+    it('tracks viewed without a code when none was prefilled', async () => {
       await renderSheet();
 
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
-      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({});
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+      });
     });
 
     it('tracks no offer for an already-referred profile that closes itself', async () => {
@@ -603,7 +606,7 @@ describe('AcceptInviteSheet', () => {
       getByTestId(TEST_IDS.CONTAINER).props.goBack();
 
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
       expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
@@ -632,11 +635,13 @@ describe('AcceptInviteSheet', () => {
         getByTestId(TEST_IDS.CONTAINER).props.goBack();
 
         expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_VIEWED,
-        );
-        expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        const builder = mockCreateEventBuilder.mock.results[0]?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          interaction_type: 'viewed',
+          referral_code: 'KOL1',
+        });
+        expect(builder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({ interaction_type: 'dismissed' }),
         );
       },
     );
@@ -657,10 +662,11 @@ describe('AcceptInviteSheet', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_VIEWED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
         referral_code: 'KOL1',
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -676,12 +682,12 @@ describe('AcceptInviteSheet', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action: 'accepted',
+        interaction_type: 'accepted',
       });
       expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
     });
@@ -702,7 +708,7 @@ describe('AcceptInviteSheet', () => {
       fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
 
       await act(async () => {
@@ -712,7 +718,7 @@ describe('AcceptInviteSheet', () => {
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action: 'accepted',
+        interaction_type: 'accepted',
       });
     });
 
@@ -749,7 +755,7 @@ describe('AcceptInviteSheet', () => {
         const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'KOL1',
-          action: 'accepted',
+          interaction_type: 'accepted',
         });
       },
     );
@@ -769,7 +775,7 @@ describe('AcceptInviteSheet', () => {
       });
 
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
 
       fireEvent.press(getByTestId(testId));
@@ -777,7 +783,7 @@ describe('AcceptInviteSheet', () => {
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action,
+        interaction_type: action,
       });
     });
 
@@ -789,12 +795,12 @@ describe('AcceptInviteSheet', () => {
       fireEvent.press(getByTestId(TEST_IDS.DECLINE));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action: 'declined',
+        interaction_type: 'declined',
       });
     });
 
@@ -808,7 +814,7 @@ describe('AcceptInviteSheet', () => {
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action: 'dismissed',
+        interaction_type: 'dismissed',
       });
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     });
@@ -823,7 +829,7 @@ describe('AcceptInviteSheet', () => {
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        action: 'dismissed',
+        interaction_type: 'dismissed',
       });
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -847,7 +853,7 @@ describe('AcceptInviteSheet', () => {
         const builder = mockCreateEventBuilder.mock.results[0]?.value;
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'KOL1',
-          action,
+          interaction_type: action,
         });
         expect(mockGoBack).toHaveBeenCalledTimes(1);
       },
@@ -861,7 +867,7 @@ describe('AcceptInviteSheet', () => {
       fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
 
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_RESPONDED,
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
       expect(mockAcceptReferralCode).not.toHaveBeenCalled();
     });
