@@ -433,6 +433,9 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # Ships the Lighter signer in nightly exp builds; LaunchDarkly
+      # perps-lighter-provider-enabled controls who sees the provider selector.
+      MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 

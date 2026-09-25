@@ -39,6 +39,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
 import {
   type AbsolutePriceAlert,
   type Alert,
@@ -116,6 +117,7 @@ const ManagePriceAlertsView: React.FC = () => {
     assetId,
     mode,
     marketId,
+    szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
   const displayTicker = ticker || symbol;
@@ -183,6 +185,7 @@ const ManagePriceAlertsView: React.FC = () => {
         assetId,
         mode,
         marketId,
+        szDecimals,
       });
     }
   }, [
@@ -198,6 +201,7 @@ const ManagePriceAlertsView: React.FC = () => {
     isPerpsMode,
     mode,
     marketId,
+    szDecimals,
   ]);
 
   const handleBack = useCallback(() => {
@@ -214,6 +218,7 @@ const ManagePriceAlertsView: React.FC = () => {
         assetId,
         mode,
         marketId,
+        szDecimals,
         fromManage: true,
         existingAbsoluteAlerts: alerts.filter(
           (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
@@ -239,6 +244,7 @@ const ManagePriceAlertsView: React.FC = () => {
       mode,
       marketId,
       isPerpsMode,
+      szDecimals,
       alerts,
     ],
   );
@@ -404,11 +410,13 @@ const ManagePriceAlertsView: React.FC = () => {
       item.type === 'percent_change'
         ? formatPercentAlertTitle(item)
         : strings('price_alerts.reaches_threshold', {
-            threshold: formatPriceWithSubscriptNotation(
-              item.threshold,
-              currentCurrency,
-              { maximumFractionDigits: 15 },
-            ),
+            threshold: isPerpsMode
+              ? formatPerpsPrice(item.threshold)
+              : formatPriceWithSubscriptNotation(
+                  item.threshold,
+                  currentCurrency,
+                  { maximumFractionDigits: 15 },
+                ),
           });
 
     const subtitle =
