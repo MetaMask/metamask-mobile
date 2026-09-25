@@ -4,9 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
+import ClipboardManager from '../../../../../core/ClipboardManager';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
+import { SYMBOL_ERROR } from '../../../../../constants/error';
 import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -41,6 +43,10 @@ jest.mock('../../../../../core/Engine', () => ({
       delete: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock address book data
@@ -166,6 +172,78 @@ describe('ContactForm', () => {
     expect(deleteButton).toBeNull();
   });
 
+  it('shows an Edit button at the bottom of a read-only contact, not in the header', async () => {
+    const { findByTestId, findByText, queryByTestId } =
+      renderContactForm({
+        mode: 'edit',
+        address: MOCK_ADDRESS,
+      });
+
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(await findByText(strings('address_book.edit'))).toBeOnTheScreen();
+    expect(queryByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON)).toBeNull();
+    expect(queryByTestId(AddContactViewSelectorsIDs.DELETE_BUTTON)).toBeNull();
+  });
+
+  it('copies the saved address from the read-only address field', async () => {
+    const { findByTestId, queryByLabelText } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
+
+    expect(queryByLabelText(strings('send.scan_qr_code'))).toBeNull();
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.COPY_BUTTON));
+
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith(MOCK_ADDRESS);
+    });
+
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.COPY_BUTTON),
+    ).toHaveProp(
+      'accessibilityLabel',
+      strings('transactions.address_copied_to_clipboard'),
+    );
+  });
+
+  it('replaces Edit with Save, Cancel, and Delete when editing a contact', async () => {
+    const { findByTestId, getByText, queryByTestId } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
+
+    expect(getByText(strings('address_book.save'))).toBeOnTheScreen();
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.DELETE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON)).toBeNull();
+  });
+
+  it('returns to the read-only Edit button when Cancel is pressed', async () => {
+    const { findByTestId, queryByTestId } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
+    fireEvent.press(
+      await findByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON),
+    );
+
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON)).toBeNull();
+  });
+
   it('handles address changes and validates them', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',
@@ -267,6 +345,37 @@ describe('ContactForm', () => {
         expect.anything(),
         expect.anything(),
       );
+    });
+
+    expect(
+      await findByTestId(CommonSelectorsIDs.ERROR_MESSAGE),
+    ).toHaveTextContent('Invalid address');
+  });
+
+  it('offers a continue action for errors that can be bypassed', async () => {
+    const validateAddressOrENSMock = jest.requireMock(
+      '../../../../../util/address',
+    ).validateAddressOrENS;
+
+    validateAddressOrENSMock.mockResolvedValue({
+      addressError: SYMBOL_ERROR,
+      toEnsName: null,
+      addressReady: true,
+      toEnsAddress: null,
+      errorContinue: true,
+    });
+
+    const { findByTestId, findByText, queryByTestId } = renderContactForm();
+
+    fireEvent.changeText(
+      await findByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      MOCK_ADDRESS_2,
+    );
+
+    fireEvent.press(await findByText(strings('transaction.continueError')));
+
+    await waitFor(() => {
+      expect(queryByTestId(CommonSelectorsIDs.ERROR_MESSAGE)).toBeNull();
     });
   });
 
