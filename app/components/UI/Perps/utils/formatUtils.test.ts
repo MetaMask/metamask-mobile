@@ -529,6 +529,14 @@ describe('formatUtils', () => {
       );
     });
 
+    it('normalizes localized Arabic digits from editable input', () => {
+      const formattedValue = formatPerpsInput('1200.50', 'ar-EG');
+
+      expect(normalizePerpsNumericInput(formattedValue, 'ar-EG')).toBe(
+        '1200.50',
+      );
+    });
+
     it('preserves integer digits beyond the safe integer range', () => {
       expect(formatPerpsInput('9007199254740993.125', 'en-US')).toBe(
         '9,007,199,254,740,993.125',

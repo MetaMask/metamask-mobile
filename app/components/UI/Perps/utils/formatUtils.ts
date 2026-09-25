@@ -150,6 +150,7 @@ const getPerpsLocaleGrouping = (locale?: string): PerpsLocaleGrouping => {
 };
 
 const getPerpsLocaleSeparators = (locale?: string): PerpsLocaleSeparators => {
+  const localeGrouping = getPerpsLocaleGrouping(locale);
   const groupingFormatter = getPerpsNumberFormatter(locale, {
     useGrouping: true,
     maximumFractionDigits: 0,
@@ -161,11 +162,47 @@ const getPerpsLocaleSeparators = (locale?: string): PerpsLocaleSeparators => {
   });
   const groupedInteger = Array.from(groupingFormatter.format(1000));
   const formattedDecimal = Array.from(decimalFormatter.format(1.1));
+  const localizedDigits = new Set(localeGrouping.localizedDigits);
+  const decimalSeparators = formattedDecimal.filter(
+    (character) => !localizedDigits.has(character),
+  );
 
   return {
-    grouping: groupedInteger.slice(1, -3).join('') || ',',
-    decimal: formattedDecimal.slice(1, -1).join('') || '.',
+    grouping:
+      localeGrouping.groupingSeparator ||
+      groupedInteger.slice(1, -3).join('') ||
+      ',',
+    decimal: decimalSeparators.join('') || '.',
   };
+};
+
+const normalizePerpsLocalizedDigits = (
+  value: string,
+  localeGrouping: PerpsLocaleGrouping,
+): string => {
+  const localizedDigitEntries = localeGrouping.localizedDigits.map(
+    (localizedDigit, digitValue) => ({
+      localizedDigit,
+      digitValue: String(digitValue),
+    }),
+  );
+  let normalizedValue = '';
+
+  for (let position = 0; position < value.length; ) {
+    const localizedDigitEntry = localizedDigitEntries.find(
+      ({ localizedDigit }) => value.startsWith(localizedDigit, position),
+    );
+
+    if (localizedDigitEntry) {
+      normalizedValue += localizedDigitEntry.digitValue;
+      position += localizedDigitEntry.localizedDigit.length;
+    } else {
+      normalizedValue += value[position];
+      position += 1;
+    }
+  }
+
+  return normalizedValue;
 };
 
 /**
@@ -248,7 +285,17 @@ export const normalizePerpsNumericInput = (
     return value;
   }
 
-  const sanitizedValue = value.trim().replace(/\$/g, '').replace(/\s/g, '');
+  const localeGrouping = getPerpsLocaleGrouping(locale);
+  const separators = getPerpsLocaleSeparators(locale);
+  const localizedValue = normalizePerpsLocalizedDigits(
+    value.trim().replace(/\$/g, '').replace(/\s/g, ''),
+    localeGrouping,
+  );
+  const sanitizedValue = localizedValue
+    .split(separators.grouping)
+    .join(',')
+    .split(separators.decimal)
+    .join('.');
 
   if (!/^[+-]?[\d.,]*$/.test(sanitizedValue)) {
     return value;
@@ -256,7 +303,6 @@ export const normalizePerpsNumericInput = (
 
   const sign = /^[+-]/.test(sanitizedValue) ? sanitizedValue.slice(0, 1) : '';
   const unsignedValue = sign ? sanitizedValue.slice(1) : sanitizedValue;
-  const separators = getPerpsLocaleSeparators(locale);
   const commaIndex = unsignedValue.lastIndexOf(',');
   const periodIndex = unsignedValue.lastIndexOf('.');
   let decimalSeparator: ',' | '.' | undefined;
