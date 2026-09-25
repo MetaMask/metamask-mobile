@@ -83,7 +83,7 @@ const AdvancedDetailsRow = () => {
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
               withIcon={{
-                color: IconColor.Muted,
+                color: IconColor.Alternative,
                 size: IconSize.Sm,
                 name: IconName.ArrowDown,
               }}
