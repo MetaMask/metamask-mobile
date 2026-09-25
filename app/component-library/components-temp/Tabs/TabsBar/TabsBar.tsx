@@ -47,6 +47,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   onTabPress,
   testID,
   twClassName,
+  isFullWidth = false,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -157,6 +158,12 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   // Check if content overflows and update scroll state
   useEffect(() => {
+    // Full-width tabs share the bar's width, so they can never overflow.
+    if (isFullWidth) {
+      setScrollEnabled(false);
+      return;
+    }
+
     if (
       containerWidth > 0 &&
       areAllTabLayoutsMeasured(tabLayouts.current, tabs.length)
@@ -173,7 +180,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
       const shouldScroll = calculatedContentWidth > containerWidth - 32;
       setScrollEnabled(shouldScroll);
     }
-  }, [containerWidth, tabs.length]);
+  }, [containerWidth, tabs.length, isFullWidth]);
 
   // Handle container layout to measure available width
   const handleContainerLayout = (layoutEvent: LayoutChangeEvent) => {
@@ -245,7 +252,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           }
 
           // Update scroll detection
-          if (containerWidth > 0) {
+          if (containerWidth > 0 && !isFullWidth) {
             const totalWidth = tabLayouts.current.reduce(
               (sum, layout) => sum + (layout?.width || 0),
               0,
@@ -258,7 +265,14 @@ const TabsBar: React.FC<TabsBarProps> = ({
         }
       }
     },
-    [tabs.length, layoutsReady, containerWidth, animateToTab, isInitialized],
+    [
+      tabs.length,
+      layoutsReady,
+      containerWidth,
+      animateToTab,
+      isInitialized,
+      isFullWidth,
+    ],
   );
 
   const underlineStyle = useAnimatedStyle(() => ({
@@ -296,6 +310,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
           label={tab.label}
           isActive={index === activeIndex}
           isDisabled={tab.isDisabled}
+          showsIndicatorDot={tab.showsIndicatorDot}
+          isFullWidth={isFullWidth}
           onPress={() => handleTabPress(index)}
           onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
           testID={tab.testID ?? `${testID}-tab-${index}`}

@@ -73,6 +73,7 @@ import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletMo
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
+import type { OnboardingInviteRouteParams } from '../../components/Views/OnboardingInvite/OnboardingInvite.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
@@ -622,7 +623,11 @@ export type RootStackParamList = {
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: RewardsNavigationParamList['RewardsEarningsHistoryView'];
   RewardsDashboard: undefined;
+  RewardsReferralAcceptedSplashView: undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
@@ -727,6 +732,7 @@ export type RootStackParamList = {
   OptinMetrics: OptinMetricsRouteParams | undefined;
   OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   OnboardingCryptoExperienceQuestionnaire: OnboardingCryptoExperienceQuestionnaireRouteParams;
+  OnboardingInvite: OnboardingInviteRouteParams;
   SocialLoginSuccessExistingUser: SocialLoginRouteParams | undefined;
   AccountAlreadyExists: AccountStatusParams | undefined;
   AccountNotFound: AccountStatusParams | undefined;

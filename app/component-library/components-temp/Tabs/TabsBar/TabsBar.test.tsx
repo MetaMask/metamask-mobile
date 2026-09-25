@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -1644,6 +1645,66 @@ describe('TabsBar', () => {
 
       // Should handle hasValidDimensions state updates
       expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('Full Width Tabs', () => {
+    it('stretches each tab to share the bar width', () => {
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={jest.fn()}
+          isFullWidth
+          testID="tabs-bar"
+        />,
+      );
+
+      mockTabs.forEach((_tab, index) => {
+        expect(getByTestId(`tabs-bar-tab-${index}-container`)).toHaveStyle({
+          flexGrow: 1,
+        });
+      });
+    });
+
+    it('hugs each tab by default', () => {
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={jest.fn()}
+          testID="tabs-bar"
+        />,
+      );
+
+      expect(getByTestId('tabs-bar-tab-0-container')).toHaveStyle({
+        flexShrink: 0,
+      });
+    });
+
+    it('never scrolls, even when the labels would overflow', () => {
+      const { getByTestId, UNSAFE_queryAllByType } = render(
+        <TabsBar
+          tabs={manyTabs}
+          activeIndex={0}
+          onTabPress={jest.fn()}
+          isFullWidth
+          testID="tabs-bar"
+        />,
+      );
+
+      act(() => {
+        fireEvent(getByTestId('tabs-bar'), 'onLayout', mockLayoutEvent(200));
+        manyTabs.forEach((_tab, index) => {
+          fireEvent(
+            getByTestId(`tabs-bar-tab-${index}`),
+            'onLayout',
+            mockLayoutEvent(100),
+          );
+        });
+      });
+
+      expect(UNSAFE_queryAllByType(ScrollView)).toHaveLength(0);
     });
   });
 

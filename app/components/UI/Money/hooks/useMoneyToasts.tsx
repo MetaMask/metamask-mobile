@@ -122,6 +122,7 @@ export interface MoneyToastOptionsConfig {
     success: (params: SendSuccessParams) => MoneyToastOptions;
     failed: (params?: SendFailedParams) => MoneyToastOptions;
   };
+  claimSuccess: () => MoneyToastOptions;
 }
 
 interface MoneyToastLabelOptions {
@@ -406,6 +407,17 @@ const useMoneyToasts = (): {
             params?.onPress,
           ),
       },
+      claimSuccess: () => ({
+        ...moneyBaseToastOptions.success,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('money.claimable_rewards.success_toast'),
+            isBold: true,
+          },
+        ],
+        closeButtonOptions,
+      }),
     };
   }, [
     buildToastPress,

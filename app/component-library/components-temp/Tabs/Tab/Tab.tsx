@@ -20,6 +20,8 @@ const Tab: React.FC<TabProps> = ({
   onPress,
   testID,
   onLayout,
+  showsIndicatorDot = false,
+  isFullWidth = false,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -38,11 +40,12 @@ const Tab: React.FC<TabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={tw.style('flex-shrink-0')}
+      style={tw.style(isFullWidth ? 'flex-1' : 'flex-shrink-0')}
+      testID={testID ? `${testID}-container` : undefined}
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-row items-center justify-center relative',
+          'px-0 py-1 flex-row items-center justify-center gap-1 relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -50,35 +53,47 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* Hidden bold text that determines layout size */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          numberOfLines={1}
-          style={tw.style('opacity-0')}
-        >
-          {label}
-        </Text>
+        {/* The label sizes itself, so the dot below can sit beside it */}
+        <View>
+          {/* Hidden bold text that determines layout size */}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            numberOfLines={1}
+            style={tw.style('opacity-0')}
+          >
+            {label}
+          </Text>
 
-        {/* Visible text positioned absolutely over the hidden text */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={
-            isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
-          }
-          testID={testID ? `${testID}-label` : undefined}
-          twClassName={
-            isDisabled
-              ? 'text-muted'
-              : isActive
-                ? 'text-default'
-                : 'text-alternative'
-          }
-          numberOfLines={1}
-          style={tw.style('absolute inset-0 flex items-center justify-center')}
-        >
-          {label}
-        </Text>
+          {/* Visible text positioned absolutely over the hidden text */}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={
+              isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+            }
+            testID={testID ? `${testID}-label` : undefined}
+            twClassName={
+              isDisabled
+                ? 'text-muted'
+                : isActive
+                  ? 'text-default'
+                  : 'text-alternative'
+            }
+            numberOfLines={1}
+            style={tw.style(
+              'absolute inset-0 flex items-center justify-center',
+            )}
+          >
+            {label}
+          </Text>
+        </View>
+
+        {showsIndicatorDot && (
+          <View
+            testID={testID ? `${testID}-indicator-dot` : undefined}
+            style={tw.style('h-1.5 w-1.5 rounded-full bg-success-default')}
+          />
+        )}
       </Pressable>
     </View>
   );

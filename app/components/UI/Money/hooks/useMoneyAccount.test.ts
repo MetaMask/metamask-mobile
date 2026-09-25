@@ -251,6 +251,7 @@ describe('useMoneyAccountDeposit', () => {
           success: jest.fn(),
           failed: jest.fn(),
         },
+        claimSuccess: jest.fn(),
       },
     });
     global.requestAnimationFrame = jest.fn((callback) => {
@@ -743,6 +744,7 @@ describe('useMoneyAccountWithdrawal', () => {
           success: jest.fn(),
           failed: jest.fn(),
         },
+        claimSuccess: jest.fn(),
       },
     });
     global.requestAnimationFrame = jest.fn((callback) => {

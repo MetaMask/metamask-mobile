@@ -35,6 +35,7 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyClaimableRewardsCard from '../../components/MoneyClaimableRewardsCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -1065,7 +1066,13 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
-        <MoneyOnboardingCard />
+        {/* Both cards carry their own 8px top margin, which pairs with the
+            action row's bottom padding to make 16px above whichever renders
+            first. The gap only adds the remaining 8px when both are shown. */}
+        <Box twClassName="gap-2">
+          <MoneyOnboardingCard />
+          <MoneyClaimableRewardsCard privacyMode={privacyMode} />
+        </Box>
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}

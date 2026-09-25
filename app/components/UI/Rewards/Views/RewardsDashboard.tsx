@@ -1,4 +1,10 @@
-import React, { useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
@@ -8,15 +14,13 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  Text,
-  TextVariant,
+  TitleStandard,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
@@ -56,10 +60,24 @@ import { navigateToRewardsRoute } from '../utils';
 import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
 import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
-import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import RewardsDashboardTabs from '../components/KolDashboard/RewardsDashboardTabs';
+import ReferralHeroCard from '../components/KolDashboard/ReferralHeroCard';
+import InvitedBenefitCard from '../components/KolDashboard/InvitedBenefitCard';
+import InvitedOptInEmptyState from '../components/KolDashboard/InvitedOptInEmptyState';
+import ReferralInviteSheet from '../components/KolDashboard/ReferralInviteSheet';
+import EarningsTab from '../components/KolDashboard/EarningsTab';
+import PerformanceTab from '../components/KolDashboard/PerformanceTab';
+import { useClaimableRewards } from '../components/KolDashboard/rewardsClaimStore';
+import type { RewardsDashboardTab } from '../components/KolDashboard/RewardsDashboardTabs.types';
+import {
+  KOL_INVITE_FIXTURE,
+  REWARDS_UI_DEFAULT_PERSONA,
+  type RewardsUiPersona,
+} from '../components/KolDashboard/rewardsUiFixtures';
+import useRewardsToast from '../hooks/useRewardsToast';
 import { Pressable } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
@@ -75,6 +93,17 @@ const MUSD_MONEY_URL = 'metamask://money';
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+  const collapsingBlockStyle = useAnimatedStyle(() => {
+    const maxShift = titleSectionHeightSv.value;
+    const shift =
+      maxShift > 0 ? Math.max(0, Math.min(scrollY.value, maxShift)) : 0;
+    return {
+      bottom: -maxShift,
+      transform: [{ translateY: -shift }],
+    };
+  });
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const pendingDeeplink = useSelector(selectPendingDeeplink);
@@ -91,6 +120,22 @@ const RewardsDashboard: React.FC = () => {
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
+  const [dashboardTab, setDashboardTab] =
+    useState<RewardsDashboardTab>('waysToEarn');
+  const claimableRewards = useClaimableRewards();
+  // Fixture persona for the visual shell: `kol` is the dashboard we ship today,
+  // and `invited` is the referee layout. The invite sheet overlays whichever
+  // persona is showing; engineers replace this with referral state.
+  const [persona, setPersona] = useState<RewardsUiPersona>(
+    REWARDS_UI_DEFAULT_PERSONA,
+  );
+  const [isInviteSheetVisible, setIsInviteSheetVisible] = useState(false);
+  const [hasOptedInAccounts, setHasOptedInAccounts] = useState(false);
+  const [acceptedReferralCode, setAcceptedReferralCode] = useState(
+    KOL_INVITE_FIXTURE.referralCode,
+  );
+  const isInvited = persona === 'invited';
+  const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const {
     campaigns,
@@ -403,8 +448,6 @@ const RewardsDashboard: React.FC = () => {
   );
 
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
-  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
-    useHeaderStandardAnimated();
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -471,6 +514,49 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
 
+  // Hidden replay for the invite flow, in the same spirit as the VIP tap above:
+  // a long press on the title overlays the sheet without changing the dashboard.
+  const handleTitleLongPress = useCallback(() => {
+    setIsInviteSheetVisible(true);
+  }, []);
+
+  const handleAcceptInvite = useCallback(
+    (referralCode: string) => {
+      setAcceptedReferralCode(referralCode);
+      setPersona('invited');
+      setIsInviteSheetVisible(false);
+      setHasOptedInAccounts(false);
+      setDashboardTab('waysToEarn');
+      // The sheet unmounts with this render, so the splash fades in over the
+      // referred dashboard the user returns to when they dismiss it.
+      navigation.navigate(Routes.REWARDS_REFERRAL_ACCEPTED_SPLASH_VIEW);
+    },
+    [navigation],
+  );
+
+  const handleDeclineInvite = useCallback(() => {
+    setIsInviteSheetVisible(false);
+    setPersona('kol');
+    setHasOptedInAccounts(false);
+  }, []);
+
+  const handleInvitedOptIn = useCallback(() => {
+    setHasOptedInAccounts(true);
+    showToast(
+      RewardsToastOptions.success(
+        strings('rewards.kol.invited_opt_in_success_toast'),
+      ),
+    );
+  }, [RewardsToastOptions, showToast]);
+
+  const handleViewEarnings = useCallback(() => {
+    setDashboardTab('earnings');
+  }, []);
+
+  const handleViewPerformance = useCallback(() => {
+    setDashboardTab('performance');
+  }, []);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -502,14 +588,6 @@ const RewardsDashboard: React.FC = () => {
         </Pressable>
       )}
       <ButtonIcon
-        iconName={IconName.UserCircleAdd}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-      />
-      <ButtonIcon
         disabled={!subscriptionId}
         iconName={IconName.Setting}
         onPress={() =>
@@ -528,67 +606,92 @@ const RewardsDashboard: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
-        {isPushedScreen ? (
-          <HeaderStandardAnimated
-            title={strings('rewards.main_title')}
-            titleProps={{
-              onPress: handleTitlePress,
-              suppressHighlighting: true,
-              accessibilityRole: 'button',
-            }}
-            scrollY={scrollY}
-            titleSectionHeight={titleSectionHeightSv}
-            onBack={handleBackPress}
-            backButtonProps={{ testID: REWARDS_VIEW_SELECTORS.BACK_BUTTON }}
-            endAccessory={headerEndAccessory}
-          />
-        ) : (
-          <HeaderRoot endAccessory={headerEndAccessory}>
-            <Pressable
-              accessibilityRole="header"
-              onPress={handleTitlePress}
-              testID={REWARDS_VIEW_SELECTORS.TITLE}
-            >
-              <Text variant={TextVariant.HeadingLg}>
-                {strings('rewards.main_title')}
-              </Text>
-            </Pressable>
-          </HeaderRoot>
-        )}
-        <Animated.ScrollView
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
-        >
-          {/* Pushed only: the large title lives in the content and collapses
-              into the header on scroll, as on Activity and the home redesign.
-              As a tab it stays in HeaderRoot, unchanged. */}
-          {isPushedScreen ? (
-            <Box
-              twClassName="px-4 pb-3"
-              onLayout={(event) =>
-                setTitleSectionHeight(event.nativeEvent.layout.height)
+        <HeaderStandardAnimated
+          scrollY={scrollY}
+          titleSectionHeight={titleSectionHeightSv}
+          title={strings('rewards.main_title')}
+          // As a tab there is nothing to pop, so the back button stays off.
+          onBack={isPushedScreen ? handleBackPress : undefined}
+          backButtonProps={
+            isPushedScreen
+              ? { testID: REWARDS_VIEW_SELECTORS.BACK_BUTTON }
+              : undefined
+          }
+          endAccessory={headerEndAccessory}
+        />
+        {/* `overflow-hidden` clips the title as the block slides up so it
+            disappears under the fixed header (revealing the compact title)
+            instead of scrolling over the header actions. */}
+        <Box twClassName="flex-1 overflow-hidden">
+          <Animated.View
+            style={[
+              tw.style('absolute top-0 right-0 bottom-0 left-0'),
+              collapsingBlockStyle,
+            ]}
+          >
+            <TitleStandard
+              title={strings('rewards.main_title')}
+              twClassName="px-4 pt-2 pb-4"
+              onLayout={(e) =>
+                setTitleSectionHeight(e.nativeEvent.layout.height)
               }
+              titleProps={{
+                onPress: handleTitlePress,
+                onLongPress: handleTitleLongPress,
+                suppressHighlighting: true,
+                accessibilityRole: 'header',
+                testID: REWARDS_VIEW_SELECTORS.TITLE,
+              }}
+            />
+            <RewardsDashboardTabs
+              activeTab={dashboardTab}
+              showEarningsDot={claimableRewards > 0}
+              onChangeTab={setDashboardTab}
+            />
+            <Animated.ScrollView
+              showsVerticalScrollIndicator={false}
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
             >
-              <Pressable
-                accessibilityRole="header"
-                onPress={handleTitlePress}
-                testID={REWARDS_VIEW_SELECTORS.TITLE}
-              >
-                <Text variant={TextVariant.HeadingLg}>
-                  {strings('rewards.main_title')}
-                </Text>
-              </Pressable>
-            </Box>
-          ) : null}
-          <Box twClassName="gap-3">
-            <CampaignsPreview />
-            <EarnRewardsPreview />
-            <BenefitsPreview />
-          </Box>
-        </Animated.ScrollView>
+              {dashboardTab === 'waysToEarn' ? (
+                <>
+                  {isInvited ? (
+                    <InvitedBenefitCard
+                      referralCode={acceptedReferralCode}
+                      onViewEarnings={handleViewEarnings}
+                    />
+                  ) : (
+                    <ReferralHeroCard onViewEarnings={handleViewEarnings} />
+                  )}
+                  {isInvited && !hasOptedInAccounts ? (
+                    <InvitedOptInEmptyState onOptIn={handleInvitedOptIn} />
+                  ) : (
+                    <>
+                      <CampaignsPreview />
+                      <BenefitsPreview />
+                    </>
+                  )}
+                </>
+              ) : dashboardTab === 'earnings' ? (
+                <EarningsTab
+                  hideReferrals={isInvited}
+                  onViewPerformance={handleViewPerformance}
+                />
+              ) : (
+                <PerformanceTab hideReferrals={isInvited} />
+              )}
+            </Animated.ScrollView>
+          </Animated.View>
+        </Box>
+        <ReferralInviteSheet
+          isVisible={isInviteSheetVisible}
+          referralCode={KOL_INVITE_FIXTURE.referralCode}
+          onAccept={handleAcceptInvite}
+          onDecline={handleDeclineInvite}
+          onClose={() => setIsInviteSheetVisible(false)}
+        />
       </SafeAreaView>
     </ErrorBoundary>
   );

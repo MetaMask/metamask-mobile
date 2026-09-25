@@ -27,6 +27,7 @@ import ReviewModal from '../../UI/ReviewModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
+import OnboardingInvite from '../../Views/OnboardingInvite';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
@@ -394,6 +395,11 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
         component={OnboardingCryptoExperienceQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.INVITE}
+        component={OnboardingInvite}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <NativeStack.Screen
