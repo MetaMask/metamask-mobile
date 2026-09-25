@@ -16,7 +16,6 @@ import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../framework/types';
 import { sleep } from '../framework/Utilities';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import {
   closeOnboardingModals,
   dismissExperienceEnhancerModal,
@@ -154,18 +153,6 @@ export const completeNewUserQrSyncSrp = async ({
       await ExperienceEnhancerBottomSheet.tapIAgree();
     } catch {
       // Optional post-metrics sheet
-    }
-    try {
-      await Assertions.expectElementToBeVisible(
-        OnboardingSuccessView.container,
-        {
-          description: 'Onboarding success may appear after QR sync import',
-          timeout: 5_000,
-        },
-      );
-      await OnboardingSuccessView.tapDone();
-    } catch {
-      // Some builds go straight to wallet home
     }
     await dismissPushNotificationExistingUserSheet();
     await dismissExperienceEnhancerModal();
