@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.12.1]
 
+### Added
+
+- Added a Money Account signature when binding a Money Account for the sweepstakes (#36816)
+
 ## [8.12.0]
 
 ### Added
