@@ -171,6 +171,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED]: 'perps.errors.noAccountSelected',
   // Keyring locked errors are handled silently in ensure* methods; never shown to users
   [PERPS_ERROR_CODES.KEYRING_LOCKED]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.WATCH_ONLY_ACCOUNT]: 'perps.watch_only.trading_disabled',
   [PERPS_ERROR_CODES.INVALID_ADDRESS_FORMAT]:
     'perps.errors.invalidAddressFormat',
   // Transfer/swap errors

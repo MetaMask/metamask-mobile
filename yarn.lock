@@ -11378,7 +11378,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^17.4.0":
+"@metamask/perps-controller@npm:17.4.0":
   version: 17.4.0
   resolution: "@metamask/perps-controller@npm:17.4.0"
   dependencies:
@@ -11393,6 +11393,24 @@ __metadata:
     reselect: "npm:^5.1.1"
     uuid: "npm:^11.1.1"
   checksum: 10/8f65c1531beadd1b95eb7337a955a99ec03195b01f951d42f905cb2a0bd79cb461d02c3bc637f9fe93a996d481f0b143627a6e28238e3d01b2006b48bbabaf41
+  languageName: node
+  linkType: hard
+
+"@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A17.4.0#~/.yarn/patches/@metamask-perps-controller-npm-17.4.0-0ebb8aeffa.patch":
+  version: 17.4.0
+  resolution: "@metamask/perps-controller@patch:@metamask/perps-controller@npm%3A17.4.0#~/.yarn/patches/@metamask-perps-controller-npm-17.4.0-0ebb8aeffa.patch::version=17.4.0&hash=a01413"
+  dependencies:
+    "@metamask/abi-utils": "npm:^2.0.3"
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.0"
+    "@nktkas/hyperliquid": "npm:^0.33.1"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^11.1.1"
+  checksum: 10/bdb67fa91c891430728dd3832b279f8013bdfd62bb17fa0eb7a84c907aa5ea1dabecc0e1aebd83f656c6ecd6808d255a5f9992cb37b4f6578ca13fd8028f3578
   languageName: node
   linkType: hard
 
@@ -39524,7 +39542,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^17.4.0"
+    "@metamask/perps-controller": "patch:@metamask/perps-controller@npm%3A17.4.0#~/.yarn/patches/@metamask-perps-controller-npm-17.4.0-0ebb8aeffa.patch"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
