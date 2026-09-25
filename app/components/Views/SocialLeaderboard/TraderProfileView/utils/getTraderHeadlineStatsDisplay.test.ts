@@ -2,14 +2,14 @@ import type { TraderStats } from '@metamask/social-controllers';
 import { getTraderHeadlineStatsDisplay } from './getTraderHeadlineStatsDisplay';
 
 const baseStats: TraderStats = {
-  pnl30d: 20610,
-  winRate30d: 0.92,
-  roiPercent30d: 1.5,
+  pnl7d: 20610,
+  winRate7d: 0.92,
+  roiPercent7d: 1.5,
   tradeCount30d: 48,
 };
 
 describe('getTraderHeadlineStatsDisplay', () => {
-  it('formats win rate and positive PnL from 30d stats', () => {
+  it('formats win rate and positive PnL', () => {
     const result = getTraderHeadlineStatsDisplay(baseStats);
 
     expect(result.winRate).toBe('92%');
@@ -19,11 +19,11 @@ describe('getTraderHeadlineStatsDisplay', () => {
     expect(result.isPnlPositive).toBe(true);
   });
 
-  it('renders dashes when 30d win rate and pnl are null', () => {
+  it('handles null win rate and null pnl', () => {
     const stats = {
       ...baseStats,
-      winRate30d: null,
-      pnl30d: null,
+      winRate7d: null,
+      pnl7d: null,
     } as unknown as TraderStats;
 
     const result = getTraderHeadlineStatsDisplay(stats);
@@ -35,10 +35,10 @@ describe('getTraderHeadlineStatsDisplay', () => {
     expect(result.isPnlPositive).toBe(false);
   });
 
-  it('formats negative 30d PnL', () => {
+  it('handles negative PnL', () => {
     const result = getTraderHeadlineStatsDisplay({
       ...baseStats,
-      pnl30d: -5000,
+      pnl7d: -5000,
     });
 
     expect(result.pnl).toBe('-$5,000');

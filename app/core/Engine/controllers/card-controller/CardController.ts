@@ -1037,6 +1037,36 @@ export class CardController extends BaseController<
     });
   }
 
+  /**
+   * Best-effort signal to Baanx (Exodus) that a UK migration user started
+   * Immersve onboarding. Targets the fallback provider directly because the
+   * active provider may already be Immersve. Failures are logged and never
+   * thrown — the user proceeds with sign-up either way.
+   */
+  async requestLegacyAccountClosure(): Promise<void> {
+    const provider = this.providers[FALLBACK_CARD_PROVIDER_ID];
+    if (!provider?.requestAccountClosure) {
+      return;
+    }
+
+    const tokens = await CardTokenStore.get(FALLBACK_CARD_PROVIDER_ID);
+    if (!tokens || provider.validateTokens(tokens) === 'expired') {
+      return;
+    }
+
+    try {
+      await provider.requestAccountClosure(tokens);
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: FALLBACK_CARD_PROVIDER_ID },
+        context: {
+          name: 'CardController',
+          data: { method: 'requestLegacyAccountClosure' },
+        },
+      });
+    }
+  }
+
   getSignInOptions(country: string): CardSignInOption[] {
     const featureState = this.messenger.call(
       'RemoteFeatureFlagController:getState',

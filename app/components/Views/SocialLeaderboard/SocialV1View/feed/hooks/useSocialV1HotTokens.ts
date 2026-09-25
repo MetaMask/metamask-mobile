@@ -1,18 +1,28 @@
 import { useMemo } from 'react';
-import { MOCK_SOCIAL_V1_HOT_TOKENS } from '../mocks/socialV1HotTokens.mock';
-import type { UseSocialV1HotTokensResult } from '../types';
+import type { SocialV1FeedPost, UseSocialV1HotTokensResult } from '../types';
+import {
+  pinSelectedHotToken,
+  rankFeedHotTokens,
+} from '../utils/rankFeedHotTokens';
 
 /**
- * Temporary hot-tokens data source until the ranking logic lands. Matches the
- * shape a live ranking would return so the carousel can swap implementations
- * without changing the chip UI.
+ * Hot-token rail for the loaded feed: the assets that show up most often,
+ * capped at ten. Derived from the posts already on screen, so it moves as
+ * further pages arrive and needs no separate ranking endpoint.
  */
-export const useSocialV1HotTokens = (): UseSocialV1HotTokensResult =>
-  useMemo(
-    () => ({
-      tokens: MOCK_SOCIAL_V1_HOT_TOKENS,
-      isLoading: false,
+export const useSocialV1HotTokens = (
+  posts: readonly SocialV1FeedPost[],
+  isLoading = false,
+  selectedTokenId: string | null = null,
+): UseSocialV1HotTokensResult =>
+  useMemo(() => {
+    const waitingForFirstPage = isLoading && posts.length === 0;
+
+    return {
+      tokens: waitingForFirstPage
+        ? []
+        : pinSelectedHotToken(rankFeedHotTokens(posts), posts, selectedTokenId),
+      isLoading: waitingForFirstPage,
       error: null,
-    }),
-    [],
-  );
+    };
+  }, [isLoading, posts, selectedTokenId]);

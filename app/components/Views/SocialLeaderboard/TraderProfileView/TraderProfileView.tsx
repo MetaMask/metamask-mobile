@@ -168,24 +168,25 @@ const TraderProfileView = () => {
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
-  // The headline 30D return reflects the trader's PnL across every enabled
+  // The headline 7D return reflects the trader's PnL across every enabled
   // asset class they traded. When perps are enabled this includes Hyperliquid.
-  // Summing the per-chain 30D breakdown is preferred over the global stats.pnl30d;
-  // fall back to the global value only when no per-chain breakdown is available.
+  // Summing the per-chain 7D breakdown is preferred over the global stats.pnl7d;
+  // fall back to the global value only when no per-chain breakdown is available
+  // (e.g. an older social-api that doesn't return perChainPnl7d).
   const headlineStats = useMemo(() => {
     if (!profile) return null;
-    const perChainPnl = profile.perChainBreakdown?.perChainPnl;
-    if (!perChainPnl || Object.keys(perChainPnl).length === 0) {
+    const perChainPnl7d = profile.perChainBreakdown?.perChainPnl7d;
+    if (!perChainPnl7d || Object.keys(perChainPnl7d).length === 0) {
       return profile.stats;
     }
-    const pnl30d = Object.entries(perChainPnl).reduce(
+    const pnl7d = Object.entries(perChainPnl7d).reduce(
       (sum, [chain, value]) =>
         !isPerpsEnabled && chain.toLowerCase() === HYPERLIQUID_CHAIN_NAME
           ? sum
           : sum + (value ?? 0),
       0,
     );
-    return { ...profile.stats, pnl30d };
+    return { ...profile.stats, pnl7d };
   }, [profile, isPerpsEnabled]);
   // Fire Trader Profile Screen Viewed once profile resolves so we have an
   // accurate trader_address / is_following at the point the user lands.

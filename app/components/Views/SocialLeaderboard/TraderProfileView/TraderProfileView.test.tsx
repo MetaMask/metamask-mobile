@@ -1127,20 +1127,21 @@ describe('TraderProfileView', () => {
     });
   });
 
-  describe('headline PnL (30d sum across all chains incl. hyperliquid)', () => {
-    it('sums perChainPnl across every chain, including hyperliquid', () => {
+  describe('headline PnL (7d sum across all chains incl. hyperliquid)', () => {
+    it('sums perChainPnl7d across every chain, including hyperliquid', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
-        stats: { ...fixtureProfile.stats, pnl30d: 999999 },
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
         perChainBreakdown: {
-          perChainPnl: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
             base: 50_000,
             solana: 30_000,
             ethereum: 20_000,
             hyperliquid: 900_000,
           },
-          perChainRoi: {},
-          perChainVolume: {},
         },
       };
 
@@ -1153,20 +1154,21 @@ describe('TraderProfileView', () => {
           screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
         ).getByText('+$1,000,000'),
       ).toBeOnTheScreen();
-      // And the trader's global pnl30d (999,999) is NOT what we display
+      // And the trader's global pnl7d (999,999) is NOT what we display
       expect(screen.queryByText('+$999,999')).not.toBeOnTheScreen();
     });
 
     it('shows the Hyperliquid PnL for a perps-only trader (regression: was 0)', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
-        // Global pnl30d is 0 for a perps-only trader; the real PnL lives in the
+        // Global pnl7d is 0 for a perps-only trader; the real PnL lives in the
         // per-chain hyperliquid breakdown.
-        stats: { ...fixtureProfile.stats, pnl30d: 0 },
+        stats: { ...fixtureProfile.stats, pnl7d: 0 },
         perChainBreakdown: {
-          perChainPnl: { hyperliquid: 1_474_000 },
+          perChainPnl: {},
           perChainRoi: {},
           perChainVolume: {},
+          perChainPnl7d: { hyperliquid: 1_474_000 },
         },
       };
 
@@ -1184,16 +1186,17 @@ describe('TraderProfileView', () => {
     it('sums negative per-chain values (incl. hyperliquid) into a negative total', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
-        stats: { ...fixtureProfile.stats, pnl30d: 12_345 },
+        stats: { ...fixtureProfile.stats, pnl7d: 12_345 },
         perChainBreakdown: {
-          perChainPnl: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
             base: -1_000,
             solana: -2_500,
             ethereum: 500,
             hyperliquid: -50_000,
           },
-          perChainRoi: {},
-          perChainVolume: {},
         },
       };
 
@@ -1211,11 +1214,12 @@ describe('TraderProfileView', () => {
     it('treats a missing chain entry as 0', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
-        stats: { ...fixtureProfile.stats, pnl30d: 999 },
+        stats: { ...fixtureProfile.stats, pnl7d: 999 },
         perChainBreakdown: {
-          perChainPnl: { base: 7_500 }, // solana, ethereum, hyperliquid absent
+          perChainPnl: {},
           perChainRoi: {},
           perChainVolume: {},
+          perChainPnl7d: { base: 7_500 }, // solana, ethereum, hyperliquid absent
         },
       };
 
@@ -1228,14 +1232,15 @@ describe('TraderProfileView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('falls back to the global stats.pnl30d when perChainPnl is empty', () => {
+    it('falls back to the global stats.pnl7d when perChainPnl7d is empty', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
-        stats: { ...fixtureProfile.stats, pnl30d: 20_610 },
+        stats: { ...fixtureProfile.stats, pnl7d: 20_610 },
         perChainBreakdown: {
           perChainPnl: {},
           perChainRoi: {},
           perChainVolume: {},
+          perChainPnl7d: {},
         },
       };
 
@@ -1252,16 +1257,17 @@ describe('TraderProfileView', () => {
       mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
       mockProfileResult.profile = {
         ...fixtureProfile,
-        stats: { ...fixtureProfile.stats, pnl30d: 999999 },
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
         perChainBreakdown: {
-          perChainPnl: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
             base: 50_000,
             solana: 30_000,
             ethereum: 20_000,
             hyperliquid: 900_000,
           },
-          perChainRoi: {},
-          perChainVolume: {},
         },
       };
 

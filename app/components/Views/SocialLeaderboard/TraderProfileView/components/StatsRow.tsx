@@ -64,6 +64,7 @@ const StatsRow: React.FC<StatsRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
+            twClassName="text-center"
           >
             {strings('social_leaderboard.trader_profile.win_rate')}
           </Text>
@@ -88,8 +89,9 @@ const StatsRow: React.FC<StatsRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
+            twClassName="text-center"
           >
-            {strings('social_leaderboard.trader_profile.pnl_30d')}
+            {strings('social_leaderboard.trader_profile.pnl_7d')}
           </Text>
         </Box>
 
@@ -107,6 +109,7 @@ const StatsRow: React.FC<StatsRowProps> = ({
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
+            twClassName="text-center"
           >
             {strings('social_leaderboard.trader_profile.hold_time')}
           </Text>

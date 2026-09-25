@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import EmptyShellTabPage from './EmptyShellTabPage';
 import {
@@ -17,7 +17,10 @@ import {
   mockUseSocialV1FeedLoading,
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
+import { FeedSortFilterSelectorsIDs } from '../components/Filters';
 import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
+import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
+import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -41,6 +44,57 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
         testID: 'popular-traders-carousel-section',
       }),
   };
+});
+
+// Reanimated's useFrameCallback registers on the UI runtime via a 0ms timeout.
+// Unmount in this suite races that mock and throws
+// `Cannot set properties of undefined (setting 'startTime')`. The marquee
+// itself is covered in HotTokensCarousel.test. This stub only exposes the
+// chips so the page can prove a press filters the feed.
+jest.mock('../SocialV1View/feed/components', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { Pressable } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  const { getSocialV1HotTokenChipTestId: chipTestId } = jest.requireActual(
+    '../SocialV1View/feed/components/HotTokensCarousel.testIds',
+  ) as typeof import('../SocialV1View/feed/components/HotTokensCarousel.testIds');
+  const { pinSelectedHotToken, rankFeedHotTokens } = jest.requireActual(
+    '../SocialV1View/feed/utils/rankFeedHotTokens',
+  ) as typeof import('../SocialV1View/feed/utils/rankFeedHotTokens');
+
+  const HotTokensCarousel = ({
+    posts = [],
+    selectedTokenId = null,
+    onTokenPress,
+  }: {
+    posts?: import('../SocialV1View/feed/types').SocialV1FeedPost[];
+    selectedTokenId?: string | null;
+    onTokenPress?: (
+      token: import('../SocialV1View/feed/types').SocialV1HotToken,
+    ) => void;
+  }) => {
+    const tokens = pinSelectedHotToken(
+      rankFeedHotTokens(posts),
+      posts,
+      selectedTokenId,
+    );
+
+    return ReactActual.createElement(
+      ReactActual.Fragment,
+      null,
+      tokens.map((token) =>
+        ReactActual.createElement(Pressable, {
+          key: token.id,
+          testID: chipTestId(token.id),
+          accessibilityState: { selected: token.id === selectedTokenId },
+          onPress: () => onTokenPress?.(token),
+        }),
+      ),
+    );
+  };
+
+  return { HotTokensCarousel };
 });
 
 // See the view suite: the real hook needs keyring state and React Query, and
@@ -213,6 +267,26 @@ describe('EmptyShellTabPage', () => {
     expect(ids.indexOf(fourth)).toBeGreaterThan(carouselIndex);
   });
 
+  it('scrolls the Following filter bar with the feed', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    const scroll = within(screen.getByTestId('following-page-scroll'));
+
+    expect(
+      scroll.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR),
+    ).toBeOnTheScreen();
+    expect(
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('omits the Popular traders carousel on Following', () => {
     renderWithProvider(
       <EmptyShellTabPage
@@ -262,6 +336,67 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-block-trailing'),
+    ).toBeOnTheScreen();
+  });
+
+  it('filters the feed to the asset of a pressed hot-token chip', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:BTC')),
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-eth-closed'),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-aapl-closed'),
+    ).toBeNull();
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:BTC')).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+  });
+
+  it('clears the asset filter when the selected chip is pressed again', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:ETH')),
+    );
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:ETH')),
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-eth-closed'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('popular-traders-carousel-section'),
     ).toBeOnTheScreen();
   });
 

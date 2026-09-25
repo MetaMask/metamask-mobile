@@ -20,8 +20,8 @@ export const SUBSCRIPTIONS_REFETCH_INTERVAL = 5 * 60 * 1000;
  * Redux stays the source of truth for Plus gating, and so the controller's
  * change side effects (access-token refresh, benefits refresh) still run.
  *
- * Mounted by the Money home view so Plus entitlements stay current while the
- * user is on a surface that reacts to them.
+ * Mounted by useMoneyAccountPlusAccess so Plus entitlements stay current
+ * while the user is on a surface that resolves access.
  *
  * @param options - Query options.
  * @param options.enabled - Caller gate for fetching subscriptions.
@@ -45,7 +45,6 @@ const useSubscriptions = ({
     queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
     enabled: enabled && isSignedIn && isUnlocked,
     refetchInterval: SUBSCRIPTIONS_REFETCH_INTERVAL,
-    staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
