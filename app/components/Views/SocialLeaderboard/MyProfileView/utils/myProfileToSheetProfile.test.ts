@@ -20,7 +20,16 @@ describe('myProfileToSheetProfile', () => {
     expect(sheetProfile.stats.pnl30d).toBe(7100);
     expect(sheetProfile.stats.winRate30d).toBe(0.6);
     expect(sheetProfile.stats.medianHoldMinutes).toBe(5760);
-    expect(sheetProfile.copytradedAllTime?.count).toBe(981);
+    expect(sheetProfile.copytradedAllTime.count).toBe(981);
     expect(sheetProfile.followerCount).toBe(4);
+  });
+
+  it('maps missing timesCopied to a zero copytradedAllTime count', () => {
+    const sheetProfile = myProfileToSheetProfile({
+      ...baseProfile,
+      timesCopied: undefined,
+    });
+
+    expect(sheetProfile.copytradedAllTime.count).toBe(0);
   });
 });

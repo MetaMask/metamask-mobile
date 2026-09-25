@@ -4,9 +4,11 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
+  SectionDivider,
   Spinner,
   Text,
   TextColor,
@@ -14,30 +16,76 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
-import { ScrollView, Share } from 'react-native';
+import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  Share,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
+import { useTraderProfile } from '../TraderProfileView/hooks';
+import SocialFeedPostShell from '../SocialV1View/feed/components/SocialFeedPostShell';
+import SocialFeedPostSkeleton from '../SocialV1View/feed/components/SocialFeedPostSkeleton';
+import SocialV1FeedPostList from '../SocialV1View/feed/components/SocialV1FeedPostList';
+import { getSocialV1FeedEntryDividerTestId } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfileAvatar from './components/ProfileAvatar';
-import { useMyProfile } from './hooks';
+import {
+  useMyOpenPerpsPositionCount,
+  useMyProfile,
+  useMyProfileAddress,
+  useMyProfilePosts,
+} from './hooks';
 import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 import TraderStatsSheet from '../TraderProfileView/components/TraderStatsSheet';
 import { TraderStatsSheetSelectorsIDs } from '../TraderProfileView/components/TraderStatsSheet.testIds';
-import { myProfileToSheetProfile } from './utils/myProfileToSheetProfile';
+import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
+
+const END_REACHED_THRESHOLD_PX = 600;
+const REFRESH_MIN_DURATION_MS = 1000;
+const INITIAL_POST_SKELETON_COUNT = 4;
+const INITIAL_POST_SKELETON_KEYS = Array.from(
+  { length: INITIAL_POST_SKELETON_COUNT },
+  (_, index) => `my-profile-post-skeleton-${index}`,
+);
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
+  const { colors } = useTheme();
   const { profile, isLoading, error, refresh } = useMyProfile();
   const { traders: following } = useFollowedTraders();
+  const addressOrId = useMyProfileAddress(profile);
+  const liveProfile = useTraderProfile(addressOrId ?? '');
+  const { refresh: refreshLiveProfile } = liveProfile;
+  const {
+    posts,
+    isLoading: isPostsLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error: postsError,
+    refresh: refreshPosts,
+  } = useMyProfilePosts(addressOrId);
+  const openPositionsCount = useMyOpenPerpsPositionCount();
+  const overlayedStats = useMemo(
+    () =>
+      profile ? overlayMyProfileLiveStats(profile, liveProfile.profile) : null,
+    [liveProfile.profile, profile],
+  );
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -84,6 +132,45 @@ const MyProfileView: React.FC = () => {
     Share.share({ message }).catch(() => undefined);
   }, [profile]);
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const minDuration = new Promise<void>((resolve) =>
+        setTimeout(resolve, REFRESH_MIN_DURATION_MS),
+      );
+      await Promise.all([
+        refresh(),
+        refreshLiveProfile(),
+        refreshPosts(),
+        minDuration,
+      ]);
+    } catch {
+      // Errors stay on the respective query surfaces.
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshLiveProfile, refreshPosts, refresh]);
+
+  const handleScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!hasNextPage) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMore();
+      }
+    },
+    [hasNextPage, loadMore],
+  );
+
+  const showInitialPostSkeletons = isPostsLoading && posts.length === 0;
+  const showPostsEmptyState =
+    !isPostsLoading && posts.length === 0 && !postsError;
+
   return (
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
@@ -127,13 +214,25 @@ const MyProfileView: React.FC = () => {
             {strings('social_leaderboard.my_profile.retry')}
           </Button>
         </Box>
-      ) : profile ? (
-        <ScrollView
+      ) : profile && overlayedStats ? (
+        <Animated.ScrollView
+          testID={MyProfileViewSelectorsIDs.SCROLL}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('flex-grow pb-6')}
+          onMomentumScrollEnd={handleScrollSettled}
+          onScrollEndDrag={handleScrollSettled}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
         >
           <MyProfileHeader
             profile={profile}
+            overlayedStats={overlayedStats}
             followingCount={following.length}
             onFollowersPress={handleFollowersPress}
             onFollowingPress={handleFollowingPress}
@@ -181,11 +280,73 @@ const MyProfileView: React.FC = () => {
             </Box>
           </Box>
 
-          <ProfilePostsEmptyState
-            onShareFirstTrade={handleShareFirstTrade}
-            onResetProfile={handleResetProfile}
-          />
-        </ScrollView>
+          {showInitialPostSkeletons ? (
+            <Box paddingTop={4}>
+              {INITIAL_POST_SKELETON_KEYS.map((key, index) => (
+                <Fragment key={key}>
+                  {index > 0 ? (
+                    <SectionDivider
+                      marginVertical={1}
+                      testID={getSocialV1FeedEntryDividerTestId(
+                        `loading-${index}`,
+                      )}
+                    />
+                  ) : null}
+                  <Box twClassName="px-4">
+                    <SocialFeedPostSkeleton index={index} />
+                  </Box>
+                </Fragment>
+              ))}
+            </Box>
+          ) : showPostsEmptyState ? (
+            <ProfilePostsEmptyState
+              onShareFirstTrade={handleShareFirstTrade}
+              onResetProfile={handleResetProfile}
+            />
+          ) : postsError && posts.length === 0 ? (
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="w-full px-4 py-16 gap-3"
+              testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                twClassName="text-center"
+              >
+                {strings('social_leaderboard.feed.error.title')}
+              </Text>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                onPress={refreshPosts}
+                twClassName="self-center"
+                testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
+              >
+                {strings('social_leaderboard.feed.error.retry')}
+              </Button>
+            </Box>
+          ) : (
+            <Box testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
+              <SocialV1FeedPostList
+                posts={posts}
+                dividerKeyPrefix="my-profile"
+                renderPost={(post) => <SocialFeedPostShell post={post} />}
+              />
+            </Box>
+          )}
+          {isFetchingNextPage ? (
+            <Box
+              alignItems={BoxAlignItems.Center}
+              twClassName="px-4"
+              testID={MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING}
+            >
+              <ActivityIndicator size="small" />
+            </Box>
+          ) : null}
+        </Animated.ScrollView>
       ) : (
         <Box
           twClassName="flex-1"
@@ -219,10 +380,13 @@ const MyProfileView: React.FC = () => {
           </Button>
         </Box>
       )}
-      {isStatsSheetOpen && profile ? (
+      {isStatsSheetOpen && profile && overlayedStats ? (
         <TraderStatsSheet
-          profile={myProfileToSheetProfile(profile)}
+          profile={overlayedStats.sheetProfile}
           profileHandle={profile.handle}
+          fallbackFields={overlayedStats.fallbackFields}
+          hideHoldTime
+          openPositionsCount={openPositionsCount}
           headerAvatar={
             <ProfileAvatar
               imageUrl={profile.imageUrl}

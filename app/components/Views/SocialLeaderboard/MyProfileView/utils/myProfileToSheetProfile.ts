@@ -2,7 +2,7 @@ import type { TraderProfileWithSheetStats } from '../../TraderProfileView/types/
 import type { MySocialProfile } from '../hooks/useMyProfile';
 
 /** Best-effort parse for mock labels like `4d` until median minutes come from the API. */
-function holdTimeLabelToMinutes(
+export function holdTimeLabelToMinutes(
   label: string | null | undefined,
 ): number | null {
   if (!label) {
@@ -47,13 +47,10 @@ export function myProfileToSheetProfile(
     },
     followerCount: profile.followerCount ?? 0,
     followingCount: profile.followingCount ?? 0,
-    copytradedAllTime:
-      profile.timesCopied != null
-        ? {
-            count: profile.timesCopied,
-            volumeUSD: 0,
-            distinctActors: 0,
-          }
-        : undefined,
+    copytradedAllTime: {
+      count: profile.timesCopied ?? 0,
+      volumeUSD: 0,
+      distinctActors: 0,
+    },
   };
 }

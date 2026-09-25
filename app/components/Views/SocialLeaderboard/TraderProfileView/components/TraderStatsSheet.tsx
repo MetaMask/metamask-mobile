@@ -27,6 +27,8 @@ import {
   formatSheetHoldFromMinutes,
   formatSheetUnsignedUsd,
   formatSheetWinRate,
+  prefixFakeStat,
+  type StatsSheetFallbackFields,
 } from './statsSheetFormatters';
 import { TraderStatsSheetSelectorsIDs } from './TraderStatsSheet.testIds';
 
@@ -41,6 +43,12 @@ export interface TraderStatsSheetProps {
    * When omitted, falls back to `TraderAvatar` from the profile image URL.
    */
   headerAvatar?: React.ReactNode;
+  /** Prefix `*` on values that still come from local mock data. */
+  fallbackFields?: StatsSheetFallbackFields;
+  /** Hide median hold time (My Profile). Other traders still show it. */
+  hideHoldTime?: boolean;
+  /** Open position count from the owner's wallet perps cache. */
+  openPositionsCount?: number;
   onClose: () => void;
 }
 
@@ -106,6 +114,9 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
   profile,
   profileHandle,
   headerAvatar,
+  fallbackFields,
+  hideHoldTime = false,
+  openPositionsCount,
   onClose,
 }) => {
   const sheetRef = React.useRef<BottomSheetRef>(null);
@@ -115,15 +126,33 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
   }, []);
 
   const stats = profile.stats;
-  const pnlDisplay = formatSheetUnsignedUsd(stats.pnl30d);
+  const pnlDisplay = prefixFakeStat(
+    formatSheetUnsignedUsd(stats.pnl30d),
+    fallbackFields?.pnl === true,
+  );
   const isPnlPositive = stats.pnl30d != null && stats.pnl30d >= 0;
   const hasPnl = stats.pnl30d != null;
-  const winRate = formatSheetWinRate(stats.winRate30d);
-  const volume = formatSheetAbbreviatedUsd(stats.volumeUsd30d);
-  const holdTime = formatSheetHoldFromMinutes(stats.medianHoldMinutes);
-  const tradeCount = formatSheetCount(stats.tradeCount30d ?? null);
+  const winRate = prefixFakeStat(
+    formatSheetWinRate(stats.winRate30d),
+    fallbackFields?.winRate === true,
+  );
+  const volume = prefixFakeStat(
+    formatSheetAbbreviatedUsd(stats.volumeUsd30d),
+    fallbackFields?.volume === true,
+  );
+  const holdTime = prefixFakeStat(
+    formatSheetHoldFromMinutes(stats.medianHoldMinutes),
+    fallbackFields?.holdTime === true,
+  );
+  const tradeCount = prefixFakeStat(
+    formatSheetCount(stats.tradeCount30d ?? null),
+    fallbackFields?.tradeCount === true,
+  );
   const copyCount = profile.copytradedAllTime
-    ? formatSheetCount(getCopytradedCount(profile))
+    ? prefixFakeStat(
+        formatSheetCount(getCopytradedCount(profile)),
+        fallbackFields?.timesCopied === true,
+      )
     : '';
 
   const handleClose = () => {
@@ -213,13 +242,15 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Row} gap={6} twClassName="px-4 pb-6">
-        <GridMetric
-          label={strings(
-            'social_leaderboard.trader_profile.stats_sheet_hold_time',
-          )}
-          value={holdTime}
-          testID={TraderStatsSheetSelectorsIDs.ROW_HOLD_TIME}
-        />
+        {hideHoldTime ? null : (
+          <GridMetric
+            label={strings(
+              'social_leaderboard.trader_profile.stats_sheet_hold_time',
+            )}
+            value={holdTime}
+            testID={TraderStatsSheetSelectorsIDs.ROW_HOLD_TIME}
+          />
+        )}
         <GridMetric
           label={strings('social_leaderboard.trader_profile.number_of_trades')}
           value={tradeCount}
@@ -245,7 +276,11 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
           label={strings(
             'social_leaderboard.trader_profile.stats_sheet_positions',
           )}
-          value=""
+          value={
+            openPositionsCount != null
+              ? formatSheetCount(openPositionsCount)
+              : ''
+          }
           testID={TraderStatsSheetSelectorsIDs.ROW_POSITIONS}
         />
         <ListRow

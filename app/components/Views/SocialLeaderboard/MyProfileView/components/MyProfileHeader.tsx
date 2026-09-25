@@ -18,6 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfileAvatar from './ProfileAvatar';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
 import MyProfileStats from './MyProfileStats';
 
 const RANKING_TAG_DISPLAY: Record<
@@ -31,6 +32,7 @@ const RANKING_TAG_DISPLAY: Record<
 
 interface MyProfileHeaderProps {
   profile: MySocialProfile;
+  overlayedStats: OverlayedMyProfileStats;
   followingCount: number;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
@@ -39,6 +41,7 @@ interface MyProfileHeaderProps {
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   profile,
+  overlayedStats,
   followingCount,
   onFollowersPress,
   onFollowingPress,
@@ -50,8 +53,8 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
     }
   }, [profile.xHandle]);
 
-  const rankingTag = profile.rankingTag
-    ? RANKING_TAG_DISPLAY[profile.rankingTag]
+  const rankingTag = overlayedStats.rankingTag
+    ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
     : null;
 
   return (
@@ -140,7 +143,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           accessibilityRole="button"
           accessibilityLabel={strings(
             'social_leaderboard.my_profile.followers_tab',
-            { count: profile.followerCount ?? 0 },
+            { count: overlayedStats.followerCount },
           )}
           testID={MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON}
         >
@@ -153,7 +156,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
               variant={TextVariant.BodyMd}
               testID={MyProfileViewSelectorsIDs.FOLLOWERS_COUNT}
             >
-              {profile.followerCount ?? 0}
+              {overlayedStats.followerCount}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
@@ -196,7 +199,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      <MyProfileStats profile={profile} onPress={onStatsPress} />
+      <MyProfileStats stats={overlayedStats} onPress={onStatsPress} />
     </Box>
   );
 };

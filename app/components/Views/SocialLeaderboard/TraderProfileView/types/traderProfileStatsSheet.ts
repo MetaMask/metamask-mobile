@@ -21,7 +21,6 @@ export type TraderStatsWithVolume = TraderStats & {
 
 export type TraderProfileWithSheetStats = TraderProfileResponse & {
   stats: TraderStatsWithVolume;
-  copytradedAllTime?: CopytradedAllTimeStats;
 };
 
 export function getCopytradedCount(

@@ -257,6 +257,11 @@ const fixtureProfile: TraderProfileResponse = {
   socialHandles: {},
   followerCount: 45,
   followingCount: 12,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
 };
 
 const fixtureOpenPositions: Position[] = [

@@ -8,6 +8,25 @@ import {
 } from '../../utils/formatters';
 import { MINUTE } from '../../../../../constants/time';
 
+/** Prefix for numbers that still come from a local mock, not the API. */
+export const FAKE_STATS_PREFIX = '*';
+
+export function prefixFakeStat(label: string, isFake: boolean): string {
+  if (!isFake || !label || label === EM_DASH) {
+    return label;
+  }
+  return `${FAKE_STATS_PREFIX}${label}`;
+}
+
+export interface StatsSheetFallbackFields {
+  winRate?: boolean;
+  pnl?: boolean;
+  holdTime?: boolean;
+  timesCopied?: boolean;
+  volume?: boolean;
+  tradeCount?: boolean;
+}
+
 /** Unsigned full USD for the sheet hero (e.g. `$7,100`). Sign is shown via color. */
 export function formatSheetUnsignedUsd(
   value: number | null | undefined,

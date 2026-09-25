@@ -84,7 +84,11 @@ describe('TraderStatsSheet', () => {
     const emptyProfile: TraderProfileWithSheetStats = {
       ...profile,
       stats: {},
-      copytradedAllTime: undefined,
+      copytradedAllTime: {
+        count: 0,
+        volumeUSD: 0,
+        distinctActors: 0,
+      },
     };
 
     renderWithProvider(
@@ -99,6 +103,53 @@ describe('TraderStatsSheet', () => {
     ).toHaveTextContent('Trading volume');
     expect(
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_TRADES_COPIED),
-    ).toHaveTextContent('Trades copied');
+    ).toHaveTextContent(/0/);
+  });
+
+  it('prefixes formatted stats marked as local fallbacks', () => {
+    renderWithProvider(
+      <TraderStatsSheet
+        profile={profile}
+        profileHandle="mint-cat"
+        fallbackFields={{
+          pnl: true,
+          winRate: true,
+          volume: true,
+          holdTime: true,
+          tradeCount: true,
+          timesCopied: true,
+        }}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.HERO_PNL),
+    ).toHaveTextContent(/^\*\$7,100/);
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_WIN_RATE),
+    ).toHaveTextContent(/\*58%/);
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_TRADES_COPIED),
+    ).toHaveTextContent(/\*981/);
+  });
+
+  it('omits hold time and shows open positions when provided', () => {
+    renderWithProvider(
+      <TraderStatsSheet
+        profile={profile}
+        profileHandle="mint-cat"
+        hideHoldTime
+        openPositionsCount={3}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(TraderStatsSheetSelectorsIDs.ROW_HOLD_TIME),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_POSITIONS),
+    ).toHaveTextContent(/3/);
   });
 });
