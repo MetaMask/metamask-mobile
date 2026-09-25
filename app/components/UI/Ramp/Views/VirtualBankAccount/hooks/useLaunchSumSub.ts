@@ -1,9 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  KycCatalogDocument,
-  KycConsentDocument,
-  KycConsentRecord,
-} from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import type { VbaIdentityVerificationCompletion } from '../modules/types';
@@ -19,22 +14,14 @@ export interface UseLaunchSumSubResult {
   retry: () => void;
 }
 
-const toAcceptedDisclaimerKeys = (
-  documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
-): KycConsentRecord[] =>
-  (documents ?? []).map(({ key, version }) => ({ key, version }));
-
 /**
- * On mount, records the session-scoped idOS / SumSub consents and opens the
- * SumSub document-verification journey back-to-back, then reports submission
- * to the VBA coordinator.
+ * On mount, launches the SumSub document-verification journey and reports the
+ * outcome to the VBA coordinator.
  *
- * The UKYC session was created at the email step (`startSession`). The
- * identity module displays the session terms first, but records consent only
- * here so idOS applicant creation and provider launch remain back-to-back.
- * Splitting those operations across screens yields a "Failed to get
- * applicant" error. `recordSessionDisclaimers` is idempotent (a 409 for
- * already-accepted consents is swallowed).
+ * Session-scoped idOS / SumSub consents must be recorded before this hook runs
+ * (typically on the prior screen's success action) to ensure idOS applicant
+ * creation and provider launch remain back-to-back. Splitting those operations
+ * across screens yields a "Failed to get applicant" error.
  *
  * `launchProviderFlow` returns a durable provider-flow outcome. A submitted
  * run advances onboarding, an abandoned run remains retryable, and a failed
@@ -72,22 +59,10 @@ export const useLaunchSumSub = (
 
     const launch = async () => {
       try {
-        const { KycController, KycService } = Engine.context;
-        if (!KycService) {
-          throw new Error('KYC service is unavailable');
+        const { KycController } = Engine.context;
+        if (!KycController) {
+          throw new Error('KYC controller is unavailable');
         }
-
-        const country = await KycService.getGeoCountry();
-        const catalog = await KycController.fetchSessionDisclaimers({
-          country,
-        });
-        await KycController.recordSessionDisclaimers({
-          providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
-            catalog.kycProvider,
-          ),
-          idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
-          credentialReusabilityConsentGiven: false,
-        });
 
         const outcome = await KycController.launchProviderFlow({});
         if (outcome === 'submitted') {
