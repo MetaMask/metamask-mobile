@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useRoute } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -134,6 +134,12 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
 import { endTrace, TraceName } from '../../../util/trace';
+import {
+  endPostInitGap,
+  endRootNavigatorFirstRender,
+  startAppStartToUnlockLaidOut,
+  startRootNavigatorFirstRender,
+} from '../../../core/Performance/startupStageSpans';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
 import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
@@ -1143,6 +1149,29 @@ const ModalSwitchAccountType = () => (
 );
 
 const AppFlow = () => {
+  // A lazy `useState` initialiser rather than a ref write during render: the
+  // initialiser runs exactly once, before children evaluate, and stays
+  // compatible with React Compiler (this directory is opted in).
+  // `NavigationProvider` starts its `NavInit` span the same way, for the same
+  // reason, so this is the established shape here rather than a new one.
+  //
+  // This is deliberately a side effect during render, which React does not
+  // formally permit, and the trade-off is accepted knowingly: the span exists to
+  // measure the synchronous navigator module-evaluation burst that happens
+  // *during* this render, and any effect — layout included — fires after it.
+  // Both calls are guarded and throw-safe inside `startupStageSpans`, which
+  // matters most here: a throw during render would take the navigator down.
+  // Known cost: a render that is thrown away (StrictMode double-render, Suspense,
+  // an error boundary, a concurrent interruption) opens a span the effect below
+  // never closes, which the tracing layer then finishes at its cleanup cap with
+  // `trace.timed_out: true`. Filter that attribute when dashboarding this span.
+  useState(startRootNavigatorFirstRender);
+
+  useEffect(() => {
+    endRootNavigatorFirstRender();
+    endPostInitGap();
+  }, []);
+
   const { colors, themeAppearance } = useTheme();
   const onboardingCanvasColor =
     themeAppearance === 'dark'
@@ -1496,6 +1525,7 @@ const App: React.FC = () => {
   const existingUser = useSelector(selectExistingUser);
   const isUnlocked = useSelector(selectIsUnlocked);
   const hasQueuedColdHomepageReadyTrace = useRef(false);
+  const hasResolvedUnlockLaidOutTrace = useRef(false);
 
   useEffect(() => {
     if (
@@ -1508,6 +1538,35 @@ const App: React.FC = () => {
 
     hasQueuedColdHomepageReadyTrace.current = true;
     queueColdHomepageReadyTrace(Performance.appLaunchTime);
+  }, [existingUser, isUnlocked]);
+
+  // The mirror of the effect above, for the locked cold start — which is the
+  // common case and the one nothing measured. `HomepageReady` only starts at
+  // unlock submit on this path, so the entire wait before the user can begin
+  // typing was untracked.
+  //
+  // This resolves **once**, on the first observation that says which path this
+  // launch took, and deliberately resolves even when it decides not to open.
+  // Only arming the guard on the open path would leave it armed after an
+  // already-unlocked start (finishing onboarding, or biometrics winning the
+  // race), so a later manual or idle re-lock would open a span anchored on
+  // `Performance.appLaunchTime` — process start, possibly hours earlier — and
+  // record a whole session as cold-start time. A re-lock is not a cold start.
+  //
+  // `!existingUser` means "not known yet" during rehydration and onboarding,
+  // so it waits rather than resolving.
+  useEffect(() => {
+    if (hasResolvedUnlockLaidOutTrace.current || !existingUser) {
+      return;
+    }
+
+    hasResolvedUnlockLaidOutTrace.current = true;
+
+    if (isUnlocked) {
+      return;
+    }
+
+    startAppStartToUnlockLaidOut();
   }, [existingUser, isUnlocked]);
 
   useEffect(() => {

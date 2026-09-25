@@ -4,6 +4,10 @@ import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
 import { selectAppServicesReady } from '../../../reducers/user/selectors';
 import FoxLoader from '../../UI/FoxLoader';
+import {
+  endSplashRevealTax,
+  startSplashRevealTax,
+} from '../../../core/Performance/startupStageSpans';
 /**
  * A higher order component that gate keeps the children until the app services are finished loaded
  * and the splash animation has completed.
@@ -25,8 +29,25 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => setLoaderDone(true));
+    }).start(() => {
+      // Reveal first, measure second. The actual guarantee is that
+      // `endSplashRevealTax` is throw-safe — ordering alone is not enough, since
+      // an escaping error prevents React from flushing `setLoaderDone` and the
+      // splash would stay up for the rest of the session (covered by
+      // ControllersGate.test.tsx). This order is belt-and-braces on top.
+      setLoaderDone(true);
+      endSplashRevealTax();
+    });
   }, [loaderOpacity]);
+
+  // Opens the span covering the fixed 800ms Rive exit + 300ms fade below, which
+  // no shipped metric sees. Guarded once-per-launch inside the helper.
+  useEffect(() => {
+    if (!appServicesReady) {
+      return;
+    }
+    startSplashRevealTax();
+  }, [appServicesReady]);
 
   // Only fade out once BOTH the animation is done AND app services are ready.
   // This prevents a blank screen when Rive fails or times out before services finish.

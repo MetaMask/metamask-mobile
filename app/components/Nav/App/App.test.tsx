@@ -38,6 +38,20 @@ jest.mock('../../../core/Performance/HomepageReady', () => ({
     mockQueueColdHomepageReadyTrace(...args),
 }));
 
+const mockStartAppStartToUnlockLaidOut = jest.fn();
+const mockEndPostInitGap = jest.fn();
+const mockStartRootNavigatorFirstRender = jest.fn();
+const mockEndRootNavigatorFirstRender = jest.fn();
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  startAppStartToUnlockLaidOut: (...args: unknown[]) =>
+    mockStartAppStartToUnlockLaidOut(...args),
+  endPostInitGap: (...args: unknown[]) => mockEndPostInitGap(...args),
+  startRootNavigatorFirstRender: (...args: unknown[]) =>
+    mockStartRootNavigatorFirstRender(...args),
+  endRootNavigatorFirstRender: (...args: unknown[]) =>
+    mockEndRootNavigatorFirstRender(...args),
+}));
+
 const initialState: DeepPartial<RootState> = {
   user: {
     userLoggedIn: true,
@@ -1520,6 +1534,54 @@ describe('App', () => {
       });
 
       expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts the unlock CUF for a locked existing user', () => {
+      renderApp(getHomepageReadyState(false));
+
+      expect(mockStartAppStartToUnlockLaidOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not start the unlock CUF when the app opens already unlocked', () => {
+      renderApp(getHomepageReadyState(true));
+
+      expect(mockStartAppStartToUnlockLaidOut).not.toHaveBeenCalled();
+    });
+
+    it('does not start the unlock CUF on a re-lock after an unlocked start', () => {
+      // Regression: the guard used to be armed only when the span opened, so
+      // an already-unlocked first observation left it false. A later re-lock
+      // then opened a span anchored on process start, recording the whole
+      // session as cold-start-to-unlock time. A re-lock is not a cold start.
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore((state: unknown | undefined, action) => {
+        if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
+          return unlockedState;
+        }
+        if (action.type === 'TEST/LOCKED') {
+          return lockedState;
+        }
+        return state ?? unlockedState;
+      }, unlockedState as unknown);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+      expect(mockStartAppStartToUnlockLaidOut).not.toHaveBeenCalled();
+
+      act(() => {
+        store.dispatch({ type: 'TEST/LOCKED' });
+      });
+
+      expect(mockStartAppStartToUnlockLaidOut).not.toHaveBeenCalled();
     });
   });
 

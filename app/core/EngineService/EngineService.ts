@@ -18,6 +18,11 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
+import {
+  endControllerStateRehydration,
+  startControllerStateRehydration,
+  startPostInitGap,
+} from '../Performance/startupStageSpans';
 
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
@@ -145,7 +150,15 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+    // Separately spanned because this is ~70 filesystem reads + JSON.parse
+    // before a single controller can be constructed, and it needs to be
+    // attributable independently of Engine.init() to know whether startup is
+    // I/O-bound or CPU-bound here. Both calls are throw-safe: this runs before
+    // the vault-recovery `try` below, so a tracing failure here would otherwise
+    // reject `start()` and leave the app with no Engine at all.
+    startControllerStateRehydration();
     const persistedState = await ControllerStorage.getAllPersistedState();
+    endControllerStateRehydration();
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -209,6 +222,9 @@ export class EngineService {
       }, 150);
     }
     endTrace({ name: TraceName.EngineInitialization });
+    // The window from here to the navigator's first render is where
+    // fire-and-forget startup work runs. See startupStageSpans.ts.
+    startPostInitGap();
   };
 
   /**
