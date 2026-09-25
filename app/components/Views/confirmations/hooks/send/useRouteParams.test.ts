@@ -66,6 +66,7 @@ describe('useRouteParams', () => {
     await waitFor(() => {
       expect(mockUpdateAsset).not.toHaveBeenCalled();
     });
+    expect(mockUseNfts).toHaveBeenCalledWith(false);
   });
 
   it('calls updateAsset with params asset when token not found but has symbol (zero balance scenario)', async () => {

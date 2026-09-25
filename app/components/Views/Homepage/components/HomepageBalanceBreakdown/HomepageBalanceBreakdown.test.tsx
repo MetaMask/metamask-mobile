@@ -1,6 +1,7 @@
 import React from 'react';
 import { brandColor } from '@metamask/design-tokens';
 import { fireEvent, render } from '@testing-library/react-native';
+import { Laminar } from 'react-native-laminar';
 import { useSelector } from 'react-redux';
 import I18n from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -346,11 +347,13 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
-    });
+    expect(UNSAFE_getByType(Laminar).props.style).toEqual(
+      expect.objectContaining({ color: mockTheme.colors.text.muted }),
+    );
   });
 
   it('mutes an incomplete aggregate without treating an error as loading', () => {
@@ -363,11 +366,53 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
+    expect(UNSAFE_getByType(Laminar).props.style).toEqual(
+      expect.objectContaining({ color: mockTheme.colors.text.muted }),
+    );
+  });
+
+  it('shows a muted zero without a delta while the aggregate is loading', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        status: 'loading',
+      },
     });
+
+    const { getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 0.00');
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('rolls every aggregate balance update', () => {
+    const { rerender, UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('50.00');
+
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        totalFiat: 75,
+      },
+    });
+    rerender(<HomepageBalanceBreakdown layout="icons" />);
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('75.00');
   });
 
   it('renders the experiment empty state for a settled zero portfolio', () => {

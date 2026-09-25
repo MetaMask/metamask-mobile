@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
@@ -61,28 +61,31 @@ export function useSendNavbar() {
     navigationForStack.goBack();
   }, [navigation, navigationForStack, nestedStackState, parentNavigation]);
 
-  return {
-    Amount: getHeaderCompactStandardNavbarOptions({
-      title: strings('send.title'),
-      onBack: handleBackPress,
-      onClose: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      closeButtonProps: { testID: 'send-navbar-close-button' },
-      includesTopInset: true,
+  return useMemo(
+    () => ({
+      Amount: getHeaderCompactStandardNavbarOptions({
+        title: strings('send.title'),
+        onBack: handleBackPress,
+        onClose: handleCancelPress,
+        backButtonProps: { testID: 'send-navbar-back-button' },
+        closeButtonProps: { testID: 'send-navbar-close-button' },
+        includesTopInset: true,
+      }),
+      Asset: getHeaderCompactStandardNavbarOptions({
+        onBack: handleCancelPress,
+        backButtonProps: { testID: 'send-navbar-back-button' },
+        title: strings('send.title'),
+        includesTopInset: true,
+      }),
+      Recipient: getHeaderCompactStandardNavbarOptions({
+        title: strings('send.title'),
+        onBack: handleBackPress,
+        onClose: handleCancelPress,
+        backButtonProps: { testID: 'send-navbar-back-button' },
+        closeButtonProps: { testID: 'send-navbar-close-button' },
+        includesTopInset: true,
+      }),
     }),
-    Asset: getHeaderCompactStandardNavbarOptions({
-      onBack: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      title: strings('send.title'),
-      includesTopInset: true,
-    }),
-    Recipient: getHeaderCompactStandardNavbarOptions({
-      title: strings('send.title'),
-      onBack: handleBackPress,
-      onClose: handleCancelPress,
-      backButtonProps: { testID: 'send-navbar-back-button' },
-      closeButtonProps: { testID: 'send-navbar-close-button' },
-      includesTopInset: true,
-    }),
-  };
+    [handleBackPress, handleCancelPress],
+  );
 }

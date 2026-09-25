@@ -7,12 +7,10 @@ export const MoneyBalanceCardTestIds = {
   CURRENCY_SUFFIX: 'money-balance-card-currency-suffix',
   INFO_BUTTON: 'money-balance-card-info-button',
   BALANCE: 'money-balance-card-balance',
-  BALANCE_SKELETON: 'money-balance-card-balance-skeleton',
   BALANCE_ERROR: 'money-balance-card-balance-error',
   BALANCE_RETRY: 'money-balance-card-balance-retry',
   BALANCE_UNAVAILABLE: 'money-balance-card-balance-unavailable',
   APY_TAG: 'money-balance-card-apy-tag',
-  APY_TAG_SKELETON: 'money-balance-card-apy-tag-skeleton',
   ADD_BUTTON: 'money-balance-card-add-button',
   GET_STARTED_BUTTON: 'money-balance-card-get-started-button',
 } as const;

@@ -18,14 +18,24 @@ export interface UseEVMNftsResult {
   isLoading: boolean;
 }
 
-export function useEVMNfts(): UseEVMNftsResult {
+const EMPTY_ACCOUNTS: ReturnType<typeof selectInternalAccountsById> = {};
+const EMPTY_NFTS: ReturnType<typeof selectAllNfts> = {};
+const selectNoAccountGroup = () => undefined;
+const selectEmptyAccounts = () => EMPTY_ACCOUNTS;
+const selectEmptyNfts = () => EMPTY_NFTS;
+
+export function useEVMNfts(enabled = true): UseEVMNftsResult {
   const { NftController, AssetsContractController, NetworkController } =
     Engine.context;
-  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
-  const internalAccountsById = useSelector(selectInternalAccountsById);
-  const allNFTS = useSelector(selectAllNfts);
+  const selectedAccountGroup = useSelector(
+    enabled ? selectSelectedAccountGroup : selectNoAccountGroup,
+  );
+  const internalAccountsById = useSelector(
+    enabled ? selectInternalAccountsById : selectEmptyAccounts,
+  );
+  const allNFTS = useSelector(enabled ? selectAllNfts : selectEmptyNfts);
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const ipfsGateway = useIpfsGateway();
 
   const evmAccount = selectedAccountGroup?.accounts
@@ -34,6 +44,14 @@ export function useEVMNfts(): UseEVMNftsResult {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!enabled) {
+      setTransformedNfts((currentNfts) =>
+        currentNfts.length ? [] : currentNfts,
+      );
+      setIsLoading(false);
+      return undefined;
+    }
 
     setIsLoading(true);
     if (!evmAccount || !allNFTS) {
@@ -98,6 +116,7 @@ export function useEVMNfts(): UseEVMNftsResult {
       cancelled = true;
     };
   }, [
+    enabled,
     ipfsGateway,
     evmAccount,
     allNFTS,
