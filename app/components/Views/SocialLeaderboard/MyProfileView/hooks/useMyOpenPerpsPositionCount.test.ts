@@ -1,11 +1,15 @@
 import { act, renderHook } from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
+import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
+import { selectPerpsSelectedAccountAddress } from '../../../../UI/Perps/selectors/selectedAccountAddress';
 import { useMyOpenPerpsPositionCount } from './useMyOpenPerpsPositionCount';
 
 const mockGetPreloadedData = jest.fn();
 const mockUseSelector = jest.fn();
 const mockUnsubscribe = jest.fn();
 let positionsCallback: ((positions: Position[]) => void) | undefined;
+let perpsEnabled = true;
+let selectedAddress: string | undefined = '0xabc';
 const mockSubscribeToPositions = jest.fn(
   ({ callback }: { callback: (positions: Position[]) => void }) => {
     positionsCallback = callback;
@@ -37,7 +41,17 @@ describe('useMyOpenPerpsPositionCount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     positionsCallback = undefined;
-    mockUseSelector.mockReturnValue(true);
+    perpsEnabled = true;
+    selectedAddress = '0xabc';
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsEnabledFlag) {
+        return perpsEnabled;
+      }
+      if (selector === selectPerpsSelectedAccountAddress) {
+        return selectedAddress;
+      }
+      return undefined;
+    });
     mockSubscribeToPositions.mockImplementation(
       ({ callback }: { callback: (positions: Position[]) => void }) => {
         positionsCallback = callback;
@@ -57,7 +71,7 @@ describe('useMyOpenPerpsPositionCount', () => {
   });
 
   it('returns 0 when perps is disabled', () => {
-    mockUseSelector.mockReturnValue(false);
+    perpsEnabled = false;
     mockGetPreloadedData.mockReturnValue([{}]);
 
     const { result } = renderHook(() => useMyOpenPerpsPositionCount());
@@ -96,5 +110,23 @@ describe('useMyOpenPerpsPositionCount', () => {
     unmount();
 
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('reseeds and resubscribes when the selected perps account changes', () => {
+    mockGetPreloadedData.mockReturnValue([{}, {}]);
+
+    const { result, rerender } = renderHook(() =>
+      useMyOpenPerpsPositionCount(),
+    );
+
+    expect(result.current).toBe(2);
+
+    mockGetPreloadedData.mockReturnValue([{}]);
+    selectedAddress = '0xdef';
+    rerender({});
+
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribeToPositions).toHaveBeenCalledTimes(2);
+    expect(result.current).toBe(1);
   });
 });

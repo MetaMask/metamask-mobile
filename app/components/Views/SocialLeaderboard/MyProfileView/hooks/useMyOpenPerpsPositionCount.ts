@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
+import { selectPerpsSelectedAccountAddress } from '../../../../UI/Perps/selectors/selectedAccountAddress';
 import { getPreloadedData } from '../../../../UI/Perps/hooks/stream/hasCachedPerpsData';
 
 const readOpenCount = (perpsEnabled: boolean): number => {
@@ -15,10 +16,12 @@ const readOpenCount = (perpsEnabled: boolean): number => {
 /**
  * Open Hyperliquid perps on the selected wallet.
  * Seeds from the PerpsController cache, then follows subscribeToPositions so
- * the owner stats sheet does not freeze on the mount snapshot.
+ * the owner stats sheet does not freeze on the mount snapshot. Resubscribes
+ * when the selected Perps account changes (same as PerpsStreamManager).
  */
 export const useMyOpenPerpsPositionCount = (): number => {
   const perpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const [count, setCount] = useState(() => readOpenCount(perpsEnabled));
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export const useMyOpenPerpsPositionCount = (): number => {
     return () => {
       unsubscribe?.();
     };
-  }, [perpsEnabled]);
+  }, [perpsEnabled, selectedAddress]);
 
   return count;
 };
