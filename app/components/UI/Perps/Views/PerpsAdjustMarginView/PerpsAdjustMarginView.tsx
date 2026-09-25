@@ -154,6 +154,12 @@ const PerpsAdjustMarginView: React.FC = () => {
   });
   const hasNoRemovableMargin =
     !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
+  // Close an open keypad once nothing is left to remove.
+  useEffect(() => {
+    if (hasNoRemovableMargin) {
+      setIsInputFocused(false);
+    }
+  }, [hasNoRemovableMargin]);
 
   const sliderPercentage = useMemo(() => {
     if (flooredMaxAmount <= 0) {
