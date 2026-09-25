@@ -5,15 +5,15 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
-} from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { navigateToRewardsRoute } from '../../utils';
-import { useReferralFunnel } from '../../hooks/useReferralFunnel';
-import { useCommissions } from '../../hooks/useCommissions';
-import { useCashbackLedger } from '../../hooks/useCashbackLedger';
+} from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
+import Routes from '../../../../../../constants/navigation/Routes';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { navigateToRewardsRoute } from '../../../utils';
+import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
+import { useCommissions } from '../../../hooks/useCommissions';
+import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
 import PerformanceTab, { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from './PerformanceActivityRows';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows';
 
 const mockNavigate = jest.fn();
 
@@ -28,13 +28,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../utils', () => ({
+jest.mock('../../../utils', () => ({
   navigateToRewardsRoute: jest.fn(),
 }));
 
-jest.mock('../../hooks/useReferralFunnel');
-jest.mock('../../hooks/useCommissions');
-jest.mock('../../hooks/useCashbackLedger');
+jest.mock('../../../hooks/useReferralFunnel');
+jest.mock('../../../hooks/useCommissions');
+jest.mock('../../../hooks/useCashbackLedger');
 
 const PROFILE_ID = 'profile-a';
 
