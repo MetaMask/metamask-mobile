@@ -3,6 +3,7 @@ import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import I18n from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -201,26 +202,33 @@ describe('PerpsBalanceOrderView', () => {
   });
 
   it('preserves an order-book limit price and allows editing it', async () => {
-    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
-      ...options,
-      initialParams: {
-        asset: 'ETH',
-        direction: 'short',
-        orderType: 'limit',
-        price: '2600',
-      },
-    });
+    const originalLocale = I18n.locale;
+    I18n.locale = 'en-US';
 
-    const input = await screen.findByTestId(
-      PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT,
-    );
-    expect(input).toHaveProp('value', '2600');
-    fireEvent.changeText(input, '2700');
+    try {
+      renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+        ...options,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'short',
+          orderType: 'limit',
+          price: '2600',
+        },
+      });
 
-    expect(input).toHaveProp('value', '2700');
-    expect(
-      Engine.context.PerpsController.depositWithOrder,
-    ).not.toHaveBeenCalled();
+      const input = await screen.findByTestId(
+        PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT,
+      );
+      expect(input).toHaveProp('value', '2,600');
+      fireEvent.changeText(input, '2700');
+
+      expect(input).toHaveProp('value', '2,700');
+      expect(
+        Engine.context.PerpsController.depositWithOrder,
+      ).not.toHaveBeenCalled();
+    } finally {
+      I18n.locale = originalLocale;
+    }
   });
 
   it('selects the explicit Lighter market while aggregated', async () => {
