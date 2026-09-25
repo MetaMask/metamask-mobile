@@ -3,10 +3,10 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 
 describe('getSdkEnvironment', () => {
   const originalProcessEnv = process.env;
-  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalApiEnv = process.env.MM_DEV_API_ENV;
 
   beforeEach(() => {
-    delete process.env.RAMPS_ENVIRONMENT;
+    delete process.env.MM_DEV_API_ENV;
   });
 
   afterAll(() => {
@@ -14,28 +14,24 @@ describe('getSdkEnvironment', () => {
   });
 
   afterEach(() => {
-    if (originalRampsEnvironment !== undefined) {
-      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    if (originalApiEnv !== undefined) {
+      process.env.MM_DEV_API_ENV = originalApiEnv;
     } else {
-      delete process.env.RAMPS_ENVIRONMENT;
+      delete process.env.MM_DEV_API_ENV;
     }
   });
 
-  describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
-    it('returns Production when RAMPS_ENVIRONMENT is production', () => {
-      process.env.RAMPS_ENVIRONMENT = 'production';
-      expect(getSdkEnvironment()).toBe(Environment.Production);
-    });
-
-    it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
-      process.env.RAMPS_ENVIRONMENT = 'staging';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
-    });
-
-    it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+  describe('when MM_DEV_API_ENV is set', () => {
+    it('returns Staging when MM_DEV_API_ENV is dev', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.RAMPS_ENVIRONMENT = 'staging';
+      process.env.MM_DEV_API_ENV = 'dev';
       expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
+
+    it('returns Production when MM_DEV_API_ENV is prod', () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      process.env.MM_DEV_API_ENV = 'prod';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
   });
 
@@ -67,63 +63,63 @@ describe('getSdkEnvironment', () => {
       expect(getSdkEnvironment()).toBe(Environment.Staging);
     });
 
-    it('returns Staging environment for test', () => {
+    it('returns Production environment for test', () => {
       process.env.METAMASK_ENVIRONMENT = 'test';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('returns Staging environment for e2e', () => {
+    it('returns Production environment for e2e', () => {
       process.env.METAMASK_ENVIRONMENT = 'e2e';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
   });
 
   describe('Default behavior', () => {
-    it('returns Staging environment when METAMASK_ENVIRONMENT is undefined', () => {
+    it('returns Production environment when METAMASK_ENVIRONMENT is undefined', () => {
       delete process.env.METAMASK_ENVIRONMENT;
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('returns Staging environment for unrecognized environment', () => {
+    it('returns Production environment for unrecognized environment', () => {
       process.env.METAMASK_ENVIRONMENT = 'unknown';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('returns Staging environment for empty string', () => {
+    it('returns Production environment for empty string', () => {
       process.env.METAMASK_ENVIRONMENT = '';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('returns Staging environment for null value', () => {
+    it('returns Production environment for null value', () => {
       process.env.METAMASK_ENVIRONMENT = null as unknown as string;
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
   });
 
   describe('Edge cases', () => {
-    it('handles case sensitivity - uppercase production falls to default', () => {
+    it('treats uppercase PRODUCTION as prod', () => {
       process.env.METAMASK_ENVIRONMENT = 'PRODUCTION';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('handles case sensitivity - mixed case beta falls to default', () => {
+    it('treats mixed case Beta as prod', () => {
       process.env.METAMASK_ENVIRONMENT = 'Beta';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('handles whitespace padding', () => {
+    it('returns Production when the flavor value has whitespace', () => {
       process.env.METAMASK_ENVIRONMENT = ' production ';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('handles numeric strings', () => {
+    it('returns Production for numeric strings', () => {
       process.env.METAMASK_ENVIRONMENT = '123';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
 
-    it('handles special characters', () => {
+    it('returns Production for unrecognized special characters', () => {
       process.env.METAMASK_ENVIRONMENT = 'prod-1.0';
-      expect(getSdkEnvironment()).toBe(Environment.Staging);
+      expect(getSdkEnvironment()).toBe(Environment.Production);
     });
   });
 
@@ -156,8 +152,8 @@ describe('getSdkEnvironment', () => {
       { env: 'rc', expected: Environment.Production },
       { env: 'dev', expected: Environment.Staging },
       { env: 'exp', expected: Environment.Staging },
-      { env: 'test', expected: Environment.Staging },
-      { env: 'e2e', expected: Environment.Staging },
+      { env: 'test', expected: Environment.Production },
+      { env: 'e2e', expected: Environment.Production },
     ];
 
     testCases.forEach(({ env, expected }) => {

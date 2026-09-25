@@ -15,9 +15,9 @@ const LOG_PREFIX = '[ChompApiServiceInit]';
 // against a non-prod backend.
 const FALLBACK_CHOMP_API_URL = 'https://chomp.dev-api.cx.metamask.io';
 
-// Known chomp base URLs per env. When `MM_DEV_API_ENV` is set to one of these,
-// the env wins over the remote feature flag — the JWT will be minted for that
-// env by AuthenticationController, and a prod chomp endpoint would 401 it.
+// Known chomp base URLs per env. Only envs listed here override the remote
+// feature flag. UAT is omitted on purpose: there is no chomp UAT host, so a
+// UAT build keeps the flag URL (or the dev fallback below).
 const CHOMP_URL_BY_DEV_API_ENV: Partial<Record<DevApiEnv, string>> = {
   dev: 'https://chomp.dev-api.cx.metamask.io',
 };
