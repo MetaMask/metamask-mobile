@@ -11,6 +11,7 @@ import {
   parsePredictEvent,
   parsePredictFeed,
   parsePredictMarketHistory,
+  parsePredictSearchResults,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
@@ -253,6 +254,25 @@ export class KalshiRemoteAdapter {
             result.venueId !== this.venueId ||
             result.marketId !== marketId ||
             result.range !== range
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      searchEvents: async (params, options) => {
+        try {
+          const value = await client.searchEvents(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictSearchResults(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.events.some((event) => event.venueId !== this.venueId)
           ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

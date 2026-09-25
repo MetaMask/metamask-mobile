@@ -3348,6 +3348,13 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "search": {
+      "placeholder": "Search markets",
+      "idle": "Search by team, topic, or market question.",
+      "empty": "No markets found for \"{{query}}\".",
+      "error": "Search couldn’t complete.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "title": "Portfolio",
       "positions": "Positions",

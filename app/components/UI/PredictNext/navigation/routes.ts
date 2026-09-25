@@ -3,4 +3,5 @@ export const PredictNextRoutes = {
   FEED: 'PredictNextFeed',
   EVENT: 'PredictNextEvent',
   PORTFOLIO: 'PredictNextPortfolio',
+  SEARCH: 'PredictNextSearch',
 } as const;

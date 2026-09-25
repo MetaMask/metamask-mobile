@@ -1,6 +1,7 @@
 export const PredictHomeTestIds = {
   HOME: 'predict-next-home',
   BACK: 'predict-next-home-back',
+  SEARCH: 'predict-next-home-search',
   HEADER_TITLE: 'predict-next-home-header-title',
   TITLE_SECTION: 'predict-next-home-title-section',
   SCROLL: 'predict-next-home-scroll',

@@ -284,6 +284,7 @@ export enum TraceName {
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
   PredictNextGetMarketHistory = 'PredictNext Get Market History',
+  PredictNextSearchEvents = 'PredictNext Search Events',
   PredictNextOrderPreview = 'PredictNext Order Preview',
   PredictNextOrderCommit = 'PredictNext Order Commit',
   // mUSD Conversion

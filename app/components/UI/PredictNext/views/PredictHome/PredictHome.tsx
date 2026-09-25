@@ -10,6 +10,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
   HeaderStandardAnimated,
+  IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
@@ -130,6 +131,13 @@ export const PredictHome = () => {
       }),
     [navigation],
   );
+  const openSearch = useCallback(
+    () =>
+      navigation.navigate(PredictNextRoutes.SEARCH, {
+        venueId: KALSHI_VENUE_ID,
+      }),
+    [navigation],
+  );
   const openFeedScreen = useCallback(
     (feedScreenId: FeedScreenId) =>
       navigation.navigate(PredictNextRoutes.FEED, {
@@ -171,6 +179,15 @@ export const PredictHome = () => {
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Search,
+            onPress: openSearch,
+            testID: PredictHomeTestIds.SEARCH,
+            accessibilityLabel: strings('predict_next.search.placeholder'),
+            accessibilityRole: 'button',
+          },
+        ]}
         {...(navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
