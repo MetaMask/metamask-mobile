@@ -6,10 +6,15 @@ import {
 } from '../queries/portfolioQueries';
 import type { PredictVenueId } from '../types';
 
+export interface UseActivityOptions {
+  enabled?: boolean;
+}
+
 /** Reads a paginated Activity list (Fills and Settlements) for a Venue. */
 export const useActivity = (
   venueId: PredictVenueId,
   params: PortfolioPageParams,
+  options?: UseActivityOptions,
 ) => {
   const descriptor = portfolioQueries.getActivity(venueId, params);
 
@@ -17,5 +22,6 @@ export const useActivity = (
     queryKey: descriptor.queryKey,
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    enabled: options?.enabled,
   });
 };

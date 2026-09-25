@@ -5,12 +5,15 @@ import {
   renderHook,
   screen,
 } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 
 import { toast } from '@metamask/design-system-react-native';
 
 import Routes from '../../constants/navigation/Routes';
 import {
+  selectIsExistingSocialWalletRestore,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldRepairSocialLoginBasicFunctionality,
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
@@ -20,6 +23,7 @@ import {
   selectIsBasicFunctionalityConsolidatedEnabled,
 } from '../../selectors/settings';
 import { strings } from '../../../locales/i18n';
+import { BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK } from '../UI/BasicFunctionality/BasicFunctionalityMigrationBottomSheet/BasicFunctionalityMigrationBottomSheet';
 import {
   consolidateBasicFunctionality,
   dismissBasicFunctionalityMigrationNotification,
@@ -72,6 +76,11 @@ jest.mock('./useThunkDispatch', () => ({
   default: () => mockDispatch,
 }));
 
+jest.mock('../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
 jest.mock('../../core/NavigationService', () => ({
   __esModule: true,
   default: {
@@ -94,6 +103,8 @@ function setSelectorValues({
   isUnlocked = true,
   basicFunctionalityEnabled = true,
   completedOnboarding = true,
+  isExistingSocialWalletRestore = false,
+  shouldRepairSocialLogin = false,
   shouldShowBottomSheet = false,
   shouldShowToast = false,
 }: {
@@ -102,6 +113,8 @@ function setSelectorValues({
   isUnlocked?: boolean;
   basicFunctionalityEnabled?: boolean;
   completedOnboarding?: boolean;
+  isExistingSocialWalletRestore?: boolean;
+  shouldRepairSocialLogin?: boolean;
   shouldShowBottomSheet?: boolean;
   shouldShowToast?: boolean;
 } = {}) {
@@ -115,6 +128,14 @@ function setSelectorValues({
   );
   mockSelectorValues.set(selectIsUnlocked, isUnlocked);
   mockSelectorValues.set(selectCompletedOnboardingSafely, completedOnboarding);
+  mockSelectorValues.set(
+    selectIsExistingSocialWalletRestore,
+    isExistingSocialWalletRestore,
+  );
+  mockSelectorValues.set(
+    selectShouldRepairSocialLoginBasicFunctionality,
+    shouldRepairSocialLogin,
+  );
   mockSelectorValues.set(
     selectBasicFunctionalityEnabled,
     basicFunctionalityEnabled,
@@ -144,6 +165,20 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
   });
 
+  it('runs migration as soon as the rollout flag turns on', () => {
+    setSelectorValues({ isFlagEnabled: false, isConsolidated: false });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+
+    setSelectorValues({ isFlagEnabled: true, isConsolidated: false });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
   it('skips the migration for a wallet created during this session', () => {
     // Wallet creation flips `completedOnboarding` before the cohort is enrolled,
     // so a session that started pre-onboarding must never migrate.
@@ -158,10 +193,117 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
+  it('migrates a wallet restored by social rehydration in the same session', () => {
+    // Rehydration runs inside onboarding but hands back an existing wallet that
+    // onboarding never enrols, so it must not wait for the next launch.
+    setSelectorValues({
+      isConsolidated: false,
+      completedOnboarding: false,
+      isExistingSocialWalletRestore: true,
+    });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+
+    setSelectorValues({
+      isConsolidated: false,
+      completedOnboarding: true,
+      isExistingSocialWalletRestore: true,
+    });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
+  it('repairs a consolidated social-login wallet left with Basic Functionality off', () => {
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      shouldRepairSocialLogin: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
+  it('repairs a social-login wallet even when the session started in onboarding', () => {
+    // The wallet is already enrolled, so the onboarding latch must not hold the
+    // repair back to the next launch.
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      completedOnboarding: false,
+      shouldRepairSocialLogin: true,
+    });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      completedOnboarding: true,
+      shouldRepairSocialLogin: true,
+    });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry a repair that failed', async () => {
+    // Nothing re-runs the repair until the next unlock, so a wallet whose
+    // repair fails stays off for the rest of the session and needs the
+    // Settings switch to recover.
+    mockDispatch.mockReturnValueOnce(
+      Promise.reject(new Error('repair failed')),
+    );
+    setSelectorValues({
+      isConsolidated: true,
+      basicFunctionalityEnabled: false,
+      shouldRepairSocialLogin: true,
+    });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    rerender(undefined);
+
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves a consolidated wallet alone when no repair is needed', () => {
+    setSelectorValues({ isConsolidated: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+  });
+
   it('opens the migration bottom sheet when scheduled', () => {
     setSelectorValues({ shouldShowBottomSheet: true });
 
     renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
+    });
+  });
+
+  it('opens the bottom sheet as soon as it is scheduled', () => {
+    setSelectorValues({ shouldShowBottomSheet: false });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowBottomSheet: true });
+    rerender(undefined);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
@@ -174,11 +316,43 @@ describe('useBasicFunctionalityConsolidation', () => {
     renderHook(() => useBasicFunctionalityConsolidation());
 
     expect(mockToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: strings('basic_functionality_migration.title'),
-        hasNoTimeout: true,
-      }),
+      expect.objectContaining({ hasNoTimeout: true }),
     );
+
+    render(mockToast.mock.calls[0][0].title);
+
+    expect(
+      screen.getByText(strings('basic_functionality_migration.title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the description full width by closing from the title row', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    const toastCall = mockToast.mock.calls[0][0];
+
+    // A close button in the toast's own column would narrow every description
+    // line, so the notice renders one inside the title instead.
+    expect(toastCall.showCloseButton).toBe(false);
+    render(toastCall.title);
+    expect(
+      screen.getByLabelText(strings('navigation.close')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the toast as soon as it is scheduled', () => {
+    setSelectorValues({ shouldShowToast: false });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockToast).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowToast: true });
+    rerender(undefined);
+
+    expect(mockToast).toHaveBeenCalledTimes(1);
   });
 
   it('shows a pending migration toast after the rollout is disabled', () => {
@@ -215,12 +389,51 @@ describe('useBasicFunctionalityConsolidation', () => {
     });
   });
 
+  it('opens the blog from Learn more without dismissing the notice', () => {
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as never);
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    render(mockToast.mock.calls[0][0].description);
+
+    fireEvent.press(
+      screen.getByText(
+        strings('basic_functionality_migration.learn_more_link'),
+      ),
+    );
+
+    expect(openURL).toHaveBeenCalledWith(
+      BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK,
+    );
+    expect(
+      dismissBasicFunctionalityMigrationNotification,
+    ).not.toHaveBeenCalled();
+    openURL.mockRestore();
+  });
+
   it('dismisses the notification when the toast is closed', () => {
     setSelectorValues({ shouldShowToast: true });
 
     renderHook(() => useBasicFunctionalityConsolidation());
 
-    mockToast.mock.calls[0][0].onClose();
+    render(mockToast.mock.calls[0][0].title);
+    fireEvent.press(screen.getByLabelText(strings('navigation.close')));
+
+    expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
+    expect(mockToast.dismiss).toHaveBeenCalled();
+  });
+
+  it('acknowledges the notice when the toaster calls onClose', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    act(() => {
+      mockToast.mock.calls[0][0].onClose();
+    });
 
     expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
   });
@@ -350,14 +563,12 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     renderHook(() => useBasicFunctionalityConsolidation());
 
-    const toastCall = mockToast.mock.calls[0][0];
+    const { getByLabelText } = render(mockToast.mock.calls[0][0].title);
     mockTrackEvent.mockClear();
     mockAddProperties.mockClear();
     mockCreateEventBuilder.mockClear();
 
-    act(() => {
-      toastCall.onClose();
-    });
+    fireEvent.press(getByLabelText(strings('navigation.close')));
 
     expect(mockAddProperties).toHaveBeenCalledWith({
       name: 'bf_mixed_toast',

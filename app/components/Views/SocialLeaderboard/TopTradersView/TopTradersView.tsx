@@ -66,11 +66,21 @@ import {
 } from '../../shared/top-traders-constants';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
+import {
+  toLeaderboardTimeframe,
+  toLeaderboardTypeFilter,
+  type SocialShellFilters,
+} from '../shell/filters';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
 import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
+import { useLeaderboardReveal } from './components/useLeaderboardReveal';
 import {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
+  DEFAULT_V1_LEADERBOARD_RANKING,
+  RankingFilterSelector,
+  RankingFilterSheet,
   SortFilterSelector,
   SortFilterSheet,
   TimeframeFilterSelector,
@@ -81,6 +91,7 @@ import {
   type LeaderboardSort,
   type SocialTimeframe,
   type SocialTypeFilter,
+  type V1LeaderboardRanking,
 } from '../components/Filters';
 
 type TabFilter = SocialTypeFilter;
@@ -189,16 +200,36 @@ export interface TopTradersViewProps {
   rowHeight?: number;
   /**
    * Pins the position type to a single value and hides its filter pill, so the
-   * host owns that axis. Used by the Social V1 leaderboard tab, whose subnav
-   * sits above this list. `tokens` and `perps` still require the perps flag.
+   * host owns that axis. Used when a parent supplies its own type control.
+   * `tokens` and `perps` still require the perps flag.
    */
   pinnedTypeFilter?: SocialTypeFilter;
+  /**
+   * Social V1 leaderboard chrome: All types by default, trader-cohort chip,
+   * Profit/Volume ranking, and a single horizontal chip row.
+   */
+  useV1Filters?: boolean;
   /**
    * Slides rows to their new offsets when the ranking changes, instead of
    * snapping. Rows pair this with their own rank-change pulse. Off by default
    * so the legacy leaderboard keeps its instant re-sort.
    */
   animateReorder?: boolean;
+  /**
+   * Opens on the ranking the user last saw and animates to the current one, so
+   * the reorder animation summarises what moved since their last visit rather
+   * than waiting for a live change nobody is watching for. Requires
+   * `animateReorder` to be visible. Off by default.
+   */
+  revealPreviousOrder?: boolean;
+  /**
+   * Applied Custom filters from the V1 shell. Type and timeframe drive
+   * `useTopTraders`; cohort / verified stay chrome-only until the list can
+   * honor them.
+   */
+  v1AppliedFilters?: SocialShellFilters;
+  onOpenCustomFilters?: () => void;
+  isCustomFilterActive?: boolean;
 }
 
 /**
@@ -214,7 +245,12 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   SkeletonComponent = TraderRowSkeleton,
   rowHeight = TRADER_ROW_HEIGHT,
   pinnedTypeFilter,
+  useV1Filters = false,
   animateReorder = false,
+  revealPreviousOrder = false,
+  v1AppliedFilters,
+  onOpenCustomFilters,
+  isCustomFilterActive = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
@@ -228,10 +264,10 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const { followWithSetup } = useFollowWithNotificationSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
+  const defaultTypeFilter: TabFilter =
+    pinnedTypeFilter ?? (useV1Filters ? 'all' : DEFAULT_TYPE_TAB);
 
-  const [renderedTab, setRenderedTab] = useState<TabFilter>(
-    pinnedTypeFilter ?? DEFAULT_TYPE_TAB,
-  );
+  const [renderedTab, setRenderedTab] = useState<TabFilter>(defaultTypeFilter);
   // Only the landing tab's query starts enabled; the others are switched on
   // when the user picks them, or by the idle prefetch below. Perps being off
   // pins the whole screen to the spot-only "all" query.
@@ -239,23 +275,33 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     Record<TabFilter, boolean>
   >(() =>
     buildQueryEnabledTabs(
-      pinnedTypeFilter ?? (isPerpsEnabled ? DEFAULT_TYPE_TAB : 'all'),
+      pinnedTypeFilter ??
+        (useV1Filters || !isPerpsEnabled ? 'all' : DEFAULT_TYPE_TAB),
     ),
   );
   const [timeframe, setTimeframe] =
     useState<SocialTimeframe>(DEFAULT_TIMEFRAME);
   const [sort, setSort] = useState<LeaderboardSort>(DEFAULT_LEADERBOARD_SORT);
+  const [ranking, setRanking] = useState<V1LeaderboardRanking>(
+    DEFAULT_V1_LEADERBOARD_RANKING,
+  );
+
+  const shellTypeFilter = v1AppliedFilters
+    ? toLeaderboardTypeFilter(v1AppliedFilters.type)
+    : undefined;
+  const queryTimeframe = v1AppliedFilters
+    ? toLeaderboardTimeframe(v1AppliedFilters.timeframe)
+    : timeframe;
   const [, startTabTransition] = useTransition();
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [isTimeframeSheetOpen, setIsTimeframeSheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const [isRankingSheetOpen, setIsRankingSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
-  const selectedTabRef = useRef<TabFilter>(
-    pinnedTypeFilter ?? DEFAULT_TYPE_TAB,
-  );
+  const selectedTabRef = useRef<TabFilter>(defaultTypeFilter);
   // Tracks whether the user has explicitly chosen a tab. Once they have, late
   // feature-flag hydration must not override their selection with the default.
   const hasUserSelectedTabRef = useRef(false);
@@ -289,21 +335,21 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     limit: LEADERBOARD_LIMIT,
     chains: allChains,
     sort,
-    timeframe,
+    timeframe: queryTimeframe,
     enabled: isEnabled && queryEnabledTabs.all,
   });
   const tokensResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
     sort,
-    timeframe,
+    timeframe: queryTimeframe,
     enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.tokens,
   });
   const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: PERP_CHAINS,
     sort,
-    timeframe,
+    timeframe: queryTimeframe,
     enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.perps,
   });
 
@@ -316,12 +362,14 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [allResult, tokensResult, perpsResult],
   );
 
-  const activeTab = pinnedTypeFilter ?? (isPerpsEnabled ? renderedTab : 'all');
+  const activeTab =
+    pinnedTypeFilter ??
+    (isPerpsEnabled ? (shellTypeFilter ?? renderedTab) : 'all');
   const activeResult = resultsByTab[activeTab];
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
-  const traders = useMemo<RankedTrader[]>(
+  const freshTraders = useMemo<RankedTrader[]>(
     () =>
       rankTradersByMetric(loadedTraders, sort).map((trader) => ({
         ...trader,
@@ -329,6 +377,30 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       })),
     [loadedTraders, sort],
   );
+
+  // Rebuilds a persisted row into a renderable one. `displayMetric` depends on
+  // the active sort and `isFollowing` on live controller state, so both are
+  // recomputed here rather than restored from disk.
+  const hydrateSnapshotRow = useCallback(
+    (trader: TopTrader): RankedTrader => ({
+      ...trader,
+      displayMetric: getTraderMetricDisplay(trader, sort),
+    }),
+    [sort],
+  );
+
+  const snapshotKeyParts = useMemo(
+    () => ({ type: activeTab, sort, timeframe: queryTimeframe }),
+    [activeTab, sort, queryTimeframe],
+  );
+
+  const { rows: traders, isShowingSnapshot } = useLeaderboardReveal({
+    freshTraders,
+    hasFetched: activeResult.hasFetched,
+    keyParts: snapshotKeyParts,
+    enabled: revealPreviousOrder,
+    hydrateRow: hydrateSnapshotRow,
+  });
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
@@ -370,6 +442,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       }
       return;
     }
+    if (useV1Filters) {
+      return;
+    }
     // Remote flags can hydrate `false -> true` after mount. With perps off the
     // landing state (and the query map) was pinned to the spot-only "all" tab,
     // so once perps turn on restore the intended `DEFAULT_TYPE_TAB` landing and
@@ -383,7 +458,20 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       setRenderedTab(DEFAULT_TYPE_TAB);
       setQueryEnabledTabs(buildQueryEnabledTabs(DEFAULT_TYPE_TAB));
     }
-  }, [isPerpsEnabled, pinnedTypeFilter]);
+  }, [isPerpsEnabled, pinnedTypeFilter, useV1Filters]);
+
+  useEffect(() => {
+    if (!useV1Filters || !shellTypeFilter) {
+      return;
+    }
+    selectedTabRef.current = shellTypeFilter;
+    setRenderedTab(shellTypeFilter);
+    setQueryEnabledTabs((current) =>
+      current[shellTypeFilter]
+        ? current
+        : { ...current, [shellTypeFilter]: true },
+    );
+  }, [shellTypeFilter, useV1Filters]);
 
   useEffect(() => {
     if (!isEnabled || hasFiredScreenViewedRef.current) return;
@@ -449,6 +537,16 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [isPerpsEnabled, pinnedTypeFilter],
   );
 
+  const handleRankingChange = useCallback(
+    (next: V1LeaderboardRanking) => {
+      setRanking(next);
+      if (next === 'pnl') {
+        handleSortChange('pnl');
+      }
+    },
+    [handleSortChange],
+  );
+
   const openTypeSheet = useCallback(() => setIsTypeSheetOpen(true), []);
   const closeTypeSheet = useCallback(() => setIsTypeSheetOpen(false), []);
   const openTimeframeSheet = useCallback(
@@ -461,6 +559,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   );
   const openSortSheet = useCallback(() => setIsSortSheetOpen(true), []);
   const closeSortSheet = useCallback(() => setIsSortSheetOpen(false), []);
+  const openRankingSheet = useCallback(() => setIsRankingSheetOpen(true), []);
+  const closeRankingSheet = useCallback(() => setIsRankingSheetOpen(false), []);
 
   const handleFollowPress = useCallback(
     async (traderId: string) => {
@@ -559,44 +659,62 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   // Filters ride in the list header so they scroll away with the rows; the
   // parent tabs container owns the collapsing title and pinned tabs bar.
+  const showTypeFilter = isPerpsEnabled && !pinnedTypeFilter;
   const listHeader = useMemo(
-    () => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-4 pb-4"
-      >
-        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-          {isPerpsEnabled && !pinnedTypeFilter && (
-            <TypeFilterSelector
-              value={activeTab}
-              onPress={openTypeSheet}
-              testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+    () =>
+      useV1Filters ? (
+        <SocialTabFilterBar
+          onOpenFilters={onOpenCustomFilters}
+          isFilterActive={isCustomFilterActive}
+          filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+        >
+          <RankingFilterSelector
+            value={ranking}
+            onPress={openRankingSheet}
+            testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
+          />
+        </SocialTabFilterBar>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 pt-4 pb-4"
+        >
+          <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+            {showTypeFilter && (
+              <TypeFilterSelector
+                value={activeTab}
+                onPress={openTypeSheet}
+                testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+              />
+            )}
+            <TimeframeFilterSelector
+              value={timeframe}
+              onPress={openTimeframeSheet}
+              testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
             />
-          )}
-          <TimeframeFilterSelector
-            value={timeframe}
-            onPress={openTimeframeSheet}
-            testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
+          </Box>
+          <SortFilterSelector
+            value={sort}
+            onPress={openSortSheet}
+            testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
           />
         </Box>
-        <SortFilterSelector
-          value={sort}
-          onPress={openSortSheet}
-          testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
-        />
-      </Box>
-    ),
+      ),
     [
       activeTab,
-      isPerpsEnabled,
+      isCustomFilterActive,
+      onOpenCustomFilters,
       openSortSheet,
       openTimeframeSheet,
       openTypeSheet,
-      pinnedTypeFilter,
+      openRankingSheet,
+      ranking,
+      showTypeFilter,
       sort,
       timeframe,
+      useV1Filters,
     ],
   );
 
@@ -604,7 +722,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      {isLoading && traders.length === 0 ? (
+      {isLoading && traders.length === 0 && !isShowingSnapshot ? (
         <Animated.ScrollView
           ref={skeletonScrollRef}
           // `flex-1` matches FlatList's default behavior so the list area sits
@@ -658,7 +776,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         />
       )}
 
-      {!pinnedTypeFilter && (
+      {!pinnedTypeFilter && !useV1Filters && (
         <TypeFilterSheet
           isOpen={isTypeSheetOpen}
           value={activeTab}
@@ -667,19 +785,30 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         />
       )}
 
-      <TimeframeFilterSheet
-        isOpen={isTimeframeSheetOpen}
-        value={timeframe}
-        onChange={setTimeframe}
-        onClose={closeTimeframeSheet}
-      />
+      {!useV1Filters ? (
+        <TimeframeFilterSheet
+          isOpen={isTimeframeSheetOpen}
+          value={timeframe}
+          onChange={setTimeframe}
+          onClose={closeTimeframeSheet}
+        />
+      ) : null}
 
-      <SortFilterSheet
-        isOpen={isSortSheetOpen}
-        value={sort}
-        onChange={handleSortChange}
-        onClose={closeSortSheet}
-      />
+      {useV1Filters ? (
+        <RankingFilterSheet
+          isOpen={isRankingSheetOpen}
+          value={ranking}
+          onChange={handleRankingChange}
+          onClose={closeRankingSheet}
+        />
+      ) : (
+        <SortFilterSheet
+          isOpen={isSortSheetOpen}
+          value={sort}
+          onChange={handleSortChange}
+          onClose={closeSortSheet}
+        />
+      )}
     </Box>
   );
 };

@@ -1,6 +1,5 @@
 /* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
-import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
 import {
   updateId,
@@ -45,9 +44,6 @@ export const sentryStateMask = {
   collectibles: true,
   engine: {
     backgroundState: {
-      AccountTrackerController: {
-        [AllProperties]: false,
-      },
       AccountsController: {
         internalAccounts: {
           accounts: {
@@ -86,9 +82,8 @@ export const sentryStateMask = {
       ApprovalController: {
         [AllProperties]: false,
       },
-      CurrencyRateController: {
-        currencyRates: true,
-        currentCurrency: true,
+      AssetsController: {
+        [AllProperties]: false,
       },
       GasFeeController: {
         estimatedGasFeeTimeBounds: true,
@@ -163,20 +158,6 @@ export const sentryStateMask = {
       },
       SubjectMetadataController: {
         [AllProperties]: false,
-      },
-      TokenRatesController: {
-        [AllProperties]: false,
-      },
-      TokensController: {
-        allDetectedTokens: {
-          [AllProperties]: false,
-        },
-        allIgnoredTokens: {
-          [AllProperties]: false,
-        },
-        allTokens: {
-          [AllProperties]: false,
-        },
       },
       TransactionController: {
         [AllProperties]: false,
@@ -267,13 +248,12 @@ export const captureSentryFeedback = ({
   sentryId,
   comments,
 }: CaptureSentryFeedbackOptions): void => {
-  const userFeedback = {
-    event_id: sentryId,
+  Sentry.captureFeedback({
+    associatedEventId: sentryId,
+    message: comments,
     name: '',
     email: '',
-    comments,
-  };
-  Sentry.captureUserFeedback(userFeedback);
+  });
 };
 
 function getProtocolFromURL(url: string): string {
@@ -695,8 +675,8 @@ export async function setupSentry(
     // is true (both hold for this config). Adding it explicitly would be a no-op after
     // the SDK's name-deduplication pass.
     const integrations = [
-      dedupeIntegration(),
-      extraErrorDataIntegration(),
+      Sentry.dedupeIntegration(),
+      Sentry.extraErrorDataIntegration(),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(

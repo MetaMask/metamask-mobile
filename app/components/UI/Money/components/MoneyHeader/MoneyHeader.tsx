@@ -11,7 +11,14 @@ import {
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+
+/** The Pro entry point, as resolved by the page that owns Pro access. */
+export interface MoneyHeaderProButton {
+  /** Button copy, which differs for subscribers and non-subscribers. */
+  label: string;
+  /** Opens the Pro subscription flow, or the Pro hub for a subscriber. */
+  onPress: () => void;
+}
 
 interface MoneyHeaderCommonProps {
   /**
@@ -19,10 +26,11 @@ interface MoneyHeaderCommonProps {
    */
   onMenuPress: () => void;
   /**
-   * Handler for the "Get Pro" button.
-   * Only fired when the Pro subscription flow flag is enabled.
+   * The Pro entry point. Omit it to leave the Pro button out entirely — the
+   * page decides whether the user may see it, since it also owns where the
+   * button goes and what it is called.
    */
-  onGetProPress: () => void;
+  proButton?: MoneyHeaderProButton;
 }
 
 /**
@@ -48,8 +56,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, onGetProPress } = props;
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const { onMenuPress, proButton } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -61,15 +68,15 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   // "Get Pro" is a text button, so it can only go in the end accessory, which
   // takes the menu with it — the header slots the two ButtonIcon paths and the
   // accessory as alternatives rather than siblings.
-  const endAccessory = isProSubscriptionEnabled ? (
+  const endAccessory = proButton ? (
     <Box twClassName="flex-row items-center gap-1">
       <Button
         size={ButtonSize.Md}
-        onPress={onGetProPress}
+        onPress={proButton.onPress}
         testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-        accessibilityLabel={strings('pro_subscription.join_pro')}
+        accessibilityLabel={proButton.label}
       >
-        {strings('pro_subscription.join_pro')}
+        {proButton.label}
       </Button>
       <ButtonIcon {...menuButtonProps} />
     </Box>

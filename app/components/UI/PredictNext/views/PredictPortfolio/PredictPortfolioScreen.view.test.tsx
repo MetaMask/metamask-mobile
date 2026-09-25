@@ -34,6 +34,7 @@ describe('PredictPortfolioScreen', () => {
     expect(
       await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toHaveTextContent('$123.13');
+    await view.findByTestId(PredictPortfolioScreenTestIds.EMPTY_STATE);
 
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictPortfolioService:getBalance',
@@ -157,9 +158,9 @@ describe('PredictPortfolioScreen', () => {
     );
 
     expect(
-      within(
+      await within(
         view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_CONTENT),
-      ).getByText('No activity yet'),
+      ).findByText('No activity yet'),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_CONTENT, {
@@ -191,6 +192,84 @@ describe('PredictPortfolioScreen', () => {
     );
 
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+  });
+
+  it('does not fetch Activity until the History tab is opened', async () => {
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.EMPTY_STATE);
+
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictPortfolioService:getPositions',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    );
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictPortfolioService:getActivity',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    );
+
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+    );
+    await view.findByText('No activity yet');
+
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictPortfolioService:getActivity',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    );
+  });
+
+  it('does not fetch Positions when Portfolio opens on History', async () => {
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+    await view.findByText('No activity yet');
+
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictPortfolioService:getActivity',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    );
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictPortfolioService:getPositions',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    );
+  });
+
+  it('does not complete Portfolio TTI while the active list is still loading', async () => {
+    const endTraceSpy = jest.spyOn(Trace, 'endTrace');
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          currency: 'USD',
+          available: '123.125',
+        });
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return new Promise(() => undefined);
+      }
+      return Promise.resolve({ venueId: 'kalshi', activity: [] });
+    });
+
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
+    ).toBeOnTheScreen();
+    expect(endTraceSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: Trace.TraceName.PredictNextPortfolioView,
+        data: { success: true },
+      }),
+    );
   });
 
   it('renders open Positions on the Positions tab', async () => {
@@ -252,7 +331,7 @@ describe('PredictPortfolioScreen', () => {
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
 
-    expect(view.getByText('No activity yet')).toBeOnTheScreen();
+    expect(await view.findByText('No activity yet')).toBeOnTheScreen();
     expect(
       view.getByText('Your fills and settlements will appear here.'),
     ).toBeOnTheScreen();

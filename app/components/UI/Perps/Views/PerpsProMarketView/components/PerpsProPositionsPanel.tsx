@@ -8,9 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
   Checkbox,
-  FilterButton,
-  FilterButtonGroup,
-  FilterButtonVariant,
   FontWeight,
   IconName,
   Tag,
@@ -39,7 +36,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -60,7 +57,7 @@ import {
 } from '../../../hooks/stream';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import {
-  PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR,
+  getPerpsProActivityViewSelector,
   getPerpsProOrderRowSelector,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseRowSelector,
@@ -102,6 +99,7 @@ import {
 import usePerpsToasts from '../../../hooks/usePerpsToasts';
 import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import PerpsProActivityFilterSheet from './PerpsProActivityFilterSheet';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
@@ -127,10 +125,40 @@ import { sortProOrders } from '../utils/proOrderSort';
 import { sortProPositions } from '../utils/proPositionSort';
 import { getTwapOrderProviderId } from '../../../utils/twapOrderUtils';
 import { usePerpsProTwapManagement } from '../hooks/usePerpsProTwapManagement';
+import {
+  DEFAULT_PRO_TWAP_VIEW,
+  PRO_TWAP_VIEWS,
+  type ProTwapView,
+} from '../utils/proTwapViews';
 
 type ProPositionsPanelTabKey = 'positions' | 'orders' | 'chase' | 'twap';
 type ProPositionsPanelTab = TabItem & { key: ProPositionsPanelTabKey };
 type ChaseActivityFilter = 'active' | 'history';
+
+/**
+ * Chase and TWAP both slice their tab by activity, but over a different number
+ * of views — Chase has no fill history. Design gives them one control in the
+ * shared filter row rather than a second nav bar inside the tab, so each tab
+ * keeps its own selection and offers its own option list.
+ */
+const CHASE_ACTIVITY_VIEWS: readonly ChaseActivityFilter[] = [
+  'active',
+  'history',
+] as const;
+
+const ACTIVITY_VIEW_LABEL_KEYS: Record<ProTwapView, string> = {
+  active: 'perps.pro_positions_panel.twap_views.active',
+  history: 'perps.pro_positions_panel.twap_views.history',
+  fill_history: 'perps.pro_positions_panel.twap_views.fill_history',
+};
+
+/** Matches the flex row it replaced: gap-2, px-2, pt-3. */
+const FILTER_ROW_CONTENT_STYLE = {
+  alignItems: 'center',
+  gap: 8,
+  paddingHorizontal: 8,
+  paddingTop: 12,
+} as const;
 
 const isChaseHistoryOrder = (order: ChaseOrder) =>
   CHASE_HISTORY_STATUSES.has(order.status);
@@ -243,9 +271,12 @@ const PerpsProPositionsPanel = ({
   );
   const [chaseActivityFilter, setChaseActivityFilter] =
     useState<ChaseActivityFilter>('active');
+  const [twapView, setTwapView] = useState<ProTwapView>(DEFAULT_PRO_TWAP_VIEW);
   const [isFilledOnly, setIsFilledOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
+  const [isActivityFilterSheetOpen, setIsActivityFilterSheetOpen] =
+    useState(false);
   const [terminatingChaseHandle, setTerminatingChaseHandle] = useState<
     string | null
   >(null);
@@ -393,6 +424,23 @@ const PerpsProPositionsPanel = ({
     symbol,
   });
 
+  // "Filled orders only" is offered on both history views. A TWAP that ran out
+  // its window without filling completely reports `completed_underfilled`, so
+  // only `completed` counts as filled here.
+  //
+  // It applies to the History view alone. Fill history draws its rows from the
+  // active and terminal schedules together, and must not inherit a filter the
+  // user set on a different view and can no longer see.
+  const filledOnlyHistoricalTwapOrders = useMemo(
+    () =>
+      isFilledOnly && twapView === 'history'
+        ? historicalTwapOrders.filter(
+            (twapOrder) => twapOrder.status === 'completed',
+          )
+        : historicalTwapOrders,
+    [historicalTwapOrders, isFilledOnly, twapView],
+  );
+
   useEffect(() => {
     if (
       (activeTabKey === 'chase' && !shouldShowChaseTab) ||
@@ -488,6 +536,20 @@ const PerpsProPositionsPanel = ({
         twapOrder.symbol,
         PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
         getTwapOrderProviderId(twapOrder),
+      ),
+    [selectMarketBySymbol],
+  );
+
+  const handleSelectChaseMarket = useCallback(
+    (chaseOrder: ChaseOrder) =>
+      // Same attribution rationale as TWAP: the controller analytics contract
+      // has no Chase source section yet, and Chase is an order-management
+      // surface, so retain ORDERS attribution until Core adds a dedicated
+      // enum value that Mobile can emit safely.
+      selectMarketBySymbol(
+        chaseOrder.symbol,
+        PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+        chaseOrder.providerId,
       ),
     [selectMarketBySymbol],
   );
@@ -849,8 +911,9 @@ const PerpsProPositionsPanel = ({
       testID={PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY}
     >
       <PerpsProTwapPanel
+        view={twapView}
         activeTwapOrders={activeTwapOrders}
-        historicalTwapOrders={historicalTwapOrders}
+        historicalTwapOrders={filledOnlyHistoricalTwapOrders}
         isInitialLoading={areTwapOrdersInitiallyLoading}
         error={twapOrdersError}
         onRetry={refreshTwapOrders}
@@ -968,13 +1031,19 @@ const PerpsProPositionsPanel = ({
     ],
   );
 
-  const handleChaseActivityChange = useCallback(
-    (value: string) => {
-      if (value !== 'active' && value !== 'history') return;
-      playSelection().catch(() => undefined);
-      setChaseActivityFilter(value);
+  const activityView: ProTwapView = isTwapTab ? twapView : chaseActivityFilter;
+  const activityViewOptions = isTwapTab ? PRO_TWAP_VIEWS : CHASE_ACTIVITY_VIEWS;
+  const handleActivityViewApply = useCallback(
+    (next: ProTwapView) => {
+      if (isTwapTab) {
+        setTwapView(next);
+        return;
+      }
+      if (next !== 'fill_history') {
+        setChaseActivityFilter(next);
+      }
     },
-    [playSelection],
+    [isTwapTab],
   );
   const handleFilledOnlyChange = useCallback(
     (value: boolean) => {
@@ -1033,11 +1102,21 @@ const PerpsProPositionsPanel = ({
           })
         : statusLabel;
     const isCanceling = terminatingChaseHandle === order.handle;
+    const handlePress = onSelectMarket
+      ? () => handleSelectChaseMarket(order)
+      : undefined;
 
     return (
-      <View
+      // The card owns a cancel button, so this wrapper stays out of the
+      // accessibility tree to avoid collapsing it into a single element. The
+      // header below repeats the handler as the labelled, screen-reader-reachable
+      // entry point for the same action.
+      <Pressable
         key={order.handle}
         collapsable={false}
+        onPress={handlePress}
+        disabled={!handlePress}
+        accessible={false}
         testID={getPerpsProChaseRowSelector(
           order.symbol,
           order.handle,
@@ -1045,62 +1124,78 @@ const PerpsProPositionsPanel = ({
         )}
       >
         <Box twClassName="gap-3 py-3">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 px-2 py-2"
+          <Pressable
+            onPress={handlePress}
+            disabled={!handlePress}
+            accessibilityRole={handlePress ? 'button' : undefined}
+            accessibilityLabel={
+              handlePress
+                ? strings(
+                    'perps.pro_positions_panel.view_market_accessibility',
+                    { symbol: displayOrderSymbol },
+                  )
+                : undefined
+            }
           >
-            <PerpsTokenLogo symbol={order.symbol} size={40} />
-            <Box twClassName="flex-1">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-1"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-4 px-2 py-2"
+            >
+              <PerpsTokenLogo symbol={order.symbol} size={40} />
+              <Box twClassName="flex-1">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1"
                 >
-                  {displayOrderSymbol}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {displayOrderSymbol}
+                  </Text>
+                  <Tag
+                    severity={
+                      order.side === 'buy'
+                        ? TagSeverity.Success
+                        : TagSeverity.Danger
+                    }
+                  >
+                    {strings(
+                      order.side === 'buy'
+                        ? 'perps.market.long'
+                        : 'perps.market.short',
+                    )}
+                  </Tag>
+                </Box>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {formatProOrderCardTimestamp(order.startedAt)}
                 </Text>
+              </Box>
+              <View
+                accessible
+                accessibilityLabel={progressLabel}
+                testID={getPerpsProChaseStatusSelector(
+                  order.status,
+                  order.symbol,
+                  order.handle,
+                  index === 0,
+                )}
+              >
                 <Tag
                   severity={
-                    order.side === 'buy'
-                      ? TagSeverity.Success
-                      : TagSeverity.Danger
+                    isFilled ? TagSeverity.Success : TagSeverity.Neutral
                   }
                 >
-                  {strings(
-                    order.side === 'buy'
-                      ? 'perps.market.long'
-                      : 'perps.market.short',
-                  )}
+                  {progressLabel}
                 </Tag>
-              </Box>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {formatProOrderCardTimestamp(order.startedAt)}
-              </Text>
+              </View>
             </Box>
-            <View
-              accessible
-              accessibilityLabel={progressLabel}
-              testID={getPerpsProChaseStatusSelector(
-                order.status,
-                order.symbol,
-                order.handle,
-                index === 0,
-              )}
-            >
-              <Tag
-                severity={isFilled ? TagSeverity.Success : TagSeverity.Neutral}
-              >
-                {progressLabel}
-              </Tag>
-            </View>
-          </Box>
+          </Pressable>
           <Box twClassName="px-2">
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -1168,22 +1263,12 @@ const PerpsProPositionsPanel = ({
             </Box>
           ) : null}
         </Box>
-      </View>
+      </Pressable>
     );
   };
 
   const renderChaseTab = () => (
     <Box twClassName="gap-2 px-2 pt-3">
-      <Text
-        accessible
-        variant={TextVariant.BodyXs}
-        color={TextColor.TextAlternative}
-        testID={PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR}
-      >
-        {strings('perps.order.chase.visible_count', {
-          count: displayedChaseOrders.length,
-        })}
-      </Text>
       {displayedChaseOrders.length === 0 ? (
         <Box
           testID={PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE}
@@ -1257,39 +1342,20 @@ const PerpsProPositionsPanel = ({
           />
         ) : null}
       </Box>
-      {isChaseTab ? (
-        <Box twClassName="px-2 pt-3">
-          <FilterButtonGroup
-            value={chaseActivityFilter}
-            onChange={handleChaseActivityChange}
-            variant={FilterButtonVariant.Primary}
-            twClassName="gap-2"
-          >
-            <FilterButton
-              value="active"
-              testID={PerpsProMarketViewSelectorsIDs.CHASE_ACTIVE_FILTER}
-            >
-              {strings('perps.order.chase.active')}
-            </FilterButton>
-            <FilterButton
-              value="history"
-              testID={PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER}
-            >
-              {strings('perps.order.chase.history')}
-            </FilterButton>
-          </FilterButtonGroup>
-        </Box>
-      ) : null}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2 px-2 pt-3"
+      {/* On a TWAP/Chase history view the row carries four controls, which is
+          wider than a 390pt screen — the design scrolls it rather than
+          wrapping or shrinking the chips. */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={FILTER_ROW_CONTENT_STYLE}
         accessible={false}
+        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_FILTER_ROW}
       >
         {/* TWAP schedules are venue-ordered. Chase has its own activity
             filters. The sort sheet only knows Positions and Orders. */}
         {!isChaseTab && !isTwapTab ? (
-          <Box twClassName="bg-muted rounded-lg">
+          <Box twClassName="bg-muted rounded-full">
             <ButtonIcon
               iconName={IconName.Customize}
               accessibilityLabel={strings(
@@ -1318,11 +1384,40 @@ const PerpsProPositionsPanel = ({
         >
           {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
         </Button>
-        <Box twClassName="bg-muted rounded-lg px-2 py-1">
+        <Box twClassName="bg-muted rounded-full px-2 py-1">
           {renderTickerOnlyCheckbox()}
         </Box>
-        {isChaseTab && chaseActivityFilter === 'history' ? (
-          <Box twClassName="bg-muted rounded-lg px-2 py-1">
+        {/* Sits after the side and ticker filters, so those two keep the same
+            position they hold on Positions and Orders. */}
+        {isChaseTab || isTwapTab ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            endIconName={IconName.ArrowDown}
+            onPress={() => setIsActivityFilterSheetOpen(true)}
+            accessibilityLabel={strings(ACTIVITY_VIEW_LABEL_KEYS[activityView])}
+            accessibilityHint={strings(
+              isTwapTab
+                ? 'perps.pro_positions_panel.twap_views.toggle_hint'
+                : 'perps.pro_positions_panel.twap_views.toggle_hint_without_fills',
+            )}
+            testID={PerpsProMarketViewSelectorsIDs.ACTIVITY_VIEW_TOGGLE}
+          >
+            {/* The state selector goes on a Box, not the Text: a testID on
+                text nested inside the button's own label flattens into the
+                parent's attributed string and never gets a measurable frame,
+                so `expected: visible` can never resolve it. The Box keeps the
+                stable toggle testID for pressing and this one for asserting
+                which view the toggle switched to. */}
+            <Box testID={getPerpsProActivityViewSelector(activityView)}>
+              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+                {strings(ACTIVITY_VIEW_LABEL_KEYS[activityView])}
+              </Text>
+            </Box>
+          </Button>
+        ) : null}
+        {(isChaseTab || isTwapTab) && activityView === 'history' ? (
+          <Box twClassName="bg-muted rounded-full px-2 py-1">
             <Checkbox
               label={strings('perps.order.chase.filled_only')}
               labelProps={{ variant: TextVariant.BodySm }}
@@ -1332,7 +1427,7 @@ const PerpsProPositionsPanel = ({
             />
           </Box>
         ) : null}
-      </Box>
+      </ScrollView>
       {renderActiveTab()}
       {renderActionSheets(
         sideFilteredPositions,
@@ -1364,6 +1459,16 @@ const PerpsProPositionsPanel = ({
           onClose={clearTerminateSelection}
           onConfirm={terminateTwap}
           isTerminating={isTerminationInFlight}
+        />
+      ) : null}
+      {isChaseTab || isTwapTab ? (
+        <PerpsProActivityFilterSheet
+          isVisible={isActivityFilterSheetOpen}
+          options={activityViewOptions}
+          activityView={activityView}
+          onApply={handleActivityViewApply}
+          onClose={() => setIsActivityFilterSheetOpen(false)}
+          testID={PerpsProMarketViewSelectorsIDs.ACTIVITY_FILTER_SHEET}
         />
       ) : null}
       <PerpsProPositionsSideFilterSheet

@@ -51,6 +51,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
@@ -1760,6 +1761,14 @@ class AuthenticationService {
       // data (with the still-present old tokens) only to discard it in resetAll.
       Engine.context.CardController.setResetInProgress(true);
 
+      // Suppress Braze identity sync for the whole reset. The throwaway vault
+      // below is signed in by `useAutoSignIn` from a React effect on a later
+      // tick (after `dispatchLogin`), so the flag must stay set until the app
+      // is locked — clearing it when `newWalletAndKeychain` returns would let
+      // that deferred effect fire a `changeUser` for a wallet that is
+      // discarded immediately, which is pure request noise.
+      setBrazeResetInProgress(true);
+
       // Previous profile must be gone before the throwaway vault unlocks.
       this.clearAuthSession();
 
@@ -1769,6 +1778,8 @@ class AuthenticationService {
         });
 
         Engine.context.SeedlessOnboardingController.clearState();
+
+        Engine.context.KycController.clearState();
 
         await depositResetProviderToken();
 
@@ -1786,6 +1797,9 @@ class AuthenticationService {
         // Throwaway vault may have signed in while unlocked. Always wipe,
         // including when a later step throws and resetWalletState swallows it.
         this.clearAuthSession();
+        // The deferred `useAutoSignIn` effect has run by now (the app is
+        // locked), so Braze identity sync can react to sign-in again.
+        setBrazeResetInProgress(false);
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs

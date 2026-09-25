@@ -1,25 +1,25 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
   Text,
   TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
+import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
 
 export const LimitOrderConfirmationModal = ({
   sourceToken,
@@ -29,31 +29,31 @@ export const LimitOrderConfirmationModal = ({
   triggerComparison,
   triggerToken,
   expiry,
-  slippage,
-  networkFee,
+  costTolerance,
+  delegationFee,
   feeToken,
-  feeDisclaimer,
-  onConfirm,
-  onEditSlippagePress,
+  usdTriggerPrice,
+  primaryButton,
+  error,
   onClose,
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
 }: LimitOrderConfirmationModalProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const initialSlippageRef = useRef(slippage);
+  const initialCostToleranceRef = useRef(costTolerance);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  // If the user edits slippage while this sheet is still mounted, that quote is
-  // stale until a new one is fetched, so close the sheet rather than show
-  // outdated order details.
+  // If the user edits the cost tolerance while this sheet is still mounted,
+  // that quote is stale until a new one is fetched, so close the sheet rather
+  // than show outdated order details.
   useEffect(() => {
-    if (slippage !== initialSlippageRef.current) {
+    if (costTolerance !== initialCostToleranceRef.current) {
       closeSheet();
     }
-  }, [slippage, closeSheet]);
+  }, [costTolerance, closeSheet]);
 
   const triggerComparisonColor = triggerComparison?.isNegative
     ? TextColor.ErrorDefault
@@ -77,6 +77,33 @@ export const LimitOrderConfirmationModal = ({
           dest: destToken?.symbol ?? '',
         })}
       </BottomSheetHeader>
+      {error && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Danger}
+            description={error}
+          />
+        </Box>
+      )}
+      {usdTriggerPrice && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Info}
+            description={strings('bridge.limit.usd_price_notice', {
+              usdPrice: usdTriggerPrice,
+            })}
+            testID={LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE}
+          />
+        </Box>
+      )}
       <Box paddingBottom={2}>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
@@ -111,57 +138,75 @@ export const LimitOrderConfirmationModal = ({
           </Text>
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <DetailRow label={strings('bridge.slippage')}>
+        <DetailRow
+          label={strings('bridge.cost_tolerance')}
+          labelAccessory={
+            <LimitOrderCostToleranceTooltip
+              testID={
+                LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
+              }
+            />
+          }
+          testID={LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
           >
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-              {slippage}
+              {costTolerance}
             </Text>
-            <ButtonIcon
-              iconName={IconName.Edit}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconAlternative }}
-              onPress={onEditSlippagePress}
-              accessibilityLabel={strings('bridge.limit.edit_slippage')}
-              testID={LimitOrderConfirmationModalSelectorsIDs.SLIPPAGE_EDIT}
-            />
           </Box>
         </DetailRow>
-        <DetailRow label={strings('bridge.limit.est_network_fee')}>
-          <TokenAmountValue
-            amount={networkFee}
-            token={feeToken}
-            withNetworkBadge
-          />
-        </DetailRow>
+        {(delegationFee.status === 'ready' ||
+          delegationFee.status === 'error') && (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <DetailRow
+              label={strings('bridge.limit.est_network_fee')}
+              testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
+              error={delegationFee.status === 'error'}
+            >
+              <TokenAmountValue
+                amount={
+                  delegationFee.status === 'ready'
+                    ? delegationFee.displayFee
+                    : '--'
+                }
+                token={feeToken}
+                error={delegationFee.status === 'error'}
+                withNetworkBadge
+              />
+            </DetailRow>
+          </>
+        )}
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
-          children: strings('bridge.limit.confirm_order'),
-          onPress: onConfirm,
-          testID: LimitOrderConfirmationModalSelectorsIDs.CONFIRM_BUTTON,
+          children: primaryButton.label,
+          onPress: primaryButton.onPress,
+          testID: LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
+          isLoading: primaryButton.isLoading,
         }}
       />
-      {feeDisclaimer ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          paddingHorizontal={4}
-          paddingBottom={4}
-          twClassName="pt-1"
+      <Box
+        alignItems={BoxAlignItems.Center}
+        paddingHorizontal={4}
+        paddingBottom={4}
+        twClassName="pt-1"
+      >
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
         >
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
-          >
-            {feeDisclaimer}
-          </Text>
-        </Box>
-      ) : null}
+          {strings('bridge.fee_disclaimer', {
+            feePercentage: LIMIT_ORDER_DEFAULT_METAMASK_FEE,
+          })}
+        </Text>
+      </Box>
     </BottomSheet>
   );
 };

@@ -18,7 +18,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
       });
     });
@@ -61,7 +61,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -153,7 +153,7 @@ describe('Feature Flag Registry', () => {
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
         enabled: false,
-        minimumVersion: '8.10.0',
+        minimumVersion: '8.13.0',
       });
     });
 
@@ -276,6 +276,22 @@ describe('Feature Flag Registry', () => {
       }
     });
 
+    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+      expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+      expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.13.0',
+        },
+      });
+    });
+
     it('keeps Immersve onboarding and Intercom support default-off', () => {
       expect(
         getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
@@ -365,7 +381,6 @@ describe('Feature Flag Registry', () => {
 
     it('pins Home and Social AI percentage A/B flags to control', () => {
       const abTestFlags = [
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
         'homeTMCU610AbtestWalletHomePostOnboardingSteps',
         'socialAiTSA531AbtestWhatsHappeningExplore',
         'socialAiTSA612AbtestQuickBuy',

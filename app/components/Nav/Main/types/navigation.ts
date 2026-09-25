@@ -113,15 +113,6 @@ export type SettingsStackParamList = {
 };
 
 /**
- * Param list for screens inside `ExploreHome` (`TrendingView` tab).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type TrendingViewStackParamList = {
-  TrendingFeed: ExploreFeedRouteParams | undefined;
-};
-
-/**
  * Param list for screens inside `BrowserFlow` (`BrowserTabHome`).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -213,7 +204,7 @@ export type RewardsHomeParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
-  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
+  TrendingView: ExploreFeedRouteParams | undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>

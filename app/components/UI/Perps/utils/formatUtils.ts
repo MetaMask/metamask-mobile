@@ -4,6 +4,7 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
@@ -378,15 +379,62 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
+ * Formats how far (in %) the price must move from `entryPrice` to reach
+ * `liquidationPrice`, e.g. `"30.05%"`.
+ *
+ * @returns `undefined` when either price is missing, non-finite or
+ * non-positive, so callers can hide the figure instead of showing `NaN%`.
+ * @example formatLiquidationDistance(100, 70) => "30.00%"
+ * @example formatLiquidationDistance(100, '130') => "30.00%"
+ * @example formatLiquidationDistance(100, undefined) => undefined
+ */
+export const formatLiquidationDistance = (
+  entryPrice: number | string | null | undefined,
+  liquidationPrice: number | string | null | undefined,
+): string | undefined => {
+  const entry =
+    typeof entryPrice === 'string' ? parseFloat(entryPrice) : entryPrice;
+  const liquidation =
+    typeof liquidationPrice === 'string'
+      ? parseFloat(liquidationPrice)
+      : liquidationPrice;
+
+  if (
+    entry === null ||
+    entry === undefined ||
+    liquidation === null ||
+    liquidation === undefined ||
+    !Number.isFinite(entry) ||
+    !Number.isFinite(liquidation) ||
+    entry <= 0 ||
+    liquidation <= 0
+  ) {
+    return undefined;
+  }
+
+  const distance = (Math.abs(entry - liquidation) / entry) * 100;
+  return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+};
+
+/**
  * Parses formatted currency strings back to numeric values
  * @param formattedValue - Formatted currency string (handles $, commas, negative values)
  * @returns Raw numeric value
  * @example parseCurrencyString("$1,234.56") => 1234.56
  * @example parseCurrencyString("-$500.00") => -500
  * @example parseCurrencyString("$-123.45") => -123.45
+ * @example parseCurrencyString("1.1e-7") => 1.1e-7
  */
 export const parseCurrencyString = (formattedValue: string): number => {
   if (!formattedValue) return 0;
+
+  // Already a plain numeric string — including exponential notation, which a
+  // balance below 1e-6 serializes to. The de-formatting below reads the
+  // exponent's minus sign as a negative amount, so never let it see one.
+  const numeric = Number(formattedValue);
+  if (Number.isFinite(numeric)) {
+    return numeric;
+  }
 
   // Check for negative values (can be -$123.45 or $-123.45)
   const isNegative = formattedValue.includes('-');
@@ -574,4 +622,45 @@ export const formatDateSection = (timestamp: number): string => {
   }).format(new Date(timestamp));
 
   return `${month} ${day}`; // 'Jul, 26'
+};
+
+/**
+ * Formats a limit price for display while preserving in-progress input — a
+ * trailing "." or trailing zeros after the decimal survive, which
+ * `formatPerpsFiat` alone would collapse.
+ */
+export const formatLimitPriceInput = (price: string): string => {
+  if (!price || price === '0') {
+    return '';
+  }
+
+  if (price.endsWith('.') || /\.\d*0$/.test(price)) {
+    const parts = price.split('.');
+    const integerPart = parts[0] || '0';
+    const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
+
+    const formatted = formatPerpsFiat(integerPart, {
+      ranges: [
+        {
+          condition: () => true,
+          threshold: 0,
+          maximumDecimals: 0,
+          minimumDecimals: 0,
+        },
+      ],
+    });
+
+    return `${formatted}${decimalPart}`;
+  }
+
+  return formatPerpsFiat(price, {
+    ranges: [
+      {
+        condition: () => true,
+        threshold: 0.00000001,
+        maximumDecimals: 7,
+        minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+      },
+    ],
+  });
 };

@@ -1,28 +1,41 @@
 # Flaky unit test detection — MCWP-474
 #
 # Three sequential stages in one job, sharing files under .ai-pr-analyzer/
-# on the runner (no artifact upload/download):
+# on the runner (no artifact upload/download). Every stage script lives in
+# .github/scripts/flaky-unit-test-detection/:
 #
-#   1. Deterministic history — flaky-history-analysis.ts counts how often each
-#      modified test file failed on main over the last 30 days of completed
-#      ci.yml runs, bucketed into 7d/15d/30d windows.
+#   1. Deterministic history — flaky-history-analysis.ts lists 14d of ci.yml
+#      runs, keeps only SHAs that can be a retry, GraphQL-batches failed Unit
+#      tests check runs, confirms the same job later passed, then downloads
+#      logs only for those jobs. Stops when every modified file has a hit.
+#      historyComplete is false when a cap ends the walk early.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
-#   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
-#      (defined in .ai-pr-analyzer/modes/) scans only the modified test files
-#      for J1-J10 patterns from the flaky-test-detection skill.
+#   2. AI analyzer — flaky-ai-analysis.ts runs MetaMask/ai-analyzer once per
+#      modified (or historically flaky) unit test file, in parallel under a
+#      concurrency cap. Each child uses an isolated --config dir so output
+#      files do not collide. A failed or truncated finalize is retried once;
+#      remaining misses are recorded per file rather than wiping the whole
+#      review.
 #      → writes .ai-pr-analyzer/flaky-ai-analysis.json
 #
 #   3. Sticky comment — flaky-sticky-comment.ts merges both artifacts into
 #      one PR comment under the <!-- metamask-flaky-test-detection --> marker,
 #      with 4-state create/update/no-op/all-clear logic.
 #
-# Historical failure rate is treated as a HINT — a file can be flagged in (1)
-# with zero AI findings, or have AI findings with no historical signal.
+# (1) and (2) are additive, never exclusive. A file can be flagged in (1) with
+# zero AI findings (possibly fixed since, or environmental), carry both (an
+# unfixed flake), or have AI findings alone (introduced by this PR). Stage 3
+# labels that combination per file, and says "not reviewed" rather than "no
+# pattern" when (2) never ran on that file. A same-SHA hit widens (2) from the
+# PR diff to the whole current file for that file only. Stage 3 never posts
+# all-clear when Stage 1's history walk was incomplete.
 #
-# The workflow is informational only: every step exits 0, no required check
-# gates the PR, and Stage 2 is gracefully skipped on fork PRs (their secrets
-# aren't propagated by GitHub).
+# Not a required check: expected no-ops (no modified tests, unchanged since
+# last analysis, fork PR) exit 0. When a stage cannot do its job it fails the
+# job for visibility; continue-on-error lets later stages still run, and a
+# final gate turns the job red. Stage 2 is skipped on fork PRs (secrets aren't
+# propagated by GitHub).
 
 name: Flaky unit test detection
 
@@ -47,11 +60,15 @@ jobs:
   detect-flaky-tests:
     name: Detect flaky unit tests
     runs-on: ubuntu-latest
+    # Stage 2 has its own 15-minute budget; this bounds the day-bucketed
+    # history walk and the rest of the job around it.
+    timeout-minutes: 45
     steps:
       # Checkout the PR head, not GitHub's merge commit, so Stage 3 snippet
       # validation and sticky blob links refer to the same tree. fetch-depth: 0
       # is required so Stage 1 can diff origin/${base}...${headSha}.
       - name: Checkout repository
+        id: checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -66,23 +83,56 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Install CI script dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        id: install
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: cd .github/scripts && yarn --immutable
 
-      # Stage 1: deterministic historical analysis. Identifies modified unit
-      # test files and counts their failures on main over the last 30 days of
-      # completed ci.yml runs, bucketed into 7d/15d/30d windows
-      # (failure+success runs only; cancelled/timed_out are excluded from the
-      # denominator). When no modified test file changed since its last-analyzed
-      # SHA (stored in the sticky comment), the step emits should_analyze=false
-      # and returns immediately, leaving the existing comment untouched.
-      # Never hard-fails — writes an empty-but-valid JSON artifact when there
-      # is nothing to analyze.
-      - name: Detect modified unit test files and historical failure rate
+      # Stage 1: ID-first funnel — list ci.yml runs, keep retry candidate SHAs,
+      # The history itself is built nightly on main by
+      # flaky-unit-test-index.yml; this job only reads it. Walking it here
+      # instead cost minutes per push and a GraphQL budget shared with every
+      # other workflow, to answer a question about a handful of files.
+      - name: Resolve the nightly history index
+        id: history-index
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # 404 until the builder workflow reaches the default branch, and an
+          # empty list until its first successful run. Neither is a reason to
+          # fail the detector: it degrades to "history unknown" on its own.
+          run_id=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/flaky-unit-test-index.yml/runs?status=success&per_page=1" \
+            --jq '.workflow_runs[0].id // empty' 2>/dev/null || true)
+          if [ -z "$run_id" ]; then
+            echo "No history index build found; past flakiness will read as unknown."
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      # A missing index is a degraded run, not a failed one: the AI pattern
+      # signal still stands and the comment says history is unknown.
+      - name: Download the nightly history index
+        if: steps.history-index.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: flaky-history-index
+          path: .flaky-history-index
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.history-index.outputs.run_id }}
+
+      # Looks each modified unit test up in the index, following renames so a
+      # moved test keeps the history recorded under its old path. When no
+      # modified test file changed since last analysis and the set of modified
+      # files still matches the sticky comment, the step emits
+      # should_analyze=false. Expected no-ops write an empty-but-valid JSON
+      # artifact; wiring failures call setFailed.
+      - name: Look up modified unit test files in the history index
         id: detect-history
         working-directory: .github/scripts
         continue-on-error: true
@@ -92,6 +142,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FLAKY_INDEX_PATH: ${{ github.workspace }}/.flaky-history-index/flaky-history-index.json
         run: yarn flaky-history-analysis
 
       # Stage 2 preflight: sync the flaky-test-detection skill from
@@ -111,8 +162,10 @@ jobs:
       # analyzer's load_skill tool can find it (single source of truth — no
       # hand-duplicated pattern content in this repo).
       - name: Sync flaky-test-detection skill
+        id: skill-sync
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         env:
@@ -136,8 +189,10 @@ jobs:
       # because AI_ANALYZER_TOKEN / AI_ANALYZER_LITELLM_KEY are not available
       # to workflows triggered from forks.
       - name: Checkout AI Analyzer
+        id: ai-checkout
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         uses: actions/checkout@v6
@@ -148,49 +203,90 @@ jobs:
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
-      - name: Install AI Analyzer dependencies
+      # Keyed off the analyzer's own lockfile, checked out at the pinned ref
+      # just above, so the key follows the ref without repeating it. npm ci
+      # wipes node_modules before installing, so a hit has to skip the install
+      # step to be worth anything.
+      - name: Cache AI Analyzer dependencies
+        id: ai-cache
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
+        uses: actions/cache@v6
+        with:
+          path: .ai-analyzer-action/node_modules
+          key: ai-analyzer-node-modules-${{ runner.os }}-${{ hashFiles('.ai-analyzer-action/package-lock.json') }}
+
+      - name: Install AI Analyzer dependencies
+        id: ai-install
+        if: >-
+          steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
+          !github.event.pull_request.head.repo.fork &&
+          steps.ai-cache.outputs.cache-hit != 'true'
         continue-on-error: true
         working-directory: .ai-analyzer-action
         run: npm ci
 
-      # Invokes the analyzer CLI directly (instead of `uses: ./.ai-analyzer-action`)
-      # so --changed-files can hard-scope analysis to only the modified unit
-      # test files — the composite action always analyzes the full PR diff.
-      # This also means the analyzer never has a chance to post its own PR
-      # comment; Stage 3 below is the only PR-visible output.
-      # --skip-scope bypasses the analyzer's default minimum-changed-lines
-      # gate: Stage 1 already narrowed the input to modified unit test files,
-      # so a 1-2 line edit that introduces a flaky pattern must still be
-      # analyzed instead of being skipped for being "too small".
+      # Stage 2: one AI analyzer process per unit test file, invoked by
+      # flaky-ai-analysis.ts (instead of `uses: ./.ai-analyzer-action`) so
+      # --changed-files can hard-scope each child to a single file. The
+      # composite action always analyzes the full PR diff. Stage 3 below is
+      # the only PR-visible output. --skip-scope bypasses the analyzer's
+      # default minimum-changed-lines gate: Stage 1 already narrowed the
+      # input to modified unit test files. files_to_analyze_count is 0 when
+      # Stage 1 only needs Stage 3 to re-render the comment for a changed
+      # file set, so that case spends no AI run.
       - name: Run flaky unit test AI analysis
+        id: ai
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
+          steps.detect-history.outputs.files_to_analyze_count != '0' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
+        timeout-minutes: 15
         env:
           LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: 'true'
           NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
+          AI_ANALYZER_DIR: ${{ github.workspace }}/.ai-analyzer-action
+          FILES_TO_ANALYZE: ${{ steps.detect-history.outputs.files_to_analyze }}
+          BASE_REF: ${{ github.base_ref }}
+          FLAKY_AI_MAX_FILES: '10'
+          FLAKY_AI_MAX_ATTEMPTS: '2'
+          FLAKY_AI_CONCURRENCY: '3'
+        run: yarn --cwd .github/scripts flaky-ai-analysis
+
+      # Stage 3 renders "not reviewed — skipped on fork PRs" only when a fork
+      # is really why Stage 2 did not run. A skipped step alone is also how "no
+      # file needed a review" looks, so the reason is stated rather than guessed.
+      - name: Resolve why the AI stage was skipped
+        id: ai-skip-reason
+        if: always()
+        env:
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+          FILES_TO_ANALYZE_COUNT: ${{ steps.detect-history.outputs.files_to_analyze_count }}
         run: |
-          node -r esbuild-register .ai-analyzer-action/src/index.ts \
-            --config .ai-pr-analyzer \
-            --mode flaky-unit-test-analysis \
-            --base-branch "origin/${{ github.base_ref }}" \
-            --changed-files "${{ steps.detect-history.outputs.files_to_analyze }}" \
-            --skip-scope
+          if [ "$IS_FORK" = "true" ]; then
+            echo "reason=fork" >> "$GITHUB_OUTPUT"
+          elif [ "${FILES_TO_ANALYZE_COUNT:-0}" = "0" ]; then
+            echo "reason=no_files" >> "$GITHUB_OUTPUT"
+          else
+            echo "reason=" >> "$GITHUB_OUTPUT"
+          fi
 
       # Stage 3: unified sticky PR comment combining Stage 1 + Stage 2
       # output. Runs when should_analyze is true, or when the PR no longer
       # modifies any unit test file — the latter lets the 4-state matrix flip
       # a stale sticky comment to "all fixed" when test changes are removed.
       # If Stage 1 determined no modified test file changed since last
-      # analysis (should_analyze=false but has_test_files=true), the existing
-      # comment is left untouched and Stage 3 is skipped. Never blocks the PR.
+      # analysis and the file set still matches the comment
+      # (should_analyze=false but has_test_files=true), the existing comment
+      # is left untouched and Stage 3 is skipped. Never blocks the PR.
       - name: Post unified sticky comment
+        id: sticky
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' ||
           steps.detect-history.outputs.has_test_files == 'false'
@@ -200,4 +296,79 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FLAKY_AI_STEP_OUTCOME: ${{ steps.ai.outcome }}
+          FLAKY_AI_SKIP_REASON: ${{ steps.ai-skip-reason.outputs.reason }}
         run: yarn flaky-sticky-comment
+
+      # Uploaded on every outcome: when Stage 2 is killed at its timeout, the
+      # partial artifact it left behind is the only record of what it reviewed.
+      - name: Upload flaky detection artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: flaky-unit-test-detection-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .ai-pr-analyzer/*.json
+            .ai-pr-analyzer/flaky-ai-analysis-runs/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Job summary
+        if: always()
+        env:
+          FLAKY_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FLAKY_SHOULD_ANALYZE: ${{ steps.detect-history.outputs.should_analyze }}
+          FLAKY_SKIP_REASON: ${{ steps.detect-history.outputs.skip_reason }}
+          FLAKY_HAS_TEST_FILES: ${{ steps.detect-history.outputs.has_test_files }}
+          FLAKY_MODIFIED_FILE_COUNT: ${{ steps.detect-history.outputs.modified_file_count }}
+          FLAKY_FILES_TO_ANALYZE_COUNT: ${{ steps.detect-history.outputs.files_to_analyze_count }}
+          FLAKY_HISTORICALLY_FLAKY_COUNT: ${{ steps.detect-history.outputs.historically_flaky_count }}
+          FLAKY_CARRIED_ACROSS_MOVE: ${{ steps.detect-history.outputs.carried_across_move }}
+          FLAKY_MISSING_LOG_BLOBS: ${{ steps.detect-history.outputs.missing_log_blobs }}
+          FLAKY_INFRASTRUCTURE_FAILURES: ${{ steps.detect-history.outputs.infrastructure_failures }}
+          FLAKY_UNATTRIBUTED_RERUNS: ${{ steps.detect-history.outputs.unattributed_reruns }}
+          FLAKY_HISTORY_WINDOW: ${{ steps.detect-history.outputs.history_window }}
+          FLAKY_MISSING_PRIOR_SHA_COUNT: ${{ steps.detect-history.outputs.missing_prior_sha_count }}
+          FLAKY_HISTORY_COMPLETE: ${{ steps.detect-history.outputs.history_complete }}
+          FLAKY_COMMENT_POSTED: ${{ steps.sticky.outputs.comment_posted }}
+          FLAKY_COMMENT_ACTION: ${{ steps.sticky.outputs.comment_action }}
+          FLAKY_FINDING_COUNT: ${{ steps.sticky.outputs.finding_count }}
+          FLAKY_STAGE3_SKIP_REASON: ${{ steps.sticky.outputs.skip_reason }}
+          FLAKY_CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+          FLAKY_INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          FLAKY_STAGE1_OUTCOME: ${{ steps.detect-history.outcome }}
+          FLAKY_SKILL_SYNC_OUTCOME: ${{ steps.skill-sync.outcome }}
+          FLAKY_AI_CHECKOUT_OUTCOME: ${{ steps.ai-checkout.outcome }}
+          FLAKY_AI_INSTALL_OUTCOME: ${{ steps.ai-install.outcome }}
+          FLAKY_AI_OUTCOME: ${{ steps.ai.outcome }}
+          FLAKY_AI_REVIEWED_COUNT: ${{ steps.ai.outputs.reviewed_count }}
+          FLAKY_AI_DID_NOT_COMPLETE_FILES: ${{ steps.ai.outputs.did_not_complete_files }}
+          FLAKY_AI_SKIPPED_CAP_FILES: ${{ steps.ai.outputs.skipped_cap_files }}
+          FLAKY_STAGE3_OUTCOME: ${{ steps.sticky.outcome }}
+        run: |
+          if [ -f .github/scripts/node_modules/.bin/ts-node ]; then
+            yarn --cwd .github/scripts flaky-job-summary
+          else
+            {
+              echo "## Flaky unit test detection"
+              echo
+              echo "**Stopped before analysis.** Checkout, base-branch fetch, Node setup, or yarn install did not complete, so Stage 1 never ran."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # continue-on-error above keeps later stages running; this gate turns the
+      # job red when any stage could not do its job. Skipped steps (fork PR)
+      # are outcome=skipped and do not trigger it. Not a required check.
+      - name: Fail job when a stage failed
+        if: >-
+          always() && (
+            steps.detect-history.outcome == 'failure' ||
+            steps.skill-sync.outcome == 'failure' ||
+            steps.ai-checkout.outcome == 'failure' ||
+            steps.ai-install.outcome == 'failure' ||
+            steps.ai.outcome == 'failure' ||
+            steps.sticky.outcome == 'failure'
+          )
+        run: |
+          echo "::error::A flaky unit test detection stage failed; see the Summary tab."
+          exit 1

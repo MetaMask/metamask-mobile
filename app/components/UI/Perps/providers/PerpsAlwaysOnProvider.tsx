@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   CHASE_ORDER_STATUS,
   ChaseOrderSuspensionError,
+  getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -449,7 +450,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           id: `perps-chase-max-distance-${event.handle}`,
           title: strings('perps.order.chase.max_distance_reached_title'),
           body: strings('perps.order.chase.max_distance_reached_notification', {
-            symbol: event.symbol,
+            symbol: getPerpsDisplaySymbol(event.symbol),
           }),
           // Controller v15 has no max-distance notification enum, so
           // notification_type is omitted and tap attribution is unavailable.

@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
-import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -50,8 +49,8 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import { Toaster } from '@metamask/design-system-react-native';
 import AgentStepHud from '../../../dev-tools/AgenticService/AgentStepHud';
+import { ToasterOverlay } from './ToasterOverlay';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
@@ -62,6 +61,7 @@ import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickB
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
+import ManageAccounts from '../../Views/ManageAccounts';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ActivityTypeFilterSheet from '../../Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/PerpsActivityFilterSheet';
@@ -160,6 +160,7 @@ import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroup
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddressQR/ShareAddressQR';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RemoveAccount from '../../Views/ManageAccounts/sheets/RemoveAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -184,7 +185,6 @@ import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/Mul
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
-import { useBasicFunctionalityConsolidation } from '../../hooks/useBasicFunctionalityConsolidation';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
@@ -218,6 +218,18 @@ const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
 const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
   capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
+
+/**
+ * Registered on the AppFlow stack (not the nested Main stack) so pushes from
+ * the Account Selector gear icon are a same-stack push. When this screen lived
+ * in the nested Main stack, navigating from Account Selector forced React
+ * Navigation to first pop the selector — flashing the wallet screen — before
+ * pushing Manage Accounts.
+ */
+const manageAccountsTransitionOptions: NativeStackNavigationOptions = {
+  ...slideFromRightNativeOptions,
+  presentation: 'card',
+};
 
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
   presentation: 'transparentModal',
@@ -1091,6 +1103,12 @@ const MultichainAccountDetailsActions = () => {
         options={commonScreenOptions}
       />
       <NativeStack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REMOVE_ACCOUNT}
+        component={RemoveAccount}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <NativeStack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
         component={SRPQuiz as ScreenComponent}
         initialParams={route?.params}
@@ -1281,6 +1299,19 @@ const AppFlow = () => {
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />
+      <NativeStack.Group
+        screenOptions={{
+          animation: 'slide_from_right',
+          presentation: 'card',
+          fullScreenGestureEnabled: true,
+        }}
+      >
+        <NativeStack.Screen
+          name={Routes.MANAGE_ACCOUNTS_VIEW}
+          component={ManageAccounts}
+          options={manageAccountsTransitionOptions}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainPrivateKeyList}
@@ -1426,7 +1457,6 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
-  useBasicFunctionalityConsolidation();
   const predictRegistrations = usePredictToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
@@ -1521,19 +1551,11 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         {/*
-          FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
-          layer — including native-stack card screens — which a plain absolute View as a
-          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render
-          behind the native stack card screens and are not visible.
-          unstable_accessibilityContainerViewIsModal={false} prevents react-native-screens
-          from marking the native container as accessibilityViewIsModal=YES, which would
-          otherwise hide the entire app's AX tree from VoiceOver/XCUITest/Appium whenever
-          no toast is active. Toasts are non-blocking so non-modal AX behaviour is correct.
-          See: https://consensyssoftware.atlassian.net/browse/DSYS-931
+          ToasterOverlay mounts FullWindowOverlay only while a toast is active
+          on iOS so idle RNSFullWindowOverlay / UIWindow is not left in the
+          native hierarchy. See ToasterOverlay.tsx and DSYS-931 / #32973.
         */}
-        <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
-          <Toaster />
-        </FullWindowOverlay>
+        <ToasterOverlay />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />

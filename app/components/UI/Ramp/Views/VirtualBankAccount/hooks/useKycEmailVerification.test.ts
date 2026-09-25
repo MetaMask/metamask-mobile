@@ -1,14 +1,13 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
-import {
-  VBA_KYC_COUNTRY_CODE,
-  VBA_KYC_PRODUCT,
-  VBA_KYC_VENDOR,
-} from '../constants';
+import { VBA_KYC_VENDOR } from '../constants';
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
+const mockOnSuccess = jest.fn();
+const mockGetState = jest.fn();
+const mockGetVbaVendorTermsAcceptance = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -17,8 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockKycControllerState = {
-  vendorDisclaimers: [{ id: 'tc-1' }] as { id: string }[],
-  sumsub: { status: 'complete' as string },
+  email: null as string | null,
 };
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -27,11 +25,29 @@ jest.mock('../../../../../../core/Engine', () => ({
       get state() {
         return mockKycControllerState;
       },
-      createVendorCustomer: jest.fn(),
-      fetchSessionDisclaimers: jest.fn(),
-      acceptTermsAndStartSession: jest.fn(),
+      startSession: jest.fn(),
+      recordVendorDisclaimers: jest.fn(),
+      hasCompletedVendorDisclaimers: jest.fn(),
+      reset: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../../../core/redux', () => ({
+  store: {
+    getState: () => mockGetState(),
+  },
+}));
+
+jest.mock('../../../../../../selectors/rampsController', () => ({
+  selectSelectedVbaWalletAddress: jest.fn(
+    (state: { address?: string }) => state.address ?? null,
+  ),
+}));
+
+jest.mock('../vbaVendorTermsStorage', () => ({
+  getVbaVendorTermsAcceptance: (...args: unknown[]) =>
+    mockGetVbaVendorTermsAcceptance(...args),
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -43,28 +59,10 @@ jest.mock('../../../../../../util/Logger', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  createVendorCustomer: jest.Mock<Promise<void>, [unknown]>;
-  fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
-  acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown]>;
-};
-
-const catalog = {
-  idOS: [
-    {
-      key: 'idos-privacy',
-      version: '1',
-      title: 'idOS Privacy Policy',
-      url: 'https://idos.example/privacy',
-    },
-  ],
-  kycProvider: [
-    {
-      key: 'sumsub-terms',
-      version: '2',
-      title: 'Sumsub T&C',
-      url: 'https://sumsub.example/terms',
-    },
-  ],
+  startSession: jest.Mock<Promise<unknown>, [unknown]>;
+  recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
+  hasCompletedVendorDisclaimers: jest.Mock<Promise<boolean>, []>;
+  reset: jest.Mock<Promise<void>, []>;
 };
 
 const enterEmailAndStart = async (
@@ -76,13 +74,23 @@ const enterEmailAndStart = async (
 };
 
 describe('useKycEmailVerification', () => {
+  const renderHookUnderTest = () =>
+    renderHook(() => useKycEmailVerification(mockOnSuccess));
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockKycControllerState.vendorDisclaimers = [{ id: 'tc-1' }];
-    mockKycControllerState.sumsub.status = 'complete';
-    mockKycController.createVendorCustomer.mockResolvedValue(undefined);
-    mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
-    mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockKycControllerState.email = null;
+    mockKycController.startSession.mockResolvedValue({
+      id: 'session-1',
+      finalStatus: 'new',
+    });
+    mockKycController.recordVendorDisclaimers.mockResolvedValue([]);
+    mockKycController.hasCompletedVendorDisclaimers.mockResolvedValue(false);
+    mockKycController.reset.mockResolvedValue(undefined);
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue({
+      disclaimerIds: ['privacy', 'terms'],
+    });
   });
 
   afterEach(() => {
@@ -90,7 +98,7 @@ describe('useKycEmailVerification', () => {
   });
 
   it('disables continue until a non-empty email is set', () => {
-    const { result } = renderHook(() => useKycEmailVerification());
+    const { result } = renderHookUnderTest();
 
     expect(result.current.isContinueDisabled).toBe(true);
 
@@ -101,89 +109,120 @@ describe('useKycEmailVerification', () => {
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
-  it('creates the customer then starts the session with catalog consents', async () => {
-    const { result } = renderHook(() => useKycEmailVerification());
+  it('prefills the email input from KycController state', () => {
+    mockKycControllerState.email = '  stored@example.com  ';
+
+    const { result } = renderHookUnderTest();
+
+    expect(result.current.email).toBe('stored@example.com');
+    expect(result.current.isContinueDisabled).toBe(false);
+  });
+
+  it('starts the session then reports completion', async () => {
+    const { result } = renderHookUnderTest();
 
     await enterEmailAndStart(result, '  user@example.com  ');
 
-    expect(mockKycController.createVendorCustomer).toHaveBeenCalledWith({
+    expect(mockKycController.startSession).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
-      country: VBA_KYC_COUNTRY_CODE,
+    expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
+    expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
+      disclaimerIds: ['privacy', 'terms'],
     });
-    expect(mockKycController.acceptTermsAndStartSession).toHaveBeenCalledWith({
+    expect(mockOnSuccess).toHaveBeenCalledWith({
       email: 'user@example.com',
-      product: VBA_KYC_PRODUCT,
-      providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
-      idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
     });
   });
 
-  it('alerts without starting the session when customer creation rejects', async () => {
+  it('does not report completion when vendor terms are unavailable', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockKycController.createVendorCustomer.mockRejectedValue(
-      new Error('Customer creation failed.'),
-    );
-    const { result } = renderHook(() => useKycEmailVerification());
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    const { result } = renderHookUnderTest();
 
     await enterEmailAndStart(result);
 
     expect(alertSpy).toHaveBeenCalledWith(
       'Identity verification',
-      'Customer creation failed.',
+      'Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.',
     );
-    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+    expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
-  it('alerts when vendor terms have not been loaded', async () => {
+  it('reports completion when the account already recorded vendor terms', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockKycControllerState.vendorDisclaimers = [];
-    const { result } = renderHook(() => useKycEmailVerification());
-
-    await enterEmailAndStart(result);
-
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Identity verification',
-      'Terms are not loaded yet. Go back to Get your Pix Key and try again.',
-    );
-    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
-  });
-
-  it('does not alert when the applicant abandons Sumsub', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockKycController.acceptTermsAndStartSession.mockImplementation(
-      async () => {
-        mockKycControllerState.sumsub.status = 'abandoned';
-      },
-    );
-    const { result } = renderHook(() => useKycEmailVerification());
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    mockKycController.hasCompletedVendorDisclaimers.mockResolvedValue(true);
+    const { result } = renderHookUnderTest();
 
     await enterEmailAndStart(result);
 
     expect(alertSpy).not.toHaveBeenCalled();
-    expect(result.current.isVerifying).toBe(false);
+    expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
+    expect(mockOnSuccess).toHaveBeenCalledWith({
+      email: 'user@example.com',
+    });
+  });
+
+  it('alerts without completing when customer creation rejects', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockKycController.startSession.mockRejectedValue(
+      new Error('Session creation failed.'),
+    );
+    const { result } = renderHookUnderTest();
+
+    await enterEmailAndStart(result);
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'Session creation failed.',
+    );
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
   it('does not start verification when the email is blank', async () => {
-    const { result } = renderHook(() => useKycEmailVerification());
+    const { result } = renderHookUnderTest();
 
     await act(async () => {
       await result.current.startVerification();
     });
 
-    expect(mockKycController.createVendorCustomer).not.toHaveBeenCalled();
-    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
   it('navigates back from goBack', () => {
-    const { result } = renderHook(() => useKycEmailVerification());
+    const { result } = renderHookUnderTest();
 
     act(() => {
       result.current.goBack();
     });
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('resets the KYC controller and clears the email field', async () => {
+    const { result } = renderHookUnderTest();
+
+    act(() => result.current.setEmail('user@example.com'));
+    await act(result.current.resetKyc);
+
+    expect(mockKycController.reset).toHaveBeenCalled();
+    expect(result.current.email).toBe('');
+  });
+
+  it('alerts when reset rejects', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockKycController.reset.mockRejectedValue(new Error('Reset failed.'));
+    const { result } = renderHookUnderTest();
+
+    await act(result.current.resetKyc);
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'Reset failed.',
+    );
   });
 });

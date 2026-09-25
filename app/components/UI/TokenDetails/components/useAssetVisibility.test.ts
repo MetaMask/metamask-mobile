@@ -22,9 +22,6 @@ jest.mock('../../../../core/Engine', () => ({
       unhideAsset: jest.fn(),
       removeCustomAsset: jest.fn(),
     },
-    MultichainAssetsController: {
-      addAssets: jest.fn(),
-    },
   },
 }));
 
@@ -337,7 +334,7 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
     });
 
-    it('calls unhideAsset AND MultichainAssetsController.addAssets when non-EVM token is in allIgnoredNonEvmAssets', () => {
+    it('calls unhideAsset for a non-EVM token in allIgnoredNonEvmAssets', () => {
       setupSelectors({
         // Solana ignored assets are keyed by the Solana account ID
         allIgnoredNonEvmAssets: { [SOL_ACCOUNT_ID]: [SOL_ASSET_ID] },
@@ -347,25 +344,6 @@ describe('useAssetVisibility', () => {
       expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
         SOL_ASSET_ID,
       );
-      // addAssets must be called with the Solana account ID, not the EVM one
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).toHaveBeenCalledWith([SOL_ASSET_ID], SOL_ACCOUNT_ID);
-    });
-
-    it('calls unhideAsset but NOT addAssets when unhiding an EVM token (not in non-EVM ignored list)', () => {
-      setupSelectors({
-        assetPreferences: { [EVM_ASSET_ID]: { hidden: true } },
-        allIgnoredNonEvmAssets: {},
-      });
-      const { result } = renderHook(() => useAssetVisibility(evmToken()));
-      act(() => result.current.handleHideToken());
-      expect(Engine.context.AssetsController.unhideAsset).toHaveBeenCalledWith(
-        EVM_ASSET_ID,
-      );
-      expect(
-        Engine.context.MultichainAssetsController.addAssets,
-      ).not.toHaveBeenCalled();
     });
 
     it('calls removeCustomAsset only when custom asset has no balance entry', () => {

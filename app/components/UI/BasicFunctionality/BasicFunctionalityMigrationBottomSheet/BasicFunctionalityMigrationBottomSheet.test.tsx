@@ -82,7 +82,9 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
       getByText(strings('basic_functionality_migration.social_title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('basic_functionality_migration.social_body_1')),
+      getByText(strings('basic_functionality_migration.social_body_1'), {
+        exact: false,
+      }),
     ).toBeOnTheScreen();
   });
 
@@ -99,6 +101,16 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       dismissBasicFunctionalityMigrationNotification(),
     );
+  });
+
+  it('renders the accept button from the design system at size Lg', () => {
+    const { getByTestId } = renderWithProvider(
+      <BasicFunctionalityMigrationBottomSheet />,
+    );
+
+    expect(getByTestId('basic-functionality-migration-accept')).toHaveStyle({
+      height: 48,
+    });
   });
 
   it('opens the migration information links', () => {

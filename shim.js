@@ -166,12 +166,7 @@ global.crypto = {
   ...crypto,
   randomUUID,
   getRandomValues,
-  subtle: {
-    ...global.crypto.subtle,
-    ...crypto.subtle,
-    // Shimming just digest as it has been fully implemented.
-    digest: quickCryptoSubtle.digest,
-  },
+  subtle: quickCryptoSubtle,
 };
 
 process.browser = false;

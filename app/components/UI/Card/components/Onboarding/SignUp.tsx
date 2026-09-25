@@ -24,8 +24,10 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextField,
+  AvatarAccount,
+  AvatarBaseSize,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -55,12 +57,13 @@ import {
   withCardProvider,
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
   setOnValueChange,
 } from './RegionSelectorModal';
+import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
@@ -77,6 +80,9 @@ import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions
 import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
 import type { CardOnboardingStackParamList } from '../../types/navigation';
 import Logger from '../../../../../util/Logger';
+import { isValidLocalPhoneNumber } from '../../util/contactDetails';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 const UK_MIGRATION_COUNTRY_CODE = 'GB';
 
@@ -167,11 +173,13 @@ const SignUp = () => {
 
   // Immersve onboarding entry: SIWE binds to the currently-selected EVM account.
   const accountName = useAccountGroupName();
+  const avatarAccountType = useSelector(selectAvatarAccountType);
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const selectedImmersveAccount = selectAccountByScope('eip155:0');
   const immersveAddress = safeToChecksumAddress(
-    selectAccountByScope('eip155:0')?.address,
+    selectedImmersveAccount?.address,
   );
   const resumeImmersveOnboarding = useImmersveResumeOnboarding();
   const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
@@ -182,11 +190,11 @@ const SignUp = () => {
   const debouncedPhoneNumber = useDebouncedValue(phoneNumber, 1000);
 
   const handleAlreadyHaveAccountPress = useCallback(() => {
-    if (postAuthRedirect) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { postAuthRedirect });
-      return;
-    }
-    navigation.navigate(Routes.CARD.AUTHENTICATION);
+    navigation.navigate(
+      Routes.CARD.AUTHENTICATION,
+      postAuthRedirect ? { postAuthRedirect } : undefined,
+      { pop: true, merge: true },
+    );
   }, [navigation, postAuthRedirect]);
 
   const {
@@ -218,7 +226,6 @@ const SignUp = () => {
         return;
       }
       // Local UI only — do not call setSelectedCountry here. That would switch
-      // the active provider / clear Baanx before the user confirms with Next.
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(ukRegion);
       setPhoneRegion(ukRegion);
@@ -334,7 +341,7 @@ const SignUp = () => {
       setIsPhoneNumberError(false);
       return;
     }
-    setIsPhoneNumberError(!/^\d{4,15}$/.test(debouncedPhoneNumber));
+    setIsPhoneNumberError(!isValidLocalPhoneNumber(debouncedPhoneNumber));
   }, [debouncedPhoneNumber]);
 
   const isImmersveCountry = Boolean(
@@ -390,7 +397,9 @@ const SignUp = () => {
   );
 
   const isPhoneValid = Boolean(
-    phoneNumber && phoneRegion?.areaCode && /^\d{4,15}$/.test(phoneNumber),
+    phoneNumber &&
+      phoneRegion?.areaCode &&
+      isValidLocalPhoneNumber(phoneNumber),
   );
 
   const isDisabled = useMemo(() => {
@@ -458,7 +467,7 @@ const SignUp = () => {
     ) {
       return;
     }
-    if (!/^\d{4,15}$/.test(phoneNumber)) {
+    if (!isValidLocalPhoneNumber(phoneNumber)) {
       setIsPhoneNumberError(true);
       return;
     }
@@ -481,10 +490,11 @@ const SignUp = () => {
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
-      // Clear Baanx while it is still the active provider, then continue as
-      // a new Immersve user (setSelectedCountry + SIWE happen in resume).
       if (fromMigration) {
-        await Engine.context.CardController.logout();
+        Engine.context.CardController.requestLegacyAccountClosure().catch(
+          () => undefined,
+        );
+        Engine.context.CardController.beginMigration();
       }
       await resumeImmersveOnboarding({
         country: selectedCountry.key,
@@ -494,6 +504,9 @@ const SignUp = () => {
         entrypoint: CardEntryPoint.SIGN_UP,
       });
     } catch (e) {
+      if (fromMigration) {
+        Engine.context.CardController.cancelMigration();
+      }
       setImmersveError(getCardProviderErrorMessage(e));
     } finally {
       setIsImmersveSubmitting(false);
@@ -661,22 +674,15 @@ const SignUp = () => {
   const renderFormFields = () => (
     <>
       <Box>
-        <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        {isLoadingRegistrationSettings && !selectedCountry ? (
-          <Box
-            twClassName="flex-row items-center justify-center h-12 rounded-xl border border-solid border-border-muted bg-background-muted"
-            testID="signup-country-loading"
-          >
-            <ActivityIndicator size="small" />
-          </Box>
-        ) : (
-          <SelectField
-            value={selectedCountry?.name}
-            onPress={handleCountrySelect}
-            isDisabled={fromMigration || isLoadingRegistrationSettings}
-            testID="signup-country-select"
-          />
-        )}
+        <CountrySelectField
+          label={strings('card.card_onboarding.sign_up.country_label')}
+          selectedCountry={selectedCountry}
+          isLoading={isLoadingRegistrationSettings}
+          isDisabled={fromMigration}
+          onPress={handleCountrySelect}
+          testID="signup-country-select"
+          loadingTestID="signup-country-loading"
+        />
         {isWaitlistMode && (
           <Text
             variant={TextVariant.BodySm}
@@ -691,20 +697,24 @@ const SignUp = () => {
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.email_label')}</Label>
         <TextField
-          autoCapitalize={'none'}
-          autoComplete="one-time-code"
           onChangeText={handleEmailChange}
-          numberOfLines={1}
           value={email}
-          keyboardType="email-address"
-          maxLength={255}
-          accessibilityLabel={strings(
-            'card.card_onboarding.sign_up.email_label',
-          )}
           isError={
             !isImmersveCountry && debouncedEmail.length > 0 && isEmailError
           }
-          testID="signup-email-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            autoCorrect: false,
+            autoComplete: 'email',
+            textContentType: 'emailAddress',
+            numberOfLines: 1,
+            keyboardType: 'email-address',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.sign_up.email_label',
+            ),
+            testID: 'signup-email-input',
+          }}
         />
         {isImmersveCountry ? null : email.length > 0 &&
           emailVerificationIsError ? (
@@ -745,19 +755,21 @@ const SignUp = () => {
               </Box>
               <Box twClassName="flex-1">
                 <TextField
-                  autoCapitalize={'none'}
                   onChangeText={handlePhoneNumberChange}
-                  numberOfLines={1}
-                  autoComplete="one-time-code"
                   value={phoneNumber}
-                  keyboardType="phone-pad"
-                  maxLength={255}
-                  accessibilityLabel={strings(
-                    'card.card_onboarding.set_phone_number.phone_number_label',
-                  )}
-                  testID="signup-immersve-phone-number-input"
-                  onSubmitEditing={handleImmersveContinue}
-                  returnKeyType="done"
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    numberOfLines: 1,
+                    autoComplete: 'one-time-code',
+                    keyboardType: 'phone-pad',
+                    maxLength: 255,
+                    accessibilityLabel: strings(
+                      'card.card_onboarding.set_phone_number.phone_number_label',
+                    ),
+                    testID: 'signup-immersve-phone-number-input',
+                    onSubmitEditing: handleImmersveContinue,
+                    returnKeyType: 'done',
+                  }}
                 />
               </Box>
             </Box>
@@ -781,6 +793,16 @@ const SignUp = () => {
               value={accountName ?? undefined}
               onPress={openAccountSelector}
               testID="signup-immersve-account-select"
+              startAccessory={
+                immersveAddress ? (
+                  <AvatarAccount
+                    address={immersveAddress}
+                    variant={getAvatarAccountVariant(avatarAccountType)}
+                    size={AvatarBaseSize.Sm}
+                    testID="signup-immersve-account-avatar"
+                  />
+                ) : undefined
+              }
             />
             <Text
               variant={TextVariant.BodySm}
@@ -809,18 +831,9 @@ const SignUp = () => {
             {strings('card.card_onboarding.sign_up.password_label')}
           </Label>
           <TextField
-            autoCapitalize={'none'}
             onChangeText={handlePasswordChange}
-            numberOfLines={1}
             value={password}
-            maxLength={255}
-            secureTextEntry={!isPasswordVisible}
-            autoComplete="one-time-code"
-            accessibilityLabel={strings(
-              'card.card_onboarding.sign_up.password_label',
-            )}
             isError={debouncedPassword.length > 0 && isPasswordError}
-            testID="signup-password-input"
             endAccessory={
               <TouchableOpacity
                 onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -832,6 +845,17 @@ const SignUp = () => {
                 />
               </TouchableOpacity>
             }
+            inputProps={{
+              autoCapitalize: 'none',
+              numberOfLines: 1,
+              maxLength: 255,
+              secureTextEntry: !isPasswordVisible,
+              autoComplete: 'one-time-code',
+              accessibilityLabel: strings(
+                'card.card_onboarding.sign_up.password_label',
+              ),
+              testID: 'signup-password-input',
+            }}
           />
           {debouncedPassword.length > 0 && isPasswordError ? (
             <Text

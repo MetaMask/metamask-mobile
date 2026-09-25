@@ -13,6 +13,7 @@ import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
@@ -30,6 +31,7 @@ import {
   MetaMetricsSwapsEventSource,
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import { SecurityDataType, BridgeToken } from '../../types';
@@ -130,25 +132,26 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock useLatestBalance hook
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
-    if (!address || !chainId) return undefined;
-
-    const actualEthers = jest.requireActual('ethers');
-
-    return {
-      displayBalance: '2.0',
-      atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
-    };
-  }),
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
 }));
 
-// Create mock latestSourceBalance to pass as prop
 const mockLatestSourceBalance = {
   displayBalance: '2.0',
   atomicBalance: BigNumber.from('2000000000000000000'), // 2 ETH
 };
+
+const createMockBridgeSession = (
+  overrides: Partial<ReturnType<typeof useBridgeSession>> = {},
+) => ({
+  selectedTab: BridgeTabKey.Market,
+  renderedTab: BridgeTabKey.Market,
+  setSelectedTab: jest.fn(),
+  setRenderedTab: jest.fn(),
+  latestSourceBalance: mockLatestSourceBalance,
+  quoteParams: {},
+  ...overrides,
+});
 
 // Override srcTokenAmount so it matches sourceAmount='1.0' with 18 decimals,
 // preventing the quote from being detected as stale in default test scenarios.
@@ -334,6 +337,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
     jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
+    jest.mocked(useBridgeSession).mockReturnValue(createMockBridgeSession());
     mockSubmitBridgeTx.mockResolvedValue({
       id: 'tx-meta-id',
       hash: '0xabc',
@@ -351,7 +355,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('displays "Confirm swap" label by default', () => {
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -367,7 +370,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -383,7 +385,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -404,7 +405,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -429,7 +429,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -455,7 +454,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -472,7 +470,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -495,7 +492,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -527,7 +523,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -549,7 +544,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -566,7 +560,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -583,7 +576,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -636,7 +628,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId, getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -700,7 +691,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId, queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -760,7 +750,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -828,7 +817,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId, queryByText, getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -897,7 +885,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId, getByText, queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -934,7 +921,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -959,7 +945,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -983,7 +968,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1011,7 +995,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1042,7 +1025,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1075,7 +1057,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
         const { getByText } = renderWithProvider(
           <SwapsMarketOrderConfirmButton
-            latestSourceBalance={mockLatestSourceBalance}
             location={MetaMetricsSwapsEventSource.MainView}
           />,
           {
@@ -1099,7 +1080,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1119,7 +1099,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1143,7 +1122,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1164,7 +1142,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1188,7 +1165,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1208,7 +1184,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
       const { getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1231,7 +1206,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // First render with sourceAmount='1.0' — settledAmountRef latches to '1.0'
       const { getByText, getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1256,7 +1230,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       // sourceAmount='1.0' matches the mock quote's srcTokenAmount
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1272,7 +1245,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('shows loading when user slippage changes before quote refresh starts', () => {
       const { getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1322,7 +1294,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       };
       const { getByTestId, rerender, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state },
@@ -1336,7 +1307,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
       };
       rerender(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
       );
@@ -1348,7 +1318,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       rerender(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
       );
@@ -1362,7 +1331,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('keeps confirmation enabled when the backend hydrates slippage', () => {
       const { getByTestId, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1393,7 +1361,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1418,7 +1385,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1444,7 +1410,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1467,7 +1432,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1498,7 +1462,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByText, getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1527,7 +1490,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1560,7 +1522,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { queryByText } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1579,7 +1540,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('submits transaction and opens the post-trade bottom sheet', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1643,7 +1603,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1672,7 +1631,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1714,7 +1672,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1735,7 +1692,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1794,7 +1750,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('navigates to TokenWarningModal when a token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1818,7 +1773,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('does not submit the transaction when a token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1834,7 +1788,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('passes Malicious type through to TokenWarningModal params', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         {
@@ -1878,7 +1831,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithEmptyFeatures },
@@ -1913,7 +1865,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1949,7 +1900,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithWarning() },
@@ -1972,7 +1922,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     it('proceeds to normal flow when no token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState }, // no destToken securityData
@@ -2009,7 +1958,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2043,7 +1991,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2078,7 +2025,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2092,7 +2038,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2118,7 +2063,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2152,7 +2096,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2166,7 +2109,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2193,7 +2135,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2228,7 +2169,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2268,7 +2208,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2303,7 +2242,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2346,7 +2284,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
@@ -2360,7 +2297,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {
           type: PriceImpactModalType.Execution,
-          token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
         },
       });
@@ -2407,7 +2343,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
 
       const { getByTestId } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: stateWithoutDangerThreshold },

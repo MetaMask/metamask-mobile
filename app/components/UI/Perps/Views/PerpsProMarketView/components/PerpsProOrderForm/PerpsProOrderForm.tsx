@@ -106,7 +106,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
       testID={testID}
     >
       <Box
-        twClassName={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
+        twClassName={`h-12 flex-row items-center justify-between rounded-full bg-muted px-3${
           isDisabled ? ' opacity-50' : ''
         }`}
       >
@@ -779,7 +779,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="h-8 rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-full bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
@@ -788,7 +788,7 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="rounded-lg bg-muted px-2"
+              twClassName="h-8 flex-1 rounded-full bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
@@ -796,7 +796,9 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName="overflow-hidden rounded-xl bg-muted"
+            twClassName={`overflow-hidden bg-muted ${
+              orderType === 'market' ? 'rounded-full' : 'rounded-xl'
+            }`}
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
@@ -981,7 +983,7 @@ const PerpsProOrderForm = ({
           />
           <Box
             testID={ids.REDUCE_ONLY_CONTAINER}
-            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+            twClassName="h-12 justify-center rounded-full bg-muted px-3"
           >
             <Checkbox
               label={strings('perps.order.reduce_only')}

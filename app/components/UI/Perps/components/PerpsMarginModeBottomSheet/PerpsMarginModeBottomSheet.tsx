@@ -59,7 +59,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
         title={strings('perps.margin_mode.isolated_title')}
         description={strings('perps.margin_mode.isolated_description')}
         isSelected
-        showSelectedIcon
+        showSelectedIcon={false}
         onPress={handleIsolatedPress}
         testID={PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION}
       />
@@ -67,7 +67,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
         title={strings('perps.margin_mode.cross_title')}
         description={strings('perps.margin_mode.cross_description')}
         isSelected={false}
-        showSelectedIcon
+        showSelectedIcon={false}
         disabled
         twClassName="opacity-50"
         testID={PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION}

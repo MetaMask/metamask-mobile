@@ -1,5 +1,5 @@
 // Core hooks (direct controller access)
-export { useBottomSafeAreaInset } from './useBottomSafeAreaInset';
+export { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
@@ -89,6 +89,9 @@ export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
+export { useIsActivePerpsTrader } from './useIsActivePerpsTrader';
+// Removed from barrel: usePerpsClosePositionForm consumes this barrel.
+// Import directly: import { usePerpsClosePositionForm } from './hooks/usePerpsClosePositionForm';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';

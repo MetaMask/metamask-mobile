@@ -1,3 +1,6 @@
+import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
+import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 
 /**
@@ -30,10 +33,6 @@ export interface LimitOrderConfirmationModalParams {
    */
   triggerPrice: string;
   /**
-   * Comparison against the current market price. Omitted while at market.
-   */
-  triggerComparison?: LimitOrderConfirmationMarketComparison;
-  /**
    * Token the trigger price is quoted in, used for the trigger row avatar.
    */
   triggerToken?: BridgeToken;
@@ -42,34 +41,57 @@ export interface LimitOrderConfirmationModalParams {
    */
   expiry: string;
   /**
-   * Estimated network fee, e.g. "$1.69".
+   * Unformatted order parameters used to request the delegations to sign.
+   * Built by the caller, which is the only place holding the raw asset ids and
+   * minimal-unit amounts. `costTolerance` is excluded on purpose: this screen
+   * reads the live value from state, since it can still be edited while the
+   * sheet is open.
    */
-  networkFee: string;
+  order: Omit<LimitOrderDelegationsParams, 'costTolerance'>;
+  /**
+   * The condition that fills the order, in the shape `POST /v2/limit-orders`
+   * takes. Built by the caller, which is the only place holding the raw limit
+   * price and the side it is quoted on, and where a price shown in another
+   * display currency is converted to the USD equivalent the API requires.
+   * Left undefined when the price cannot be expressed as a trigger, which this
+   * screen surfaces rather than placing an order the API would reject.
+   */
+  trigger?: CreateLimitOrderParams['trigger'];
+}
+
+export interface LimitOrderConfirmationModalProps
+  extends Omit<LimitOrderConfirmationModalParams, 'order' | 'trigger'> {
+  /**
+   * Cost tolerance label, e.g. "2%". Read from state by the host screen so
+   * edits made in the cost tolerance modal are reflected here.
+   */
+  costTolerance: string;
+  /**
+   * Comparison against the current market price.
+   */
+  triggerComparison?: LimitOrderConfirmationMarketComparison;
+  /**
+   * One-time EIP-7702 account upgrade fee, which is the only network cost of
+   * placing the order. The row is hidden entirely once the account is already
+   * delegated, since there is nothing left to pay for.
+   */
+  delegationFee: EIP7702UpgradeFee;
   /**
    * Token the network fee is paid in, used for the network fee row avatar.
    */
   feeToken?: BridgeToken;
   /**
-   * Fee disclaimer shown under the confirm button, e.g. "Includes 0.875% MetaMask fee".
+   * USD price the order triggers at, e.g. "$3,412.2". Set only for a price
+   * entered in fiat while the display currency is not USD, since the order is
+   * placed at this USD price rather than the one on screen.
    */
-  feeDisclaimer?: string;
-}
-
-export interface LimitOrderConfirmationModalProps
-  extends LimitOrderConfirmationModalParams {
-  /**
-   * Slippage label, e.g. "2%". Read from state by the host screen so edits
-   * made in the slippage modal are reflected here.
-   */
-  slippage: string;
-  /**
-   * Fired when the user confirms the order.
-   */
-  onConfirm: () => void;
-  /**
-   * Fired when the user taps the edit icon on the slippage row.
-   */
-  onEditSlippagePress: () => void;
+  usdTriggerPrice?: string;
+  primaryButton: {
+    onPress: () => void;
+    label: string;
+    isLoading?: boolean;
+  };
+  error?: string;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

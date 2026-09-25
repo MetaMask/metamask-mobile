@@ -86,6 +86,11 @@ export interface ProvisionCardParams {
   cardholderName: string;
   lastFourDigits: string;
   cardDescription?: string;
+  /**
+   * Opaque issuer id forwarded to PassKit.
+   * It is not used to look up an existing pass.
+   */
+  primaryAccountIdentifier?: string;
   encryptedPayload: EncryptedPayload;
   userAddress?: UserAddress;
   /** Callback for Apple Pay: PassKit provides nonce/certs, returns encrypted payload */
@@ -125,7 +130,6 @@ export interface WalletEligibility {
 /** Card activation event from wallet */
 export interface CardActivationEvent {
   tokenId?: string;
-  serialNumber?: string;
   status: 'activated' | 'canceled' | 'failed';
 }
 
