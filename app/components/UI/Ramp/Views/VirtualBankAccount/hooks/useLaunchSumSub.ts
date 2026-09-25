@@ -46,9 +46,7 @@ async function recordSessionConsents(): Promise<void> {
     country,
   });
   await KycController.recordSessionDisclaimers({
-    providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
-      catalog.kycProvider,
-    ),
+    providerDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.kycProvider),
     idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
     credentialReusabilityConsentGiven: false,
   });
