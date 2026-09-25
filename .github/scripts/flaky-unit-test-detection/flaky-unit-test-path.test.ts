@@ -80,4 +80,14 @@ describe('isFlakyWorkflowUnitTestPath', () => {
 
     expect(result).toBe(true);
   });
+
+  // The detector reviews itself: its own tests run in the root unit shards, so
+  // moving them into a nested folder must not drop them from the watched set.
+  it('accepts its own tests from the nested detector folder', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      '.github/scripts/flaky-unit-test-detection/flaky-same-sha-history.test.ts',
+    );
+
+    expect(result).toBe(true);
+  });
 });
