@@ -34,11 +34,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - BrazeKit (18.2.0)
-  - BrazeLocation (18.2.0):
-    - BrazeKit (= 18.2.0)
-  - BrazeUI (18.2.0):
-    - BrazeKit (= 18.2.0)
+  - BrazeKit (18.2.1)
+  - BrazeLocation (18.2.1):
+    - BrazeKit (= 18.2.1)
+  - BrazeUI (18.2.1):
+    - BrazeKit (= 18.2.1)
   - BVLinearGradient (2.8.3):
     - React-Core
   - CocoaAsyncSocket (7.6.5)
@@ -497,27 +497,27 @@ PODS:
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
   - hermes-engine/Pre-built (0.14.1)
-  - IdensicMobileSDK (1.45.1):
-    - IdensicMobileSDK/Default (= 1.45.1)
-  - IdensicMobileSDK/Core (1.45.1)
-  - IdensicMobileSDK/Default (1.45.1):
+  - IdensicMobileSDK (1.46.1):
+    - IdensicMobileSDK/Default (= 1.46.1)
+  - IdensicMobileSDK/Core (1.46.1)
+  - IdensicMobileSDK/Default (1.46.1):
     - IdensicMobileSDK/Core
   - libavif/core (1.0.0)
   - libavif/libdav1d (1.0.0):
     - libavif/core
     - libdav1d (>= 0.6.0)
   - libdav1d (1.2.0)
-  - libwebp (1.5.0):
-    - libwebp/demux (= 1.5.0)
-    - libwebp/mux (= 1.5.0)
-    - libwebp/sharpyuv (= 1.5.0)
-    - libwebp/webp (= 1.5.0)
-  - libwebp/demux (1.5.0):
+  - libwebp (1.6.0):
+    - libwebp/demux (= 1.6.0)
+    - libwebp/mux (= 1.6.0)
+    - libwebp/sharpyuv (= 1.6.0)
+    - libwebp/webp (= 1.6.0)
+  - libwebp/demux (1.6.0):
     - libwebp/webp
-  - libwebp/mux (1.5.0):
+  - libwebp/mux (1.6.0):
     - libwebp/demux
-  - libwebp/sharpyuv (1.5.0)
-  - libwebp/webp (1.5.0):
+  - libwebp/sharpyuv (1.6.0)
+  - libwebp/webp (1.6.0):
     - libwebp/sharpyuv
   - lottie-ios (4.6.0)
   - lottie-react-native (7.3.8):
@@ -705,7 +705,7 @@ PODS:
     - SocketRocket
     - Yoga
   - OpenSSL-Universal (3.6.2000)
-  - PromisesObjC (2.4.0)
+  - PromisesObjC (2.4.1)
   - QuickCrypto (1.1.5):
     - boost
     - DoubleConversion
@@ -2868,8 +2868,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-mobilesdk-module (1.45.1):
-    - IdensicMobileSDK (= 1.45.1)
+  - react-native-mobilesdk-module (1.46.1):
+    - IdensicMobileSDK (= 1.46.1)
     - React-Core
   - react-native-netinfo (11.5.2):
     - boost
@@ -5193,9 +5193,9 @@ SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   braze-react-native-sdk: 7de8df8f0f0b32a2bea8a1f5c61fe7056d394283
-  BrazeKit: 7096d0fedf79e7263bb055b986ade1cc52ad1897
-  BrazeLocation: 992159c8dc5d2a5f9e4a168d2e2780cf9c4aa6dd
-  BrazeUI: 98385f0fde85fa70dafc27f893cb34d7abbf7d7b
+  BrazeKit: 480910f8b829eec98bf0e76b22a425cb1086a739
+  BrazeLocation: c56bf761621a6d3275201c28fc4d8bf4ad960814
+  BrazeUI: 67d5b9e9d4df84b7aa9f178b3684cd534a18e38c
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
@@ -5249,10 +5249,10 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: f37e1d6f1eb198649a60b3f17b6f685a6ac12470
-  IdensicMobileSDK: b32caa39919bd9d0ad64897b2a17de81e16f23fd
+  IdensicMobileSDK: 55901f7749293cf02ea8c13f9ee04b1473c9214f
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
-  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: b410d8c9dcaf536198ce852ea47e73c9158ad04e
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
@@ -5263,7 +5263,7 @@ SPEC CHECKSUMS:
   NitroModules: b5c5baefa71a65c40e129876a8b7943a9aef6aa5
   NitroTextDecoder: 9b50be860ed7488349bc31791b6fe96778a43db0
   OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   QuickCrypto: fbb50daf9313753153af0e4f67a9f14ec1a26979
   RCT-Folly: b29feb752b08042c62badaef7d453f3bb5e6ae23
   RCTDeprecation: c5e70bcdbc24b9edbca24b96f3997319f01ba8fb
@@ -5316,7 +5316,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: 686d5aa0d02bfe7f83d733b98dd17de76463b01d
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
-  react-native-mobilesdk-module: cbf8b811c658f02325e0e41240a32af40a6fa791
+  react-native-mobilesdk-module: eebd6cc979904d529db390037db7d2aba6d28592
   react-native-netinfo: 57447b5a45c98808f8eae292cf641f3d91d13830
   react-native-pager-view: 1baaa3452a7d5efbd642856cbbdafbd8958028b4
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
