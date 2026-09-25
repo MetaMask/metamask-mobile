@@ -168,9 +168,16 @@ module.exports = function (baseConfig) {
           ? 'with-srp'
           : 'without-srp');
 
+      // transform-inline-environment-variables bakes NODE_ENV into every
+      // module (e.g. react/index.js picks react.development vs production),
+      // but Metro's cache key only tracks `dev`. Since export:embed ignores
+      // --reset-cache in CI, a `--dev false` bundle could otherwise reuse
+      // transforms produced under NODE_ENV=development and ship dev React.
+      const nodeEnv = process.env.NODE_ENV || 'unset';
+
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
-          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}:${nodeEnv}`,
           resolver: {
             // Exclude local runtime artifacts from the file watcher so that
             // log writes, state updates, and artifact captures don't
