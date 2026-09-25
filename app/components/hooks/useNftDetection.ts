@@ -13,6 +13,7 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../reducers/collectibles';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 /**
  * Hook that provides NFT detection functionality
@@ -25,6 +26,9 @@ export const useNftDetection = () => {
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
+  );
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
   );
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
@@ -46,6 +50,9 @@ export const useNftDetection = () => {
   const detectNfts = useCallback(
     async (firstPageOnly = true, showLoadingIndicator = true) => {
       if (!selectedAddress) return;
+
+      // Detection hits the NFT API, so it stays off while Basic Functionality is off.
+      if (!isBasicFunctionalityEnabled) return;
 
       const { NftDetectionController, NftController, PreferencesController } =
         Engine.context;
@@ -122,6 +129,7 @@ export const useNftDetection = () => {
     },
     [
       selectedAddress,
+      isBasicFunctionalityEnabled,
       chainIdsToDetectNftsFor,
       dispatch,
       trackEvent,

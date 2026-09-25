@@ -76,7 +76,10 @@ export function usePushProvisioning(
 
   // Track current status in ref for use in activation listener
   const statusRef = useRef<ProvisioningStatus>(status);
-  statusRef.current = status;
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   const userCardLocation = useSelector(selectCardUserLocation);
   const isAuthenticated = useSelector(selectIsCardAuthenticated);

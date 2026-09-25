@@ -48,7 +48,7 @@ const fetchLimitOrdersDelegations = async ({
 
   const searchParams = new URLSearchParams({
     clientOrderId,
-    account: accountAddress,
+    accountAddress,
     srcAssetId: sourceAssetId,
     srcAmount: sourceAmount,
     destAssetId,

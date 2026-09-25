@@ -40,9 +40,6 @@ jest.mock('../../../core/Engine', () => ({
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
     },
-    AccountTrackerController: {
-      refresh: jest.fn(),
-    },
   },
 }));
 
@@ -172,7 +169,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       expect(
         Engine.context.PreferencesController.setTokenNetworkFilter,
       ).toBeDefined();
-      expect(Engine.context.AccountTrackerController.refresh).toBeDefined();
     });
 
     it('should have proper metrics setup', () => {

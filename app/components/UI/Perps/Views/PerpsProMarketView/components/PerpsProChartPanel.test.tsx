@@ -24,6 +24,23 @@ import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn().mockReturnValue({
+    navigate: jest.fn(),
+    replace: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
 
 jest.mock('../../../../../../util/haptics');
 
@@ -1048,5 +1065,26 @@ describe('PerpsProChartPanel', () => {
         expect.objectContaining({ currentPrice: 50500 }),
       );
     });
+  });
+
+  it('navigates to price alerts with szDecimals from market data', () => {
+    jest.mocked(useSelector).mockReturnValue(true);
+
+    renderChartPanel();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_PRICE_ALERTS_BUTTON,
+      ),
+    );
+
+    expect(useNavigation().navigate).toHaveBeenCalledWith(
+      Routes.PERPS.PRICE_ALERTS,
+      expect.objectContaining({
+        mode: 'perps',
+        szDecimals: 2,
+        assetId: 'BTC',
+      }),
+    );
   });
 });

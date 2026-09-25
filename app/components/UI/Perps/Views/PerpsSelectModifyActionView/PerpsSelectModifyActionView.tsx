@@ -105,6 +105,9 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction,
               asset: position.symbol,
+              ...(position.providerId
+                ? { providerId: position.providerId }
+                : {}),
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
               source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
@@ -139,6 +142,9 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction: oppositeDirection,
               asset: position.symbol,
+              ...(position.providerId
+                ? { providerId: position.providerId }
+                : {}),
               amount: positionSize.toString(),
               leverage: positionLeverage,
               source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,

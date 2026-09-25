@@ -24,7 +24,7 @@ export function buildQuoteWithRedirectUrl(
   };
 }
 
-function getProviderDeeplinkRedirectUrl(providerCode: string): string {
+export function getProviderDeeplinkRedirectUrl(providerCode: string): string {
   return `metamask://on-ramp/providers/${providerCode}`;
 }
 

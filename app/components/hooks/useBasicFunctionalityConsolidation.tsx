@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -36,6 +37,7 @@ import {
   selectIsBasicFunctionalityConsolidatedEnabled,
 } from '../../selectors/settings';
 import { strings } from '../../../locales/i18n';
+import { BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK } from '../UI/BasicFunctionality/BasicFunctionalityMigrationBottomSheet/BasicFunctionalityMigrationBottomSheet';
 import useThunkDispatch from './useThunkDispatch';
 import { useAnalytics } from './useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
@@ -115,7 +117,7 @@ export function useBasicFunctionalityConsolidation(): void {
 
   // The onboarding-session latch only guards wallets onboarding has not yet
   // enrolled. A social repair targets an already-enrolled wallet, so it runs in
-  // the session that finds Basic Functionality off rather than the next launch.
+  // the session that finds Basic Functionality off or a missing notice.
   const shouldRunConsolidation =
     (isFlagEnabled && !isConsolidated && !isOnboardingSession.current) ||
     shouldRepairSocialLoginBasicFunctionality;
@@ -258,6 +260,14 @@ export function useBasicFunctionalityConsolidation(): void {
             }}
           >
             {strings('basic_functionality_migration.settings_link')}
+          </TextButton>
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={() => {
+              Linking.openURL(BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK);
+            }}
+          >
+            {strings('basic_functionality_migration.learn_more_link')}
           </TextButton>
         </Text>
       ),

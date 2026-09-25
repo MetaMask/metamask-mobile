@@ -123,45 +123,31 @@ jest.mock('@metamask/design-system-react-native', () => {
     IconSize,
     ButtonVariant,
     ButtonSize,
-  };
-});
-
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
-  const React = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-
-  const MockTextField = ({
-    testID,
-    onChangeText,
-    onBlur,
-    value,
-    placeholder,
-    maxLength,
-    accessibilityLabel,
-    ...props
-  }: {
-    testID?: string;
-    onChangeText?: (text: string) => void;
-    onBlur?: () => void;
-    value?: string;
-    placeholder?: string;
-    maxLength?: number;
-    accessibilityLabel?: string;
-  }) =>
-    React.createElement(TextInput, {
-      testID,
+    TextField: ({
+      value,
       onChangeText,
       onBlur,
-      value,
-      placeholder,
-      maxLength,
-      accessibilityLabel,
-      ...props,
-    });
-
-  return {
-    __esModule: true,
-    default: MockTextField,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 

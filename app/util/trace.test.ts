@@ -128,7 +128,10 @@ describe('Trace', () => {
     );
     startNewTraceMock.mockImplementation((fn: () => unknown) => fn());
 
-    flushBufferedTraces();
+    // Discard rather than flush: flushing replays whatever the previous test
+    // left buffered, and with the consent it left cached, so those replays land
+    // on the mocks this test is about to assert against.
+    discardBufferedTraces();
     updateCachedConsent(false);
   });
 
@@ -204,9 +207,9 @@ describe('Trace', () => {
 
       endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
-      expect(withIsolationScopeMock).toHaveBeenCalledTimes(3);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
-      expect(startSpanManualMock).toHaveBeenCalledTimes(3);
+      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,

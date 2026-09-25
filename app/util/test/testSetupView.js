@@ -11,6 +11,11 @@
 const { NativeModules } = require('react-native');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
+const { installTimerLeakGuard } = require('./timerLeakGuard');
+const { installSocketLeakGuard } = require('./socketLeakGuard');
+
+installTimerLeakGuard();
+installSocketLeakGuard();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>
@@ -54,13 +59,17 @@ jest.mock('react-native-mmkv', () => {
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
 
-// Mock unstable_batchedUpdates more reliably
-const mockBatchedUpdates = jest.fn((fn) => {
+// Mock unstable_batchedUpdates more reliably.
+// Plain function, NOT jest.fn(): RN 0.86 made `unstable_batchedUpdates`
+// writable so this shim is actually installed, and a jest.fn implementation
+// would be stripped by `jest.resetAllMocks()` in test files, turning every
+// batched callback into a silent no-op.
+const mockBatchedUpdates = (fn) => {
   if (typeof fn === 'function') {
     return fn();
   }
   return fn;
-});
+};
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
@@ -82,8 +91,6 @@ jest.mock('react-native', () => {
     style: true,
   };
 
-  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
-
   return originalModule;
 });
 
@@ -96,6 +103,10 @@ const ReactNativeView = require('react-native');
 if (!ReactNativeView.BackHandler.removeEventListener) {
   ReactNativeView.BackHandler.removeEventListener = jest.fn();
 }
+// Same post-require requirement as `BackHandler` above: the hoisted `jest.mock`
+// factory would store `undefined`, which RN 0.86 now lets through because
+// `unstable_batchedUpdates` became a writable method instead of a getter.
+ReactNativeView.unstable_batchedUpdates = mockBatchedUpdates;
 if (ReactNativeView.Platform.Version == null) {
   ReactNativeView.Platform.Version = '17.0';
 }
@@ -988,6 +999,7 @@ jest.mock('@braze/react-native-sdk', () => ({
   default: {
     changeUser: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)
