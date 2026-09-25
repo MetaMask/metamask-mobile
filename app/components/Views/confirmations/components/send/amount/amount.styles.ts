@@ -8,22 +8,13 @@ import {
 } from '../../../../../UI/Box/box.types';
 
 export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength <= 10) {
-    return 60;
-  }
-  if (contentLength <= 12) {
-    return 48;
-  }
+  if (contentLength <= 10) return 60;
+
   if (contentLength <= 18) {
-    return 32;
+    return Math.round(60 - (contentLength - 10) * 3.5);
   }
-  if (contentLength <= 24) {
-    return 24;
-  }
-  if (contentLength <= 32) {
-    return 18;
-  }
-  return 12;
+
+  return Math.max(14, Math.round(32 - (contentLength - 18) * 1.5));
 };
 
 export const styleSheet = (params: {
@@ -59,6 +50,7 @@ export const styleSheet = (params: {
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
+      paddingHorizontal: 24,
       width: '100%',
     },
     inputText: {
@@ -68,8 +60,11 @@ export const styleSheet = (params: {
     },
     inputWrapper: {
       alignItems: 'center',
+      flexShrink: 1,
       justifyContent: 'center',
       flexDirection: 'row',
+      maxWidth: '100%',
+      width: '100%',
     },
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {

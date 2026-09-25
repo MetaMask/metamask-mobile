@@ -82,7 +82,6 @@ describe('AnimatedNumericText', () => {
   it('rolls a bulk amount replacement through Laminar', () => {
     const { getByTestId, rerender, UNSAFE_getByType } = render(
       <AnimatedNumericText
-        animateFontSize
         rollDigits={false}
         style={styles.fontSizeLarge}
         testID="animated-numeric-text"
@@ -92,7 +91,6 @@ describe('AnimatedNumericText', () => {
 
     rerender(
       <AnimatedNumericText
-        animateFontSize
         rollDigits={false}
         style={styles.fontSizeSmall}
         testID="animated-numeric-text"
@@ -105,43 +103,42 @@ describe('AnimatedNumericText', () => {
     );
     expect(UNSAFE_getByType(Laminar).props.text).toBe('1,234,567.89');
     expect(UNSAFE_getByType(Laminar).props.animationPreset).toBe('snappy');
-    expect(UNSAFE_getByType(Laminar).props.animationDuration).toBe(900);
+    expect(UNSAFE_getByType(Laminar).props.animationDuration).toBe(270);
   });
 
-  it('keeps the first typed digit on slots instead of Laminar', () => {
+  it('animates the first typed digit with Laminar number lanes', () => {
     const { rerender, UNSAFE_queryAllByType } = render(
       <AnimatedNumericText rollDigits={false} value="0.00" />,
     );
 
     rerender(<AnimatedNumericText rollDigits={false} value="1" />);
 
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
-  it('keeps deleting the last digit on slots instead of Laminar', () => {
+  it('animates deleting the last digit with Laminar number lanes', () => {
     const { rerender, UNSAFE_queryAllByType } = render(
       <AnimatedNumericText rollDigits={false} value="1" />,
     );
 
     rerender(<AnimatedNumericText rollDigits={false} value="0.00" />);
 
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
-  it('keeps keypad typing on slots instead of Laminar', () => {
+  it('animates keypad typing with Laminar number lanes', () => {
     const { rerender, UNSAFE_queryAllByType } = render(
       <AnimatedNumericText rollDigits={false} value="12" />,
     );
 
     rerender(<AnimatedNumericText rollDigits={false} value="123" />);
 
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
-  it('renders grouping commas while font size is animating', () => {
+  it('renders grouping commas with a custom font size', () => {
     const { getByTestId } = render(
       <AnimatedNumericText
-        animateFontSize
         rollDigits={false}
         style={styles.fontSizeSmall}
         testID="animated-numeric-text"
@@ -180,7 +177,7 @@ describe('AnimatedNumericText', () => {
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
       '$ 250.00 available',
     );
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
   it('renders static text when animation is disabled', () => {

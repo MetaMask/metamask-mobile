@@ -49,6 +49,7 @@ import {
 
 const IOS_SAFE_AREA_EDGES: Edge[] = ['left', 'right'];
 const ANDROID_SAFE_AREA_EDGES: Edge[] = ['left', 'right', 'bottom'];
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -86,15 +87,12 @@ export const Amount = () => {
     () => formatAmountWithCommas(amount.length ? amount : defaultValue),
     [amount, defaultValue],
   );
-  // Passing the bucketed font size rather than the raw length keeps the style
-  // sheet identity stable between size steps. Keying it on length rebuilt every
-  // style on every keypress, which handed each child a new style object and
-  // defeated memoisation of the amount's character slots.
   const inputFontSize = getFontSizeForInputLength(
-    displayAmount.length + assetDisplaySymbol.length,
+    displayAmount.length +
+      assetDisplaySymbol.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
-  const styleVars = useMemo(() => ({ inputFontSize }), [inputFontSize]);
-  const { styles } = useStyles(styleSheet, styleVars);
+  const { styles } = useStyles(styleSheet, { inputFontSize });
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
@@ -217,24 +215,16 @@ export const Amount = () => {
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
             <AnimatedAmountDisplay
-              animateFontSize
               amountTestID="send_amount"
               color={textColor}
               cursor={{ animated: true }}
               rollDigits={false}
               style={styles.inputText}
-              suffix={
-                <Text
-                  style={styles.inputText}
-                  color={
-                    amountError ? TextColor.ErrorDefault : TextColor.TextMuted
-                  }
-                  numberOfLines={1}
-                  variant={TextVariant.DisplayLg}
-                >
-                  {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
-                </Text>
+              suffix={fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
+              suffixColor={
+                amountError ? TextColor.ErrorDefault : TextColor.TextMuted
               }
+              suffixStyle={styles.inputText}
               value={displayAmount}
               variant={TextVariant.DisplayMd}
             />

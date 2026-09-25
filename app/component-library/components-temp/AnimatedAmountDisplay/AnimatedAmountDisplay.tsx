@@ -15,10 +15,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Animated, { useReducedMotion } from 'react-native-reanimated';
+import { useReducedMotion } from 'react-native-reanimated';
 
 import AnimatedNumericText from '../AnimatedNumericText/AnimatedNumericText';
-import { NUMERIC_LAYOUT_TRANSITION } from '../AnimatedNumericText/AnimatedNumericText.constants';
 import { useTheme } from '../../../util/theme';
 import { useBlinkingCursor } from './useBlinkingCursor';
 
@@ -43,16 +42,11 @@ export interface AnimatedAmountCursorProps {
 export interface AnimatedAmountDisplayProps {
   amountTestID?: string;
   animated?: boolean;
-  animateFontSize?: boolean;
   color?: TextColor;
   containerStyle?: StyleProp<ViewStyle>;
   cursor?: false | AnimatedAmountCursorProps;
   disabled?: boolean;
-  /**
-   * Use native text autosizing for legacy high-precision displays.
-   * This intentionally renders a static text body because slot-based numeric
-   * animation cannot participate in native font fitting.
-   */
+  /** Use native text autosizing for legacy high-precision displays. */
   fitToWidth?: boolean;
   fontWeight?: FontWeight;
   loading?: boolean;
@@ -63,6 +57,8 @@ export interface AnimatedAmountDisplayProps {
   rollDigits?: boolean;
   style?: StyleProp<TextStyle>;
   suffix?: React.ReactNode;
+  suffixColor?: TextColor;
+  suffixStyle?: StyleProp<TextStyle>;
   testID?: string;
   variant?: TextVariant;
   value: string;
@@ -71,7 +67,6 @@ export interface AnimatedAmountDisplayProps {
 const AnimatedAmountDisplay = ({
   animated = true,
   amountTestID,
-  animateFontSize = false,
   color = TextColor.TextDefault,
   containerStyle,
   cursor = false,
@@ -86,6 +81,8 @@ const AnimatedAmountDisplay = ({
   rollDigits = true,
   style,
   suffix,
+  suffixColor,
+  suffixStyle,
   testID,
   variant = TextVariant.DisplayLg,
   value,
@@ -96,8 +93,6 @@ const AnimatedAmountDisplay = ({
   const cursorAnimated =
     cursor !== false && cursor.animated !== false && !reduceMotion;
   const cursorOpacity = useBlinkingCursor(cursorVisible && cursorAnimated);
-  const layout =
-    animated && !reduceMotion ? NUMERIC_LAYOUT_TRANSITION : undefined;
 
   const defaultCursorStyle = useMemo(
     () => ({
@@ -112,21 +107,25 @@ const AnimatedAmountDisplay = ({
     [cursorAnimated, cursorOpacity],
   );
 
-  const renderAffix = (affix: React.ReactNode) => {
-    if (typeof affix !== 'string') {
-      return affix;
+  const renderAffix = (
+    affix: React.ReactNode,
+    affixStyle?: StyleProp<TextStyle>,
+    affixColor?: TextColor,
+  ) => {
+    if (typeof affix === 'string') {
+      return (
+        <Text
+          color={affixColor ?? color}
+          fontWeight={fontWeight}
+          style={[style, affixStyle]}
+          variant={variant}
+        >
+          {affix}
+        </Text>
+      );
     }
 
-    return (
-      <Text
-        color={color}
-        fontWeight={fontWeight}
-        style={style}
-        variant={variant}
-      >
-        {affix}
-      </Text>
-    );
+    return affix;
   };
 
   const amount = fitToWidth ? (
@@ -141,7 +140,6 @@ const AnimatedAmountDisplay = ({
     </RNText>
   ) : (
     <AnimatedNumericText
-      animateFontSize={animateFontSize}
       animated={animated}
       color={color}
       fontWeight={fontWeight}
@@ -168,14 +166,12 @@ const AnimatedAmountDisplay = ({
       {renderAffix(prefix)}
       {amount}
       {cursor !== false && cursorVisible ? (
-        <Animated.View layout={layout}>
-          <RNAnimated.View
-            style={[defaultCursorStyle, cursor.style, cursorOpacityStyle]}
-            testID={cursor.testID}
-          />
-        </Animated.View>
+        <RNAnimated.View
+          style={[defaultCursorStyle, cursor.style, cursorOpacityStyle]}
+          testID={cursor.testID}
+        />
       ) : null}
-      <Animated.View layout={layout}>{renderAffix(suffix)}</Animated.View>
+      {renderAffix(suffix, suffixStyle, suffixColor)}
     </View>
   );
 
