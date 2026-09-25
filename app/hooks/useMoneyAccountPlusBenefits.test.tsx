@@ -351,7 +351,7 @@ describe('useMoneyAccountPlusBenefits', () => {
 
     mockSelectIsSignedIn.mockReturnValue(false);
     await act(async () => {
-      rerender();
+      rerender(undefined);
     });
 
     await waitFor(() =>
@@ -360,7 +360,7 @@ describe('useMoneyAccountPlusBenefits', () => {
 
     mockSelectIsSignedIn.mockReturnValue(true);
     await act(async () => {
-      rerender();
+      rerender(undefined);
     });
 
     await waitFor(() => expect(mockGetBenefits).toHaveBeenCalledTimes(2));
