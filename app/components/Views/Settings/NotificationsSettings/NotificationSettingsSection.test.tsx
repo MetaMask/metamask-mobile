@@ -52,6 +52,10 @@ const mockPreferences = {
     pushNotificationsEnabled: false,
     inAppNotificationsEnabled: false,
   },
+  priceAlerts: {
+    pushNotificationsEnabled: true,
+    inAppNotificationsEnabled: true,
+  },
 };
 
 jest.mock('../../../../selectors/notifications', () => ({
@@ -142,12 +146,17 @@ describe('NotificationSettingsSection', () => {
     mockIsUpdatingPreferences = false;
   });
 
-  it('renders section preferences when global notifications are enabled', () => {
-    renderSection();
+  it('renders catalog title and description when route params omit copy', () => {
+    renderSection({
+      type: 'priceAlerts',
+    });
 
-    expect(screen.getByText('Notifications')).toBeOnTheScreen();
-    expect(screen.getByText('Trading Signals')).toBeOnTheScreen();
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(screen.getByText('Price alerts')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        "Get notified based on the alerts you've set for a token's price",
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('renders the marketing disclaimer for marketing preferences', () => {

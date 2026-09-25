@@ -64,6 +64,10 @@ import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
 import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from './intent/handleNotificationsSettingsUrl';
+import {
   getDeeplinkProcessedTraceContext,
   markDeeplinkInterstitialShown,
   markDeeplinkInterstitialContinued,
@@ -131,6 +135,7 @@ const SUPPORTED_ACTIONS = {
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
   PRIVACY: ACTIONS.PRIVACY,
+  NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -311,6 +316,16 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       handleTrendingUrl({ actionPath: actionBasedRampPath }),
     resolve: ({ actionBasedRampPath }) =>
       createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
+  },
+  [SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleNotificationsSettingsUrl({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createNotificationsSettingsDeeplinkIntent({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
   },
 };
 
