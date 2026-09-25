@@ -16,7 +16,7 @@ interface PerpsMarginModeBottomSheetProps {
   selectedMarginMode?: MarginMode;
   /** Cross is selectable only when the flag, provider, and market allow it. */
   isCrossMarginAvailable?: boolean;
-  /** An open position fixes the market's margin mode until it is closed. */
+  /** An open position, resting order or TWAP fixes the market's margin mode. */
   isMarginModeLocked?: boolean;
   onMarginModeSelect?: (marginMode: MarginMode) => void;
 }
