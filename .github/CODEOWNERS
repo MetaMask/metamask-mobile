@@ -249,6 +249,7 @@ app/components/UI/QuickBuy/                                          @MetaMask/s
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
+app/core/Engine/controllers/social/                                  @MetaMask/social-ai
 app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
 app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai

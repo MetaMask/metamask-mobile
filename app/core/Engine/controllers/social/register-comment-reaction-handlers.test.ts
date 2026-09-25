@@ -1,5 +1,5 @@
-import AppConstants from '../../AppConstants';
-import { registerCommentReactionHandlersIfNeeded } from './registerCommentReactionHandlers';
+import AppConstants from '../../../AppConstants';
+import { registerCommentReactionHandlersIfNeeded } from './register-comment-reaction-handlers';
 import type { SocialService } from '@metamask/social-controllers';
 
 const mockFetch = jest.fn();
