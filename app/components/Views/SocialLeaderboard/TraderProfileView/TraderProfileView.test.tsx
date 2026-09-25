@@ -257,6 +257,11 @@ const fixtureProfile: TraderProfileResponse = {
   socialHandles: {},
   followerCount: 45,
   followingCount: 12,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
 };
 
 const fixtureOpenPositions: Position[] = [
@@ -1280,5 +1285,15 @@ describe('TraderProfileView', () => {
       ).toBeOnTheScreen();
       expect(screen.queryByText('+$1,000,000')).not.toBeOnTheScreen();
     });
+  });
+
+  it('opens the stats sheet when the headline stats row is pressed', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+    );
+
+    expect(screen.getByTestId('trader-stats-sheet')).toBeOnTheScreen();
   });
 });
