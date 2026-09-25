@@ -124,7 +124,6 @@ const AnimatedNumericText = ({
           {prefix ? renderStaticText(prefix) : null}
           <Laminar
             autoSize
-            clickToBounds
             animationPreset="snappy"
             text={value}
             variant="text"
