@@ -9156,9 +9156,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@11.0.0-preview-03a246be1":
-  version: 11.0.0-preview-03a246be1
-  resolution: "@metamask-previews/account-tree-controller@npm:11.0.0-preview-03a246be1"
+"@metamask/account-tree-controller@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@metamask/account-tree-controller@npm:11.0.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^40.0.0"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -9177,7 +9177,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/8754382b5f984276c599865aec61c0cbe3d7714f676846c78a43a60431d6204fa975681c447e969da15fe66c12e1894a7fa84932fb605d3fb0aa3cbdac6c0d50
+  checksum: 10/164bd351b0bcd0611d76878dab9806d2a7a4184452e02aa4f8bb8b30b22b9c7c8d69d1df4606177c98d5ea8091f8abd03f9638c2f55d136d1ec18072ab4788db
   languageName: node
   linkType: hard
 
@@ -10547,27 +10547,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-controller@npm:^27.1.1":
-  version: 27.1.1
-  resolution: "@metamask/keyring-controller@npm:27.1.1"
+"@metamask/keyring-controller@npm:^28.1.0":
+  version: 28.1.0
+  resolution: "@metamask/keyring-controller@npm:28.1.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/eth-hd-keyring": "npm:^15.0.0"
-    "@metamask/eth-sig-util": "npm:^8.2.0"
+    "@metamask/eth-sig-util": "npm:^9.0.0"
     "@metamask/eth-simple-keyring": "npm:^13.0.0"
     "@metamask/keyring-api": "npm:^24.0.0"
     "@metamask/keyring-internal-api": "npm:^12.0.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/utils": "npm:^11.11.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/utils": "npm:^12.0.0"
     async-mutex: "npm:^0.5.0"
     ethereumjs-wallet: "npm:^1.0.1"
-    immer: "npm:^9.0.6"
-    lodash: "npm:^4.17.21"
+    immer: "npm:^9.0.21"
+    lodash-es: "npm:^4.17.21"
     ulid: "npm:^2.3.0"
-  checksum: 10/c4a1a3b40f98d179dfadba128c9135e795a7440a6d2cc5cd107644716e931cd71d6e7407211cb5eacd2ffb37e38d22f48d4123da0ed6b462e10a59a902fe0ece
+  checksum: 10/16acf77b7967b31b49c61521182aadd47307654ccad066ffdcc6cfb326c16f1eed63eb39df638a4a2e87c57e95fb08cd0e1d84799a2a567102cc8be66335ba5c
   languageName: node
   linkType: hard
 
@@ -10948,9 +10948,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@14.1.0-preview-03a246be1":
-  version: 14.1.0-preview-03a246be1
-  resolution: "@metamask-previews/multichain-account-service@npm:14.1.0-preview-03a246be1"
+"@metamask/multichain-account-service@npm:^14.1.0":
+  version: 14.1.0
+  resolution: "@metamask/multichain-account-service@npm:14.1.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/account-api": "npm:^2.1.0"
@@ -10975,7 +10975,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/aa21b6e74befc4a0e54590fa960697227cb6010b23420c5af5e647ced24e71a3ca1e1201b8e6af0a88aaa882490f524598e0adaea4a580146fd7b394e5b397e0
+  checksum: 10/7e79b1b357f3fc8685743bd286360f3500dbcd740be4c4993acd59c4a026b32c9ac589fa164f9b81328fd21fb348c98286496c75b114bac2298d3609a31eb9a6
   languageName: node
   linkType: hard
 
@@ -11473,17 +11473,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:32.3.0":
-  version: 32.3.0
-  resolution: "@metamask/profile-sync-controller@npm:32.3.0"
+"@metamask/profile-sync-controller@npm:^33.0.0":
+  version: 33.0.0
+  resolution: "@metamask/profile-sync-controller@npm:33.0.0"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/keyring-controller": "npm:^28.0.0"
+    "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/seedless-onboarding-controller": "npm:^11.0.0"
+    "@metamask/seedless-onboarding-controller": "npm:^11.0.1"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
     "@noble/ciphers": "npm:^1.3.0"
@@ -11495,33 +11495,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/f2f6cee8209ae38ba3f7057f7e657f8d9964472d816ac3115986629f78375954b5279e165ba5b6b2c22cd5bfc61ab9b3da51bbd5b5ed6ba59d825fe1c6d96f6b
-  languageName: node
-  linkType: hard
-
-"@metamask/profile-sync-controller@patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch":
-  version: 32.3.0
-  resolution: "@metamask/profile-sync-controller@patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch::version=32.3.0&hash=908150"
-  dependencies:
-    "@metamask/address-book-controller": "npm:^8.0.0"
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/keyring-controller": "npm:^28.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/seedless-onboarding-controller": "npm:^11.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-    "@noble/ciphers": "npm:^1.3.0"
-    "@noble/curves": "npm:^1.9.2"
-    "@noble/hashes": "npm:^1.8.0"
-    "@signinwithethereum/siwe": "npm:^4.2.1"
-    immer: "npm:^9.0.21"
-    loglevel: "npm:^1.8.1"
-  peerDependencies:
-    "@metamask/providers": ^22.0.0
-    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/0677b058f24ad4300da078543f23e92317f659f074fd36bbb5900917bc8c61f1d4a89bbdee97822e53b00566f543d73511afa71234371c83518f94ae70db4081
+  checksum: 10/2672dab497875e0cbcd21d788cadb9ac277f36f8da9e3eabfae0333e950abde1da8d585c3993103df6b1692d432c0188bb6ba91409d0e4b8297750f57467c9a0
   languageName: node
   linkType: hard
 
@@ -11957,9 +11931,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snap-account-service@npm:@metamask-previews/snap-account-service@4.0.0-preview-03a246be1":
-  version: 4.0.0-preview-03a246be1
-  resolution: "@metamask-previews/snap-account-service@npm:4.0.0-preview-03a246be1"
+"@metamask/snap-account-service@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@metamask/snap-account-service@npm:4.0.0"
   dependencies:
     "@metamask/account-api": "npm:^2.1.0"
     "@metamask/accounts-controller": "npm:^40.0.0"
@@ -11973,7 +11947,7 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^11.0.0"
     "@metamask/utils": "npm:^12.0.0"
     lodash-es: "npm:^4.17.21"
-  checksum: 10/583081d772fd46bc83a47fa7a0eb70c58affa98661b32469ab1180d9b74363955accddfbc6dfa5a6180a26ed8e4f6584f2b008b0f97b068050e94977262bed76
+  checksum: 10/3e813f88b4aea59180e20c97d2262fa0844779e3c30d29eb60d370d85489c58a0af5207ed3bc9715f1c2fac8ed654f89817faef111379d9f6ec77f42e6444342
   languageName: node
   linkType: hard
 
@@ -39423,7 +39397,7 @@ __metadata:
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
     "@metamask/keyring-api": "npm:^24.1.0"
-    "@metamask/keyring-controller": "npm:^27.1.1"
+    "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/keyring-internal-api": "npm:^12.1.0"
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-snap-client": "npm:^10.0.0"
@@ -39461,7 +39435,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^25.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
