@@ -5,8 +5,10 @@ import {
   PRODUCT_TYPES,
   selectHasEntitlement,
   selectIsActiveSubscriber,
+  SUBSCRIPTION_STATUSES,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
+  type SubscriptionStatus,
   type Subscription,
   type SubscriptionControllerState,
 } from '@metamask/subscription-controller';
