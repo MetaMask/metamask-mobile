@@ -2923,6 +2923,28 @@ describe('BridgeTokenSelectorContent', () => {
     });
   });
 
+  describe('hostManagesNetworkFilter', () => {
+    it('clears the network filter on unmount by default', () => {
+      const { unmount } = renderContent();
+
+      unmount();
+
+      expect(setTokenSelectorNetworkFilter).toHaveBeenCalledWith(undefined);
+    });
+
+    it('neither seeds nor clears the network filter when the host manages it', () => {
+      const { unmount } = renderContent({
+        type: TokenSelectorType.Dest,
+        selectedToken: createMockToken({ chainId: '0x89' }),
+        hostManagesNetworkFilter: true,
+      });
+
+      unmount();
+
+      expect(setTokenSelectorNetworkFilter).not.toHaveBeenCalled();
+    });
+  });
+
   it('delegates the network list to the host', () => {
     const onOpenNetworkList = jest.fn();
     const { getByTestId } = renderContent({ onOpenNetworkList });

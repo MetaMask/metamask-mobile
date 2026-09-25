@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
-import Routes from '../../../constants/navigation/Routes';
 import type { BridgeTokenSelectorContentProps } from '../Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import { TokenSelectorType, type BridgeToken } from '../Bridge/types';
 import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
@@ -143,14 +142,13 @@ describe('QuickBuyTokenSelectScreen', () => {
         expect(setActiveScreen).toHaveBeenCalledWith('amount');
       });
 
-      it('opens the Bridge network list modal', () => {
+      it('opens the in-sheet network list', () => {
         renderForMode(tradeMode);
 
         getPickerProps().onOpenNetworkList();
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-        });
+        expect(setActiveScreen).toHaveBeenCalledWith('selectNetwork');
+        expect(mockNavigate).not.toHaveBeenCalled();
       });
     },
   );

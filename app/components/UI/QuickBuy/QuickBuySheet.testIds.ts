@@ -7,6 +7,8 @@ export const QuickBuySheetSelectorsIDs = {
   PAY_WITH_BUTTON: 'quick-buy-pay-with-button',
   PAY_WITH_HEADER: 'quick-buy-pay-with-header',
   PAY_WITH_BACK: 'quick-buy-pay-with-back',
+  NETWORK_LIST_HEADER: 'quick-buy-network-list-header',
+  NETWORK_LIST_BACK: 'quick-buy-network-list-back',
   CONFIRM_BUTTON: 'quick-buy-confirm-button',
   RATE_TAG: 'quick-buy-rate-tag',
   RATE_TAG_PRESSABLE: 'quick-buy-rate-tag-pressable',

@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   BottomSheetHeader,
@@ -7,8 +6,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { TokenSelectorType, type BridgeToken } from '../Bridge/types';
 import { BridgeTokenSelectorContent } from '../Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
@@ -20,7 +17,6 @@ import { useQuickBuyContext } from './useQuickBuyContext';
  * "Receive" token from any asset. Both exclude the position token.
  */
 const QuickBuyTokenSelectScreen: React.FC = () => {
-  const navigation = useNavigation<AppNavigationProp>();
   const {
     tradeMode,
     positionTokenFromSetup,
@@ -75,11 +71,8 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
         onTokenPress={handleSelect}
         balanceOnly={!isSell}
         excludeToken={positionTokenFromSetup}
-        onOpenNetworkList={() =>
-          navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-            screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-          })
-        }
+        onOpenNetworkList={() => setActiveScreen('selectNetwork')}
+        hostManagesNetworkFilter
         renderScrollComponent={GestureHandlerScrollView}
       />
     </>

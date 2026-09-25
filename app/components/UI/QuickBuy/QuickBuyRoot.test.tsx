@@ -318,6 +318,25 @@ describe('QuickBuyRoot', () => {
     });
   });
 
+  it('clears the token-selector network filter when the sheet unmounts', () => {
+    const { store, unmount } = renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+      { state: { bridge: { tokenSelectorNetworkFilter: 'eip155:137' } } },
+    );
+    expect(store.getState().bridge.tokenSelectorNetworkFilter).toBe(
+      'eip155:137',
+    );
+
+    unmount();
+
+    expect(store.getState().bridge.tokenSelectorNetworkFilter).toBeUndefined();
+  });
+
   it('renders default AmountScreen content when no children are passed', () => {
     renderWithProvider(
       <QuickBuyRoot

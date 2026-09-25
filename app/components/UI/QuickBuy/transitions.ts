@@ -17,6 +17,7 @@ export const SCREEN_DEPTH: Record<QuickBuyScreen, number> = {
   quoteDetails: 1,
   selectQuote: 2,
   priceImpactConfirm: 1,
+  selectNetwork: 2,
 };
 
 /** +1 = forward (deeper), -1 = back (shallower). */

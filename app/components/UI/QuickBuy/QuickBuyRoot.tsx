@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
+import { useDispatch } from 'react-redux';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -30,6 +31,7 @@ import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
 import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
+import QuickBuyNetworkListScreen from './QuickBuyNetworkListScreen';
 import {
   makeScreenTransitions,
   SCREEN_DEPTH,
@@ -45,6 +47,7 @@ import type {
 } from './types';
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
+import { setTokenSelectorNetworkFilter } from '../../../core/redux/slices/bridge';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -61,6 +64,8 @@ function renderActiveScreen(
       return <QuickBuyEditQuickAmountsScreen />;
     case 'payWith':
       return <QuickBuyTokenSelectScreen />;
+    case 'selectNetwork':
+      return <QuickBuyNetworkListScreen />;
     case 'quoteDetails':
       return <QuickBuyQuoteDetailsScreen />;
     case 'selectQuote':
@@ -89,6 +94,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   children,
 }) => {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
@@ -155,6 +161,15 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       onClose();
     }
   }, [onClose]);
+
+  // The picker leaves the shared token-selector network filter to Quick Buy;
+  // clear it however the sheet is dismissed so it can't leak into Bridge.
+  useEffect(
+    () => () => {
+      dispatch(setTokenSelectorNetworkFilter(undefined));
+    },
+    [dispatch],
+  );
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {

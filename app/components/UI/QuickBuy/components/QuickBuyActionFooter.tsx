@@ -12,8 +12,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { setTokenSelectorNetworkFilter } from '../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../locales/i18n';
 import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
@@ -45,9 +48,23 @@ const QuickBuyActionFooter: React.FC = () => {
     setActiveScreen,
   } = useQuickBuyContext();
 
+  const dispatch = useDispatch();
   const pickerToken = tradeMode === 'sell' ? selectedReceiveToken : sourceToken;
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
+
+  // Each picker open starts from a fresh network filter, like the standalone
+  // Bridge picker: Receive opens on the selected token's chain, Pay with on All.
+  const handleOpenPicker = useCallback(() => {
+    dispatch(
+      setTokenSelectorNetworkFilter(
+        tradeMode === 'sell' && selectedReceiveToken
+          ? formatChainIdToCaip(selectedReceiveToken.chainId)
+          : undefined,
+      ),
+    );
+    setActiveScreen('payWith');
+  }, [dispatch, tradeMode, selectedReceiveToken, setActiveScreen]);
 
   return (
     <Box twClassName="px-4">
@@ -83,7 +100,7 @@ const QuickBuyActionFooter: React.FC = () => {
             activeOpacity={0.7}
             accessibilityRole="button"
             testID={QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON}
-            onPress={() => setActiveScreen('payWith')}
+            onPress={handleOpenPicker}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}

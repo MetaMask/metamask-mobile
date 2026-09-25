@@ -128,6 +128,11 @@ export interface BridgeTokenSelectorContentProps {
   excludeToken?: BridgeToken;
   onOpenNetworkList: () => void;
   /**
+   * When true, the host owns the token-selector network filter: the picker
+   * neither seeds it from the selected token nor clears it on unmount.
+   */
+  hostManagesNetworkFilter?: boolean;
+  /**
    * Scroll component for the token list. Hosts that render the picker inside a
    * bottom sheet pass a gesture-handler ScrollView so list scrolling does not
    * fight the sheet's drag-to-dismiss gesture.
@@ -250,6 +255,7 @@ export const BridgeTokenSelectorContent: React.FC<
   excludeToken,
   onOpenNetworkList,
   renderScrollComponent,
+  hostManagesNetworkFilter = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
@@ -320,7 +326,9 @@ export const BridgeTokenSelectorContent: React.FC<
   // remount that would occur if we relied solely on the async useEffect.
   const initialFilter = useMemo(
     () =>
-      selectedToken?.chainId && type === TokenSelectorType.Dest
+      !hostManagesNetworkFilter &&
+      selectedToken?.chainId &&
+      type === TokenSelectorType.Dest
         ? formatChainIdToCaip(selectedToken.chainId)
         : undefined,
     [], // eslint-disable-line react-hooks/exhaustive-deps
@@ -351,10 +359,12 @@ export const BridgeTokenSelectorContent: React.FC<
       dispatch(setTokenSelectorNetworkFilter(initialFilter));
     }
     hasSyncedFilter.current = true;
-    return () => {
-      dispatch(setTokenSelectorNetworkFilter(undefined));
-    };
-  }, [dispatch, initialFilter]);
+    return hostManagesNetworkFilter
+      ? undefined
+      : () => {
+          dispatch(setTokenSelectorNetworkFilter(undefined));
+        };
+  }, [hostManagesNetworkFilter, dispatch, initialFilter]);
 
   // Ref to track if we need to re-search after chain change
   const shouldResearchAfterChainChange = useRef(false);

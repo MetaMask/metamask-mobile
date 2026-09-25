@@ -8,6 +8,11 @@ import {
 import QuickBuyActionFooter from './QuickBuyActionFooter';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+}));
+
 jest.mock('../useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
 }));
@@ -85,6 +90,40 @@ describe('QuickBuyActionFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuickBuyContext as jest.Mock).mockReturnValue(baseContext);
+  });
+
+  it('opens Pay with on all networks', () => {
+    render(<QuickBuyActionFooter />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-pay-with-button'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: undefined,
+    });
+    expect(baseContext.setActiveScreen).toHaveBeenCalledWith('payWith');
+  });
+
+  it("opens Receive filtered to the selected receive token's chain", () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      tradeMode: 'sell',
+      selectedReceiveToken: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89',
+        symbol: 'POL',
+        decimals: 18,
+      },
+    });
+    render(<QuickBuyActionFooter />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-pay-with-button'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: 'eip155:137',
+    });
+    expect(baseContext.setActiveScreen).toHaveBeenCalledWith('payWith');
   });
 
   it('renders the confirm button in idle state when not loading', () => {
