@@ -3,7 +3,7 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
 /**
  * Cluster that selects which backend env mobile talks to.
  *
- * `API_ENV` (`dev`, `uat`, or `prod`) overrides the build flavor.
+ * `MM_API_ENV` (`dev`, `uat`, or `prod`) overrides the build flavor.
  * When it is unset, the flavor selects the cluster: `dev` → dev,
  * `exp` → uat, and every other flavor → prod.
  * Services without a host for the selected env keep their own URL.
@@ -26,7 +26,7 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
 
 /**
  * Read at call time (not module load) so tests can set/unset
- * `process.env.API_ENV` without juggling the module cache.
+ * `process.env.MM_API_ENV` without juggling the module cache.
  *
  * Disclaimer: Enabling dev will break authenticated services that had
  * not adopted our new dev authentication standards.
@@ -34,7 +34,7 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
  * @returns The cluster for this build.
  */
 export const getApiEnv = (): ApiEnv => {
-  const override = API_ENV_BY_VALUE[(process.env.API_ENV ?? '').toLowerCase()];
+  const override = API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()];
   if (override) {
     return override;
   }

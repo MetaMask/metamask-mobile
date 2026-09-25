@@ -12,19 +12,19 @@ const DEVELOPMENT_CALLBACK =
 
 describe('getRampCallbackBaseUrl', () => {
   const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  const originalApiEnv = process.env.API_ENV;
+  const originalApiEnv = process.env.MM_API_ENV;
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
     if (originalApiEnv !== undefined) {
-      process.env.API_ENV = originalApiEnv;
+      process.env.MM_API_ENV = originalApiEnv;
     } else {
-      delete process.env.API_ENV;
+      delete process.env.MM_API_ENV;
     }
   });
 
   beforeEach(() => {
-    delete process.env.API_ENV;
+    delete process.env.MM_API_ENV;
   });
 
   it.each([
@@ -54,9 +54,9 @@ describe('getRampCallbackBaseUrl', () => {
     );
   });
 
-  it('prefers API_ENV over METAMASK_ENVIRONMENT', () => {
+  it('prefers MM_API_ENV over METAMASK_ENVIRONMENT', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
-    process.env.API_ENV = 'prod';
+    process.env.MM_API_ENV = 'prod';
     expect(getRampCallbackBaseUrl()).toBe(PRODUCTION_CALLBACK);
     expect(getRampCallbackBaseUrl()).toBe(
       getDefaultRedirectCallbackUrl(getRampsEnvironment()),

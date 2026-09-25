@@ -24,7 +24,7 @@ function getRemoteFFEnv(env: string | undefined): string {
 }
 
 /**
- * `API_ENV` overrides the build flavor. Otherwise dev → dev, exp → uat,
+ * `MM_API_ENV` overrides the build flavor. Otherwise dev → dev, exp → uat,
  * and every other flavor → prod. Matches `getApiEnv()` in the app.
  */
 function resolveApiEnv(
@@ -86,7 +86,7 @@ export function buildEnvValidationSection(
   const rewardsUrl = result.extractedValues.REWARDS_API_URL ?? '—';
   const portfolioUrl = result.extractedValues.MM_PORTFOLIO_URL ?? '—';
   const apiEnv = resolveApiEnv(
-    result.extractedValues.API_ENV,
+    result.extractedValues.MM_API_ENV,
     result.extractedValues.METAMASK_ENVIRONMENT,
   );
 

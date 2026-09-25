@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Pagkakakilanlan",
-        "description": "Binubura ang naka-save na sesyon ng pagpapatunay. Gamitin ito pagkatapos i-toggle ang API_ENV — kung hindi, patuloy na ibibigay ang JWT na ginawa para sa production sa mga consumer ng dev-API hanggang sa mag-expire ito. Kasalukuyang API_ENV: {{env}}.",
+        "description": "Binubura ang naka-save na sesyon ng pagpapatunay. Gamitin ito pagkatapos i-toggle ang MM_API_ENV — kung hindi, patuloy na ibibigay ang JWT na ginawa para sa production sa mga consumer ng dev-API hanggang sa mag-expire ito. Kasalukuyang MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Burahin ang naka-save na sesyon ng pagpapatunay"
       },
       "notifications": {

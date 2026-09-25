@@ -119,13 +119,13 @@ describe('AuthenticationControllerInit', () => {
     expect(jest.mocked(getVersion)).toHaveBeenCalled();
   });
 
-  describe('when API_ENV=dev', () => {
+  describe('when MM_API_ENV=dev', () => {
     beforeEach(() => {
-      process.env.API_ENV = 'dev';
+      process.env.MM_API_ENV = 'dev';
     });
 
     afterEach(() => {
-      delete process.env.API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     it('mints the JWT against the dev OIDC endpoint', () => {
@@ -139,13 +139,13 @@ describe('AuthenticationControllerInit', () => {
     });
   });
 
-  describe('when API_ENV=uat', () => {
+  describe('when MM_API_ENV=uat', () => {
     beforeEach(() => {
-      process.env.API_ENV = 'uat';
+      process.env.MM_API_ENV = 'uat';
     });
 
     afterEach(() => {
-      delete process.env.API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     it('mints the JWT against the uat OIDC endpoint', () => {

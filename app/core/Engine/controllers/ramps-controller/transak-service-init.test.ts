@@ -40,31 +40,31 @@ describe('transak-service-init', () => {
 
   describe('getTransakEnvironment', () => {
     const originalEnv = process.env.METAMASK_ENVIRONMENT;
-    const originalApiEnv = process.env.API_ENV;
+    const originalApiEnv = process.env.MM_API_ENV;
 
     beforeEach(() => {
-      delete process.env.API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     afterEach(() => {
       process.env.METAMASK_ENVIRONMENT = originalEnv;
       if (originalApiEnv !== undefined) {
-        process.env.API_ENV = originalApiEnv;
+        process.env.MM_API_ENV = originalApiEnv;
       } else {
-        delete process.env.API_ENV;
+        delete process.env.MM_API_ENV;
       }
     });
 
-    describe('when API_ENV is set', () => {
-      it('returns Development when API_ENV is dev', () => {
+    describe('when MM_API_ENV is set', () => {
+      it('returns Development when MM_API_ENV is dev', () => {
         process.env.METAMASK_ENVIRONMENT = 'production';
-        process.env.API_ENV = 'dev';
+        process.env.MM_API_ENV = 'dev';
         expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
       });
 
-      it('returns Staging when API_ENV is uat', () => {
+      it('returns Staging when MM_API_ENV is uat', () => {
         process.env.METAMASK_ENVIRONMENT = 'production';
-        process.env.API_ENV = 'uat';
+        process.env.MM_API_ENV = 'uat';
         expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
       });
     });

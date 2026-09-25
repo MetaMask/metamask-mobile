@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Danh tính",
-        "description": "Xóa phiên xác thực đã được lưu. Hãy sử dụng sau khi chuyển đổi API_ENV — nếu không, JWT được tạo từ môi trường triển khai sẽ tiếp tục được cung cấp cho các thành phần sử dụng API của môi trường thử nghiệm cho đến khi hết hạn. Hiện tại API_ENV: {{env}}.",
+        "description": "Xóa phiên xác thực đã được lưu. Hãy sử dụng sau khi chuyển đổi MM_API_ENV — nếu không, JWT được tạo từ môi trường triển khai sẽ tiếp tục được cung cấp cho các thành phần sử dụng API của môi trường thử nghiệm cho đến khi hết hạn. Hiện tại MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Xóa phiên xác thực đã lưu"
       },
       "notifications": {

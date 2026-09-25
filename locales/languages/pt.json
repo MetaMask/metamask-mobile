@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Identidade",
-        "description": "Limpa a sessão de autenticação persistente. Use esta opção após alternar API_ENV — caso contrário, um JWT emitido em produção continuará sendo fornecido aos consumidores da API de desenvolvimento até que expire. API_ENV atual: {{env}}.",
+        "description": "Limpa a sessão de autenticação persistente. Use esta opção após alternar MM_API_ENV — caso contrário, um JWT emitido em produção continuará sendo fornecido aos consumidores da API de desenvolvimento até que expire. MM_API_ENV atual: {{env}}.",
         "clear_auth_session_button": "Limpar sessão de autenticação persistente"
       },
       "notifications": {

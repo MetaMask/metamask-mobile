@@ -453,7 +453,7 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       # Inherits production service URLs. Pin prod so the exp flavor does not
       # select the UAT cluster.
-      API_ENV: 'prod'
+      MM_API_ENV: 'prod'
     secrets:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
@@ -478,7 +478,7 @@ builds:
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
       # Inherits production service URLs. Pin prod so the exp flavor does not
       # select the UAT cluster.
-      API_ENV: 'prod'
+      MM_API_ENV: 'prod'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 

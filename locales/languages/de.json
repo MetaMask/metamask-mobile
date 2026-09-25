@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Identität",
-        "description": "Löscht die gespeicherte Authentifizierungssitzung. Verwenden Sie dies, nachdem Sie API_ENV umgeschaltet haben – andernfalls wird ein prod-geprägtes JWT an dev-API-Kunden weitergereicht, bis es abläuft. Aktuelle API_ENV: {{env}}.",
+        "description": "Löscht die gespeicherte Authentifizierungssitzung. Verwenden Sie dies, nachdem Sie MM_API_ENV umgeschaltet haben – andernfalls wird ein prod-geprägtes JWT an dev-API-Kunden weitergereicht, bis es abläuft. Aktuelle MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Authentifizierungssitzung löschen"
       },
       "notifications": {

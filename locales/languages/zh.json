@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "身份",
-        "description": "清除持久化的认证会话。请在切换 API_ENV 后使用此功能——否则，生产环境签发的 JWT 会持续传递给开发 API 的消费者，直至其过期。当前 API_ENV：{{env}}。",
+        "description": "清除持久化的认证会话。请在切换 MM_API_ENV 后使用此功能——否则，生产环境签发的 JWT 会持续传递给开发 API 的消费者，直至其过期。当前 MM_API_ENV：{{env}}。",
         "clear_auth_session_button": "清除持久化的认证会话"
       },
       "notifications": {

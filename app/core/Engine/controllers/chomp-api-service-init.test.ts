@@ -83,13 +83,13 @@ describe('chompApiServiceInit', () => {
     );
   });
 
-  describe('when API_ENV=dev', () => {
+  describe('when MM_API_ENV=dev', () => {
     beforeEach(() => {
-      process.env.API_ENV = 'dev';
+      process.env.MM_API_ENV = 'dev';
     });
 
     afterEach(() => {
-      delete process.env.API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     it('uses the dev URL even when the remote feature flag points elsewhere', () => {
@@ -108,13 +108,13 @@ describe('chompApiServiceInit', () => {
     });
   });
 
-  describe('when API_ENV=uat', () => {
+  describe('when MM_API_ENV=uat', () => {
     beforeEach(() => {
-      process.env.API_ENV = 'uat';
+      process.env.MM_API_ENV = 'uat';
     });
 
     afterEach(() => {
-      delete process.env.API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     it('keeps the feature-flag URL because chomp has no uat host', () => {
