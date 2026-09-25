@@ -20,10 +20,18 @@ import {
   Pressable,
   type KeyboardTypeOptions,
   type TextInput,
+  type TextInputSelectionChangeEvent,
   type View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
+import {
+  formatPerpsInput,
+  getPerpsFormattedInputSelection,
+  normalizePerpsNumericInput,
+  type PerpsInputSelection,
+} from '../../../../utils/formatUtils';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -144,10 +152,21 @@ const PerpsProCompactInput = React.forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
+    const locale = usePerpsLocale();
+    const inputLocaleRef = useRef(locale);
     const inputRef = useRef<TextInput>(null);
+    const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
+    const lastEmittedValueRef = useRef(value);
+    const shouldIgnoreNextSelectionChangeRef = useRef(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [displayValue, setDisplayValue] = useState(() =>
+      formatPerpsInput(value, locale),
+    );
+    const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
+      undefined,
+    );
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
-    const isInlineActive = isFocused || value.length > 0;
+    const isInlineActive = isFocused || displayValue.length > 0;
     const usesFloatingLabel =
       variant === 'inline' || variant === 'inline-labeled';
     const isInputVisible = !usesFloatingLabel || isInlineActive;
@@ -158,6 +177,12 @@ const PerpsProCompactInput = React.forwardRef<
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+
+    useEffect(() => {
+      if (!isFocused) {
+        setDisplayValue(formatPerpsInput(value, locale));
+      }
+    }, [isFocused, locale, value]);
 
     useEffect(() => {
       if (isHidden) {
@@ -181,16 +206,69 @@ const PerpsProCompactInput = React.forwardRef<
         } as const)
       : undefined;
     const handleFocus = () => {
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
+      }
       setIsFocused(true);
       onFocus?.();
     };
+    const handleChangeText = (nextValue: string) => {
+      const canonicalValue = normalizePerpsNumericInput(
+        nextValue,
+        inputLocaleRef.current,
+      );
+      const nextDisplayValue = formatPerpsInput(
+        canonicalValue,
+        inputLocaleRef.current,
+      );
+      const nextSelection = getPerpsFormattedInputSelection({
+        previousDisplayValue: displayValue,
+        nextDisplayValue: nextValue,
+        nextFormattedValue: nextDisplayValue,
+        previousSelection: selectionRef.current,
+        locale: inputLocaleRef.current,
+      });
+
+      setDisplayValue(nextDisplayValue);
+      lastEmittedValueRef.current = canonicalValue;
+      if (nextSelection) {
+        selectionRef.current = nextSelection;
+        setSelection(nextSelection);
+        shouldIgnoreNextSelectionChangeRef.current = true;
+      }
+      onChangeText(canonicalValue);
+    };
+    const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
+      if (shouldIgnoreNextSelectionChangeRef.current) {
+        shouldIgnoreNextSelectionChangeRef.current = false;
+        return;
+      }
+
+      selectionRef.current = event.nativeEvent.selection;
+      setSelection(event.nativeEvent.selection);
+    };
     const handleBlur = () => {
+      const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
+      const canonicalValue = hasExternalValueUpdate
+        ? value
+        : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
       setIsFocused(false);
+      selectionRef.current = undefined;
+      shouldIgnoreNextSelectionChangeRef.current = false;
+      setSelection(undefined);
+      setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
+
+      if (!hasExternalValueUpdate && canonicalValue !== value) {
+        onChangeText(canonicalValue);
+      }
     };
     const handleFieldPress = () => {
       if (isDisabled) {
         return;
+      }
+      if (!isFocused) {
+        inputLocaleRef.current = locale;
       }
       setIsFocused(true);
       onFieldPress?.();
@@ -206,8 +284,10 @@ const PerpsProCompactInput = React.forwardRef<
     const input = (
       <Input
         ref={inputRef}
-        value={value}
-        onChangeText={onChangeText}
+        value={displayValue}
+        onChangeText={handleChangeText}
+        selection={selection}
+        onSelectionChange={handleSelectionChange}
         keyboardType={keyboardType}
         onFocus={handleFocus}
         onBlur={handleBlur}
