@@ -271,4 +271,71 @@ describe('PredictApiReadClient', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  describe('commitOrder', () => {
+    const previewId = 'b3c2a1d0-1111-4222-8333-444455556666';
+
+    it('posts the Preview reference only, authenticated', async () => {
+      fetchMock.mockResolvedValue(createResponse());
+
+      await client.commitOrder(venueId, { previewId });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://predict.example/api/v1/venues/kalshi/orders/commit',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'x-metamask-clientproduct': 'metamask-mobile',
+            'x-metamask-clientversion': '7.0.0',
+            Authorization: 'Bearer secret-token',
+          },
+          body: JSON.stringify({ previewId }),
+          signal: undefined,
+        },
+      );
+    });
+
+    it('fails before HTTP when no bearer token is available', async () => {
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => undefined,
+      });
+
+      await expect(
+        client.commitOrder(venueId, { previewId }),
+      ).rejects.toMatchObject({ status: 401 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('forwards an AbortSignal without retrying', async () => {
+      fetchMock.mockResolvedValue(createResponse());
+      const signal = new AbortController().signal;
+
+      await client.commitOrder(venueId, { previewId }, { signal });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ signal }),
+      );
+    });
+
+    it('surfaces the canonical backend code from an error body', async () => {
+      fetchMock.mockResolvedValue(
+        createResponse({ status: 410, json: { code: 'preview_expired' } }),
+      );
+
+      await expect(client.commitOrder(venueId, { previewId })).rejects.toEqual(
+        expect.objectContaining({
+          status: 410,
+          bodyCode: 'preview_expired',
+        }),
+      );
+    });
+  });
 });

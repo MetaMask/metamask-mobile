@@ -10,6 +10,7 @@ import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 import { RootState } from '../../../reducers';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectIsInBasicFunctionalityConsolidationRollout } from '../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const useCheckNftAutoDetectionModal = () => {
   const dispatch = useDispatch();
@@ -27,9 +28,15 @@ const useCheckNftAutoDetectionModal = () => {
   const isBasicFunctionalityConsolidationRolloutEnabled = useSelector(
     selectIsInBasicFunctionalityConsolidationRollout,
   );
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   const checkNftAutoDetectionModal = useCallback(() => {
-    if (isBasicFunctionalityConsolidationRolloutEnabled) {
+    if (
+      isBasicFunctionalityConsolidationRolloutEnabled ||
+      !isBasicFunctionalityEnabled
+    ) {
       return;
     }
 
@@ -47,6 +54,7 @@ const useCheckNftAutoDetectionModal = () => {
     navigation,
     chainId,
     useNftDetection,
+    isBasicFunctionalityEnabled,
   ]);
 
   useEffect(() => {

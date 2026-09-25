@@ -1,7 +1,12 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { fireEvent } from '@testing-library/react-native';
-import { BackHandler, ScrollView } from 'react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { BackHandler, ScrollView, StyleSheet } from 'react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
   mockTxId,
@@ -21,6 +26,9 @@ import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import styleSheet from './confirm-component.styles';
+import { mockTheme } from '../../../../../util/theme';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('../../hooks/useConfirmReject');
 // Confirm renders the footer, which still depends on the full useConfirmActions
@@ -90,6 +98,7 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 jest.mock('../../../../../core/Engine', () => ({
+  state: {},
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
@@ -171,6 +180,7 @@ describe('Confirm', () => {
   const useParamsMock = jest.mocked(useParams);
 
   beforeEach(() => {
+    useParamsMock.mockReturnValue({});
     useConfirmRejectMock.mockReturnValue({
       onReject: mockOnReject,
     });
@@ -197,6 +207,159 @@ describe('Confirm', () => {
       state: typedSignV1ConfirmationState,
     });
     expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
+  describe('forced bottom sheet', () => {
+    beforeEach(() => {
+      jest.mocked(useSafeAreaFrame).mockReturnValue({
+        width: 400,
+        height: 800,
+        x: 0,
+        y: 0,
+      });
+      jest.mocked(useSafeAreaInsets).mockReturnValue({
+        top: 40,
+        bottom: 20,
+        left: 0,
+        right: 0,
+      });
+    });
+
+    it.each([
+      [ConfirmationLoader.CustomAmount, 'custom-amount-skeleton'],
+      [
+        ConfirmationLoader.AdvancedCustomAmount,
+        'advanced-custom-amount-info-skeleton',
+      ],
+      [
+        ConfirmationLoader.PrefillCustomAmount,
+        'prefill-custom-amount-info-skeleton',
+      ],
+    ])(
+      'renders %s skeleton inside the non-dismissible sheet',
+      (loader, skeletonTestId) => {
+        useParamsMock.mockReturnValue({ forceBottomSheet: true, loader });
+        const initialState = cloneDeep(typedSignV1ConfirmationState);
+        const state = {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              ApprovalController: {
+                ...initialState.engine.backgroundState.ApprovalController,
+                pendingApprovals: {},
+                pendingApprovalCount: 0,
+              },
+            },
+          },
+        };
+
+        const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+          <Confirm />,
+          { state },
+        );
+
+        expect(getByTestId(skeletonTestId)).toBeOnTheScreen();
+        expect(UNSAFE_getByType(BottomSheet).props.isInteractable).toBe(false);
+        expect(mockSetOptions).not.toHaveBeenCalledWith(
+          expect.objectContaining({ gestureEnabled: true }),
+        );
+        expect(
+          StyleSheet.flatten(
+            getByTestId('confirm-loader-bottom-sheet').props
+              .contentContainerStyle,
+          ),
+        ).toMatchObject({ minHeight: 444, flexGrow: 1 });
+        expect(
+          StyleSheet.flatten(
+            getByTestId('confirm-loader-bottom-sheet').props.style,
+          ),
+        ).not.toHaveProperty('height');
+      },
+    );
+
+    it.each([
+      [undefined, 480],
+      [70, 560],
+      [100, 760],
+    ])(
+      'uses percentage %s as a minimum bounded by the safe area',
+      (percentage, height) => {
+        useParamsMock.mockReturnValue({
+          forceBottomSheet: true,
+          bottomSheetHeightPercentage: percentage,
+        });
+
+        const { UNSAFE_getByType } = renderWithProvider(<Confirm />, {
+          state: typedSignV1ConfirmationState,
+        });
+
+        expect(UNSAFE_getByType(BottomSheet).props.twClassName).toBe(
+          `min-h-[${height}px]`,
+        );
+      },
+    );
+
+    it('keeps the same sheet mounted when an approval arrives', async () => {
+      useParamsMock.mockReturnValue({
+        forceBottomSheet: true,
+        loader: ConfirmationLoader.CustomAmount,
+      });
+      const initialState = cloneDeep(typedSignV1ConfirmationState);
+      const approvals = initialState.engine.backgroundState.ApprovalController;
+      const state = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            ApprovalController: {
+              ...approvals,
+              pendingApprovals: {},
+              pendingApprovalCount: 0,
+            },
+          },
+        },
+      };
+      const { store, UNSAFE_getByType, queryByTestId } = renderWithProvider(
+        <Confirm />,
+        { state },
+      );
+      const sheet = UNSAFE_getByType(BottomSheet);
+
+      await act(async () => {
+        Object.assign(Engine.state, { ApprovalController: approvals });
+        store.dispatch({
+          type: 'UPDATE_BG_STATE',
+          payload: { key: 'ApprovalController' },
+        });
+      });
+
+      expect(UNSAFE_getByType(BottomSheet)).toBe(sheet);
+      expect(sheet.props.isInteractable).toBe(true);
+      expect(queryByTestId('confirm-loader-bottom-sheet')).toBeNull();
+      fireEvent(sheet, 'close');
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('leaves native ScrollView flex defaults intact for fullscreen and sheets', () => {
+    const fullscreen = styleSheet({
+      theme: mockTheme,
+      vars: { isFullScreenConfirmation: true },
+    });
+    const sheet = styleSheet({
+      theme: mockTheme,
+      vars: { isFullScreenConfirmation: false, expandToSheetHeight: true },
+    });
+
+    expect(fullscreen.scrollView).not.toHaveProperty('flexGrow');
+    expect(sheet.scrollView).not.toHaveProperty('flexGrow');
+    expect(fullscreen.scrollViewContent.flexGrow).toBe(1);
+    expect(sheet.scrollViewContent.flexGrow).toBe(1);
+    expect(fullscreen.confirmContainer).not.toHaveProperty('flexGrow');
+    expect(sheet.confirmContainer.flexGrow).toBe(1);
   });
 
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
