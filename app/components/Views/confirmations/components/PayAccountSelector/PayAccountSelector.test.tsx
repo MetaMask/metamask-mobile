@@ -95,6 +95,8 @@ const replaceAccountInNestedTransactionsMock = jest.mocked(
   replaceAccountInNestedTransactions,
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  TransactionType.membershipSubscription;
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
@@ -182,6 +184,21 @@ describe('PayAccountSelector', () => {
   it('does not filter recipient accounts for deposit transactions', () => {
     const { getByTestId } = render();
 
+    expect(getByTestId('account-selector-filter')).toHaveTextContent(
+      'Unfiltered',
+    );
+  });
+
+  it('treats membership subscriptions like money account deposits', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('account-selector-label')).toHaveTextContent('From');
     expect(getByTestId('account-selector-filter')).toHaveTextContent(
       'Unfiltered',
     );

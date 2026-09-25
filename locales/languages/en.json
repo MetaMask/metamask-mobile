@@ -9074,6 +9074,7 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "membership_top_up_info": "We’ll add {{amount}} to your Money account to cover this payment.",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "receive_title": "Receive",
