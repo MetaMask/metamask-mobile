@@ -60,6 +60,26 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       [
+        'sumsub submitted before review',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+        }),
+      ],
+      [
+        'sumsub submitted and account ready',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+          kycStatus: 'approved',
+          autorampStatus: 'ready',
+        }),
+      ],
+      [
         'sumsub abandoned',
         snapshot({
           sessionExists: true,
@@ -133,6 +153,8 @@ describe('getVbaDestinationForSnapshot', () => {
         "session pending before provider terms": "identityVerification",
         "sumsub abandoned": "identityVerification",
         "sumsub submitted": "kycPending",
+        "sumsub submitted and account ready": "complete",
+        "sumsub submitted before review": "kycPending",
         "vendor terms done": "email",
       }
     `);

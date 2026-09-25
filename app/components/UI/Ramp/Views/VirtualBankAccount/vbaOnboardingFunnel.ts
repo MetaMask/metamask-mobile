@@ -41,8 +41,7 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
     isComplete: (snapshot) =>
       snapshot.sessionDisclaimersComplete &&
       (snapshot.kycStatus === 'approved' ||
-        (snapshot.providerFlowStatus === 'submitted' &&
-          snapshot.kycStatus === 'pending')),
+        snapshot.providerFlowStatus === 'submitted'),
   },
 ];
 
@@ -70,10 +69,6 @@ export const getVbaDestinationForSnapshot = (
     }
   }
 
-  if (snapshot.kycStatus === 'pending') {
-    return 'kycPending';
-  }
-
   if (snapshot.kycStatus === 'approved') {
     if (snapshot.autorampStatus === 'ready') {
       return 'complete';
@@ -82,6 +77,13 @@ export const getVbaDestinationForSnapshot = (
     return snapshot.autorampStatus === 'retryable_failure'
       ? 'accountProvisioningError'
       : 'kycPending';
+  }
+
+  if (
+    snapshot.kycStatus === 'pending' ||
+    snapshot.providerFlowStatus === 'submitted'
+  ) {
+    return 'kycPending';
   }
 
   return 'error';
