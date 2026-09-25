@@ -75,7 +75,12 @@ export function usePerpsPrewarmDepositOrder({
         return undefined;
       }
 
+      let aborted = false;
       const task = InteractionManager.runAfterInteractions(() => {
+        if (aborted) {
+          return;
+        }
+
         const {
           depositWithOrder: createDeposit,
           transactionActiveAbTests: abTests,
@@ -95,6 +100,7 @@ export function usePerpsPrewarmDepositOrder({
       });
 
       return () => {
+        aborted = true;
         task.cancel();
         discardPrewarmedDepositOrder();
       };

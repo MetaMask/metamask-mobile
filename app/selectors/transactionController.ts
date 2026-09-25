@@ -317,7 +317,11 @@ const selectRelatedAddressesByTransactionId = createSelector(
 export const selectHasUnapprovedTransactions = createSelector(
   selectTransactions,
   (transactions) =>
-    transactions.some((tx) => tx.status === TransactionStatus.unapproved),
+    transactions.some(
+      (tx) =>
+        tx.status === TransactionStatus.unapproved &&
+        !isUnconfirmedPerpsDepositOrder(tx),
+    ),
 );
 
 /**

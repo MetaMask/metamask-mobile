@@ -49,6 +49,27 @@ describe('usePerpsPrewarmDepositOrder', () => {
   let mockAccountAddress: string | undefined;
   let mockIsInitialized: boolean;
   let cancelTask: jest.Mock;
+  let deferredAfterInteractions: (() => void) | undefined;
+
+  const mockRunAfterInteractions = (mode: 'immediate' | 'deferred') => {
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task) => {
+        const run = () => (task as () => void)();
+        if (mode === 'immediate') {
+          run();
+        } else {
+          deferredAfterInteractions = run;
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: cancelTask,
+        } as unknown as ReturnType<
+          typeof InteractionManager.runAfterInteractions
+        >;
+      });
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -56,6 +77,7 @@ describe('usePerpsPrewarmDepositOrder', () => {
     mockAccountAddress = '0xabc';
     mockIsInitialized = true;
     cancelTask = jest.fn();
+    deferredAfterInteractions = undefined;
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProvider) return mockActiveProvider;
@@ -72,18 +94,7 @@ describe('usePerpsPrewarmDepositOrder', () => {
           typeof usePerpsConnection
         >,
     );
-    jest
-      .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((task) => {
-        (task as () => void)();
-        return {
-          then: jest.fn(),
-          done: jest.fn(),
-          cancel: cancelTask,
-        } as unknown as ReturnType<
-          typeof InteractionManager.runAfterInteractions
-        >;
-      });
+    mockRunAfterInteractions('immediate');
   });
 
   it('prewarms for the active account and provider', () => {
@@ -204,5 +215,18 @@ describe('usePerpsPrewarmDepositOrder', () => {
     expect(() =>
       renderHook(() => usePerpsPrewarmDepositOrder({ enabled: true })),
     ).not.toThrow();
+  });
+
+  it('does not prewarm after leaving if the idle callback still fires', () => {
+    mockRunAfterInteractions('deferred');
+    const { unmount } = renderHook(() =>
+      usePerpsPrewarmDepositOrder({ enabled: true }),
+    );
+
+    unmount();
+    deferredAfterInteractions?.();
+
+    expect(mockPrewarmDepositOrder).not.toHaveBeenCalled();
+    expect(mockDiscardPrewarmedDepositOrder).toHaveBeenCalledTimes(1);
   });
 });

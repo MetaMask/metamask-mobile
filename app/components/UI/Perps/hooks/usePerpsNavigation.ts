@@ -327,18 +327,25 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             providerId: params.providerId ?? depositProvider,
           })
         : undefined;
-      const preparedOrder =
-        claimedPrewarm?.then((transactionId) => {
-          registerTransactionAbTestAttributionForIds(
-            [transactionId],
-            params.transactionActiveAbTests,
-          );
-        }) ??
-        withPendingTransactionActiveAbTests(
+      const prepareOrder = async () => {
+        if (claimedPrewarm) {
+          try {
+            const transactionId = await claimedPrewarm;
+            registerTransactionAbTestAttributionForIds(
+              [transactionId],
+              params.transactionActiveAbTests,
+            );
+            return;
+          } catch {
+            // Prewarm failed or became unusable; create a fresh transaction.
+          }
+        }
+        await withPendingTransactionActiveAbTests(
           params.transactionActiveAbTests,
           createOrder,
         );
-      preparedOrder
+      };
+      prepareOrder()
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,

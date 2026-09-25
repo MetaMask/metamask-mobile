@@ -145,6 +145,53 @@ describe('TransactionController Selectors', () => {
 
       expect(selectHasUnapprovedTransactions(state)).toBe(false);
     });
+
+    it('returns false when the only unapproved transaction is a perps deposit-and-order', () => {
+      const transactions = [
+        {
+          id: 'prewarmed-trade',
+          status: TransactionStatus.unapproved,
+          type: TransactionType.perpsDepositAndOrder,
+        },
+      ];
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(false);
+    });
+
+    it('returns true when an unapproved send exists beside a perps deposit-and-order', () => {
+      const transactions = [
+        {
+          id: 'prewarmed-trade',
+          status: TransactionStatus.unapproved,
+          type: TransactionType.perpsDepositAndOrder,
+        },
+        {
+          id: 'send',
+          status: TransactionStatus.unapproved,
+          type: TransactionType.simpleSend,
+        },
+      ];
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(true);
+    });
   });
 
   describe('selectNonReplacedTransactions', () => {

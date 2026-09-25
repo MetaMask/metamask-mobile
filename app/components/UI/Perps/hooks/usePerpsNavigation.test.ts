@@ -495,6 +495,22 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('creates the transaction when claiming a prewarm fails', async () => {
+      mockClaimPrewarmedDepositOrder.mockReturnValue(
+        Promise.reject(new Error('prewarm gone')),
+      );
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({ direction: 'long', asset: 'BTC' });
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+      });
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalled();
+      });
+    });
+
     it('creates the transaction when no prewarm is available', async () => {
       const { result } = renderHook(() => usePerpsNavigation());
 

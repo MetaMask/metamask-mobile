@@ -50,6 +50,21 @@ interface PrewarmCriteria {
 let generation = 0;
 let prewarmed: PrewarmedDepositOrder | undefined;
 let inFlight: Promise<string> | undefined;
+let inFlightCriteria: PrewarmCriteria | undefined;
+
+function matchesCriteria(
+  stored: PrewarmCriteria | undefined,
+  criteria: PrewarmCriteria,
+): boolean {
+  if (!stored) {
+    return false;
+  }
+  return (
+    stored.accountAddress.toLowerCase() ===
+      criteria.accountAddress.toLowerCase() &&
+    stored.providerId === criteria.providerId
+  );
+}
 
 /** Drops module ownership so in-flight prep stops publishing into it. */
 function releaseOwnership(): {
@@ -60,6 +75,7 @@ function releaseOwnership(): {
   generation += 1;
   prewarmed = undefined;
   inFlight = undefined;
+  inFlightCriteria = undefined;
   return released;
 }
 
@@ -75,11 +91,7 @@ function isUsable(
   entry: PrewarmedDepositOrder,
   criteria: PrewarmCriteria,
 ): boolean {
-  if (
-    entry.accountAddress.toLowerCase() !==
-      criteria.accountAddress.toLowerCase() ||
-    entry.providerId !== criteria.providerId
-  ) {
+  if (!matchesCriteria(entry, criteria)) {
     return false;
   }
 
@@ -110,31 +122,42 @@ export function prewarmDepositOrder(
   depositWithOrder: () => Promise<unknown>,
 ): Promise<string> | undefined {
   if (inFlight) {
-    return inFlight;
+    if (matchesCriteria(inFlightCriteria, criteria)) {
+      return inFlight;
+    }
+    discardPrewarmedDepositOrder();
   }
   if (prewarmed) {
     if (isUsable(prewarmed, criteria)) {
       return undefined;
     }
-    // Stale record: its approval is already gone, so there is nothing to reject.
+    rejectTransaction(prewarmed.transactionId);
     prewarmed = undefined;
   }
 
   const ownedGeneration = generation;
-  inFlight = depositWithOrder().then(() => {
-    const transactionId =
-      Engine.context.PerpsController.state.lastDepositTransactionId;
-    if (!transactionId) {
-      throw new Error('Prewarmed deposit order produced no transaction id');
-    }
-    if (generation === ownedGeneration) {
-      prewarmed = { transactionId, ...criteria };
-      inFlight = undefined;
-    }
-    return transactionId;
-  });
+  const pending = depositWithOrder()
+    .then(() => {
+      const transactionId =
+        Engine.context.PerpsController.state.lastDepositTransactionId;
+      if (!transactionId) {
+        throw new Error('Prewarmed deposit order produced no transaction id');
+      }
+      if (generation === ownedGeneration) {
+        prewarmed = { transactionId, ...criteria };
+      }
+      return transactionId;
+    })
+    .finally(() => {
+      if (generation === ownedGeneration) {
+        inFlight = undefined;
+        inFlightCriteria = undefined;
+      }
+    });
 
-  return inFlight;
+  inFlight = pending;
+  inFlightCriteria = criteria;
+  return pending;
 }
 
 /**
@@ -148,11 +171,27 @@ export function claimPrewarmedDepositOrder(
   criteria: PrewarmCriteria,
 ): Promise<string> | undefined {
   if (inFlight) {
-    return releaseOwnership().pending;
+    if (!matchesCriteria(inFlightCriteria, criteria)) {
+      discardPrewarmedDepositOrder();
+      return undefined;
+    }
+
+    const pending = releaseOwnership().pending;
+    return pending?.then((transactionId) => {
+      const entry = { transactionId, ...criteria };
+      if (!isUsable(entry, criteria)) {
+        rejectTransaction(transactionId);
+        throw new Error('Prewarmed deposit order is no longer usable');
+      }
+      return transactionId;
+    });
   }
 
   const entry = prewarmed;
   if (!entry || !isUsable(entry, criteria)) {
+    if (entry) {
+      rejectTransaction(entry.transactionId);
+    }
     releaseOwnership();
     return undefined;
   }
@@ -201,4 +240,5 @@ export function resetPrewarmedDepositOrderForTesting(): void {
   generation += 1;
   prewarmed = undefined;
   inFlight = undefined;
+  inFlightCriteria = undefined;
 }
