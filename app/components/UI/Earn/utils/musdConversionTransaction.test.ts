@@ -118,6 +118,9 @@ interface MockedEngineContext {
         },
       ]
     >;
+    state: {
+      customAssets: Record<string, string[]>;
+    };
   };
 }
 
