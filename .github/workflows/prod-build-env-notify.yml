@@ -57,9 +57,6 @@ jobs:
           BUILD_TYPE=$(jq -r '.env.METAMASK_BUILD_TYPE' "$JSON_FILE")
           REWARDS_URL=$(jq -r '.env.REWARDS_API_URL' "$JSON_FILE")
           PORTFOLIO_URL=$(jq -r '.env.MM_PORTFOLIO_URL' "$JSON_FILE")
-          # Report only what the build set. An unset MM_API_ENV means the app
-          # selected the cluster from the flavor in getApiEnv().
-          MM_API_ENV=$(jq -r '.env.MM_API_ENV // "unset"' "$JSON_FILE")
 
           # Map to Remote Feature Flag values
           case "$METAMASK_ENV" in
@@ -83,7 +80,6 @@ jobs:
             echo "remote_ff_dist=$REMOTE_FF_DIST"
             echo "rewards_url=$REWARDS_URL"
             echo "portfolio_url=$PORTFOLIO_URL"
-            echo "api_env=$MM_API_ENV"
           } >> "$GITHUB_OUTPUT"
 
           echo ""
@@ -94,7 +90,6 @@ jobs:
           echo "Remote Feature Flag Distribution: $REMOTE_FF_DIST"
           echo "Rewards API URL: $REWARDS_URL"
           echo "MM_PORTFOLIO_URL: $PORTFOLIO_URL"
-          echo "Backend API env: $MM_API_ENV"
 
       - name: Post to Slack
         if: steps.download-artifact.outcome == 'success'
@@ -107,7 +102,6 @@ jobs:
           REMOTE_FF_DIST: ${{ steps.extract-env.outputs.remote_ff_dist }}
           REWARDS_URL: ${{ steps.extract-env.outputs.rewards_url }}
           PORTFOLIO_URL: ${{ steps.extract-env.outputs.portfolio_url }}
-          MM_API_ENV: ${{ steps.extract-env.outputs.api_env }}
           WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           echo "TODO: Post to Slack"
@@ -118,5 +112,4 @@ jobs:
           echo "Remote FF Distribution: $REMOTE_FF_DIST"
           echo "Rewards URL: $REWARDS_URL"
           echo "Portfolio URL: $PORTFOLIO_URL"
-          echo "Backend API env: $MM_API_ENV"
           echo "Workflow URL: $WORKFLOW_URL"
