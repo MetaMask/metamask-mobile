@@ -798,12 +798,17 @@ describe('BridgeLimitOrderView', () => {
     renderLimitOrderView();
 
     expect(useLimitOrders).toHaveBeenCalledWith(
-      expect.objectContaining({ states: [LimitOrderState.Open] }),
+      expect.objectContaining({
+        states: [
+          LimitOrderState.Open,
+          LimitOrderState.Executing,
+          LimitOrderState.Submitted,
+        ],
+      }),
     );
     expect(useLimitOrders).toHaveBeenCalledWith(
       expect.objectContaining({
         states: [
-          LimitOrderState.Submitted,
           LimitOrderState.Filled,
           LimitOrderState.Cancelled,
           LimitOrderState.Expired,
