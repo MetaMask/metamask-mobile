@@ -39689,6 +39689,7 @@ __metadata:
     stream-browserify: "npm:3.0.0"
     tailwindcss: "npm:^3.4.0"
     through2: "npm:3.0.1"
+    tldts: "npm:^7.4.13"
     ts-loader: "npm:^9.5.0"
     ts-node: "npm:^10.9.2"
     tsx: "npm:^4.21.0"
@@ -50368,6 +50369,24 @@ __metadata:
   version: 1.1.1
   resolution: "tinypool@npm:1.1.1"
   checksum: 10/0d54139e9dbc6ef33349768fa78890a4d708d16a7ab68e4e4ef3bb740609ddf0f9fd13292c2f413fbba756166c97051a657181c8f7ae92ade690604f183cc01d
+  languageName: node
+  linkType: hard
+
+"tldts-core@npm:^7.4.13":
+  version: 7.4.13
+  resolution: "tldts-core@npm:7.4.13"
+  checksum: 10/30bbe53400e8e8aab7b83eaa706e739768000d32a8860ee3f8f43920164a2e838e224f77cbb2d9a30eba546ae77f9aa70f633374fe2d503da52f8595b59a36dc
+  languageName: node
+  linkType: hard
+
+"tldts@npm:^7.4.13":
+  version: 7.4.13
+  resolution: "tldts@npm:7.4.13"
+  dependencies:
+    tldts-core: "npm:^7.4.13"
+  bin:
+    tldts: bin/cli.js
+  checksum: 10/c9fa02baacafac916e1e16efaa47c1ee3fbe00e190fa6d086b3924fcf241fd064bc10cba8da12dbbdbf7318cc271305fbed8b9e2a5c89e9edb3c79acef9affc7
   languageName: node
   linkType: hard
 
