@@ -350,6 +350,62 @@ describe('usePredictGame', () => {
     );
   });
 
+  it('falls back to newer REST data once the live cache ages past the TTL', async () => {
+    const { Wrapper } = createWrapper();
+    let capturedCallback: (update: GameUpdate) => void = jest.fn();
+    mockSubscribeToGameUpdates.mockImplementation((_, callback) => {
+      capturedCallback = callback;
+      return mockUnsubscribe;
+    });
+
+    const { result, rerender } = renderHook(
+      ({ market }) => usePredictGame(market, { live: true }),
+      {
+        initialProps: { market: createMarket() },
+        wrapper: Wrapper,
+      },
+    );
+
+    act(() => {
+      capturedCallback(createUpdate({ score: '21-14', elapsed: '06:30' }));
+    });
+
+    await waitFor(() => {
+      expect(result.current.game?.elapsed).toBe('06:30');
+    });
+
+    // Simulate the sports socket dying: no further updates arrive while the
+    // REST market refetches with a newer snapshot.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.now() + 120_000);
+    try {
+      rerender({
+        market: createMarket({
+          game: createGame({
+            status: 'ongoing',
+            elapsed: '10:00',
+            period: 'Q3',
+            score: { away: 28, home: 21, raw: '28-21' },
+          }),
+        }),
+      });
+
+      await waitFor(() => {
+        expect(result.current.game).toEqual(
+          expect.objectContaining({
+            status: 'ongoing',
+            elapsed: '10:00',
+            period: 'Q3',
+            score: { away: 28, home: 21, raw: '28-21' },
+          }),
+        );
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it('allows terminal REST state to replace an older ongoing cache entry', async () => {
     const { Wrapper } = createWrapper();
     let capturedCallback: (update: GameUpdate) => void = jest.fn();
