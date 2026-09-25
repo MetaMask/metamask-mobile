@@ -1,5 +1,6 @@
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DeveloperOptions from './';
+import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 
 const mockSelectPerpsEnabledFlag = jest.fn();
@@ -74,5 +75,38 @@ describe('DeveloperOptions', () => {
     );
 
     expect(queryByText('Perpetual Trading')).not.toBeOnTheScreen();
+  });
+
+  it('does not render the watch-only section outside dev builds', () => {
+    const { queryByTestId } = renderScreen(
+      DeveloperOptions,
+      { name: 'DeveloperOptions' },
+      { state: initialState },
+    );
+
+    expect(
+      queryByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders the watch-only section in dev builds', () => {
+    // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+    const devGlobal = global as unknown as { __DEV__: boolean };
+    const originalDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = true;
+
+    try {
+      const { getByTestId } = renderScreen(
+        DeveloperOptions,
+        { name: 'DeveloperOptions' },
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
+      ).toBeOnTheScreen();
+    } finally {
+      devGlobal.__DEV__ = originalDev;
+    }
   });
 });

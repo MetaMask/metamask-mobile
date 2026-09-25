@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 jest.mock('../../../../UI/AddressCopy', () => {
   const { View } = jest.requireActual('react-native');
@@ -38,6 +39,16 @@ jest.mock('../../../AccountSelector', () => ({
   ]),
 }));
 
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectIsSelectedAccountWatchOnly: jest.fn(() => false),
+  }),
+);
+
 const touchAreaSlop = { top: 8, bottom: 8, left: 8, right: 8 };
 
 const defaultProps: WalletHeaderProps = {
@@ -59,6 +70,7 @@ describe('WalletHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
+    jest.mocked(selectIsSelectedAccountWatchOnly).mockReturnValue(false);
   });
 
   it('renders the header root and account picker', () => {
@@ -168,6 +180,30 @@ describe('WalletHeader', () => {
       expect(
         queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE),
       ).toBeNull();
+    });
+  });
+
+  describe('watch-only tag', () => {
+    it('hides the watch-only tag for a regular account', () => {
+      const { queryByTestId } = renderWithProvider(
+        <WalletHeader {...defaultProps} />,
+      );
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WATCH_ONLY_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the watch-only tag when the selected account is watch-only', () => {
+      jest.mocked(selectIsSelectedAccountWatchOnly).mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader {...defaultProps} />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WATCH_ONLY_TAG),
+      ).toBeOnTheScreen();
     });
   });
 });

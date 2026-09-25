@@ -23,6 +23,7 @@ export const WalletViewSelectorsIDs = {
   NAVBAR_NETWORK_TEXT: 'open-networks-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
   ACCOUNT_ICON: 'account-picker',
+  WATCH_ONLY_TAG: 'wallet-watch-only-tag',
   ACCOUNT_NAME_LABEL_INPUT: 'account-label-text-input',
   ACCOUNT_NAME_LABEL_TEXT: 'account-label',
   TOKENS_CONTAINER: 'tokens',

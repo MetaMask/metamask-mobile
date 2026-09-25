@@ -2,6 +2,7 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import {
   KeyringControllerState,
   KeyringObject,
+  KeyringTypes,
 } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
@@ -31,6 +32,18 @@ export const selectKeyrings = createDeepEqualSelector(
 export const selectHDKeyrings = createDeepEqualSelector(
   selectKeyrings,
   (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
+);
+
+/**
+ * Selects the address held by the dev-only watch-only keyring. It stays set
+ * while a watch-only session exists, even if another account is selected.
+ * @param state - The Redux state
+ * @returns The watched address, or undefined when no session is active
+ */
+export const selectWatchOnlyKeyringAddress = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings): string | undefined =>
+    keyrings.find((kr) => kr.type === KeyringTypes.watchOnly)?.accounts[0],
 );
 
 /**

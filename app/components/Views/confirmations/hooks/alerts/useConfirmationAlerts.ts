@@ -23,6 +23,7 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useWatchOnlyAccountAlert } from './useWatchOnlyAccountAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -101,9 +102,11 @@ export default function useConfirmationAlerts(): Alert[] {
   const accountTypeUpgrade = useAccountTypeUpgrade();
   const urlTrustSignalAlerts = useOriginTrustSignalAlerts();
   const addressTrustSignalAlerts = useAddressTrustSignalAlerts();
+  const watchOnlyAccountAlert = useWatchOnlyAccountAlert();
 
   return useMemo(
     () => [
+      ...watchOnlyAccountAlert,
       ...blockaidAlerts,
       ...signatureAlerts,
       ...transactionAlerts,
@@ -112,6 +115,7 @@ export default function useConfirmationAlerts(): Alert[] {
       ...addressTrustSignalAlerts,
     ],
     [
+      watchOnlyAccountAlert,
       blockaidAlerts,
       signatureAlerts,
       transactionAlerts,
