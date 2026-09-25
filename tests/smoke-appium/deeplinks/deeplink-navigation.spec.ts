@@ -95,9 +95,11 @@ appiumTest.describe(SmokeWalletPlatform('Deeplink Navigation'), () => {
           await NetworkListModal.swipeToDismissModal();
           await waitForWalletHomePlaywright();
 
-          // Verify NFT deeplink
+          // Verify NFT deeplink. iOS may skip the PUBLIC interstitial after the
+          // home/network sheet when the destination already navigates — accept
+          // either interstitial Continue or NFTs already visible.
           await openE2EUrl(NFT_DEEPLINK);
-          await DeeplinkModal.tapContinue();
+          await DeeplinkModal.tapContinueOrNftDestination();
           await Assertions.expectTextDisplayed('NFTs', {
             timeout: 20000,
             description: 'NFT full view opens after nft deeplink',
