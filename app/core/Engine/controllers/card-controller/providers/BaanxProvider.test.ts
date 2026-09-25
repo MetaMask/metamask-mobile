@@ -686,47 +686,49 @@ describe('BaanxProvider', () => {
     };
 
     it('posts /v1/user/closure with providerUserId', async () => {
-      const post = jest.fn().mockResolvedValue(undefined);
+      const request = jest.fn().mockResolvedValue(undefined);
       const get = jest.fn();
       const provider = new BaanxProvider({
-        service: { post, get, apiKey: 'k' } as unknown as BaanxService,
+        service: { request, get, apiKey: 'k' } as unknown as BaanxService,
       });
 
       await provider.requestAccountClosure(tokens);
 
-      expect(post).toHaveBeenCalledWith(
-        '/v1/user/closure',
-        { userId: 'baanx-user-1' },
-        tokens,
-      );
+      expect(request).toHaveBeenCalledWith('/v1/user/closure', {
+        method: 'POST',
+        body: { userId: 'baanx-user-1' },
+        tokenSet: tokens,
+        unreportedStatuses: [400],
+      });
       expect(get).not.toHaveBeenCalled();
     });
 
     it('falls back to GET /v1/user when providerUserId is missing', async () => {
       const { providerUserId: _providerUserId, ...tokensWithoutUserId } =
         tokens;
-      const post = jest.fn().mockResolvedValue(undefined);
+      const request = jest.fn().mockResolvedValue(undefined);
       const get = jest.fn().mockResolvedValue({ id: 'from-profile' });
       const provider = new BaanxProvider({
-        service: { post, get, apiKey: 'k' } as unknown as BaanxService,
+        service: { request, get, apiKey: 'k' } as unknown as BaanxService,
       });
 
       await provider.requestAccountClosure(tokensWithoutUserId);
 
       expect(get).toHaveBeenCalledWith('/v1/user', tokensWithoutUserId);
-      expect(post).toHaveBeenCalledWith(
-        '/v1/user/closure',
-        { userId: 'from-profile' },
-        tokensWithoutUserId,
-      );
+      expect(request).toHaveBeenCalledWith('/v1/user/closure', {
+        method: 'POST',
+        body: { userId: 'from-profile' },
+        tokenSet: tokensWithoutUserId,
+        unreportedStatuses: [400],
+      });
     });
 
     it('resolves when closure was already requested (400)', async () => {
-      const post = jest
+      const request = jest
         .fn()
         .mockRejectedValue(new CardApiError(400, '/v1/user/closure', ''));
       const provider = new BaanxProvider({
-        service: { post, apiKey: 'k' } as unknown as BaanxService,
+        service: { request, apiKey: 'k' } as unknown as BaanxService,
       });
 
       await expect(
@@ -735,11 +737,11 @@ describe('BaanxProvider', () => {
     });
 
     it('throws a mapped error on a 500', async () => {
-      const post = jest
+      const request = jest
         .fn()
         .mockRejectedValue(new CardApiError(500, '/v1/user/closure', ''));
       const provider = new BaanxProvider({
-        service: { post, apiKey: 'k' } as unknown as BaanxService,
+        service: { request, apiKey: 'k' } as unknown as BaanxService,
       });
 
       await expect(
@@ -1190,9 +1192,9 @@ describe('BaanxProvider', () => {
 });
 
 describe('BaanxProvider — getCardDetails hasPin', () => {
-  const buildProvider = (get: jest.Mock) =>
+  const buildProvider = (request: jest.Mock) =>
     new BaanxProvider({
-      service: { get, apiKey: 'k' } as unknown as BaanxService,
+      service: { request, apiKey: 'k' } as unknown as BaanxService,
     });
 
   const buildCardStatus = (overrides: Record<string, unknown> = {}) => ({
@@ -1206,33 +1208,33 @@ describe('BaanxProvider — getCardDetails hasPin', () => {
   });
 
   it('sets hasPin false for international virtual cards', async () => {
-    const get = jest.fn().mockResolvedValue(buildCardStatus());
+    const request = jest.fn().mockResolvedValue(buildCardStatus());
     const tokens: CardAuthTokens = {
       accessToken: 'at',
       accessTokenExpiresAt: FIXED_NOW + 3_600_000,
       location: 'international',
     };
 
-    const card = await buildProvider(get).getCardDetails(tokens);
+    const card = await buildProvider(request).getCardDetails(tokens);
 
     expect(card.hasPin).toBe(false);
   });
 
   it('sets hasPin true for US virtual cards', async () => {
-    const get = jest.fn().mockResolvedValue(buildCardStatus());
+    const request = jest.fn().mockResolvedValue(buildCardStatus());
     const tokens: CardAuthTokens = {
       accessToken: 'at',
       accessTokenExpiresAt: FIXED_NOW + 3_600_000,
       location: 'us',
     };
 
-    const card = await buildProvider(get).getCardDetails(tokens);
+    const card = await buildProvider(request).getCardDetails(tokens);
 
     expect(card.hasPin).toBe(true);
   });
 
   it('sets hasPin true for international physical cards', async () => {
-    const get = jest
+    const request = jest
       .fn()
       .mockResolvedValue(buildCardStatus({ type: CardType.PHYSICAL }));
     const tokens: CardAuthTokens = {
@@ -1241,7 +1243,7 @@ describe('BaanxProvider — getCardDetails hasPin', () => {
       location: 'international',
     };
 
-    const card = await buildProvider(get).getCardDetails(tokens);
+    const card = await buildProvider(request).getCardDetails(tokens);
 
     expect(card.hasPin).toBe(true);
   });

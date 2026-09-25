@@ -196,6 +196,21 @@ describe('observeCardHttpCall', () => {
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
+  it('does not log statuses the caller treats as expected', async () => {
+    await expect(
+      observeCardHttpCall(
+        httpCall({
+          path: '/v1/card/status',
+          unreportedStatuses: [404],
+          execute: async () => {
+            throw axiosError(404, 'missing');
+          },
+        }),
+      ),
+    ).rejects.toMatchObject({ statusCode: 404, reported: false });
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
   it('logs 401s on always-report endpoints', async () => {
     await expect(
       observeCardHttpCall(

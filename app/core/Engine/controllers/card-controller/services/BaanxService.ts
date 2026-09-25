@@ -13,6 +13,7 @@ interface RequestOptions {
   timeout?: number;
   headers?: Record<string, string>;
   location?: CardLocation;
+  unreportedStatuses?: readonly number[];
 }
 
 export class BaanxService {
@@ -72,6 +73,7 @@ export class BaanxService {
       location: effectiveLocation,
       headers,
       alwaysReportEndpoints: [AUTH_TOKEN_ENDPOINT],
+      unreportedStatuses: opts.unreportedStatuses,
       execute: () =>
         this.client.request<T>({
           url: path,

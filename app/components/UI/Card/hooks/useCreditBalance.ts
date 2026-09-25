@@ -64,7 +64,7 @@ const useCreditBalance = (): UseCreditBalanceResult => {
       creditFiatNumber,
       hasCredit,
       isLoading,
-      error: (error as Error | null) ?? null,
+      error: enabled ? ((error as Error | null) ?? null) : null,
       refetch,
       isRefetching,
     };

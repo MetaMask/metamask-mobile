@@ -502,7 +502,12 @@ export class BaanxProvider implements ICardProvider {
     try {
       const userId =
         tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
-      await this.service.post('/v1/user/closure', { userId }, tokens);
+      await this.service.request('/v1/user/closure', {
+        method: 'POST',
+        body: { userId },
+        tokenSet: tokens,
+        unreportedStatuses: [400],
+      });
     } catch (error) {
       if (error instanceof CardApiError && error.statusCode === 400) {
         return;
@@ -647,9 +652,9 @@ export class BaanxProvider implements ICardProvider {
 
   async getCardDetails(tokens: CardAuthTokens): Promise<CardDetails> {
     try {
-      const response = await this.service.get<CardDetailsResponse>(
+      const response = await this.service.request<CardDetailsResponse>(
         '/v1/card/status',
-        tokens,
+        { tokenSet: tokens, unreportedStatuses: [404] },
       );
       return this.mapCardDetails(response, tokens.location as CardLocation);
     } catch (error) {

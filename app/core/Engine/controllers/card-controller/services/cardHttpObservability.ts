@@ -112,13 +112,19 @@ export function classifyCardHttpOutcome(status: number): CardHttpOutcome {
 
 /**
  * Routine 401s are retried by the controller. Failures of the listed refresh
- * endpoints are always reported so an auth outage can page.
+ * endpoints are always reported so an auth outage can page. Statuses the
+ * caller treats as a normal outcome (no card, closure already requested) are
+ * not reported.
  */
 export function shouldReportCardHttpFailure(
   endpoint: string,
   status: number,
   alwaysReportEndpoints: readonly string[] = [],
+  unreportedStatuses: readonly number[] = [],
 ): boolean {
+  if (unreportedStatuses.includes(status)) {
+    return false;
+  }
   if (status === 401 && !alwaysReportEndpoints.includes(endpoint)) {
     return false;
   }
@@ -150,6 +156,8 @@ export interface CardHttpCallParams<T> {
   headers: Record<string, string>;
   /** Normalized paths whose 401s are still reported. */
   alwaysReportEndpoints?: readonly string[];
+  /** Statuses that are expected product outcomes, not Sentry issues. */
+  unreportedStatuses?: readonly number[];
   execute: () => Promise<Pick<AxiosResponse<T>, 'status' | 'data'>>;
 }
 
@@ -230,6 +238,7 @@ export async function observeCardHttpCall<T>(
             endpoint,
             status,
             params.alwaysReportEndpoints,
+            params.unreportedStatuses,
           )
         ) {
           Logger.error(apiError, {
