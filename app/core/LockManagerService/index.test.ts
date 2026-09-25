@@ -3,11 +3,13 @@ import { AppState, AppStateStatus } from 'react-native';
 import { lockApp, checkForDeeplink } from '../../actions/user';
 import Logger from '../../util/Logger';
 import ReduxService, { type ReduxStore } from '../redux';
+import Engine from '../Engine';
 
 jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
       setLocked: jest.fn().mockResolvedValue(true),
+      isUnlocked: jest.fn().mockReturnValue(true),
     },
   },
 }));
@@ -16,7 +18,7 @@ const mockSetTimeout = jest.fn();
 const mockClearTimeout = jest.fn();
 
 jest.mock('react-native-background-timer', () => ({
-  setTimeout: () => mockSetTimeout(),
+  setTimeout: (callback: () => void) => mockSetTimeout(callback),
   clearTimeout: (id: number) => mockClearTimeout(id),
 }));
 
@@ -41,6 +43,12 @@ describe('LockManagerService', () => {
     jest.useFakeTimers();
     // Returning an id lets the service track and later clear the pending timer.
     mockSetTimeout.mockReturnValue(1);
+    (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
+      true,
+    );
+    (Engine.context.KeyringController.setLocked as jest.Mock).mockResolvedValue(
+      true,
+    );
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {
         mockAppStateListener = listener;
@@ -121,8 +129,8 @@ describe('LockManagerService', () => {
         dispatch: mockDispatch,
       } as unknown as ReduxStore);
       lockManagerService.startListening();
-      mockAppStateListener('inactive');
-      mockAppStateListener('active');
+      await mockAppStateListener('inactive');
+      await mockAppStateListener('active');
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
     });
 
@@ -133,8 +141,9 @@ describe('LockManagerService', () => {
         dispatch: mockDispatch,
       } as unknown as ReduxStore);
       lockManagerService.startListening();
-      mockAppStateListener('background');
-      expect(await mockDispatch).toHaveBeenCalledWith(lockApp());
+      await mockAppStateListener('background');
+      await Promise.resolve();
+      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
     });
 
     it('should set background timer when lockTimer is non-zero while going into the background', async () => {
@@ -148,7 +157,7 @@ describe('LockManagerService', () => {
       expect(mockSetTimeout).toHaveBeenCalled();
     });
 
-    it('clears the pending background timer when resuming through inactive', () => {
+    it('clears the pending background timer when resuming through inactive', async () => {
       const mockDispatch = jest.fn();
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         getState: () => ({ settings: { lockTime: 5 } }),
@@ -158,11 +167,91 @@ describe('LockManagerService', () => {
 
       // Android resumes as background -> inactive -> active, which takes the
       // ignored-transition path and must still cancel the pending lock.
-      mockAppStateListener('background');
-      mockAppStateListener('inactive');
-      mockAppStateListener('active');
+      await mockAppStateListener('background');
+      await mockAppStateListener('inactive');
+      await mockAppStateListener('active');
 
       expect(mockClearTimeout).toHaveBeenCalledWith(1);
+    });
+
+    it('parses a pending deeplink after resume cancels auto-lock before it fires', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      await mockAppStateListener('background');
+      await mockAppStateListener('inactive');
+      await mockAppStateListener('active');
+
+      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+    });
+
+    it('does not parse a deeplink on resume when auto-lock already locked the wallet', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      await mockAppStateListener('background');
+      const scheduledLock = mockSetTimeout.mock.calls[0][0] as () => void;
+      scheduledLock();
+      await Promise.resolve();
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(false);
+
+      await mockAppStateListener('inactive');
+      await mockAppStateListener('active');
+
+      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+    });
+
+    it('waits for an in-flight auto-lock before deciding whether to parse a deeplink', async () => {
+      let releaseLock: () => void = () => undefined;
+      (
+        Engine.context.KeyringController.setLocked as jest.Mock
+      ).mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseLock = resolve;
+          }),
+      );
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      await mockAppStateListener('background');
+      const scheduledLock = mockSetTimeout.mock.calls[0][0] as () => void;
+      scheduledLock();
+
+      expect(lockManagerService.isAutoLockPending()).toBe(true);
+
+      const resume = mockAppStateListener('inactive').then(() =>
+        mockAppStateListener('active'),
+      );
+      await Promise.resolve();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(false);
+      releaseLock();
+      await resume;
+
+      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
     });
   });
 });
