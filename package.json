@@ -271,7 +271,8 @@
     "metro-config@npm:^0.84.3": "0.84.5",
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
-    "metro-source-map@npm:^0.84.3": "0.84.5"
+    "metro-source-map@npm:^0.84.3": "0.84.5",
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -669,7 +670,7 @@
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
     "@open-rpc/test-coverage": "^2.2.2",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "1.58.2",
     "@react-native/jest-preset": "0.86.3",
     "@react-native/metro-config": "0.86.3",
     "@storybook/addon-controls": "^7.5.1",
@@ -767,6 +768,7 @@
     "nyc": "^15.1.0",
     "openai": "^6.25.0",
     "patch-package": "^6.2.2",
+    "playwright": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
     "prettier": "^3.6.2",
     "prettier-2": "npm:prettier@^2.8.8",
     "prompts": "^2.4.2",
