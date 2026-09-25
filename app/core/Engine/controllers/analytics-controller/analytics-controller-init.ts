@@ -8,7 +8,8 @@ import {
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
 import { hasTestOverrides } from '../../../../util/test/utils';
-import { getBrazePlugin } from '../../../Braze';
+import { getBrazePlugin, syncBrazeEventBlocklist } from '../../../Braze';
+import { BRAZE_EVENT_BLOCKLIST_FLAG_KEY } from '../../../../selectors/featureFlagController/brazeEventBlocklist';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -90,6 +91,24 @@ export const analyticsControllerInit: MessengerClientInitFunction<
   controller.init().catch((error) => {
     Logger.error(error as Error, 'analyticsControllerInit: Error initializing');
   });
+
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    ({ remoteFeatureFlags }) => {
+      syncBrazeEventBlocklist(
+        remoteFeatureFlags[BRAZE_EVENT_BLOCKLIST_FLAG_KEY],
+      );
+    },
+  );
+
+  const remoteFeatureFlagState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+  syncBrazeEventBlocklist(
+    remoteFeatureFlagState?.remoteFeatureFlags?.[
+      BRAZE_EVENT_BLOCKLIST_FLAG_KEY
+    ],
+  );
 
   let lastCompositionFingerprint = '';
   initMessenger.subscribe(

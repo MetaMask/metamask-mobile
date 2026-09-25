@@ -46,7 +46,7 @@ const PerpsProOrdersSummary = ({
         </Text>
       </Box>
       <Button
-        variant={ButtonVariant.Secondary}
+        variant={ButtonVariant.Tertiary}
         size={ButtonSize.Sm}
         isDanger
         onPress={onCancelAll}

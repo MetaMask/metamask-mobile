@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "银行账户",
       "title": "获取您的 Pix Key",
       "description": "将资金从任何银行账户直接发送到您的 Money Account。",
@@ -2021,10 +2021,6 @@
         "current_price": "当前价格",
         "liquidation_price": "清算价格",
         "liquidation_distance": "清算距离",
-        "liquidation_warning": "如果价格{{direction}} {{percentage}}，您将被平仓",
-        "drops": "下跌",
-        "rises": "上涨",
-        "set_leverage": "设置 {{leverage}} 倍",
         "price_unavailable": "价格信息不可用"
       },
       "type": {
@@ -6025,7 +6021,6 @@
       "only_numbers_allowed": "仅允许使用数字",
       "negative_values_not_allowed": "不可使用负值",
       "max_base_fee_must_be_greater_than_priority_fee": "最大基础费用必须大于优先费用",
-      "gas_limit_too_low": "燃料限额必须大于 21000、小于 7920027",
       "priority_fee_too_high": "优先费用必须小于最大基础费用",
       "no_zero_value": "{{field}} 必须大于 0",
       "speed": "速度",
@@ -6542,35 +6537,7 @@
     "swap_completed": "已用 {{from}} 兑换 {{to}}",
     "swap": "已兑换",
     "sent": "已发送至 {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "已用 {{symbolIn}} 兑换 {{symbolOut}}",
-      "erc20_sent": "已发送至 {{address}}",
-      "erc20_received": "已从 {{address}} 收到",
-      "eth_sent": "已发送至 {{address}}",
-      "eth_received": "已从 {{address}} 收到",
-      "erc721_sent": "已发送 NFT 至 {{address}}",
-      "erc1155_sent": "已发送 NFT 至 {{address}}",
-      "erc721_received": "已从 {{address}} 收到 NFT",
-      "erc1155_received": "已从 {{address}} 收到 NFT",
-      "rocketpool_stake_completed": "已质押",
-      "rocketpool_unstake_completed": "解除质押完成",
-      "lido_stake_completed": "已质押",
-      "lido_withdrawal_requested": "已请求解除质押",
-      "lido_withdrawal_completed": "解除质押完成",
-      "lido_stake_ready_to_be_withdrawn": "已请求提取"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "您解除质押 {{amount}} {{symbol}} 的请求已发送",
-      "lido_stake_ready_to_be_withdrawn": "您现在可以提取已解除质押的 {{symbol}}"
-    },
     "modal": {
-      "title_sent": "已发送 {{symbol}} 个",
-      "title_received": "已接收 {{symbol}} 个",
-      "title_unstake_requested": "已请求解除质押",
-      "title_untake_ready": "提取已就绪",
-      "title_stake": "已质押 {{symbol}}",
-      "title_unstake_completed": "解除质押完成",
-      "title_swapped": "已将 {{symbolIn}} 兑换为 {{symbolOut}}",
       "label_address_to": "至",
       "label_address_from": "自",
       "label_address_to_you": "至（您）",
@@ -11404,7 +11371,6 @@
     "ecosystems_subtitle": "在 MetaMask Portfolio 上探索跨链的 dApp、代币和 NFT",
     "all_sports": "热门运动",
     "basketball": "篮球",
-    "football": "美式足球",
     "soccer": "足球",
     "tennis": "网球",
     "f1": "F1 赛车",

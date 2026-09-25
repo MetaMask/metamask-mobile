@@ -59,6 +59,17 @@ const renderView = () => {
   );
 };
 
+// Default route params (spot mode). Override per-test to exercise perps mode.
+// Must be declared before the jest.mock call below (which ESLint analyses
+// statically, even though jest.mock is Babel-hoisted at runtime).
+let mockRouteParams: Record<string, unknown> = {
+  symbol: 'ETH',
+  ticker: 'ETH',
+  currentPrice: 2500,
+  currentCurrency: 'USD',
+  assetId: 'eip155:1/slip44:60',
+};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -67,13 +78,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
   useRoute: () => ({
-    params: {
-      symbol: 'ETH',
-      ticker: 'ETH',
-      currentPrice: 2500,
-      currentCurrency: 'USD',
-      assetId: 'eip155:1/slip44:60',
-    },
+    params: mockRouteParams,
   }),
 }));
 
@@ -85,6 +90,16 @@ jest.mock('../../api', () => ({
   deleteAlertByType: (...args: unknown[]) => mockDeleteAlert(...args),
   updateAlertByType: (...args: unknown[]) => mockUpdateAlert(...args),
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
+}));
+
+const mockFetchPerpAlerts = jest.fn();
+const mockDeletePerpAlert = jest.fn();
+const mockUpdatePerpAlert = jest.fn();
+jest.mock('../../perpApi', () => ({
+  fetchPerpAlerts: (...args: unknown[]) => mockFetchPerpAlerts(...args),
+  deletePerpAlert: (...args: unknown[]) => mockDeletePerpAlert(...args),
+  updatePerpAlert: (...args: unknown[]) => mockUpdatePerpAlert(...args),
+  perpAlertsQueryKey: (marketId: string) => ['perpAlerts', marketId],
 }));
 
 const makeAlert = (
@@ -145,6 +160,14 @@ const makeErrorResponse = (status = 500) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Reset to spot mode defaults between tests.
+  mockRouteParams = {
+    symbol: 'ETH',
+    ticker: 'ETH',
+    currentPrice: 2500,
+    currentCurrency: 'USD',
+    assetId: 'eip155:1/slip44:60',
+  };
   mockDeleteAlert.mockResolvedValue(makeOkResponse(204));
   mockUpdateAlert.mockResolvedValue(makeOkResponse(200));
 });
@@ -1009,6 +1032,7 @@ describe('ManagePriceAlertsView', () => {
         alert_value: 3000,
         alert_recurring: true,
         alert_active: true,
+        alert_market_type: 'spot',
       });
     });
 
@@ -1078,6 +1102,7 @@ describe('ManagePriceAlertsView', () => {
         prev_alert_value: 3000,
         prev_alert_recurring: true,
         prev_alert_active: true,
+        alert_market_type: 'spot',
       });
     });
 
@@ -1144,7 +1169,103 @@ describe('ManagePriceAlertsView', () => {
         prev_alert_value: 12.5,
         prev_alert_recurring: true,
         prev_alert_active: true,
+        alert_market_type: 'spot',
       });
+    });
+  });
+
+  describe('perps mode', () => {
+    const MARKET_ID = 'btc-hyperliquid-mainnet';
+
+    const perpAlert = {
+      id: 'perp-alert-1',
+      userId: 'user-1',
+      asset: MARKET_ID,
+      threshold: 95000,
+      recurring: false,
+      active: true,
+      createdAt: '2026-01-01T00:00:00Z',
+      // NOTE: intentionally omit `type` to simulate a perp-alerts API that
+      // does not return the discriminator field. The component must normalise
+      // this so duplicate-threshold checks in AbsolutePriceAlertForm work.
+    };
+
+    beforeEach(() => {
+      mockRouteParams = {
+        symbol: 'BTC',
+        ticker: 'BTC',
+        currentPrice: 95000,
+        currentCurrency: 'usd',
+        assetId: 'xyz:BTC',
+        mode: 'perps',
+        marketId: MARKET_ID,
+        szDecimals: 5,
+      };
+      mockFetchPerpAlerts.mockResolvedValue(
+        makeFetchResponse([perpAlert] as unknown as Alert[]),
+      );
+    });
+
+    it('passes existingAbsoluteAlerts with type normalised to CreatePriceAlertView when Add alert is tapped', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingAbsoluteAlerts: [
+            expect.objectContaining({
+              id: 'perp-alert-1',
+              type: 'absolute_price',
+              threshold: 95000,
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('normalises perp alert type even when API returns without type field', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      // existingPercentAlerts should be empty (no percent alerts in perps)
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingPercentAlerts: [],
+        }),
+      );
+    });
+
+    it('formats absolute thresholds like the live market header', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $95,000')).toBeOnTheScreen();
+    });
+
+    it('includes szDecimals when navigating to CreatePriceAlertView', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          szDecimals: 5,
+        }),
+      );
     });
   });
 });

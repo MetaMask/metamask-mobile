@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Tài khoản ngân hàng",
       "title": "Nhận Khóa Pix của bạn",
       "description": "Gửi tiền trực tiếp vào Money Account của bạn từ bất kỳ tài khoản ngân hàng nào.",
@@ -2021,10 +2021,6 @@
         "current_price": "Giá hiện tại",
         "liquidation_price": "Giá thanh lý",
         "liquidation_distance": "Khoảng cách đến thanh lý",
-        "liquidation_warning": "Bạn sẽ bị thanh lý nếu giá {{direction}} {{percentage}}",
-        "drops": "giảm",
-        "rises": "tăng",
-        "set_leverage": "Đặt đòn bẩy {{leverage}}x",
         "price_unavailable": "Không có thông tin giá"
       },
       "type": {
@@ -6025,7 +6021,6 @@
       "only_numbers_allowed": "Chỉ được phép nhập số",
       "negative_values_not_allowed": "Không được phép sử dụng giá trị âm",
       "max_base_fee_must_be_greater_than_priority_fee": "Phí cơ sở tối đa phải lớn hơn phí ưu tiên",
-      "gas_limit_too_low": "Hạn mức phí gas phải lớn hơn 21.000",
       "priority_fee_too_high": "Phí ưu tiên phải nhỏ hơn phí cơ sở tối đa",
       "no_zero_value": "{{field}} phải lớn hơn 0",
       "speed": "Tốc độ",
@@ -6542,35 +6537,7 @@
     "swap_completed": "Đã hoán đổi {{from}} thành {{to}}",
     "swap": "Đã hoán đổi",
     "sent": "Đã gửi đến {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "Đã hoán đổi {{symbolIn}} thành {{symbolOut}}",
-      "erc20_sent": "Đã gửi đến {{address}}",
-      "erc20_received": "Đã nhận từ {{address}}",
-      "eth_sent": "Đã gửi đến {{address}}",
-      "eth_received": "Đã nhận từ {{address}}",
-      "erc721_sent": "Đã gửi NFT đến {{address}}",
-      "erc1155_sent": "Đã gửi NFT đến {{address}}",
-      "erc721_received": "Đã nhận được NFT từ {{address}}",
-      "erc1155_received": "Đã nhận được NFT từ {{address}}",
-      "rocketpool_stake_completed": "Đã ký gửi",
-      "rocketpool_unstake_completed": "Hoàn tất hủy ký gửi",
-      "lido_stake_completed": "Đã ký gửi",
-      "lido_withdrawal_requested": "Đã yêu cầu hủy ký gửi",
-      "lido_withdrawal_completed": "Hoàn tất hủy ký gửi",
-      "lido_stake_ready_to_be_withdrawn": "Đã yêu cầu rút tiền"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Yêu cầu hủy ký gửi {{amount}} {{symbol}} của bạn đã được gửi",
-      "lido_stake_ready_to_be_withdrawn": "Bây giờ bạn có thể rút {{symbol}} được hủy ký gửi"
-    },
     "modal": {
-      "title_sent": "Đã gửi {{symbol}}",
-      "title_received": "Đã nhận {{symbol}}",
-      "title_unstake_requested": "Đã yêu cầu hủy ký gửi",
-      "title_untake_ready": "Sẵn sàng rút tiền",
-      "title_stake": "Đã ký gửi {{symbol}}",
-      "title_unstake_completed": "Đã hoàn tất hủy ký gửi",
-      "title_swapped": "Đã hoán đổi {{symbolIn}} sang {{symbolOut}}",
       "label_address_to": "Đến",
       "label_address_from": "Từ",
       "label_address_to_you": "Đến (Bạn)",
@@ -9705,7 +9672,7 @@
       "view_on_block_explorer": "Xem trên trình khám phá khối"
     },
     "share_address_qr": {
-      "title": "địa chỉ {{networkName}}",
+      "title": "Địa chỉ {{networkName}}",
       "copy_address": "Sao chép địa chỉ",
       "description": "Sử dụng địa chỉ này để nhận token và bộ sưu tập trên",
       "description_prefix": "Dùng để nhận tài sản vào"
@@ -11404,7 +11371,6 @@
     "ecosystems_subtitle": "Khám phá các dapp, token và NFT trên nhiều chuỗi khác nhau trong MetaMask Portfolio",
     "all_sports": "Môn thể thao phổ biến",
     "basketball": "Bóng rổ",
-    "football": "Bóng bầu dục",
     "soccer": "Bóng đá",
     "tennis": "Quần vợt",
     "f1": "F1",

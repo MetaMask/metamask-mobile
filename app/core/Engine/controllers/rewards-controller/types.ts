@@ -1462,45 +1462,6 @@ export interface PredictThePitchPrizePoolDto {
   computedAt: string | null;
 }
 
-/**
- * Minimal reference to a single Polymarket market.
- */
-export interface PredictMarketRef {
-  eventId: string;
-  conditionId?: string;
-}
-
-/**
- * Response DTO for the public first predict on us endpoint.
- */
-export interface FirstPredictOnUsDto {
-  name: string;
-  image: ThemeImage | null;
-  localizedText: Record<string, string>;
-  usdAmount: number;
-  markets: PredictMarketRef[];
-  termsUrl: string | null;
-}
-
-/**
- * Serializable version of FirstPredictOnUsDto for state storage.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FirstPredictOnUsDtoState = {
-  name: string;
-  image: ThemeImageState | null;
-  localizedText: { [key: string]: string };
-  usdAmount: number;
-  markets: { eventId: string; conditionId?: string }[];
-  termsUrl: string | null;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FirstPredictOnUsCacheState = {
-  data: FirstPredictOnUsDtoState | null;
-  lastFetched: number;
-};
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
   rank: number;
@@ -1637,6 +1598,15 @@ export interface MoneyAccountSweepstakesPrizePoolDto {
   maxPrizeUsd: number;
 }
 
+/**
+ * Response DTO for GET /money-account-sweepstakes/:campaignId/stats/volume (public).
+ */
+export interface MoneyAccountSweepstakesVolumeStatsDto {
+  totalVolumeUsd: number;
+  eligibleParticipantCount: number;
+  yieldEarnedUsd: number;
+}
+
 export interface MoneyAccountSweepstakesDrawExplanationDto {
   merkleRoot: string;
   seedBlock: number;
@@ -1718,6 +1688,14 @@ export type MoneyAccountSweepstakesPrizePoolState = {
   numberOfWinners: number;
   minPrizeUsd: number;
   maxPrizeUsd: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesVolumeStatsState = {
+  totalVolumeUsd: number;
+  eligibleParticipantCount: number;
+  yieldEarnedUsd: number;
   lastFetched: number;
 };
 
@@ -2892,14 +2870,16 @@ export type RewardsControllerState = {
   moneyAccountSweepstakesPrizePool: {
     [campaignId: string]: MoneyAccountSweepstakesPrizePoolState;
   };
+  /** Money Account Sweepstakes volume stats keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesVolumeStats: {
+    [campaignId: string]: MoneyAccountSweepstakesVolumeStatsState;
+  };
   /** Money Account Sweepstakes draw proof keyed by campaignId (public endpoint). */
   moneyAccountSweepstakesDrawProof: {
     [campaignId: string]: MoneyAccountSweepstakesDrawProofState;
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
-  /** Cached first predict on us content from the public endpoint. */
-  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

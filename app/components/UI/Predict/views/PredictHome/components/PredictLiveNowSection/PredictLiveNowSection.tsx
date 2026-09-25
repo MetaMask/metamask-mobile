@@ -1,9 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  useWindowDimensions,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
 import {
   Box,
   BoxBorderColor,
@@ -21,7 +17,6 @@ import SharedDeeplinkManager from '../../../../../../../core/DeeplinkManager/Dee
 import Logger from '../../../../../../../util/Logger';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
-import { PaginationDots } from '../../../../components/PaginationDots/PaginationDots';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import type { PredictMarket as PredictMarketType } from '../../../../types';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
@@ -61,7 +56,6 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   // interval (not just cardWidth) to stay in sync with the snapped card.
   const snapInterval = useMemo(() => cardWidth + CARD_GAP, [cardWidth]);
   const { items, isLoading, isEmpty, config } = usePredictLiveNowSection();
-  const [activeIndex, setActiveIndex] = useState(0);
   const isCustom = config.mode === 'custom';
   const isHeaderInteractive = !isCustom || Boolean(config.deeplink);
 
@@ -92,33 +86,10 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
     });
   }, [config.deeplink, isCustom, navigation]);
 
-  useEffect(() => {
-    const lastIndex = items.length - 1;
-    setActiveIndex((prev) =>
-      lastIndex < 0 ? 0 : Math.min(Math.max(prev, 0), lastIndex),
-    );
-  }, [items.length]);
-
   const carouselData = useMemo<CarouselItem[]>(
     () =>
       isLoading ? Array.from<CarouselItem>({ length: SKELETON_COUNT }) : items,
     [isLoading, items],
-  );
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const lastIndex = items.length - 1;
-      if (lastIndex < 0) {
-        return;
-      }
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const newIndex = Math.min(
-        Math.max(0, Math.round(offsetX / snapInterval)),
-        lastIndex,
-      );
-      setActiveIndex(newIndex);
-    },
-    [snapInterval, items.length],
   );
 
   const renderItem: ListRenderItem<CarouselItem> = useCallback(
@@ -192,18 +163,8 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
           showsHorizontalScrollIndicator={false}
           snapToInterval={snapInterval}
           decelerationRate="fast"
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
         />
       </Box>
-
-      {!isLoading && (
-        <PaginationDots
-          count={items.length}
-          activeIndex={activeIndex}
-          testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS}
-        />
-      )}
     </Box>
   );
 };

@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Compte bancaire",
       "title": "Obtenez votre Pix Key",
       "description": "Transférez directement des fonds depuis n'importe quel compte bancaire vers votre compte Money.",
@@ -2021,10 +2021,6 @@
         "current_price": "Prix actuel",
         "liquidation_price": "Prix de liquidation",
         "liquidation_distance": "Distance de liquidation",
-        "liquidation_warning": "Votre position sera liquidée si le prix {{direction}} de {{percentage}}",
-        "drops": "baisse",
-        "rises": "augmente",
-        "set_leverage": "Régler sur {{leverage}}x",
         "price_unavailable": "Informations sur les prix indisponibles"
       },
       "type": {
@@ -6025,7 +6021,6 @@
       "only_numbers_allowed": "Seuls les chiffres sont autorisés",
       "negative_values_not_allowed": "Les valeurs négatives ne sont pas autorisées",
       "max_base_fee_must_be_greater_than_priority_fee": "Les frais de base maximaux doivent être supérieurs aux frais de priorité",
-      "gas_limit_too_low": "Les frais de gaz doivent être supérieurs à 21000",
       "priority_fee_too_high": "Les frais de priorité doivent être inférieurs aux frais de base maximaux",
       "no_zero_value": "{{field}} doit être supérieur à 0",
       "speed": "Vitesse",
@@ -6542,35 +6537,7 @@
     "swap_completed": "A échangé {{from}} contre {{to}}",
     "swap": "Échangé",
     "sent": "Envoyé à {{address}}",
-    "menu_item_title": {
-      "metamask_swap_completed": "A échangé {{symbolIn}} contre {{symbolOut}}",
-      "erc20_sent": "Envoyé à {{address}}",
-      "erc20_received": "Reçu de {{address}}",
-      "eth_sent": "Envoyé à {{address}}",
-      "eth_received": "Reçu de {{address}}",
-      "erc721_sent": "A envoyé un NFT à {{address}}",
-      "erc1155_sent": "A envoyé un NFT à {{address}}",
-      "erc721_received": "A reçu un NFT de {{address}}",
-      "erc1155_received": "A reçu un NFT de {{address}}",
-      "rocketpool_stake_completed": "Staké",
-      "rocketpool_unstake_completed": "Déstaking terminé",
-      "lido_stake_completed": "Staké",
-      "lido_withdrawal_requested": "Déstaking demandé",
-      "lido_withdrawal_completed": "Déstaking terminé",
-      "lido_stake_ready_to_be_withdrawn": "Retrait demandé"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Votre demande d’annuler le staking de {{amount}} {{symbol}} a été envoyée",
-      "lido_stake_ready_to_be_withdrawn": "Vous pouvez maintenant retirer vos {{symbol}} non stakés"
-    },
     "modal": {
-      "title_sent": "{{symbol}} envoyé(s)",
-      "title_received": "{{symbol}} reçu(s)",
-      "title_unstake_requested": "Déstaking demandé",
-      "title_untake_ready": "Retrait prêt à être effectué",
-      "title_stake": "{{symbol}} staké(s)",
-      "title_unstake_completed": "Annulation du staking terminée",
-      "title_swapped": "A échangé {{symbolIn}} contre {{symbolOut}}",
       "label_address_to": "À",
       "label_address_from": "De",
       "label_address_to_you": "À (Vous)",
@@ -11404,7 +11371,6 @@
     "ecosystems_subtitle": "Découvrez les dApps, les jetons et les NFT disponibles sur les différentes chaînes sur MetaMask Portfolio",
     "all_sports": "Sports populaires",
     "basketball": "Basket-ball",
-    "football": "Football américain",
     "soccer": "Football",
     "tennis": "Tennis",
     "f1": "F1",

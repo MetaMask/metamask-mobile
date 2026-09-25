@@ -41,6 +41,7 @@ import {
   type PredictThePitchPrizePoolDto,
   type MoneyAccountSweepstakesStatsMeDto,
   type MoneyAccountSweepstakesPrizePoolDto,
+  type MoneyAccountSweepstakesVolumeStatsDto,
   type MoneyAccountSweepstakesDrawProofDto,
   type MoneyAccountSweepstakesOutcomeDto,
   type OndoGmActivityState,
@@ -56,8 +57,6 @@ import {
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
   type ClientVersionRequirementState,
-  type FirstPredictOnUsDto,
-  type FirstPredictOnUsCacheState,
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
@@ -222,8 +221,6 @@ const MONEY_ACCOUNT_SWEEPSTAKES_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS =
 const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
 
 // First predict on us cache threshold — matches API Cache-Control max-age=60
-const FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS = 1000 * 60; // 1 minute
-
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
@@ -396,6 +393,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  moneyAccountSweepstakesVolumeStats: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   moneyAccountSweepstakesDrawProof: {
     includeInStateLogs: true,
     persist: true,
@@ -403,12 +406,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   clientVersionRequirements: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  firstPredictOnUs: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -589,7 +586,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getCampaigns',
   'getCandidateSubscriptionId',
   'getClientVersionRequirements',
-  'getFirstPredictOnUs',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
   'getGeoRewardsMetadata',
@@ -614,6 +610,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPrizePool',
   'getMoneyAccountSweepstakesStatsMe',
   'getMoneyAccountSweepstakesPrizePool',
+  'getMoneyAccountSweepstakesVolumeStats',
   'getMoneyAccountSweepstakesDrawProof',
   'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
@@ -681,7 +678,6 @@ export class RewardsController extends BaseController<
   > = new Map();
   #isDisabled: () => boolean;
   #isVipDisabled: () => boolean;
-  #isFirstPredictOnUsDisabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
@@ -904,13 +900,11 @@ export class RewardsController extends BaseController<
     state,
     isDisabled,
     isVipDisabled,
-    isFirstPredictOnUsDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isVipDisabled?: () => boolean;
-    isFirstPredictOnUsDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -924,8 +918,6 @@ export class RewardsController extends BaseController<
 
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isVipDisabled = isVipDisabled ?? (() => false);
-    this.#isFirstPredictOnUsDisabled =
-      isFirstPredictOnUsDisabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -2530,18 +2522,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if the First Predict On Us feature is enabled.
-   * First Predict On Us is a sub-feature of rewards, so it requires both
-   * the rewards feature and the dedicated feature flag to be enabled.
-   * @returns boolean - True if the First Predict On Us feature is enabled
-   */
-  isFirstPredictOnUsFeatureEnabled(): boolean {
-    if (!this.isRewardsFeatureEnabled()) return false;
-    if (this.#isFirstPredictOnUsDisabled()) return false;
-    return true;
-  }
-
-  /**
    * Check if there is an active season.
    * Temporarily hardcoded to false while no season is configured. Callers
    * gate season-scoped flows (points estimates, rewards rows, dashboard
@@ -4140,6 +4120,7 @@ export class RewardsController extends BaseController<
 
   /**
    * Register (or re-assert) the Money Account holder address for a subscription.
+   * The request carries a personal_sign signature from the Money Account.
    * Results are memoized in-session so repeated re-asserts do not re-POST, and
    * a discovered conflict is returned synchronously on subsequent calls.
    * @param moneyAccountAddress - The Money Account holder address to bind.
@@ -4160,14 +4141,53 @@ export class RewardsController extends BaseController<
       return cached;
     }
 
-    const result = await this.#withAuthRetry(async () => {
-      Logger.log('RewardsController: Registering Money Account binding');
-      return (await this.messenger.call(
-        'RewardsDataService:registerMoneyAccountBinding',
-        subscriptionId,
-        moneyAccountAddress,
-      )) as 'bound' | 'conflict';
-    }, subscriptionId);
+    const signBinding = async (ts: number): Promise<string> => {
+      const message = `metamask-rewards:money-account-binding:${subscriptionId}:${moneyAccountAddress.toLowerCase()}:${ts}`;
+      return this.messenger.call('KeyringController:signPersonalMessage', {
+        data: '0x' + Buffer.from(message, 'utf8').toString('hex'),
+        from: moneyAccountAddress,
+      });
+    };
+
+    let timestamp = Date.now();
+    let signature = await signBinding(timestamp);
+    let retryAttempt = 0;
+    const MAX_RETRY_ATTEMPTS = 1;
+
+    const executeBind = async (
+      ts: number,
+      sig: string,
+    ): Promise<'bound' | 'conflict'> => {
+      try {
+        return (await this.#withAuthRetry(async () => {
+          Logger.log('RewardsController: Registering Money Account binding');
+          return await this.messenger.call(
+            'RewardsDataService:registerMoneyAccountBinding',
+            subscriptionId,
+            moneyAccountAddress,
+            ts,
+            sig,
+          );
+        }, subscriptionId)) as 'bound' | 'conflict';
+      } catch (error) {
+        if (
+          error instanceof InvalidTimestampError &&
+          retryAttempt < MAX_RETRY_ATTEMPTS
+        ) {
+          retryAttempt++;
+          Logger.log(
+            'RewardsController: Retrying Money Account binding with server timestamp',
+            { originalTimestamp: ts, newTimestamp: error.timestamp },
+          );
+          timestamp = error.timestamp;
+          signature = await signBinding(timestamp);
+          return await executeBind(timestamp, signature);
+        }
+        throw error;
+      }
+    };
+
+    const result = await executeBind(timestamp, signature);
 
     this.#moneyAccountBindingResults.set(cacheKey, result);
     return result;
@@ -5403,39 +5423,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Fetch the visible first predict on us content from the public API.
-   * Cached for 1 minute using controller state, matching the API Cache-Control header.
-   * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
-   */
-  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
-    if (!this.isFirstPredictOnUsFeatureEnabled()) return null;
-
-    const cached = this.state.firstPredictOnUs;
-    if (
-      cached &&
-      Date.now() - cached.lastFetched < FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS
-    ) {
-      return cached.data;
-    }
-
-    Logger.log(
-      'RewardsController: Fetching fresh first predict on us data via API call',
-    );
-    const result = (await this.messenger.call(
-      'RewardsDataService:getFirstPredictOnUs',
-    )) as FirstPredictOnUsDto | null;
-
-    this.update((state) => {
-      state.firstPredictOnUs = {
-        data: result,
-        lastFetched: Date.now(),
-      };
-    });
-
-    return result;
-  }
-
-  /**
    * Invalidate referral details cache for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    */
@@ -5946,6 +5933,58 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         this.update((state) => {
           state.moneyAccountSweepstakesPrizePool[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes aggregate volume stats.
+   * Public endpoint — results are cached for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The volume stats DTO.
+   */
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        eligibleParticipantCount: 0,
+        yieldEarnedUsd: 0,
+      };
+    }
+
+    return await wrapWithCache<MoneyAccountSweepstakesVolumeStatsDto>({
+      key: campaignId,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesVolumeStats[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            eligibleParticipantCount: cached.eligibleParticipantCount,
+            yieldEarnedUsd: cached.yieldEarnedUsd,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Money Account Sweepstakes volume stats via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
+          campaignId,
+        )) as MoneyAccountSweepstakesVolumeStatsDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesVolumeStats[k] = {
             ...payload,
             lastFetched: Date.now(),
           };

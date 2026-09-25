@@ -2,10 +2,13 @@ import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import Engine from '../../../../../core/Engine';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderCardHomeView } from '../../../../../../tests/component-view/renderers/cardViewRenderer';
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
+  getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import { CardHomeSelectors } from './CardHome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -15,8 +18,105 @@ import CardAuthentication from '../CardAuthentication/CardAuthentication';
 import { CashbackSelectors } from '../Cashback/Cashback.testIds';
 import { ChooseYourCardSelectors } from '../ChooseYourCard/ChooseYourCard.testIds';
 import { CardAuthenticationSelectors } from '../CardAuthentication/CardAuthentication.testIds';
+import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
+
+const mockGetCapabilities = jest.mocked(
+  Engine.context.CardController.getCapabilities,
+);
+const defaultCapabilities = mockGetCapabilities();
+
+const LINKABLE_MONEY_ACCOUNT_ADDRESS =
+  '0x1234567890123456789012345678901234567890';
+const LINKABLE_VEDA_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const LINKABLE_DELEGATION_CONTRACT =
+  '0x9876543210987654321098765432109876543210';
+
+const linkableCardHomeOverrides = {
+  engine: {
+    backgroundState: {
+      GeolocationController: { location: 'US' },
+      KeyringController: {
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            metadata: { id: 'wallet1' },
+            accounts: [LINKABLE_MONEY_ACCOUNT_ADDRESS],
+          },
+        ],
+      },
+      MoneyAccountController: {
+        moneyAccounts: {
+          'account-1': {
+            id: 'account-1',
+            address: LINKABLE_MONEY_ACCOUNT_ADDRESS,
+            type: 'eip155:eoa',
+            scopes: [],
+            methods: [],
+            options: {
+              entropy: {
+                type: 'mnemonic',
+                id: 'wallet1',
+                derivationPath: "m/44'/60'/0'/0/0",
+                groupIndex: 0,
+              },
+              exportable: false,
+            },
+          },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          moneyEnableMoneyAccount: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+          moneyAccountVaultConfig: { chainId: '0x8f' },
+          gasFeesSponsoredNetwork: { '0x8f': true },
+          cardFeature: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: LINKABLE_VEDA_ADDRESS,
+                    symbol: 'veda',
+                    decimals: 6,
+                    enabled: true,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      CardController: {
+        cardHomeData: {
+          delegationSettings: {
+            networks: [
+              {
+                network: 'monad',
+                chainId: '0x8f',
+                delegationContract: LINKABLE_DELEGATION_CONTRACT,
+                tokens: {
+                  veda: {
+                    address: LINKABLE_VEDA_ADDRESS,
+                    decimals: 6,
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+} satisfies DeepPartial<RootState>;
 
 describe('CardHome', () => {
+  afterEach(() => {
+    mockGetCapabilities.mockReturnValue(defaultCapabilities);
+  });
+
   describe('navigation', () => {
     describe('when authenticated', () => {
       it('opens Add Funds modal with the active USDC funding token when Add Funds button is pressed', async () => {
@@ -60,6 +160,103 @@ describe('CardHome', () => {
         expect(params.screen).toBe(Routes.CARD.MODALS.ASSET_SELECTION);
       });
 
+      it('opens digital wallet instructions for an Immersve cardholder', async () => {
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'immersve',
+                  providerData: {
+                    immersve: { location: 'international' },
+                  },
+                },
+              },
+            },
+          },
+          extraRoutes: [
+            {
+              name: Routes.CARD.MODALS.ID,
+              Component: createRouteParamsProbe(Routes.CARD.MODALS.ID),
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        );
+
+        const paramsEl = await findByTestId(
+          getRouteParamsProbeTestId(Routes.CARD.MODALS.ID),
+        );
+        const params = JSON.parse(paramsEl.props.children as string);
+        expect(params.screen).toBe(
+          Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+        );
+      });
+
+      it('opens digital wallet instructions for a Baanx international cardholder', async () => {
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'baanx',
+                  providerData: {
+                    baanx: { location: 'international' },
+                  },
+                },
+              },
+            },
+          },
+          extraRoutes: [
+            {
+              name: Routes.CARD.MODALS.ID,
+              Component: createRouteParamsProbe(Routes.CARD.MODALS.ID),
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        );
+
+        const paramsEl = await findByTestId(
+          getRouteParamsProbeTestId(Routes.CARD.MODALS.ID),
+        );
+        const params = JSON.parse(paramsEl.props.children as string);
+        expect(params.screen).toBe(
+          Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+        );
+      });
+
+      it('hides digital wallet instructions for a Baanx US cardholder', async () => {
+        const { queryByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'baanx',
+                  providerData: {
+                    baanx: { location: 'us' },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        await waitFor(() => {
+          expect(
+            queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+          ).not.toBeOnTheScreen();
+        });
+      });
+
       it('opens Spending Limit screen with flow=manage when Manage Spending Limit button is pressed', async () => {
         const { getByTestId, findByTestId } = renderCardHomeView({
           extraRoutes: [
@@ -80,6 +277,34 @@ describe('CardHome', () => {
         expect(paramsEl).toBeOnTheScreen();
         const params = JSON.parse(paramsEl.props.children as string);
         expect(params.flow).toBe('manage');
+      });
+
+      it('opens Contact Details for a fully set up Immersve card', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          supportsContactDetails: true,
+        });
+        const { getByTestId, findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  activeProviderId: 'immersve',
+                  providerData: {
+                    immersve: { location: 'international' },
+                  },
+                },
+              },
+            },
+          },
+          extraRoutes: [{ name: Routes.CARD.CONTACT_DETAILS }],
+        });
+
+        fireEvent.press(getByTestId(CardHomeSelectors.CONTACT_DETAILS_ITEM));
+
+        expect(
+          await findByTestId(getRouteProbeTestId(Routes.CARD.CONTACT_DETAILS)),
+        ).toBeOnTheScreen();
       });
 
       it('opens Cashback screen showing balance and withdrawal button when Cashback button is pressed', async () => {
@@ -142,37 +367,42 @@ describe('CardHome', () => {
     });
 
     describe('when unauthenticated (teaser mode)', () => {
-      it('shows CardAuthentication login form when Change Asset button is pressed while unauthenticated', async () => {
-        const { getByTestId, findByTestId } = renderCardHomeView({
-          overrides: {
-            engine: {
-              backgroundState: {
-                CardController: { isAuthenticated: false },
+      it('shows CardAuthentication when Change Asset is pressed while unauthenticated', async () => {
+        const { getByTestId, findByTestId, queryByTestId } = renderCardHomeView(
+          {
+            overrides: {
+              engine: {
+                backgroundState: {
+                  CardController: { isAuthenticated: false },
+                },
               },
             },
+            extraRoutes: [
+              {
+                name: Routes.CARD.AUTHENTICATION,
+                Component: CardAuthentication,
+              },
+            ],
           },
-          extraRoutes: [
-            {
-              name: Routes.CARD.AUTHENTICATION,
-              Component: CardAuthentication,
-            },
-          ],
-        });
+        );
 
         fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
 
         expect(
+          await findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+        ).toBeOnTheScreen();
+        expect(
           await findByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
         ).toBeOnTheScreen();
         expect(
-          await findByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
-        ).toBeOnTheScreen();
+          queryByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
+        ).toBeNull();
         expect(
-          await findByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
-        ).toBeOnTheScreen();
+          queryByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        ).toBeNull();
         expect(
-          await findByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
-        ).toBeOnTheScreen();
+          queryByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
+        ).toBeNull();
       });
     });
   });
@@ -225,6 +455,23 @@ describe('CardHome', () => {
       });
 
       expect(logoutMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account linking', () => {
+    it('navigates to the Link Card sheet when link-mode content is pressed', async () => {
+      const { findByTestId } = renderCardHomeView({
+        overrides: linkableCardHomeOverrides,
+        extraRoutes: [{ name: Routes.MONEY.MODALS.ROOT }],
+      });
+
+      fireEvent.press(
+        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      );
+
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.MONEY.MODALS.ROOT)),
+      ).toBeOnTheScreen();
     });
   });
 });

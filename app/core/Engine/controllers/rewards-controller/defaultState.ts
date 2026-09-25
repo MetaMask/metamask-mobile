@@ -36,9 +36,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   predictThePitchPrizePool: {},
   moneyAccountSweepstakesStats: {},
   moneyAccountSweepstakesPrizePool: {},
+  moneyAccountSweepstakesVolumeStats: {},
   moneyAccountSweepstakesDrawProof: {},
   clientVersionRequirements: null,
-  firstPredictOnUs: null,
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });

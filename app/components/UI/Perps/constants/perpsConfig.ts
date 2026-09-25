@@ -19,6 +19,7 @@ import {
   PERPS_ADL_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
+import { DAY } from '../../../../constants/time';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
@@ -108,6 +109,8 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
 const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
 const TWAP_HISTORY_PAGE_SIZE = 20;
@@ -115,6 +118,10 @@ const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+// Hyperliquid submits one TWAP suborder every 30 seconds, so the suborder count
+// is the runtime divided by this interval:
+// https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
+const TWAP_SUBORDER_INTERVAL_SECONDS = 30;
 
 /**
  * Mobile-only TWAP input and copy configuration derived from the controller's
@@ -125,6 +132,9 @@ const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
+  SecondsPerMinute: SECONDS_PER_MINUTE,
+  MillisecondsPerSecond: MILLISECONDS_PER_SECOND,
+  SuborderIntervalSeconds: TWAP_SUBORDER_INTERVAL_SECONDS,
   MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
   MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
   MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
@@ -213,6 +223,10 @@ export const TP_SL_VIEW_CONFIG = {
   // default USD configuration which only allows 2 decimal places
   KeypadCurrencyCode: 'USD_PERPS' as const,
   KeypadDecimals: 5,
+
+  // Longest wait for a sheet close animation before confirming anyway.
+  // Comfortably past the animation, short enough not to read as a hang.
+  DismissTimeoutMs: 1000,
 } as const;
 
 /**
@@ -242,6 +256,10 @@ export const LIMIT_PRICE_CONFIG = {
   // Warn when a limit/scale price is more than 5% from the near-touch
   // (best bid long, best ask short). Equal to 5% does not warn.
   FarFromMarketThreshold: 0.05,
+
+  // Keypad decimal places for the shared USD_PERPS currency override used by
+  // both the full-screen limit-price sheet and the Trade sheet editor.
+  KeypadDecimals: 5,
 } as const;
 
 // Local warning-type literal. PERPS_EVENT_VALUE.WARNING_TYPE has no
@@ -251,6 +269,10 @@ export const FAR_FROM_MARKET_WARNING_INTERACTION =
 export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
+
+export const PAGE_WINDOW_MS = 30 * DAY;
+
+export const MAX_LOOKBACK_MS = 365 * DAY;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
@@ -271,6 +293,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
   /** Delay between attempts. */
   RetryDelayMs: 1000,
 } as const;
+
+/**
+ * Longest a filled market close keeps its market locked while the positions
+ * stream catches up. Bounded so a stalled stream cannot block closing.
+ */
+export const PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS = 10_000;
 
 /** Extra capability requests after transient provider unavailability. */
 export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;

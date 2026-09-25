@@ -181,13 +181,17 @@ describe('usePerpsToasts', () => {
 
   describe('PerpsToastOptions configurations', () => {
     describe('accountManagement.deposit', () => {
-      it('returns success configuration with formatted amount', () => {
+      it('returns success configuration reporting the amount added', () => {
+        // Arrange
         const { result } = renderHook(() => usePerpsToasts());
+
+        // Act
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.success(
-            '100 USDC',
+            '100',
           );
 
+        // Assert
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Confirmation,
@@ -197,9 +201,46 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toEqual([
           { label: 'Your Perps account was funded', isBold: true },
           { label: '\n', isBold: false },
-          { label: '$100 available to trade', isBold: false },
+          { label: '$100 was added to Perps', isBold: false },
         ]);
       });
+
+      it('reports sub-dollar amounts added without rounding them away', () => {
+        // Arrange
+        const { result } = renderHook(() => usePerpsToasts());
+
+        // Act
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.success(
+            '0.97',
+          );
+
+        // Assert
+        expect(config.labelOptions?.[2]).toEqual({
+          label: '$0.97 was added to Perps',
+          isBold: false,
+        });
+      });
+
+      it.each(['', '0', 'not-a-number'])(
+        'falls back to the generic success subtext when the amount added is %p',
+        (amountAdded) => {
+          // Arrange
+          const { result } = renderHook(() => usePerpsToasts());
+
+          // Act
+          const config =
+            result.current.PerpsToastOptions.accountManagement.deposit.success(
+              amountAdded,
+            );
+
+          // Assert
+          expect(config.labelOptions?.[2]).toEqual({
+            label: 'Funds are ready to trade',
+            isBold: false,
+          });
+        },
+      );
 
       it('returns in progress configuration with processing time', () => {
         const { result } = renderHook(() => usePerpsToasts());
@@ -1311,6 +1352,23 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.tpsl', () => {
+      it('returns update TPSL in progress configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl
+            .updateTPSLInProgress;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationMoment.Warning,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Updating TP/SL', isBold: true },
+        ]);
+      });
+
       it('returns update TPSL success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -1365,7 +1423,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);
@@ -1389,7 +1447,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);

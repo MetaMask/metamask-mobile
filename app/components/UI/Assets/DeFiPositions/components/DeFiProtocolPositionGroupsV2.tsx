@@ -1,5 +1,6 @@
-import React, { Fragment, useMemo } from 'react';
-import { FlatList, ImageSourcePropType, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { ImageSourcePropType, View } from 'react-native';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import {
@@ -13,7 +14,10 @@ import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionGroups.styles
 import DeFiProtocolPositionGroupTokens from '../../../DeFiPositions/DeFiProtocolPositionGroupTokens';
 import Summary from '../../../../Base/Summary';
 import { useStyles } from '../../../../hooks/useStyles';
-import { mapDefiProtocolDetailsPositionV2ToToken } from '../utils/map-defi-protocol-details-position-v2';
+import {
+  flattenDefiProtocolPositionGroupSections,
+  type DeFiProtocolPositionGroupListItem,
+} from '../utils/flatten-defi-protocol-position-group-sections';
 
 interface DeFiProtocolPositionGroupsV2Props {
   protocolPositionGroup: DeFiProtocolPositionGroup;
@@ -27,43 +31,51 @@ const DeFiProtocolPositionGroupsV2: React.FC<
   const { styles } = useStyles(styleSheet, undefined);
   const currency = useSelector(getSelectedCurrency);
 
-  const sections = useMemo(
+  const listItems = useMemo(
     () =>
-      protocolPositionGroup.sections.map((section) => ({
-        productName: section.productName,
-        tokens: section.positions.map((position) =>
-          mapDefiProtocolDetailsPositionV2ToToken(position),
-        ),
-      })),
+      flattenDefiProtocolPositionGroupSections(protocolPositionGroup.sections),
     [protocolPositionGroup.sections],
+  );
+
+  const renderItem = useCallback<
+    ListRenderItem<DeFiProtocolPositionGroupListItem>
+  >(
+    ({ item }) => {
+      if (item.type === 'header') {
+        return (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {item.productName}
+          </Text>
+        );
+      }
+
+      if (item.type === 'separator') {
+        return <Summary.Separator />;
+      }
+
+      return (
+        <DeFiProtocolPositionGroupTokens
+          tokens={[item.token]}
+          networkIconAvatar={networkIconAvatar}
+          privacyMode={privacyMode}
+          currency={currency}
+        />
+      );
+    },
+    [currency, networkIconAvatar, privacyMode],
   );
 
   return (
     <View style={styles.protocolDetailsPositionsWrapper}>
-      <FlatList
-        data={sections}
-        renderItem={({ item: section, index }) => {
-          const isLast = index === sections.length - 1;
-          return (
-            <Fragment key={section.productName}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {section.productName}
-              </Text>
-              <DeFiProtocolPositionGroupTokens
-                tokens={section.tokens}
-                networkIconAvatar={networkIconAvatar}
-                privacyMode={privacyMode}
-                currency={currency}
-              />
-              {!isLast && <Summary.Separator />}
-            </Fragment>
-          );
-        }}
-        keyExtractor={(section) => section.productName}
+      <FlashList
+        data={listItems}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.key}
+        getItemType={(item) => item.type}
       />
     </View>
   );

@@ -100,10 +100,6 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import {
-  getMetamaskNotificationsUnreadCount,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../selectors/notifications';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { selectAvatarAccountType } from '../../../selectors/settings';
@@ -702,14 +698,6 @@ const Wallet = ({
     toastRef,
   ]);
 
-  const isNotificationEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
-
-  const unreadNotificationCount = useSelector(
-    getMetamaskNotificationsUnreadCount,
-  );
-
   const homeGrowthBanner = useHomeGrowthBanner();
 
   /**
@@ -1226,8 +1214,6 @@ const Wallet = ({
                   displayName={displayName}
                   navigation={navigation}
                   isMoneyAccountVisible={isMoneyAccountVisible}
-                  isNotificationEnabled={isNotificationEnabled}
-                  unreadNotificationCount={unreadNotificationCount}
                   handleSearchPress={handleSearchPress}
                   handleActivityPress={handleActivityPress}
                   handleCardPress={handleCardPress}

@@ -334,6 +334,40 @@ describe('Transaction Pay Utils', () => {
       expect(result).toStrictEqual([]);
     });
 
+    it('does not throw and excludes token with undefined address', () => {
+      const tokenWithoutAddress = {
+        ...TOKEN_MOCK,
+        address: undefined,
+      } as unknown as AssetType;
+
+      expect(() =>
+        getAvailableTokens({
+          tokens: [tokenWithoutAddress],
+        }),
+      ).not.toThrow();
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithoutAddress],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not throw when payToken is undefined and a candidate token has undefined address', () => {
+      const tokenWithoutAddress = {
+        ...TOKEN_MOCK,
+        address: undefined,
+        balance: '0',
+      } as unknown as AssetType;
+
+      expect(() =>
+        getAvailableTokens({
+          payToken: undefined,
+          tokens: [tokenWithoutAddress, ERC20_TOKEN_MOCK],
+        }),
+      ).not.toThrow();
+    });
+
     describe('disabled', () => {
       it('keeps token enabled when native balance is zero', () => {
         const result = getAvailableTokens({
@@ -948,7 +982,9 @@ describe('Transaction Pay Utils', () => {
 
     it.each([
       TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
       TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
     ] as const)(
       'sets refundTo but leaves atomic unset for %s',
       (transactionType) => {

@@ -21,6 +21,17 @@ jest.mock('../../api', () => ({
     mockUseSubmitPriceAlert(editingAlert),
 }));
 
+const mockPerpSubmit = jest.fn();
+const mockUseSubmitPerpAlert = jest.fn((_editingAlert?: unknown) => ({
+  submit: mockPerpSubmit,
+  isSubmitting: false,
+}));
+
+jest.mock('../../perpApi', () => ({
+  useSubmitPerpAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPerpAlert(editingAlert),
+}));
+
 const baseProps: React.ComponentProps<typeof AbsolutePriceAlertForm> = {
   assetId: 'eip155:1/slip44:60',
   displayTicker: 'ETH',
@@ -651,5 +662,30 @@ describe('AbsolutePriceAlertForm', () => {
         }),
       );
     });
+  });
+
+  it('pre-fills BTC with integer keypad precision when szDecimals is 5', () => {
+    const screen = renderForm({
+      currentPrice: 83714,
+      szDecimals: 5,
+      displayTicker: 'BTC',
+      marketId: 'btc-hyperliquid-mainnet',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$83,714');
+  });
+
+  it('allows 6 keypad decimal places when szDecimals is 0', () => {
+    const screen = renderForm({
+      currentPrice: 0.008764,
+      szDecimals: 0,
+      displayTicker: 'kPEPE',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$0.008764');
   });
 });

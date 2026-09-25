@@ -5,10 +5,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Animated from 'react-native-reanimated';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import {
   navigateWithDetails,
   useParams,
@@ -19,12 +21,16 @@ import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
-import MoneyHeader from '../../components/MoneyHeader';
+import MoneyHeader, {
+  type MoneyHeaderProButton,
+  type MoneyHeaderProps,
+} from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -43,7 +49,10 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
-import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import {
+  deriveMoneyMetaMaskCardMode,
+  MoneyMetaMaskCardMode,
+} from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -104,22 +113,36 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
+import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
-const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
+const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
+  // Pushed over another stack (e.g. a Rewards campaign funding flow) rather
+  // than rooted in the tab bar, which is the only case that gets a back
+  // affordance and the title that collapses into the header on scroll.
+  const isPushed = Boolean(showBackButton);
+  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+    useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
+
+  // usePlusAccess already mounts the subscriptions query while the Pro flow
+  // is enabled, so this view only needs the resolved chrome flags.
+  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
 
   const {
     trackButtonClicked,
@@ -208,6 +231,7 @@ const MoneyHomeView = () => {
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
+    getLinkFlowRedirectTarget,
     startLinkFlow,
     isCardAuthenticated,
     isCardVerified,
@@ -376,16 +400,70 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+    const destination = isPlusSubscriber
+      ? {
+          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+          label_key: 'pro_subscription.pro',
+          redirect_target: SCREEN_NAMES.PRO_HUB,
+          route: Routes.PRO_HUB.ROOT,
+        }
+      : {
+          button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+          label_key: 'pro_subscription.join_pro',
+          redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+          route: Routes.PRO_SUBSCRIPTION.ROOT,
+        };
+
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      component_name: COMPONENT_NAMES.MONEY_HEADER,
+      button_intent: destination.button_intent,
+      label_key: destination.label_key,
+      redirect_target: destination.redirect_target,
+    });
+
+    navigation.navigate(destination.route, {
       source: 'money_header',
     });
-  }, [navigation]);
+  }, [navigation, isPlusSubscriber, trackButtonClicked]);
+
+  const proButton: MoneyHeaderProButton | undefined =
+    isProSubscriptionEnabled && !isPlusAccessUnknown
+      ? {
+          label: isPlusSubscriber
+            ? strings('pro_subscription.pro')
+            : strings('pro_subscription.join_pro'),
+          onPress: handleGetProPress,
+        }
+      : undefined;
 
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
+  );
+
+  // Built as a whole object so each arm matches one side of the header's
+  // props union; spreading a partial would widen both arms to optional.
+  const headerProps: MoneyHeaderProps = isPushed
+    ? {
+        onMenuPress: handleMenuPress,
+        proButton,
+        onBack: handleBackPress,
+        scrollY,
+        titleSectionHeight: titleSectionHeightSv,
+      }
+    : {
+        onMenuPress: handleMenuPress,
+        proButton,
+      };
 
   const handleAddPress = useCallback(
     ({
@@ -485,6 +563,34 @@ const MoneyHomeView = () => {
     navigateToCardHome,
   ]);
 
+  const getPressRedirectTargetByMode = useCallback(
+    (mode: MoneyMetaMaskCardMode) => {
+      if (mode === 'link') {
+        return getLinkFlowRedirectTarget();
+      }
+
+      if (mode === 'upsell' || mode === 'manage') {
+        return SCREEN_NAMES.CARD_HOME;
+      }
+
+      return undefined;
+    },
+    [getLinkFlowRedirectTarget],
+  );
+
+  const handleMetaMaskCardHeaderPress = useCallback(
+    (mode: MoneyMetaMaskCardMode) => {
+      const redirectTarget = getPressRedirectTargetByMode(mode);
+      if (!redirectTarget) return;
+
+      trackSurfaceClicked({
+        redirect_target: redirectTarget,
+        component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION_HEADER,
+      });
+    },
+    [getPressRedirectTargetByMode, trackSurfaceClicked],
+  );
+
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
       ...MONEY_HOME_CARD_ORIGIN,
@@ -512,7 +618,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.APY,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY_APY,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -551,11 +657,11 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackTooltipClicked]);
 
-  const handleEarnCryptoInfoPress = useCallback(() => {
+  const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -646,19 +752,16 @@ const MoneyHomeView = () => {
     [initiateDeposit, trackTokenSurfaceClicked],
   );
 
-  const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
-      label_key: 'money.potential_earnings.view_all',
+  const handleMoneyPotentialEarningsHeaderPressed = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
     navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS, {
       overrideToUsd: true,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
@@ -688,22 +791,19 @@ const MoneyHomeView = () => {
         redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
       });
 
-      navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+      navigation.navigate(Routes.MONEY.HOW_IT_WORKS);
     },
     [navigation, trackSurfaceClicked],
   );
 
-  const handleViewAllActivityPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
-      label_key: 'money.activity.view_all',
+  const handleActivityHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
-    navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation, trackButtonClicked]);
+    navigation.navigate(Routes.MONEY.ACTIVITY);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleActivityItemPress = useCallback(
     (transaction: TransactionMeta) => {
@@ -758,6 +858,7 @@ const MoneyHomeView = () => {
         node: (
           <MoneyMetaMaskCard
             mode={metamaskCardMode}
+            onHeaderPress={handleMetaMaskCardHeaderPress}
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
@@ -829,7 +930,7 @@ const MoneyHomeView = () => {
           items={activityItems}
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
-          onViewAllPress={handleViewAllActivityPress}
+          onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
           cardEnrichmentByHash={cardEnrichmentByHash}
@@ -848,8 +949,8 @@ const MoneyHomeView = () => {
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
-          onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
-          onInfoPress={handleEarnCryptoInfoPress}
+          onHeaderPress={handleMoneyPotentialEarningsHeaderPressed}
+          onProjectedAmountPress={handleEarnCryptoProjectedAmountPressed}
           privacyMode={privacyMode}
         />
       ),
@@ -900,15 +1001,16 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader
-        onMenuPress={handleMenuPress}
-        onGetProPress={handleGetProPress}
-        onBack={showBackButton ? handleBackPress : undefined}
-      />
-      <ScrollView
+      <MoneyHeader {...headerProps} />
+      <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + floatingTabBarInset },
+        ]}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -918,26 +1020,35 @@ const MoneyHomeView = () => {
           />
         }
       >
-        {showBalanceUnavailableBanner && (
-          <Box twClassName="px-4 pt-2">
-            <BannerAlert
-              severity={BannerAlertSeverity.Warning}
-              title={strings('money.balance_unavailable')}
-              description={strings(
-                'money.balance_unavailable_banner_description',
-              )}
-              style={styles.balanceUnavailableBanner}
-              testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
-            />
-          </Box>
-        )}
-        <MoneyBalanceSummary
-          apy={apyPercent}
-          displayState={displayState}
-          onApyInfoPress={handleApyInfoPress}
-          privacyMode={privacyMode}
-          onBalancePress={handleBalancePress}
-        />
+        {/* Everything above the action buttons is measured as one block: the
+            header's compact title should only appear once the large title has
+            scrolled away, which the banner pushes further down when shown. */}
+        <Box
+          testID={MoneyHomeViewTestIds.TITLE_SECTION}
+          onLayout={isPushed ? handleTitleSectionLayout : undefined}
+        >
+          {showBalanceUnavailableBanner && (
+            <Box twClassName="px-4 pt-2">
+              <BannerAlert
+                severity={BannerAlertSeverity.Warning}
+                title={strings('money.balance_unavailable')}
+                description={strings(
+                  'money.balance_unavailable_banner_description',
+                )}
+                style={styles.balanceUnavailableBanner}
+                testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
+              />
+            </Box>
+          )}
+          <MoneyBalanceSummary
+            apy={apyPercent}
+            displayState={displayState}
+            onApyInfoPress={handleApyInfoPress}
+            privacyMode={privacyMode}
+            onBalancePress={handleBalancePress}
+            showTitle={isPushed}
+          />
+        </Box>
         <MoneyActionButtonRow
           add={{
             onPress: () =>
@@ -961,7 +1072,7 @@ const MoneyHomeView = () => {
             {section.node}
           </React.Fragment>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </Box>
   );
 };

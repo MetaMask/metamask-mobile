@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bankkonto",
       "title": "Holen Sie sich Ihren Pix-Schlüssel",
       "description": "Überweisen Sie Geld direkt von jedem beliebigen Bankkonto auf Ihr Money-Konto.",
@@ -2021,10 +2021,6 @@
         "current_price": "Aktueller Preis",
         "liquidation_price": "Liquidationspreis",
         "liquidation_distance": "Liquidationsdistanz",
-        "liquidation_warning": "Sie werden liquidiert, wenn der Preis {{direction}} um {{percentage}}",
-        "drops": "fällt",
-        "rises": "steigt",
-        "set_leverage": "{{leverage}}x festlegen",
         "price_unavailable": "Preisinformation nicht verfügbar"
       },
       "type": {
@@ -6025,7 +6021,6 @@
       "only_numbers_allowed": "Nur Zahlen sind erlaubt",
       "negative_values_not_allowed": "Negative Werte sind nicht erlaubt",
       "max_base_fee_must_be_greater_than_priority_fee": "Max. Grundgebühr muss höher sein als die Prioritätsgebühr",
-      "gas_limit_too_low": "Gas-Limit muss größer als 21000 sein",
       "priority_fee_too_high": "Prioritätsgebühr muss niedriger sein als die max. Grundgebühr",
       "no_zero_value": "{{field}} muss größer als 0 sein",
       "speed": "Geschwindigkeit",
@@ -6542,35 +6537,7 @@
     "swap_completed": "{{from}} für {{to}} geswappt",
     "swap": "Geswappt",
     "sent": "An {{address}} gesendet",
-    "menu_item_title": {
-      "metamask_swap_completed": "{{symbolIn}} für {{symbolOut}} geswappt",
-      "erc20_sent": "An {{address}} gesendet",
-      "erc20_received": "Von {{address}} empfangen",
-      "eth_sent": "An {{address}} gesendet",
-      "eth_received": "Von {{address}} empfangen",
-      "erc721_sent": "NFT an {{address}} gesendet",
-      "erc1155_sent": "NFT an {{address}} gesendet",
-      "erc721_received": "NFT von {{address}} empfangen",
-      "erc1155_received": "NFT von {{address}} empfangen",
-      "rocketpool_stake_completed": "Eingesetzt",
-      "rocketpool_unstake_completed": "Unstaking abschließen",
-      "lido_stake_completed": "Eingesetzt",
-      "lido_withdrawal_requested": "Unstaking angefordert",
-      "lido_withdrawal_completed": "Unstaking abschließen",
-      "lido_stake_ready_to_be_withdrawn": "Auszahlung angefordert"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "Ihre Anfrage zum Unstake {{amount}} {{symbol}} wurde gesendet",
-      "lido_stake_ready_to_be_withdrawn": "Sie können sich nun Ihre Unstaked {{symbol}} auszahlen lassen"
-    },
     "modal": {
-      "title_sent": "{{symbol}} senden",
-      "title_received": "{{symbol}} empfangen",
-      "title_unstake_requested": "Unstaking angefordert",
-      "title_untake_ready": "Auszahlung bereit",
-      "title_stake": "{{symbol}} staked",
-      "title_unstake_completed": "Unstaking abgeschlossen",
-      "title_swapped": "{{symbolIn}} für {{symbolOut}} geswappt",
       "label_address_to": "Bis",
       "label_address_from": "Von",
       "label_address_to_you": "An (Sie)",
@@ -11404,7 +11371,6 @@
     "ecosystems_subtitle": "Entdecken Sie DApps, Token und NFTs kettenübergreifend im MetaMask Portfolio.",
     "all_sports": "Beliebte Sporarten",
     "basketball": "Basketball",
-    "football": "Football",
     "soccer": "Fußball",
     "tennis": "Tennis",
     "f1": "F1",

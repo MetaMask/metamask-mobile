@@ -1,5 +1,15 @@
+import {
+  AccountTreeSnapshot,
+  AccountWalletPayloadType,
+  type AccountTreePayload,
+  type AccountWalletPayloadId,
+  type AccountGroupPayloadId,
+} from '@metamask/account-tree-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
+import { decodeMnemonicWords, toEntropySourceId } from '@metamask/keyring-sdk';
+import { mnemonicToSeed } from '@metamask/scure-bip39';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import type { EntropySourceId } from '@metamask/keyring-api';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 
@@ -7,7 +17,6 @@ import {
   QR_SYNC_CONTROLLER_NAME,
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
-  type QrSyncProvisioningEntryEnrichment,
 } from './controller-types';
 import type {
   QrSyncConnectionStatus,
@@ -20,17 +29,15 @@ import type {
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import {
-  parseQrSyncConnectionRequest,
   isQrSyncReadyForSecretImport,
-  resolveQrSyncProvisioningEntryForEnrichment,
-  validateQrSyncSecretImportsForOnboarding,
+  parseQrSyncConnectionRequest,
+  validateQrSyncPayloadForOnboarding,
 } from './services/qr-sync-validation';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
   QrSyncSyncFlows,
   RELAY_URL,
 } from './constants';
@@ -43,6 +50,48 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
+import { HdKeyring } from '@metamask/eth-hd-keyring/v2';
+import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+
+// TODO: Export this in @metamask/account-tree-controller and import it from there.
+/**
+ * Constructs an {@link AccountWalletPayloadId} from an entropy source ID.
+ *
+ * @param entropySourceId - Stable entropy source ID returned by {@link HdKeyring.toEntropySourceId()}.
+ * @returns The portable wallet payload ID.
+ */
+function toWalletPayloadId(entropySourceId: string): AccountWalletPayloadId {
+  return `wallet:${entropySourceId}`;
+}
+
+/**
+ * Computes the deterministic wallet payload ID for a BIP-39 mnemonic.
+ *
+ * This MUST match the ID that `AccountTreeController` assigns to the primary
+ * wallet after vault creation. The controller derives the ID via
+ * `HdKeyring.toEntropySourceId()`, which runs
+ * HMAC-SHA256(seed, "metamask:fingerprint"), takes the first 16 bytes,
+ * and formats the result as `wallet:entropy:mnemonic:<uuid>`.
+ * Critically, `seed` is the 64-byte BIP-39 PBKDF2 seed — not the raw 16-byte
+ * BIP-39 entropy — so we must use `mnemonicToSeed`, not `mnemonicToEntropy`.
+ *
+ * During `AccountTreeController:importState`, `findLocalWalletMnemonicFromPayloadId`
+ * compares the payload's wallet ID against every local wallet by strict string
+ * equality. A mismatch causes it to attempt a second SRP import — which throws
+ * because the keyring already contains that mnemonic — and the whole onboarding
+ * flow fails before MetaMetrics is ever shown.
+ *
+ * The real MetaMask extension always sends the correct entropy-derived ID.
+ * E2E payloads must do the same — a synthetic/mock ID cannot be used here
+ * because the ID must be stable and consistent with what `initializeAccountTree`
+ * already stored in the account tree before `importState` runs.
+ */
+async function computeWalletPayloadId(
+  mnemonic: string,
+): Promise<AccountWalletPayloadId> {
+  const seed = await mnemonicToSeed(mnemonic, wordlist);
+  return toWalletPayloadId(await toEntropySourceId('mnemonic', seed));
+}
 
 const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
@@ -198,7 +247,7 @@ export class QrSyncController extends BaseController<
 
   /**
    * Resets serialized controller state and tears down any active session.
-   * Clears secret material such as `importPlan` from memory.
+   * Clears secret material such as `pendingSecretImports` from memory.
    */
   public resetState(): void {
     this.destroySession().catch(() => undefined);
@@ -210,19 +259,22 @@ export class QrSyncController extends BaseController<
    * UI callers should use this instead of reading `pendingSecretImports`.
    */
   public hasPendingSecretImports(): boolean {
-    return Boolean(this.state.pendingSecretImports?.length);
+    return this.state.pendingSecretImports !== null;
   }
 
   /**
    * E2E-only: apply an SRP sync-ready payload without MWP pairing.
    *
-   * Sets `awaiting_password` + pending secrets so `useQrSyncImportNavigation`
-   * can continue the new-user or existing-user import path.
+   * Constructs a minimal `AccountTreePayload` from the test parameters and
+   * stores it as `pendingSecretImports` so `useQrSyncImportNavigation` can continue
+   * the new-user or existing-user import path.
    *
    * @throws If `HAS_TEST_OVERRIDES` is not enabled, or onboarding requires a
    * primary mnemonic and the payload omits it.
    */
-  public applyTestSyncReadyPayload(payload: QrSyncTestSyncReadyPayload): void {
+  public async applyTestSyncReadyPayload(
+    payload: QrSyncTestSyncReadyPayload,
+  ): Promise<void> {
     if (!hasTestOverrides) {
       throw new Error(
         'QrSyncController.applyTestSyncReadyPayload is only available when HAS_TEST_OVERRIDES=true',
@@ -236,46 +288,45 @@ export class QrSyncController extends BaseController<
       );
     }
 
-    const isPrimary = payload.isPrimary ?? true;
-    const pendingSecretImports = [
-      {
-        index: 0,
-        type: QrSyncSecretTypes.MNEMONIC,
-        value: mnemonic,
-        isPrimary,
-      },
-    ];
+    const walletId = await computeWalletPayloadId(mnemonic);
+    const pendingPayload: AccountTreePayload = {
+      version: 1,
+      wallets: [
+        {
+          id: walletId,
+          type: AccountWalletPayloadType.Mnemonic,
+          value: Array.from(decodeMnemonicWords(mnemonic)),
+          metadata: { name: payload.walletName ?? 'Extension Wallet' },
+          groups: [
+            {
+              id: `${walletId}/0` as AccountGroupPayloadId,
+              groupIndex: 0,
+              metadata: {
+                name: payload.accountName ?? 'Account 1',
+                pinned: false,
+                hidden: false,
+              },
+            },
+          ],
+        },
+      ],
+    };
 
     if (!this.getIsOnboardingCompleted()) {
-      const secretImportValidation =
-        validateQrSyncSecretImportsForOnboarding(pendingSecretImports);
-      if (!secretImportValidation.valid && secretImportValidation.error) {
-        throw new Error(secretImportValidation.error.message);
+      const payloadValidation =
+        validateQrSyncPayloadForOnboarding(pendingPayload);
+      if (!payloadValidation.valid && payloadValidation.error) {
+        throw new Error(payloadValidation.error.message);
       }
     }
 
+    const snapshot = await AccountTreeSnapshot.deserialize(pendingPayload);
     this.update((state) => {
       state.syncFlow = this.getIsOnboardingCompleted()
         ? QrSyncSyncFlows.EXISTING_USER
         : QrSyncSyncFlows.NEW_USER;
-      state.pendingSecretImports = pendingSecretImports;
-      state.provisioningMetadata = {
-        version: QrSyncMessageVersion.V1,
-        entries: [
-          {
-            index: 0,
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary,
-            name: payload.walletName ?? 'Extension Wallet',
-            groups: [
-              {
-                groupIndex: 0,
-                name: payload.accountName ?? 'Account 1',
-              },
-            ],
-          },
-        ],
-      };
+      state.pendingSecretImports = snapshot.stripMetadata().serialize();
+      state.provisioningMetadata = snapshot.stripSecrets().serialize();
       state.provisioningStatus = QrSyncProvisioningStatuses.AWAITING_PASSWORD;
       state.phase = QrSyncPhases.REVIEWING_IMPORT;
       state.otp = null;
@@ -299,28 +350,55 @@ export class QrSyncController extends BaseController<
   }
 
   /**
-   * Phase B entrypoint: validates state, then delegates vault imports to the
-   * provisioning service for non-primary pending secrets.
+   * Phase B: imports wallet secrets into the keyring.
+   *
+   * Called from two entry points:
+   * - **New-user**: `Authentication.newWalletAndRestore` after vault creation.
+   * - **Existing-user**: `finishExistingUserSyncWithoutMnemonic` in the
+   * add-device flow, before `startExistingUserQrMetadataProvisioning` (Phase C).
+   *
+   * Calls `AccountTreeController:importState` with the metadata-stripped snapshot.
+   * For new users the primary mnemonic is also filtered out (account tree not yet
+   * initialized); for existing users it is included so `importState` can match it
+   * by entropy source ID and skip it safely. Errors are non-fatal: secrets are
+   * cleared and the status advances to `SECRETS_IMPORTED` regardless so Phase C
+   * can still apply metadata.
    */
   public async importRemainingSecrets(): Promise<void> {
     if (!isQrSyncReadyForSecretImport(this.state)) {
       return;
     }
-
     const { pendingSecretImports } = this.state;
-    const isExistingUser =
-      this.state.syncFlow === QrSyncSyncFlows.EXISTING_USER;
-    const remainingSecrets =
-      pendingSecretImports?.filter(
-        (secret) =>
-          isExistingUser ||
-          !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
-      ) ?? [];
 
-    await this.messenger.call(
-      'QrSyncProvisioningService:importSecretsToVault',
-      remainingSecrets,
-    );
+    let snapshot = await AccountTreeSnapshot.deserialize(pendingSecretImports);
+
+    // For new users only: filter out the primary HD wallet by stable entropy
+    // source ID before calling importState. The primary SRP was just imported
+    // into the vault during onboarding, so importing it again would be a
+    // no-op at best; and for new users the account tree is not yet
+    // initialized, so filtering it out by ID avoids that dependency.
+    // For existing users the account tree is already initialized, so
+    // importState can safely match the primary by entropy source ID itself.
+    const isNewUser = this.state.syncFlow !== QrSyncSyncFlows.EXISTING_USER;
+    if (isNewUser) {
+      const primaryWalletId = await this.messenger.call(
+        'KeyringController:withKeyringV2',
+        { type: KeyringType.Hd },
+        async ({ keyring }) =>
+          toWalletPayloadId(await (keyring as HdKeyring).toEntropySourceId()),
+      );
+      snapshot = snapshot.filterWallets(
+        (wallet) => wallet.id !== primaryWalletId,
+      );
+    }
+
+    // NOTE: We need to initialize the account tree before importing any state. Since
+    // `:importState` needs to read the account-tree to check if wallets already
+    // exist. Also, worth noting that initializing the account-tree multiple times
+    // is safe and idempotent.
+    await AccountTreeInitService.initializeAccountTree();
+
+    await this.messenger.call('AccountTreeController:importState', snapshot);
 
     try {
       this.finalizeSecretImport();
@@ -330,47 +408,9 @@ export class QrSyncController extends BaseController<
         operation: QrSyncOperations.IMPORT_REMAINING_SECRETS_FINALIZE,
         phase: this.state.phase,
         source: QrSyncTelemetrySources.CONTROLLER_IMPORT_REMAINING,
+        ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
       });
     }
-  }
-
-  /**
-   * Merges vault-derived runtime IDs into a persisted provisioning metadata entry.
-   */
-  public enrichProvisioningEntry(
-    index: number,
-    enrichment: QrSyncProvisioningEntryEnrichment,
-  ): void {
-    const { entryIndex, entry } = resolveQrSyncProvisioningEntryForEnrichment(
-      this.state,
-      index,
-    );
-
-    if ('entropySource' in enrichment) {
-      if (entry.type !== QrSyncSecretTypes.MNEMONIC) {
-        throw new Error(`QR sync metadata entry ${index} is not a mnemonic`);
-      }
-    } else if (entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
-      throw new Error(`QR sync metadata entry ${index} is not a private key`);
-    }
-
-    const enrichedEntry =
-      'entropySource' in enrichment
-        ? { ...entry, entropySource: enrichment.entropySource }
-        : { ...entry, accountAddress: enrichment.accountAddress };
-
-    this.update((state) => {
-      if (!state.provisioningMetadata) {
-        return;
-      }
-
-      const entries = [...state.provisioningMetadata.entries];
-      entries[entryIndex] = enrichedEntry;
-      state.provisioningMetadata = {
-        ...state.provisioningMetadata,
-        entries,
-      };
-    });
   }
 
   /**
@@ -392,6 +432,21 @@ export class QrSyncController extends BaseController<
       ...defaultQrSyncControllerState,
       provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
     }));
+  }
+
+  /**
+   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
+   * left as-is for Phase C to apply.
+   */
+  private finalizeSecretImport(): void {
+    if (!this.state.provisioningMetadata) {
+      throw new Error('QR sync finalize requires provisioning metadata');
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningStatus = QrSyncProvisioningStatuses.SECRETS_IMPORTED;
+    });
   }
 
   private attachClient(client: WalletClient, sessionId: string): void {
@@ -438,52 +493,70 @@ export class QrSyncController extends BaseController<
   };
 
   private readonly handleClientMessage = (message: unknown): void => {
-    try {
-      const routedMessage = routeIncomingQrSyncMessage(message);
-
-      if (!routedMessage) {
-        return;
-      }
-
-      if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-        const isOnboardingCompleted = this.getIsOnboardingCompleted();
-        if (!isOnboardingCompleted) {
-          // If onboarding is not completed, we need to validate that the pending secret imports include a primary mnemonic.
-          const secretImportValidation =
-            validateQrSyncSecretImportsForOnboarding(
-              routedMessage.pendingSecretImports,
-            );
-
-          if (!secretImportValidation.valid && secretImportValidation.error) {
-            this.terminateWithError(secretImportValidation.error);
-            return;
-          }
-        }
-
-        if (!this.client) {
-          throw this.toQrSyncError(new Error('Wallet client not found'));
-        }
-      }
-
-      this.handleSessionServiceEvent(routedMessage.event);
-
-      if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-        const { pendingSecretImports, provisioningMetadata } = routedMessage;
-        if (pendingSecretImports && provisioningMetadata) {
-          this.update((state) => {
-            state.pendingSecretImports = pendingSecretImports;
-            state.provisioningMetadata = provisioningMetadata;
-            state.provisioningStatus =
-              QrSyncProvisioningStatuses.AWAITING_PASSWORD;
-          });
-        }
-
-        this.sendSyncCompleted().catch(() => undefined);
-      }
-    } catch (error) {
+    this.processClientMessage(message).catch((error) => {
       this.terminateWithError(this.toQrSyncError(error, 'SYNC_FAILED'));
-    }
+    });
   };
+
+  private async processClientMessage(message: unknown): Promise<void> {
+    const routedMessage = routeIncomingQrSyncMessage(message);
+
+    if (!routedMessage) {
+      return;
+    }
+
+    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+      const isOnboardingCompleted = this.getIsOnboardingCompleted();
+      if (!isOnboardingCompleted) {
+        // If onboarding is not completed, we need to validate that the payload
+        // includes a primary mnemonic with a value for vault creation.
+        const payloadValidation = validateQrSyncPayloadForOnboarding(
+          routedMessage.pendingPayload,
+        );
+
+        if (!payloadValidation.valid && payloadValidation.error) {
+          this.terminateWithError(payloadValidation.error);
+          return;
+        }
+      }
+
+      if (!this.client) {
+        throw this.toQrSyncError(new Error('Wallet client not found'));
+      }
+    }
+
+    // Deserialize before transitioning to the next phase. Since deserializing the
+    // account tree snapshot can be an asynchronous operation, we do it here to
+    // ensure that the snapshot is ready when needed in the subsequent phase.
+    const isSyncReady =
+      routedMessage.event.type === QrSyncActionTypes.SYNC_READY;
+    let syncReadySnapshot: AccountTreeSnapshot | null = null;
+    if (isSyncReady) {
+      const { pendingPayload: wirePayload } = routedMessage;
+      if (wirePayload) {
+        syncReadySnapshot = await AccountTreeSnapshot.deserialize(wirePayload);
+      }
+    }
+
+    this.handleSessionServiceEvent(routedMessage.event);
+
+    if (isSyncReady) {
+      if (syncReadySnapshot) {
+        this.update((state) => {
+          state.pendingSecretImports = syncReadySnapshot
+            .stripMetadata()
+            .serialize();
+          state.provisioningMetadata = syncReadySnapshot
+            .stripSecrets()
+            .serialize();
+          state.provisioningStatus =
+            QrSyncProvisioningStatuses.AWAITING_PASSWORD;
+        });
+      }
+
+      this.sendSyncCompleted().catch(() => undefined);
+    }
+  }
 
   private readonly handleClientError = (error: Error): void => {
     this.setConnectionStatus('errored');
@@ -561,54 +634,6 @@ export class QrSyncController extends BaseController<
       },
     });
     await this.destroySession();
-  }
-
-  /**
-   * Enriches the primary mnemonic entry after the primary vault restore.
-   */
-  public enrichPrimaryProvisioningEntry(
-    primaryEntropySource: EntropySourceId,
-  ): void {
-    if (!isQrSyncReadyForSecretImport(this.state)) {
-      return;
-    }
-
-    const primarySecret = this.state.pendingSecretImports?.find(
-      (secret) =>
-        secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
-    );
-
-    if (!primarySecret) {
-      return;
-    }
-
-    try {
-      this.enrichProvisioningEntry(primarySecret.index, {
-        entropySource: primaryEntropySource,
-      });
-    } catch (error) {
-      reportQrSyncFailure(error, {
-        surface: QrSyncSurfaces.IMPORT,
-        operation: QrSyncOperations.ENRICH_PRIMARY_PROVISIONING_ENTRY,
-        phase: this.state.phase,
-        source: QrSyncTelemetrySources.CONTROLLER_ENRICH_PRIMARY,
-      });
-    }
-  }
-
-  /**
-   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
-   * left as-is (possibly partially enriched).
-   */
-  private finalizeSecretImport(): void {
-    if (!this.state.provisioningMetadata) {
-      throw new Error('QR sync finalize requires provisioning metadata');
-    }
-
-    this.update((state) => {
-      state.pendingSecretImports = null;
-      state.provisioningStatus = QrSyncProvisioningStatuses.SECRETS_IMPORTED;
-    });
   }
 
   private async sendMessage(message: QrSyncWireMessage): Promise<void> {

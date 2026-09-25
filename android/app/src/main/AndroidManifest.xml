@@ -46,6 +46,16 @@
 			<action android:name="android.intent.action.VIEW" />
 			<data android:scheme="gpay" />
 		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.PAY" />
+		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
+		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.UPDATE_PAYMENT_DETAILS" />
+		</intent>
+		<package android:name="com.google.android.apps.walletnfcrel" />
 	</queries>
 
 	<application
@@ -113,6 +123,13 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 				<data android:scheme="https" />
 				<data android:host="link.metamask.io" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="https" />
+				<data android:host="link.metamask.com" />
 			</intent-filter>
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />

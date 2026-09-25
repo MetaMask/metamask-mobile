@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Banka hesabı",
       "title": "Pix Anahtarınızı alın",
       "description": "Herhangi bir banka hesabından Money hesabınıza doğrudan fon gönderin.",
@@ -2021,10 +2021,6 @@
         "current_price": "Mevcut fiyat",
         "liquidation_price": "Likidasyon fiyatı",
         "liquidation_distance": "Likidasyon mesafesi",
-        "liquidation_warning": "Fiyat %{{percentage}} {{direction}} yaşarsa pozisyonunuz likidasyona uğrar",
-        "drops": "düşüş",
-        "rises": "yükseliş",
-        "set_leverage": "{{leverage}} kaldıraç ayarla",
         "price_unavailable": "Fiyat bilgisi mevcut değil"
       },
       "type": {
@@ -6025,7 +6021,6 @@
       "only_numbers_allowed": "Yalnızca sayılara izin verilir",
       "negative_values_not_allowed": "Negatif değerlere izin verilmez",
       "max_base_fee_must_be_greater_than_priority_fee": "Maks. baz ücret öncelik ücretinden büyük olmalıdır",
-      "gas_limit_too_low": "Gaz limiti 21000 üzerinde olmalıdır",
       "priority_fee_too_high": "Öncelik ücreti maks. baz ücretten küçük olmalıdır",
       "no_zero_value": "{{field}}, 0'dan büyük olmalıdır",
       "speed": "Hız",
@@ -6542,35 +6537,7 @@
     "swap_completed": "{{from}} - {{to}} swap işlemi gerçekleştirildi",
     "swap": "Swap yapılan:",
     "sent": "{{address}} adresine gönderildi",
-    "menu_item_title": {
-      "metamask_swap_completed": "{{symbolIn}} - {{symbolOut}} swap işlemi gerçekleştirildi",
-      "erc20_sent": "{{address}} adresine gönderildi",
-      "erc20_received": "{{address}} adresinden alındı",
-      "eth_sent": "{{address}} adresine gönderildi",
-      "eth_received": "{{address}} adresinden alındı",
-      "erc721_sent": "NFT alıcısı: {{address}}",
-      "erc1155_sent": "NFT alıcısı: {{address}}",
-      "erc721_received": "NFT gönderen: {{address}}",
-      "erc1155_received": "NFT gönderen: {{address}}",
-      "rocketpool_stake_completed": "Stake Edilen",
-      "rocketpool_unstake_completed": "Unstake tamamlandı",
-      "lido_stake_completed": "Stake Edilen",
-      "lido_withdrawal_requested": "Unstake talep edildi",
-      "lido_withdrawal_completed": "Unstake tamamlandı",
-      "lido_stake_ready_to_be_withdrawn": "Para çekme talep edildi"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "{{amount}} {{symbol}} unstake talebiniz gönderildi",
-      "lido_stake_ready_to_be_withdrawn": "Şu anda unstake {{symbol}} çekebilirsiniz"
-    },
     "modal": {
-      "title_sent": "{{symbol}} Gönderdi",
-      "title_received": "{{symbol}} Aldı",
-      "title_unstake_requested": "Unstake talep edildi",
-      "title_untake_ready": "Para çekme hazır",
-      "title_stake": "{{symbol}} stake edildi",
-      "title_unstake_completed": "Unstake tamamlandı",
-      "title_swapped": "{{symbolIn}} - {{symbolOut}} swap işlemi gerçekleştirildi",
       "label_address_to": "Alıcı",
       "label_address_from": "Gönderen",
       "label_address_to_you": "Kime (Size)",
@@ -11404,7 +11371,6 @@
     "ecosystems_subtitle": "MetaMask Portfolio üzerindeki zincirler genelinde dapp'leri, tokenları ve NFT'leri keşfedin.",
     "all_sports": "Popüler sporlar",
     "basketball": "Basketbol",
-    "football": "Amerikan Futbolu",
     "soccer": "Futbol",
     "tennis": "Tenis",
     "f1": "F1",

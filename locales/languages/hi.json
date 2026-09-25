@@ -1106,7 +1106,7 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "बैंक अकाउंट",
       "title": "अपनी Pix Key पाएं",
       "description": "किसी भी बैंक अकाउंट से सीधे अपने मनी अकाउंट में पैसे भेजें।",
@@ -2021,10 +2021,6 @@
         "current_price": "वर्तमान प्राइस",
         "liquidation_price": "लिक्विडेशन प्राइस",
         "liquidation_distance": "लिक्विडेशन डिस्टेन्स",
-        "liquidation_warning": "यदि प्राइस {{percentage}} तक {{direction}} है तो आपकी पोजीशन लिक्विडेट कर दी जाएगी",
-        "drops": "गिरती है",
-        "rises": "बढ़ती है",
-        "set_leverage": "{{leverage}}x सेट करें",
         "price_unavailable": "कीमत की जानकारी उपलब्ध नहीं है"
       },
       "type": {
@@ -6025,7 +6021,6 @@
       "only_numbers_allowed": "केवल नंबरों की अनुमति है",
       "negative_values_not_allowed": "नेगेटिव वैल्यूज़ की अनुमति नहीं है",
       "max_base_fee_must_be_greater_than_priority_fee": "अधिकतम बेस फी को प्रायोरिटी फी से ज़्यादा होना चाहिए",
-      "gas_limit_too_low": "गैस की सीमा 21000 से ज्यादा होनी चाहिए",
       "priority_fee_too_high": "प्रायोरिटी फी को अधिकतम बेस फी से कम होना चाहिए",
       "no_zero_value": "{{field}} को 0 से ज़्यादा होना चाहिए",
       "speed": "स्पीड",
@@ -6542,35 +6537,7 @@
     "swap_completed": "{{from}} को {{to}} के लिए स्वैप किया गया",
     "swap": "स्वैप किया गया",
     "sent": "{{address}} पर भेजा गया",
-    "menu_item_title": {
-      "metamask_swap_completed": "{{symbolIn}} को {{symbolOut}} के लिए स्वैप किया गया",
-      "erc20_sent": "{{address}} पर भेजा गया",
-      "erc20_received": "{{address}} से प्राप्त हुआ",
-      "eth_sent": "{{address}} पर भेजा गया",
-      "eth_received": "{{address}} से प्राप्त हुआ",
-      "erc721_sent": "NFT को {{address}} पर भेजा गया",
-      "erc1155_sent": "NFT को {{address}} पर भेजा गया",
-      "erc721_received": "NFT को {{address}} से प्राप्त किया गया",
-      "erc1155_received": "NFT को {{address}} से प्राप्त किया गया",
-      "rocketpool_stake_completed": "स्टेक किया गया",
-      "rocketpool_unstake_completed": "अनस्टेकिंग पूरा हुआ",
-      "lido_stake_completed": "स्टेक किया गया",
-      "lido_withdrawal_requested": "अनस्टेकिंग का अनुरोध किया गया",
-      "lido_withdrawal_completed": "अनस्टेकिंग पूरा हुआ",
-      "lido_stake_ready_to_be_withdrawn": "विदड्रॉवल का अनुरोध किया गया"
-    },
-    "menu_item_description": {
-      "lido_withdrawal_requested": "{{amount}} {{symbol}} को अनस्टेक करने का आपका अनुरोध भेज दिया गया है",
-      "lido_stake_ready_to_be_withdrawn": "अब आप अपना अनस्टेक्ड {{symbol}} वापस ले सकते हैं"
-    },
     "modal": {
-      "title_sent": "{{symbol}} भेजे गए",
-      "title_received": "{{symbol}} प्राप्त किया",
-      "title_unstake_requested": "अनस्टेकिंग का अनुरोध किया गया",
-      "title_untake_ready": "विदड्रॉवल तैयार है",
-      "title_stake": "{{symbol}} स्टेक किया गया",
-      "title_unstake_completed": "अनस्टेकिंग पूरा हुआ",
-      "title_swapped": "{{symbolIn}} को {{symbolOut}} से स्वैप किया गया",
       "label_address_to": "प्रति",
       "label_address_from": "से",
       "label_address_to_you": "(आप) को",
@@ -11404,7 +11371,6 @@
     "ecosystems_subtitle": "MetaMask पोर्टफोलियो पर विभिन्न चेन में dApps, टोकन्स और NFTs एक्सप्लोर करें",
     "all_sports": "लोकप्रिय खेल",
     "basketball": "बास्केटबाल",
-    "football": "फुटबॉल",
     "soccer": "सॉकर",
     "tennis": "टेनिस",
     "f1": "F1",

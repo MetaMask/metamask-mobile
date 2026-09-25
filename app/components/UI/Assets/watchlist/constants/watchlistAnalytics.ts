@@ -5,6 +5,7 @@ export const WatchlistAnalytics = {
   },
   ADD_SOURCE: {
     PRICE_ALERT_CREATION: 'price_alert_creation',
+    HOMEPAGE: 'watchlist_homepage',
   },
   PAGE_VIEW_SOURCE: {
     /** User opened fullscreen from the homepage watchlist section header. */

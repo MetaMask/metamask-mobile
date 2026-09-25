@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -35,10 +35,12 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useHasUnreadNotifications } from '../../hooks/useHasUnreadNotifications';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -57,6 +59,14 @@ const AccountHub = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // The experiment assignment is injected as `active_ab_tests` by the
+  // Header & NavBar analytics mapping, which identifies the arm the user got.
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACCOUNT_LIST_VIEWED).build(),
+    );
+  }, [createEventBuilder, trackEvent]);
   const { openQRScanner } = useQRScanner();
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
@@ -71,6 +81,8 @@ const AccountHub = () => {
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const hasUnreadNotifications = useHasUnreadNotifications();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const hasCardUpdateBadge = Boolean(cardUpdateBadgeSeverity);
 
   useSyncSRPs();
 
@@ -112,6 +124,12 @@ const AccountHub = () => {
     );
     navigation.navigate(Routes.SETTINGS_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
+  }, [navigation]);
 
   const handleInfoPress = useCallback(() => {
     if (!selectedAccountGroup) {
@@ -248,11 +266,31 @@ const AccountHub = () => {
               </BadgeWrapper>
             )}
             <ButtonIcon
-              iconName={IconName.Menu}
+              iconName={IconName.Setting}
               size={ButtonIconSize.Md}
-              onPress={handleMenuPress}
-              testID={AccountHubSelectorsIDs.MENU_BUTTON}
+              onPress={handleManageAccountsPress}
+              testID={AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON}
             />
+
+            <BadgeWrapper
+              position={BadgeWrapperPosition.TopRight}
+              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+              badge={
+                hasCardUpdateBadge ? (
+                  <BadgeStatus
+                    status={BadgeStatusStatus.Attention}
+                    testID={AccountHubSelectorsIDs.MENU_BADGE}
+                  />
+                ) : null
+              }
+            >
+              <ButtonIcon
+                iconName={IconName.Menu}
+                size={ButtonIconSize.Md}
+                onPress={handleMenuPress}
+                testID={AccountHubSelectorsIDs.MENU_BUTTON}
+              />
+            </BadgeWrapper>
           </Box>
         }
         includesTopInset

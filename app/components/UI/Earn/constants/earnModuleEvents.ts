@@ -68,6 +68,8 @@ export enum EARN_MODULE_REDIRECT_TARGETS {
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
   MONEY_DEPOSIT = 'money_deposit',
+  SWAP = 'swap',
+  BUY = 'buy',
 }
 
 export enum EARN_MODULE_REDIRECT_TARGET_TYPES {
