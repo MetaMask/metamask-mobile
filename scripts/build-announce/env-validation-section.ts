@@ -61,7 +61,7 @@ export function buildEnvValidationSection(
   const buildType = result.extractedValues.METAMASK_BUILD_TYPE ?? '—';
   const rewardsUrl = result.extractedValues.REWARDS_API_URL ?? '—';
   const portfolioUrl = result.extractedValues.MM_PORTFOLIO_URL ?? '—';
-  const rampsEnv = result.extractedValues.RAMPS_ENVIRONMENT ?? '—';
+  const apiEnv = result.extractedValues.MM_DEV_API_ENV ?? 'prod';
 
   // Main environment info table (like About MetaMask screen)
   lines.push('| Setting | Value |');
@@ -70,7 +70,7 @@ export function buildEnvValidationSection(
   lines.push(`| **Build Type** | \`${buildType}\` |`);
   lines.push(`| **Remote Feature Flag Env** | \`${getRemoteFFEnv(env)}\` |`);
   lines.push(`| **Remote Feature Flag Distribution** | \`${getRemoteFFDistribution(buildType)}\` |`);
-  lines.push(`| **Ramps Environment** | \`${rampsEnv}\` |`);
+  lines.push(`| **Backend API env** | \`${apiEnv}\` |`);
   lines.push('');
 
   // Detailed info in collapsible section

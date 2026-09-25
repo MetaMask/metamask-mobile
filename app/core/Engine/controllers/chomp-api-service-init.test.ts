@@ -107,4 +107,29 @@ describe('chompApiServiceInit', () => {
       });
     });
   });
+
+  describe('when MM_DEV_API_ENV=uat', () => {
+    beforeEach(() => {
+      process.env.MM_DEV_API_ENV = 'uat';
+    });
+
+    afterEach(() => {
+      delete process.env.MM_DEV_API_ENV;
+    });
+
+    it('keeps the feature-flag URL because chomp has no uat host', () => {
+      chompApiServiceInit(
+        getInitRequestMock({
+          remoteFeatureFlags: {
+            moneyAccountChompConfig: { baseUrl: 'https://chomp.example.com' },
+          },
+        }),
+      );
+
+      expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
+        messenger: expect.any(Object),
+        baseUrl: 'https://chomp.example.com',
+      });
+    });
+  });
 });
