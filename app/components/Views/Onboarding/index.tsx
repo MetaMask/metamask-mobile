@@ -7,7 +7,6 @@ import React, {
   useContext,
 } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   BackHandler,
   ScrollView,
@@ -127,6 +126,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import OnboardingFoxLoader from '../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
 import {
   OnboardingCtaIds,
   OnboardingScreenIds,
@@ -144,8 +144,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   Theme,
@@ -252,9 +250,6 @@ const Onboarding = () => {
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
   const loading = useSelector((state: RootState) => state.user.loadingSet);
-  const loadingMsg = useSelector(
-    (state: RootState) => state.user.loadingMsg || '',
-  );
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
@@ -808,7 +803,6 @@ const Onboarding = () => {
                 socialConnectionType,
               );
 
-              // delay unset loading to avoid flash of loading state
               setTimeout(() => {
                 unsetLoading();
               }, 1000);
@@ -1154,7 +1148,6 @@ const Onboarding = () => {
             // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
             await markMetricsOptInUISeen();
 
-            // delay unset loading to avoid flash of loading state
             setTimeout(() => {
               unsetLoading();
             }, 1000);
@@ -1272,27 +1265,6 @@ const Onboarding = () => {
   const setStartFoxAnimation = useCallback((): void => {
     setState((prevState) => ({ ...prevState, startFoxAnimation: 'Start' }));
   }, []);
-
-  const renderLoader = useCallback(
-    (): React.ReactElement => (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 gap-y-8 mb-40"
-      >
-        <Box justifyContent={BoxJustifyContent.Center}>
-          <ActivityIndicator size="small" />
-          <Text
-            variant={TextVariant.BodyMd}
-            style={tw.style('mt-[30px] text-center text-default')}
-          >
-            {loadingMsg}
-          </Text>
-        </Box>
-      </Box>
-    ),
-    [loadingMsg, tw],
-  );
 
   const renderContent = useCallback(
     (): React.ReactElement => (
@@ -1633,53 +1605,44 @@ const Onboarding = () => {
         style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
-        <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
-          <ScrollView
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('flex-1')}
-          >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="flex-1 py-4"
-            >
-              {renderContent()}
-
-              {loading && (
+        {loading ? (
+          <OnboardingFoxLoader />
+        ) : (
+          <>
+            <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
+              <ScrollView
+                style={tw.style('flex-1')}
+                contentContainerStyle={tw.style('flex-1')}
+              >
                 <Box
                   alignItems={BoxAlignItems.Center}
                   justifyContent={BoxJustifyContent.Center}
-                  twClassName="absolute top-0 left-0 right-0 bottom-0"
-                  style={tw.style(
-                    { zIndex: 1000 },
-                    { backgroundColor: onboardingCanvasColor },
-                  )}
+                  twClassName="flex-1 py-4"
                 >
-                  {renderLoader()}
+                  {renderContent()}
                 </Box>
-              )}
-            </Box>
-          </ScrollView>
+              </ScrollView>
 
-          <FadeOutOverlay />
+              <FadeOutOverlay />
 
-          <FastOnboarding
-            onPressContinueWithGoogle={onPressContinueWithGoogle}
-            onPressContinueWithApple={onPressContinueWithApple}
-            onPressImport={onPressImport}
-            onPressCreate={onPressCreate}
-          />
+              <FastOnboarding
+                onPressContinueWithGoogle={onPressContinueWithGoogle}
+                onPressContinueWithApple={onPressContinueWithApple}
+                onPressImport={onPressImport}
+                onPressCreate={onPressCreate}
+              />
 
-          {handleSimpleNotification()}
-        </SafeAreaView>
+              {handleSimpleNotification()}
+            </SafeAreaView>
 
-        {/* Fox on the full-bleed root canvas */}
-        {!hasTestOverrides && (
-          <FoxAnimation
-            hasFooter={false}
-            trigger={startFoxAnimation}
-            fullBleedBottom
-          />
+            {!hasTestOverrides && (
+              <FoxAnimation
+                hasFooter={false}
+                trigger={startFoxAnimation}
+                fullBleedBottom
+              />
+            )}
+          </>
         )}
       </View>
     </ErrorBoundary>

@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  FlatList,
-  Platform,
-} from 'react-native';
+import { KeyboardAvoidingView, FlatList, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -34,6 +29,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { strings } from '../../../../locales/i18n';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import Engine from '../../../core/Engine';
+import OnboardingFoxLoader from '../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import SecureContentView from '../../UI/SecureContentView';
 import {
@@ -76,14 +72,18 @@ const ManualBackupStep1 = () => {
     [dispatch],
   );
 
+  // Provided by ChoosePassword on the create-wallet hand-off; when present the
+  // screen has nothing to load and must not flash the onboarding loader again.
+  const seedPhrase = route?.params?.seedPhrase;
+
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
   const [password, setPassword] = useState('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
     string | undefined
   >(undefined);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(Boolean(seedPhrase));
   const [view, setView] = useState(SEED_PHRASE);
-  const [words, setWords] = useState<string[]>([]);
+  const [words, setWords] = useState<string[]>(seedPhrase ?? []);
   const [hasFunds, setHasFunds] = useState(false);
   const { themeAppearance } = useTheme();
   const { isEnabled: isMetricsEnabled } = useAnalytics();
@@ -99,8 +99,6 @@ const ManualBackupStep1 = () => {
   });
 
   const steps = MANUAL_BACKUP_STEPS;
-
-  const seedPhrase = route?.params?.seedPhrase;
 
   const showHeader = settingsBackup || backupFlow;
 
@@ -133,10 +131,8 @@ const ManualBackupStep1 = () => {
 
     const initializeSeedPhrase = async () => {
       if (seedPhrase) {
-        if (!cancelled) {
-          setWords(seedPhrase);
-          setReady(true);
-        }
+        setWords(seedPhrase);
+        setReady(true);
         return;
       }
 
@@ -169,7 +165,9 @@ const ManualBackupStep1 = () => {
 
       if (exportedWords) {
         setWords(exportedWords);
-        setReady(true);
+        if (!cancelled) {
+          setReady(true);
+        }
         return;
       }
 
@@ -183,7 +181,9 @@ const ManualBackupStep1 = () => {
       }
 
       setView(CONFIRM_PASSWORD);
-      setReady(true);
+      if (!cancelled) {
+        setReady(true);
+      }
     };
 
     initializeSeedPhrase();
@@ -429,6 +429,10 @@ const ManualBackupStep1 = () => {
     </Box>
   );
 
+  if (!ready) {
+    return <OnboardingFoxLoader />;
+  }
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -445,20 +449,12 @@ const ManualBackupStep1 = () => {
             : undefined
         }
       />
-      {ready ? (
-        <>
-          <Box twClassName="flex-1 px-4">
-            {view === SEED_PHRASE
-              ? renderSeedphraseView()
-              : renderConfirmPassword()}
-          </Box>
-          <ScreenshotDeterrent hasNavigation enabled isSRP />
-        </>
-      ) : (
-        <Box twClassName="flex-1 justify-center items-center">
-          <ActivityIndicator size="small" />
-        </Box>
-      )}
+      <Box twClassName="flex-1 px-4">
+        {view === SEED_PHRASE
+          ? renderSeedphraseView()
+          : renderConfirmPassword()}
+      </Box>
+      <ScreenshotDeterrent hasNavigation enabled isSRP />
     </SafeAreaView>
   );
 };
