@@ -1,3 +1,4 @@
 export { default as AnimatedNumericText } from './AnimatedNumericText';
 export type { AnimatedNumericTextProps } from './AnimatedNumericText';
-export { NUMERIC_LAYOUT_TRANSITION } from './AnimatedNumericText.constants';
+export { default as AnimatedBalanceText } from './AnimatedBalanceText';
+export type { AnimatedBalanceTextProps } from './AnimatedBalanceText';
