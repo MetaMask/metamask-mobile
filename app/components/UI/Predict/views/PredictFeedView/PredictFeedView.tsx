@@ -10,6 +10,8 @@ import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  FilterButton,
+  FilterButtonGroup,
   HeaderStandard,
   IconName,
   Text,
@@ -28,7 +30,6 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
-import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
 import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
@@ -405,16 +406,22 @@ const PredictFeedView: React.FC = () => {
         )}
 
         {showFilterBar && (
-          <PredictChipList
-            chips={chips}
-            activeChipKey={activeFilterId ?? ''}
-            onChipSelect={handleFilterSelect}
+          <Box
+            twClassName={showTabBar ? 'pt-4 pb-3' : 'pb-3'}
             testID={PredictFeedViewSelectorsIDs.FILTERS}
-            // No tabs: flush under the header like Explore Trending.
-            // With tabs: 16px (pt-4) between the tab underline and chips.
-            // pb-3 = 12px between chips and the first feed card.
-            containerTwClassName={showTabBar ? 'pt-4 pb-3' : 'pb-3'}
-          />
+          >
+            <FilterButtonGroup
+              value={activeFilterId ?? ''}
+              onChange={handleFilterSelect}
+              twClassName="px-4 gap-2"
+            >
+              {chips.map((chip) => (
+                <FilterButton key={chip.key} value={chip.key}>
+                  {chip.label}
+                </FilterButton>
+              ))}
+            </FilterButtonGroup>
+          </Box>
         )}
 
         {renderContent()}
