@@ -24,10 +24,11 @@ export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
   async recover(
     context: LocatorRecoveryContext,
   ): Promise<RecoveredLocator | null> {
-    const [pageSource, screenshot] = await Promise.all([
+    const [pageSource, screenshotBase64] = await Promise.all([
       context.driver.getPageSource(),
-      context.driver.saveScreenshot(),
+      context.driver.takeScreenshot(),
     ]);
+    const screenshot = Buffer.from(screenshotBase64, 'base64');
     const prompt = createLocatorRecoveryPrompt(
       context.intent,
       context.primaryError,
