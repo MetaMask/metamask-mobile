@@ -159,6 +159,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsPrewarmDepositOrder } from '../../hooks/usePerpsPrewarmDepositOrder';
 import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
@@ -418,7 +419,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
+  const { gate, isBlocked } = useComplianceGate(selectedAddress ?? '');
+
+  // Limit the approval prewarm to the bottom-sheet treatment that needs the
+  // tap-to-sheet performance improvement. Control keeps its existing flow.
+  usePerpsPrewarmDepositOrder({
+    enabled: isEligible && !isBlocked && useBottomSheet,
+    marketProviderId: market?.providerId,
+    transactionActiveAbTests,
+  });
 
   // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
