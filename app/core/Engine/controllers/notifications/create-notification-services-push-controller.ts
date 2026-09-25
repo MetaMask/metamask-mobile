@@ -8,6 +8,7 @@ import { getVersion } from 'react-native-device-info';
 import { Platform } from 'react-native';
 import I18n from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
+import { notificationApiEnv } from '../../../devApiEnv';
 import { resolvePushNotificationStatus } from '../../../../util/notifications/utils/push-notification-status';
 import {
   createRegToken,
@@ -54,6 +55,7 @@ export const createNotificationServicesPushController = (props: {
       subscribeToPushNotifications: createSubscribeToPushNotifications(),
     },
     getLocale: () => I18n.locale,
+    env: notificationApiEnv(),
     ...(os ? { os } : {}),
     ...(appVersion ? { appVersion } : {}),
   };

@@ -33,3 +33,14 @@ const AUTH_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
 
 /** `Env` enum value to hand to `AuthenticationController` / `profile-sync` SDK. */
 export const authEnv = (): Env => AUTH_ENV_BY_DEV_API_ENV[devApiEnv()];
+
+export type NotificationApiEnv = 'dev' | 'prd';
+
+const NOTIFICATION_ENV_BY_DEV_API_ENV: Record<DevApiEnv, NotificationApiEnv> = {
+  dev: 'dev',
+  prod: 'prd',
+};
+
+/** Push registration and inbox host. Production unless `MM_DEV_API_ENV=dev`. */
+export const notificationApiEnv = (): NotificationApiEnv =>
+  NOTIFICATION_ENV_BY_DEV_API_ENV[devApiEnv()];
