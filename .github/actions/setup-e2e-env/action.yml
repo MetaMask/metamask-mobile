@@ -30,6 +30,11 @@ inputs:
     required: false
     default: '3.2.9'
   xcode-version:
+    # The default must stay in sync with the Xcode installed on the `ios-e2e`
+    # runner image (used by Appium smoke and api-specs): those jobs build
+    # WebDriverAgent against the image's simulator runtime, and a newer Xcode
+    # SDK than the runtime breaks the WDA launch. Jobs on the tahoe-slim build
+    # image that need Xcode 26.6 (Expo SDK 57) must pass it explicitly.
     description: 'Xcode version to select (e.g., 26.3). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
     required: false
     default: '26.3'
@@ -483,6 +488,8 @@ runs:
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
+          # Homebrew 6+ refuses third-party taps unless they are explicitly trusted.
+          brew trust --formula wix/brew/applesimutils
           brew install applesimutils
         else
           echo "applesimutils is already installed, skipping..."

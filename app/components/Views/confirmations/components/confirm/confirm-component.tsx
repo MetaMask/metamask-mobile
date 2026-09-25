@@ -12,7 +12,11 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
-import { BottomSheet } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  Box,
+  Spinner,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
@@ -41,11 +45,17 @@ import {
   CustomAmountInfoSkeleton,
   PrefillCustomAmountInfoSkeleton,
 } from '../info/custom-amount-info';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
+
+const DEFAULT_BOTTOM_SHEET_HEIGHT = 60;
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -97,6 +107,8 @@ export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
+  /** Minimum sheet height as a screen percentage (1-100). Forced sheets default to 60. */
+  bottomSheetHeightPercentage?: number;
   payWithOption?: PayWithOption;
   /**
    * Set by callers that navigate from an already-presented modal stack, where
@@ -114,13 +126,11 @@ export interface ConfirmationParams {
  * Route params accepted by the full-screen confirmation routes
  * (`RedesignedConfirmations` / `NoHeaderConfirmations`). This is a superset of
  * {@link ConfirmationParams} because different entry points pass extra,
- * feature-specific fields: `amount` (carried by some entry flows for display),
- * `showPerpsHeader` (Perps deposit+order flow renders a Perps header, read by
+ * feature-specific fields: `showPerpsHeader` (Perps deposit+order flow renders a Perps header, read by
  * the Perps route's header options rather than the confirm component), and
  * `params` (legacy nested bag passed by some send flows).
  */
 export interface FullScreenConfirmationParams extends ConfirmationParams {
-  amount?: string;
   showPerpsHeader?: boolean;
   params?: ConfirmationParams;
 }
@@ -179,6 +189,7 @@ export const Confirm = ({
 }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
+  const { forceBottomSheet } = useParams<ConfirmationParams>();
 
   useEffect(() => {
     if (!approvalRequest) {
@@ -202,8 +213,8 @@ export const Confirm = ({
     }
   }, [approvalRequest]);
 
-  // Show spinner if there is no approvalRequest
-  if (!approvalRequest) {
+  // Forced sheets stay mounted while their approval request is loading.
+  if (!approvalRequest && !forceBottomSheet) {
     return <Loader />;
   }
 
@@ -224,21 +235,43 @@ function ConfirmInternal({
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { forceBottomSheet, bottomSheetHeightPercentage } =
+    useParams<ConfirmationParams>();
+  const { height: screenHeight } = useSafeAreaFrame();
+  const { top: screenTopPadding, bottom: screenBottomPadding } =
+    useSafeAreaInsets();
+  const sheetHeightPercentage =
+    bottomSheetHeightPercentage ??
+    (forceBottomSheet ? DEFAULT_BOTTOM_SHEET_HEIGHT : undefined);
+  const sheetMinHeight =
+    sheetHeightPercentage === undefined
+      ? undefined
+      : Math.min(
+          screenHeight - screenTopPadding,
+          (screenHeight * Math.min(100, Math.max(1, sheetHeightPercentage))) /
+            100,
+        );
   const { onReject } = useConfirmReject();
   const { onFirstPaint } = useConfirmationLoadMetrics();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,
+    expandToSheetHeight:
+      !isFullScreenConfirmation && sheetMinHeight !== undefined,
   });
 
   useEffect(() => {
+    if (!approvalRequest) {
+      return;
+    }
+
     const options: NativeStackNavigationOptions = {
       gestureEnabled: true,
       headerShown: Boolean(isFullScreenConfirmation),
     };
 
     navigation.setOptions(options);
-  }, [isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
@@ -255,14 +288,33 @@ function ConfirmInternal({
   }
 
   return (
-    <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
-      <View
-        testID={approvalRequest?.type}
-        style={styles.confirmContainer}
-        onLayout={onFirstPaint}
-      >
-        <ConfirmWrapped styles={styles} route={route} />
-      </View>
+    <BottomSheet
+      isInteractable={Boolean(approvalRequest)}
+      onClose={() => onReject()}
+      testID={ConfirmationUIType.MODAL}
+      twClassName={
+        sheetMinHeight === undefined ? undefined : `min-h-[${sheetMinHeight}px]`
+      }
+    >
+      {approvalRequest ? (
+        <View
+          testID={approvalRequest.type}
+          style={styles.confirmContainer}
+          onLayout={onFirstPaint}
+        >
+          <ConfirmWrapped styles={styles} route={route} />
+        </View>
+      ) : (
+        <View style={styles.confirmContainer}>
+          <Loader
+            sheetContentMinHeight={
+              sheetMinHeight === undefined
+                ? undefined
+                : Math.max(0, sheetMinHeight - screenBottomPadding - 16)
+            }
+          />
+        </View>
+      )}
     </BottomSheet>
   );
 }
@@ -275,10 +327,55 @@ function ConfirmationAlerts({ children }: { children: ReactNode }) {
   );
 }
 
-function Loader() {
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+function Loader({
+  sheetContentMinHeight,
+}: { sheetContentMinHeight?: number } = {}) {
   const params = useParams<ConfirmationParams>();
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation: !params?.forceBottomSheet,
+    expandToSheetHeight: Boolean(params?.forceBottomSheet),
+  });
   const loader = params?.loader ?? ConfirmationLoader.Default;
+
+  if (params?.forceBottomSheet) {
+    if (
+      loader === ConfirmationLoader.CustomAmount ||
+      loader === ConfirmationLoader.AdvancedCustomAmount ||
+      loader === ConfirmationLoader.PrefillCustomAmount
+    ) {
+      return (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            sheetContentMinHeight === undefined
+              ? undefined
+              : { minHeight: sheetContentMinHeight },
+          ]}
+          testID="confirm-loader-bottom-sheet"
+        >
+          {loader === ConfirmationLoader.PrefillCustomAmount ? (
+            <PrefillCustomAmountInfoSkeleton />
+          ) : loader === ConfirmationLoader.AdvancedCustomAmount ? (
+            <Box paddingTop={4}>
+              <AdvancedCustomAmountInfoSkeleton />
+            </Box>
+          ) : (
+            <CustomAmountInfoSkeleton />
+          )}
+        </ScrollView>
+      );
+    }
+
+    return (
+      <Box
+        twClassName="grow items-center justify-center"
+        testID="confirm-loader-bottom-sheet"
+      >
+        <Spinner />
+      </Box>
+    );
+  }
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (

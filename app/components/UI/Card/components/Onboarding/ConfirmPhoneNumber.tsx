@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Platform, TextInput, TextInputProps } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 import {
   Box,
   Text,
@@ -32,7 +32,9 @@ import { CardProviderIds } from '../../../../../core/Engine/controllers/card-con
 import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+// Annotated with the two values used rather than TextInputProps['autoComplete'],
+// which is wider than the autoComplete union TextField accepts.
+const autoComplete = Platform.select<'sms-otp' | 'one-time-code'>({
   android: 'sms-otp',
   default: 'one-time-code',
 });

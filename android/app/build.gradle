@@ -393,33 +393,10 @@ configurations.all {
     }
 }
 
-// Veriff SDK sub-libraries declare minSdkVersion 26; we patch their manifests to use our minSdkVersion
-// Fails the build if Veriff is not found.
-def VERIFF_SDK_VERSION = '7.14.1'
-project.afterEvaluate {
-    tasks.matching { it.name ==~ /process.*MainManifest/ }.configureEach { task ->
-        task.doFirst {
-            def transformsDir = new File(gradle.gradleUserHomeDir, "caches/${gradle.gradleVersion}/transforms")
-            def veriffManifests = transformsDir.exists()
-                ? fileTree(dir: transformsDir, includes: ["**/jetified-*-${VERIFF_SDK_VERSION}/AndroidManifest.xml"]).files
-                : []
-            if (veriffManifests.isEmpty()) {
-                throw new GradleException(
-                    "Veriff SDK (${VERIFF_SDK_VERSION}) manifests not found in Gradle transform cache. " +
-                    "Ensure the Veriff dependency is resolved (e.g. run a clean build). " +
-                    "Searched in: ${transformsDir}"
-                )
-            }
-            def targetMinSdk = rootProject.ext.minSdkVersion
-            veriffManifests.each { file ->
-                def content = file.text
-                if (content.contains('android:minSdkVersion="26"')) {
-                    file.text = content.replace('android:minSdkVersion="26"', "android:minSdkVersion=\"${targetMinSdk}\"")
-                }
-            }
-        }
-    }
-}
+// Veriff SDK sub-libraries declare minSdkVersion 26 while this app ships minSdkVersion 24.
+// That mismatch is resolved by `tools:overrideLibrary` in the app manifest rather than here:
+// editing the AARs' manifests in place meant writing into Gradle's transform cache, which
+// Gradle 9 verifies and rejects ("The contents of the immutable workspace have been modified").
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
