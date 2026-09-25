@@ -16,9 +16,14 @@ import {
   scanAddress,
   scanUrl,
 } from '../../lib/address-scanning/address-scan-util';
+import { scanUnvalidatedSignatureAddresses } from '../../lib/address-scanning/scan-unvalidated-signature';
 
 jest.mock('../../util/Logger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../../lib/address-scanning/scan-unvalidated-signature', () => ({
+  scanUnvalidatedSignatureAddresses: jest.fn(),
 }));
 
 jest.mock('../../lib/address-scanning/address-scan-util', () => {
@@ -67,6 +72,10 @@ const mockIsEthSignTypedData = isEthSignTypedData as jest.MockedFunction<
 >;
 const mockScanAddress = scanAddress as jest.MockedFunction<typeof scanAddress>;
 const mockScanUrl = scanUrl as jest.MockedFunction<typeof scanUrl>;
+const mockScanUnvalidatedSignatureAddresses =
+  scanUnvalidatedSignatureAddresses as jest.MockedFunction<
+    typeof scanUnvalidatedSignatureAddresses
+  >;
 
 const jsonrpc = '2.0' as const;
 
@@ -308,6 +317,53 @@ describe('createTrustSignalsMiddleware', () => {
       '0x1',
       spender,
     );
+    expect(mockScanUnvalidatedSignatureAddresses).toHaveBeenCalledWith({
+      request: expect.objectContaining({
+        method: 'eth_signTypedData_v4',
+      }),
+      chainId: '0x1',
+      phishingController,
+    });
+  });
+
+  it('starts generic signature address scans at request time without a verifying contract', async () => {
+    const phishingController = createMockPhishingController();
+    const networkController = createMockNetworkController({ chainId: '0x1' });
+
+    mockIsEthSendTransaction.mockReturnValue(false);
+    mockIsEthSignTypedData.mockReturnValue(true);
+    mockHasValidTypedDataParams.mockReturnValue(true);
+    mockParseTypedDataMessage.mockReturnValue({
+      domain: {},
+      message: { recipient: '0x0000000000000000000000000000000000000bad' },
+      primaryType: 'Transfer',
+    });
+    mockExtractSpenderFromPermitMessage.mockReturnValue(undefined);
+
+    const middleware = createTrustSignalsMiddleware({
+      phishingController,
+      networkController,
+      preferencesController: createMockPreferencesController(),
+    });
+
+    await callThroughMiddleware({
+      middleware,
+      request: {
+        jsonrpc,
+        id: 1,
+        method: 'eth_signTypedData_v4',
+        params: ['0xfrom', { message: 'data' }] as JsonRpcParams,
+      },
+    });
+
+    expect(mockScanUnvalidatedSignatureAddresses).toHaveBeenCalledWith({
+      request: expect.objectContaining({
+        method: 'eth_signTypedData_v4',
+      }),
+      chainId: '0x1',
+      phishingController,
+    });
+    expect(mockScanAddress).not.toHaveBeenCalled();
   });
 
   it('does not scan the origin URL when security alerts are disabled', async () => {

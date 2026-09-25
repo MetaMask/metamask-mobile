@@ -206,6 +206,17 @@ export const DEFAULT_MOCKS = {
       responseCode: 200,
       response: [],
     },
+    // Address scan — requested for addresses extracted from EIP-712 signature
+    // requests. Benign unless overridden by testSpecificMock.
+    {
+      urlEndpoint:
+        'https://security-alerts.api.cx.metamask.io/address/evm/scan',
+      responseCode: 200,
+      response: {
+        result_type: 'Benign',
+        label: '',
+      },
+    },
     // Proof-of-ownership nonce batch — fetched by `ProfileMetricsController`
     // before each `submitMetrics` call. Returning an empty map causes
     // `#attachProofs` to fall through to submitting without a proof, which
