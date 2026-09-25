@@ -1,5 +1,5 @@
 import type { SocialService } from '@metamask/social-controllers';
-import AppConstants from '../../AppConstants';
+import AppConstants from '../../../AppConstants';
 
 export interface CreateSwapCommentOptions {
   commentText: string;

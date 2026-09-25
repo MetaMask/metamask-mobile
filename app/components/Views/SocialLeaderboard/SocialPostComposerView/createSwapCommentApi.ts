@@ -2,7 +2,7 @@ import Engine from '../../../../core/Engine';
 import type {
   CreateSwapCommentOptions,
   CreateSwapCommentResult,
-} from '../../../../core/Engine/controllers/registerCreateSwapCommentHandler';
+} from '../../../../core/Engine/controllers/social/register-create-swap-comment-handler';
 
 interface CreateSwapCommentMessenger {
   call: (

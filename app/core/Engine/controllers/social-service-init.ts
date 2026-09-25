@@ -5,8 +5,8 @@ import {
 import type { MessengerClientInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
-import { registerCommentReactionHandlersIfNeeded } from './registerCommentReactionHandlers';
-import { registerCreateSwapCommentHandlerIfNeeded } from './registerCreateSwapCommentHandler';
+import { registerCommentReactionHandlersIfNeeded } from './social/register-comment-reaction-handlers';
+import { registerCreateSwapCommentHandlerIfNeeded } from './social/register-create-swap-comment-handler';
 
 /**
  * Initialize the SocialService.
