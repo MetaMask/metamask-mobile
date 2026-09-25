@@ -2,11 +2,20 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import {
+  ALSO_INCLUDED_ITEMS,
+  MOCK_PRO_HUB_STATS,
+  MOCK_TRADE_ALLOWANCES,
+  TRADE_ALLOWANCE_IDS,
+} from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import {
+  MoneyAccountPlusBenefitsStatus,
+  useMoneyAccountPlusBenefits,
+} from '../../../hooks/useMoneyAccountPlusBenefits';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -37,6 +46,14 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
+const mockUseMoneyAccountPlusBenefits = jest.mocked(
+  useMoneyAccountPlusBenefits,
+);
+jest.mock('../../../hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusBenefits'),
+  useMoneyAccountPlusBenefits: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -48,7 +65,7 @@ const renderProHub = () => render(<ProHub />);
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-const TRADE_ALLOWANCE_IDS = ['swaps', 'perps', 'predict'] as const;
+const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
 // CV cannot cover this screen yet: it is still mock-data UI with no Redux /
 // Engine state, so focused unit tests remain the coverage layer.
@@ -63,6 +80,12 @@ describe('ProHub', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Subscriber,
     );
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+    });
   });
 
   // ── Access guard ───────────────────────────────────────────────────────────
@@ -208,7 +231,7 @@ describe('ProHub', () => {
       expect(section).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
 
-      TRADE_ALLOWANCE_IDS.forEach((id) => {
+      TRADE_ALLOWANCE_ID_LIST.forEach((id) => {
         const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
         const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
 
