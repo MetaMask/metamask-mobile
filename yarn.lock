@@ -9270,9 +9270,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/accounts-controller@npm:@metamask-previews/accounts-controller@40.0.0-preview-429f77222":
-  version: 40.0.0-preview-429f77222
-  resolution: "@metamask-previews/accounts-controller@npm:40.0.0-preview-429f77222"
+"@metamask/accounts-controller@npm:@metamask-previews/accounts-controller@40.0.0-preview-7aac301dc":
+  version: 40.0.0-preview-7aac301dc
+  resolution: "@metamask-previews/accounts-controller@npm:40.0.0-preview-7aac301dc"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -9285,16 +9285,16 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/network-controller": "npm:^37.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^11.12.0"
+    "@metamask/utils": "npm:^12.0.0"
     deepmerge: "npm:^4.2.2"
     ethereum-cryptography: "npm:^2.1.2"
     immer: "npm:^9.0.6"
     lodash-es: "npm:^4.17.21"
-    uuid: "npm:^9.0.1"
+    uuid: "npm:^11.1.1"
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/b02b7db51f5fbbf297e3dea0e8b36553c87a102010bd1b4aa0ed49f35e7428f9f49b2dc61e0456adfeb7a721d3a3d297278e9fd9a355c544055e10936b12afb6
+  checksum: 10/68b5fa37547ff66a284e51b0512082128debc3f0c1954abd74f935683065d9bd625ab7c44281b235db0b14170a0df55b262e2cc963555214e14d7cbbc0531dd7
   languageName: node
   linkType: hard
 
@@ -11748,9 +11748,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snap-account-service@npm:@metamask-previews/snap-account-service@3.0.0-preview-09a5567a0":
-  version: 3.0.0-preview-09a5567a0
-  resolution: "@metamask-previews/snap-account-service@npm:3.0.0-preview-09a5567a0"
+"@metamask/snap-account-service@npm:@metamask-previews/snap-account-service@3.0.0-preview-5c7968943":
+  version: 3.0.0-preview-5c7968943
+  resolution: "@metamask-previews/snap-account-service@npm:3.0.0-preview-5c7968943"
   dependencies:
     "@metamask/account-api": "npm:^2.0.0"
     "@metamask/accounts-controller": "npm:^40.0.0"
@@ -11762,9 +11762,9 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/snaps-controllers": "npm:^19.0.0"
     "@metamask/snaps-sdk": "npm:^11.0.0"
-    "@metamask/utils": "npm:^11.12.0"
+    "@metamask/utils": "npm:^12.0.0"
     lodash-es: "npm:^4.17.21"
-  checksum: 10/f3e49adac0b5c4c38dc72399a5aba075fead8bc7a36c560f625ca7d7c013f2c8bbb9e502badc67fe5567cd7811ee5cbbe903d85eec55f1169ded3dda26b92ba3
+  checksum: 10/f2a5035a75036c94c8aba884dd69461268d5cc10c02daa67172c769b2919f3510d583fe57bc826fd5984c4cc56f462ac36e73f568d795589d1a68fb342ae467b
   languageName: node
   linkType: hard
 
@@ -12237,6 +12237,26 @@ __metadata:
     semver: "npm:^7.5.4"
     uuid: "npm:^9.0.1"
   checksum: 10/2d91b1d5338929f7a7c0e272ea564426d229e4d5bc33f7b124043245b3d14afb0f01ca15fcee70c434fa1cd537eb82c537ea575489a8672a10ea3da6ae74da81
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "@metamask/utils@npm:12.0.0"
+  dependencies:
+    "@ethereumjs/tx": "npm:^5.4.0"
+    "@metamask/scure-bip39": "npm:^2.1.1"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@noble/hashes": "npm:^1.8.0"
+    "@scure/base": "npm:^1.2.6"
+    "@types/debug": "npm:^4.1.7"
+    "@types/lodash": "npm:^4.17.20"
+    debug: "npm:^4.3.4"
+    lodash: "npm:^4.17.21"
+    pony-cause: "npm:^2.1.10"
+    semver: "npm:^7.6.3"
+    uuid: "npm:^9.0.1"
+  checksum: 10/3a2c592283b081ac627262d903bbac84d7ce81896c86e5839ffee4c5cbc48b161cc1599c4b57f74bcc576d8b27bb517ced4c9e4e7b31e69e3113873acfde5f03
   languageName: node
   linkType: hard
 
@@ -52476,12 +52496,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.1.0":
-  version: 11.1.0
-  resolution: "uuid@npm:11.1.0"
+"uuid@npm:^11.1.0, uuid@npm:^11.1.1":
+  version: 11.1.1
+  resolution: "uuid@npm:11.1.1"
   bin:
     uuid: dist/esm/bin/uuid
-  checksum: 10/d2da43b49b154d154574891ced66d0c83fc70caaad87e043400cf644423b067542d6f3eb641b7c819224a7cd3b4c2f21906acbedd6ec9c6a05887aa9115a9cf5
+  checksum: 10/16411d3dc12a08d6691616c09a75e66a7f900ba1beef6628a76fe0602f82fae2ee537b564d0b7bc95c24f58d059ca9b58c75a1e806118efb50e17822ff00ddd2
   languageName: node
   linkType: hard
 
