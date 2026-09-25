@@ -184,6 +184,8 @@ describe('usePerpsTPSLForm', () => {
       expect(result.current.formState.selectedSlPercentage).toBeNull();
       expect(result.current.formState.tpUsingPercentage).toBe(false);
       expect(result.current.formState.slUsingPercentage).toBe(false);
+      expect(result.current.formState.takeProfitSign).toBe('+');
+      expect(result.current.formState.stopLossSign).toBe('-');
     });
 
     it('initialize with provided initial values', () => {
@@ -849,8 +851,8 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPercentageChange('10.00');
       });
 
-      // When not focused, should show clean format with sign (10.00 -> + 10)
-      expect(result.current.display.formattedTakeProfitPercentage).toBe('+ 10');
+      // Badge owns the sign; the field shows unsigned magnitude (10.00 -> 10)
+      expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
 
       // When focused, should preserve user input
       act(() => {
@@ -1532,114 +1534,89 @@ describe('usePerpsTPSLForm', () => {
   });
 
   describe('Signed Input Handling', () => {
-    it('handles positive sign input correctly', () => {
-      // Arrange
+    it('strips a leading plus from take profit percentage and keeps the + badge', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('+15');
       });
 
-      // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('+15');
+      expect(result.current.formState.takeProfitPercentage).toBe('15');
+      expect(result.current.formState.takeProfitSign).toBe('+');
     });
 
-    it('handles negative sign input correctly', () => {
-      // Arrange
+    it('strips a leading minus from stop loss percentage and keeps the - badge', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('-8');
       });
 
-      // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('-8');
+      expect(result.current.formState.stopLossPercentage).toBe('8');
+      expect(result.current.formState.stopLossSign).toBe('-');
     });
 
-    it('handles duplicate signs correctly', () => {
-      // Arrange
+    it('strips duplicate minus signs from stop loss percentage', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act - Test double negative signs
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('--5');
       });
 
-      // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('-5');
+      expect(result.current.formState.stopLossPercentage).toBe('5');
+      expect(result.current.formState.stopLossSign).toBe('-');
     });
 
-    it('handles en-dash and em-dash characters', () => {
-      // Arrange
+    it('strips en-dash from stop loss percentage', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act - Test en-dash (–) conversion
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('–10');
       });
 
-      // Assert - En-dash should be converted to regular minus sign without space
-      expect(result.current.formState.stopLossPercentage).toBe('-10');
+      expect(result.current.formState.stopLossPercentage).toBe('10');
+      expect(result.current.formState.stopLossSign).toBe('-');
     });
 
-    it('handles mixed signs by keeping only the first sign', () => {
-      // Arrange
+    it('strips mixed signs from percentage input and stores magnitude only', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act - Test mixed signs (+-) should keep first sign
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('+-15');
       });
 
-      // Assert - Should keep only the first sign (+)
-      expect(result.current.formState.takeProfitPercentage).toBe('+15');
+      expect(result.current.formState.takeProfitPercentage).toBe('15');
 
-      // Act - Test mixed signs (-+) should keep first sign
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('-+8');
       });
 
-      // Assert - Should keep only the first sign (-)
-      expect(result.current.formState.stopLossPercentage).toBe('-8');
+      expect(result.current.formState.stopLossPercentage).toBe('8');
     });
 
-    it('allows backspacing through signs', () => {
-      // Arrange
+    it('clears take profit percentage when only a sign remains', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Set initial value
       act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('-8');
+        result.current.handlers.handleTakeProfitPercentageChange('8');
       });
 
-      // Act - Backspace to just the sign
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('-');
       });
 
-      // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('-');
-
-      // Act - Backspace to empty
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('');
-      });
-
-      // Assert
       expect(result.current.formState.takeProfitPercentage).toBe('');
     });
   });
@@ -1700,7 +1677,8 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleStopLossPercentageChange('-10');
       });
 
-      expect(result.current.formState.stopLossPercentage).toBe('-10');
+      expect(result.current.formState.stopLossPercentage).toBe('10');
+      expect(result.current.formState.stopLossSign).toBe('-');
       expect(result.current.formState.stopLossPrice).not.toBe('');
     });
 
@@ -1738,6 +1716,228 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.formState.stopLossPercentage).not.toBe('');
+    });
+  });
+
+  describe('RoE sign toggle', () => {
+    it('flips take profit from + to - and recomputes the trigger below entry', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      const positivePrice = Number.parseFloat(
+        result.current.formState.takeProfitPrice,
+      );
+
+      act(() => {
+        result.current.buttons.handleTakeProfitSignToggle();
+      });
+
+      expect(result.current.formState.takeProfitSign).toBe('-');
+      expect(result.current.formState.takeProfitPercentage).toBe('10');
+      expect(
+        Number.parseFloat(result.current.formState.takeProfitPrice),
+      ).toBeLessThan(defaultParams.currentPrice);
+      expect(
+        Number.parseFloat(result.current.formState.takeProfitPrice),
+      ).not.toBe(positivePrice);
+    });
+
+    it('flips stop loss from - to + and recomputes the trigger above entry', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('5');
+      });
+
+      act(() => {
+        result.current.buttons.handleStopLossSignToggle();
+      });
+
+      expect(result.current.formState.stopLossSign).toBe('+');
+      expect(result.current.formState.stopLossPercentage).toBe('5');
+      expect(
+        Number.parseFloat(result.current.formState.stopLossPrice),
+      ).toBeGreaterThan(defaultParams.currentPrice);
+    });
+
+    it('sets the take profit badge from a typed trigger price on an open position', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 50000,
+        position: mockPosition,
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000');
+      });
+
+      expect(result.current.formState.takeProfitSign).toBe('+');
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000');
+      });
+
+      expect(result.current.formState.takeProfitSign).toBe('-');
+    });
+
+    it('sets the stop loss badge from a typed trigger price on an open position', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 50000,
+        position: mockPosition,
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('45000');
+      });
+
+      expect(result.current.formState.stopLossSign).toBe('-');
+
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('55000');
+      });
+
+      expect(result.current.formState.stopLossSign).toBe('+');
+    });
+
+    it('accepts a take profit at a smaller loss on a long already underwater', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 40000,
+        position: {
+          ...mockPosition,
+          entryPrice: '50000',
+          size: '1.5',
+          liquidationPrice: '30000',
+        },
+        liquidationPrice: '30000',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.buttons.handleTakeProfitSignToggle();
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      expect(result.current.formState.takeProfitSign).toBe('-');
+      expect(
+        Number.parseFloat(result.current.formState.takeProfitPrice),
+      ).toBeGreaterThan(40000);
+      expect(result.current.validation.takeProfitError).toBe('');
+      expect(result.current.validation.isValid).toBe(true);
+    });
+
+    it('accepts a stop loss at a smaller gain on a long already in profit', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 250,
+        leverage: 1,
+        position: {
+          ...mockPosition,
+          entryPrice: '100',
+          size: '1.5',
+          liquidationPrice: '50',
+          leverage: { ...mockPosition.leverage, value: 1 },
+        },
+        liquidationPrice: '50',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.buttons.handleStopLossSignToggle();
+      });
+      act(() => {
+        result.current.handlers.handleStopLossPercentageChange('99');
+      });
+
+      expect(result.current.formState.stopLossSign).toBe('+');
+      expect(result.current.formState.stopLossPrice).toBe('199');
+      expect(result.current.validation.stopLossError).toBe('');
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
+      expect(result.current.validation.isValid).toBe(true);
+    });
+
+    it('still reports liquidation when a positive stop loss sits beyond liquidation', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 60000,
+        position: {
+          ...mockPosition,
+          entryPrice: '50000',
+          size: '1.5',
+          liquidationPrice: '50500',
+        },
+        liquidationPrice: '50500',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.buttons.handleStopLossSignToggle();
+        result.current.handlers.handleStopLossPercentageChange('5');
+      });
+
+      expect(result.current.formState.stopLossSign).toBe('+');
+      expect(
+        Number.parseFloat(result.current.formState.stopLossPrice),
+      ).toBeLessThan(50500);
+      expect(result.current.validation.stopLossLiquidationError).not.toBe('');
+      expect(result.current.validation.isValid).toBe(false);
+    });
+
+    it('snaps the take profit badge to + when a positive preset is pressed', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.buttons.handleTakeProfitSignToggle();
+      });
+      expect(result.current.formState.takeProfitSign).toBe('-');
+
+      act(() => {
+        result.current.buttons.handleTakeProfitPercentageButton(25);
+      });
+
+      expect(result.current.formState.takeProfitSign).toBe('+');
+      expect(result.current.formState.takeProfitPercentage).toBe('25');
+    });
+
+    it('resets signs to defaults when take profit and stop loss are cleared', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.buttons.handleTakeProfitSignToggle();
+        result.current.buttons.handleStopLossSignToggle();
+      });
+
+      act(() => {
+        result.current.buttons.handleTakeProfitOff();
+        result.current.buttons.handleStopLossOff();
+      });
+
+      expect(result.current.formState.takeProfitSign).toBe('+');
+      expect(result.current.formState.stopLossSign).toBe('-');
     });
   });
 });

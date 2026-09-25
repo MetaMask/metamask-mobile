@@ -45,6 +45,13 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => ({
 }));
 jest.mock('../../../../util/haptics');
 
+interface MockToast {
+  labelOptions?: { label: string }[];
+}
+
+const getToastLabel = (toast: MockToast) =>
+  toast.labelOptions?.[0]?.label ?? 'unknown';
+
 describe('usePerpsTPSLUpdate', () => {
   const mockUpdatePositionTPSL = jest.fn();
   const mockShowToast = jest.fn();
@@ -79,6 +86,18 @@ describe('usePerpsTPSLUpdate', () => {
         },
       },
       tpsl: {
+        updateTPSLInProgress: {
+          variant: 'icon',
+          iconName: 'Loading',
+          hapticsType: 'warning',
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: 'perps.position.tpsl.update_in_progress',
+              isBold: true,
+            },
+          ],
+        },
         updateTPSLSuccess: {
           variant: 'icon',
           iconName: 'CheckBold',
@@ -520,8 +539,8 @@ describe('usePerpsTPSLUpdate', () => {
       mockUpdatePositionTPSLOptimistic.mockImplementation(() => {
         callOrder.push('optimistic');
       });
-      mockShowToast.mockImplementation(() => {
-        callOrder.push('toast');
+      mockShowToast.mockImplementation((toast: MockToast) => {
+        callOrder.push(getToastLabel(toast));
       });
 
       const { result } = renderHookWithToast();
@@ -533,7 +552,78 @@ describe('usePerpsTPSLUpdate', () => {
         await result.current.handleUpdateTPSL(position, '3300', '2700');
       });
 
-      expect(callOrder).toEqual(['optimistic', 'toast']);
+      expect(callOrder).toEqual([
+        'perps.position.tpsl.update_in_progress',
+        'optimistic',
+        'perps.position.tpsl.update_success',
+      ]);
+    });
+  });
+
+  describe('pending toast', () => {
+    it('shows the pending toast before the update request is sent', async () => {
+      // Arrange
+      const callOrder: string[] = [];
+      mockShowToast.mockImplementation((toast: MockToast) => {
+        callOrder.push(getToastLabel(toast));
+      });
+      mockUpdatePositionTPSL.mockImplementation(() => {
+        callOrder.push('request');
+        return Promise.resolve({ success: true });
+      });
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+
+      // Act
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      // Assert
+      expect(callOrder[0]).toBe('perps.position.tpsl.update_in_progress');
+      expect(callOrder[1]).toBe('request');
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        1,
+        mockPerpsToastOptions.positionManagement.tpsl.updateTPSLInProgress,
+      );
+    });
+
+    it('replaces the pending toast with the error toast when the update fails', async () => {
+      // Arrange
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: 'Network error',
+      });
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+
+      // Act
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      // Assert
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        1,
+        mockPerpsToastOptions.positionManagement.tpsl.updateTPSLInProgress,
+      );
+      expect(getToastLabel(mockShowToast.mock.calls[1][0])).toBe(
+        'perps.position.tpsl.update_failed',
+      );
+    });
+
+    it('shows the pending toast with the in-progress spinner styling', () => {
+      // Arrange
+      const { updateTPSLInProgress } =
+        mockPerpsToastOptions.positionManagement.tpsl;
+
+      // Act
+      const { label } = updateTPSLInProgress.labelOptions[0];
+
+      // Assert
+      expect(label).toBe('perps.position.tpsl.update_in_progress');
+      expect(updateTPSLInProgress.hapticsType).toBe('warning');
     });
   });
 });

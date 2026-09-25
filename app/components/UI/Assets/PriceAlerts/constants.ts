@@ -1,11 +1,17 @@
 /** Shared navigation params used by both Create and Manage screens. */
 export interface PriceAlertRouteParams {
+  /** Required by React Navigation's NavigatorScreenParams for nested navigation. */
+  [key: string]: unknown;
   symbol: string;
   ticker?: string;
   currentPrice: number;
   currentCurrency: string;
   /** CAIP-19 asset identifier, e.g. "eip155:1/slip44:60" or "eip155:1/erc20:0x..." */
   assetId: string;
+  /** 'perps' when opened from a perpetuals market page; defaults to 'spot'. */
+  mode?: 'spot' | 'perps';
+  /** Perp market identifier (e.g. 'btc-hyperliquid-mainnet'). Required when mode='perps'. */
+  marketId?: string;
 }
 
 /** Route params for the Create Price Alert screen. */
@@ -75,6 +81,10 @@ export const PriceAlertAnalytics = {
     CREATED: 'created',
     UPDATED: 'updated',
     DELETED: 'deleted',
+  },
+  MARKET_TYPE: {
+    SPOT: 'spot',
+    PERPS: 'perps',
   },
 } as const;
 

@@ -242,7 +242,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `amount_filled` (optional): Amount filled in partially filled orders (number)
 - `remaining_amount` (optional): Amount remaining in partially filled orders (number)
 - `error_message` (optional): Error description when status is 'failed'
-- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active. The shared screen vs bottom-sheet experiment (`perpsAbtestScreenVsBottomSheet`) is registered on this conversion event only — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md)
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active. The shared screen vs bottom-sheet experiment (`perpsTAT3938AbtestScreenVsBottomSheet`) is registered on this conversion event only — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md)
 
 ### 5. PERPS_ORDER_CANCEL_TRANSACTION
 
@@ -397,7 +397,7 @@ Register only the events needed to answer that test's question. Do not copy anot
 - **Engagement Rate** = Button presses / Screen views per variant
 - Answers: "Which button color makes users more likely to press the button?"
 
-**Screen vs bottom sheet (`perpsAbtestScreenVsBottomSheet`):** conversion tracking only. Register `PERPS_POSITION_CLOSE_TRANSACTION` (and later each converted flow's transaction event). Do not attach this assignment to screen or interaction events. `Experiment Viewed` from `useABTest` is the exposure signal.
+**Screen vs bottom sheet (`perpsTAT3938AbtestScreenVsBottomSheet`):** conversion tracking only. Register `PERPS_POSITION_CLOSE_TRANSACTION` (and later each converted flow's transaction event). Do not attach this assignment to screen or interaction events. `Experiment Viewed` from `useABTest` is the exposure signal.
 
 For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 

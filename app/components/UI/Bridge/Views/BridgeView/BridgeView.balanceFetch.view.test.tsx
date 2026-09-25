@@ -1,7 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   MetaMetricsSwapsEventSource,
   RequestStatus,
@@ -9,11 +7,12 @@ import {
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
 import {
-  renderComponentViewScreen,
-  renderScreenWithRoutes,
-} from '../../../../../../tests/component-view/render';
-import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
+  renderBridgeView,
+  renderBridgeViewWithModals,
+  withBridgeSession,
+} from '../../../../../../tests/component-view/renderers/bridge';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -31,24 +30,11 @@ import { TokenWarningModalMode } from '../../components/TokenWarningModal/consta
 import { MissingPriceModal } from '../../components/MissingPriceModal';
 import { SecurityDataType } from '../../types';
 import { SwapsBannersSelectorsIDs } from '../../components/SwapsBanners/SwapsBanners.testIds';
-import BridgeView from '.';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
-const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 2;
+// Session owns the source-token fetch. Confirm / quote request reuse it.
+const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 1;
 const QUOTE_MODAL_NATIVE_SOURCE_FETCHES = 1;
-const BRIDGE_VIEW_THEN_MODAL_NATIVE_SOURCE_FETCHES =
-  BRIDGE_VIEW_NATIVE_SOURCE_FETCHES + QUOTE_MODAL_NATIVE_SOURCE_FETCHES;
-
-const ModalStack = createNativeStackNavigator();
-
-const BridgeModalsRoot = () => (
-  <ModalStack.Navigator>
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
-      component={TokenWarningModal}
-    />
-  </ModalStack.Navigator>
-);
 
 const quotedBridgeControllerState = {
   quotes: [mockQuoteWithMetadata],
@@ -114,7 +100,7 @@ describeForPlatforms('Bridge native source balance fetches', () => {
     jest.restoreAllMocks();
   });
 
-  it('fetches native source balance twice when BridgeView mounts with a quote', async () => {
+  it('fetches native source balance once when BridgeView mounts with a quote', async () => {
     const { findByTestId } = renderBridgeView({
       deterministicFiat: true,
       overrides: {
@@ -137,9 +123,10 @@ describeForPlatforms('Bridge native source balance fetches', () => {
     );
   });
 
-  it('fetches native source balance again when a quote modal opens over BridgeView', async () => {
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
+  it('does not fetch native source balance again when a quote modal opens over BridgeView', async () => {
+    const state = renderBridgeViewWithModals({
+      deterministicFiat: true,
+      overrides: {
         bridge: {
           ...DEFAULT_BRIDGE,
           destToken: {
@@ -155,20 +142,10 @@ describeForPlatforms('Bridge native source balance fetches', () => {
             BridgeController: quotedBridgeControllerState,
           },
         },
-      } as unknown as DeepPartial<RootState>)
-      .build();
+      },
+    });
 
-    const { findByTestId, findByText, getByTestId } = renderScreenWithRoutes(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      [
-        {
-          name: Routes.BRIDGE.MODALS.ROOT,
-          Component: BridgeModalsRoot as unknown as React.ComponentType<object>,
-        },
-      ],
-      { state },
-    );
+    const { findByTestId, findByText, getByTestId } = state;
 
     expect(
       await findByTestId(SwapsBannersSelectorsIDs.TOKEN_WARNING),
@@ -187,7 +164,7 @@ describeForPlatforms('Bridge native source balance fetches', () => {
 
     await waitForEthGetBalanceCalls(
       ethGetBalance,
-      BRIDGE_VIEW_THEN_MODAL_NATIVE_SOURCE_FETCHES,
+      BRIDGE_VIEW_NATIVE_SOURCE_FETCHES,
     );
   });
 
@@ -225,7 +202,7 @@ describeForPlatforms('Bridge native source balance fetches', () => {
     'fetches native source balance once when $name opens',
     async ({ Component, routeName, params }) => {
       renderComponentViewScreen(
-        Component,
+        withBridgeSession(Component),
         { name: routeName },
         { state: createBridgeFlowState() },
         params,

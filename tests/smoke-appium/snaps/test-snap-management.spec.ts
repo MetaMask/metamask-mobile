@@ -11,7 +11,10 @@ import {
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Increased from 150 s: 4 serial tests include a snap install (up to 60 s
+  // on Android) and two full browser→settings→browser navigation round-trips,
+  // exhausting 150 s on slower CI runners on both Android and iOS.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to the Dialog Snap',

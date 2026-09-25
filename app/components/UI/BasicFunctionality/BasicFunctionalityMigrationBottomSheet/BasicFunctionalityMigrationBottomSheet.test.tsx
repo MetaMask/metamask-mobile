@@ -8,9 +8,27 @@ import { dismissBasicFunctionalityMigrationNotification } from '../../../../acti
 import BasicFunctionalityMigrationBottomSheet, {
   BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK,
   BASIC_FUNCTIONALITY_MIGRATION_PRIVACY_NOTICE_LINK,
+  BasicFunctionalitySocialPrivacyNoticeAction,
+  SOCIAL_BF_PRIVACY_NOTICE_NAME,
 } from './BasicFunctionalityMigrationBottomSheet';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockDispatch = jest.fn();
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ mockEvent: true });
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -64,7 +82,9 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
       getByText(strings('basic_functionality_migration.social_title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('basic_functionality_migration.social_body_1')),
+      getByText(strings('basic_functionality_migration.social_body_1'), {
+        exact: false,
+      }),
     ).toBeOnTheScreen();
   });
 
@@ -81,6 +101,16 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       dismissBasicFunctionalityMigrationNotification(),
     );
+  });
+
+  it('renders the accept button from the design system at size Lg', () => {
+    const { getByTestId } = renderWithProvider(
+      <BasicFunctionalityMigrationBottomSheet />,
+    );
+
+    expect(getByTestId('basic-functionality-migration-accept')).toHaveStyle({
+      height: 48,
+    });
   });
 
   it('opens the migration information links', () => {
@@ -103,5 +133,38 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
       2,
       BASIC_FUNCTIONALITY_MIGRATION_PRIVACY_NOTICE_LINK,
     );
+  });
+
+  it('tracks viewed when the social privacy notice is shown', () => {
+    renderWithProvider(<BasicFunctionalityMigrationBottomSheet />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NOTICE_UPDATE_DISPLAYED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: SOCIAL_BF_PRIVACY_NOTICE_NAME,
+      action: BasicFunctionalitySocialPrivacyNoticeAction.VIEWED,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
+  });
+
+  it('tracks accept and close when the user accepts', () => {
+    const { getByText } = renderWithProvider(
+      <BasicFunctionalityMigrationBottomSheet />,
+    );
+
+    mockTrackEvent.mockClear();
+    mockAddProperties.mockClear();
+    mockCreateEventBuilder.mockClear();
+
+    fireEvent.press(
+      getByText(strings('basic_functionality_migration.accept_and_close')),
+    );
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      name: SOCIAL_BF_PRIVACY_NOTICE_NAME,
+      action: BasicFunctionalitySocialPrivacyNoticeAction.ACCEPT_AND_CLOSE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ mockEvent: true });
   });
 });

@@ -18,7 +18,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
       });
     });
@@ -61,7 +61,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -153,7 +153,7 @@ describe('Feature Flag Registry', () => {
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
         enabled: false,
-        minimumVersion: '8.10.0',
+        minimumVersion: '8.13.0',
       });
     });
 
@@ -249,6 +249,249 @@ describe('Feature Flag Registry', () => {
           value: 0,
         });
       }
+    });
+
+    it('version-gates Money account on at 8.0.0', () => {
+      expect(
+        getRegistryEntry('moneyEnableMoneyAccount')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'cardImmersve',
+        'cardImmersveChains',
+        'cardImmersveConfig',
+        'cardImmersveCountries',
+        'cardIntercomSupport',
+        'immersveOnboardingEnabled',
+        'moneyHeadlessAllProviders',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+      expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+      expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.13.0',
+        },
+      });
+    });
+
+    it('keeps Immersve onboarding and Intercom support default-off', () => {
+      expect(
+        getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+      expect(
+        getRegistryEntry('cardIntercomSupport')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('pins the Card attention-badge A/B flag to control', () => {
+      const productionDefault = getRegistryEntry(
+        'cardCARD338AbtestAttentionBadge',
+      )?.productionDefault;
+      expect(Array.isArray(productionDefault)).toBe(true);
+
+      const variants = productionDefault as {
+        name: string;
+        scope: { type: string; value: number };
+      }[];
+      const control = variants.find((variant) => variant.name === 'control');
+      const withBadge = variants.find(
+        (variant) => variant.name === 'withBadge',
+      );
+
+      expect(control?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 1,
+      });
+      expect(withBadge?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 0,
+      });
+    });
+
+    it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'homeTMCU470AbtestTrendingSections',
+        'homeTMCU828AbtestOnboardingChecklistStepper',
+        'aiSocialFeedEnabled',
+        'socialAIQuickBuyStreamQuotes',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('aiSocialLeaderboardOnboaridngEnabled'),
+      ).toBeUndefined();
+    });
+
+    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
+      expect(
+        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+      expect(
+        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+    });
+
+    it('enables the Social AI feed and leaderboard at 8.0.0+', () => {
+      expect(
+        getRegistryEntry('aiSocialFeedEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.3.0',
+      });
+      expect(
+        getRegistryEntry('aiSocialLeaderboardEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('pins Home and Social AI percentage A/B flags to control', () => {
+      const abTestFlags = [
+        'homeTMCU610AbtestWalletHomePostOnboardingSteps',
+        'socialAiTSA531AbtestWhatsHappeningExplore',
+        'socialAiTSA612AbtestQuickBuy',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope).toEqual({
+            type: 'percentage_rollout',
+            value: 0,
+          });
+        }
+      }
+
+      expect(
+        (
+          getRegistryEntry('homeTMCU610AbtestWalletHomePostOnboardingSteps')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'postOnboardingSteps']);
+    });
+
+    it('registers Assets and leftover catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'ASSETS3831TestFeatureFlagPermissions',
+        'assetsAccountsApiV6',
+        'assetsMemeCoinView',
+        'networkAssetsSnapsMigrationSolana',
+        'networkAssetsSnapsMigrationStellar',
+        'platformTestStructure',
+        'priceAlertsEnabled',
+        'productSafetyScamQuestionnaireEnabled',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationSolana')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationStellar')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+    });
+
+    it('version-gates global watchlist on at 8.9.0 and price alerts on at 8.2.0', () => {
+      expect(
+        getRegistryEntry('assetsGlobalWatchlistV1')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.9.0',
+      });
+      expect(getRegistryEntry('priceAlertsEnabled')?.productionDefault).toEqual(
+        {
+          enabled: true,
+          minimumVersion: '8.2.0',
+        },
+      );
+    });
+
+    it('pins Assets and Pro-subscription A/B flags to control', () => {
+      const abTestFlags = [
+        'assetsASSETS3205AbtestAmbientPriceColor',
+        'assetsASSETS3380AbtestExploreQuickBuy',
+        'subSUB990AbtestProSubscriptionFlow',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope.value).toBe(0);
+        }
+      }
+
+      expect(
+        (
+          getRegistryEntry('assetsASSETS3380AbtestExploreQuickBuy')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'treatment']);
     });
   });
 

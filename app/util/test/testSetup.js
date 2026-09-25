@@ -769,6 +769,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
@@ -1169,7 +1170,10 @@ jest.mock('@sentry/react-native', () => ({
   // Capture methods
   captureException: jest.fn(),
   captureMessage: jest.fn(),
-  captureUserFeedback: jest.fn(),
+  captureFeedback: jest.fn(),
+
+  dedupeIntegration: jest.fn(() => ({ name: 'Dedupe' })),
+  extraErrorDataIntegration: jest.fn(() => ({ name: 'ExtraErrorData' })),
 
   // Breadcrumb and context methods
   addBreadcrumb: jest.fn(),

@@ -3,13 +3,18 @@ import {
   type KycControllerMessenger,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import { kycSumSubLauncherStub } from './kycSumSubLauncherStub';
+import { sumsubLauncher } from './sumSubLauncher';
 
 /**
- * Initialize the KycController for vendor T&C fetching on Get Pix Key.
+ * Initialize the KycController.
  *
- * {@link KycController.loadDisclaimers} is the only controller surface used by
- * this ticket; SumSub / session / identity-flow wiring is out of scope.
+ * The controller owns session creation, consent recording, status polling,
+ * and the SumSub hand-off. Platform-specific SDK presentation is delegated to
+ * the injected {@link sumsubLauncher}.
+ *
+ * Money-account wallet registration and autoramp creation after KYC approval
+ * are owned by `RampsController.hydrateVbaOnboarding`. Do not also subscribe
+ * to `KycController:statusChanged` for that activation work.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
@@ -23,8 +28,7 @@ export const kycControllerInit: MessengerClientInitFunction<
   const controller = new KycController({
     messenger: controllerMessenger,
     state: persistedState.KycController,
-    // Required by the controller constructor; not used for disclaimer loading.
-    sumsubLauncher: kycSumSubLauncherStub,
+    sumsubLauncher,
   });
 
   return { controller };

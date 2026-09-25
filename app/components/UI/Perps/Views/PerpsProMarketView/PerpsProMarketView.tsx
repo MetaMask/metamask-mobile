@@ -619,6 +619,7 @@ const PerpsProMarketView = ({
           currentPrice={syncedChartCurrentPrice}
           onLatestPriceChange={setAdvancedChartCurrentPrice}
           onResolvedStateChange={handleChartResolvedStateChange}
+          marketId={market.id}
           onFreshDelivery={() =>
             setChartDeliveryRevision((revision) => revision + 1)
           }

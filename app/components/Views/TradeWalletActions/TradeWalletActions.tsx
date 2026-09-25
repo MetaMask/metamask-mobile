@@ -28,9 +28,6 @@ import { useParams } from '../../../util/navigation/navUtils';
 
 import {
   ActionListItem,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   IconName,
   Tag,
@@ -40,8 +37,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
-import { PerpsMode } from '@metamask/perps-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -55,6 +52,14 @@ import {
   BLUR_INTENSITY,
   useBlurMaterial,
 } from '../../../component-library/hooks/useBlurMaterial';
+import { useLiquidGlass } from '../../../component-library/hooks/useLiquidGlass';
+import {
+  TAB_BAR_FLOATING_HEIGHT,
+  TRADE_TRAY_GLASS_BORDER_OPACITY,
+  TRADE_TRAY_GLASS_FILL_OPACITY,
+  TRADE_TRAY_GLASS_RADIUS,
+} from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
+import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import { useABTest } from '../../../hooks/useABTest';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog. */
@@ -79,7 +84,6 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
-import { usePerpsMode } from '../../UI/Perps/hooks';
 import {
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,
@@ -98,6 +102,7 @@ import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 const bottomMaskHeight = 35;
 // The trade-focused sheet sits on a blur with its own edge, so its page is not dimmed.
 const TRADE_FOCUSED_BACKDROP_OPACITY = 0.2;
+export const TRADE_FOCUSED_BORDER_OPACITY = 0.2;
 const animationDuration = AnimationDuration.Fast;
 
 const batchSellIconStyle = {
@@ -115,6 +120,11 @@ export interface TradeWalletActionsParams {
   };
   /** Whether the sheet dips into a peak above the opening button. The floating bar's trailing "+" opens a plain rounded sheet instead. */
   hasBottomNotch?: boolean;
+  /**
+   * Sit the sheet where it would sit above the floating bar when there is no
+   * `buttonLayout` to anchor to: the native iOS 26 bar cannot be measured.
+   */
+  anchorsToTabBar?: boolean;
 }
 
 function TradeWalletActions() {
@@ -123,6 +133,7 @@ function TradeWalletActions() {
     onDismiss,
     buttonLayout,
     hasBottomNotch = true,
+    anchorsToTabBar = false,
   } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
@@ -148,7 +159,31 @@ function TradeWalletActions() {
   const isTradeFocusedArm =
     headerNavBarVariant.trailingNavBarAction === 'trade';
   const { isBlurAvailable, tint } = useBlurMaterial();
-  const isTranslucentSheet = isTradeFocusedArm && isBlurAvailable;
+  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
+  // Glass needs one rounded surface; the notched edge is an SVG shape that
+  // cannot be glass, so only the plain sheet gets the material.
+  const isGlassSheet = isGlassEnabled && !hasBottomNotch;
+  const isTranslucentSheet =
+    !isGlassSheet && isTradeFocusedArm && isBlurAvailable;
+
+  const glassBorderStyle = useMemo(
+    () => ({
+      borderRadius: TRADE_TRAY_GLASS_RADIUS,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colorWithOpacity(
+        colors.border.muted,
+        TRADE_TRAY_GLASS_BORDER_OPACITY,
+      ),
+    }),
+    [colors.border.muted],
+  );
+  const glassFillStyle = useMemo(
+    () => ({
+      borderRadius: TRADE_TRAY_GLASS_RADIUS,
+      opacity: TRADE_TRAY_GLASS_FILL_OPACITY,
+    }),
+    [],
+  );
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -157,7 +192,7 @@ function TradeWalletActions() {
 
   const sheetProgress = useSharedValue(0);
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: sheetProgress.value,
+    opacity: isGlassSheet ? 1 : sheetProgress.value,
     transform: [{ translateY: (1 - sheetProgress.value) * 50 }],
   }));
 
@@ -187,10 +222,6 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  const { mode: perpsMode } = usePerpsMode();
-  // Product default is Lite; only Pro gets the gold badge treatment.
-  const perpsModeBadge =
-    perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -331,21 +362,17 @@ function TradeWalletActions() {
   const elevatedSurfaceColor = tw.color(surfaceClass);
 
   const bottomShapeMaskWidth = buttonLayout ? buttonLayout.width * 2 : 0;
+  // Same distance the floating bar's top sits from the screen bottom, so the
+  // tray lands where the measured-button path puts it.
+  const bottomSpacerHeight = anchorsToTabBar
+    ? getTabBarFloatingBottomPadding(insets.bottom) + TAB_BAR_FLOATING_HEIGHT
+    : 0;
 
   const actionList = (
     <>
       {shouldRenderBatchSell && (
         <ActionListItem
-          label={
-            <View style={tw.style('flex-row items-center gap-2')}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.batch_sell')}
-              </Text>
-              <Tag severity={TagSeverity.Info}>
-                {strings('asset_overview.batch_sell_new_label')}
-              </Tag>
-            </View>
-          }
+          label={strings('asset_overview.batch_sell')}
           description={strings('asset_overview.batch_sell_description')}
           iconName={IconName.Merge}
           iconProps={{
@@ -368,31 +395,9 @@ function TradeWalletActions() {
       )}
       {isPerpsEnabled && (
         <ActionListItem
-          label={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.perps_button')}
-              </Text>
-              {isPerpsProModeEnabled ? (
-                <Tag
-                  severity={
-                    perpsModeBadge === PerpsMode.Pro
-                      ? TagSeverity.Warning
-                      : TagSeverity.Neutral
-                  }
-                  testID={WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE}
-                >
-                  {strings(`perps.mode.${perpsModeBadge}`)}
-                </Tag>
-              ) : null}
-            </Box>
-          }
+          label={strings('asset_overview.perps_button')}
           description={strings('asset_overview.perps_description')}
-          iconName={IconName.Candlestick}
+          iconName={IconName.Infinity}
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
@@ -402,7 +407,7 @@ function TradeWalletActions() {
         <ActionListItem
           label={strings('asset_overview.predict_button')}
           description={strings('asset_overview.predict_description')}
-          iconName={IconName.Speedometer}
+          iconName={IconName.Predictions}
           onPress={onPredict}
           testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
           isDisabled={!canSignTransactions}
@@ -417,7 +422,29 @@ function TradeWalletActions() {
   const sheetContent = (
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
-        {isTranslucentSheet && !hasBottomNotch ? (
+        {isGlassSheet ? (
+          <View style={[tw.style('mb-4'), glassBorderStyle]}>
+            <GlassView
+              glassEffectStyle="regular"
+              colorScheme={glassColorScheme}
+              testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+              style={[
+                tw.style('p-4 px-0 overflow-hidden'),
+                { borderRadius: TRADE_TRAY_GLASS_RADIUS },
+              ]}
+            >
+              <View
+                pointerEvents="none"
+                style={[
+                  StyleSheet.absoluteFill,
+                  tw.style(surfaceClass),
+                  glassFillStyle,
+                ]}
+              />
+              {actionList}
+            </GlassView>
+          </View>
+        ) : isTranslucentSheet && !hasBottomNotch ? (
           <BlurView
             testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
             tint={tint}
@@ -426,7 +453,10 @@ function TradeWalletActions() {
               tw.style('p-4 px-0 rounded-2xl mb-4 overflow-hidden'),
               {
                 borderWidth: StyleSheet.hairlineWidth,
-                borderColor: colorWithOpacity(colors.border.muted, 0.5),
+                borderColor: colorWithOpacity(
+                  colors.border.muted,
+                  TRADE_FOCUSED_BORDER_OPACITY,
+                ),
               },
             ]}
           >
@@ -524,7 +554,9 @@ function TradeWalletActions() {
       )}
       <View
         style={tw.style('pointer-events-none', {
-          height: buttonLayout ? screenHeight - buttonLayout.y - insetsTop : 0,
+          height: buttonLayout
+            ? screenHeight - buttonLayout.y - insetsTop
+            : bottomSpacerHeight,
         })}
       />
     </View>

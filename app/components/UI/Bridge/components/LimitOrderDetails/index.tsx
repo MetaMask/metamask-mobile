@@ -5,13 +5,13 @@ import { selectSourceAmount } from '../../../../../core/redux/slices/bridge';
 import ExpirationRow from './ExpirationRow';
 import { LimitOrderDetailsSelectorsIDs } from './testIds';
 import type { LimitOrderDetailsProps } from './types';
-import PriceRow from './PriceRow';
+import CostToleranceRow from './CostToleranceRow';
 
 const LimitOrderDetails: React.FC<LimitOrderDetailsProps> = ({
   expiration,
   onExpirationPress,
-  slippage,
-  onPricePress,
+  costTolerance,
+  onCostTolerancePress,
   testID = LimitOrderDetailsSelectorsIDs.CONTAINER,
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
@@ -22,9 +22,9 @@ const LimitOrderDetails: React.FC<LimitOrderDetailsProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="w-full pt-3 gap-3">
+    <Box testID={testID} twClassName="w-full pb-3 gap-3">
       <ExpirationRow value={expiration} onPress={onExpirationPress} />
-      <PriceRow value={slippage} onPress={onPricePress} />
+      <CostToleranceRow value={costTolerance} onPress={onCostTolerancePress} />
     </Box>
   );
 };

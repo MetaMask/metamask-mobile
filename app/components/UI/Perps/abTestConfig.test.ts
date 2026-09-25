@@ -65,9 +65,12 @@ describe('Perps abTestConfig', () => {
   });
 
   describe('PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY', () => {
-    it('names the experiment by the compared experiences', () => {
+    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
       expect(PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY).toBe(
-        'perpsAbtestScreenVsBottomSheet',
+        'perpsTAT3938AbtestScreenVsBottomSheet',
+      );
+      expect(PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY).toMatch(
+        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
       );
     });
   });
@@ -108,10 +111,16 @@ describe('Perps abTestConfig', () => {
       ]);
     });
 
-    it('registers the close-position conversion event', () => {
+    it('registers the position-management and trade conversion events', () => {
       expect(
         SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.eventNames,
-      ).toEqual([EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION]);
+      ).toEqual([
+        EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+        EVENT_NAME.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
+        EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+        EVENT_NAME.PERPS_TRADE_QUOTE_RECEIVED,
+        EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      ]);
     });
   });
 });

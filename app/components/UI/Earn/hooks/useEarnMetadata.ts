@@ -3,6 +3,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
+import { formatEarnRatePercentage } from '../utils/earnRate';
 
 export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
   const {
@@ -24,7 +25,7 @@ export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
   let annualRewardRateValue = 0;
 
   if (earnToken.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-    annualRewardRate = BigNumber(earnToken.experience.apr).toFixed(1) + '%';
+    annualRewardRate = `${formatEarnRatePercentage(earnToken.experience.apr)}%`;
     annualRewardRateDecimal = parseFloat(
       BigNumber(earnToken.experience.apr).div(100).toFixed(),
     );
