@@ -128,6 +128,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@braze/react-native-sdk',
   'uuid',
   '@metamask/wallet',
+  // We don't use `@metamask/passkey-controller` in mobile, but it's part of the `@metamask/wallet` package.
+  // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
 ];
