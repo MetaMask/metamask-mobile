@@ -1,7 +1,10 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright/index.js';
 import TimerHelper from '../../../framework/TimerHelper.js';
 import { AppiumAssertions } from '../../../framework/index.js';
-import { onboardingFlowImportSRPPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  dismissMoneyOnboardingIfPresent,
+  onboardingFlowImportSRPPlaywright,
+} from '../../../flows/wallet.flow.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
@@ -31,6 +34,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
 
       // Best practice: action before measure() with assertions inside measure();
       await TabBarComponent.tapMoney();
+      await dismissMoneyOnboardingIfPresent();
 
       await timer.measure(async () => {
         await MoneyHomeView.waitForEmptyBalanceLoaded();

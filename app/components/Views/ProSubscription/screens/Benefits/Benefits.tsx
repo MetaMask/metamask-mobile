@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
@@ -13,7 +14,9 @@ import {
   FontWeight,
   BannerAlert,
   BannerAlertSeverity,
+  Checkbox,
 } from '@metamask/design-system-react-native';
+import { isProduction } from '../../../../../util/environment';
 import {
   BENEFITS,
   BENEFIT_DETAILS,
@@ -47,11 +50,13 @@ interface BenefitsProps {
 }
 
 const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
+  const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
 
+  const [enableTestClocks, setEnableTestClocks] = useState(false);
   const [isBenefitDetailSheetOpen, setIsBenefitDetailSheetOpen] =
     useState(false);
   const [selectedBenfitDetail, setSelectedBenfitDetail] =
@@ -247,6 +252,17 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
               />
             ))
           : null}
+
+        {!isProduction() ? (
+          <Checkbox
+            label={strings('pro_subscription.enable_stripe_test_clocks')}
+            labelProps={{ style: tw.style('flex-1') }}
+            isSelected={enableTestClocks}
+            onChange={setEnableTestClocks}
+            testID={BenefitsTestIds.TEST_CLOCKS_CHECKBOX}
+            twClassName="items-start"
+          />
+        ) : null}
 
         <Button
           variant={ButtonVariant.Primary}

@@ -204,6 +204,7 @@ const mockSetSelectedCountry = jest.fn();
 const mockLogout = jest.fn();
 const mockBeginMigration = jest.fn();
 const mockCancelMigration = jest.fn();
+const mockRequestLegacyAccountClosure = jest.fn();
 const mockGetUserDetails = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
@@ -219,6 +220,8 @@ jest.mock('../../../../../core/Engine', () => ({
       logout: (...args: unknown[]) => mockLogout(...args),
       beginMigration: (...args: unknown[]) => mockBeginMigration(...args),
       cancelMigration: (...args: unknown[]) => mockCancelMigration(...args),
+      requestLegacyAccountClosure: (...args: unknown[]) =>
+        mockRequestLegacyAccountClosure(...args),
       getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
@@ -366,6 +369,7 @@ describe('SignUp Component', () => {
     mockGetUserDetails.mockReset();
     mockGetUserDetails.mockResolvedValue({});
     mockLogout.mockResolvedValue(undefined);
+    mockRequestLegacyAccountClosure.mockResolvedValue(undefined);
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseImmersveSupportedRegions.mockReturnValue({
       region: null,
@@ -1881,13 +1885,49 @@ describe('SignUp Component', () => {
       });
 
       expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockRequestLegacyAccountClosure).toHaveBeenCalledTimes(1);
       expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+      expect(
+        mockRequestLegacyAccountClosure.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockBeginMigration.mock.invocationCallOrder[0]);
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });
       expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
         mockImmersveSignIn.mock.invocationCallOrder[0],
       );
+    });
+
+    it('continues Immersve sign-up when legacy account closure fails', async () => {
+      mockRequestLegacyAccountClosure.mockRejectedValue(
+        new Error('closure failed'),
+      );
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockResolvedValue([]);
+      mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
+      mockPatchContactDetails.mockResolvedValue(undefined);
+      mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockImmersveSignIn).toHaveBeenCalled();
+      });
     });
 
     it('calls cancelMigration when Immersve continue fails after beginMigration', async () => {
@@ -1941,6 +1981,7 @@ describe('SignUp Component', () => {
       });
 
       expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockRequestLegacyAccountClosure).not.toHaveBeenCalled();
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });

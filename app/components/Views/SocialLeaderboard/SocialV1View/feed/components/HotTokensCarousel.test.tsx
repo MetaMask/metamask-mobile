@@ -8,6 +8,7 @@ import HotTokensCarousel from './HotTokensCarousel';
 import {
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
+  SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
 jest.mock('../hooks/useSocialV1HotTokens');
@@ -45,13 +46,13 @@ describe('HotTokensCarousel', () => {
     ).toHaveTextContent('NVIDIA');
   });
 
-  it('renders on a single row', () => {
+  it('renders the chips inside the carousel container', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel />);
 
     expect(
-      screen.getByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-0`),
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
@@ -70,8 +71,23 @@ describe('HotTokensCarousel', () => {
     expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
   });
 
-  // Chips are inert until the hot-topic destination exists; pressing one must
-  // not throw when no handler is wired.
+  it('marks the selected asset chip', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel selectedTokenId={NVIDIA.id} />);
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda')).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc')).props
+        .accessibilityState,
+    ).toEqual({ selected: false });
+  });
+
+  // Pressing a chip with no handler is a no-op rather than a throw, so a page
+  // can mount the rail before it wires filtering.
   it('stays inert when no press handler is supplied', () => {
     arrange([mockHotToken()]);
 
@@ -103,5 +119,28 @@ describe('HotTokensCarousel', () => {
     const { toJSON } = renderWithProvider(<HotTokensCarousel />);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('duplicates the chips once the track overflows the viewport', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+    fireEvent(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
+      'layout',
+      { nativeEvent: { layout: { width: 200, height: 40 } } },
+    );
+    fireEvent(
+      screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID),
+      'layout',
+      { nativeEvent: { layout: { width: 800, height: 40 } } },
+    );
+
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-btc-loop')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda-loop')),
+    ).toBeOnTheScreen();
   });
 });

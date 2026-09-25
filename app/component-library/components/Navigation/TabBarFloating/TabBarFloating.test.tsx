@@ -7,6 +7,8 @@ import {
   NavigationHelpers,
 } from '@react-navigation/native';
 
+import { IconName } from '@metamask/design-system-react-native';
+
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,6 +19,7 @@ import TabBarFloating, {
   type TabBarFloatingTrailingAction,
 } from './TabBarFloating';
 import {
+  FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
@@ -141,6 +144,12 @@ describe('TabBarFloating', () => {
   });
 
   afterAll(() => jest.useRealTimers());
+
+  it('uses the filled people glyph for the selected Social tab', () => {
+    expect(FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Social]).toBe(
+      IconName.PeopleFilled,
+    );
+  });
 
   it('renders the pill, the four treatment tabs, and the search button', () => {
     const { getByTestId } = renderBar();
