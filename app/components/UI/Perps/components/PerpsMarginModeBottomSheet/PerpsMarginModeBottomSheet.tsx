@@ -5,6 +5,7 @@ import {
   ListItemSelect,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import type { MarginMode } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
@@ -12,12 +13,22 @@ interface PerpsMarginModeBottomSheetProps {
   isVisible?: boolean;
   onClose: () => void;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
+  selectedMarginMode?: MarginMode;
+  /** Cross is selectable only when the flag, provider, and market allow it. */
+  isCrossMarginAvailable?: boolean;
+  /** An open position fixes the market's margin mode until it is closed. */
+  isMarginModeLocked?: boolean;
+  onMarginModeSelect?: (marginMode: MarginMode) => void;
 }
 
 const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   isVisible = true,
   onClose,
   sheetRef: externalSheetRef,
+  selectedMarginMode = 'isolated',
+  isCrossMarginAvailable = false,
+  isMarginModeLocked = false,
+  onMarginModeSelect,
 }) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
@@ -33,8 +44,19 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   }, [sheetRef]);
 
   const handleIsolatedPress = useCallback(() => {
+    onMarginModeSelect?.('isolated');
     handleClose();
-  }, [handleClose]);
+  }, [handleClose, onMarginModeSelect]);
+
+  const handleCrossPress = useCallback(() => {
+    onMarginModeSelect?.('cross');
+    handleClose();
+  }, [handleClose, onMarginModeSelect]);
+
+  const isIsolatedSelected = selectedMarginMode === 'isolated';
+  const isIsolatedDisabled = isMarginModeLocked && !isIsolatedSelected;
+  const isCrossDisabled =
+    !isCrossMarginAvailable || (isMarginModeLocked && isIsolatedSelected);
 
   if (!isVisible) {
     return null;
@@ -58,18 +80,25 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
       <ListItemSelect
         title={strings('perps.margin_mode.isolated_title')}
         description={strings('perps.margin_mode.isolated_description')}
-        isSelected
+        isSelected={isIsolatedSelected}
         showSelectedIcon={false}
-        onPress={handleIsolatedPress}
+        onPress={isIsolatedDisabled ? undefined : handleIsolatedPress}
+        disabled={isIsolatedDisabled}
+        twClassName={isIsolatedDisabled ? 'opacity-50' : undefined}
         testID={PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION}
       />
       <ListItemSelect
         title={strings('perps.margin_mode.cross_title')}
-        description={strings('perps.margin_mode.cross_description')}
-        isSelected={false}
+        description={strings(
+          isCrossMarginAvailable
+            ? 'perps.margin_mode.cross_description_available'
+            : 'perps.margin_mode.cross_description',
+        )}
+        isSelected={!isIsolatedSelected}
         showSelectedIcon={false}
-        disabled
-        twClassName="opacity-50"
+        onPress={isCrossDisabled ? undefined : handleCrossPress}
+        disabled={isCrossDisabled}
+        twClassName={isCrossDisabled ? 'opacity-50' : undefined}
         testID={PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION}
       />
     </BottomSheet>
