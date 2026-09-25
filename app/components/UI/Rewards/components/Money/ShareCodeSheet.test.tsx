@@ -5,6 +5,12 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import Pressable from '../../../../../component-library/components-temp/Pressable/Pressable';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../../util/test/analyticsMock';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import ShareCodeSheet, { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
 
@@ -12,6 +18,11 @@ const TEST_IDS = SHARE_CODE_SHEET_TEST_IDS;
 const CODE = 'ABC123';
 const CODE_URL = 'https://link.metamask.io/home?ref=ABC123';
 const API_SHARE_URL = 'https://link.metamask.io/home?ref=VANITY';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // The design-system sheet is mocked globally without forwarding its props, so
 // neither the overlay/swipe dismissal nor the close-animation callback can be
@@ -127,6 +138,12 @@ describe('ShareCodeSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     shareSpy = jest.spyOn(Share, 'share').mockResolvedValue({
       action: 'sharedAction',
     } as Awaited<ReturnType<typeof Share.share>>);
@@ -535,6 +552,41 @@ describe('ShareCodeSheet', () => {
         expect(Logger.log).toHaveBeenCalled();
       },
     );
+  });
+
+  describe('analytics', () => {
+    it.each([
+      [TEST_IDS.SHARE_VIA, 'share_via'],
+      [TEST_IDS.COPY_LINK, 'copy_link'],
+      [TEST_IDS.MESSAGES, 'messages'],
+      [TEST_IDS.TELEGRAM, 'telegram'],
+    ] as const)(
+      'tracks Rewards Money Referral Code Shared for %s',
+      (testId, shareMethod) => {
+        const { getByTestId } = renderSheet();
+
+        fireEvent.press(getByTestId(testId));
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+        );
+        const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: CODE,
+          share_method: shareMethod,
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      },
+    );
+
+    it('does not track a share when there is no resolved url', () => {
+      const { queryByTestId } = renderSheet({ code: null, shareUrl: null });
+
+      expect(queryByTestId(TEST_IDS.SHARE_VIA)).toBeNull();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+      );
+    });
   });
 
   describe('dismissal', () => {

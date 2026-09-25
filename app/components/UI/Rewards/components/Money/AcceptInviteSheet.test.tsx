@@ -5,6 +5,12 @@ import configureStore from '../../../../../util/test/configureStore';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { setReferralMe } from '../../../../../reducers/rewardsMoney';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../../util/test/analyticsMock';
 import type {
   ReferralLocalizedText,
   ReferralMeDto,
@@ -22,12 +28,16 @@ const mockOnCloseBottomSheet = jest.fn();
 const mockAcceptReferralCode = jest.fn();
 const mockUseAcceptMoneyReferralCode = jest.fn();
 const mockUseSessionProfileId = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
 }));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // The design-system sheet is mocked globally without forwarding its props;
 // forwarding them here is what lets the dismissal wiring be asserted.
@@ -204,6 +214,12 @@ describe('AcceptInviteSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     appTheme = 'light';
     referralMeEntries = {
       [PROFILE_ID]: { loading: false, error: false, data: buildReferralMe() },
@@ -227,13 +243,16 @@ describe('AcceptInviteSheet', () => {
     });
   });
 
-  it('passes navigator goBack to BottomSheet without an onClose override', async () => {
+  it('passes a goBack that navigates back to BottomSheet without an onClose override', async () => {
     const { getByTestId } = await renderSheet();
 
     const sheet = getByTestId(TEST_IDS.CONTAINER);
 
-    expect(sheet.props.goBack).toBe(mockGoBack);
+    expect(typeof sheet.props.goBack).toBe('function');
     expect(sheet.props.onClose).toBeUndefined();
+
+    sheet.props.goBack();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('leaves native back, overlay, and swipe dismissal enabled', async () => {
@@ -691,6 +710,344 @@ describe('AcceptInviteSheet', () => {
       await resolveProfile();
 
       expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks viewed once on mount with the prefilled code', async () => {
+      await renderSheet('KOL1');
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+        referral_code: 'KOL1',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks viewed without a code when none was prefilled', async () => {
+      await renderSheet();
+
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+      });
+    });
+
+    it('tracks no offer for an already-referred profile that closes itself', async () => {
+      referralMeEntries = {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+        },
+      };
+
+      renderSheetSync('KOL1');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks no offer when a pending referral-me load settles as already referred', async () => {
+      referralMeEntries = {
+        [PROFILE_ID]: { loading: true, error: false, data: null },
+      };
+
+      const { store } = await renderSheet('KOL1');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      await act(async () => {
+        store.dispatch(
+          setReferralMe({
+            profileId: PROFILE_ID,
+            data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+          }),
+        );
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks no response when the sheet is dismissed before the offer is viewed', () => {
+      referralMeEntries = {
+        [PROFILE_ID]: { loading: true, error: false, data: null },
+      };
+
+      const { getByTestId } = renderSheetSync('KOL1');
+
+      getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['decline', TEST_IDS.DECLINE],
+      ['close', TEST_IDS.CLOSE],
+    ])(
+      'does not relabel a pre-view %s as dismissed when closing completes',
+      async (_action, testId) => {
+        referralMeEntries = {
+          [PROFILE_ID]: { loading: true, error: false, data: null },
+        };
+
+        const { getByTestId, store } = renderSheetSync('KOL1');
+
+        fireEvent.press(getByTestId(testId));
+        expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          store.dispatch(
+            setReferralMe({ profileId: PROFILE_ID, data: buildReferralMe() }),
+          );
+        });
+        getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        const builder = mockCreateEventBuilder.mock.results[0]?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          interaction_type: 'viewed',
+          referral_code: 'KOL1',
+        });
+        expect(builder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({ interaction_type: 'dismissed' }),
+        );
+      },
+    );
+
+    it('tracks the offer once a pending referral-me load settles as eligible', async () => {
+      referralMeEntries = {
+        [PROFILE_ID]: { loading: true, error: false, data: null },
+      };
+
+      const { store } = await renderSheet('KOL1');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      await act(async () => {
+        store.dispatch(
+          setReferralMe({ profileId: PROFILE_ID, data: buildReferralMe() }),
+        );
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+        referral_code: 'KOL1',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks accepted after registration succeeds', async () => {
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'accepted',
+      });
+      expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
+    });
+
+    it('does not record accepted until registration resolves', async () => {
+      let resolveAccept: (didAccept: boolean) => void = () => undefined;
+      mockAcceptReferralCode.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveAccept = resolve;
+          }),
+      );
+
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+
+      await act(async () => {
+        resolveAccept(true);
+      });
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'accepted',
+      });
+    });
+
+    it.each([
+      ['the header close button', TEST_IDS.CLOSE],
+      ['the decline button', TEST_IDS.DECLINE],
+    ])(
+      'keeps accepted as the answer when %s is pressed before the hook reports loading',
+      async (_name, testId) => {
+        let resolveAccept: (didAccept: boolean) => void = () => undefined;
+        mockAcceptReferralCode.mockImplementation(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveAccept = resolve;
+            }),
+        );
+
+        const { getByTestId } = await renderSheet('KOL1');
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+
+        // Two taps can reach the handlers before React commits the hook's
+        // loading state, and the second one must not answer for the first.
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+        fireEvent.press(getByTestId(testId));
+
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+
+        await act(async () => {
+          resolveAccept(true);
+        });
+
+        const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: 'KOL1',
+          interaction_type: 'accepted',
+        });
+      },
+    );
+
+    it.each([
+      ['declined', TEST_IDS.DECLINE],
+      ['dismissed', TEST_IDS.CLOSE],
+    ])('records %s after a refused registration', async (action, testId) => {
+      mockAcceptReferralCode.mockResolvedValue(false);
+
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+
+      fireEvent.press(getByTestId(testId));
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: action,
+      });
+    });
+
+    it('tracks declined only from the decline button', async () => {
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      fireEvent.press(getByTestId(TEST_IDS.DECLINE));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'declined',
+      });
+    });
+
+    it('tracks dismissed, not declined, when the header close button is pressed', async () => {
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      fireEvent.press(getByTestId(TEST_IDS.CLOSE));
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'dismissed',
+      });
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks dismissed, not declined, on a swipe or overlay dismissal', async () => {
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'dismissed',
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['accepted', TEST_IDS.ACCEPT],
+      ['declined', TEST_IDS.DECLINE],
+    ])(
+      'keeps %s as the answer when the sheet then closes through goBack',
+      async (action, testId) => {
+        const { getByTestId } = await renderSheet('KOL1');
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+
+        await act(async () => {
+          fireEvent.press(getByTestId(testId));
+        });
+        getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        const builder = mockCreateEventBuilder.mock.results[0]?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: 'KOL1',
+          interaction_type: action,
+        });
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it('does not track accepted while the Accept button is disabled', async () => {
+      const { getByTestId } = await renderSheet();
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      expect(mockAcceptReferralCode).not.toHaveBeenCalled();
     });
   });
 });
