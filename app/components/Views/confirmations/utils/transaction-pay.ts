@@ -177,6 +177,7 @@ export function getAvailableTokens({
   return tokens
     .filter((token) => {
       if (
+        !token.address ||
         token.standard !== TokenStandard.ERC20 ||
         !token.accountType?.includes('eip155') ||
         (token.chainId && isTestNet(token.chainId))

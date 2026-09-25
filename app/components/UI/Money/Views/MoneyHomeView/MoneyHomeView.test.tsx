@@ -288,14 +288,6 @@ jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
 }));
 
-// The query reaches into Engine.context.SubscriptionController, which the Engine
-// mock above does not provide; the view only needs the hook to be called.
-const mockUseSubscriptions = jest.fn();
-jest.mock('../../../../hooks/useSubscriptions', () => ({
-  __esModule: true,
-  default: (...args: unknown[]) => mockUseSubscriptions(...args),
-}));
-
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
   isProSubscriptionEnabled: false,
   variantName: 'control',
@@ -2937,28 +2929,6 @@ describe('MoneyHomeView', () => {
       mockUsePlusAccess.mockReturnValue({
         isPlusSubscriber: false,
         isPlusAccessUnknown: false,
-      });
-    });
-
-    it('starts fetching subscriptions while the Pro flow is enabled', () => {
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockUseSubscriptions).toHaveBeenCalledWith({
-        enabled: true,
-      });
-    });
-
-    it('leaves subscriptions unfetched while the Pro flow is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
-      });
-
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockUseSubscriptions).toHaveBeenCalledWith({
-        enabled: false,
       });
     });
 

@@ -26,6 +26,7 @@ import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
@@ -87,6 +88,7 @@ interface PerpsTradeScreenProps {
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
+  feeDiscountPercentage?: number;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -273,6 +275,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   showPayWith,
   isPayWithDisabled,
   feePercentage,
+  feeDiscountPercentage,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -802,13 +805,21 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 twClassName="self-center"
               />
             ) : feePercentage ? (
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                twClassName="text-center"
+              <Box
+                accessible={false}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                gap={2}
               >
-                {strings('perps.trade_sheet.includes_fee', { feePercentage })}
-              </Text>
+                {(feeDiscountPercentage ?? 0) > 0 ? <RewardsVipBadge /> : null}
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.trade_sheet.includes_fee', { feePercentage })}
+                </Text>
+              </Box>
             ) : null}
           </Box>
         </Box>

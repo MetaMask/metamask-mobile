@@ -82,12 +82,16 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
             justifyContent="space-between"
           >
             {renderAvatarLeadRow(
-              <>
-                <Item {...AUTHOR_NAME_BONE} />
-                <Item {...AUTHOR_BADGE_BONE} />
-              </>,
+              <Item gap={8}>
+                <Item flexDirection="row" alignItems="center" gap={8}>
+                  <Item {...AUTHOR_NAME_BONE} />
+                  <Item {...AUTHOR_BADGE_BONE} />
+                  <Item {...TIMESTAMP_BONE} />
+                </Item>
+                <Item width={96} height={12} borderRadius={4} />
+              </Item>,
             )}
-            <Item {...TIMESTAMP_BONE} />
+            <Item width={20} height={20} borderRadius={4} />
           </Item>
 
           <Item {...cardChromeStyle} gap={12}>
@@ -97,7 +101,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
               justifyContent="space-between"
             >
               {renderAvatarLeadRow(
-                <Item gap={6}>
+                <Item gap={10}>
                   <Item {...CARD_SYMBOL_BONE} />
                   <Item {...CARD_SUBTITLE_BONE} />
                 </Item>,

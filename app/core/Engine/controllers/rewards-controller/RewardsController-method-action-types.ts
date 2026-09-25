@@ -502,6 +502,7 @@ export type RewardsControllerOptInToCampaignsAction = {
 
 /**
  * Register (or re-assert) the Money Account holder address for a subscription.
+ * The request carries a personal_sign signature from the Money Account.
  * Results are memoized in-session so repeated re-asserts do not re-POST, and
  * a discovered conflict is returned synchronously on subsequent calls.
  * @param moneyAccountAddress - The Money Account holder address to bind.

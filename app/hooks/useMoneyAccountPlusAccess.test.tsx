@@ -52,6 +52,7 @@ describe('useMoneyAccountPlusAccess', () => {
     });
     mockUseSubscriptions.mockReturnValue({
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useSubscriptions>);
     mockSubscriptionState();
   });
@@ -67,6 +68,7 @@ describe('useMoneyAccountPlusAccess', () => {
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Disabled);
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('keeps subscriber access when entitlements outlive an active status', () => {
@@ -81,6 +83,7 @@ describe('useMoneyAccountPlusAccess', () => {
     mockSubscriptionState({ isSubscriber: true });
     mockUseSubscriptions.mockReturnValue({
       isLoading: true,
+      isError: false,
     } as ReturnType<typeof useSubscriptions>);
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
@@ -91,6 +94,18 @@ describe('useMoneyAccountPlusAccess', () => {
   it('stays unknown while subscriptions are unresolved and empty', () => {
     mockUseSubscriptions.mockReturnValue({
       isLoading: true,
+      isError: false,
+    } as ReturnType<typeof useSubscriptions>);
+
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
+
+    expect(result.current).toBe(MoneyAccountPlusAccess.Unknown);
+  });
+
+  it('stays unknown when the subscriptions fetch fails', () => {
+    mockUseSubscriptions.mockReturnValue({
+      isLoading: false,
+      isError: true,
     } as ReturnType<typeof useSubscriptions>);
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
@@ -102,5 +117,6 @@ describe('useMoneyAccountPlusAccess', () => {
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
     expect(result.current).toBe(MoneyAccountPlusAccess.Eligible);
+    expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
   });
 });
