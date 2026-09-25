@@ -189,6 +189,7 @@ exports[`image component renders an external image 1`] = `
                 },
               ]
             }
+            testID="snaps-ui-image"
           />
         </View>
       </View>
