@@ -260,6 +260,28 @@ describe('decideRouteRestore', () => {
     });
   });
 
+  it('restores a listed route that renders a navigator of its own', () => {
+    const decision = decideRouteRestore({
+      rootState: buildTree({
+        // The Rewards tab renders its own stack, so it resolves past the
+        // listed name down to the dashboard.
+        stack: [
+          { name: Routes.REWARDS_VIEW, focused: Routes.REWARDS_DASHBOARD },
+        ],
+      }),
+      backgroundedAt: NOW - 1000,
+      enabled: true,
+      now: NOW,
+    });
+
+    expect(decision).toStrictEqual({
+      restore: true,
+      route: Routes.REWARDS_VIEW,
+      target: Routes.REWARDS_VIEW,
+      exact: true,
+    });
+  });
+
   it('does not restore a tab that is not allow-listed', () => {
     const decision = decideRouteRestore({
       rootState: buildTree({

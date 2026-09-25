@@ -83,18 +83,25 @@ const findRoute = (
   return undefined;
 };
 
+interface ReachableLevel {
+  routes: AnyRoute[];
+  focusedIndex: number;
+}
+
 /**
  * Everything the user can be sent back to without navigating forwards, as one
- * level per nested navigator, outermost first. Each level holds the route names
- * up to and including the focused one.
+ * level per nested navigator, outermost first. Each level holds the routes up
+ * to and including the focused one.
  *
  * Both directions matter. A section's home is often a *sibling below* the
  * focused screen in the same stack — Perps home sits under the order form
  * pushed on top of it — while the tab or stack containing that screen is an
  * ancestor a level out. `popTo` reaches either.
  */
-const collectReachableLevels = (state: AnyNavigationState): AnyRoute[][] => {
-  const levels: AnyRoute[][] = [];
+const collectReachableLevels = (
+  state: AnyNavigationState,
+): ReachableLevel[] => {
+  const levels: ReachableLevel[] = [];
   let current: AnyNavigationState | undefined = state;
 
   while (current?.routes?.length) {
@@ -104,7 +111,10 @@ const collectReachableLevels = (state: AnyNavigationState): AnyRoute[][] => {
       break;
     }
 
-    levels.push(current.routes.slice(0, index + 1));
+    levels.push({
+      routes: current.routes.slice(0, index + 1),
+      focusedIndex: index,
+    });
     current = route.state;
   }
 
@@ -112,15 +122,19 @@ const collectReachableLevels = (state: AnyNavigationState): AnyRoute[][] => {
 };
 
 /**
- * The screen a user would end up looking at if sent back to `route`.
+ * Every screen a user would pass through if sent back to `route`: its own name,
+ * then whatever is focused inside it, all the way down.
  *
- * Popping to a navigator lands on whatever is focused inside it, so a candidate
- * has to be judged by that rather than by its own name: `Home` is a tab
- * navigator, and what it means depends on which tab is selected.
+ * A candidate cannot be judged by its own name alone, because `Home` is a tab
+ * navigator whose meaning depends on the selected tab. Nor by its deepest
+ * descendant alone, because a top-level route can itself contain a navigator —
+ * the Rewards tab renders a stack, so it resolves to `RewardsDashboard`. The
+ * whole chain is the answer, and a match anywhere in it means landing on this
+ * candidate puts the user on an allow-listed screen.
  */
-const landingScreen = (route: AnyRoute): string => {
+const focusedChain = (route: AnyRoute): string[] => {
+  const names = [route.name];
   let current: AnyNavigationState | undefined = route.state;
-  let name = route.name;
 
   while (current?.routes?.length) {
     const index: number = current.index ?? current.routes.length - 1;
@@ -128,11 +142,11 @@ const landingScreen = (route: AnyRoute): string => {
     if (!next) {
       break;
     }
-    name = next.name;
+    names.push(next.name);
     current = next.state;
   }
 
-  return name;
+  return names;
 };
 
 /**
@@ -157,7 +171,8 @@ export const decideRouteRestore = ({
   enabled: boolean;
   now?: number;
 }): RouteRestoreDecision => {
-  // feature flag is off
+  // First, so that the flag being off is indistinguishable from the feature
+  // not existing.
   if (!enabled) {
     return { restore: false, reason: 'flag_off' };
   }
@@ -172,8 +187,11 @@ export const decideRouteRestore = ({
   // A mounted-but-unvisited HomeNav has no nested state of its own yet.
   const levels = homeNav.state ? collectReachableLevels(homeNav.state) : [];
   const innermost = levels[levels.length - 1];
+  // The walk stops where nesting does, so the innermost focused route is the
+  // screen on display.
   const focused =
-    innermost?.[innermost.length - 1]?.name ?? Routes.ONBOARDING.HOME_NAV;
+    innermost?.routes[innermost.routes.length - 1]?.name ??
+    Routes.ONBOARDING.HOME_NAV;
 
   if (
     backgroundedAt === null ||
@@ -186,11 +204,14 @@ export const decideRouteRestore = ({
   // user in a Perps order form lands on Perps home rather than on the tab that
   // contains it.
   for (let level = levels.length - 1; level >= 0; level--) {
-    const routes = levels[level];
+    const { routes, focusedIndex } = levels[level];
 
     for (let i = routes.length - 1; i >= 0; i--) {
-      const route = landingScreen(routes[i]);
-      if (!RESTORABLE_ROUTES.includes(route)) {
+      const route = focusedChain(routes[i]).find((name) =>
+        RESTORABLE_ROUTES.includes(name),
+      );
+
+      if (!route) {
         continue;
       }
 
@@ -198,7 +219,9 @@ export const decideRouteRestore = ({
         restore: true,
         route,
         target: routes[i].name,
-        exact: level === levels.length - 1 && i === routes.length - 1,
+        // A candidate already on the focused path needs no trimming; only one
+        // sitting below it in its stack does.
+        exact: i === focusedIndex,
       };
     }
   }
