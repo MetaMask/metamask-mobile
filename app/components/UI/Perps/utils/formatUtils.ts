@@ -291,11 +291,33 @@ export const normalizePerpsNumericInput = (
     value.trim().replace(/\$/g, '').replace(/\s/g, ''),
     localeGrouping,
   );
-  const sanitizedValue = localizedValue
-    .split(separators.grouping)
-    .join(',')
-    .split(separators.decimal)
-    .join('.');
+  const commaIndex = localizedValue.lastIndexOf(',');
+  const periodIndex = localizedValue.lastIndexOf('.');
+  let decimalSeparator: string | undefined;
+
+  if (commaIndex >= 0 && periodIndex >= 0) {
+    decimalSeparator = commaIndex > periodIndex ? ',' : '.';
+  } else if (commaIndex >= 0 && separators.decimal === ',') {
+    decimalSeparator = ',';
+  } else if (periodIndex >= 0 && separators.decimal === '.') {
+    decimalSeparator = '.';
+  } else if (localizedValue.includes(separators.decimal)) {
+    decimalSeparator = separators.decimal;
+  }
+
+  let sanitizedValue = '';
+
+  for (const character of localizedValue) {
+    if (
+      (character === separators.grouping && character !== decimalSeparator) ||
+      ((character === ',' || character === '.') &&
+        character !== decimalSeparator)
+    ) {
+      continue;
+    }
+
+    sanitizedValue += character === decimalSeparator ? '.' : character;
+  }
 
   if (!/^[+-]?[\d.,]*$/.test(sanitizedValue)) {
     return value;
@@ -303,41 +325,16 @@ export const normalizePerpsNumericInput = (
 
   const sign = /^[+-]/.test(sanitizedValue) ? sanitizedValue.slice(0, 1) : '';
   const unsignedValue = sign ? sanitizedValue.slice(1) : sanitizedValue;
-  const commaIndex = unsignedValue.lastIndexOf(',');
-  const periodIndex = unsignedValue.lastIndexOf('.');
-  let decimalSeparator: ',' | '.' | undefined;
-
-  if (commaIndex >= 0 && periodIndex >= 0) {
-    decimalSeparator = commaIndex > periodIndex ? ',' : '.';
-  } else if (commaIndex >= 0) {
-    if (separators.decimal === ',' && unsignedValue.split(',').length > 2) {
-      return value;
-    }
-    decimalSeparator =
-      separators.decimal === ',' || separators.grouping !== ','
-        ? ','
-        : undefined;
-  } else if (periodIndex >= 0) {
-    if (separators.decimal === '.' && unsignedValue.split('.').length > 2) {
-      return value;
-    }
-    decimalSeparator =
-      separators.decimal === '.' ||
-      (separators.grouping !== '.' && separators.decimal !== ',')
-        ? '.'
-        : undefined;
-  }
-
   let normalizedValue = '';
   let hasDecimalSeparator = false;
 
   for (const character of unsignedValue) {
-    if (character !== ',' && character !== '.') {
+    if (character !== '.') {
       normalizedValue += character;
       continue;
     }
 
-    if (character === decimalSeparator && !hasDecimalSeparator) {
+    if (!hasDecimalSeparator) {
       normalizedValue += '.';
       hasDecimalSeparator = true;
     }
