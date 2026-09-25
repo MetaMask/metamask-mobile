@@ -78,18 +78,6 @@ export const selectMoneyAccountPlusPricing = createSelector(
 );
 
 /**
- * Selects Money Account Plus monthly and annual plans derived from cached
- * pricing. Matching is by product name and billing interval, not array index.
- *
- * @param state - The root Redux state.
- * @returns Mapped Plus pricing, including unavailable and malformed status.
- */
-export const selectMoneyAccountPlusPricing = createSelector(
-  selectSubscriptionPricing,
-  mapMoneyAccountPlusPricing,
-);
-
-/**
  * Selects the user's current subscriptions.
  *
  * @param state - The root Redux state.
@@ -181,23 +169,6 @@ export const selectLastSelectedPaymentMethodByProduct = (
   selectSubscriptionControllerState(state)?.lastSelectedPaymentMethod?.[
     productType
   ];
-
-/**
- * Selects whether the user has an active Money Account Plus subscription.
- * Active covers `active`, `trialing`, and `provisional`; every other status
- * fails closed.
- *
- * @param state - The root Redux state.
- * @returns Whether the user is an active Plus subscriber.
- */
-export const selectIsMoneyAccountPlusSubscriber = createSelector(
-  selectSubscriptionControllerState,
-  (subscriptionControllerState): boolean =>
-    selectIsActiveSubscriber(
-      subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
-      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-    ),
-);
 
 /**
  * Selects whether the user still holds any Money Account Plus entitlement.
