@@ -13,10 +13,12 @@ import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 
 export interface PerpsEmptyBalanceProps {
   onAddFunds: () => void;
+  isAddFundsDisabled?: boolean;
 }
 
 const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
   onAddFunds,
+  isAddFundsDisabled = false,
 }) => (
   <Box twClassName="px-4 pt-2 pb-4">
     <Text
@@ -30,6 +32,7 @@ const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       onPress={onAddFunds}
+      isDisabled={isAddFundsDisabled}
       isFullWidth
       twClassName="mt-4"
       testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}

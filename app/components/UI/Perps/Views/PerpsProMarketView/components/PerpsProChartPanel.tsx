@@ -62,6 +62,7 @@ import PerpsChartFullscreenModal from '../../../components/PerpsChartFullscreenM
 import PerpsOHLCVBar from '../../../components/PerpsOHLCVBar';
 import PerpsPriceDeviationWarning from '../../../components/PerpsPriceDeviationWarning';
 import PerpsServiceInterruptionBanner from '../../../components/PerpsServiceInterruptionBanner';
+import PerpsWatchOnlyBanner from '../../../components/PerpsWatchOnlyBanner';
 import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
@@ -522,6 +523,7 @@ const PerpsProChartPanel = ({
           testID={PerpsProMarketViewSelectorsIDs.CHART_PRICE_DEVIATION_WARNING}
         />
       ) : null}
+      <PerpsWatchOnlyBanner />
       <PerpsServiceInterruptionBanner
         testID={
           PerpsProMarketViewSelectorsIDs.CHART_SERVICE_INTERRUPTION_BANNER
