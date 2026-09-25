@@ -8,7 +8,6 @@ import Routes from '../../../app/constants/navigation/Routes';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { createMockRouteMessenger } from '../../../app/util/test/mock-route-messenger';
 import AccountStatus from '../../../app/components/Views/AccountStatus';
-import SocialLoginIosUser from '../../../app/components/Views/SocialLoginIosUser';
 import ChoosePassword from '../../../app/components/Views/ChoosePassword';
 import WalletCreationError from '../../../app/components/Views/WalletCreationError';
 import type { AccountStatusParams } from '../../../app/components/Views/AccountStatus/types';
@@ -145,37 +144,6 @@ export function renderAccountNotFound(
     AccountStatus as unknown as React.ComponentType,
     { name: ACCOUNT_NOT_FOUND_ROUTE },
     [{ name: Routes.ONBOARDING.CHOOSE_PASSWORD }],
-    { state: buildSeedlessOnboardingState(options) },
-    { ...defaultParams, ...options.routeParams },
-  );
-}
-
-const SocialLoginSuccessExistingUser = () => <SocialLoginIosUser />;
-
-interface SocialLoginIosUserRendererOptions {
-  overrides?: DeepPartial<RootState>;
-  routeParams?: {
-    accountName?: string;
-    oauthLoginSuccess?: boolean;
-    provider?: string;
-  };
-}
-
-export function renderSocialLoginIosExistingUser(
-  options: SocialLoginIosUserRendererOptions = {},
-) {
-  syncSeedlessAccessToken();
-
-  const defaultParams = {
-    accountName: 'seedless-cv@example.com',
-    oauthLoginSuccess: true,
-    provider: AuthConnection.Google,
-  };
-
-  return renderScreenWithRoutes(
-    SocialLoginSuccessExistingUser as unknown as React.ComponentType,
-    { name: Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER },
-    [{ name: Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE }],
     { state: buildSeedlessOnboardingState(options) },
     { ...defaultParams, ...options.routeParams },
   );

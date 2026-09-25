@@ -1596,7 +1596,7 @@ describe('Onboarding', () => {
         expect.anything(),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,

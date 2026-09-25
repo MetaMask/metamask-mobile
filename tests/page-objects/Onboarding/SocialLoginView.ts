@@ -4,35 +4,9 @@ import {
   Matchers,
   type AppiumElement,
 } from '../../framework';
-import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import { AccountStatusSelectorIDs } from '../../../app/components/Views/AccountStatus/AccountStatus.testIds';
 
 class SocialLoginView {
-  get iosExistingUserTitle(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,
-    );
-  }
-
-  get iosExistingUserButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
-    );
-  }
-
-  async isIosExistingUserScreenVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.iosExistingUserTitle, {
-      timeout: 30000,
-      description: 'iOS Existing User Social Login screen should be visible',
-    });
-  }
-
-  async tapIosExistingUserSecureWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.iosExistingUserButton, {
-      elemDescription: 'Secure your wallet button on iOS existing user screen',
-    });
-  }
-
   get accountFoundContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER,

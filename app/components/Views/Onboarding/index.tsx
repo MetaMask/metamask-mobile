@@ -591,7 +591,6 @@ const Onboarding = () => {
       createWallet: boolean,
       provider: string,
     ): void => {
-      const isIOS = Platform.OS === 'ios';
       endSocialLoginAttemptTrace(true);
 
       // Error case (result.type !== 'success') is not handled here because
@@ -655,19 +654,10 @@ const Onboarding = () => {
           tags: getTraceTags(store.getState()),
           parentContext: onboardingTraceCtx.current,
         });
-        isIOS
-          ? navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-              {
-                [PREVIOUS_SCREEN]: ONBOARDING,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            )
-          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-            });
+        navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
