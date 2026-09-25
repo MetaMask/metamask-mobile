@@ -1,6 +1,7 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
-import { isDmkEnabled } from '../../Ledger/dmk';
+import { initializeLedgerDmkMode } from '../../Ledger/dmk';
+import Logger from '../../../util/Logger';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -35,9 +36,8 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  // DMK stack selection. Read the ledgerDmk flag fresh from the persisted
-  // RemoteFeatureFlagController state (LEDGER_FORCE_DMK env var overrides).
-  // No caching — the adapter factory reads the same flag from live state.
+  // Ledger DMK mode: seeded once here from persisted state; the keyring
+  // bridge and adapter creation (`useAdapterLifecycle`) read this same value.
   const remoteFeatureFlagState = (state as Record<string, unknown>)
     ?.RemoteFeatureFlagController as
     | {
@@ -45,9 +45,13 @@ export function initializeWallet({
         localOverrides?: Record<string, unknown>;
       }
     | undefined;
-  const useDmk = isDmkEnabled({
+  const useDmk = initializeLedgerDmkMode({
     ...(remoteFeatureFlagState?.remoteFeatureFlags ?? {}),
     ...(remoteFeatureFlagState?.localOverrides ?? {}),
+  });
+
+  Logger.log('Ledger mode:', {
+    stack: useDmk ? 'dmk' : 'legacy',
   });
 
   const transactionControllerInitMessenger =

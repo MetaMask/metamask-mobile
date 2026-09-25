@@ -4,7 +4,9 @@
 import { scenarioTeam } from './link-scenario-artifacts.mjs';
 
 export const SCHEDULED_BASELINE_HOURS = 7 * 24;
-export const MIN_BASELINE_RUNS = 3;
+/** Last two scheduled ticks (~6h and ~12h ago), not a 7-day pile. */
+export const BASELINE_PREVIOUS_RUNS = 2;
+export const MIN_BASELINE_RUNS = BASELINE_PREVIOUS_RUNS;
 export const REGRESSION_RATIO = 1.5;
 
 function displayName(scenario) {
@@ -34,9 +36,24 @@ function scenarioKey(scenario) {
 }
 
 /**
- * Compares the newly collected run with the median of prior collected runs.
- * A baseline needs three observations for the scenario; until then the run is
- * collected for future comparisons but cannot generate an alert.
+ * The two most recent scheduled ticks before the current run. A missing
+ * collected report for one of those ticks is not filled from an older run.
+ */
+export function selectBaselineReports(
+  scheduledRuns,
+  collected,
+  limit = BASELINE_PREVIOUS_RUNS,
+) {
+  return scheduledRuns
+    .slice(0, limit)
+    .map((run) => collected.get(String(run.databaseId)))
+    .filter(Boolean);
+}
+
+/**
+ * Compares the newly collected run with the median of the previous two
+ * scheduled runs. Until both ticks have a collected report for the scenario,
+ * the run is stored for later but cannot generate an alert.
  */
 export function buildScheduledException(currentReport, baselineReports) {
   const baselineByScenario = new Map();
@@ -90,6 +107,7 @@ export function buildScheduledException(currentReport, baselineReports) {
       runUrl: currentReport.meta.runUrl,
       createdAt: currentReport.meta.createdAt,
       baselineHours: SCHEDULED_BASELINE_HOURS,
+      baselinePreviousRuns: BASELINE_PREVIOUS_RUNS,
       baselineRunCount: baselineReports.length,
       minimumBaselineRuns: MIN_BASELINE_RUNS,
       thresholdRatio: REGRESSION_RATIO,
@@ -120,7 +138,7 @@ export function buildScheduledExceptionSlack(exception) {
     return [
       '*Hermes CPU-profile run check* · nothing to action',
       `_Run:_ <${meta.runUrl}|${meta.runId}>`,
-      `_Checked:_ ${meta.comparedScenarioCount}/${meta.scenarioCount} scenarios against their median of the previous ${meta.baselineHours}h${baselineCoverageNote(meta)}`,
+      `_Checked:_ ${meta.comparedScenarioCount}/${meta.scenarioCount} scenarios against the median of the previous ${meta.baselinePreviousRuns} scheduled runs${baselineCoverageNote(meta)}`,
       `_Result:_ no scenario reached ${meta.thresholdRatio}× its recent median JS work.`,
     ].join('\n');
   }
@@ -129,7 +147,7 @@ export function buildScheduledExceptionSlack(exception) {
     '*Hermes CPU-profile run exception*',
     '',
     `_Run:_ <${exception.meta.runUrl}|${exception.meta.runId}>`,
-    `_Baseline:_ median of the previous ${exception.meta.baselineHours}h · minimum ${exception.meta.minimumBaselineRuns} runs per scenario`,
+    `_Baseline:_ median of the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~6h and ~12h)`,
     '',
     sharedRun
       ? `*Slow run:* ${exception.findings.length} scenarios exceeded ${exception.meta.thresholdRatio}× their recent median in the same run. Treat this as one run-level anomaly, not ${exception.findings.length} regressions.`
@@ -158,7 +176,7 @@ export function buildScheduledExceptionMarkdown(exception) {
     '# Hermes CPU-profile scheduled-run check',
     '',
     `Run: [${exception.meta.runId}](${exception.meta.runUrl})`,
-    `Baseline: previous ${exception.meta.baselineHours}h · ${exception.meta.baselineRunCount} collected runs available · minimum ${exception.meta.minimumBaselineRuns} observations per scenario`,
+    `Baseline: previous ${exception.meta.baselinePreviousRuns} scheduled runs · ${exception.meta.baselineRunCount} collected · minimum ${exception.meta.minimumBaselineRuns} observations per scenario`,
     '',
   ];
   if (!exception.meta.hasFindings) {

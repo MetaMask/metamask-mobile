@@ -1,100 +1,90 @@
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
 } from './vbaOnboardingSnapshot';
 
-export type VbaOnboardingRoute =
-  | typeof Routes.RAMP.VBA_KYC_EMAIL
-  | typeof Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT
-  | typeof Routes.RAMP.VBA_VERIFY_IDENTITY
-  | typeof Routes.RAMP.VBA_SUMSUB_KYC
-  | typeof Routes.RAMP.VBA_KYC_PENDING
-  | typeof Routes.RAMP.VBA_KYC_REJECTED
-  | typeof Routes.RAMP.VBA_ONBOARDING_ERROR
-  | typeof Routes.MONEY.HOME;
+export type VbaOnboardingDestinationId =
+  | 'vendorTerms'
+  | 'email'
+  | 'identityVerification'
+  | 'kycPending'
+  | 'kycRejected'
+  | 'accountProvisioningError'
+  | 'error'
+  | 'complete';
 
-interface VbaFunnelStep {
-  id: string;
-  route: VbaOnboardingRoute;
+interface VbaOnboardingModule {
+  id: Extract<
+    VbaOnboardingDestinationId,
+    'vendorTerms' | 'email' | 'identityVerification'
+  >;
   isComplete: (snapshot: VbaOnboardingSnapshot) => boolean;
-  /**
-   * API-level prerequisite. When false, the step is skipped so a later
-   * available step can run (e.g. vendor T&Cs require a session today).
-   */
-  isAvailable?: (snapshot: VbaOnboardingSnapshot) => boolean;
 }
 
 /**
- * Product funnel order used at entry/retry to pick the first incomplete
- * screen. After a successful CTA, screens navigate to the next route by name.
+ * Product funnel order used by the coordinator to pick the first incomplete
+ * module. Modules own their internal screens and report completion back to the
+ * coordinator instead of navigating to the next module directly.
  */
-export const VBA_FUNNEL: readonly VbaFunnelStep[] = [
+export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   {
-    id: 'termsOne',
-    route: Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
+    id: 'vendorTerms',
     isComplete: (snapshot) =>
-      snapshot.termsOneAccepted || snapshot.vendorDisclaimersComplete,
+      snapshot.vendorTermsAcceptedLocally || snapshot.vendorDisclaimersComplete,
   },
   {
     id: 'email',
-    route: Routes.RAMP.VBA_KYC_EMAIL,
     isComplete: (snapshot) =>
       snapshot.sessionExists && snapshot.vendorDisclaimersComplete,
   },
   {
-    id: 'providerTerms',
-    route: Routes.RAMP.VBA_VERIFY_IDENTITY,
-    isComplete: (snapshot) => snapshot.sessionDisclaimersComplete,
-  },
-  {
-    id: 'sumsub',
-    route: Routes.RAMP.VBA_SUMSUB_KYC,
+    id: 'identityVerification',
     isComplete: (snapshot) =>
       snapshot.kycStatus !== 'none' &&
       snapshot.kycStatus !== 'new' &&
       snapshot.kycStatus !== 'retry',
   },
-  {
-    id: 'pending',
-    route: Routes.RAMP.VBA_KYC_PENDING,
-    isComplete: (snapshot) =>
-      snapshot.kycStatus === 'approved' && snapshot.autorampStatus === 'ready',
-  },
 ];
 
-export const isVbaOnboardingRejected = (
-  snapshot: VbaOnboardingSnapshot,
-): boolean => snapshot.kycStatus === 'rejected';
-
 /**
- * Maps a Core facts snapshot onto the Mobile route for the first incomplete,
- * available funnel step. Rejected KYC is a terminal overlay, not a step.
+ * Maps controller facts onto the next onboarding module or status destination.
+ * AutoRamp provisioning is performed by `hydrateVbaOnboarding`, so it is not a
+ * client-owned module.
  *
  * @param snapshot - Facts from hydrate.
- * @returns The route to present, or the recoverable error route.
+ * @returns The next module or status destination.
  */
-export const getVbaRouteForSnapshot = (
+export const getVbaDestinationForSnapshot = (
   snapshot: VbaOnboardingSnapshot | null | undefined,
-): VbaOnboardingRoute => {
+): VbaOnboardingDestinationId => {
   if (!snapshot) {
-    return Routes.RAMP.VBA_ONBOARDING_ERROR;
+    return 'error';
   }
-  if (isVbaOnboardingRejected(snapshot)) {
-    return Routes.RAMP.VBA_KYC_REJECTED;
-  }
-
-  for (const step of VBA_FUNNEL) {
-    if (step.isComplete(snapshot)) {
-      continue;
-    }
-    if (step.isAvailable && !step.isAvailable(snapshot)) {
-      continue;
-    }
-    return step.route;
+  if (snapshot.kycStatus === 'rejected') {
+    return 'kycRejected';
   }
 
-  return Routes.MONEY.HOME;
+  for (const moduleDescriptor of VBA_ONBOARDING_MODULES) {
+    if (!moduleDescriptor.isComplete(snapshot)) {
+      return moduleDescriptor.id;
+    }
+  }
+
+  if (snapshot.kycStatus === 'pending') {
+    return 'kycPending';
+  }
+
+  if (snapshot.kycStatus === 'approved') {
+    if (snapshot.autorampStatus === 'ready') {
+      return 'complete';
+    }
+
+    return snapshot.autorampStatus === 'retryable_failure'
+      ? 'accountProvisioningError'
+      : 'kycPending';
+  }
+
+  return 'error';
 };
 
 export const createEmptyVbaOnboardingSnapshot = (): VbaOnboardingSnapshot => ({

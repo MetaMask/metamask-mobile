@@ -1,24 +1,24 @@
 import StorageWrapper from '../../../../../store/storage-wrapper';
 
-const VBA_TERMS_ONE_ACCEPTANCE_VERSION = 'v1';
-const VBA_TERMS_ONE_ACCEPTANCE_PREFIX = `@MetaMask:vbaTermsOneAccepted:${VBA_TERMS_ONE_ACCEPTANCE_VERSION}`;
+const VBA_VENDOR_TERMS_ACCEPTANCE_VERSION = 'v1';
+const VBA_VENDOR_TERMS_ACCEPTANCE_PREFIX = `@MetaMask:vbaTermsOneAccepted:${VBA_VENDOR_TERMS_ACCEPTANCE_VERSION}`;
 
-interface VbaTermsOneAcceptance {
+interface VbaVendorTermsAcceptance {
   disclaimerIds: string[];
 }
 
 const getStorageKey = (walletAddress: string): string =>
-  `${VBA_TERMS_ONE_ACCEPTANCE_PREFIX}:${walletAddress.toLowerCase()}`;
+  `${VBA_VENDOR_TERMS_ACCEPTANCE_PREFIX}:${walletAddress.toLowerCase()}`;
 
 const parseAcceptance = (
   serialized: string | null,
-): VbaTermsOneAcceptance | null => {
+): VbaVendorTermsAcceptance | null => {
   if (!serialized) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(serialized) as Partial<VbaTermsOneAcceptance>;
+    const parsed = JSON.parse(serialized) as Partial<VbaVendorTermsAcceptance>;
     if (
       !Array.isArray(parsed.disclaimerIds) ||
       !parsed.disclaimerIds.every((id) => typeof id === 'string')
@@ -31,19 +31,19 @@ const parseAcceptance = (
   }
 };
 
-export const getVbaTermsOneAcceptance = (
+export const getVbaVendorTermsAcceptance = (
   walletAddress: string,
-): Promise<VbaTermsOneAcceptance | null> =>
+): Promise<VbaVendorTermsAcceptance | null> =>
   StorageWrapper.getItem(getStorageKey(walletAddress)).then(parseAcceptance);
 
-export const hasAcceptedVbaTermsOne = async (
+export const hasAcceptedVbaVendorTerms = async (
   walletAddress: string,
 ): Promise<boolean> =>
   Boolean(
-    (await getVbaTermsOneAcceptance(walletAddress))?.disclaimerIds.length,
+    (await getVbaVendorTermsAcceptance(walletAddress))?.disclaimerIds.length,
   );
 
-export const saveVbaTermsOneAcceptance = async (
+export const saveVbaVendorTermsAcceptance = async (
   walletAddress: string,
   disclaimerIds: string[],
 ): Promise<void> => {

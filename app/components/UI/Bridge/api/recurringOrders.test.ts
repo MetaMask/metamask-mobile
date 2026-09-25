@@ -1,17 +1,27 @@
 import {
   MOCK_RECURRING_CANCELLED_ORDER,
   MOCK_RECURRING_COMPLETED_ORDER,
+  MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_OPEN_ORDER_2,
   MOCK_RECURRING_OPEN_ORDER_3,
 } from './recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from './recurringSwaps.mock';
-import { getRecurringOrders, getRecurringSwaps } from './recurringOrders';
+import {
+  cancelRecurringOrder,
+  getRecurringOrders,
+  getRecurringSwaps,
+  resetRecurringOrdersMockState,
+} from './recurringOrders';
 import {
   RecurringOrderStatus,
   RecurringSwapStatus,
 } from './recurringOrders.types';
 
 const WALLET_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+
+afterEach(() => {
+  resetRecurringOrdersMockState();
+});
 
 describe('getRecurringOrders', () => {
   it('returns newest open orders with an opaque next cursor', async () => {
@@ -87,6 +97,96 @@ describe('getRecurringOrders', () => {
     await request;
 
     expect(hasResolved).toBe(true);
+  });
+});
+
+describe('cancelRecurringOrder', () => {
+  it('moves an open order from Open to History', async () => {
+    const before = await getRecurringOrders({
+      walletAddress: WALLET_ADDRESS,
+      status: [RecurringOrderStatus.Open],
+    });
+
+    await cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId);
+
+    const openOrders = await getRecurringOrders({
+      walletAddress: WALLET_ADDRESS,
+      status: [RecurringOrderStatus.Open],
+    });
+    const historyOrders = await getRecurringOrders({
+      walletAddress: WALLET_ADDRESS,
+      status: [RecurringOrderStatus.Completed, RecurringOrderStatus.Cancelled],
+    });
+
+    expect(before.orders).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
+        }),
+      ]),
+    );
+    expect(openOrders.orders).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
+        }),
+      ]),
+    );
+    expect(historyOrders.orders).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          orderId: MOCK_RECURRING_OPEN_ORDER.orderId,
+          status: RecurringOrderStatus.Cancelled,
+        }),
+      ]),
+    );
+  });
+
+  it.each<[string, string]>([
+    ['unknown-order', 'order_not_found'],
+    [MOCK_RECURRING_CANCELLED_ORDER.orderId, 'order_not_open'],
+    [MOCK_RECURRING_COMPLETED_ORDER.orderId, 'order_not_open'],
+  ])('rejects %s with %s', async (orderId, errorMessage) => {
+    await expect(cancelRecurringOrder(orderId)).rejects.toThrow(errorMessage);
+
+    const openOrders = await getRecurringOrders({
+      walletAddress: WALLET_ADDRESS,
+      status: [RecurringOrderStatus.Open],
+    });
+    expect(openOrders.orders).toHaveLength(3);
+  });
+
+  it('rejects a second cancellation without changing order responses', async () => {
+    await cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId);
+
+    const openOrdersBeforeRetry = await getRecurringOrders({
+      walletAddress: WALLET_ADDRESS,
+      status: [RecurringOrderStatus.Open],
+    });
+    const historyBeforeRetry = await getRecurringOrders({
+      walletAddress: WALLET_ADDRESS,
+      status: [RecurringOrderStatus.Completed, RecurringOrderStatus.Cancelled],
+    });
+
+    await expect(
+      cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId),
+    ).rejects.toThrow('order_not_open');
+
+    await expect(
+      getRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        status: [RecurringOrderStatus.Open],
+      }),
+    ).resolves.toStrictEqual(openOrdersBeforeRetry);
+    await expect(
+      getRecurringOrders({
+        walletAddress: WALLET_ADDRESS,
+        status: [
+          RecurringOrderStatus.Completed,
+          RecurringOrderStatus.Cancelled,
+        ],
+      }),
+    ).resolves.toStrictEqual(historyBeforeRetry);
   });
 });
 
