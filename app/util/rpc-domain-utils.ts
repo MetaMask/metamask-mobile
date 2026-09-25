@@ -8,9 +8,6 @@ import Logger from './Logger';
 let knownDomainsSet: Set<string> | null = null;
 let initPromise: Promise<void> | null = null;
 
-// Persisted hostnames mapped from the safe chains list
-const RPC_DOMAINS_HOSTNAMES_CACHE_KEY = 'RPC_DOMAINS_HOSTNAMES_CACHE';
-
 /**
  * Get module state - encapsulates access to internal state
  */
@@ -26,6 +23,74 @@ export function getModuleState() {
     },
   };
 }
+
+const extractHostnames = (chains: SafeChain[]): Set<string> => {
+  const hostnames = new Set<string>();
+  for (const chain of chains) {
+    if (chain.rpc && Array.isArray(chain.rpc)) {
+      for (const rpcUrl of chain.rpc) {
+        const hostname = getHostname(rpcUrl);
+        if (hostname) {
+          hostnames.add(hostname);
+        }
+      }
+    }
+  }
+  return hostnames;
+};
+
+const RPC_DOMAINS_HOSTNAMES = {
+  key: 'RPC_DOMAINS_HOSTNAMES_CACHE',
+
+  set: async (hostnames: string[]): Promise<void> => {
+    await StorageWrapper.setItem(
+      RPC_DOMAINS_HOSTNAMES.key,
+      JSON.stringify(hostnames),
+    );
+  },
+
+  get: async (): Promise<string[] | null> => {
+    try {
+      const cachedHostnames = await StorageWrapper.getItem(
+        RPC_DOMAINS_HOSTNAMES.key,
+      );
+      if (!cachedHostnames) {
+        return null;
+      }
+      return JSON.parse(cachedHostnames) as string[];
+    } catch (error) {
+      Logger.log('Error parsing cached hostnames:', error);
+      return null;
+    }
+  },
+
+  computeAndSet: async (inputChains?: SafeChain[]): Promise<void> => {
+    try {
+      const chainsList =
+        inputChains ?? (await getSafeChainsListFromCacheOnly());
+      const hostnames = extractHostnames(chainsList);
+      const state = getModuleState();
+      state.setKnownDomainsSet(hostnames);
+      await RPC_DOMAINS_HOSTNAMES.set([...hostnames]);
+    } catch (error) {
+      Logger.log('Error computing and setting known domains:', error);
+    }
+  },
+
+  unsubscribeSafeChainsCache: null as (() => void) | null,
+  subscribeToSafeChainsCache(): void {
+    // Replace any previous subscriptions
+    RPC_DOMAINS_HOSTNAMES.unsubscribeSafeChainsCache?.();
+    RPC_DOMAINS_HOSTNAMES.unsubscribeSafeChainsCache =
+      StorageWrapper.onKeyChange('SAFE_CHAINS_CACHE', async (event) => {
+        try {
+          await RPC_DOMAINS_HOSTNAMES.computeAndSet(JSON.parse(event.value));
+        } catch (error) {
+          Logger.log('Error computing and setting known domains:', error);
+        }
+      });
+  },
+};
 
 /**
  * Get the list of safe chains from cache only
@@ -49,22 +114,6 @@ export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
   }
 }
 
-async function tryPopulateWithCachedDomains(): Promise<boolean> {
-  const state = getModuleState();
-  try {
-    const cachedHostnames = await StorageWrapper.getItem(
-      RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
-    );
-    if (!cachedHostnames) {
-      return false;
-    }
-    state.setKnownDomainsSet(new Set<string>(JSON.parse(cachedHostnames)));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 /**
  * Initialize the set of known domains from the chains list
  */
@@ -74,35 +123,21 @@ export async function initializeRpcProviderDomains(): Promise<void> {
     return state.initPromise;
   }
   const promise = (async () => {
-    if (await tryPopulateWithCachedDomains()) {
-      return;
-    }
-
     try {
-      const chainsList = await getSafeChainsListFromCacheOnly();
-      const newKnownDomainsSet = new Set<string>();
-
-      for (const chain of chainsList) {
-        if (chain.rpc && Array.isArray(chain.rpc)) {
-          for (const rpcUrl of chain.rpc) {
-            const hostname = getHostname(rpcUrl);
-            if (hostname) {
-              newKnownDomainsSet.add(hostname);
-            }
-          }
-        }
-      }
-      state.setKnownDomainsSet(newKnownDomainsSet);
-      try {
-        await StorageWrapper.setItem(
-          RPC_DOMAINS_HOSTNAMES_CACHE_KEY,
-          JSON.stringify([...newKnownDomainsSet]),
-        );
-      } catch {
-        // the in-memory set stays authoritative for this session
+      // Hydrate from the persisted derived cache when possible
+      const persistedHostnames = await RPC_DOMAINS_HOSTNAMES.get();
+      if (persistedHostnames) {
+        state.setKnownDomainsSet(new Set<string>(persistedHostnames));
+      } else {
+        // Otherwise derive from the safe chains list now
+        await RPC_DOMAINS_HOSTNAMES.computeAndSet();
       }
     } catch (error) {
       state.setKnownDomainsSet(new Set<string>());
+    } finally {
+      // Stay in sync whenever the safe chains list is refreshed, even
+      // when initialization failed (a later fetch heals the cache)
+      RPC_DOMAINS_HOSTNAMES.subscribeToSafeChainsCache();
     }
   })();
 

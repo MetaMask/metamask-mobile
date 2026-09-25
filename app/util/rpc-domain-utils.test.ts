@@ -13,7 +13,14 @@ import {
 } from './rpc-domain-utils';
 
 // Mock dependencies
-jest.mock('../store/storage-wrapper');
+jest.mock('../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    onKeyChange: jest.fn(),
+  },
+}));
 jest.mock('../core/Engine');
 jest.mock('./Logger');
 
@@ -281,6 +288,100 @@ describe('rpc-domain-utils', () => {
       },
     );
   });
+
+  describe('safe chains cache subscription', () => {
+    interface StorageChangeEvent {
+      key: string;
+      value: string;
+      action: 'set';
+    }
+    type StorageChangeListener = (event: StorageChangeEvent) => void;
+
+    const buildChain = (rpc: string): SafeChain => ({
+      chainId: 1,
+      name: 'Test Chain',
+      nativeCurrency: { symbol: 'TEST' },
+      rpc: [rpc],
+    });
+
+    const arrangeInitializedWithChain = async (
+      rpcUrl: string,
+    ): Promise<void> => {
+      setupTestEnvironment();
+      (StorageWrapper.onKeyChange as jest.Mock).mockImplementation(
+        (_key: string, _listener: StorageChangeListener) => jest.fn(),
+      );
+      mockRpcDomainStorage(JSON.stringify([buildChain(rpcUrl)]), null);
+      await initializeRpcProviderDomains();
+    };
+
+    const actOnChainsCacheChange = async (value: string): Promise<void> => {
+      const listener = (StorageWrapper.onKeyChange as jest.Mock).mock.calls.at(
+        -1,
+      )?.[1] as StorageChangeListener | undefined;
+      if (!listener) {
+        throw new Error('Expected a SAFE_CHAINS_CACHE listener');
+      }
+      await listener({ key: 'SAFE_CHAINS_CACHE', value, action: 'set' });
+    };
+
+    const getLatestUnsubscribe = (): jest.Mock =>
+      (StorageWrapper.onKeyChange as jest.Mock).mock.results.at(-1)
+        ?.value as jest.Mock;
+
+    const assertLastPersistedHostnames = (
+      expectedHostnames: string[],
+    ): void => {
+      const persistedCalls = (
+        StorageWrapper.setItem as jest.Mock
+      ).mock.calls.filter(
+        (call: [string, string]) => call[0] === 'RPC_DOMAINS_HOSTNAMES_CACHE',
+      );
+      expect(persistedCalls.at(-1)?.[1]).toBe(
+        JSON.stringify(expectedHostnames),
+      );
+    };
+
+    it('subscribes to safe chains cache changes during initialization', async () => {
+      await arrangeInitializedWithChain('https://old.example.com');
+      expect(StorageWrapper.onKeyChange).toHaveBeenCalledWith(
+        'SAFE_CHAINS_CACHE',
+        expect.any(Function),
+      );
+    });
+
+    it('refreshes the known domains and persisted cache when the chains list updates', async () => {
+      await arrangeInitializedWithChain('https://old.example.com');
+
+      await actOnChainsCacheChange(
+        JSON.stringify([buildChain('https://new.example.com')]),
+      );
+
+      expect(isKnownDomain('new.example.com')).toBe(true);
+      expect(isKnownDomain('old.example.com')).toBe(false);
+      assertLastPersistedHostnames(['new.example.com']);
+    });
+
+    it('keeps the current domains when the payload is malformed', async () => {
+      await arrangeInitializedWithChain('https://old.example.com');
+
+      await actOnChainsCacheChange('not valid json {');
+
+      expect(isKnownDomain('old.example.com')).toBe(true);
+      assertLastPersistedHostnames(['old.example.com']);
+    });
+
+    it('replaces the previous subscription when re-initialized', async () => {
+      await arrangeInitializedWithChain('https://one.example.com');
+      const firstUnsubscribe = getLatestUnsubscribe();
+
+      getModuleState().setInitPromise(null);
+      await initializeRpcProviderDomains();
+
+      expect(firstUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
       beforeEach(async () => {
