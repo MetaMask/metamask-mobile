@@ -278,12 +278,18 @@ class SmartTransactionHook {
     );
     const transactionsWithChainId = unsignedTransactions.map((tx) => ({
       ...tx,
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       chainId: tx.chainId || this.#chainId,
     }));
-    return (await this.#transactionController.approveTransactionsWithSameNonce(
-      transactionsWithChainId,
-      { hasNonce: true },
-    )) as string[];
+    const signedTransactions =
+      (await this.#transactionController.approveTransactionsWithSameNonce(
+        transactionsWithChainId,
+        { hasNonce: this.#txParams.nonce !== undefined },
+      )) as string[];
+
+    this.#txParams.nonce ??= transactionsWithChainId[0]?.nonce;
+
+    return signedTransactions;
   };
 
   #signAndSubmitTransactions = async ({

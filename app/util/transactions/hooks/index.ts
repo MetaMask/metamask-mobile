@@ -2,9 +2,11 @@ import { toHex } from '@metamask/controller-utils';
 import { NetworkClientId } from '@metamask/network-controller';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import {
+  type IsGasSponsoredHook,
   type PublishBatchHookRequest,
   type PublishBatchHookResult,
   type PublishBatchHookTransaction,
+  type ShouldSignHook,
   type TransactionController,
   type TransactionControllerOptions,
   type TransactionMeta,
@@ -39,6 +41,7 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../smart-transactions/smart-publish-hook';
 import { getTransactionById } from '..';
+import { isRelaySupported } from '../transaction-relay';
 import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
@@ -64,13 +67,17 @@ export interface TransactionControllerHookRequest {
 
 export function getTransactionControllerHooks(
   request: TransactionControllerHookRequest,
-): TransactionControllerOptions['hooks'] {
+): NonNullable<TransactionControllerOptions['hooks']> {
+  const approvalDecisions = createTransactionApprovalDecisionCache(request);
+
   return {
-    beforePublish: beforePublishHook(request),
-    beforeSign: beforeSignHook(request),
+    beforePublish: beforePublishHook(request, approvalDecisions),
+    beforeSign: beforeSignHook(request, approvalDecisions),
+    isSponsored: isSponsoredHook(approvalDecisions),
     // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
-    publish: publishHook(request),
+    publish: publishHook(request, approvalDecisions),
     publishBatch: publishBatchHook(request),
+    shouldSign: shouldSignHook(approvalDecisions),
   };
 }
 
@@ -87,29 +94,176 @@ async function getNextNonce(
   return toHex(nonceLock.nextNonce);
 }
 
-function beforePublishHook({
-  initMessenger,
-}: TransactionControllerHookRequest) {
-  return (transactionMeta: TransactionMeta) =>
-    initMessenger.call('PredictController:beforePublish', {
-      transactionMeta,
-    });
+interface LegacyTransactionApprovalMetadata {
+  isExternalSign?: boolean;
+  isGasFeeSponsored?: boolean;
 }
 
-function beforeSignHook({ initMessenger }: TransactionControllerHookRequest) {
-  return (hookRequest: { transactionMeta: TransactionMeta }) =>
-    initMessenger.call('PredictController:beforeSign', hookRequest);
+interface TransactionApprovalDecision {
+  keyringSupports7702: boolean;
+  sendBundleSupport: boolean;
+  shouldUseSmartTransaction: boolean;
+  signingMode: 'local' | 'external';
+  sponsorshipEnabled: boolean;
 }
 
-function publishHook({
-  getState,
-  getTransactionController,
-  initMessenger,
-}: TransactionControllerHookRequest) {
+interface TransactionApprovalDecisionCache {
+  clear: (transactionId: string) => void;
+  get: (
+    transactionMeta: TransactionMeta,
+  ) => Promise<TransactionApprovalDecision>;
+}
+
+function createTransactionApprovalDecisionCache(
+  request: TransactionControllerHookRequest,
+): TransactionApprovalDecisionCache {
+  const decisions = new Map<string, Promise<TransactionApprovalDecision>>();
+
+  return {
+    clear: (transactionId) => decisions.delete(transactionId),
+    get: (transactionMeta) => {
+      const existingDecision = decisions.get(transactionMeta.id);
+
+      if (existingDecision) {
+        return existingDecision;
+      }
+
+      const decision = getTransactionApprovalDecision(request, transactionMeta);
+      decisions.set(transactionMeta.id, decision);
+      return decision;
+    },
+  };
+}
+
+async function getTransactionApprovalDecision(
+  { getState, initMessenger }: TransactionControllerHookRequest,
+  transactionMeta: TransactionMeta,
+): Promise<TransactionApprovalDecision> {
+  const state = getState();
+  const { chainId, txParams } = transactionMeta;
+
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+    state,
+    chainId,
+  );
+  const sendBundleSupport = await isSendBundleSupported(chainId);
+  const isSmartTransactionAndBundleSupported = Boolean(
+    shouldUseSmartTransaction && sendBundleSupport,
+  );
+  const keyringSupports7702 = await accountSupports7702(
+    txParams?.from,
+    getKeyringController(initMessenger),
+    false,
+  );
+
+  const is7702Supported = Boolean(
+    !isSmartTransactionAndBundleSupported &&
+      keyringSupports7702 &&
+      (await isRelaySupported(chainId)) &&
+      txParams?.to !== undefined,
+  );
+
+  const legacyApprovalMetadata: LegacyTransactionApprovalMetadata =
+    transactionMeta;
+
+  // Predict still uses this compatibility marker to hand external signing
+  // policy from its beforeSign hook to the shared shouldSign hook.
+  const isPreparedForExternalSigning = Boolean(
+    legacyApprovalMetadata.isExternalSign,
+  );
+  const requiresExternalSigning = Boolean(
+    isPreparedForExternalSigning ||
+      (transactionMeta.selectedGasFeeToken && is7702Supported),
+  );
+
+  // Explicit sponsorship metadata remains authoritative during migration so
+  // an unavailable refresh cannot silently turn a client-sponsored flow into
+  // a locally signed, user-paid transaction.
+  const legacySponsorshipEnabled = Boolean(
+    legacyApprovalMetadata.isGasFeeSponsored,
+  );
+  const isSponsorshipAvailable = Boolean(
+    transactionMeta.isGasFeeSponsoredAvailable || legacySponsorshipEnabled,
+  );
+  const sponsorshipEnabled =
+    isSponsorshipAvailable &&
+    transactionMeta.type !== TransactionType.revokeDelegation &&
+    (isSmartTransactionAndBundleSupported || is7702Supported);
+
+  const signingMode: 'local' | 'external' = requiresExternalSigning
+    ? 'external'
+    : 'local';
+
+  return {
+    keyringSupports7702,
+    sendBundleSupport,
+    shouldUseSmartTransaction,
+    signingMode,
+    sponsorshipEnabled,
+  };
+}
+
+function isSponsoredHook(
+  approvalDecisions: TransactionApprovalDecisionCache,
+): IsGasSponsoredHook {
+  return async ({ transactionMeta }) => {
+    const { sponsorshipEnabled } = await approvalDecisions.get(transactionMeta);
+
+    return { isSponsored: sponsorshipEnabled };
+  };
+}
+
+function shouldSignHook(
+  approvalDecisions: TransactionApprovalDecisionCache,
+): ShouldSignHook {
+  return async ({ transactionMeta }) => {
+    const { signingMode } = await approvalDecisions.get(transactionMeta);
+
+    return { shouldSign: signingMode === 'local' };
+  };
+}
+
+function beforePublishHook(
+  { initMessenger }: TransactionControllerHookRequest,
+  approvalDecisions: TransactionApprovalDecisionCache,
+) {
+  return async (transactionMeta: TransactionMeta) => {
+    const canPublish = await initMessenger.call(
+      'PredictController:beforePublish',
+      { transactionMeta },
+    );
+
+    if (!canPublish) {
+      approvalDecisions.clear(transactionMeta.id);
+    }
+
+    return canPublish;
+  };
+}
+
+function beforeSignHook(
+  { initMessenger }: TransactionControllerHookRequest,
+  approvalDecisions: TransactionApprovalDecisionCache,
+) {
+  return (hookRequest: { transactionMeta: TransactionMeta }) => {
+    approvalDecisions.clear(hookRequest.transactionMeta.id);
+    return initMessenger.call('PredictController:beforeSign', hookRequest);
+  };
+}
+
+function publishHook(
+  request: TransactionControllerHookRequest,
+  approvalDecisions: TransactionApprovalDecisionCache,
+) {
+  const { getState, getTransactionController, initMessenger } = request;
+
   return async (
     transactionMeta: TransactionMeta,
     signedTransactionInHex: Hex,
   ): Promise<{ transactionHash?: string }> => {
+    const approvalDecision = await approvalDecisions.get(transactionMeta);
+    approvalDecisions.clear(transactionMeta.id);
+
     const { transactionHash: predictTransactionHash } =
       await initMessenger.call('PredictController:publish', {
         transactionMeta,
@@ -121,11 +275,17 @@ function publishHook({
 
     const state = getState();
 
-    const { shouldUseSmartTransaction, featureFlags } =
-      getSmartTransactionCommonParams(state, transactionMeta.chainId);
-    const sendBundleSupport = await isSendBundleSupported(
+    const { featureFlags } = getSmartTransactionCommonParams(
+      state,
       transactionMeta.chainId,
     );
+    const {
+      keyringSupports7702,
+      sendBundleSupport,
+      shouldUseSmartTransaction,
+      signingMode,
+      sponsorshipEnabled,
+    } = approvalDecision;
 
     const { stxDisabled } = selectMetaMaskPayFlags(state);
 
@@ -140,15 +300,8 @@ function publishHook({
 
     validateRequiredQuote(transactionMeta, initMessenger, state);
 
-    const { isExternalSign } = transactionMeta;
     const isRevokeDelegation =
       transactionMeta.type === TransactionType.revokeDelegation;
-
-    const keyringSupports7702 = await accountSupports7702(
-      transactionMeta.txParams?.from,
-      getKeyringController(initMessenger),
-    );
-
     const isSwapGasIncluded7702 = Boolean(transactionMeta.isGasFeeIncluded);
 
     if (
@@ -157,7 +310,7 @@ function publishHook({
       (isSwapGasIncluded7702 ||
         !shouldUseSmartTransaction ||
         !sendBundleSupport ||
-        isExternalSign)
+        signingMode === 'external')
     ) {
       const transactionController = getTransactionController();
       const hook = new Delegation7702PublishHook({
@@ -167,6 +320,7 @@ function publishHook({
           transactionController.isAtomicBatchSupported.bind(
             transactionController,
           ),
+        isSponsored: () => sponsorshipEnabled,
         messenger: initMessenger,
       }).getHook();
 
@@ -200,7 +354,8 @@ function publishHook({
           initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
         featureFlags,
         shouldUseSmartTransaction,
-        signedTransactionInHex,
+        signedTransactionInHex:
+          signedTransactionInHex === '0x' ? undefined : signedTransactionInHex,
         smartTransactionsController:
           getSmartTransactionsController(initMessenger),
         transactionController: getTransactionController(),

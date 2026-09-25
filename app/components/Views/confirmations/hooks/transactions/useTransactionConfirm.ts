@@ -21,8 +21,6 @@ import {
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
@@ -62,13 +60,6 @@ export function useTransactionConfirm() {
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
 
-  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-
-  // Signer of the confirmed transaction; gates signing-related paths.
-  const isSignerHardwareWallet = isHardwareAccount(
-    transactionMetadata?.txParams?.from ?? '',
-  );
-
   // Payer may differ from the signer (MM Pay funding account); a hardware
   // payer signs funding transactions on-device after approval, so keep the
   // confirmation waiting to drive the awaiting UI and surface errors.
@@ -95,17 +86,6 @@ export function useTransactionConfirm() {
         selectedGasFeeToken.maxPriorityFeePerGas;
     },
     [selectedGasFeeToken, isGasFeeTokenIgnoredIfBalance],
-  );
-
-  const handleGasless7702 = useCallback(
-    (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
-        return;
-      }
-
-      updatedMetadata.isExternalSign = true;
-    },
-    [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
   const navigateOnConfirm = useCallback(() => {
@@ -218,27 +198,8 @@ export function useTransactionConfirm() {
 
       const updatedMetadata = cloneDeep(transactionMetadata);
 
-      // Sponsorship eligibility is account-specific (HW wallets are excluded),
-      // unlike the controller's account-agnostic simulation result.
-      const isGaslessEligible = shouldApplyGasFeeSponsorship({
-        transactionMeta: transactionMetadata,
-        isGaslessSupported,
-      });
-      updatedMetadata.isGasFeeSponsored = isGaslessEligible;
-
-      // The controller sets `isExternalSign` from `isGasFeeSponsored` for any
-      // account. When gasless isn't eligible, revert it or signing is skipped
-      // and an empty `'0x'` reaches `eth_sendRawTransaction`.
-      const isExternalSignStale =
-        Boolean(transactionMetadata.isExternalSign) && !isGaslessEligible;
-      if (isExternalSignStale) {
-        updatedMetadata.isExternalSign = false;
-      }
-
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken && !isSignerHardwareWallet) {
-        handleGasless7702(updatedMetadata);
       }
 
       if (shouldDeferHwSend(updatedMetadata)) {
@@ -268,21 +229,17 @@ export function useTransactionConfirm() {
       }
     },
     [
-      handleGasless7702,
       shouldDeferHwSend,
       deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
-      isGaslessSupported,
       isGaslessSupportedSTX,
       navigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,
       orderId,
-      selectedGasFeeToken,
       transactionMetadata,
       waitForResult,
-      isSignerHardwareWallet,
     ],
   );
 
