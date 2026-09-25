@@ -204,6 +204,13 @@ export const dismissAndroidSystemOverlaysPlaywright =
       return;
     }
 
+    // adb is not reachable on BrowserStack — the command would always fail.
+    const isBrowserStack =
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    if (isBrowserStack) {
+      return;
+    }
+
     const serial = process.env.ANDROID_DEVICE_UDID?.trim();
     const adbFlag = serial ? `-s ${serial}` : '';
 
