@@ -12164,6 +12164,8 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "start_free_trial": "Start free trial",
+    "free_trial_description": "No commitment, cancel anytime",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",
