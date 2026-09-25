@@ -14,9 +14,11 @@ export class LockManagerService {
   #appState?: AppStateStatus;
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
+  #backgroundedAt?: number;
 
   #lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
+      this.#backgroundedAt = undefined;
       const { KeyringController } = Engine.context;
       try {
         await KeyringController.setLocked();
@@ -38,49 +40,60 @@ export class LockManagerService {
     this.#lockTimer = undefined;
   };
 
+  #hasLockTimeElapsed = (lockTime: number) =>
+    lockTime > 0 &&
+    this.#backgroundedAt !== undefined &&
+    Date.now() - this.#backgroundedAt >= lockTime;
+
+  /**
+   * Decides on resume whether the configured lock time has elapsed. The
+   * background timer cannot be relied on for this: the OS suspends JS while
+   * backgrounded, so an overdue timer only fires after the wallet is already
+   * visible again.
+   */
+  #handleForeground = (lockTime: number, previousAppState?: AppStateStatus) => {
+    const shouldLock = this.#hasLockTimeElapsed(lockTime);
+    this.#clearBackgroundTimer();
+    this.#backgroundedAt = undefined;
+
+    if (shouldLock) {
+      this.#lockApp();
+      return;
+    }
+
+    // Lets other services know that the lock manager app state event is resolved while active
+    if (lockTime === -1 || previousAppState === 'inactive') {
+      ReduxService.store.dispatch(checkForDeeplink());
+    }
+  };
+
   #handleAppStateChange = async (nextAppState: AppStateStatus) => {
-    // Don't auto-lock.
     try {
       const lockTime = ReduxService.store.getState().settings.lockTime;
-      if (
-        lockTime === -1 || // Lock timer isn't set.
-        nextAppState === 'inactive' || // Ignore inactive state.
-        (this.#appState === 'inactive' && nextAppState === 'active') // Ignore going from inactive -> active state.
-      ) {
-        // Lets other services know that the lock manager app state event is resolved while active
-        if (nextAppState === 'active') {
-          // Android resumes as background -> inactive -> active, which lands
-          // here rather than in the `active` branch below. Without this the
-          // pending timer survives the resume and locks mid-session.
-          this.#clearBackgroundTimer();
-          ReduxService.store.dispatch(checkForDeeplink());
-        }
-        this.#appState = nextAppState;
+      const previousAppState = this.#appState;
+      this.#appState = nextAppState;
+
+      if (nextAppState === 'active') {
+        this.#handleForeground(lockTime, previousAppState);
         return;
       }
 
-      // Handle lock logic on background.
-      if (nextAppState === 'background') {
-        if (lockTime === 0) {
+      if (nextAppState !== 'background' || lockTime === -1) {
+        return;
+      }
+
+      if (lockTime === 0) {
+        this.#lockApp();
+        return;
+      }
+
+      this.#backgroundedAt = Date.now();
+      this.#clearBackgroundTimer();
+      this.#lockTimer = BackgroundTimer.setTimeout(() => {
+        if (this.#lockTimer && this.#hasLockTimeElapsed(lockTime)) {
           this.#lockApp();
-        } else {
-          // Autolock after some time.
-          this.#clearBackgroundTimer();
-          this.#lockTimer = BackgroundTimer.setTimeout(() => {
-            if (this.#lockTimer) {
-              this.#lockApp();
-            }
-          }, lockTime);
         }
-      }
-
-      // App has foregrounded from background.
-      // Clear background timer for safe measure.
-      if (nextAppState === 'active') {
-        this.#clearBackgroundTimer();
-      }
-
-      this.#appState = nextAppState;
+      }, lockTime);
     } catch (error) {
       Logger.error(
         error as Error,

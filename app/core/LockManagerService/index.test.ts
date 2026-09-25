@@ -16,7 +16,8 @@ const mockSetTimeout = jest.fn();
 const mockClearTimeout = jest.fn();
 
 jest.mock('react-native-background-timer', () => ({
-  setTimeout: () => mockSetTimeout(),
+  setTimeout: (callback: () => void, timeout: number) =>
+    mockSetTimeout(callback, timeout),
   clearTimeout: (id: number) => mockClearTimeout(id),
 }));
 
@@ -163,6 +164,93 @@ describe('LockManagerService', () => {
       mockAppStateListener('active');
 
       expect(mockClearTimeout).toHaveBeenCalledWith(1);
+    });
+
+    describe('when resuming with a non-zero lockTime', () => {
+      const lockTime = 30000;
+      let mockDispatch: jest.Mock;
+
+      beforeEach(() => {
+        mockDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          getState: () => ({ settings: { lockTime } }),
+          dispatch: mockDispatch,
+        } as unknown as ReduxStore);
+        jest.setSystemTime(0);
+        lockManagerService.startListening();
+      });
+
+      it('locks immediately on resume when the lock time has elapsed', async () => {
+        mockAppStateListener('background');
+        jest.setSystemTime(lockTime + 10000);
+
+        mockAppStateListener('active');
+        await Promise.resolve();
+
+        expect(mockClearTimeout).toHaveBeenCalledWith(1);
+        expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+      });
+
+      it('locks immediately when resuming through inactive after the lock time has elapsed', async () => {
+        mockAppStateListener('background');
+        jest.setSystemTime(lockTime);
+
+        mockAppStateListener('inactive');
+        mockAppStateListener('active');
+        await Promise.resolve();
+
+        expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+        expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      });
+
+      it('does not lock on resume when the lock time has not elapsed', async () => {
+        mockAppStateListener('background');
+        jest.setSystemTime(lockTime - 1);
+
+        mockAppStateListener('active');
+        await Promise.resolve();
+
+        expect(mockClearTimeout).toHaveBeenCalledWith(1);
+        expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+      });
+
+      it('does not lock when an overdue timer fires after resuming early', async () => {
+        mockAppStateListener('background');
+        const timerCallback = mockSetTimeout.mock.calls[0][0];
+        jest.setSystemTime(lockTime - 1);
+        mockAppStateListener('active');
+
+        jest.setSystemTime(lockTime + 10000);
+        timerCallback();
+        await Promise.resolve();
+
+        expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+      });
+
+      it('locks from the background timer once the lock time has elapsed', async () => {
+        mockAppStateListener('background');
+        const timerCallback = mockSetTimeout.mock.calls[0][0];
+        jest.setSystemTime(lockTime);
+
+        timerCallback();
+        await Promise.resolve();
+
+        expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+      });
+
+      it('does not lock again on resume after the background timer already locked', async () => {
+        mockAppStateListener('background');
+        const timerCallback = mockSetTimeout.mock.calls[0][0];
+        jest.setSystemTime(lockTime);
+        timerCallback();
+        await Promise.resolve();
+        mockDispatch.mockClear();
+
+        mockAppStateListener('active');
+        await Promise.resolve();
+
+        expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+      });
     });
   });
 });
