@@ -32,6 +32,7 @@ interface MockLivePriceHeaderProps {
 
 interface MockTradingViewChartProps {
   candleData?: CandleData | null;
+  visibleCandleCount?: number;
   tpslLines?: {
     currentPrice?: string;
   };
@@ -77,6 +78,10 @@ const mockOnCandlePeriodChange = jest.fn();
 const mockOnMorePress = jest.fn();
 const mockOnChartError = jest.fn();
 const mockFetchMoreHistory = jest.fn();
+const mockAdvancedChartMounted = jest.fn();
+const mockAdvancedChartUnmounted = jest.fn();
+const mockLightweightChartMounted = jest.fn();
+const mockLightweightChartUnmounted = jest.fn();
 const mockPerpsAdvancedChart = jest.fn((_props: PerpsAdvancedChartProps) => (
   <Box testID="mock-perps-advanced-chart" />
 ));
@@ -113,6 +118,10 @@ const mockUsePerpsMarketData = jest.fn();
 const mockUsePriceDeviation = jest.fn();
 const mockSetChartExpanded = jest.fn();
 const mockUsePerpsProChartExpanded = jest.fn();
+let mockVisibleCandleCount = 30;
+const mockOnVisibleCandleCountChange = jest.fn((count: number) => {
+  mockVisibleCandleCount = count;
+});
 
 jest.mock('../../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
@@ -120,6 +129,13 @@ jest.mock('../../../hooks/usePerpsEventTracking', () => ({
 
 jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
   usePerpsProChartExpanded: () => mockUsePerpsProChartExpanded(),
+}));
+
+jest.mock('../../../hooks/usePerpsVisibleCandleCount', () => ({
+  usePerpsVisibleCandleCount: () => ({
+    visibleCandleCount: mockVisibleCandleCount,
+    onVisibleCandleCountChange: mockOnVisibleCandleCountChange,
+  }),
 }));
 
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
@@ -146,12 +162,26 @@ jest.mock('../../../hooks', () => ({
 
 jest.mock('../../../components/PerpsAdvancedChart/PerpsAdvancedChart', () => ({
   __esModule: true,
-  default: (props: PerpsAdvancedChartProps) => mockPerpsAdvancedChart(props),
+  default: (props: PerpsAdvancedChartProps) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => {
+      mockAdvancedChartMounted();
+      return mockAdvancedChartUnmounted;
+    }, []);
+    return mockPerpsAdvancedChart(props);
+  },
 }));
 
 jest.mock('../../../components/TradingViewChart', () => ({
   __esModule: true,
-  default: (props: MockTradingViewChartProps) => mockTradingViewChart(props),
+  default: (props: MockTradingViewChartProps) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => {
+      mockLightweightChartMounted();
+      return mockLightweightChartUnmounted;
+    }, []);
+    return mockTradingViewChart(props);
+  },
 }));
 
 jest.mock('../../../components/LivePriceDisplay/LivePriceHeader', () => ({
@@ -193,6 +223,14 @@ const getLastAdvancedChartProps = () => {
   return lastCall[0];
 };
 
+const getLastLightweightChartProps = () => {
+  const lastCall = mockTradingViewChart.mock.calls.at(-1);
+  if (!lastCall) {
+    throw new Error('TradingViewChart was not rendered');
+  }
+  return lastCall[0];
+};
+
 const getLastFullscreenModalProps = () => {
   const lastCall = mockFullscreenModal.mock.calls.at(-1);
   if (!lastCall) {
@@ -224,6 +262,7 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
 describe('PerpsProChartPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVisibleCandleCount = 30;
     jest.mocked(playSelection).mockClear();
     mockUsePerpsLiveCandles.mockReturnValue({
       candleData: MOCK_CANDLE_DATA,
@@ -501,6 +540,48 @@ describe('PerpsProChartPanel', () => {
     expect(
       screen.queryByTestId('mock-perps-fullscreen-chart'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('remounts the inline Advanced Chart with the fullscreen viewport on close', () => {
+    renderChartPanel();
+    expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      ),
+    );
+    act(() => {
+      getLastFullscreenModalProps().onVisibleCandleCountChange?.(80);
+      getLastFullscreenModalProps().onClose();
+    });
+
+    expect(mockAdvancedChartUnmounted).toHaveBeenCalledTimes(1);
+    expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(2);
+    expect(getLastAdvancedChartProps().visibleCandleCount).toBe(80);
+  });
+
+  it('remounts the inline Lightweight Chart with the fullscreen viewport on close', () => {
+    renderChartPanel({
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    });
+    expect(mockLightweightChartMounted).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      ),
+    );
+    act(() => {
+      getLastFullscreenModalProps().onVisibleCandleCountChange?.(80);
+      getLastFullscreenModalProps().onClose();
+    });
+
+    expect(mockLightweightChartUnmounted).toHaveBeenCalledTimes(1);
+    expect(mockLightweightChartMounted).toHaveBeenCalledTimes(2);
+    expect(getLastLightweightChartProps().visibleCandleCount).toBe(80);
   });
 
   it('renders the provided currentPrice in the market summary', () => {

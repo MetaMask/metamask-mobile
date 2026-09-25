@@ -56,7 +56,7 @@ The installed MetaMask platform client has no supported generic request API. The
 
 Base URL and client version come from composition/configuration; environment differences do not create different Venue adapters. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
 
-Before account-scoped routes or writes, adopt an explicit required-auth, method-capable transport. Prefer a shared uncached platform request primitive when available; do not silently reuse the public-read client's unauthenticated behavior.
+Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. Public catalog reads remain unauthenticated here; PRED-1159/PRED-1175 owns migrating those routes to required authentication.
 
 ## Canonical backend contract
 

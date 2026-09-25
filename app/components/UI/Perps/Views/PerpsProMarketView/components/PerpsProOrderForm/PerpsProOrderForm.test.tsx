@@ -96,6 +96,7 @@ const createTwap = (
   onHoursChange: jest.fn(),
   onMinutesChange: jest.fn(),
   onRandomizeChange: jest.fn(),
+  onRuntimeInfoPress: jest.fn(),
   ...overrides,
 });
 
@@ -1681,6 +1682,50 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(`${ids.NOTICE}-risk`)).toHaveTextContent(
         'Risk warning',
       );
+    });
+  });
+
+  describe('TWAP summary', () => {
+    const twapSummary = {
+      runtime: '30 mins',
+      sizePerSuborder: '0.00001 BTC',
+    };
+
+    it('lists runtime and size per suborder', () => {
+      renderForm({
+        orderType: 'twap',
+        summary: { margin: '$16.91', liquidationPrice: '--', twapSummary },
+      });
+
+      expect(
+        screen.getByTestId(ids.SUMMARY_TWAP_RUNTIME_VALUE),
+      ).toHaveTextContent('30 mins');
+      expect(
+        screen.getByTestId(ids.SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE),
+      ).toHaveTextContent('0.00001 BTC');
+    });
+
+    it('drops est liquidation and slippage rows', () => {
+      renderForm({
+        orderType: 'twap',
+        summary: {
+          margin: '$16.91',
+          liquidationPrice: '$70,000',
+          slippage: '0.5%',
+          twapSummary,
+        },
+      });
+
+      expect(screen.queryByTestId(ids.SUMMARY_LIQUIDATION)).toBeNull();
+      expect(screen.queryByTestId(ids.SUMMARY_SLIPPAGE)).toBeNull();
+    });
+
+    it('keeps est liquidation for non-TWAP order types', () => {
+      renderForm({
+        summary: { margin: '$16.91', liquidationPrice: '$70,000' },
+      });
+
+      expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toBeOnTheScreen();
     });
   });
 

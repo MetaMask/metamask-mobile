@@ -16,10 +16,17 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import SettingsDrawer from '../../../UI/SettingsDrawer';
+import { useSelector } from 'react-redux';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const DefaultSettings = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectMobileUxBftcConsolidationFlagEnabled,
+  );
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
@@ -57,13 +64,15 @@ const DefaultSettings = () => {
           description={strings('default_settings.drawer_assets_desc')}
           onPress={() => navigation.navigate(Routes.ONBOARDING.ASSETS_SETTINGS)}
         />
-        <SettingsDrawer
-          title={strings('default_settings.drawer_security_title')}
-          description={strings('default_settings.drawer_security_desc')}
-          onPress={() =>
-            navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)
-          }
-        />
+        {(!isBasicFunctionalityConsolidationEnabled || isSocialLogin) && (
+          <SettingsDrawer
+            title={strings('default_settings.drawer_security_title')}
+            description={strings('default_settings.drawer_security_desc')}
+            onPress={() =>
+              navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)
+            }
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

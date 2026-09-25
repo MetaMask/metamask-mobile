@@ -13,9 +13,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSingle from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock Alert
 const mockAlert = jest.fn();
-jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -125,6 +123,7 @@ const initialState = {
 describe('PredictMarketSingle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
     // Default mock implementation - user is eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: true,
@@ -137,7 +136,7 @@ describe('PredictMarketSingle', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockAlert.mockClear();
     mockPlaceBuyOrder.mockClear();
     mockNavigate.mockClear();
@@ -184,8 +183,8 @@ describe('PredictMarketSingle', () => {
     });
   });
 
-  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
-    const onBuyButtonPress = jest.fn(() => true);
+  it('opens the buy sheet after calling the buy handler', () => {
+    const onBuyButtonPress = jest.fn();
     const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictMarketSingle
         market={mockMarket}
@@ -201,7 +200,7 @@ describe('PredictMarketSingle', () => {
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[0],
     });
-    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+    expect(mockOpenBuySheet).toHaveBeenCalled();
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -364,21 +363,6 @@ describe('PredictMarketSingle', () => {
         image: mockMarket.image,
       },
     });
-  });
-
-  it('does not navigate to market details when card press is disabled', () => {
-    const { getByTestId } = renderWithProvider(
-      <PredictMarketSingle
-        market={mockMarket}
-        cardPressDisabled
-        testID="predict-market-single-card"
-      />,
-      { state: initialState },
-    );
-
-    fireEvent.press(getByTestId('predict-market-single-card'));
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('forwards predictFeedTab and predictScreen to market details navigation', () => {

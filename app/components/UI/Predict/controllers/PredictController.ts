@@ -1593,7 +1593,10 @@ export class PredictController extends BaseController<
     missingBatchIdError: string;
   }): Promise<string> {
     try {
-      const batchResult = await addTransactionBatch(params);
+      const batchResult = await addTransactionBatch({
+        ...params,
+        overwriteUpgrade: true,
+      });
 
       if (!batchResult?.batchId) {
         throw new Error(missingBatchIdError);

@@ -6,9 +6,16 @@ import Routes from '../../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../../core/AppConstants';
 import DefaultSettings from './';
+import { useSelector } from 'react-redux';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 describe('DefaultSettings', () => {
@@ -18,7 +25,9 @@ describe('DefaultSettings', () => {
     navigate: jest.fn(),
   };
   beforeEach(() => {
+    jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    (useSelector as jest.Mock).mockReturnValue(false);
   });
 
   it('should render correctly', () => {
@@ -76,5 +85,33 @@ describe('DefaultSettings', () => {
     const { getAllByTestId } = render(<DefaultSettings />);
     fireEvent.press(getAllByTestId('button-icon')[0]);
     expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('hides the empty Security category for consolidated SRP onboarding', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectMobileUxBftcConsolidationFlagEnabled) return true;
+      if (selector === selectSeedlessOnboardingLoginFlow) return false;
+      return null;
+    });
+
+    const { queryByText } = render(<DefaultSettings />);
+
+    expect(
+      queryByText(strings('default_settings.drawer_security_title')),
+    ).toBeNull();
+  });
+
+  it('keeps the Security category for consolidated social-login onboarding', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectMobileUxBftcConsolidationFlagEnabled) return true;
+      if (selector === selectSeedlessOnboardingLoginFlow) return true;
+      return null;
+    });
+
+    const { getByText } = render(<DefaultSettings />);
+
+    expect(
+      getByText(strings('default_settings.drawer_security_title')),
+    ).toBeOnTheScreen();
   });
 });

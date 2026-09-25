@@ -11,6 +11,7 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import {
   TransactionMeta,
@@ -72,6 +73,7 @@ jest.mock('../../../../../util/abTest', () => ({
 }));
 
 jest.mock('../tokens/useTokenFiatRates');
+jest.mock('../pay/useTransactionPayPrefetch');
 jest.mock('../pay/useUpdateTransactionPayAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
@@ -183,6 +185,7 @@ function runHook({
 
 describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
+  const useTransactionPayPrefetchMock = jest.mocked(useTransactionPayPrefetch);
   const useUpdateTransactionPayAmountMock = jest.mocked(
     useUpdateTransactionPayAmount,
   );
@@ -236,8 +239,8 @@ describe('useTransactionCustomAmount', () => {
     updateTransactionPayAmountMock.mockResolvedValue(true);
     useTokenFiatRateMock.mockReturnValue(2);
 
+    useTransactionPayPrefetchMock.mockReturnValue({ enabled: false });
     useUpdateTransactionPayAmountMock.mockReturnValue({
-      isAmountUpdateQuotePipelineEnabled: false,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
 
@@ -453,8 +456,8 @@ describe('useTransactionCustomAmount', () => {
   });
 
   it('prefetches an optimized amount update after the typing debounce', async () => {
+    useTransactionPayPrefetchMock.mockReturnValue({ enabled: true });
     useUpdateTransactionPayAmountMock.mockReturnValue({
-      isAmountUpdateQuotePipelineEnabled: true,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
     const { result } = runHook({
@@ -483,8 +486,8 @@ describe('useTransactionCustomAmount', () => {
   });
 
   it('marks the current amount as prefetched once its quote settles', async () => {
+    useTransactionPayPrefetchMock.mockReturnValue({ enabled: true });
     useUpdateTransactionPayAmountMock.mockReturnValue({
-      isAmountUpdateQuotePipelineEnabled: true,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
     useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
@@ -517,8 +520,8 @@ describe('useTransactionCustomAmount', () => {
   });
 
   it('invalidates a prefetched quote when the pay token changes', async () => {
+    useTransactionPayPrefetchMock.mockReturnValue({ enabled: true });
     useUpdateTransactionPayAmountMock.mockReturnValue({
-      isAmountUpdateQuotePipelineEnabled: true,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
     useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
@@ -564,8 +567,8 @@ describe('useTransactionCustomAmount', () => {
 
   it('does not mark an unpublished optimized amount update as prefetched', async () => {
     updateTransactionPayAmountMock.mockResolvedValue(false);
+    useTransactionPayPrefetchMock.mockReturnValue({ enabled: true });
     useUpdateTransactionPayAmountMock.mockReturnValue({
-      isAmountUpdateQuotePipelineEnabled: true,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
     useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
@@ -605,8 +608,8 @@ describe('useTransactionCustomAmount', () => {
   });
 
   it('does not prefetch a zero amount', async () => {
+    useTransactionPayPrefetchMock.mockReturnValue({ enabled: true });
     useUpdateTransactionPayAmountMock.mockReturnValue({
-      isAmountUpdateQuotePipelineEnabled: true,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
 

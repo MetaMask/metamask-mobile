@@ -58,6 +58,8 @@ describe('useTokenWithBalance', () => {
       balanceRaw: '100',
       chainId: '0x1',
       decimals: 4,
+      image: undefined,
+      name: 'T1',
       symbol: 'T1',
       tokenFiatAmount: 100,
     });

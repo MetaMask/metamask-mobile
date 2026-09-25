@@ -31,6 +31,20 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockSetSignInLinkStage = jest.fn();
+const mockMarkMigrationCompleted = jest.fn();
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      setSignInLinkStage: (...args: unknown[]) =>
+        mockSetSignInLinkStage(...args),
+      markMigrationCompleted: (...args: unknown[]) =>
+        mockMarkMigrationCompleted(...args),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockShowToast = jest.fn();
@@ -50,6 +64,7 @@ describe('useImmersveOnboardingRouter', () => {
     (useContext as jest.Mock).mockReturnValue({
       toastRef: { current: { showToast: mockShowToast } },
     });
+    mockMarkMigrationCompleted.mockResolvedValue(undefined);
   });
 
   it('routes contact to SIGN_UP', () => {
@@ -71,6 +86,7 @@ describe('useImmersveOnboardingRouter', () => {
     (type) => {
       getRoute()({ type } as ImmersveNextAction, { countryKey: 'GB' });
 
+      expect(mockSetSignInLinkStage).toHaveBeenCalledWith('identity');
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.KYC_PROCESSING,
         { countryKey: 'GB', kycUrl: undefined },
@@ -84,6 +100,7 @@ describe('useImmersveOnboardingRouter', () => {
       { countryKey: 'GB' },
     );
 
+    expect(mockSetSignInLinkStage).toHaveBeenCalledWith('identity');
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CARD.ONBOARDING.KYC_PROCESSING,
       { countryKey: 'GB', kycUrl: 'https://verify.immersve.com/abc' },
@@ -101,13 +118,37 @@ describe('useImmersveOnboardingRouter', () => {
           params: {},
         },
       },
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
 
+    expect(mockSetSignInLinkStage).toHaveBeenCalledWith('spending');
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-      { countryKey: 'GB' },
+      { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
+  });
+
+  it('resets to Card Home for funding when the user already has a card', () => {
+    getRoute()(
+      {
+        type: 'funding',
+        write: {
+          abi: [],
+          contractAddress: '0x',
+          method: 'approve',
+          params: {},
+        },
+      },
+      { countryKey: 'GB', hasExistingCard: true, fundingAddress: '0xFunding' },
+    );
+
+    expect(mockSetSignInLinkStage).toHaveBeenCalledWith('spending');
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('resets to KYC_FAILED when rejected', () => {
@@ -122,6 +163,7 @@ describe('useImmersveOnboardingRouter', () => {
   it('shows a toast and resets to Card Home when active', () => {
     getRoute()({ type: 'active' });
 
+    expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
@@ -138,6 +180,7 @@ describe('useImmersveOnboardingRouter', () => {
   it('suppresses the toast when active but showAccountExistsToast is false', () => {
     getRoute()({ type: 'active' }, { showAccountExistsToast: false });
 
+    expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
     expect(mockShowToast).not.toHaveBeenCalled();
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
@@ -164,6 +207,7 @@ describe('useImmersveOnboardingRouter', () => {
         { countryKey: 'GB', navigateFromRoot: true },
       );
 
+      expect(mockSetSignInLinkStage).toHaveBeenCalledWith('identity');
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.KYC_PROCESSING,
         params: { countryKey: 'GB', kycUrl: 'https://verify.immersve.com/abc' },
@@ -181,13 +225,45 @@ describe('useImmersveOnboardingRouter', () => {
             params: {},
           },
         },
-        { countryKey: 'GB', navigateFromRoot: true },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          fundingAddress: '0xFunding',
+        },
       );
 
+      expect(mockSetSignInLinkStage).toHaveBeenCalledWith('spending');
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
-        params: { countryKey: 'GB' },
+        params: { countryKey: 'GB', fundingAddress: '0xFunding' },
       });
+    });
+
+    it('still resets to Card Home for funding when the user already has a card', () => {
+      getRoute()(
+        {
+          type: 'funding',
+          write: {
+            abi: [],
+            contractAddress: '0x',
+            method: 'approve',
+            params: {},
+          },
+        },
+        {
+          countryKey: 'GB',
+          navigateFromRoot: true,
+          hasExistingCard: true,
+          fundingAddress: '0xFunding',
+        },
+      );
+
+      expect(mockSetSignInLinkStage).toHaveBeenCalledWith('spending');
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates into ONBOARDING.ROOT KYC_FAILED for rejected (no parent reset)', () => {
@@ -205,6 +281,7 @@ describe('useImmersveOnboardingRouter', () => {
         { navigateFromRoot: true, showAccountExistsToast: false },
       );
 
+      expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],

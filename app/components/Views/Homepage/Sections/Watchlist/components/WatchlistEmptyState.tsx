@@ -29,10 +29,18 @@ const WatchlistEmptyState: React.FC = () => {
         height={78}
         testID="watchlist-empty-icon"
       />
-      <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
+      <Text
+        variant={TextVariant.HeadingSm}
+        color={TextColor.TextDefault}
+        twClassName="text-center"
+      >
         {strings('token_watchlist.home_empty_title')}
       </Text>
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
         {strings('token_watchlist.home_empty_subtitle')}
       </Text>
     </Box>

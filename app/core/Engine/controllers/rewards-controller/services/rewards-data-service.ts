@@ -47,7 +47,6 @@ import type {
   MoneyAccountSweepstakesPrizePoolDto,
   MoneyAccountSweepstakesDrawProofDto,
   MoneyAccountSweepstakesOutcomeDto,
-  FirstPredictOnUsDto,
   VipDashboardDto,
   VipEquityMultiplierDto,
   VipRefereeMeDto,
@@ -242,11 +241,6 @@ export interface RewardsDataServiceGetCampaignParticipantStatusAction {
 export interface RewardsDataServiceGetClientVersionRequirementsAction {
   type: `${typeof SERVICE_NAME}:getClientVersionRequirements`;
   handler: RewardsDataService['getClientVersionRequirements'];
-}
-
-export interface RewardsDataServiceGetFirstPredictOnUsAction {
-  type: `${typeof SERVICE_NAME}:getFirstPredictOnUs`;
-  handler: RewardsDataService['getFirstPredictOnUs'];
 }
 
 export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
@@ -464,7 +458,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -773,10 +766,6 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getClientVersionRequirements`,
       this.getClientVersionRequirements.bind(this),
     );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getFirstPredictOnUs`,
-      this.getFirstPredictOnUs.bind(this),
-    );
   }
 
   /**
@@ -840,26 +829,6 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as ClientVersionRequirementDto;
-  }
-
-  /**
-   * Fetch the visible first predict on us content from the public API.
-   * @returns The first predict on us DTO, or null when no visible entry exists.
-   */
-  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
-    const response = await this.makeRequest('/public/first-predict-on-us', {
-      method: 'GET',
-    });
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Get first predict on us failed: ${response.status}`);
-    }
-
-    return (await response.json()) as FirstPredictOnUsDto;
   }
 
   /**
@@ -2377,18 +2346,22 @@ export class RewardsDataService {
    * Register (or re-assert) the Money Account holder address for a subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @param timestamp - The timestamp (ms) included in the signed message.
+   * @param signature - The Money Account signature of the binding message.
    * @returns `'bound'` on 201/200, or `'conflict'` when the address is already
    * bound to a different subscription (409).
    */
   async registerMoneyAccountBinding(
     subscriptionId: string,
     moneyAccountAddress: string,
+    timestamp: number,
+    signature: string,
   ): Promise<'bound' | 'conflict'> {
     const response = await this.makeRequest(
-      '/wr/money-account/binding',
+      '/wr/money-account/binding/signed',
       {
         method: 'POST',
-        body: JSON.stringify({ moneyAccountAddress }),
+        body: JSON.stringify({ moneyAccountAddress, timestamp, signature }),
       },
       subscriptionId,
     );
@@ -2398,6 +2371,23 @@ export class RewardsDataService {
     }
 
     if (!response.ok) {
+      let errorData: { code?: string; serverTime?: number } | undefined;
+      try {
+        errorData = (await response.json()) as {
+          code?: string;
+          serverTime?: number;
+        };
+      } catch {
+        // Body may be empty or non-JSON; fall through to the generic error.
+      }
+
+      if (errorData?.code === 'TIMESTAMP_OUT_OF_WINDOW') {
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Number(errorData.serverTime),
+        );
+      }
+
       throw new Error(
         `Register Money Account binding failed: ${response.status}`,
       );

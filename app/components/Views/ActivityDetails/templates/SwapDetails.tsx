@@ -110,14 +110,14 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   );
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 gap-2">
       <ActivityDetailsDualAmountHeader
         sentToken={sourceToken}
         receivedToken={destinationToken}
       />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsMetadata item={item} />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsFeesAndTotal item={item} token={totalToken} fiatOnly />
       <Box twClassName="mt-auto pt-4">
         <ActivityDetailsFooter>

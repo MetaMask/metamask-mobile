@@ -4,16 +4,24 @@ import {
   useIsPerpsBalanceSelected,
   usePerpsPayWithToken,
 } from './useIsPerpsBalanceSelected';
+import { useIsMoneyAccountPaymentOverride } from '../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+jest.mock(
+  '../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+);
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseIsMoneyAccountPaymentOverride = jest.mocked(
+  useIsMoneyAccountPaymentOverride,
+);
 
 describe('useIsPerpsBalanceSelected', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsMoneyAccountPaymentOverride.mockReturnValue(false);
   });
 
   it('returns true when selector returns true', () => {
@@ -32,6 +40,15 @@ describe('useIsPerpsBalanceSelected', () => {
 
     expect(result.current).toBe(false);
     expect(mockUseSelector).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns false when Money Account payment override is active', () => {
+    mockUseSelector.mockReturnValue(true);
+    mockUseIsMoneyAccountPaymentOverride.mockReturnValue(true);
+
+    const { result } = renderHook(() => useIsPerpsBalanceSelected());
+
+    expect(result.current).toBe(false);
   });
 });
 

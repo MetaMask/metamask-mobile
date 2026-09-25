@@ -30,6 +30,7 @@ import {
   TotalMarketGroupCard,
 } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
+import { useEventWithLiveGame } from '../../hooks/useEventWithLiveGame';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -253,6 +254,7 @@ export const PredictEventScreen = () => {
   const { venueId, eventId, titleSnapshot } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
+  const liveEvent = useEventWithLiveGame(venueId, query.data);
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
@@ -260,8 +262,8 @@ export const PredictEventScreen = () => {
     Record<string, PredictMarket['id']>
   >({});
   const winnerQuotes = useMemo(
-    () => (query.data ? findWinnerMarketQuotes(query.data) : undefined),
-    [query.data],
+    () => (liveEvent ? findWinnerMarketQuotes(liveEvent) : undefined),
+    [liveEvent],
   );
   const winnerMarketIds = useMemo(
     () =>
@@ -279,20 +281,20 @@ export const PredictEventScreen = () => {
   const marketProjection = useMemo(
     () =>
       createMarketGroupProjection(
-        (query.data?.markets ?? []).filter(
+        (liveEvent?.markets ?? []).filter(
           (market) => !winnerMarketIds.has(market.id),
         ),
       ),
-    [query.data?.markets, winnerMarketIds],
+    [liveEvent?.markets, winnerMarketIds],
   );
   const listContentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],
     debugContext: {
-      hasEvent: Boolean(query.data),
+      hasEvent: Boolean(liveEvent),
       error: query.isError,
-      marketCount: query.data?.markets.length ?? 0,
+      marketCount: liveEvent?.markets.length ?? 0,
       projectionCount: marketProjection.length,
     },
   });
@@ -334,7 +336,7 @@ export const PredictEventScreen = () => {
   const handleMarketSelect = useCallback(
     (marketId: string) => {
       setSelectedMarketId(marketId);
-      const market = query.data?.markets.find(
+      const market = liveEvent?.markets.find(
         (candidate) => candidate.id === marketId,
       );
       const groupKey =
@@ -348,7 +350,7 @@ export const PredictEventScreen = () => {
         }));
       }
     },
-    [query.data?.markets],
+    [liveEvent?.markets],
   );
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
@@ -395,8 +397,8 @@ export const PredictEventScreen = () => {
     [handleGroupMarketSelect, handleMarketRulesPress, selectedMarketIds],
   );
 
-  if (query.data) {
-    const event = query.data;
+  if (liveEvent) {
+    const event = liveEvent;
     const eventRules = event.rules?.trim();
     const firstProjectedMarket =
       marketProjection[0]?.type === 'group'

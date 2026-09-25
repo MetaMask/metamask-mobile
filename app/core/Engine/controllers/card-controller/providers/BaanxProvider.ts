@@ -390,6 +390,7 @@ export class BaanxProvider implements ICardProvider {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsTransactionHistory: true,
+    supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
   };
   private readonly service: BaanxService;
@@ -550,6 +551,24 @@ export class BaanxProvider implements ICardProvider {
       return await this.service.get<UserResponse>('/v1/user', tokens);
     } catch (error) {
       throw mapApiError(error, 'getUserDetails');
+    }
+  }
+
+  /**
+   * Signals Exodus that this Baanx user started Immersve onboarding and wants
+   * their Exodus account closed (`POST /v1/user/closure`). A 400 means the
+   * closure was already requested and is treated as success.
+   */
+  async requestAccountClosure(tokens: CardAuthTokens): Promise<void> {
+    try {
+      const userId =
+        tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
+      await this.service.post('/v1/user/closure', { userId }, tokens);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 400) {
+        return;
+      }
+      throw mapApiError(error, 'requestAccountClosure');
     }
   }
 

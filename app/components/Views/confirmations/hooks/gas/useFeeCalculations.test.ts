@@ -173,12 +173,14 @@ describe('useFeeCalculations', () => {
     const clonedStakingDepositConfirmationState = cloneDeep(
       stakingDepositConfirmationState,
     );
-    clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
-      {
-        conversionDate: 1732887955.694,
-        conversionRate: 80,
-        usdConversionRate: 80,
-      };
+    clonedStakingDepositConfirmationState.engine.backgroundState.AssetsController.assetsPrice[
+      'eip155:1/slip44:60'
+    ] = {
+      assetPriceType: 'fungible',
+      price: 80,
+      usdPrice: 80,
+      lastUpdated: 1732887955694,
+    };
 
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMeta),
@@ -197,16 +199,9 @@ describe('useFeeCalculations', () => {
   it('returns native fees but no fiat when conversion rate is null', () => {
     const clonedState = cloneDeep(stakingDepositConfirmationState);
 
-    clonedState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
-      {
-        conversionDate: 1732887955.694,
-        conversionRate: null,
-        usdConversionRate: null,
-      } as unknown as {
-        conversionDate: number;
-        conversionRate: number;
-        usdConversionRate: number;
-      };
+    delete clonedState.engine.backgroundState.AssetsController.assetsPrice[
+      'eip155:1/slip44:60'
+    ];
 
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMeta),
@@ -225,12 +220,9 @@ describe('useFeeCalculations', () => {
   it('returns native fees but no fiat when conversion rate is undefined', () => {
     const clonedState = cloneDeep(stakingDepositConfirmationState);
 
-    clonedState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
-      null as unknown as {
-        conversionDate: number;
-        conversionRate: number;
-        usdConversionRate: number;
-      };
+    delete clonedState.engine.backgroundState.AssetsController.assetsPrice[
+      'eip155:1/slip44:60'
+    ];
 
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMeta),

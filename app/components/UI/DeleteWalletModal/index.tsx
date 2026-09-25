@@ -22,7 +22,6 @@ import { RootState } from '../../../reducers';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -67,8 +66,6 @@ const DeleteWalletModal: React.FC = () => {
 
   const [isDeletingWallet, setIsDeletingWallet] = useState<boolean>(false);
 
-  const { signOut } = useSignOut();
-
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.onCloseBottomSheet(cb);
 
@@ -110,7 +107,6 @@ const DeleteWalletModal: React.FC = () => {
     setIsDeletingWallet(true);
     try {
       dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
-      signOut();
       await CookieManager.clearAll(true);
       await Authentication.deleteWallet();
       // Track analytics for successful deletion

@@ -1246,6 +1246,25 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('$2,384.34');
     });
 
+    it('measures the banner as part of the collapsing title section', () => {
+      mockRouteParams = { showBackButton: true };
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock('$2,384.34'));
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const titleSection = within(
+        getByTestId(MoneyHomeViewTestIds.TITLE_SECTION),
+      );
+      expect(
+        titleSection.getByTestId(
+          MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        titleSection.getByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).toBeOnTheScreen();
+    });
+
     it('hides the banner when the balance loads successfully', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1358,6 +1377,40 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('collapsing title', () => {
+    it('moves the title into the content when the stack was pushed', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
+    });
+
+    it('keeps the title in the header as the Money tab', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('measures the title section only when the stack was pushed', () => {
+      mockRouteParams = { showBackButton: true };
+      const pushed = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        pushed.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
+      ).toBeDefined();
+
+      mockRouteParams = undefined;
+      const tab = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        tab.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
+      ).toBeUndefined();
     });
   });
 
@@ -3083,17 +3136,28 @@ describe('MoneyHomeView', () => {
       reset: jest.fn(),
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>;
 
-    // EUR/ETH = 900, USD/ETH = 1000 -> fiat->USD factor is 1000/900 = 10/9.
+    // EUR/ETH = 900, USD/ETH = 1000 -> conversionRate/usdConversionRate
+    // are derived by the compat selector from AssetsController's native
+    // ETH price entry (denominated in the selected currency) + usdPrice.
     const eurCurrencyRatesState = {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'eur',
-            currencyRates: {
-              ETH: {
-                conversionDate: 0,
-                conversionRate: 900,
-                usdConversionRate: 1000,
+          AssetsController: {
+            selectedCurrency: 'eur' as const,
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native' as const,
+                symbol: 'ETH',
+                name: 'Ether',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 900,
+                usdPrice: 1000,
+                lastUpdated: 0,
               },
             },
           },

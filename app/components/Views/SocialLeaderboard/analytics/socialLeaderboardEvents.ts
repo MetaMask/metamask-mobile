@@ -91,6 +91,8 @@ export const SocialLeaderboardEventValues = {
   TAB: {
     CLOSED: 'closed',
     FEED: 'tab_feed',
+    FOLLOWING: 'tab_following',
+    TRENDING: 'tab_trending',
     LEADERBOARD: 'tab_leaderboard',
     LIVE_TRADES: 'tab_live_trades',
     OPEN: 'open',

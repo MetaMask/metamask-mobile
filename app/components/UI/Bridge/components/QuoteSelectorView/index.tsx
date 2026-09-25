@@ -17,15 +17,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDestToken,
   selectSelectedQuoteRequestId,
-  selectSourceToken,
   setSelectedQuoteRequestId,
 } from '../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { BigNumber } from 'bignumber.js';
 import { QuoteList } from './QuoteList';
 import { QuoteRowProps } from './QuoteRow';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import formatFiat from '../../../../../util/formatFiat';
 import { startCase } from 'lodash';
@@ -33,6 +31,7 @@ import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import { sumAmounts } from '@metamask/bridge-controller';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 
 export const QuoteSelectorView = () => {
   const { styles } = useStyles(createStyles, {});
@@ -41,14 +40,9 @@ export const QuoteSelectorView = () => {
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);
   const { validQuotes, bestQuote, isLoading, blockaidError, quoteFetchError } =
-    useBridgeQuoteData();
-  const sourceToken = useSelector(selectSourceToken);
+    useBridgeQuoteDataContext();
+  const { latestSourceBalance } = useBridgeSession();
   const destToken = useSelector(selectDestToken);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
 
   const trackAllQuotesSortedEvent =
     useTrackAllQuotesSortedEvent(latestSourceBalance);

@@ -111,7 +111,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -227,14 +227,14 @@ jobs:
     steps:
       - name: Checkout repository
         if: env.REPACK_ENABLED == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
       - name: Setup Node.js
         if: env.REPACK_ENABLED == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -361,7 +361,7 @@ jobs:
     secrets: inherit
 
   # A repack publishes `ios-ipa-main-rc` / `android-apk-main-rc` — the names build.yml also
-  # uses — before its job is over, and actions/upload-artifact@v4 rejects a duplicate name
+  # uses — before its job is over, and actions/upload-artifact@v7 rejects a duplicate name
   # within a run. So a repack that fails after that upload would leave the native fallback
   # below unable to publish its own build. Clearing the failed platform's artifact first is
   # what keeps the fallback able to finish. The other platform is left alone: its artifact
@@ -503,11 +503,11 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -516,7 +516,7 @@ jobs:
 
       - name: Download build environment artifacts
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: build-env-main-rc-*
           path: build-env-artifacts
@@ -541,7 +541,7 @@ jobs:
 
       - name: Upload test plan JSON artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-plan-${{ needs.validate-and-find-pr.outputs.semver }}
           path: release-test-plan.json

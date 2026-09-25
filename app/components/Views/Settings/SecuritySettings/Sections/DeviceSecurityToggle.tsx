@@ -114,13 +114,18 @@ const DeviceSecurityToggle = ({
                   authType,
                   password: enteredPassword,
                 });
+                // Keep optimistic ON until capabilities refresh so the toggle
+                // does not flash off after the password modal closes.
+                setTimeout(() => {
+                  setOptimisticValue(null);
+                }, 100);
               } catch (updateError) {
                 Logger.error(
                   updateError as Error,
                   'Failed to update auth preference after password entry',
                 );
+                setOptimisticValue(null);
               }
-              setOptimisticValue(null);
             },
             onCancel: () => {
               setOptimisticValue(null);

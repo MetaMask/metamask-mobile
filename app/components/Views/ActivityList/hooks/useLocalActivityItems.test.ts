@@ -18,42 +18,70 @@ import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../select
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../UI/Earn/constants/musd';
 import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
 
+const from = '0x9bed78535d6a03a955f1504aadba974d9a29e292';
+const recipient = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
+const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+
+const mockSelectorState = {
+  allTokens: {
+    '0x2105': {
+      [from.toLowerCase()]: [{ address: usdc, decimals: 6, symbol: 'USDC' }],
+    },
+  },
+  bridgeHistory: {},
+  groupAccount: { address: from },
+  localTransactions: [] as unknown[],
+  replacedTransactions: [] as unknown[],
+  requiredTransactions: [] as TransactionMeta[],
+  transactionPayData: {},
+  networks: {
+    '0x2105': { nativeCurrency: 'ETH' },
+  },
+};
+const selectorState = mockSelectorState;
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/transactionController', () => ({
-  selectLocalTransactions: jest.fn(),
-  selectReplacedLocalTransactions: jest.fn(),
-  selectRequiredTransactions: jest.fn(),
+  selectLocalTransactions: jest.fn(() => mockSelectorState.localTransactions),
+  selectReplacedLocalTransactions: jest.fn(
+    () => mockSelectorState.replacedTransactions,
+  ),
+  selectRequiredTransactions: jest.fn(
+    () => mockSelectorState.requiredTransactions,
+  ),
 }));
 
 jest.mock('../../../../selectors/bridgeStatusController', () => ({
-  selectBridgeHistoryForAccount: jest.fn(),
+  selectBridgeHistoryForAccount: jest.fn(() => mockSelectorState.bridgeHistory),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(
+    () => mockSelectorState.networks,
+  ),
 }));
 
 jest.mock('../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
+  selectAllTokens: jest.fn(() => mockSelectorState.allTokens),
 }));
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
-  selectTransactionPayTransactionData: jest.fn(),
+  selectTransactionPayTransactionData: jest.fn(
+    () => mockSelectorState.transactionPayData,
+  ),
 }));
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(
+      () => mockSelectorState.groupAccount,
+    ),
   }),
 );
-
-const from = '0x9bed78535d6a03a955f1504aadba974d9a29e292';
-const recipient = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
-const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 
 const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
   ({
@@ -71,23 +99,6 @@ const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
     },
     ...overrides,
   }) as TransactionMeta;
-
-const selectorState = {
-  allTokens: {
-    '0x2105': {
-      [from.toLowerCase()]: [{ address: usdc, decimals: 6, symbol: 'USDC' }],
-    },
-  },
-  bridgeHistory: {},
-  groupAccount: { address: from },
-  localTransactions: [] as unknown[],
-  replacedTransactions: [] as unknown[],
-  requiredTransactions: [] as TransactionMeta[],
-  transactionPayData: {},
-  networks: {
-    '0x2105': { nativeCurrency: 'ETH' },
-  },
-};
 
 describe('useLocalActivityItems', () => {
   beforeEach(() => {
@@ -116,7 +127,7 @@ describe('useLocalActivityItems', () => {
         case selectSelectedAccountGroupEvmInternalAccount:
           return selectorState.groupAccount;
         default:
-          return undefined;
+          return selector({});
       }
     });
   });
@@ -543,7 +554,6 @@ describe('useLocalActivityItems', () => {
     expect(result.current[0]).toMatchObject({
       type: 'perpsAddFunds',
       hash: '0xperpsdeposit',
-      raw: { type: 'localTransaction' },
     });
   });
 
@@ -613,7 +623,6 @@ describe('useLocalActivityItems', () => {
           symbol: 'USDC',
         },
       },
-      raw: { type: 'localTransaction' },
     });
   });
 });

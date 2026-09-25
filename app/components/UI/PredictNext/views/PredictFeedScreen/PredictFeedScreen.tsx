@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   type ListRenderItemInfo,
+  type ViewToken,
 } from 'react-native';
 import {
   type RouteProp,
@@ -20,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFeed } from '../../hooks/useFeed';
+import { useEventsWithLiveGames } from '../../hooks/useEventsWithLiveGames';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import {
   getFeedScreen,
@@ -29,7 +31,11 @@ import {
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictEventCard } from '../../events/cards';
-import type { PredictEvent, PredictVenueId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictEvent,
+  PredictVenueId,
+} from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import { FeedScreenTabs } from './internal/FeedScreenTabs';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
@@ -38,6 +44,24 @@ const FEED_PAGE_LIMIT = 20;
 const FEED_PARAMS = { limit: FEED_PAGE_LIMIT };
 
 const getEventKey = (event: PredictEvent) => `${event.venueId}-${event.id}`;
+
+const getFeedWatchEventIds = (
+  feedEvents: readonly PredictEvent[],
+  visibleEventIds: readonly PredictEntityId[],
+): PredictEntityId[] => {
+  const fallbackIds = feedEvents
+    .slice(0, FEED_PAGE_LIMIT)
+    .map((event) => event.id);
+  if (visibleEventIds.length === 0) {
+    return fallbackIds;
+  }
+
+  const presentIds = new Set(feedEvents.map((event) => event.id));
+  const visibleInFeed = visibleEventIds.filter((eventId) =>
+    presentIds.has(eventId),
+  );
+  return visibleInFeed.length > 0 ? visibleInFeed : fallbackIds;
+};
 
 interface PredictFeedContentProps {
   venueId: PredictVenueId;
@@ -107,10 +131,42 @@ const PredictFeedContent = ({
     isLoading,
     refetch,
   } = useFeed(venueId, activeTab.feedId, FEED_PARAMS);
-  const events = useMemo(
+  const feedEvents = useMemo(
     () => data?.pages.flatMap((page) => page.events) ?? [],
     [data],
   );
+  const [visibleEventIds, setVisibleEventIds] = useState<
+    readonly PredictEntityId[]
+  >([]);
+  const feedEventIdsRef = useRef<ReadonlySet<PredictEntityId>>(new Set());
+  feedEventIdsRef.current = new Set(feedEvents.map((event) => event.id));
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 10,
+  }).current;
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const presentIds = feedEventIdsRef.current;
+      const nextVisibleEventIds = viewableItems.flatMap((token) => {
+        const event = token.item as PredictEvent | undefined;
+        return event?.id && presentIds.has(event.id) ? [event.id] : [];
+      });
+      // A fling, bounce, or delayed callback from the previous tab can report
+      // nothing that belongs to this Feed. Keep the last measured rows so live
+      // watches stay on them instead of falling back to the first page — or,
+      // after a tab switch, so the first-page fallback is not replaced with
+      // ids the new Feed does not contain.
+      if (nextVisibleEventIds.length === 0) {
+        return;
+      }
+
+      setVisibleEventIds(nextVisibleEventIds);
+    },
+  ).current;
+  const watchEventIds = useMemo(
+    () => getFeedWatchEventIds(feedEvents, visibleEventIds),
+    [feedEvents, visibleEventIds],
+  );
+  const events = useEventsWithLiveGames(venueId, feedEvents, watchEventIds);
   const hasInitialError = isError && events.length === 0;
 
   usePredictNextMeasurement({
@@ -142,6 +198,7 @@ const PredictFeedContent = ({
       }
 
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      setVisibleEventIds([]);
       setActiveTabId(tabId);
     },
     [activeTabId],
@@ -201,6 +258,8 @@ const PredictFeedContent = ({
         contentContainerStyle={listContentContainerStyle}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         showsVerticalScrollIndicator={false}
       />
     );

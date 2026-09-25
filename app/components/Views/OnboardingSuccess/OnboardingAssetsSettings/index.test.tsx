@@ -11,6 +11,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '8.10.0'),
+}));
+
 describe('OnboardingAssetSettings', () => {
   const mockNavigation = {
     goBack: jest.fn(),
@@ -65,5 +69,37 @@ describe('OnboardingAssetSettings', () => {
     });
     fireEvent.press(getAllByTestId('button-icon')[0]);
     expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
+
+  it('hides consolidated child settings but keeps IPFS available', () => {
+    const consolidatedState = {
+      ...initialState,
+      settings: {
+        basicFunctionalityEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              mobileUxBftcOnsolidation: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <OnboardingAssetSettings />,
+      { state: consolidatedState },
+    );
+
+    expect(
+      queryByText(strings('app_settings.token_detection_title')),
+    ).toBeNull();
+    expect(getByText(strings('app_settings.ipfs_gateway'))).toBeOnTheScreen();
   });
 });

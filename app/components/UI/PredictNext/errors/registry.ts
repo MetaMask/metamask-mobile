@@ -1,5 +1,6 @@
 export enum PredictErrorCode {
   VENUE_UNAVAILABLE = 'VENUE_UNAVAILABLE',
+  UNAUTHENTICATED = 'UNAUTHENTICATED',
   RATE_LIMITED = 'RATE_LIMITED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
@@ -26,6 +27,11 @@ export const predictErrorRegistry: Record<
   PredictErrorCode,
   PredictErrorDefaults
 > = {
+  [PredictErrorCode.UNAUTHENTICATED]: {
+    category: 'unavailable',
+    message: 'Prediction authentication is unavailable.',
+    recoverable: true,
+  },
   [PredictErrorCode.VENUE_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'This prediction venue is unavailable.',

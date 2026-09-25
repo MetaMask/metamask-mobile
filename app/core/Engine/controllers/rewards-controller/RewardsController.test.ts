@@ -398,6 +398,7 @@ describe('RewardsController', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.resetAllMocks();
     jest.restoreAllMocks();
   });
@@ -4003,51 +4004,6 @@ describe('RewardsController', () => {
       });
 
       expect(defaultController.isVipFeatureEnabled()).toBe(true);
-    });
-  });
-
-  describe('isFirstPredictOnUsFeatureEnabled', () => {
-    it('returns true when neither rewards nor First Predict On Us is disabled', () => {
-      const enabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isFirstPredictOnUsDisabled: () => false,
-      });
-
-      expect(enabledController.isFirstPredictOnUsFeatureEnabled()).toBe(true);
-    });
-
-    it('returns false when First Predict On Us is disabled via isFirstPredictOnUsDisabled callback', () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isFirstPredictOnUsDisabled: () => true,
-      });
-
-      expect(disabledController.isFirstPredictOnUsFeatureEnabled()).toBe(false);
-    });
-
-    it('returns false when rewards is disabled even if First Predict On Us is enabled', () => {
-      const controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-        isFirstPredictOnUsDisabled: () => false,
-      });
-
-      expect(controller.isFirstPredictOnUsFeatureEnabled()).toBe(false);
-    });
-
-    it('defaults to enabled when isFirstPredictOnUsDisabled is not provided', () => {
-      const defaultController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-      });
-
-      expect(defaultController.isFirstPredictOnUsFeatureEnabled()).toBe(true);
     });
   });
 
@@ -17738,7 +17694,6 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
@@ -17781,7 +17736,6 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
@@ -17829,7 +17783,6 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
@@ -21665,12 +21618,19 @@ describe('RewardsController', () => {
       expect(bindingMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('delegates to the data service and caches the bound result', async () => {
+    it('signs the binding message with the money account and caches the bound result', async () => {
+      const mockTimestamp = 1758700000000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
       const ctrl = new RewardsController({
         messenger: bindingMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      bindingMessenger.call.mockResolvedValue('bound');
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'bound',
+        )) as unknown as RewardsControllerMessenger['call']);
 
       const first = await ctrl.registerMoneyAccountBinding(
         mockAddress,
@@ -21681,14 +21641,118 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
+      const expectedMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${mockTimestamp}`;
       expect(first).toBe('bound');
       expect(second).toBe('bound');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+        mockTimestamp,
+        '0xsignature',
+      );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not call the data service when signing fails', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockRejectedValue(new Error('sign failed'));
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow('sign failed');
+
       expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({ from: mockAddress }),
+      );
+    });
+
+    it('retries once with the server timestamp when the first bind is out of window', async () => {
+      const clientTimestamp = 1758700000000;
+      const serverTimestamp = 1758700800000;
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(clientTimestamp);
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      let bindCalls = 0;
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        bindCalls += 1;
+        if (bindCalls === 1) {
+          return Promise.reject(
+            new InvalidTimestampError('Invalid timestamp', serverTimestamp),
+          );
+        }
+        return Promise.resolve('bound');
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      const result = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      const retryMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${serverTimestamp}`;
+      expect(result).toBe('bound');
+      expect(bindCalls).toBe(2);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(retryMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
       expect(bindingMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:registerMoneyAccountBinding',
         mockSubscriptionId,
         mockAddress,
+        serverTimestamp,
+        '0xsignature',
       );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not retry InvalidTimestampError beyond one attempt', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        return Promise.reject(
+          new InvalidTimestampError('Invalid timestamp', 1758700800000),
+        );
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow(InvalidTimestampError);
+
+      const bindCalls = bindingMessenger.call.mock.calls.filter(
+        (call) => call[0] === 'RewardsDataService:registerMoneyAccountBinding',
+      );
+      expect(bindCalls).toHaveLength(2);
     });
 
     it('caches conflict results so subsequent calls do not re-POST', async () => {
@@ -21696,7 +21760,12 @@ describe('RewardsController', () => {
         messenger: bindingMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      bindingMessenger.call.mockResolvedValue('conflict');
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'conflict',
+        )) as unknown as RewardsControllerMessenger['call']);
 
       const first = await ctrl.registerMoneyAccountBinding(
         mockAddress,
@@ -21709,7 +21778,7 @@ describe('RewardsController', () => {
 
       expect(first).toBe('conflict');
       expect(second).toBe('conflict');
-      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -22418,136 +22487,6 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockRequirements);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
-      );
-    });
-  });
-
-  describe('getFirstPredictOnUs', () => {
-    const mockFirstPredictOnUs = {
-      name: 'First Predict On Us',
-      image: {
-        lightModeUrl: 'https://images.example.com/light.png',
-        darkModeUrl: 'https://images.example.com/dark.png',
-      },
-      localizedText: {
-        cta: 'Predict now',
-        description: 'Your first prediction is on us.',
-      },
-      usdAmount: 5,
-      markets: [{ eventId: '30615', conditionId: '0xabc' }],
-      termsUrl: 'https://example.com/terms',
-    };
-
-    it('fetches first predict on us from the data service', async () => {
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result = await controller.getFirstPredictOnUs();
-
-      expect(result).toEqual(mockFirstPredictOnUs);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-      expect(controller.state.firstPredictOnUs).toEqual({
-        data: mockFirstPredictOnUs,
-        lastFetched: 123,
-      });
-    });
-
-    it('returns cached result on subsequent calls', async () => {
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const firstResult = await controller.getFirstPredictOnUs();
-
-      jest.clearAllMocks();
-
-      const secondResult = await controller.getFirstPredictOnUs();
-
-      expect(secondResult).toEqual(firstResult);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('returns cached null when no visible entry exists', async () => {
-      mockMessenger.call.mockResolvedValue(null);
-
-      const firstResult = await controller.getFirstPredictOnUs();
-
-      jest.clearAllMocks();
-
-      const secondResult = await controller.getFirstPredictOnUs();
-
-      expect(firstResult).toBeNull();
-      expect(secondResult).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('refetches cached first predict on us after 1 minute', async () => {
-      const staleFetchedAt = 0;
-      const refetchedAt = 1000 * 61;
-      jest.spyOn(Date, 'now').mockReturnValue(refetchedAt);
-
-      const cachedController = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          firstPredictOnUs: {
-            data: mockFirstPredictOnUs,
-            lastFetched: staleFetchedAt,
-          },
-        },
-      });
-      const updatedFirstPredictOnUs = {
-        ...mockFirstPredictOnUs,
-        usdAmount: 10,
-      };
-      mockMessenger.call.mockResolvedValue(updatedFirstPredictOnUs);
-
-      const result = await cachedController.getFirstPredictOnUs();
-
-      expect(result).toEqual(updatedFirstPredictOnUs);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-      expect(cachedController.state.firstPredictOnUs).toEqual({
-        data: updatedFirstPredictOnUs,
-        lastFetched: refetchedAt,
-      });
-    });
-
-    it('returns null when rewards feature is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result = await disabledController.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('returns null when First Predict On Us is disabled via isFirstPredictOnUsDisabled callback', async () => {
-      const firstPredictOnUsDisabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isFirstPredictOnUsDisabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result =
-        await firstPredictOnUsDisabledController.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
       );
     });
   });

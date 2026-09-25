@@ -8,7 +8,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import type { RootState } from '../../../reducers';
@@ -55,14 +54,23 @@ jest.mock('../../../core/Engine', () => {
       QrSyncController: {
         state: { ...mockDefaultQrSyncControllerState },
       },
-      QrSyncProvisioningService: {
-        provisionFromMetadata: jest.fn(() => Promise.resolve()),
-      },
     },
   };
 });
 
+jest.mock(
+  '../../../core/QrSync/startExistingUserQrMetadataProvisioning',
+  () => ({
+    startExistingUserQrMetadataProvisioning: jest.fn(),
+  }),
+);
+
 import Engine from '../../../core/Engine';
+import { startExistingUserQrMetadataProvisioning } from '../../../core/QrSync/startExistingUserQrMetadataProvisioning';
+
+const mockStartExistingUserQrMetadataProvisioning = jest.mocked(
+  startExistingUserQrMetadataProvisioning,
+);
 
 const mockResetState = jest.fn();
 const mockHandleScannedQrPayload = jest.fn(() => Promise.resolve());
@@ -71,8 +79,7 @@ const mockGetAccounts = jest.fn<Promise<string[]>, []>(() =>
   Promise.resolve([]),
 );
 const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
-const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
-  .provisionFromMetadata as jest.Mock;
+const mockProvisionFromMetadata = jest.fn(() => Promise.resolve());
 
 jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
   const actual = jest.requireActual(
@@ -342,14 +349,28 @@ describe('QRTabSwitcher', () => {
     renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: false,
-          },
-        ],
+        pendingSecretImports: {
+          version: 1 as const,
+          wallets: [
+            {
+              id: 'wallet:test' as `wallet:${string}`,
+              type: 'mnemonic' as const,
+              value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+              metadata: { name: 'Wallet 1' },
+              groups: [
+                {
+                  id: 'wallet:test/0' as `wallet:${string}/${string}`,
+                  groupIndex: 0,
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              ],
+            },
+          ],
+        },
       },
       false,
     );
@@ -364,13 +385,9 @@ describe('QRTabSwitcher', () => {
         { pop: true },
       );
     });
-    expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 
   it('imports remaining secrets and navigates home for existing users', async () => {
-    const mnemonic =
-      'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
@@ -379,23 +396,39 @@ describe('QRTabSwitcher', () => {
     renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports: [
-          {
-            index: 0,
-            value: mnemonic,
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: false,
-          },
-        ],
+        pendingSecretImports: {
+          version: 1 as const,
+          wallets: [
+            {
+              id: 'wallet:test' as `wallet:${string}`,
+              type: 'mnemonic' as const,
+              value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+              metadata: { name: 'Wallet 1' },
+              groups: [
+                {
+                  id: 'wallet:test/0' as `wallet:${string}/${string}`,
+                  groupIndex: 0,
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              ],
+            },
+          ],
+        },
       },
       true,
     );
 
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+      expect(mockStartExistingUserQrMetadataProvisioning).toHaveBeenCalledTimes(
+        1,
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
-    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
     expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,

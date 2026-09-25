@@ -13,6 +13,7 @@ import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
 import { registerBrazePush } from '../../registerPush';
 import { retryPendingBrazePushUnregistration } from '../../unregisterPush';
 import { hasPendingBrazePushUnregistrationSync } from '../../pushRegistrationState';
+import { isBrazeResetInProgress } from '../../resetInProgress';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -63,6 +64,13 @@ export function useBrazeIdentity(): void {
       }
 
       if (isSignedIn && canonicalProfileId) {
+        // A wallet reset signs in its throwaway vault, which is discarded
+        // immediately. Skip re-identifying Braze for it so the reset does not
+        // fire a session-start/identify/banner-refresh burst. Sign-out (below)
+        // stays ungated so the previous user's session-end is preserved.
+        if (isBrazeResetInProgress()) {
+          return;
+        }
         hasBeenSignedInRef.current = true;
         if (identifiedProfileId !== canonicalProfileId) {
           setBrazeUser(canonicalProfileId);

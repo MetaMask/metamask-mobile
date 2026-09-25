@@ -318,6 +318,7 @@ extension AppDelegate: BrazeDelegate {
     return host.contains("app.link") ||
       host.contains("test-app.link") ||
       host.contains("link.metamask.io") ||
+      host.contains("link.metamask.com") ||
       host.contains("link-test.metamask.io")
   }
 

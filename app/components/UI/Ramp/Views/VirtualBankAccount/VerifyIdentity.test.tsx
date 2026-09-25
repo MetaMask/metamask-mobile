@@ -1,33 +1,15 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import { launchSumSubSdk } from './launchSumSubSdk';
-import {
-  IDOS_PRIVACY_POLICY_URL,
-  IDOS_TERMS_URL,
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-  MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-  SUMSUB_PRIVACY_POLICY_URL,
-  SUMSUB_TERMS_URL,
-} from './constants';
+import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
+import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
 
-jest.mock('./launchSumSubSdk', () => ({
-  launchSumSubSdk: jest.fn(),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    log: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
-const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
+jest.mock('./hooks/useKycSessionDisclaimers');
+const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
+const mockRetry = jest.fn();
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -40,12 +22,31 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const catalogDisclaimers = [
+  {
+    id: 'idOS:idos-privacy',
+    key: 'idos-privacy',
+    version: '1',
+    title: 'idOS Privacy Policy',
+    url: 'https://idos.example/privacy',
+  },
+  {
+    id: 'kycProvider:sumsub-terms',
+    key: 'sumsub-terms',
+    version: '2',
+    title: 'Sumsub T&C',
+    url: 'https://sumsub.example/terms',
+  },
+];
+
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLaunchSumSubSdk.mockResolvedValue({
-      success: true,
-      status: 'Approved',
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: catalogDisclaimers,
+      isLoading: false,
+      error: null,
+      retry: mockRetry,
     });
   });
 
@@ -149,11 +150,13 @@ describe('VbaVerifyIdentity', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens each legal link with the expected URL', () => {
+  it('opens MetaMask legal links and catalog disclaimer URLs when pressed', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <VbaVerifyIdentity />,
+    );
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
@@ -165,65 +168,59 @@ describe('VbaVerifyIdentity', () => {
     );
     expect(openUrlSpy).toHaveBeenCalledWith(METAMASK_TERMS_URL);
 
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK),
-    );
-    expect(openUrlSpy).toHaveBeenCalledWith(IDOS_PRIVACY_POLICY_URL);
+    fireEvent.press(getByText('idOS Privacy Policy'));
+    expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/privacy');
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK));
-    expect(openUrlSpy).toHaveBeenCalledWith(IDOS_TERMS_URL);
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK),
-    );
-    expect(openUrlSpy).toHaveBeenCalledWith(SUMSUB_PRIVACY_POLICY_URL);
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK),
-    );
-    expect(openUrlSpy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
+    fireEvent.press(getByText('Sumsub T&C'));
+    expect(openUrlSpy).toHaveBeenCalledWith('https://sumsub.example/terms');
   });
 
-  it('launches the Sumsub SDK with a mock applicant token when continue is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
-        accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-        onTokenExpired: expect.any(Function),
-      });
-    });
-  });
-
-  it('returns the mock applicant token when the SDK asks to refresh', async () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
+  it('shows a skeleton loader instead of catalog links while the fetch is in flight, and disables the CTA', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: true,
+      error: null,
+      retry: mockRetry,
     });
 
-    const { onTokenExpired } = mockLaunchSumSubSdk.mock.calls[0][0];
-
-    await expect(onTokenExpired?.()).resolves.toBe(
-      MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-    );
-  });
-
-  it('stays on the screen when the Sumsub SDK launch fails', async () => {
-    mockLaunchSumSubSdk.mockRejectedValueOnce(new Error('launch failed'));
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
-    });
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_LOADING),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
+    mockUseKycSessionDisclaimers.mockReturnValue({
+      disclaimers: null,
+      isLoading: false,
+      error: 'Request timed out',
+      retry: mockRetry,
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <VbaVerifyIdentity />,
+    );
+
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeDisabled();
+
+    fireEvent.press(getByText('Try again'));
+    expect(mockRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens email collection when continue is pressed', () => {
+    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
   });
 });

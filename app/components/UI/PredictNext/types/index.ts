@@ -6,7 +6,14 @@ export type PredictFeedId = string & { readonly __brand: 'PredictFeedId' };
 export type PredictTimestamp = string & {
   readonly __brand: 'PredictTimestamp';
 };
+/** Decimal string in [0, 1], used for prices and probabilities. */
 export type PredictDecimal = string & { readonly __brand: 'PredictDecimal' };
+/** Non-negative decimal string with no upper bound, used for money amounts. */
+export type PredictAmount = string & { readonly __brand: 'PredictAmount' };
+/** Signed decimal string with an optional leading '-', used for PnL. */
+export type PredictSignedAmount = string & {
+  readonly __brand: 'PredictSignedAmount';
+};
 export type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
 export type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
 
@@ -175,6 +182,101 @@ export interface PredictVenueStatus {
   venueId: PredictVenueId;
   status: 'available' | 'degraded' | 'unavailable';
   checkedAt: PredictTimestamp;
+}
+
+export interface PredictBalance {
+  venueId: PredictVenueId;
+  currency: 'USD';
+  available: PredictAmount;
+}
+
+export interface FetchPortfolioPageParams {
+  cursor?: string;
+  limit?: number;
+}
+
+/**
+ * Catalog-derived presentation data for an account-scoped entry. Present only
+ * when the entry's venue market exists in the canonical catalog; a missing
+ * match omits the context and the entry is never enriched from tickers or
+ * labels.
+ */
+export interface PredictEntryContext {
+  eventId: PredictEntityId;
+  eventTitle: string;
+  eventImageUrl?: PredictHttpsUrl;
+  marketQuestion: string;
+  outcomeId?: PredictEntityId;
+  outcomeLabel?: string;
+}
+
+export interface PredictPosition {
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  shares: PredictAmount;
+  marketExposure?: PredictAmount;
+  realizedPnl?: PredictSignedAmount;
+  feesPaid?: PredictAmount;
+  totalTraded?: PredictAmount;
+  updatedAt?: PredictTimestamp;
+  context?: PredictEntryContext;
+}
+
+export interface PredictFill {
+  id: PredictEntityId;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  /**
+   * Kalshi's canonical fill direction field: documented as the exposure the
+   * fill created (buy-yes ≡ sell-no → 'yes'), while the demo API currently
+   * echoes the transacted side. The contract deliberately carries no
+   * buy/sell direction — the legacy action/side fields are deprecated — and
+   * outcomeSide plus the matching leg's price are correct under either
+   * semantics.
+   */
+  outcomeSide: PredictOutcomeSide;
+  shares: PredictAmount;
+  price: PredictDecimal;
+  fee?: PredictAmount;
+  timestamp: PredictTimestamp;
+  context?: PredictEntryContext;
+}
+
+export type PredictSettlementResult = 'yes' | 'no' | 'scalar';
+
+export interface PredictSettlement {
+  id: PredictEntityId;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  result: PredictSettlementResult;
+  /**
+   * The side the user held at settlement (the nonzero count), not the
+   * winning side. Omitted for scalar results and fully flat positions.
+   */
+  side?: PredictOutcomeSide;
+  shares?: PredictAmount;
+  proceeds: PredictAmount;
+  costBasis?: PredictAmount;
+  fee?: PredictAmount;
+  timestamp: PredictTimestamp;
+  context?: PredictEntryContext;
+}
+
+export type PredictActivityEntry =
+  | (PredictFill & { type: 'fill' })
+  | (PredictSettlement & { type: 'settlement' });
+
+export interface PredictPositionsPage {
+  venueId: PredictVenueId;
+  positions: PredictPosition[];
+  nextCursor?: string;
+}
+
+export interface PredictActivityPage {
+  venueId: PredictVenueId;
+  activity: PredictActivityEntry[];
+  nextCursor?: string;
 }
 
 export interface PredictReadOptions {

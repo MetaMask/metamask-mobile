@@ -219,6 +219,8 @@ enum EVENT_NAME {
 
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
+  ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
   BROWSER_OPENED = 'Browser Opened',
@@ -238,6 +240,7 @@ enum EVENT_NAME {
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
   BASIC_FUNCTIONALITY_ENABLED = 'Basic Functionality Enabled',
   BASIC_FUNCTIONALITY_DISABLED = 'Basic Functionality Disabled',
+  BASIC_FUNCTIONALITY_MIGRATED = 'Basic Functionality Migrated',
 
   // Settings
   SETTINGS_VIEWED = 'Settings Viewed',
@@ -672,6 +675,7 @@ enum EVENT_NAME {
   CARD_SIWE_AUTH_STARTED = 'Card SIWE Auth Started',
   CARD_SIWE_AUTH_COMPLETED = 'Card SIWE Auth Completed',
   CARD_SIWE_AUTH_FAILED = 'Card SIWE Auth Failed',
+  CARD_SIGN_IN_RESOLVED = 'Card Sign In Resolved',
   CARD_FUNDING_PROCESS_STARTED = 'Card Funding Process Started',
   CARD_FUNDING_PROCESS_COMPLETED = 'Card Funding Process Completed',
   CARD_FUNDING_PROCESS_FAILED = 'Card Funding Process Failed',
@@ -691,6 +695,9 @@ enum EVENT_NAME {
   CARD_TRANSACTION_HISTORY_OPENED = 'Card Transaction History Opened',
   CARD_TRANSACTION_DETAILS_OPENED = 'Card Transaction Details Opened',
   CARD_TRANSACTION_REPORT_STARTED = 'Card Transaction Report Started',
+  CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
+  CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
+  CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -719,10 +726,6 @@ enum EVENT_NAME {
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
   REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED = 'Rewards Campaign Reminder Subscribed',
   REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
-  FIRST_PREDICTION_ON_US_VIEWED = 'First Prediction On Us Viewed',
-  FIRST_PREDICTION_ON_US_SKIPPED = 'First Prediction On Us Skipped',
-  FIRST_PREDICTION_ON_US_OUTCOME_OPENED = 'First Prediction On Us Outcome Opened',
-  FIRST_PREDICTION_ON_US_ORDER = 'First Prediction On Us Order',
 
   // Predict
   PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
@@ -1143,6 +1146,11 @@ const events = {
   ),
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
+  ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
+  // Bare form, for callers that supply `action` and `name` themselves; the
+  // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
+  NAVIGATION_DRAWER: generateOpt(EVENT_NAME.NAVIGATION_DRAWER),
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
   BROWSER_SEARCH_USED: generateOpt(EVENT_NAME.BROWSER_SEARCH_USED),
   BROWSER_NEW_TAB: generateOpt(EVENT_NAME.BROWSER_NEW_TAB),
@@ -1164,6 +1172,9 @@ const events = {
   ),
   BASIC_FUNCTIONALITY_DISABLED: generateOpt(
     EVENT_NAME.BASIC_FUNCTIONALITY_DISABLED,
+  ),
+  BASIC_FUNCTIONALITY_MIGRATED: generateOpt(
+    EVENT_NAME.BASIC_FUNCTIONALITY_MIGRATED,
   ),
   // Reveal SRP
   REVEAL_SRP_CTA: generateOpt(EVENT_NAME.REVEAL_SRP_CTA),
@@ -1934,6 +1945,7 @@ const events = {
   CARD_SIWE_AUTH_STARTED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_STARTED),
   CARD_SIWE_AUTH_COMPLETED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_COMPLETED),
   CARD_SIWE_AUTH_FAILED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_FAILED),
+  CARD_SIGN_IN_RESOLVED: generateOpt(EVENT_NAME.CARD_SIGN_IN_RESOLVED),
   CARD_FUNDING_PROCESS_STARTED: generateOpt(
     EVENT_NAME.CARD_FUNDING_PROCESS_STARTED,
   ),
@@ -1990,6 +2002,15 @@ const events = {
   ),
   CARD_TRANSACTION_REPORT_STARTED: generateOpt(
     EVENT_NAME.CARD_TRANSACTION_REPORT_STARTED,
+  ),
+  CARD_REDEEM_PROCESS_STARTED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_STARTED,
+  ),
+  CARD_REDEEM_PROCESS_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_COMPLETED,
+  ),
+  CARD_REDEEM_PROCESS_FAILED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
@@ -2049,18 +2070,6 @@ const events = {
     EVENT_NAME.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
   ),
   REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
-  FIRST_PREDICTION_ON_US_VIEWED: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_VIEWED,
-  ),
-  FIRST_PREDICTION_ON_US_SKIPPED: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_SKIPPED,
-  ),
-  FIRST_PREDICTION_ON_US_OUTCOME_OPENED: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_OUTCOME_OPENED,
-  ),
-  FIRST_PREDICTION_ON_US_ORDER: generateOpt(
-    EVENT_NAME.FIRST_PREDICTION_ON_US_ORDER,
-  ),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   TRADE_CONSIDERED: generateOpt(EVENT_NAME.TRADE_CONSIDERED),

@@ -502,6 +502,7 @@ export type RewardsControllerOptInToCampaignsAction = {
 
 /**
  * Register (or re-assert) the Money Account holder address for a subscription.
+ * The request carries a personal_sign signature from the Money Account.
  * Results are memoized in-session so repeated re-asserts do not re-POST, and
  * a discovered conflict is returned synchronously on subsequent calls.
  * @param moneyAccountAddress - The Money Account holder address to bind.
@@ -779,16 +780,6 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 };
 
 /**
- * Fetch the visible first predict on us content from the public API.
- * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
- */
-export type RewardsControllerGetFirstPredictOnUsAction = {
-  type: `RewardsController:getFirstPredictOnUs`;
-  handler: RewardsController['getFirstPredictOnUs'];
-};
-
-/**
  * Invalidate referral details cache for a subscription
  * @param subscriptionId - The subscription ID to invalidate cache for
  */
@@ -1022,7 +1013,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction

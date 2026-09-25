@@ -229,6 +229,16 @@ jest.mock('../../UI/SelectOptionSheet/OptionsSheet', () => () => (
 jest.mock('../../Views/NetworksManagement/NetworkDetailsView', () => () => (
   <MockView testID="mock-network-details" />
 ));
+jest.mock('../../Views/ProHub', () => () => <MockView testID="mock-pro-hub" />);
+jest.mock('../../Views/ProHub/screens/Membership', () => () => (
+  <MockView testID="mock-pro-hub-membership" />
+));
+jest.mock('../../Views/ProHub/screens/Earned', () => () => (
+  <MockView testID="mock-pro-hub-earned" />
+));
+jest.mock('../../Views/ProHub/screens/CancelMembership', () => () => (
+  <MockView testID="mock-pro-hub-cancel-membership" />
+));
 jest.mock('../../Views/LockScreen', () => () => (
   <MockView testID="mock-lock-screen" />
 ));
@@ -2058,7 +2068,7 @@ describe('App', () => {
       });
     });
 
-    it('renders the AddNetworkFlow screen', async () => {
+    it('renders the AddNetwork screen', async () => {
       const routeState = {
         index: 0,
         routes: [{ name: Routes.ADD_NETWORK }],
@@ -2068,6 +2078,58 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-network-details')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHub screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.ROOT }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-membership')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubEarned screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.EARNED }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-earned')).toBeTruthy();
+      });
+    });
+
+    it('renders the ProHubCancelMembership screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.PRO_HUB.CANCEL_MEMBERSHIP }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-pro-hub-cancel-membership')).toBeTruthy();
       });
     });
 
@@ -2247,10 +2309,10 @@ describe('App', () => {
         ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-network-details')).toBeTruthy();
       });
     });
 

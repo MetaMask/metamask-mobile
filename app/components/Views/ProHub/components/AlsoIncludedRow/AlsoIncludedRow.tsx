@@ -26,13 +26,13 @@ const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
-    twClassName="gap-x-4 py-3"
+    twClassName="gap-x-3"
     testID={testID ?? AlsoIncludedRowTestIds.ROW(item.id)}
   >
-    <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center shrink-0">
+    <Box twClassName="w-8 h-8 rounded-full bg-background-section items-center justify-center shrink-0">
       <Icon
         name={item.iconName}
-        size={IconSize.Md}
+        size={IconSize.Sm}
         color={IconColor.IconAlternative}
       />
     </Box>
@@ -43,7 +43,7 @@ const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
         alignItems={BoxAlignItems.Center}
         twClassName="gap-x-2 flex-wrap"
       >
-        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(item.titleKey)}
         </Text>
         {item.badgeKey ? (
@@ -52,7 +52,11 @@ const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
           </Tag>
         ) : null}
       </Box>
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {strings(item.subtitleKey)}
       </Text>
     </Box>
