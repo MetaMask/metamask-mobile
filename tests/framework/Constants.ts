@@ -86,7 +86,8 @@ export const isUiAutomator2SessionDeadError = (error: unknown): boolean => {
   const message = error instanceof Error ? error.message : String(error);
   return (
     message.includes('instrumentation process is not running') ||
-    message.includes('instrumentation process cannot be initialized')
+    message.includes('instrumentation process cannot be initialized') ||
+    message.includes('instrumentation process has died')
   );
 };
 
