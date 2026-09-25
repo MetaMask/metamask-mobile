@@ -375,8 +375,11 @@ export function useContinueWithQuote(
             !isAndroid && (await InAppBrowser.isAvailable());
           // EXTERNAL_OS_BROWSER must system-open so partner universal links fire
           // (ASWebAuthenticationSession loads the URL like a typed address).
+          // Prefer buy-widget response browser (open-time) over quote snapshot.
           const useSystemOpen =
-            isAndroid || !inAppBrowserAvailable || shouldUseSystemOpen(quote);
+            isAndroid ||
+            !inAppBrowserAvailable ||
+            shouldUseSystemOpen(quote, buyWidget.browser);
 
           if (useSystemOpen) {
             await Linking.openURL(buyWidget.url);

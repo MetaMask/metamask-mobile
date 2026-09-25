@@ -49,9 +49,16 @@ export function shouldUseExternalBrowser(quote: Quote): boolean {
 /**
  * Whether iOS should use Linking.openURL instead of ASWebAuthenticationSession.
  * Required for partner universal links (e.g. Revolut /app/onramp).
+ *
+ * Prefer the buy-widget response `browser` when present (stamped at open time);
+ * fall back to the quote's embedded `buyWidget.browser`.
  */
-export function shouldUseSystemOpen(quote: Quote): boolean {
-  return getQuoteBrowser(quote) === EXTERNAL_OS_BROWSER;
+export function shouldUseSystemOpen(
+  quote: Quote,
+  buyWidgetBrowser?: string | null,
+): boolean {
+  const browser = buyWidgetBrowser ?? getQuoteBrowser(quote);
+  return browser === EXTERNAL_OS_BROWSER;
 }
 
 /**

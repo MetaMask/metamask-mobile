@@ -3,6 +3,7 @@ import {
   getCheckoutContext,
   getAggregatorRedirectConfig,
   getWidgetRedirectConfig,
+  shouldUseSystemOpen,
 } from './buildQuoteWithRedirectUrl';
 
 jest.mock('./getRampCallbackBaseUrl', () => ({
@@ -15,6 +16,31 @@ const makeQuote = (
   ({
     quote: browser ? { buyWidget: { browser } } : {},
   }) as unknown as Quote;
+
+describe('shouldUseSystemOpen', () => {
+  it('is true when quote buyWidget.browser is EXTERNAL_OS_BROWSER', () => {
+    expect(shouldUseSystemOpen(makeQuote('EXTERNAL_OS_BROWSER'))).toBe(true);
+  });
+
+  it('is false for IN_APP_OS_BROWSER on the quote alone', () => {
+    expect(shouldUseSystemOpen(makeQuote('IN_APP_OS_BROWSER'))).toBe(false);
+  });
+
+  it('prefers buy-widget response browser over quote snapshot', () => {
+    expect(
+      shouldUseSystemOpen(
+        makeQuote('IN_APP_OS_BROWSER'),
+        'EXTERNAL_OS_BROWSER',
+      ),
+    ).toBe(true);
+    expect(
+      shouldUseSystemOpen(
+        makeQuote('EXTERNAL_OS_BROWSER'),
+        'IN_APP_OS_BROWSER',
+      ),
+    ).toBe(false);
+  });
+});
 
 describe('getCheckoutContext', () => {
   describe('network from chainId', () => {
