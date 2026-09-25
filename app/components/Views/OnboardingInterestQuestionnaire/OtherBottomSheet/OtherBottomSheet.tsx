@@ -1,24 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Keyboard, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { Keyboard, Platform, type TextInput } from 'react-native';
 import {
   KeyboardProvider,
   useKeyboardState,
   useResizeMode,
 } from 'react-native-keyboard-controller';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BottomSheet,
+  BottomSheetFooter,
   BottomSheetHeader,
-  Button,
   ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  Text,
-  TextVariant,
+  TextArea,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { OtherBottomSheetTestIds } from './OtherBottomSheet.testIds';
 
@@ -43,8 +38,6 @@ const OtherBottomSheetContent = ({
   keyboardAvoidingViewEnabled,
   keyboardHeight,
 }: OtherBottomSheetContentProps) => {
-  const tw = useTailwind();
-  const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const inputRef = useRef<TextInput>(null);
   const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -104,42 +97,32 @@ const OtherBottomSheetContent = ({
           testID: `${OtherBottomSheetTestIds.BOTTOM_SHEET}-close-button`,
         }}
       >
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-          {strings('onboarding_interest_questionnaire.option_other')}
-        </Text>
+        {strings('onboarding_interest_questionnaire.option_other')}
       </BottomSheetHeader>
 
-      <Box twClassName="px-4">
-        <TextInput
+      <Box paddingHorizontal={4}>
+        <TextArea
           ref={inputRef}
           value={draftValue}
           onChangeText={setDraftValue}
-          multiline
           numberOfLines={4}
-          textAlignVertical="top"
           placeholder={strings(
             'onboarding_interest_questionnaire.other_placeholder',
-          )}
-          placeholderTextColor={colors.text.alternative}
-          style={tw.style(
-            'min-h-[120px] rounded-xl border border-default bg-background-muted px-4 py-3 text-body-md text-default',
           )}
           testID={OtherBottomSheetTestIds.TEXT_INPUT}
           maxLength={100}
         />
       </Box>
 
-      <Box twClassName="mt-4 px-4 pb-6">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleDone}
-          testID={OtherBottomSheetTestIds.DONE_BUTTON}
-        >
-          {strings('onboarding_interest_questionnaire.done')}
-        </Button>
-      </Box>
+      <BottomSheetFooter
+        twClassName="mt-4 pb-6"
+        primaryButtonProps={{
+          children: strings('onboarding_interest_questionnaire.done'),
+          size: ButtonSize.Lg,
+          onPress: handleDone,
+          testID: OtherBottomSheetTestIds.DONE_BUTTON,
+        }}
+      />
     </BottomSheet>
   );
 
@@ -148,18 +131,14 @@ const OtherBottomSheetContent = ({
   }
 
   return (
-    <View
+    <Box
       pointerEvents="box-none"
-      style={[
-        StyleSheet.absoluteFill,
-        {
-          transform: [{ translateY: -keyboardHeight }],
-        },
-      ]}
+      twClassName="absolute inset-0"
+      style={{ transform: [{ translateY: -keyboardHeight }] }}
       testID={OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER}
     >
       {bottomSheet}
-    </View>
+    </Box>
   );
 };
 

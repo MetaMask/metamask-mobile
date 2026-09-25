@@ -6,28 +6,13 @@ import {
   View as MockView,
   TouchableOpacity as MockTouchableOpacity,
   Text as MockRNText,
+  TextInput as MockTextInput,
   Platform,
 } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import OtherBottomSheet from './OtherBottomSheet';
 import { OtherBottomSheetTestIds } from './OtherBottomSheet.testIds';
 import { strings } from '../../../../../locales/i18n';
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = () => ({});
-    tw.style = jest.fn(() => ({}));
-    return tw;
-  },
-}));
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return {
-    ...actual,
-    useTheme: jest.fn(() => actual.mockTheme),
-  };
-});
 
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -79,50 +64,73 @@ jest.mock('@metamask/design-system-react-native', () => {
       <MockTouchableOpacity testID={closeButtonProps?.testID} onPress={onClose}>
         <MockView />
       </MockTouchableOpacity>
-      {children}
-    </MockView>
-  );
-
-  const Button = ({
-    children,
-    onPress,
-    testID,
-  }: {
-    children?: React.ReactNode;
-    onPress?: () => void;
-    testID?: string;
-    isFullWidth?: boolean;
-    variant?: string;
-    size?: string;
-  }) => (
-    <MockTouchableOpacity testID={testID} onPress={onPress}>
       {typeof children === 'string' ? (
         <MockRNText>{children}</MockRNText>
       ) : (
         children
       )}
-    </MockTouchableOpacity>
+    </MockView>
   );
 
-  const Text = ({ children }: { children?: React.ReactNode }) => (
-    <MockRNText>{children}</MockRNText>
-  );
+  const TextArea = mockForwardRef<
+    React.ComponentRef<typeof MockTextInput>,
+    {
+      value?: string;
+      onChangeText?: (value: string) => void;
+      placeholder?: string;
+      testID?: string;
+      maxLength?: number;
+      numberOfLines?: number;
+    }
+  >((props, ref) => <MockTextInput ref={ref} multiline {...props} />);
+  TextArea.displayName = 'TextArea';
 
-  const Box = ({ children }: { children?: React.ReactNode }) => (
-    <MockView>{children}</MockView>
+  const BottomSheetFooter = ({
+    primaryButtonProps,
+  }: {
+    primaryButtonProps?: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+    };
+  }) =>
+    primaryButtonProps ? (
+      <MockTouchableOpacity
+        testID={primaryButtonProps.testID}
+        onPress={primaryButtonProps.onPress}
+      >
+        {typeof primaryButtonProps.children === 'string' ? (
+          <MockRNText>{primaryButtonProps.children}</MockRNText>
+        ) : (
+          primaryButtonProps.children
+        )}
+      </MockTouchableOpacity>
+    ) : null;
+
+  const Box = ({
+    children,
+    testID,
+  }: {
+    children?: React.ReactNode;
+    testID?: string;
+  }) => (
+    <MockView testID={testID}>
+      {typeof children === 'string' ? (
+        <MockRNText>{children}</MockRNText>
+      ) : (
+        children
+      )}
+    </MockView>
   );
 
   return {
     __esModule: true,
     BottomSheet,
+    BottomSheetFooter,
     BottomSheetHeader,
-    Button,
-    Text,
+    TextArea,
     Box,
     ButtonSize: { Lg: 'Lg' },
-    ButtonVariant: { Primary: 'Primary' },
-    FontWeight: { Bold: 'Bold' },
-    TextVariant: { HeadingSm: 'HeadingSm' },
   };
 });
 

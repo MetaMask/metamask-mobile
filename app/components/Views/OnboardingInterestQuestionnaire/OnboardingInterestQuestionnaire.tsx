@@ -1,25 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  BackHandler,
-  Keyboard,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { BackHandler, Keyboard, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  BottomSheetFooter,
   Box,
   Button,
   ButtonSize,
+  ButtonsAlignment,
   ButtonVariant,
+  HeaderStandard,
+  ListItemMultiSelect,
+  ListItemVariant,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { InterestSelectionIndicator } from './InterestSelectionIndicator';
+import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -220,102 +219,84 @@ const OnboardingInterestQuestionnaire = () => {
       style={tw.style('flex-1 bg-default')}
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
-      <HeaderCompactStandard
-        includesTopInset
-        twClassName="mb-2"
-        endAccessory={
-          <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            onPress={onSkip}
-            testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
-            style={tw.style('pr-4')}
-          >
-            {strings('onboarding_interest_questionnaire.skip')}
-          </Text>
-        }
-      />
+      <HeaderStandard includesTopInset />
 
-      <Box twClassName="mx-4 mb-4 flex flex-col gap-y-2">
-        <Text
-          variant={TextVariant.DisplayMd}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Bold}
-        >
-          {strings('onboarding_interest_questionnaire.title')}
-        </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('onboarding_interest_questionnaire.description')}
-        </Text>
+      <Box twClassName="px-4 pb-4">
+        <TitleStandard
+          title={strings('onboarding_interest_questionnaire.title')}
+          bottomLabel={strings('onboarding_interest_questionnaire.description')}
+        />
       </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-4')}
+        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-2')}
         showsVerticalScrollIndicator={false}
       >
         {INTEREST_OPTIONS.map((option) => {
           const isSelected = selectedIds.has(option.id);
           const isOtherOption = option.id === 'other';
           return (
-            <TouchableOpacity
+            <ListItemMultiSelect
               key={option.id}
+              variant={ListItemVariant.OneLine}
+              isSelected={isSelected}
               onPress={() => handleOptionPress(option.id)}
-              style={tw.style(
-                'flex-row items-center rounded-full px-6 py-4 border',
-                isSelected
-                  ? 'border-text-default bg-background-section'
-                  : 'border-text-muted',
-              )}
-              testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: isSelected }}
-            >
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {option.emoji}
-              </Text>
-              <Box twClassName="flex-1 flex-row items-center gap-x-2 ml-3">
+              twClassName={`rounded-full border px-6 py-4 ${
+                isSelected ? 'border-icon-default' : 'border-muted'
+              }`}
+              startAccessory={
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
-                  {strings(option.labelKey)}
+                  {option.emoji}
                 </Text>
-                {isOtherOption && otherText?.length > 0 ? (
+              }
+              title={strings(option.labelKey)}
+              titleEndAccessory={
+                isOtherOption && otherText?.length > 0 ? (
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink mr-2"
+                    twClassName="flex-shrink"
                   >
                     {otherText}
                   </Text>
-                ) : null}
-              </Box>
-              <InterestSelectionIndicator isSelected={isSelected} />
-            </TouchableOpacity>
+                ) : null
+              }
+              testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isSelected }}
+            />
           );
         })}
       </ScrollView>
 
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        twClassName="pt-2"
+        primaryButtonProps={{
+          children: strings('onboarding_interest_questionnaire.done'),
+          onPress: onNext,
+          size: ButtonSize.Lg,
+          isDisabled: selectedIds.size === 0,
+          testID: OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+        }}
+      />
       <Box twClassName="px-4 py-2">
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariant.Tertiary}
           size={ButtonSize.Lg}
-          onPress={onNext}
-          isDisabled={selectedIds.size === 0}
-          style={tw.style('w-full')}
-          testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
+          isFullWidth
+          onPress={onSkip}
+          testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
         >
-          {strings('onboarding_interest_questionnaire.done')}
+          {strings('onboarding_interest_questionnaire.skip')}
         </Button>
       </Box>
 
