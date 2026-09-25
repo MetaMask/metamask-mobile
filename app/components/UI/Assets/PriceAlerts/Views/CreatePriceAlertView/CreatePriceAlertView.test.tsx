@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import I18n from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -282,5 +283,40 @@ describe('CreatePriceAlertView', () => {
 
     expect(screen.getByText('Edit ETH price alert')).toBeOnTheScreen();
     expect(screen.getByText('$1,201.98')).toBeOnTheScreen();
+  });
+
+  it('centers the header title and subtitle text', () => {
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(CreatePriceAlertTestIds.HEADER_TITLE).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(CreatePriceAlertTestIds.HEADER_SUBTITLE).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+  });
+
+  it('centers the longest localized title when it wraps', () => {
+    const originalLocale = I18n.locale;
+    I18n.locale = 'el';
+
+    try {
+      const screen = render(<CreatePriceAlertView />);
+
+      expect(
+        screen.getByText('Δημιουργία ειδοποίησης τιμής για ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId(CreatePriceAlertTestIds.HEADER_TITLE).props.style,
+        ),
+      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    } finally {
+      I18n.locale = originalLocale;
+    }
   });
 });

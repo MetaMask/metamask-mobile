@@ -133,12 +133,22 @@ const CreatePriceAlertView: React.FC = () => {
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
+        {/* The header centers the title block but not the text inside it, so
+            longer translations wrap with their trailing line pushed left. */}
         <HeaderStandard
           title={strings(
             isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
             { ticker: displayTicker },
           )}
+          titleProps={{
+            twClassName: 'text-center',
+            testID: CreatePriceAlertTestIds.HEADER_TITLE,
+          }}
           subtitle={formattedCurrentPrice}
+          subtitleProps={{
+            twClassName: 'text-center',
+            testID: CreatePriceAlertTestIds.HEADER_SUBTITLE,
+          }}
           onBack={handleBack}
         />
 
