@@ -87,6 +87,7 @@ import {
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
+import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
@@ -896,9 +897,11 @@ export const usePerpsProOrderForm = ({
     isCrossMarginAvailable &&
     !marketData?.onlyIsolated &&
     !marketData?.marginMode;
-  // A pick only applies to the market, account and network it was made in;
-  // any context change falls back to isolated until the trader picks again.
-  const marginModeContextKey = `${symbol}:${normalizedSelectedAddress}:${network}`;
+  // A pick only applies to the market, Perps account and network it was made
+  // in, while Cross stays available; any change falls back to isolated until
+  // the trader picks again.
+  const perpsAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const marginModeContextKey = `${symbol}:${perpsAccountAddress}:${network}:${isCrossMarginAvailableForMarket}`;
   const [marginModeSelection, setMarginModeSelection] = useState<{
     contextKey: string;
     marginMode: MarginMode;
