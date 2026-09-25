@@ -30,8 +30,8 @@ jest.mock('../../../../../core/Engine', () => ({
   default: {
     context: {
       PerpsController: {
-        subscribeToPositions: (...args: unknown[]) =>
-          mockSubscribeToPositions(...args),
+        subscribeToPositions: (params: unknown) =>
+          mockSubscribeToPositions(params),
       },
     },
   },
