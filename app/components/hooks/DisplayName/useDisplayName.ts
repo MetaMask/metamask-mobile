@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
@@ -6,6 +7,7 @@ import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
 import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
 import { useAddressTrustSignals } from '../../Views/confirmations/hooks/useAddressTrustSignals';
+import { useDeepMemo } from '../../Views/confirmations/hooks/useDeepMemo';
 import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
 import {
   getTrustSignalIcon,
@@ -132,7 +134,14 @@ function getDisplayState(
 export function useDisplayName(
   request: UseDisplayNameRequest,
 ): UseDisplayNameResponse {
-  return useDisplayNames([request])[0];
+  const { preferContractSymbol, type, value, variation } = request;
+
+  const requests = useMemo(
+    () => [{ preferContractSymbol, type, value, variation }],
+    [preferContractSymbol, type, value, variation],
+  );
+
+  return useDisplayNames(requests)[0];
 }
 
 export function useDisplayNames(
@@ -145,60 +154,87 @@ export function useDisplayNames(
   const accountWalletNames = useAccountWalletNames(requests);
   const { getResolvedENSName } = useSendFlowEnsResolutions();
 
-  const trustSignalRequests = requests.map(({ value, variation }) => ({
-    address: value,
-    chainId: variation,
-  }));
+  const trustSignalRequests = useMemo(
+    () =>
+      requests.map(({ value, variation }) => ({
+        address: value,
+        chainId: variation,
+      })),
+    [requests],
+  );
   const trustSignals = useAddressTrustSignals(trustSignalRequests);
 
-  return requests.map(({ value, variation }, index) => {
-    const watchedNftName = watchedNftNames[index];
-    const firstPartyContractName = firstPartyContractNames[index];
-    const erc20Token = erc20Tokens[index];
-    const accountName = accountNames[index];
-    const subtitle = accountWalletNames[index];
-    const ensName = getResolvedENSName(variation, value);
-    const trustSignal = trustSignals[index];
+  // ENS names come from a module-level cache that can change while the getter
+  // keeps the same identity, so resolve them every render and memoize on the
+  // resolved values rather than on the getter.
+  const ensNames = requests.map(({ value, variation }) =>
+    getResolvedENSName(variation, value),
+  );
 
-    let name =
-      accountName ||
-      ensName ||
-      firstPartyContractName ||
-      watchedNftName ||
-      erc20Token?.name;
+  // The sub-hooks return new arrays on every render, so compare them by value
+  // to keep the returned array and its items referentially stable.
+  return useDeepMemo(
+    () =>
+      requests.map((_request, index) => {
+        const watchedNftName = watchedNftNames[index];
+        const firstPartyContractName = firstPartyContractNames[index];
+        const erc20Token = erc20Tokens[index];
+        const accountName = accountNames[index];
+        const subtitle = accountWalletNames[index];
+        const ensName = ensNames[index];
+        const trustSignal = trustSignals[index];
 
-    const hasPetname = Boolean(accountName);
+        let name =
+          accountName ||
+          ensName ||
+          firstPartyContractName ||
+          watchedNftName ||
+          erc20Token?.name;
 
-    const displayState = getDisplayState(
-      trustSignal?.state,
-      hasPetname,
-      name || null,
-    );
+        const hasPetname = Boolean(accountName);
 
-    // Applied after displayState to avoid the label triggering Recognized state
-    if (!name && trustSignal?.label) {
-      name = trustSignal.label;
-    }
+        const displayState = getDisplayState(
+          trustSignal?.state,
+          hasPetname,
+          name || null,
+        );
 
-    const image = erc20Token?.image;
+        // Applied after displayState to avoid the label triggering Recognized state
+        if (!name && trustSignal?.label) {
+          name = trustSignal.label;
+        }
 
-    const isFirstPartyContractName =
-      firstPartyContractName !== undefined && firstPartyContractName !== null;
+        const image = erc20Token?.image;
 
-    const icon = getTrustSignalIcon(displayState);
+        const isFirstPartyContractName =
+          firstPartyContractName !== undefined &&
+          firstPartyContractName !== null;
 
-    return {
-      contractDisplayName: erc20Token?.name,
-      image,
-      isFirstPartyContractName,
-      name,
-      subtitle,
-      variant: getVariant({ name, accountName }),
-      displayState,
-      icon,
-      isAccount: Boolean(accountName),
-    };
-  });
+        const icon = getTrustSignalIcon(displayState);
+
+        return {
+          contractDisplayName: erc20Token?.name,
+          image,
+          isFirstPartyContractName,
+          name,
+          subtitle,
+          variant: getVariant({ name, accountName }),
+          displayState,
+          icon,
+          isAccount: Boolean(accountName),
+        };
+      }),
+    [
+      requests,
+      firstPartyContractNames,
+      watchedNftNames,
+      erc20Tokens,
+      accountNames,
+      accountWalletNames,
+      ensNames,
+      trustSignals,
+    ],
+  );
 }
 
 export default useDisplayName;
