@@ -8,6 +8,7 @@
 @end
 
 static const int64_t kApnsTokenWaitSeconds = 15;
+static const int kSdkTokenPollAttempts = 20;
 static BOOL sUnregisterInFlight = NO;
 static RCTPromiseResolveBlock sPendingUnregisterResolve = nil;
 
@@ -41,11 +42,41 @@ static void BrazePushUnregisterOnly(Braze *braze, RCTPromiseResolveBlock resolve
   }];
 }
 
+static void BrazePushUnregisterWhenSdkHasToken(Braze *braze, RCTPromiseResolveBlock resolve, int remainingAttempts);
+
 /**
- * Loads the APNs token into this process and unregisters immediately after.
- * `brazePushRegistrationRequested` stays false, so a later token callback
- * cannot opt the device back in. The SDK queue sends the unregister behind
- * this register.
+ * `registerDeviceToken:` stores the token asynchronously. Calling
+ * `unregisterPush` in the same turn reads an empty SDK and returns
+ * `noPushToken` without sending `/push/unregister`, while the register
+ * request still goes out.
+ */
+static void BrazePushUnregisterWhenSdkHasToken(Braze *braze, RCTPromiseResolveBlock resolve, int remainingAttempts) {
+  if (braze.notifications.deviceToken.length > 0) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      BrazePushUnregisterOnly(braze, resolve);
+    });
+    return;
+  }
+
+  if (remainingAttempts <= 0) {
+    BrazePushUnregisterOnly(braze, resolve);
+    return;
+  }
+
+  // registerDeviceToken: updates the SDK token off this call stack.
+  dispatch_after(
+    dispatch_time(DISPATCH_TIME_NOW, 50 * NSEC_PER_MSEC),
+    dispatch_get_main_queue(),
+    ^{
+      BrazePushUnregisterWhenSdkHasToken(braze, resolve, remainingAttempts - 1);
+    }
+  );
+}
+
+/**
+ * Loads the APNs token into this process, then unregisters once the SDK
+ * exposes it. `brazePushRegistrationRequested` stays false, so a later token
+ * callback cannot opt the device back in.
  */
 static void BrazePushRegisterThenUnregister(NSData *deviceToken, RCTPromiseResolveBlock resolve) {
   Braze *braze = AppDelegate.braze;
@@ -54,8 +85,10 @@ static void BrazePushRegisterThenUnregister(NSData *deviceToken, RCTPromiseResol
     return;
   }
 
-  [braze.notifications registerDeviceToken:deviceToken];
-  BrazePushUnregisterOnly(braze, resolve);
+  if (braze.notifications.deviceToken.length == 0) {
+    [braze.notifications registerDeviceToken:deviceToken];
+  }
+  BrazePushUnregisterWhenSdkHasToken(braze, resolve, kSdkTokenPollAttempts);
 }
 
 void BrazePushHandleApnsDeviceToken(NSData *deviceToken) {
