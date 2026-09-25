@@ -1676,6 +1676,12 @@
       "description": "Some services may be unavailable while the team works on a fix.",
       "contact_support": "Contact support"
     },
+    "watch_only": {
+      "title": "Read-only account",
+      "description": "Viewing {{address}}. Trading, deposits and withdrawals are disabled.",
+      "switch_back": "Switch back",
+      "trading_disabled": "Trading is disabled for watch-only accounts"
+    },
     "competition_banner": {
       "title": "Competition leaderboard",
       "description": "See where you rank in the Perps trading competition"
