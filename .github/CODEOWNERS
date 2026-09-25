@@ -376,7 +376,6 @@ app/components/Views/SrpInput                               @MetaMask/web3auth
 app/components/Views/RestoreWallet                          @MetaMask/web3auth
 app/components/Views/WalletCreationError                    @MetaMask/web3auth
 app/components/Views/OAuthRehydration                       @MetaMask/web3auth
-app/components/Views/SocialLoginIosUser                     @MetaMask/web3auth
 app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
