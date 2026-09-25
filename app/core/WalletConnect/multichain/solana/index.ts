@@ -1,0 +1,1 @@
+export { solanaAdapter } from './adapter';
