@@ -1,0 +1,142 @@
+diff --git a/dist/AccountsController.cjs b/dist/AccountsController.cjs
+index a2356306cf09ff7f9201859b54854c594b876dcd..3c31ff983fcfdb3b0f5e7e0de33c0f64f10c76f3 100644
+--- a/dist/AccountsController.cjs
++++ b/dist/AccountsController.cjs
+@@ -483,14 +483,17 @@ _AccountsController_instances = new WeakSet(), _AccountsController_getAccountExp
+         id,
+         address,
+         options,
+-        methods: [
+-            keyring_api_1.EthMethod.PersonalSign,
+-            keyring_api_1.EthMethod.Sign,
+-            keyring_api_1.EthMethod.SignTransaction,
+-            keyring_api_1.EthMethod.SignTypedDataV1,
+-            keyring_api_1.EthMethod.SignTypedDataV3,
+-            keyring_api_1.EthMethod.SignTypedDataV4,
+-        ],
++        // Watch-only accounts have no key material, so they cannot sign.
++        methods: (0, utils_js_1.isWatchOnlyKeyringType)(keyring.type)
++            ? []
++            : [
++                keyring_api_1.EthMethod.PersonalSign,
++                keyring_api_1.EthMethod.Sign,
++                keyring_api_1.EthMethod.SignTransaction,
++                keyring_api_1.EthMethod.SignTypedDataV1,
++                keyring_api_1.EthMethod.SignTypedDataV3,
++                keyring_api_1.EthMethod.SignTypedDataV4,
++            ],
+         scopes: [keyring_api_1.EthScope.Eoa],
+         type: keyring_api_1.EthAccountType.Eoa,
+         metadata,
+diff --git a/dist/AccountsController.mjs b/dist/AccountsController.mjs
+index c48020a0e3551627155f8f385cdd80464427a006..e1c23db84ea5863a1709c46bf6abf53f00367d3d 100644
+--- a/dist/AccountsController.mjs
++++ b/dist/AccountsController.mjs
+@@ -15,7 +15,7 @@ import { isCaipChainId } from "@metamask/utils";
+ import $lodash from "lodash";
+ const { cloneDeep } = $lodash;
+ import { projectLogger as log } from "./logger.mjs";
+-import { constructAccountIdByAddress, getEvmDerivationPathForIndex, getEvmGroupIndexFromAddressIndex, getUUIDFromAddressOfNormalAccount, isHdKeyringType, isHdSnapKeyringAccount, isMoneyKeyringType, isSnapKeyringType, isSnapKeyringV2Type, keyringTypeToName } from "./utils.mjs";
++import { constructAccountIdByAddress, getEvmDerivationPathForIndex, getEvmGroupIndexFromAddressIndex, getUUIDFromAddressOfNormalAccount, isHdKeyringType, isHdSnapKeyringAccount, isMoneyKeyringType, isSnapKeyringType, isSnapKeyringV2Type, isWatchOnlyKeyringType, keyringTypeToName } from "./utils.mjs";
+ const controllerName = 'AccountsController';
+ const MESSENGER_EXPOSED_METHODS = [
+     'setSelectedAccount',
+@@ -479,14 +479,17 @@ _AccountsController_instances = new WeakSet(), _AccountsController_getAccountExp
+         id,
+         address,
+         options,
+-        methods: [
+-            EthMethod.PersonalSign,
+-            EthMethod.Sign,
+-            EthMethod.SignTransaction,
+-            EthMethod.SignTypedDataV1,
+-            EthMethod.SignTypedDataV3,
+-            EthMethod.SignTypedDataV4,
+-        ],
++        // Watch-only accounts have no key material, so they cannot sign.
++        methods: isWatchOnlyKeyringType(keyring.type)
++            ? []
++            : [
++                EthMethod.PersonalSign,
++                EthMethod.Sign,
++                EthMethod.SignTransaction,
++                EthMethod.SignTypedDataV1,
++                EthMethod.SignTypedDataV3,
++                EthMethod.SignTypedDataV4,
++            ],
+         scopes: [EthScope.Eoa],
+         type: EthAccountType.Eoa,
+         metadata,
+diff --git a/dist/utils.cjs b/dist/utils.cjs
+index 136b70a14e384b5a518967e1680d8e2497c130a3..1d285d51a47f481b5d2ed8a5065a5050b85659ef 100644
+--- a/dist/utils.cjs
++++ b/dist/utils.cjs
+@@ -47,6 +47,9 @@ function keyringTypeToName(keyringType) {
+             // FIXME: This should probably live in the `KeyringController` package instead.
+             return 'Money';
+         }
++        case keyring_controller_1.KeyringTypes.watchOnly: {
++            return 'Watch-only';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }
+@@ -128,6 +131,10 @@ function isHdKeyringType(keyringType) {
+     return keyringType === keyring_controller_1.KeyringTypes.hd;
+ }
+ exports.isHdKeyringType = isHdKeyringType;
++function isWatchOnlyKeyringType(keyringType) {
++    return keyringType === keyring_controller_1.KeyringTypes.watchOnly;
++}
++exports.isWatchOnlyKeyringType = isWatchOnlyKeyringType;
+ /**
+  * Check if a keyring type is a Money keyring.
+  *
+diff --git a/dist/utils.d.cts b/dist/utils.d.cts
+index 7f2225c9af962186222533efe561d93dc1e0d1d7..e195094755af4b5fb30039b7d0dcd801cbc0d47a 100644
+--- a/dist/utils.d.cts
++++ b/dist/utils.d.cts
+@@ -61,6 +61,7 @@ export declare function isSimpleKeyringType(keyringType: KeyringTypes | string):
+  * @returns True if the keyring is a HD keyring, false otherwise.
+  */
+ export declare function isHdKeyringType(keyringType: KeyringTypes | string): boolean;
++export declare function isWatchOnlyKeyringType(keyringType: KeyringTypes | string): boolean;
+ /**
+  * Check if a keyring type is a Money keyring.
+  *
+diff --git a/dist/utils.d.mts b/dist/utils.d.mts
+index abf69c4dd53305d5cb07b353045ef497a7d34989..4b4a736fa7b5e0b4b9000370e94147509ae80f01 100644
+--- a/dist/utils.d.mts
++++ b/dist/utils.d.mts
+@@ -61,6 +61,7 @@ export declare function isSimpleKeyringType(keyringType: KeyringTypes | string):
+  * @returns True if the keyring is a HD keyring, false otherwise.
+  */
+ export declare function isHdKeyringType(keyringType: KeyringTypes | string): boolean;
++export declare function isWatchOnlyKeyringType(keyringType: KeyringTypes | string): boolean;
+ /**
+  * Check if a keyring type is a Money keyring.
+  *
+diff --git a/dist/utils.mjs b/dist/utils.mjs
+index f8c5e622c3d7f055f01f5df5f233bbe91500745a..e7d374d18989fbe2da997af4a30fad583d1b8d32 100644
+--- a/dist/utils.mjs
++++ b/dist/utils.mjs
+@@ -44,6 +44,9 @@ export function keyringTypeToName(keyringType) {
+             // FIXME: This should probably live in the `KeyringController` package instead.
+             return 'Money';
+         }
++        case KeyringTypes.watchOnly: {
++            return 'Watch-only';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }
+@@ -114,6 +117,9 @@ export function isSimpleKeyringType(keyringType) {
+  * @param keyringType - The account's keyring type.
+  * @returns True if the keyring is a HD keyring, false otherwise.
+  */
++export function isWatchOnlyKeyringType(keyringType) {
++    return keyringType === KeyringTypes.watchOnly;
++}
+ export function isHdKeyringType(keyringType) {
+     return keyringType === KeyringTypes.hd;
+ }

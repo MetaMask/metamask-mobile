@@ -50,6 +50,10 @@ import { emitStepHud } from './AgentStepHud';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
+import {
+  WatchOnlySession,
+  type WatchOnlySessionStatus,
+} from '../../core/WatchOnly/WatchOnlySession';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -209,6 +213,9 @@ interface AgenticBridge {
   showStep: (step: AgenticHudStep) => void;
   hideStep: () => void;
   refreshPerpsStreams: () => Promise<{ ok: boolean; positions: number }>;
+  startWatchOnly: (address: string) => Promise<WatchOnlySessionStatus>;
+  stopWatchOnly: () => Promise<WatchOnlySessionStatus>;
+  getWatchOnlyStatus: () => WatchOnlySessionStatus;
   findFiberByTestId: (testId: string) => boolean;
   queryUiTarget: (options: {
     testId?: string;
@@ -1482,6 +1489,9 @@ const AgenticService = {
       hideStep: () => {
         emitStepHud(null);
       },
+      startWatchOnly: (address: string) => WatchOnlySession.start(address),
+      stopWatchOnly: () => WatchOnlySession.stop(),
+      getWatchOnlyStatus: () => WatchOnlySession.getStatus(),
       refreshPerpsStreams: async () => {
         await PerpsConnectionManager.ensureConnected({
           source: 'agentic_refresh_perps_streams',
