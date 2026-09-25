@@ -57,19 +57,9 @@ jobs:
           BUILD_TYPE=$(jq -r '.env.METAMASK_BUILD_TYPE' "$JSON_FILE")
           REWARDS_URL=$(jq -r '.env.REWARDS_API_URL' "$JSON_FILE")
           PORTFOLIO_URL=$(jq -r '.env.MM_PORTFOLIO_URL' "$JSON_FILE")
-          # MM_API_ENV overrides the flavor. When the build leaves it unset,
-          # derive the cluster the same way getApiEnv() does.
-          RAW_MM_API_ENV=$(jq -r '.env.MM_API_ENV // empty' "$JSON_FILE")
-          case "$RAW_MM_API_ENV" in
-            dev|uat|prod) MM_API_ENV="$RAW_MM_API_ENV" ;;
-            *)
-              case "$METAMASK_ENV" in
-                dev) MM_API_ENV="dev" ;;
-                exp|uat) MM_API_ENV="uat" ;;
-                *) MM_API_ENV="prod" ;;
-              esac
-              ;;
-          esac
+          # Report only what the build set. An unset MM_API_ENV means the app
+          # selected the cluster from the flavor in getApiEnv().
+          MM_API_ENV=$(jq -r '.env.MM_API_ENV // "unset"' "$JSON_FILE")
 
           # Map to Remote Feature Flag values
           case "$METAMASK_ENV" in
