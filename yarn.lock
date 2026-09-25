@@ -20580,13 +20580,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:^5.62.16, @tanstack/query-core@npm:^5.89.0, @tanstack/query-core@npm:^5.90.20":
-  version: 5.103.2
-  resolution: "@tanstack/query-core@npm:5.103.2"
-  checksum: 10/f19ea502e50fd4d0241fc6796d9303637666ce139b751c875eb9f1680278f20bce2dc95d9fbab30f3a997a456e02f9760e6ce9e4e58db71e256591e77bbc65c9
-  languageName: node
-  linkType: hard
-
 "@tanstack/react-query@npm:^5.101.0, @tanstack/react-query@npm:^5.62.16":
   version: 5.101.4
   resolution: "@tanstack/react-query@npm:5.101.4"

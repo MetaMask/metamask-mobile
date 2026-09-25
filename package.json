@@ -190,6 +190,7 @@
     ]
   },
   "resolutions": {
+    "@tanstack/query-core": "5.101.4",
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
