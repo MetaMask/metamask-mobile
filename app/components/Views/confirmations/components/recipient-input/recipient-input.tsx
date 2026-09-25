@@ -23,7 +23,7 @@ import { useScanRecipientQrCode } from '../../hooks/send/useScanRecipientQrCode'
 const ScanRecipientButton = ({ onPress }: { onPress: () => void }) => (
   <ButtonIcon
     iconName={IconName.ScanBarcode}
-    size={ButtonIconSize.Sm}
+    size={ButtonIconSize.Md}
     variant={ButtonIconVariant.Filled}
     onPress={onPress}
     accessibilityLabel={strings('send.scan_qr_code')}
