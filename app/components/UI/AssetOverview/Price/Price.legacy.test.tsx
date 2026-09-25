@@ -260,24 +260,5 @@ describe('PriceLegacy', () => {
 
       expect(queryAllByTestId('chart-navigation-button')).toHaveLength(0);
     });
-
-    it('renders the period row as a horizontal scroll view that grows to full width', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <PriceLegacy
-          {...baseProps}
-          chartNavigationButtons={['1d', '7d']}
-          onTimePeriodChange={jest.fn()}
-        />,
-      );
-
-      const scrollRow = UNSAFE_getByProps({
-        horizontal: true,
-        showsHorizontalScrollIndicator: false,
-      });
-
-      expect(scrollRow.props.contentContainerStyle).toEqual(
-        expect.objectContaining({ flexDirection: 'row', flexGrow: 1 }),
-      );
-    });
   });
 });

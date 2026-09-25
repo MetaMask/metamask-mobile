@@ -3,7 +3,7 @@ import {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import React, { useLayoutEffect, useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -138,27 +138,6 @@ const PriceLegacy = ({
     return undefined;
   };
 
-  const chartNavigationRow =
-    chartNavigationButtons.length > 0 && onTimePeriodChange ? (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chartNavigationWrapper}
-      >
-        {chartNavigationButtons.map((label) => (
-          <ChartNavigationButton
-            key={label}
-            label={strings(
-              `asset_overview.chart_time_period_navigation.${label}`,
-            )}
-            onPress={() => onTimePeriodChange(label)}
-            selected={timePeriod === label}
-            selectedColor={initialAmbientColor}
-          />
-        ))}
-      </ScrollView>
-    ) : null;
-
   return (
     <>
       <TokenPriceTitleHub
@@ -189,11 +168,28 @@ const PriceLegacy = ({
         </View>
       )}
       {/* Technical indicators flag ON: time range above chart (matches advanced chart) */}
-      {isTechnicalIndicatorsEnabled && !isLoading && chartNavigationRow && (
-        <View style={styles.intervalBarContainer}>
-          <Box twClassName="w-full px-4">{chartNavigationRow}</Box>
-        </View>
-      )}
+      {isTechnicalIndicatorsEnabled &&
+        !isLoading &&
+        chartNavigationButtons.length > 0 &&
+        onTimePeriodChange && (
+          <View style={styles.intervalBarContainer}>
+            <Box twClassName="w-full px-4">
+              <View style={styles.chartNavigationWrapper}>
+                {chartNavigationButtons.map((label) => (
+                  <ChartNavigationButton
+                    key={label}
+                    label={strings(
+                      `asset_overview.chart_time_period_navigation.${label}`,
+                    )}
+                    onPress={() => onTimePeriodChange(label)}
+                    selected={timePeriod === label}
+                    selectedColor={initialAmbientColor}
+                  />
+                ))}
+              </View>
+            </Box>
+          </View>
+        )}
       <Box
         twClassName={
           isTechnicalIndicatorsEnabled
@@ -212,11 +208,27 @@ const PriceLegacy = ({
         />
       </Box>
       {/* Technical indicators flag OFF: time range below chart (legacy position) */}
-      {!isTechnicalIndicatorsEnabled && chartNavigationRow && (
-        <View style={styles.timeRangeContainer}>
-          <Box twClassName="w-full px-4">{chartNavigationRow}</Box>
-        </View>
-      )}
+      {!isTechnicalIndicatorsEnabled &&
+        chartNavigationButtons.length > 0 &&
+        onTimePeriodChange && (
+          <View style={styles.timeRangeContainer}>
+            <Box twClassName="w-full px-4">
+              <View style={styles.chartNavigationWrapper}>
+                {chartNavigationButtons.map((label) => (
+                  <ChartNavigationButton
+                    key={label}
+                    label={strings(
+                      `asset_overview.chart_time_period_navigation.${label}`,
+                    )}
+                    onPress={() => onTimePeriodChange(label)}
+                    selected={timePeriod === label}
+                    selectedColor={initialAmbientColor}
+                  />
+                ))}
+              </View>
+            </Box>
+          </View>
+        )}
     </>
   );
 };

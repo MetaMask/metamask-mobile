@@ -16,10 +16,11 @@ const styleSheet = (params: {
   const finalBackgroundColor = selected
     ? (selectedColor ?? colors.background.muted)
     : 'transparent';
-  /** Matches {@link TimeRangeSelector} segment Pressables: `py-1`, `px-4`, `rounded-lg`, `grow`, `bg-muted` when selected. */
+  /** Matches {@link TimeRangeSelector} segment Pressables: `py-1`, `px-4`, `rounded-lg`, `flex-1`, `bg-muted` when selected. */
   return StyleSheet.create({
     button: {
-      flexGrow: 1,
+      flex: 1,
+      minWidth: 0,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: finalBackgroundColor,

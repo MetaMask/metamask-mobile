@@ -39,6 +39,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
       twClassName="w-full px-4"
     >
       <ScrollView
+        testID="interval-bar-scroll"
         horizontal
         showsHorizontalScrollIndicator={false}
         style={tw.style('flex-1')}
