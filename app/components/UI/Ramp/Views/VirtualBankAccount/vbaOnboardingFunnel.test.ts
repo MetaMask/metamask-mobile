@@ -69,6 +69,16 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       [
+        'sumsub submitted but kyc retry',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+          kycStatus: 'retry',
+        }),
+      ],
+      [
         'sumsub submitted and account ready',
         snapshot({
           sessionExists: true,
@@ -155,6 +165,7 @@ describe('getVbaDestinationForSnapshot', () => {
         "sumsub submitted": "kycPending",
         "sumsub submitted and account ready": "complete",
         "sumsub submitted before review": "kycPending",
+        "sumsub submitted but kyc retry": "identityVerification",
         "vendor terms done": "email",
       }
     `);
