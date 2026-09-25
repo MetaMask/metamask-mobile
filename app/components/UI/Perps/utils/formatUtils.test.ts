@@ -613,6 +613,8 @@ describe('formatUtils', () => {
     it('normalizes grouped values to canonical decimal input', () => {
       expect(normalizePerpsNumericInput('1,200.50', 'en-US')).toBe('1200.50');
       expect(normalizePerpsNumericInput('1.200,50', 'de-DE')).toBe('1200.50');
+      expect(normalizePerpsNumericInput('1200,50', 'de-DE')).toBe('1200.50');
+      expect(normalizePerpsNumericInput('1200,', 'de-DE')).toBe('1200.');
       expect(normalizePerpsNumericInput('$1,200.50', 'de-DE')).toBe('1200.50');
       expect(normalizePerpsNumericInput('1\u202f200,50', 'fr-FR')).toBe(
         '1200.50',
