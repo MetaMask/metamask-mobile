@@ -593,6 +593,29 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     });
   });
 
+  it('tracks a click with no classification when notification data is missing', async () => {
+    const mocks = arrangeMocks();
+    const mockNotification = createMockRemoteMessage();
+
+    FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
+    const notificationHandler =
+      mocks.mockOnNotificationOpenedApp.mock.calls[0][0];
+    await notificationHandler(mockNotification);
+
+    expect(mocks.deeplinkCallback).toHaveBeenCalledWith({
+      opened: true,
+      deeplink: null,
+      notificationType: undefined,
+      notificationSubtype: undefined,
+    });
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: {},
+      }),
+    );
+  });
+
   it('handles deeplink callback that throws an error gracefully', async () => {
     const testData = createMockPushAnalyticsFcmData({
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
