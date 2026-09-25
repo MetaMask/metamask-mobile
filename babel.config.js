@@ -157,6 +157,14 @@ module.exports = {
       plugins: privateMethodsLoose,
     },
     {
+      // The preview build of @metamask/assets-controller (consumed through the
+      // `@metamask-previews/assets-controller` alias in package.json) emits
+      // static class blocks in its dist output, which the base preset cannot
+      // parse. Transform them so Jest (and Metro) can load the package.
+      test: pathIncludes('/node_modules/@metamask/assets-controller'),
+      plugins: ['@babel/plugin-transform-class-static-block'],
+    },
+    {
       test: pathIncludes('/node_modules/@nktkas/hyperliquid'),
       plugins: [
         [
