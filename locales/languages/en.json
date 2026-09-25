@@ -1862,7 +1862,6 @@
     },
     "pro_order_form": {
       "isolated": "Isolated",
-      "cross": "Cross",
       "choose_order_type": "Choose order type",
       "size_usd": "Size (USD)",
       "size_unit": "Size ({{unit}})",

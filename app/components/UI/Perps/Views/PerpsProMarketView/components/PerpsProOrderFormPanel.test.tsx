@@ -9,6 +9,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import { strings } from '../../../../../../../locales/i18n';
 import type {
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
@@ -892,7 +893,7 @@ describe('PerpsProOrderFormPanel', () => {
 
       expect(
         screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
-      ).toHaveTextContent('Cross');
+      ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
     });
   });
 });

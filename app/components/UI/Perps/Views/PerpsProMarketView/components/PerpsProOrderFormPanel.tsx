@@ -361,7 +361,7 @@ const PerpsProOrderFormPanel = ({
         onExpandOrderBook={onExpandOrderBook}
         marginModeLabel={strings(
           marginMode === 'cross'
-            ? 'perps.pro_order_form.cross'
+            ? 'perps.margin_mode.cross_title'
             : 'perps.pro_order_form.isolated',
         )}
         onMarginModePress={openMarginMode}
