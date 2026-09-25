@@ -171,6 +171,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             <KeyValueColumn
               style={styles.statisticsItem}
               keyLabel={strings('perps.market.funding_rate')}
+              keyTextProps={{ twClassName: 'flex-1 min-w-0' }}
               keyEndButtonIconProps={{
                 iconName: IconName.Info,
                 onPress: () => onTooltipPress('funding_rate'),
