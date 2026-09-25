@@ -6,6 +6,8 @@ import {
 import { EarnTokenDetails } from '../../types/lending.types';
 import { TOKENS_REQUIRING_ALLOWANCE_RESET } from '../../constants/token';
 
+export { registerLendingCounterToken } from './registerCounterToken';
+
 export const getEstimatedAnnualRewards = (
   apr: string,
   amountFiatNumber: number,

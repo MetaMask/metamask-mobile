@@ -7,7 +7,6 @@ import {
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -169,35 +168,11 @@ export function PayWithModal() {
           return;
         }
 
-        // Ensure the token is tracked by TokensController so the pay
-        // controller can resolve its metadata (symbol, decimals, balance).
+        // Ensure the token is registered in unified assets state so the pay
+        // controller can resolve its metadata (symbol, decimals, balance) —
+        // otherwise it throws "Payment token not found".
         // Must complete before setPayToken so the controller can find the token.
         if (isWithdraw && token.balance === '0' && !token.isNative) {
-          const { TokensController, NetworkController } = Engine.context;
-          try {
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(
-                token.chainId as Hex,
-              );
-            await TokensController.addTokens(
-              [
-                {
-                  address: token.address,
-                  symbol: token.symbol,
-                  decimals: token.decimals,
-                  image: token.image || undefined,
-                },
-              ],
-              networkClientId,
-            );
-          } catch {
-            // Network not configured — skip
-          }
-
-          // Adding via TokensController only covers legacy metadata. Ensure the
-          // token is also registered in unified assets state, so the pay
-          // controller can resolve it (otherwise it throws "Payment token not
-          // found").
           await ensurePayToken({
             address: token.address as Hex,
             chainId: token.chainId as Hex,
