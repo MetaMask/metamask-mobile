@@ -448,8 +448,15 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       return null;
     }
 
+    const hasNetPnlDivider = activityDetails.netPnlRows.length > 0;
+
     return (
-      <Box twClassName="mb-6">
+      // When Net P&L follows, the rule's top margin matches the section's
+      // bottom margin so both sides of the rule are 24px (same as Outcome/Fees).
+      <Box
+        twClassName={hasNetPnlDivider ? 'mb-3' : 'mb-6'}
+        testID={PredictActivityDetailsSelectorsIDs.TRANSACTION_SECTION}
+      >
         {activityDetails.transactionRows.map((row, index) => {
           const key = `${row.label}-${index}`;
           const rowNode = renderDetailRow(
@@ -461,6 +468,12 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           );
           return <React.Fragment key={key}>{rowNode}</React.Fragment>;
         })}
+        {hasNetPnlDivider ? (
+          <Box
+            twClassName="w-full border-t border-muted mt-3"
+            testID={PredictActivityDetailsSelectorsIDs.NET_PNL_DIVIDER}
+          />
+        ) : null}
       </Box>
     );
   };
@@ -471,7 +484,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     }
 
     return (
-      <Box twClassName="mt-4 border-t border-muted pt-4">
+      <Box>
         {activityDetails.netPnlRows.map((row, index) =>
           renderDetailRow(
             row.label,
