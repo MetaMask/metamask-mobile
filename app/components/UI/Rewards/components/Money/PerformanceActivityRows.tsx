@@ -22,25 +22,14 @@ import type {
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
   formatMusdBaseUnits,
-  formatRewardsDate,
-  formatRewardsDateLabel,
+  formatRewardsRelativeDay,
+  formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
 
 export const PERFORMANCE_ACTIVITY_TEST_IDS = {
   COMMISSION_ROW: 'performance-commission-row',
   REBATE_ROW: 'performance-rebate-row',
 } as const;
-
-function formatSignedMusd(baseUnits: string): string {
-  const formatted = formatMusdBaseUnits(baseUnits);
-  if (!formatted) {
-    return '—';
-  }
-  if (formatted.startsWith('-') || formatted === '—') {
-    return formatted;
-  }
-  return `+${formatted}`;
-}
 
 function copiedTimesLabel(
   localizedText: ReferralLocalizedText,
@@ -75,12 +64,12 @@ export const PerformanceCommissionRow: React.FC<{
           {name}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {formatRewardsDateLabel(new Date(`${item.day}T00:00:00.000Z`))}
+          {formatRewardsRelativeDay(item.day)}
         </Text>
       </Box>
       <Box alignItems={BoxAlignItems.End}>
         <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-          {formatSignedMusd(item.musd_amount)}
+          {formatMusdBaseUnits(item.musd_amount, { signed: true }) ?? '—'}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {copiedTimesLabel(localizedText, item.copied_times)}
@@ -128,11 +117,11 @@ export const PerformanceRebateRow: React.FC<{
         {rebateTitle(item, localizedText)}
       </Text>
       <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {formatRewardsDate(new Date(item.ledger_timestamp))}
+        {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
       </Text>
     </Box>
     <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-      {formatSignedMusd(item.musd_amount)}
+      {formatMusdBaseUnits(item.musd_amount, { signed: true }) ?? '—'}
     </Text>
   </Box>
 );

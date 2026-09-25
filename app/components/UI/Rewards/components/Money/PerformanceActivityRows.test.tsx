@@ -6,6 +6,10 @@ import type {
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
+  formatRewardsRelativeDay,
+  formatRewardsRelativeTime,
+} from '../../utils/formatUtils';
+import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from './PerformanceActivityRows';
@@ -36,6 +40,7 @@ describe('PerformanceActivityRows', () => {
 
     expect(getByText('Copied 4 times')).toBeOnTheScreen();
     expect(getByText('BTC')).toBeOnTheScreen();
+    expect(getByText(formatRewardsRelativeDay('2026-09-01'))).toBeOnTheScreen();
   });
 
   it('uses copied once when the count is suppressed', () => {
@@ -80,6 +85,11 @@ describe('PerformanceActivityRows', () => {
     );
 
     expect(getByText('Perps volume')).toBeOnTheScreen();
+    expect(
+      getByText(
+        formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
+      ),
+    ).toBeOnTheScreen();
     expect(queryByText('Predictions')).toBeNull();
   });
 });

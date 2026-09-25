@@ -8,6 +8,19 @@ import WaysToEarnTab, { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab';
 
 const PROFILE_ID = 'profile-a';
 
+jest.mock('../../../hooks/useEarningsSummary', () => ({
+  useEarningsSummary: () => ({
+    fetchEarningsSummary: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../hooks/useReferralMe', () => ({
+  useReferralMe: () => ({
+    fetchReferralMe: jest.fn(),
+  }),
+  useSessionProfileId: jest.fn(),
+}));
+
 jest.mock('../RewardsOptInSection', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -99,6 +112,10 @@ const renderTab = ({
               data: referralMe,
             },
           },
+          earningsSummary: {},
+          referralFunnel: {},
+          commissions: {},
+          cashbackLedger: {},
         },
       },
     },
