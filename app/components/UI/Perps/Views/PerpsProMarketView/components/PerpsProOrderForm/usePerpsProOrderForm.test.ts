@@ -3757,6 +3757,20 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.marginMode).toBe('isolated');
     });
 
+    it('keeps a Cross pick dropped after switching back to the original account', () => {
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      mockSelectedAddress = '0xaccount-b';
+      rerender({});
+      mockSelectedAddress = '0xaccount-a';
+      rerender({});
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
     it('drops a Cross pick after a market switch', () => {
       const { result, rerender } = renderHook(
         ({ formMarket }: { formMarket: PerpsMarketData }) =>

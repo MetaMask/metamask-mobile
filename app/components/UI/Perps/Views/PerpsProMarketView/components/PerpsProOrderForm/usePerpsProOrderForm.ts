@@ -892,6 +892,12 @@ export const usePerpsProOrderForm = ({
     contextKey: string;
     marginMode: MarginMode;
   } | null>(null);
+  // Forget the pick on a context change, so switching back does not revive it.
+  useEffect(() => {
+    setMarginModeSelection((selection) =>
+      selection?.contextKey === marginModeContextKey ? selection : null,
+    );
+  }, [marginModeContextKey]);
   const selectedMarginMode: MarginMode =
     marginModeSelection?.contextKey === marginModeContextKey
       ? marginModeSelection.marginMode
