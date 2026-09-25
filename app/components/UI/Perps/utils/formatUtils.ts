@@ -318,6 +318,180 @@ export const formatPerpsInput = (value: string, locale?: string): string => {
   );
 };
 
+export interface PerpsInputSelection {
+  start: number;
+  end: number;
+}
+
+const clampInputCursor = (cursor: number, length: number): number =>
+  Math.min(Math.max(cursor, 0), length);
+
+const isPerpsDecimalSeparatorMatch = (
+  canonicalCharacter: string,
+  formattedCharacter: string,
+) => canonicalCharacter === '.' && /\D/u.test(formattedCharacter);
+
+const mapFormattedPerpsCursorToCanonical = ({
+  canonicalValue,
+  formattedValue,
+  formattedCursor,
+}: {
+  canonicalValue: string;
+  formattedValue: string;
+  formattedCursor: number;
+}): number => {
+  const boundedCursor = clampInputCursor(
+    formattedCursor,
+    formattedValue.length,
+  );
+  let canonicalIndex = 0;
+
+  for (
+    let formattedIndex = 0;
+    formattedIndex < boundedCursor && canonicalIndex < canonicalValue.length;
+    formattedIndex += 1
+  ) {
+    const canonicalCharacter = canonicalValue[canonicalIndex];
+    const formattedCharacter = formattedValue[formattedIndex];
+
+    if (
+      canonicalCharacter === formattedCharacter ||
+      isPerpsDecimalSeparatorMatch(canonicalCharacter, formattedCharacter)
+    ) {
+      canonicalIndex += 1;
+    }
+  }
+
+  return canonicalIndex;
+};
+
+const mapCanonicalPerpsCursorToFormatted = ({
+  canonicalValue,
+  formattedValue,
+  canonicalCursor,
+}: {
+  canonicalValue: string;
+  formattedValue: string;
+  canonicalCursor: number;
+}): number => {
+  const boundedCursor = clampInputCursor(
+    canonicalCursor,
+    canonicalValue.length,
+  );
+  let canonicalIndex = 0;
+  let formattedIndex = 0;
+
+  while (
+    formattedIndex < formattedValue.length &&
+    canonicalIndex < boundedCursor
+  ) {
+    const canonicalCharacter = canonicalValue[canonicalIndex];
+    const formattedCharacter = formattedValue[formattedIndex];
+
+    if (
+      canonicalCharacter === formattedCharacter ||
+      isPerpsDecimalSeparatorMatch(canonicalCharacter, formattedCharacter)
+    ) {
+      canonicalIndex += 1;
+    }
+
+    formattedIndex += 1;
+  }
+
+  return formattedIndex;
+};
+
+const getPerpsDisplayCursorAfterEdit = (
+  previousDisplayValue: string,
+  nextDisplayValue: string,
+  previousSelection: PerpsInputSelection,
+): number => {
+  const selectionStart = clampInputCursor(
+    previousSelection.start,
+    previousDisplayValue.length,
+  );
+  const selectionEnd = clampInputCursor(
+    Math.max(previousSelection.end, selectionStart),
+    previousDisplayValue.length,
+  );
+
+  if (selectionEnd > selectionStart) {
+    const insertedLength =
+      nextDisplayValue.length -
+      (previousDisplayValue.length - (selectionEnd - selectionStart));
+
+    return clampInputCursor(
+      selectionStart + insertedLength,
+      nextDisplayValue.length,
+    );
+  }
+
+  let sharedPrefixLength = 0;
+
+  while (
+    sharedPrefixLength < previousDisplayValue.length &&
+    sharedPrefixLength < nextDisplayValue.length &&
+    previousDisplayValue[sharedPrefixLength] ===
+      nextDisplayValue[sharedPrefixLength]
+  ) {
+    sharedPrefixLength += 1;
+  }
+
+  let sharedSuffixLength = 0;
+
+  while (
+    sharedSuffixLength < previousDisplayValue.length - sharedPrefixLength &&
+    sharedSuffixLength < nextDisplayValue.length - sharedPrefixLength &&
+    previousDisplayValue[
+      previousDisplayValue.length - sharedSuffixLength - 1
+    ] === nextDisplayValue[nextDisplayValue.length - sharedSuffixLength - 1]
+  ) {
+    sharedSuffixLength += 1;
+  }
+
+  return nextDisplayValue.length - sharedSuffixLength;
+};
+
+export const getPerpsFormattedInputSelection = ({
+  previousDisplayValue,
+  nextDisplayValue,
+  nextFormattedValue,
+  previousSelection,
+  locale,
+}: {
+  previousDisplayValue: string;
+  nextDisplayValue: string;
+  nextFormattedValue: string;
+  previousSelection?: PerpsInputSelection;
+  locale?: string;
+}): PerpsInputSelection | undefined => {
+  if (!previousSelection) {
+    return undefined;
+  }
+
+  const nextCanonicalValue = normalizePerpsNumericInput(
+    nextDisplayValue,
+    locale,
+  );
+  const nextDisplayCursor = getPerpsDisplayCursorAfterEdit(
+    previousDisplayValue,
+    nextDisplayValue,
+    previousSelection,
+  );
+  const nextCanonicalCursor = mapFormattedPerpsCursorToCanonical({
+    canonicalValue: nextCanonicalValue,
+    formattedValue: nextDisplayValue,
+    formattedCursor: nextDisplayCursor,
+  });
+  const formattedCursor = mapCanonicalPerpsCursorToFormatted({
+    canonicalValue: nextCanonicalValue,
+    formattedValue: nextFormattedValue,
+    canonicalCursor: nextCanonicalCursor,
+  });
+
+  return { start: formattedCursor, end: formattedCursor };
+};
+
 /**
  * Formats a perps market price for display using Hyperliquid price precision
  * when market size decimals are known. Falls back to the shared fiat formatter

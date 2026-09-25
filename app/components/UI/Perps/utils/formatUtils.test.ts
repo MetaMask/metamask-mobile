@@ -27,6 +27,7 @@ import {
   formatPerpsPrice,
   formatPositionTriggerSummary,
   formatPerpsInput,
+  getPerpsFormattedInputSelection,
   normalizePerpsNumericInput,
 } from './formatUtils';
 import {
@@ -631,6 +632,66 @@ describe('formatUtils', () => {
     it('returns non-numeric input unchanged', () => {
       expect(normalizePerpsNumericInput('12abc.3', 'en-US')).toBe('12abc.3');
       expect(formatPerpsInput('12abc.3', 'en-US')).toBe('12abc.3');
+    });
+
+    it('keeps the cursor at the end when live grouping inserts a separator', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '7,600',
+          nextDisplayValue: '7,6000',
+          nextFormattedValue: '76,000',
+          previousSelection: { start: 5, end: 5 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 6, end: 6 });
+    });
+
+    it('keeps the cursor at the end when live grouping removes a separator', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '76,000',
+          nextDisplayValue: '76,00',
+          nextFormattedValue: '7,600',
+          previousSelection: { start: 6, end: 6 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 5, end: 5 });
+    });
+
+    it('preserves the cursor when editing before a grouping separator', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '76,000',
+          nextDisplayValue: '765,000',
+          nextFormattedValue: '765,000',
+          previousSelection: { start: 2, end: 2 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 3, end: 3 });
+    });
+
+    it('maps selected text replacement to the formatted cursor position', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '76,000',
+          nextDisplayValue: '1200',
+          nextFormattedValue: '1,200',
+          previousSelection: { start: 0, end: 6 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 5, end: 5 });
+    });
+
+    it('uses locale-specific grouping when mapping live cursor position', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '7.600',
+          nextDisplayValue: '7.6000',
+          nextFormattedValue: '76.000',
+          previousSelection: { start: 5, end: 5 },
+          locale: 'de-DE',
+        }),
+      ).toEqual({ start: 6, end: 6 });
     });
   });
 
