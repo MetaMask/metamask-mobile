@@ -33,6 +33,28 @@ export enum SortDirection {
   Descending = 'descending',
 }
 
+const SORT_OPTIONS: {
+  option: PriceChangeOption;
+  labelKey: 'trending.price_change' | 'trending.volume' | 'trending.market_cap';
+  testID: string;
+}[] = [
+  {
+    option: PriceChangeOption.PriceChange,
+    labelKey: 'trending.price_change',
+    testID: 'price-change-select-price-change',
+  },
+  {
+    option: PriceChangeOption.Volume,
+    labelKey: 'trending.volume',
+    testID: 'price-change-select-volume',
+  },
+  {
+    option: PriceChangeOption.MarketCap,
+    labelKey: 'trending.market_cap',
+    testID: 'price-change-select-market-cap',
+  },
+];
+
 export interface TrendingTokenPriceChangeBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
@@ -162,138 +184,56 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
         closeButtonProps={{ testID: 'close-button' }}
       />
       <View style={optionStyles.optionsList}>
-        <TouchableOpacity
-          testID="price-change-select-price-change"
-          style={[
-            optionStyles.optionRow,
-            selectedOption === PriceChangeOption.PriceChange &&
-              optionStyles.optionRowSelected,
-          ]}
-          activeOpacity={1}
-          onPress={() => onOptionPress(PriceChangeOption.PriceChange)}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={optionStyles.optionLabel}
-          >
-            {strings('trending.price_change')}
-          </Text>
-          {selectedOption === PriceChangeOption.PriceChange && (
-            <View
-              style={optionStyles.arrowContainer}
-              testID="price-change-sort-direction"
+        {SORT_OPTIONS.map(({ option, labelKey, testID }) => {
+          const isSelected = selectedOption === option;
+
+          return (
+            <TouchableOpacity
+              key={option}
+              testID={testID}
+              style={[
+                optionStyles.optionRow,
+                isSelected && optionStyles.optionRowSelected,
+              ]}
+              activeOpacity={1}
+              onPress={() => onOptionPress(option)}
             >
               <Text
                 variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={optionStyles.optionLabel}
               >
-                {sortDirection === SortDirection.Ascending
-                  ? strings('trending.low_to_high')
-                  : strings('trending.high_to_low')}
+                {strings(labelKey)}
               </Text>
-              <Icon
-                name={
-                  sortDirection === SortDirection.Ascending
-                    ? IconName.Arrow2Up
-                    : IconName.Arrow2Down
-                }
-                size={IconSize.Md}
-                color={IconColor.Alternative}
-              />
-            </View>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID="price-change-select-volume"
-          style={[
-            optionStyles.optionRow,
-            selectedOption === PriceChangeOption.Volume &&
-              optionStyles.optionRowSelected,
-          ]}
-          activeOpacity={1} // this disables the default opacity change when pressing the option
-          onPress={() => onOptionPress(PriceChangeOption.Volume)}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={optionStyles.optionLabel}
-          >
-            {strings('trending.volume')}
-          </Text>
-          {selectedOption === PriceChangeOption.Volume && (
-            <View
-              style={optionStyles.arrowContainer}
-              testID="price-change-sort-direction"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {sortDirection === SortDirection.Ascending
-                  ? strings('trending.low_to_high')
-                  : strings('trending.high_to_low')}
-              </Text>
-              <Icon
-                name={
-                  sortDirection === SortDirection.Ascending
-                    ? IconName.Arrow2Up
-                    : IconName.Arrow2Down
-                }
-                size={IconSize.Md}
-                color={IconColor.Alternative}
-              />
-            </View>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID="price-change-select-market-cap"
-          style={[
-            optionStyles.optionRow,
-            selectedOption === PriceChangeOption.MarketCap &&
-              optionStyles.optionRowSelected,
-          ]}
-          activeOpacity={1}
-          onPress={() => onOptionPress(PriceChangeOption.MarketCap)}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={optionStyles.optionLabel}
-          >
-            {strings('trending.market_cap')}
-          </Text>
-          {selectedOption === PriceChangeOption.MarketCap && (
-            <View
-              style={optionStyles.arrowContainer}
-              testID="price-change-sort-direction"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {sortDirection === SortDirection.Ascending
-                  ? strings('trending.low_to_high')
-                  : strings('trending.high_to_low')}
-              </Text>
-              <Icon
-                name={
-                  sortDirection === SortDirection.Ascending
-                    ? IconName.Arrow2Up
-                    : IconName.Arrow2Down
-                }
-                size={IconSize.Md}
-                color={IconColor.Alternative}
-              />
-            </View>
-          )}
-        </TouchableOpacity>
+              {isSelected ? (
+                <View
+                  style={optionStyles.arrowContainer}
+                  testID="price-change-sort-direction"
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {sortDirection === SortDirection.Ascending
+                      ? strings('trending.low_to_high')
+                      : strings('trending.high_to_low')}
+                  </Text>
+                  <Icon
+                    name={
+                      sortDirection === SortDirection.Ascending
+                        ? IconName.Arrow2Up
+                        : IconName.Arrow2Down
+                    }
+                    size={IconSize.Md}
+                    color={IconColor.Alternative}
+                  />
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          );
+        })}
       </View>
       <View style={optionStyles.buttonContainer}>
         <Button
