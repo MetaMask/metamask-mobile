@@ -51,6 +51,8 @@ let generation = 0;
 let prewarmed: PrewarmedDepositOrder | undefined;
 let inFlight: Promise<string> | undefined;
 let inFlightCriteria: PrewarmCriteria | undefined;
+/** Rejects a discarded in-flight prep. New prep waits so ids cannot be mixed. */
+let draining: Promise<void> | undefined;
 
 function matchesCriteria(
   stored: PrewarmCriteria | undefined,
@@ -77,6 +79,38 @@ function releaseOwnership(): {
   inFlight = undefined;
   inFlightCriteria = undefined;
   return released;
+}
+
+function knownTransactionIds(): Set<string> {
+  return new Set(
+    Engine.context.TransactionController.state.transactions.map(
+      (transaction) => transaction.id,
+    ),
+  );
+}
+
+/**
+ * Id created by this `depositWithOrder` call. Prefers a transaction that
+ * appeared after the snapshot so a discarded prep cannot pick up a later
+ * prewarm's `lastDepositTransactionId`.
+ */
+function readCreatedTransactionId(idsBefore: Set<string>): string | null {
+  const created =
+    Engine.context.TransactionController.state.transactions.filter(
+      (transaction) => !idsBefore.has(transaction.id),
+    );
+  if (created.length === 1) {
+    return created[0].id;
+  }
+
+  const lastId = Engine.context.PerpsController.state.lastDepositTransactionId;
+  if (lastId && created.some((transaction) => transaction.id === lastId)) {
+    return lastId;
+  }
+  if (created.length > 0) {
+    return created[created.length - 1].id;
+  }
+  return lastId;
 }
 
 /**
@@ -136,24 +170,28 @@ export function prewarmDepositOrder(
   }
 
   const ownedGeneration = generation;
-  const pending = depositWithOrder()
-    .then(() => {
-      const transactionId =
-        Engine.context.PerpsController.state.lastDepositTransactionId;
-      if (!transactionId) {
-        throw new Error('Prewarmed deposit order produced no transaction id');
-      }
-      if (generation === ownedGeneration) {
-        prewarmed = { transactionId, ...criteria };
-      }
-      return transactionId;
-    })
-    .finally(() => {
-      if (generation === ownedGeneration) {
-        inFlight = undefined;
-        inFlightCriteria = undefined;
-      }
-    });
+  const pending = (async () => {
+    if (draining) {
+      await draining;
+      draining = undefined;
+    }
+
+    const idsBefore = knownTransactionIds();
+    await depositWithOrder();
+    const transactionId = readCreatedTransactionId(idsBefore);
+    if (!transactionId) {
+      throw new Error('Prewarmed deposit order produced no transaction id');
+    }
+    if (generation === ownedGeneration) {
+      prewarmed = { transactionId, ...criteria };
+    }
+    return transactionId;
+  })().finally(() => {
+    if (generation === ownedGeneration) {
+      inFlight = undefined;
+      inFlightCriteria = undefined;
+    }
+  });
 
   inFlight = pending;
   inFlightCriteria = criteria;
@@ -211,13 +249,13 @@ export function discardPrewarmedDepositOrder(): void {
     rejectTransaction(entry.transactionId);
   }
 
-  // Prep that has not resolved yet still produces a transaction; reject it once
-  // it exists rather than leaking it.
-  pending
-    ?.then((transactionId) => {
-      rejectTransaction(transactionId);
-    })
-    .catch(() => undefined);
+  if (pending) {
+    draining = pending
+      .then((transactionId) => {
+        rejectTransaction(transactionId);
+      })
+      .catch(() => undefined);
+  }
 }
 
 function rejectTransaction(transactionId: string): void {
@@ -241,4 +279,5 @@ export function resetPrewarmedDepositOrderForTesting(): void {
   prewarmed = undefined;
   inFlight = undefined;
   inFlightCriteria = undefined;
+  draining = undefined;
 }

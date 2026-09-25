@@ -330,6 +330,40 @@ describe('prewarmedDepositOrder', () => {
       );
     });
 
+    it('does not reject a later prewarm when discarded prep finishes afterward', async () => {
+      givenLiveTransaction('tx-1');
+      let resolveFirst: () => void = () => undefined;
+      const first = jest.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveFirst = resolve;
+          }),
+      );
+      const second = jest.fn(async () => {
+        givenLiveTransaction('tx-2');
+      });
+
+      prewarmDepositOrder(CRITERIA, first);
+      discardPrewarmedDepositOrder();
+      const later = prewarmDepositOrder(CRITERIA, second);
+
+      expect(second).not.toHaveBeenCalled();
+      resolveFirst();
+      await later;
+
+      expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
+        'tx-1',
+        expect.anything(),
+        { ignoreMissing: true, logErrors: false },
+      );
+      expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalledWith(
+        'tx-2',
+        expect.anything(),
+        expect.anything(),
+      );
+      await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-2');
+    });
+
     it('does not reject a transaction that was already claimed', async () => {
       givenLiveTransaction('tx-1');
       await prewarmDepositOrder(
