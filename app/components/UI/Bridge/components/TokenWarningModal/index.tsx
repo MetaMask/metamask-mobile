@@ -13,16 +13,9 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import {
-  selectDestToken,
-  selectBridgeFeatureFlags,
-} from '../../../../../core/redux/slices/bridge';
+import { selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  exceedsPriceImpactErrorThreshold,
-  parsePriceImpact,
-} from '../../utils/getPriceImpactViewData';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { getNegativeFeatureLabels } from '../../../SecurityTrust/utils/securityUtils';
 import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
@@ -100,9 +93,9 @@ export const TokenWarningModal = () => {
   } = useParams<TokenWarningModalParams>();
 
   const destToken = useSelector(selectDestToken);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
-  const { activeQuote } = useBridgeQuoteDataContext();
+  const { activeQuote, shouldShowPriceImpactError } =
+    useBridgeQuoteDataContext();
 
   const confirmBridge = useBridgeConfirm({
     activeQuote,
@@ -121,16 +114,7 @@ export const TokenWarningModal = () => {
       return;
     }
 
-    const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact?.amount,
-    );
-
-    if (
-      exceedsPriceImpactErrorThreshold(
-        priceImpact,
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      )
-    ) {
+    if (shouldShowPriceImpactError) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
         location,
@@ -144,7 +128,13 @@ export const TokenWarningModal = () => {
     } else {
       await confirmBridge();
     }
-  }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, location]);
+  }, [
+    activeQuote,
+    confirmBridge,
+    navigation,
+    location,
+    shouldShowPriceImpactError,
+  ]);
 
   const {
     isMalicious,

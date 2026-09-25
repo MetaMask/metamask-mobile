@@ -122,6 +122,7 @@ const renderLimitOrderSwapInputsHook = (
       destToken: selectorState.destToken,
       srcAmount: selectorState.sourceAmount,
     },
+    setQuoteParams: jest.fn(),
   });
 
   return renderHook(() => useLimitOrderSwapInputs());
