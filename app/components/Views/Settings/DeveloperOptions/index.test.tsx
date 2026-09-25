@@ -1,5 +1,6 @@
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DeveloperOptions from './';
+import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 
 const mockSelectPerpsEnabledFlag = jest.fn();
@@ -84,13 +85,15 @@ describe('DeveloperOptions', () => {
     );
 
     expect(
-      queryByTestId('developer-options-watch-only-start-button'),
+      queryByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
     ).toBeNull();
   });
 
   it('renders the watch-only section in dev builds', () => {
-    const originalDev = global.__DEV__;
-    global.__DEV__ = true;
+    // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+    const devGlobal = global as unknown as { __DEV__: boolean };
+    const originalDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = true;
 
     try {
       const { getByTestId } = renderScreen(
@@ -100,10 +103,10 @@ describe('DeveloperOptions', () => {
       );
 
       expect(
-        getByTestId('developer-options-watch-only-start-button'),
+        getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
       ).toBeOnTheScreen();
     } finally {
-      global.__DEV__ = originalDev;
+      devGlobal.__DEV__ = originalDev;
     }
   });
 });
