@@ -9,19 +9,12 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 export const getPerpsAggregateFillsPreference = (): boolean =>
   StorageWrapper.getItemSync(PERPS_AGGREGATE_FILLS) !== 'false';
 
-/**
- * Persist the Activity fill display. Never throws: the storage backend can
- * throw synchronously, and a lost write only restores the aggregated default.
- */
+/** Persist the Activity fill display. */
 export const setPerpsAggregateFillsPreference = (
   aggregateFills: boolean,
 ): void => {
-  try {
-    StorageWrapper.setItem(
-      PERPS_AGGREGATE_FILLS,
-      String(aggregateFills),
-    )?.catch(() => undefined);
-  } catch {
-    // Next session falls back to aggregated.
-  }
+  // A lost write only restores the aggregated default next session.
+  StorageWrapper.setItem(PERPS_AGGREGATE_FILLS, String(aggregateFills)).catch(
+    () => undefined,
+  );
 };

@@ -60,13 +60,5 @@ describe('perpsFillDisplayStorage', () => {
       expect(() => setPerpsAggregateFillsPreference(false)).not.toThrow();
       await Promise.resolve();
     });
-
-    it('swallows a synchronous throw', () => {
-      mockStorage.setItem.mockImplementation(() => {
-        throw new Error('mmkv unavailable');
-      });
-
-      expect(() => setPerpsAggregateFillsPreference(false)).not.toThrow();
-    });
   });
 });
