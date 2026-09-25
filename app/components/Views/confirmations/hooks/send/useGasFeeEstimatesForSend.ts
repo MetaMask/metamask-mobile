@@ -1,7 +1,9 @@
 import { Hex } from '@metamask/utils';
-import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 import Engine from '../../../../../core/Engine';
+import { RootState } from '../../../../../reducers';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { useSendContext } from '../../context/send-context';
 import { useGasFeeEstimates } from '../gas/useGasFeeEstimates';
 import { useSendType } from './useSendType';
@@ -11,18 +13,16 @@ export const useGasFeeEstimatesForSend = () => {
   const { isNonEvmSendType } = useSendType();
 
   const { NetworkController } = Engine.context;
-
-  const networkClientId = useMemo(
-    () => {
-      if (isNonEvmSendType || !chainId) {
-        return undefined;
-      }
-      return NetworkController.findNetworkClientIdByChainId(chainId as Hex);
-    },
-    [chainId, isNonEvmSendType], // eslint-disable-line react-hooks/exhaustive-deps,
+  useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, chainId),
   );
+
+  const networkClientId =
+    isNonEvmSendType || !chainId
+      ? undefined
+      : NetworkController.findNetworkClientIdByChainId(chainId as Hex);
 
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId ?? '');
 
-  return { gasFeeEstimates };
+  return { gasFeeEstimates, networkClientId };
 };

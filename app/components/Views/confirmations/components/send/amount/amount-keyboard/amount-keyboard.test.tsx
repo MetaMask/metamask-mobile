@@ -11,12 +11,11 @@ import {
   MOCK_NFT1155,
   SOLANA_ASSET,
 } from '../../../../__mocks__/send.mock';
-import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendContext } from '../../../../context/send-context';
 import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
-import { useSendActions } from '../../../../hooks/send/useSendActions';
+import { useSendAmountActions } from '../../../../hooks/send/useSendActions';
 // eslint-disable-next-line import-x/no-namespace
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
@@ -47,10 +46,6 @@ jest.mock('../../../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/send/usePercentageAmount', () => ({
-  usePercentageAmount: jest.fn(),
-}));
-
 jest.mock('../../../../hooks/send/useSendType', () => ({
   useSendType: jest.fn(),
 }));
@@ -60,7 +55,7 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../../../hooks/send/useSendActions', () => ({
-  useSendActions: jest.fn(),
+  useSendAmountActions: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/send/alerts/useUnreliableNetworkAlert', () => ({
@@ -97,17 +92,14 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
 
-const mockUsePercentageAmount = usePercentageAmount as jest.MockedFunction<
-  typeof usePercentageAmount
->;
-
 const mockUseParams = jest.mocked(useParams);
-const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseSendAmountActions = jest.mocked(useSendAmountActions);
 const mockUseUnreliableNetworkAlert = jest.mocked(useUnreliableNetworkAlert);
 
 const renderComponent = (
   mockState?: ProviderValues['state'],
   amount = '100',
+  updateAmount: (value: string) => void = () => undefined,
 ) => {
   const state = mockState
     ? merge(evmSendStateMock, mockState)
@@ -119,7 +111,7 @@ const renderComponent = (
       <AmountKeyboard
         amount={amount}
         fiatMode={false}
-        updateAmount={() => undefined}
+        updateAmount={updateAmount}
       />
     );
   };
@@ -138,14 +130,12 @@ describe('Amount', () => {
     mockUseSendType.mockReturnValue({
       isNonEvmSendType: false,
     } as unknown as ReturnType<typeof useSendType>);
-    mockUsePercentageAmount.mockReturnValue({
-      getPercentageAmount: () => 10,
-      isMaxAmountSupported: true,
-    } as unknown as ReturnType<typeof usePercentageAmount>);
     mockUseParams.mockReturnValue({});
-    mockUseSendActions.mockReturnValue({
+    mockUseSendAmountActions.mockReturnValue({
+      getPercentageAmount: () => '10',
       handleSubmitPress: mockHandleSubmitPress,
-    } as unknown as ReturnType<typeof useSendActions>);
+      isMaxAmountSupported: true,
+    } as unknown as ReturnType<typeof useSendAmountActions>);
     mockUseUnreliableNetworkAlert.mockReturnValue({
       alert: null,
       navigateToEditNetwork: jest.fn(),
@@ -173,6 +163,7 @@ describe('Amount', () => {
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {
+    const mockUpdateAmount = jest.fn();
     const mockUpdateValue = jest.fn();
     mockUseSendContext.mockReturnValue({
       asset: MOCK_EVM_ASSET,
@@ -180,9 +171,48 @@ describe('Amount', () => {
       updateAsset: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
 
-    const { getByRole } = renderComponent(undefined, '');
+    const { getByRole } = renderComponent(undefined, '', mockUpdateAmount);
     fireEvent.press(getByRole('button', { name: 'Max' }));
-    expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
+    expect(mockUpdateAmount).toHaveBeenCalledWith('10');
+    expect(mockUpdateValue).toHaveBeenCalledWith('10', true);
+  });
+
+  it('refreshes a selected Max amount when transaction estimation changes', () => {
+    const mockUpdateAmount = jest.fn();
+    const mockUpdateValue = jest.fn();
+    mockUseSendAmountActions.mockReturnValue({
+      getPercentageAmount: () => '8',
+      handleSubmitPress: mockHandleSubmitPress,
+      isMaxAmountSupported: true,
+    } as unknown as ReturnType<typeof useSendAmountActions>);
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      maxValueMode: true,
+      updateAsset: jest.fn(),
+      updateValue: mockUpdateValue,
+      value: '9',
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    renderComponent(undefined, '9', mockUpdateAmount);
+
+    expect(mockUpdateAmount).toHaveBeenCalledWith('8');
+    expect(mockUpdateValue).toHaveBeenCalledWith('8', true);
+  });
+
+  it('does not render Max when node estimation is unavailable', () => {
+    mockUseSendAmountActions.mockReturnValue({
+      getPercentageAmount: () => undefined,
+      handleSubmitPress: mockHandleSubmitPress,
+      isMaxAmountSupported: false,
+    } as unknown as ReturnType<typeof useSendAmountActions>);
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { queryByRole } = renderComponent(undefined, '');
+
+    expect(queryByRole('button', { name: 'Max' })).toBeNull();
   });
 
   it('call validateNonEvmAmountAsync when continue button is pressed', () => {
