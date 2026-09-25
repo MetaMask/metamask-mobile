@@ -82,6 +82,7 @@ describe('usePerpsMarginModeLock', () => {
     expect(mockGetMarginModeLock).not.toHaveBeenCalled();
     expect(result.current.lock).toBeNull();
     expect(result.current.isResolved).toBe(false);
+    expect(result.current.isPending).toBe(false);
   });
 
   it('reports the lock as unknown while a refresh is pending', async () => {
@@ -98,11 +99,13 @@ describe('usePerpsMarginModeLock', () => {
 
     expect(result.current.lock).toBeNull();
     expect(result.current.isResolved).toBe(false);
+    expect(result.current.isPending).toBe(true);
     await act(async () => {
       pendingRead.resolve(UNLOCKED);
     });
     expect(result.current.lock).toEqual(UNLOCKED);
     expect(result.current.isResolved).toBe(true);
+    expect(result.current.isPending).toBe(false);
   });
 
   it.each([
@@ -175,7 +178,7 @@ describe('usePerpsMarginModeLock', () => {
     await waitFor(() => expect(mockGetMarginModeLock).toHaveBeenCalledTimes(2));
   });
 
-  it('keeps an unavailable answer unresolved', async () => {
+  it('keeps an unavailable answer unresolved without leaving it pending', async () => {
     const unavailable = {
       status: 'unavailable',
       providerId: 'hyperliquid',
@@ -189,6 +192,7 @@ describe('usePerpsMarginModeLock', () => {
 
     await waitFor(() => expect(result.current.lock).toEqual(unavailable));
     expect(result.current.isResolved).toBe(false);
+    expect(result.current.isPending).toBe(false);
   });
 
   it('keeps the lock unknown when the read fails', async () => {
@@ -198,7 +202,7 @@ describe('usePerpsMarginModeLock', () => {
       usePerpsMarginModeLock({ symbol: 'BTC', enabled: true }),
     );
 
-    await waitFor(() => expect(mockGetMarginModeLock).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.isPending).toBe(false));
     expect(result.current.lock).toBeNull();
     expect(result.current.isResolved).toBe(false);
   });

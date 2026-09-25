@@ -910,6 +910,7 @@ export const usePerpsProOrderForm = ({
   const {
     lock: marginModeLock,
     isResolved: isMarginModeLockResolved,
+    isPending: isMarginModeLockReadPending,
     refresh: refreshMarginModeLock,
   } = usePerpsMarginModeLock({
     symbol,
@@ -953,10 +954,12 @@ export const usePerpsProOrderForm = ({
     (!!currentMarketPosition ||
       venueLockedMarginMode !== undefined ||
       !isMarginModeLockResolved);
-  // Hold submission too: after an account or network switch the picked mode
-  // may conflict with what the venue now binds to the market.
+  // Hold submission while the read is in flight: after an account or network
+  // switch the picked mode may conflict with what the venue now binds to the
+  // market. An `unavailable` answer does not hold it; the venue re-checks the
+  // mode at submit.
   const isMarginModeLockPending =
-    isCrossMarginAvailableForMarket && !isMarginModeLockResolved;
+    isCrossMarginAvailableForMarket && isMarginModeLockReadPending;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];

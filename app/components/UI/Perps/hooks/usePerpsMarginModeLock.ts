@@ -26,6 +26,8 @@ export interface UsePerpsMarginModeLockResult {
    * venue reports the lock as unavailable.
    */
   isResolved: boolean;
+  /** True while the read for the current request has not answered yet. */
+  isPending: boolean;
   /** Re-read the lock, e.g. before the trader changes the margin mode. */
   refresh: () => void;
 }
@@ -81,6 +83,8 @@ export const usePerpsMarginModeLock = ({
           setReadResult({ requestKey, lock });
         }
       })
+      // Defensive: the controller reports failures as `unavailable` instead of
+      // throwing, so a rejection is treated the same way (lock unknown).
       .catch(() => {
         if (isCurrent) {
           setReadResult({ requestKey, lock: null });
@@ -92,9 +96,10 @@ export const usePerpsMarginModeLock = ({
     };
   }, [enabled, requestKey, symbol, providerId]);
 
-  const lock =
-    enabled && readResult?.requestKey === requestKey ? readResult.lock : null;
+  const isAnswered = enabled && readResult?.requestKey === requestKey;
+  const lock = isAnswered && readResult ? readResult.lock : null;
   const isResolved = lock !== null && lock.status !== 'unavailable';
+  const isPending = enabled && !isAnswered;
 
-  return { lock, isResolved, refresh };
+  return { lock, isResolved, isPending, refresh };
 };

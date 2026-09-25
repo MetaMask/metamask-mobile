@@ -419,6 +419,7 @@ jest.mock('../../../../hooks/usePerpsMarginModeLock', () => ({
     isResolved:
       mockMarginModeLock !== null &&
       mockMarginModeLock.status !== 'unavailable',
+    isPending: mockMarginModeLock === null,
     refresh: mockRefreshMarginModeLock,
   }),
 }));
@@ -3808,7 +3809,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isMarginModeLocked).toBe(true);
     });
 
-    it('locks the picker when the venue reports the lock as unavailable', () => {
+    it('locks the picker but still places the order when the venue reports the lock as unavailable', async () => {
       mockMarginModeLock = {
         status: 'unavailable',
         providerId: 'hyperliquid',
@@ -3816,7 +3817,15 @@ describe('usePerpsProOrderForm', () => {
       };
       const { result } = renderWithCrossMargin();
 
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
       expect(result.current.isMarginModeLocked).toBe(true);
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'isolated' }),
+      );
     });
 
     it('disables Place Order and places nothing while the venue lock is unknown', async () => {
