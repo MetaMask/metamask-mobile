@@ -77,6 +77,15 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
+    it('truncates long option titles to a single line instead of wrapping', () => {
+      renderSheet({ selectedOptionId: 'fundingRate', sortDirection: 'desc' });
+
+      const title = screen.getByText('Funding rate');
+
+      expect(title.props.numberOfLines).toBe(1);
+      expect(title.props.ellipsizeMode).toBe('tail');
+    });
+
     it('shows direction indicator on priceChange option when selected', () => {
       renderSheet({
         selectedOptionId: 'priceChange',
