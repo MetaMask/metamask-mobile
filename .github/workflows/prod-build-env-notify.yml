@@ -57,14 +57,16 @@ jobs:
           BUILD_TYPE=$(jq -r '.env.METAMASK_BUILD_TYPE' "$JSON_FILE")
           REWARDS_URL=$(jq -r '.env.REWARDS_API_URL' "$JSON_FILE")
           PORTFOLIO_URL=$(jq -r '.env.MM_PORTFOLIO_URL' "$JSON_FILE")
-          RAW_API_ENV=$(jq -r '.env.MM_API_ENV // empty' "$JSON_FILE")
-          case "$RAW_API_ENV" in
-            dev|uat|prod) API_ENV="$RAW_API_ENV" ;;
+          # MM_API_ENV overrides the flavor. When the build leaves it unset,
+          # derive the cluster the same way getApiEnv() does.
+          RAW_MM_API_ENV=$(jq -r '.env.MM_API_ENV // empty' "$JSON_FILE")
+          case "$RAW_MM_API_ENV" in
+            dev|uat|prod) MM_API_ENV="$RAW_MM_API_ENV" ;;
             *)
               case "$METAMASK_ENV" in
-                dev) API_ENV="dev" ;;
-                exp|uat) API_ENV="uat" ;;
-                *) API_ENV="prod" ;;
+                dev) MM_API_ENV="dev" ;;
+                exp|uat) MM_API_ENV="uat" ;;
+                *) MM_API_ENV="prod" ;;
               esac
               ;;
           esac
@@ -91,7 +93,7 @@ jobs:
             echo "remote_ff_dist=$REMOTE_FF_DIST"
             echo "rewards_url=$REWARDS_URL"
             echo "portfolio_url=$PORTFOLIO_URL"
-            echo "api_env=$API_ENV"
+            echo "api_env=$MM_API_ENV"
           } >> "$GITHUB_OUTPUT"
 
           echo ""
@@ -102,7 +104,7 @@ jobs:
           echo "Remote Feature Flag Distribution: $REMOTE_FF_DIST"
           echo "Rewards API URL: $REWARDS_URL"
           echo "MM_PORTFOLIO_URL: $PORTFOLIO_URL"
-          echo "Backend API env: $API_ENV"
+          echo "Backend API env: $MM_API_ENV"
 
       - name: Post to Slack
         if: steps.download-artifact.outcome == 'success'
@@ -115,7 +117,7 @@ jobs:
           REMOTE_FF_DIST: ${{ steps.extract-env.outputs.remote_ff_dist }}
           REWARDS_URL: ${{ steps.extract-env.outputs.rewards_url }}
           PORTFOLIO_URL: ${{ steps.extract-env.outputs.portfolio_url }}
-          API_ENV: ${{ steps.extract-env.outputs.api_env }}
+          MM_API_ENV: ${{ steps.extract-env.outputs.api_env }}
           WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           echo "TODO: Post to Slack"
@@ -126,5 +128,5 @@ jobs:
           echo "Remote FF Distribution: $REMOTE_FF_DIST"
           echo "Rewards URL: $REWARDS_URL"
           echo "Portfolio URL: $PORTFOLIO_URL"
-          echo "Backend API env: $API_ENV"
+          echo "Backend API env: $MM_API_ENV"
           echo "Workflow URL: $WORKFLOW_URL"
