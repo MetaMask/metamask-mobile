@@ -718,7 +718,7 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('uses deposit copy and hides amounts for a cancelled EOA transfer to Money', () => {
+  it('shows "Funding cancelled" and hides amounts for a cancelled EOA transfer to Money', () => {
     const item = makeItem({
       type: 'send',
       status: 'cancelled',
@@ -736,7 +736,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Add funds cancelled',
+      'Funding cancelled',
     );
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
     expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
