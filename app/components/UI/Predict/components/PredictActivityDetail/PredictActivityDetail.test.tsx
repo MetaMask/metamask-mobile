@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import PredictActivityDetails from './PredictActivityDetail';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -431,6 +432,26 @@ describe('PredictActivityDetails - Sell Activity', () => {
     expect(
       getByTestId(PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY),
     ).toBeOnTheScreen();
+  });
+
+  it('spaces the amount section evenly above and below', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    const amountSection = getByTestId(
+      PredictActivityDetailsSelectorsIDs.AMOUNT_SECTION,
+    );
+
+    // Assert
+    expect(StyleSheet.flatten(amountSection.props.style)).toEqual(
+      expect.objectContaining({
+        marginTop: 48,
+        marginBottom: 48,
+        gap: 16,
+      }),
+    );
   });
 
   it('renders shares sold label for sell activity', () => {

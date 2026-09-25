@@ -367,6 +367,7 @@ export const PredictActivityDetailsSelectorsIDs = {
   BACK_BUTTON: 'predict-activity-details-back-button',
   CONTAINER: 'predict-activity-details-container',
   TITLE_TEXT: 'predict-activity-details-title',
+  AMOUNT_SECTION: 'predict-activity-details-amount-section',
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
 } as const;
 
