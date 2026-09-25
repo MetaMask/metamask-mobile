@@ -76,17 +76,16 @@ function startForegroundSegment(now = getPerformanceTimestamp()): void {
 }
 
 function handleAppStateChange(nextState: AppStateStatus): void {
-  const wasActive = currentAppState === 'active';
-  const isActive = nextState === 'active';
-
-  if (wasActive && !isActive) {
+  // iOS `inactive` also covers Face ID, permission prompts, and the
+  // notification shade. Only `background` means the user left the app.
+  if (nextState === 'background' && currentAppState !== 'background') {
     pauseForegroundSegment();
     backgroundCount += 1;
     endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
       [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
       [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
     });
-  } else if (!wasActive && isActive) {
+  } else if (nextState === 'active' && foregroundSegmentStartedAt === null) {
     resumeCount += 1;
     startForegroundSegment();
   }

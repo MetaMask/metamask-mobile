@@ -233,7 +233,7 @@ describe('rampsBuyCufTrace', () => {
     );
   });
 
-  it('accumulates only foreground-active time across repeated resumes', () => {
+  it('accumulates only foreground-active time across a background resume', () => {
     const opId = startRampsBuyCufTrace({ startTime: 0 });
     now = 1_000;
     appState = 'background';
@@ -242,29 +242,52 @@ describe('rampsBuyCufTrace', () => {
     appState = 'active';
     appStateListener('active');
     now = 8_000;
-    appState = 'inactive';
-    appStateListener('inactive');
-    now = 10_000;
-    appState = 'active';
-    appStateListener('active');
-    now = 13_000;
 
     endRampsBuyCufTrace();
 
     expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
       { name: TraceName.RampBuyToOrderDetails, id: opId },
       RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
-      6_000,
+      3_000,
       'millisecond',
     );
     expect(mockEndTrace).toHaveBeenLastCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: 6_000,
-          [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 2,
-          [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 2,
+          [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: 3_000,
+          [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 1,
+          [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 1,
           [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]: 'background_resumed',
         }),
+      }),
+    );
+  });
+
+  it('does not treat iOS inactive as a backgrounded quote fetch', () => {
+    startRampsBuyCufTrace();
+    const quoteId = startRampsBuyQuoteFetchTrace();
+    mockEndTrace.mockClear();
+    now = 1_000;
+    appState = 'inactive';
+
+    appStateListener('inactive');
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+
+    now = 2_000;
+    appState = 'active';
+    appStateListener('active');
+    endRampsBuyQuoteFetchTrace({
+      id: quoteId,
+      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampBuyQuoteFetch,
+        id: quoteId,
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
       }),
     );
   });
