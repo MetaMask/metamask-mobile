@@ -6,10 +6,17 @@ import React, {
   useCallback,
 } from 'react';
 import { Keyboard, Platform } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
+import type { ParamListBase, RouteProp } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {
+  createBottomTabNavigator,
+  type BottomTabBarProps,
+} from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
@@ -117,6 +124,11 @@ import {
   toJsTabOptions,
   toNativeTabOptions,
 } from './HomeTabs/homeTabs.mappers';
+import type {
+  HomeTabDefinition,
+  HomeTabKey,
+  HomeTabRoute,
+} from './HomeTabs/homeTabs.types';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -133,7 +145,11 @@ import {
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
-import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
+import {
+  TabBarIconKey,
+  type ExtendedBottomTabNavigationOptions,
+  type TabBarProps,
+} from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
@@ -252,7 +268,7 @@ const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
 // Shared defaults for every native stack in this file: no native header (each
 // screen draws its own) on a themed background so pushed screens do not flash
 // the system default.
-const useDefaultStackScreenOptions = () => {
+const useDefaultStackScreenOptions = (): NativeStackNavigationOptions => {
   const { colors } = useTheme();
   return useMemo(
     () => ({
@@ -263,8 +279,32 @@ const useDefaultStackScreenOptions = () => {
   );
 };
 
-/* eslint-disable react/prop-types */
-const AssetStackFlow = (props) => (
+/**
+ * A stack host that forwards its own route params down to the first screen of
+ * the stack it renders. The navigators in this file are untyped
+ * (`ParamListBase`), so those params arrive as `object | undefined`.
+ */
+interface ForwardedParamsHostProps {
+  route: RouteProp<ParamListBase, string>;
+}
+
+/** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
+interface CardRootRouteParams {
+  animation?: NativeStackNavigationOptions['animation'];
+}
+
+/**
+ * Cast target for screens that declare their own `route.params` shape. The
+ * navigators here are untyped (`ParamListBase`), so `Screen` expects a
+ * component whose `route.params` is `object | undefined` — a component asking
+ * for concrete params is not assignable to that. Every screen cast this way
+ * takes only `route` and `navigation`, both of which React Navigation supplies,
+ * so the cast drops the params type and nothing else. Registering these against
+ * a typed param list would remove the need for it.
+ */
+type ScreenComponent = React.ComponentType;
+
+const AssetStackFlow = (props: ForwardedParamsHostProps) => (
   <NativeStack.Navigator
     screenOptions={{
       headerShown: false,
@@ -289,8 +329,6 @@ const AssetStackFlow = (props) => (
     />
   </NativeStack.Navigator>
 );
-
-/* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -342,7 +380,7 @@ const TransactionsHome = () => {
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
-        component={BridgeTransactionDetails}
+        component={BridgeTransactionDetails as ScreenComponent}
       />
     </NativeStack.Navigator>
   );
@@ -393,8 +431,7 @@ const RewardsHome = () => {
   );
 };
 
-/* eslint-disable react/prop-types */
-const BrowserFlow = (props) => {
+const BrowserFlow = (props: ForwardedParamsHostProps) => {
   const { colors } = useTheme();
   return (
     <NativeStack.Navigator
@@ -410,7 +447,7 @@ const BrowserFlow = (props) => {
       />
       <NativeStack.Screen
         name={Routes.BROWSER.ASSET_LOADER}
-        component={AssetLoader}
+        component={AssetLoader as ScreenComponent}
         options={{
           headerShown: false,
           animation: 'none',
@@ -553,11 +590,11 @@ const SettingsFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
-        component={NotificationsSettings}
+        component={NotificationsSettings as ScreenComponent}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-        component={NotificationSettingsSection}
+        component={NotificationSettingsSection as ScreenComponent}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
@@ -570,12 +607,12 @@ const SettingsFlow = () => {
       {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
-      {CAN_INSTALL_THIRD_PARTY_SNAPS && (
+      {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
-      )}
+      ) : null}
       {
         ///: END:ONLY_INCLUDE_IF
       }
@@ -588,6 +625,8 @@ const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
+// `satisfies` keeps each component's own type for `JsTab.Screen` while still
+// requiring an entry for every tab key.
 const HOME_TAB_COMPONENTS = {
   home: WalletTabStackFlow,
   explore: ExploreFeed,
@@ -596,7 +635,7 @@ const HOME_TAB_COMPONENTS = {
   money: MoneyTabScreenStack,
   rewards: RewardsHomeUnmountOnTabBlur,
   social: SocialV0View,
-};
+} satisfies Record<HomeTabKey, unknown>;
 
 const HomeTabs = () => {
   const { colors } = useTheme();
@@ -611,6 +650,12 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
   const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  // The floating bar only renders on the compact arms, and neither of those
+  // uses `none`. Undefined keeps `TabBarFloating`'s own `search` default.
+  const trailingNavBarAction =
+    headerNavBarVariant.trailingNavBarAction === 'none'
+      ? undefined
+      : headerNavBarVariant.trailingNavBarAction;
   const isNativeTabBar = useIsNativeTabBar();
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
@@ -621,11 +666,14 @@ const HomeTabs = () => {
 
   const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
 
-  const trackMoneyTabPressRef = useRef(null);
+  const trackMoneyTabPressRef = useRef<(() => void) | null>(null);
 
-  const registerMoneyTabPressTracker = useCallback((fn) => {
-    trackMoneyTabPressRef.current = fn;
-  }, []);
+  const registerMoneyTabPressTracker = useCallback(
+    (fn: (() => void) | null) => {
+      trackMoneyTabPressRef.current = fn;
+    },
+    [],
+  );
   const trackMoneyTabPress = useCallback(() => {
     trackMoneyTabPressRef.current?.();
   }, []);
@@ -641,7 +689,7 @@ const HomeTabs = () => {
   );
 
   // Control only: a modal trigger the bar handles itself.
-  const tradeOptions = {
+  const tradeOptions: ExtendedBottomTabNavigationOptions = {
     tabBarIconKey: TabBarIconKey.Trade,
     rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
   };
@@ -664,12 +712,19 @@ const HomeTabs = () => {
     }
   }, []);
 
-  const renderTabBar = ({ state, descriptors, navigation }) => {
+  const renderTabBar = ({
+    state,
+    descriptors,
+    navigation,
+  }: BottomTabBarProps) => {
     const currentRoute = state.routes[state.index];
 
     // Hide tab bar when in browser
+    const nestedState = currentRoute?.state;
     const currentStackRouteName =
-      currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
+      nestedState?.index === undefined
+        ? undefined
+        : nestedState.routes[nestedState.index]?.name;
     const isInBrowser =
       currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
       currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
@@ -683,18 +738,24 @@ const HomeTabs = () => {
     }
 
     if (isKeyboardHidden) {
+      // Screens here are registered with `ExtendedBottomTabNavigationOptions`
+      // (see `toJsTabOptions`), which the navigator still types as the base
+      // bottom-tab options.
+      const extendedDescriptors =
+        descriptors as unknown as TabBarProps['descriptors'];
+
       return isFloatingTabBar ? (
         <TabBarFloating
           state={state}
-          descriptors={descriptors}
+          descriptors={extendedDescriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
-          trailingAction={headerNavBarVariant.trailingNavBarAction}
+          trailingAction={trailingNavBarAction}
         />
       ) : (
         <TabBar
           state={state}
-          descriptors={descriptors}
+          descriptors={extendedDescriptors}
           navigation={navigation}
         />
       );
@@ -702,7 +763,7 @@ const HomeTabs = () => {
     return null;
   };
 
-  const renderJsTabScreen = (tab) => (
+  const renderJsTabScreen = (tab: HomeTabDefinition) => (
     <JsTab.Screen
       key={tab.name}
       name={tab.name}
@@ -715,13 +776,14 @@ const HomeTabs = () => {
     />
   );
 
-  const renderNativeTabScreen = (tab) => (
+  const renderNativeTabScreen = (tab: HomeTabDefinition) => (
     <NativeTab.Screen
       key={tab.name}
       name={tab.name}
       options={
         tab.hidesTabBarFor
-          ? ({ route }) => toNativeTabOptions(tab, route)
+          ? ({ route }: { route: HomeTabRoute }) =>
+              toNativeTabOptions(tab, route)
           : toNativeTabOptions(tab)
       }
       listeners={getNativeTabListeners(tab)}
@@ -820,8 +882,7 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-/* eslint-disable react/prop-types */
-const NotificationsModeView = (props) => (
+const NotificationsModeView = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
     <NativeStack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
@@ -829,15 +890,15 @@ const NotificationsModeView = (props) => (
     />
     <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
+      component={NotificationsSettings as ScreenComponent}
     />
     <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-      component={NotificationSettingsSection}
+      component={NotificationSettingsSection as ScreenComponent}
     />
     <NativeStack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
-      component={NotificationsDetails}
+      component={NotificationsDetails as ScreenComponent}
     />
     <NativeStack.Screen name="ContactForm" component={ContactForm} />
   </NativeStack.Navigator>
@@ -950,15 +1011,15 @@ const MainNavigator = () => {
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal}
+          component={RewardsBottomSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
-          component={RewardsInfoSheetModal}
+          component={RewardsInfoSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-          component={RewardsClaimBottomSheetModal}
+          component={RewardsClaimBottomSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
@@ -966,11 +1027,11 @@ const MainNavigator = () => {
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-          component={EndOfSeasonClaimBottomSheet}
+          component={EndOfSeasonClaimBottomSheet as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_SELECT_SHEET}
-          component={RewardsSelectSheet}
+          component={RewardsSelectSheet as ScreenComponent}
         />
       </NativeStack.Group>
       <NativeStack.Screen
@@ -1401,10 +1462,13 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={({ route }) => ({
-          ...fullScreenModalSlideFromBottomNativeOptions,
-          animation: route.params?.animation ?? 'slide_from_right',
-        })}
+        options={({ route }) => {
+          const { animation } = (route.params ?? {}) as CardRootRouteParams;
+          return {
+            ...fullScreenModalSlideFromBottomNativeOptions,
+            animation: animation ?? 'slide_from_right',
+          };
+        }}
       />
       <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
