@@ -39,11 +39,14 @@ class HistoryDisclosureWebsite {
    */
   async verifyVisitedTargetNotLeaked(pageUrl: string): Promise<void> {
     if (PlatformDetector.isAndroid()) {
+      const webViewUrl = new URL(pageUrl);
+      webViewUrl.pathname = webViewUrl.pathname.replace(/\.html$/, '');
+
       // Native UiAutomator often lags or misses WebView `#result` text after
-      // URL-bar navigation. Poll the fixture DOM via CDP (same approach as ENS
-      // / test-dapp load waits) so we assert the page outcome, not a11y lag.
+      // URL-bar navigation. serve-handler redirects .html paths to clean URLs,
+      // so use the canonical URL when selecting the CDP target.
       const text = await ChromeCdpHelpers.waitForElementTextInWebView(
-        pageUrl,
+        webViewUrl.toString(),
         RESULT_ELEMENT_ID,
         HISTORY_RESULT_TIMEOUT_MS,
       );
