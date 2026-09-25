@@ -42,7 +42,7 @@ describeForPlatforms('LimitOrderTabRow — opening the details sheet', () => {
         ),
       ).getByText(
         strings('bridge.limit.quote_unit', {
-          amount: MOCK_LIMIT_OPEN_ORDER.limitPrice,
+          amount: MOCK_LIMIT_OPEN_ORDER.trigger.price,
           symbol: MOCK_LIMIT_OPEN_ORDER.dest.asset.symbol,
         }),
       ),

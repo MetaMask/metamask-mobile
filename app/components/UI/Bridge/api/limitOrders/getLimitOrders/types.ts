@@ -1,48 +1,31 @@
-import type { BridgeAssetV2 } from '@metamask/bridge-controller';
+import type { Infer } from '@metamask/superstruct';
 import type { CaipChainId } from '@metamask/utils';
+import type { LimitOrderSchema } from './schema';
 
-export enum LimitOrderStatus {
-  Open = 'open',
-  Filled = 'filled',
-  Cancelled = 'cancelled',
-  Expired = 'expired',
-  Failed = 'failed',
+/**
+ * Where an order is in its lifecycle, as the API reports it in `state`.
+ */
+export enum LimitOrderState {
+  Open = 'OPEN',
+  Executing = 'EXECUTING',
+  Submitted = 'SUBMITTED',
+  Filled = 'FILLED',
+  Cancelled = 'CANCELLED',
+  Expired = 'EXPIRED',
+  Failed = 'FAILED',
 }
 
-export interface LimitOrder {
-  orderId: string;
-  clientOrderId: string;
-  status: LimitOrderStatus;
-  src: {
-    amount: string;
-    asset: BridgeAssetV2;
-    walletAddress: string;
-  };
-  dest: {
-    /** The amount actually received; only set once the order has filled. */
-    amount?: string;
-    asset: BridgeAssetV2;
-    walletAddress: string;
-  };
-  /** The trigger price, expressed as `dest` per unit of `src`. */
-  limitPrice: string;
-  /**
-   * How far below the expected `dest` amount the order will still accept,
-   * expressed as a percent (e.g. `2` for 2%).
-   */
-  costTolerance: number;
-  createdAt: string;
-  expiresAt: string;
-  filledAt?: string;
-  cancelledAt?: string;
-  failedAt?: string;
-  failureReason?: string;
-  txHash?: string;
-}
+/**
+ * A limit order, as listed by `GET /v2/orders/limit`.
+ */
+export type LimitOrder = Infer<typeof LimitOrderSchema>;
 
 export interface GetLimitOrdersQuery {
   walletAddress: string;
-  status?: LimitOrderStatus[];
+  /**
+   * Only return orders in one of these states. Omit for every state.
+   */
+  states?: LimitOrderState[];
   chainId?: CaipChainId;
   limit?: number;
   cursor?: string;

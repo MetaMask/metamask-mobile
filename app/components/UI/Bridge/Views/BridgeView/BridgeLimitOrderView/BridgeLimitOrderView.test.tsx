@@ -1,4 +1,5 @@
 import React from 'react';
+import { RefreshControl } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
@@ -11,6 +12,8 @@ import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrder
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useLimitOrders } from '../../../hooks/useLimitOrders';
+import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LimitOrderExecutionType,
@@ -18,6 +21,7 @@ import {
   getSwapsLimitOrderExpirationLabel,
 } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { OrdersTabKey } from '../../../components/OrdersTabs';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
@@ -74,10 +78,13 @@ jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
   useLimitOrderSwapInputs: jest.fn(),
 }));
 
+const mockRefreshOpenOrders = jest.fn();
+const mockRefreshHistory = jest.fn();
+
 // OrdersTabs is stubbed out below, so this view's data-fetching is never
 // actually exercised here; CV covers the real query wiring and rendering.
 jest.mock('../../../hooks/useLimitOrders', () => ({
-  useLimitOrders: jest.fn(() => ({
+  useLimitOrders: jest.fn(({ states }: { states: string[] }) => ({
     orders: [],
     isLoading: false,
     isError: false,
@@ -85,6 +92,9 @@ jest.mock('../../../hooks/useLimitOrders', () => ({
     isFetchingNextPage: false,
     fetchNextPage: jest.fn(),
     refetch: jest.fn(),
+    refresh: states.includes('OPEN')
+      ? mockRefreshOpenOrders
+      : mockRefreshHistory,
   })),
 }));
 
@@ -171,10 +181,15 @@ jest.mock('../../../components/SwapsInputs', () => {
   };
 });
 
+let mockOnOrdersTabChange: ((tab: string) => void) | undefined;
+
 jest.mock('../../../components/OrdersTabs', () => ({
   __esModule: true,
   ...jest.requireActual('../../../components/OrdersTabs'),
-  default: () => null,
+  default: ({ onTabChange }: { onTabChange?: (tab: string) => void }) => {
+    mockOnOrdersTabChange = onTabChange;
+    return null;
+  },
 }));
 
 // Each banner decides its own visibility (covered in its own test file), so
@@ -777,5 +792,76 @@ describe('BridgeLimitOrderView', () => {
       getByText(getSwapsLimitOrderExpirationLabel(10080)),
     ).toBeOnTheScreen();
     expect(queryByText(getSwapsLimitOrderExpirationLabel(60))).toBeNull();
+  });
+
+  it('loads the open orders and the order history in their own states', () => {
+    renderLimitOrderView();
+
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({ states: [LimitOrderState.Open] }),
+    );
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        states: [
+          LimitOrderState.Submitted,
+          LimitOrderState.Filled,
+          LimitOrderState.Cancelled,
+          LimitOrderState.Expired,
+          LimitOrderState.Failed,
+        ],
+      }),
+    );
+  });
+
+  describe('pull to refresh', () => {
+    beforeEach(() => {
+      mockRefreshOpenOrders.mockResolvedValue(undefined);
+      mockRefreshHistory.mockResolvedValue(undefined);
+    });
+
+    it('refreshes the open orders while their tab is selected', async () => {
+      const { UNSAFE_getByType } = renderLimitOrderView();
+
+      await act(async () => {
+        fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+      });
+
+      expect(mockRefreshOpenOrders).toHaveBeenCalledTimes(1);
+      expect(mockRefreshHistory).not.toHaveBeenCalled();
+    });
+
+    it('refreshes the history while its tab is selected', async () => {
+      const { UNSAFE_getByType } = renderLimitOrderView();
+      act(() => mockOnOrdersTabChange?.(OrdersTabKey.History));
+
+      await act(async () => {
+        fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+      });
+
+      expect(mockRefreshHistory).toHaveBeenCalledTimes(1);
+      expect(mockRefreshOpenOrders).not.toHaveBeenCalled();
+    });
+
+    it('shows the refresh spinner until the orders have reloaded', async () => {
+      let resolveRefresh: () => void = () => undefined;
+      mockRefreshOpenOrders.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+      );
+      const { UNSAFE_getByType } = renderLimitOrderView();
+
+      act(() => {
+        fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+      });
+
+      expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(true);
+
+      await act(async () => {
+        resolveRefresh();
+      });
+
+      expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
+    });
   });
 });
