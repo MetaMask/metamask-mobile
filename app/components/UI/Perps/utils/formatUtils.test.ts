@@ -497,6 +497,37 @@ describe('formatUtils', () => {
       expect(formatPerpsInput('1200.50', 'fr-FR')).toBe('1\u202f200,50');
     });
 
+    it('uses primary and secondary locale grouping widths', () => {
+      const value = '1234567890123.125';
+
+      const formattedValue = formatPerpsInput(value, 'hi-IN');
+
+      expect(formattedValue).toBe('12,34,56,78,90,123.125');
+    });
+
+    it('localizes integer digits for Arabic locales', () => {
+      const value = '1200.50';
+      const locale = 'ar-EG';
+      const numberFormatter = new Intl.NumberFormat(locale, {
+        useGrouping: true,
+        maximumFractionDigits: 0,
+      });
+      const decimalFormatter = new Intl.NumberFormat(locale, {
+        useGrouping: false,
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+      const decimalSeparator = Array.from(decimalFormatter.format(1.1))
+        .slice(1, -1)
+        .join('');
+
+      const formattedValue = formatPerpsInput(value, locale);
+
+      expect(formattedValue).toBe(
+        `${numberFormatter.format(1200)}${decimalSeparator}50`,
+      );
+    });
+
     it('preserves integer digits beyond the safe integer range', () => {
       expect(formatPerpsInput('9007199254740993.125', 'en-US')).toBe(
         '9,007,199,254,740,993.125',
@@ -504,6 +535,30 @@ describe('formatUtils', () => {
       expect(formatPerpsInput('9007199254740993.125', 'de-DE')).toBe(
         '9.007.199.254.740.993,125',
       );
+    });
+
+    it('formats editable values without BigInt support', () => {
+      const bigIntDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        'BigInt',
+      );
+      Object.defineProperty(globalThis, 'BigInt', {
+        configurable: true,
+        value: undefined,
+      });
+      let formattedValue = '';
+
+      try {
+        formattedValue = formatPerpsInput('9007199254740993.125', 'en-US');
+      } finally {
+        if (bigIntDescriptor) {
+          Object.defineProperty(globalThis, 'BigInt', bigIntDescriptor);
+        } else {
+          Reflect.deleteProperty(globalThis, 'BigInt');
+        }
+      }
+
+      expect(formattedValue).toBe('9,007,199,254,740,993.125');
     });
 
     it('formats and normalizes input without formatToParts support', () => {

@@ -50,6 +50,105 @@ const getPerpsNumberFormatter = (
   }
 };
 
+interface PerpsLocaleGrouping {
+  groupingSeparator: string;
+  primaryGroupSize: number;
+  secondaryGroupSize: number;
+  localizedDigits: readonly string[];
+}
+
+const perpsLocaleGroupingCache = new Map<string, PerpsLocaleGrouping>();
+
+/**
+ * Reads locale grouping rules from a safe integer without relying on BigInt or
+ * NumberFormat.formatToParts, which is not available in every app runtime.
+ */
+const getPerpsLocaleGrouping = (locale?: string): PerpsLocaleGrouping => {
+  const currentLocale = getCurrentPerpsLocale(locale);
+  const cachedGrouping = perpsLocaleGroupingCache.get(currentLocale);
+
+  if (cachedGrouping) {
+    return cachedGrouping;
+  }
+
+  const groupingFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: true,
+    maximumFractionDigits: 0,
+  });
+  const digitFormatter = getPerpsNumberFormatter(locale, {
+    useGrouping: false,
+    maximumFractionDigits: 0,
+  });
+  const localizedDigits = Array.from({ length: 10 }, (_, digitValue) =>
+    digitFormatter.format(digitValue),
+  );
+  const localizedDigitEntries = localizedDigits
+    .map((formattedDigit, digitValue) => ({
+      formattedDigit,
+      digitValue: String(digitValue),
+    }))
+    .sort(
+      (leftEntry, rightEntry) =>
+        rightEntry.formattedDigit.length - leftEntry.formattedDigit.length,
+    );
+  const formattedSample = groupingFormatter.format(1234567890123);
+  const groupSizes: number[] = [];
+  let currentGroupSize = 0;
+  let pendingSeparator = '';
+  let groupingSeparator = '';
+  let position = 0;
+
+  while (position < formattedSample.length) {
+    let matchedDigit: (typeof localizedDigitEntries)[number] | undefined;
+
+    for (const localizedDigitEntry of localizedDigitEntries) {
+      if (
+        formattedSample.startsWith(localizedDigitEntry.formattedDigit, position)
+      ) {
+        matchedDigit = localizedDigitEntry;
+        break;
+      }
+    }
+
+    if (matchedDigit) {
+      if (pendingSeparator) {
+        if (currentGroupSize > 0) {
+          groupSizes.push(currentGroupSize);
+          groupingSeparator = pendingSeparator;
+          currentGroupSize = 0;
+        }
+
+        pendingSeparator = '';
+      }
+
+      currentGroupSize += 1;
+      position += matchedDigit.formattedDigit.length;
+      continue;
+    }
+
+    pendingSeparator += formattedSample.charAt(position);
+    position += 1;
+  }
+
+  if (currentGroupSize > 0) {
+    groupSizes.push(currentGroupSize);
+  }
+
+  const primaryGroupSize = groupSizes[groupSizes.length - 1] || 3;
+  const secondaryGroupSize =
+    groupSizes[groupSizes.length - 2] || primaryGroupSize;
+  const localeGrouping = {
+    groupingSeparator,
+    primaryGroupSize,
+    secondaryGroupSize,
+    localizedDigits,
+  };
+
+  perpsLocaleGroupingCache.set(currentLocale, localeGrouping);
+
+  return localeGrouping;
+};
+
 const getPerpsLocaleSeparators = (locale?: string): PerpsLocaleSeparators => {
   const groupingFormatter = getPerpsNumberFormatter(locale, {
     useGrouping: true,
@@ -70,6 +169,39 @@ const getPerpsLocaleSeparators = (locale?: string): PerpsLocaleSeparators => {
 };
 
 /**
+ * Groups and localizes an integer string without converting its value to a
+ * JavaScript number.
+ */
+const formatIntegerWithLocaleGrouping = (
+  integerPart: string,
+  localeGrouping: PerpsLocaleGrouping,
+): string => {
+  const integerGroups: string[] = [];
+  let remainingDigits = integerPart;
+  let nextGroupSize = localeGrouping.primaryGroupSize;
+
+  while (
+    localeGrouping.groupingSeparator &&
+    remainingDigits.length > nextGroupSize
+  ) {
+    integerGroups.unshift(remainingDigits.slice(-nextGroupSize));
+    remainingDigits = remainingDigits.slice(0, -nextGroupSize);
+    nextGroupSize = localeGrouping.secondaryGroupSize;
+  }
+
+  integerGroups.unshift(remainingDigits);
+
+  return integerGroups
+    .map((integerGroup) =>
+      Array.from(integerGroup, (digit) => {
+        const digitIndex = digit.charCodeAt(0) - 48;
+        return localeGrouping.localizedDigits[digitIndex] ?? digit;
+      }).join(''),
+    )
+    .join(localeGrouping.groupingSeparator);
+};
+
+/**
  * Localizes a canonical decimal string without converting the fractional part
  * to a number. This preserves precision and trailing zeros in editable values.
  */
@@ -86,13 +218,12 @@ const formatNumericStringWithLocale = (
   const sign = match[1] ?? '';
   const integerPart = match[2] || '0';
   const decimalPart = match[3];
-  const integerValue = BigInt(integerPart);
-
+  const localeGrouping = getPerpsLocaleGrouping(locale);
   const separators = getPerpsLocaleSeparators(locale);
-  const formattedInteger = getPerpsNumberFormatter(locale, {
-    useGrouping: true,
-    maximumFractionDigits: 0,
-  }).format(integerValue);
+  const formattedInteger = formatIntegerWithLocaleGrouping(
+    integerPart,
+    localeGrouping,
+  );
 
   return `${sign}${formattedInteger}${
     decimalPart === undefined ? '' : `${separators.decimal}${decimalPart}`
