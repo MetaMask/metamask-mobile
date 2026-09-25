@@ -439,7 +439,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
       });
 
-      it('reports no open when there was no initial notification', async () => {
+      it('does not track a click when there was no initial notification', async () => {
         const { result, mocks } = await arrangeAct(null);
 
         expect(result).toEqual({
@@ -449,9 +449,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
           notificationSubtype: undefined,
         });
         assertMockInitialNotificationCalled(mocks);
-        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({}), //Called with no additional properties
-        );
+        expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
       });
     },
   );
