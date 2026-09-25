@@ -1679,7 +1679,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       assetId: market.symbol,
       mode: 'perps',
       marketId,
-      szDecimals: market.szDecimals ?? marketData?.szDecimals,
+      szDecimals: marketData?.szDecimals,
     });
   }, [market, marketData?.szDecimals, currentPrice, navigation]);
 

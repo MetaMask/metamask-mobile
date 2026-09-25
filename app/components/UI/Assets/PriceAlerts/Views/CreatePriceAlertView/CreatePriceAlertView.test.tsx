@@ -10,6 +10,7 @@ import {
   type PercentChangeAlert,
 } from '../../constants';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import type { usePerpsLiveFocusedPrice } from '../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice';
 import CreatePriceAlertView from './CreatePriceAlertView';
 
 const mockGoBack = jest.fn();
@@ -74,7 +75,10 @@ jest.mock(
   }),
 );
 
-const mockUsePerpsLiveFocusedPrice = jest.fn(() => undefined);
+const mockUsePerpsLiveFocusedPrice = jest.fn<
+  ReturnType<typeof usePerpsLiveFocusedPrice>,
+  []
+>(() => undefined);
 jest.mock('../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice', () => ({
   usePerpsLiveFocusedPrice: () => mockUsePerpsLiveFocusedPrice(),
 }));
@@ -334,6 +338,7 @@ describe('CreatePriceAlertView', () => {
       price: '84000',
       markPrice: '84000',
       timestamp: 1,
+      isTradable: true,
     });
     mockRouteParams = {
       symbol: 'BTC',

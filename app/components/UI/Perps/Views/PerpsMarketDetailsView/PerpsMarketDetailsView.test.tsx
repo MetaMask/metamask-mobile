@@ -1125,6 +1125,7 @@ describe('PerpsMarketDetailsView', () => {
 
   it('navigates to Perps price alerts with szDecimals from the market', () => {
     const { useSelector } = jest.requireMock('react-redux');
+    const { usePerpsMarketData } = jest.requireMock('../../hooks');
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
     ).selectPerpsEligibility;
@@ -1158,29 +1159,43 @@ describe('PerpsMarketDetailsView', () => {
       change24hPercent: '+2.50%',
       volume: '$1.23B',
       maxLeverage: '40x',
-      szDecimals: 5,
       providerId: 'hyperliquid',
     };
+    usePerpsMarketData.mockReturnValue({
+      marketData: { szDecimals: 5, maxLeverage: 40 },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
 
-    const { getByTestId } = renderWithProvider(
-      <PerpsConnectionProvider>
-        <PerpsMarketDetailsView />
-      </PerpsConnectionProvider>,
-      { state: initialState },
-    );
+    try {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
 
-    fireEvent.press(
-      getByTestId(PerpsMarketDetailsViewSelectorsIDs.PRICE_ALERTS_BUTTON),
-    );
+      fireEvent.press(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.PRICE_ALERTS_BUTTON),
+      );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PERPS.PRICE_ALERTS,
-      expect.objectContaining({
-        mode: 'perps',
-        szDecimals: 5,
-        assetId: 'BTC',
-      }),
-    );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.PRICE_ALERTS,
+        expect.objectContaining({
+          mode: 'perps',
+          szDecimals: 5,
+          assetId: 'BTC',
+        }),
+      );
+    } finally {
+      usePerpsMarketData.mockReturnValue({
+        marketData: null,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+    }
   });
 
   describe('chart edge guard', () => {
