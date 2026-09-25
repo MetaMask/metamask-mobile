@@ -413,8 +413,18 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       return null;
     }
 
+    const hasSectionDivider =
+      activity?.type === PredictActivityType.BUY ||
+      activity?.type === PredictActivityType.SELL;
+
     return (
-      <Box twClassName="mb-6">
+      // When the divider is shown, the bottom margin matches the divider's top
+      // margin so the rule sits evenly between the last market row and the
+      // first transaction row.
+      <Box
+        twClassName={hasSectionDivider ? 'mb-3' : 'mb-6'}
+        testID={PredictActivityDetailsSelectorsIDs.MARKET_SECTION}
+      >
         {activityDetails.marketRows.map((row, index) => (
           <React.Fragment key={`${row.label}-${index}`}>
             {row.isMarket
@@ -431,9 +441,11 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             ) : null}
           </React.Fragment>
         ))}
-        {activity?.type === PredictActivityType.BUY ||
-        activity?.type === PredictActivityType.SELL ? (
-          <Box twClassName="w-full border-t border-muted mt-3" />
+        {hasSectionDivider ? (
+          <Box
+            twClassName="w-full border-t border-muted mt-3"
+            testID={PredictActivityDetailsSelectorsIDs.SECTION_DIVIDER}
+          />
         ) : null}
       </Box>
     );

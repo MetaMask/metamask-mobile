@@ -249,6 +249,28 @@ describe('PredictActivityDetails', () => {
     expect(getByText('Yes')).toBeOnTheScreen();
   });
 
+  it('spaces the section divider evenly between the outcome and fees rows', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    // Rows on both sides share the same vertical padding, so matching the
+    // divider's top margin to the section's bottom margin centres the rule.
+    const marketSection = StyleSheet.flatten(
+      getByTestId(PredictActivityDetailsSelectorsIDs.MARKET_SECTION).props
+        .style,
+    );
+    const divider = StyleSheet.flatten(
+      getByTestId(PredictActivityDetailsSelectorsIDs.SECTION_DIVIDER).props
+        .style,
+    );
+
+    expect(divider.marginTop).toBe(12);
+    expect(marketSection.marginBottom).toBe(divider.marginTop);
+  });
+
   it('renders predicted amount for buy activity', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(<PredictActivityDetails />, {
@@ -645,6 +667,25 @@ describe('PredictActivityDetails - Claim Activity', () => {
 
     // Assert
     expect(getByText('Total Net P&L')).toBeOnTheScreen();
+  });
+
+  it('omits the section divider and keeps the section gap for claim activity', () => {
+    // Arrange & Act
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PredictActivityDetails />,
+      { state: initialState },
+    );
+
+    // Assert
+    expect(
+      queryByTestId(PredictActivityDetailsSelectorsIDs.SECTION_DIVIDER),
+    ).toBeNull();
+    expect(
+      StyleSheet.flatten(
+        getByTestId(PredictActivityDetailsSelectorsIDs.MARKET_SECTION).props
+          .style,
+      ).marginBottom,
+    ).toBe(24);
   });
 });
 
