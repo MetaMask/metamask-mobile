@@ -5,7 +5,6 @@ import {
   type RampsBuyLifecycleContext,
 } from '../constants/rampsBuyCufTags';
 
-/** Track whether a Buy span begins cold, warm, or after an app resume. */
 let currentContext: RampsBuyLifecycleContext =
   RAMPS_BUY_LIFECYCLE_CONTEXT.COLD_PROCESS;
 let hasEnteredForegroundOnce = false;
@@ -34,7 +33,7 @@ function initRampsBuyLifecycleTracking(): void {
     if (
       nextState === 'active' &&
       hasEnteredForegroundOnce &&
-      (previousState === 'background' || previousState === 'inactive')
+      previousState === 'background'
     ) {
       currentContext = RAMPS_BUY_LIFECYCLE_CONTEXT.BACKGROUND_RESUME;
     }

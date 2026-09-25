@@ -3,7 +3,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
   type ComponentType,
 } from 'react';
 import { AppState } from 'react-native';
@@ -44,19 +43,15 @@ interface UseRampScreenPerformanceOptions {
   enabled?: boolean;
 }
 
-/**
- * Measures a Unified Buy V2 route from mount/foreground to meaningful content.
- * Unfinished foreground-owned spans are cancelled on background or unmount.
- */
 export function useRampScreenPerformance({
   screenId,
   contentReady,
   contentState = RAMP_SCREEN_CONTENT_STATE.POPULATED,
   enabled = true,
 }: UseRampScreenPerformanceOptions): void {
-  const [foregroundGeneration, setForegroundGeneration] = useState(0);
   const mountedRef = useRef(true);
   const traceIdRef = useRef<string | null>(null);
+  const hasReachedContentRef = useRef(false);
   const startTagsRef = useRef<Record<string, TraceValue>>({});
   const contentReadyRef = useRef(contentReady);
   const contentStateRef = useRef(contentState);
@@ -72,9 +67,6 @@ export function useRampScreenPerformance({
       if (!id) {
         return;
       }
-      // Replayed from the start rather than rebuilt, so a foreground that
-      // settled to warm mid-span cannot overwrite the context this span
-      // actually opened in.
       const data = {
         ...startTagsRef.current,
         [RAMPS_BUY_CUF_TAG.CONTENT_STATE]: contentStateRef.current,
@@ -85,6 +77,7 @@ export function useRampScreenPerformance({
       endTrace({ name: TraceName.RampScreenLoad, id, data });
       traceIdRef.current = null;
       if (success) {
+        hasReachedContentRef.current = true;
         settleRampsBuyForegroundOnSpan(TraceName.RampScreenLoad);
       }
     },
@@ -109,11 +102,6 @@ export function useRampScreenPerformance({
       id,
       startTime: getPerformanceTimestamp(),
       parentContext,
-      // Always its own transaction, never a child span. A child span is only
-      // transmitted when its root ends, which for a Buy journey can be 30
-      // minutes later and never at all if the app dies or the journey is
-      // dropped. Forcing a transaction keeps traceId and parentSpanId, so the
-      // screen still appears under the journey in the trace view.
       forceTransaction: true,
       tags,
     });
@@ -126,7 +114,6 @@ export function useRampScreenPerformance({
     }
 
     const subscription = AppState.addEventListener('change', (nextState) => {
-      // iOS `inactive` is Face ID / prompts, not a real background.
       if (nextState === 'background') {
         endActiveTrace(false, RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED);
         return;
@@ -134,15 +121,12 @@ export function useRampScreenPerformance({
       if (nextState !== 'active') {
         return;
       }
-      // A screen that already reached content has nothing left to measure, so
-      // resuming it must not emit a near-zero sample that drags percentiles down.
-      if (
-        mountedRef.current &&
-        enabledRef.current &&
-        !contentReadyRef.current
-      ) {
+      if (hasReachedContentRef.current) {
+        settleRampsBuyForegroundOnSpan(TraceName.RampScreenLoad);
+      } else if (contentReadyRef.current) {
+        endActiveTrace(true);
+      } else if (mountedRef.current && enabledRef.current) {
         startScreenTrace();
-        setForegroundGeneration((generation) => generation + 1);
       }
     });
 
@@ -158,20 +142,12 @@ export function useRampScreenPerformance({
       endActiveTrace(false, RAMPS_BUY_CUF_END_REASON.DISABLED);
       return;
     }
-    if (contentReady && AppState.currentState === 'active') {
+    if (contentReady && AppState.currentState !== 'background') {
       endActiveTrace(true);
     }
-  }, [
-    contentReady,
-    contentState,
-    enabled,
-    foregroundGeneration,
-    screenId,
-    endActiveTrace,
-  ]);
+  }, [contentReady, contentState, enabled, screenId, endActiveTrace]);
 }
 
-/** Instruments routes whose required data and controls are available on mount. */
 export function withRampScreenPerformance<Props extends object>(
   Component: ComponentType<Props>,
   screenId: RampV2ScreenId,

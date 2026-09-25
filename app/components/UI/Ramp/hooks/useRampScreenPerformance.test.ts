@@ -84,7 +84,6 @@ describe('useRampScreenPerformance', () => {
     );
 
     rerender({ contentReady: true });
-
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampScreenLoad,
@@ -100,20 +99,29 @@ describe('useRampScreenPerformance', () => {
     );
   });
 
-  it('does not cancel on iOS inactive', () => {
-    renderHook(() =>
-      useRampScreenPerformance({
-        screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
-        contentReady: false,
-      }),
+  it('completes content that becomes ready during iOS inactive', () => {
+    const { rerender } = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
     );
 
     act(() => {
       appState = 'inactive';
       appStateListener('inactive');
     });
-
     expect(mockEndTrace).not.toHaveBeenCalled();
+
+    rerender({ contentReady: true });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ success: true }),
+      }),
+    );
   });
 
   it('cancels on background and restarts on foreground', () => {
@@ -155,15 +163,19 @@ describe('useRampScreenPerformance', () => {
   });
 
   it('does not remeasure a screen that already reached content', () => {
-    renderHook(() =>
-      useRampScreenPerformance({
-        screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
-        contentReady: true,
-      }),
+    const { rerender } = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
     );
 
+    rerender({ contentReady: true });
     expect(mockTrace).toHaveBeenCalledTimes(1);
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    rerender({ contentReady: false });
 
     act(() => {
       appState = 'background';
@@ -207,8 +219,6 @@ describe('useRampScreenPerformance', () => {
       }),
     );
 
-    // A child span would only reach Sentry once the journey ends, so screen
-    // timings must never depend on the journey closing.
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         parentContext: { mocked: 'parent' },

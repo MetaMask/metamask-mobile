@@ -399,8 +399,6 @@ describe('Navigation Structure', () => {
 });
 
 describe('Ramp V2 screen performance coverage', () => {
-  // Route names come from the mounted navigators rather than a duplicated list,
-  // so a newly registered V2 screen fails this suite until it gets a screen id.
   const getRegisteredRouteNames = () => {
     const navigationRef = createNavigationContainerRef();
     render(

@@ -80,7 +80,6 @@ export const RAMP_V2_MODAL_ROUTE_SCREEN_IDS = {
     RAMP_V2_SCREEN_ID.UNSUPPORTED_STATE_MODAL,
 } as const;
 
-/** Shared modal routes intentionally owned by the legacy Aggregator stack. */
 export const RAMP_AGGREGATOR_ONLY_MODAL_ROUTES = new Set<string>([
   Routes.RAMP.MODALS.TOKEN_SELECTOR,
   Routes.RAMP.MODALS.FIAT_SELECTOR,
