@@ -42,9 +42,6 @@ const styles = StyleSheet.create({
   text: {
     flexShrink: 1,
   },
-  measuring: {
-    opacity: 0,
-  },
 });
 
 const TruncatedError: React.FC<TruncatedErrorProps> = ({
@@ -105,7 +102,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
         numberOfLines={maxLines}
         ellipsizeMode="tail"
         onTextLayout={handleTextLayout as TextProps['onTextLayout']}
-        style={[styles.text, !hasMeasured && styles.measuring]}
+        style={styles.text}
       >
         {hasMeasured && isTruncated
           ? strings('fiat_on_ramp.encountered_error')
