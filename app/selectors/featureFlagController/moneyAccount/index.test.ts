@@ -343,7 +343,7 @@ describe('Money Account feature flag selectors', () => {
       expect(result).toBeUndefined();
     });
 
-    it('prefers remote config over dev fallback', () => {
+    it('prefers dev config over remote config', () => {
       process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'true';
 
       const remoteConfig = {
@@ -358,7 +358,7 @@ describe('Money Account feature flag selectors', () => {
         moneyAccountVaultConfig: remoteConfig,
       });
 
-      expect(result).toEqual(remoteConfig);
+      expect(result).toEqual(DEV_VAULT_CONFIG);
     });
   });
 });

@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import type { Hex } from '@metamask/utils';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -67,11 +68,11 @@ export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
 );
 
 export interface MoneyAccountVaultConfig {
-  chainId: string;
-  boringVault: string;
-  tellerAddress: string;
-  accountantAddress: string;
-  lensAddress: string;
+  chainId: Hex;
+  boringVault: Hex;
+  tellerAddress: Hex;
+  accountantAddress: Hex;
+  lensAddress: Hex;
 }
 
 export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
@@ -85,16 +86,17 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
 export const getMoneyAccountVaultConfig = (
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): MoneyAccountVaultConfig | undefined => {
+  const devFallbackEnabled =
+    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
+  if (devFallbackEnabled) {
+    return DEV_VAULT_CONFIG;
+  }
   const remoteConfig =
     remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
       | MoneyAccountVaultConfig
       | undefined;
-  if (remoteConfig) {
-    return remoteConfig;
-  }
-  const devFallbackEnabled =
-    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
-  return devFallbackEnabled ? DEV_VAULT_CONFIG : undefined;
+
+  return remoteConfig ?? undefined;
 };
 
 export const selectMoneyAccountVaultConfig = createSelector(

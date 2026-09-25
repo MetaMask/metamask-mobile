@@ -644,8 +644,10 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
-      SubscriptionController: subscriptionController,
-      SubscriptionService: subscriptionService,
+      SubscriptionController:
+        subscriptionController as unknown as EngineContext['SubscriptionController'],
+      SubscriptionService:
+        subscriptionService as unknown as EngineContext['SubscriptionService'],
       ShieldController: shieldController,
       ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
@@ -735,6 +737,9 @@ export class Engine {
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
+      SubscriptionDelegationService: this.#wallet.getInstance(
+        'SubscriptionDelegationService',
+      ),
     };
 
     const childControllers = Object.assign({}, this.context);

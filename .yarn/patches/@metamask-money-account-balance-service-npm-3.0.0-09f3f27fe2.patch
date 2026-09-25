@@ -1,0 +1,76 @@
+diff --git a/dist/money-account-balance-service.d.ts b/dist/money-account-balance-service.d.ts
+index 40619d89eb7603118cddc3add783c0de756d785a..31e9d2071bad27828139b74196e940683a7a9238 100644
+--- a/dist/money-account-balance-service.d.ts
++++ b/dist/money-account-balance-service.d.ts
+@@ -8,6 +8,7 @@ import type { RemoteFeatureFlagControllerGetStateAction, RemoteFeatureFlagContro
+ import type { Hex } from '@metamask/utils';
+ import type { MoneyAccountBalanceServiceMethodActions } from './money-account-balance-service-method-action-types.js';
+ import type { CanonicalMoneyAccountBalanceResponse, ExchangeRateResponse, MoneyAccountBalanceResponse, MusdEquivalentValueResponse, NormalizedVaultApyResponse } from './response.types.js';
++import type { VaultConfig } from './types.js';
+ /**
+  * The name of the {@link MoneyAccountBalanceService}, used to namespace the
+  * service's actions and events.
+@@ -108,6 +109,11 @@ export type MoneyAccountBalanceServiceOptions = {
+     messenger: MoneyAccountBalanceServiceMessenger;
+     policyOptions?: CreateServicePolicyOptions;
+     trace?: MoneyAccountBalanceServiceTraceCallback;
++    /**
++     * Optional local vault configuration override. When provided, it takes
++     * precedence over the remote feature flag configuration.
++     */
++    vaultConfig?: VaultConfig;
+ };
+ export declare class MoneyAccountBalanceService extends BaseDataService<typeof serviceName, MoneyAccountBalanceServiceMessenger> {
+     #private;
+@@ -116,8 +122,9 @@ export declare class MoneyAccountBalanceService extends BaseDataService<typeof s
+      * @param options.messenger - The messenger for this service.
+      * @param options.policyOptions - Options passed to `createServicePolicy`.
+      * @param options.trace - Optional callback to trace network requests.
++     * @param options.vaultConfig - Optional local vault configuration override.
+      */
+-    constructor({ messenger, policyOptions, trace, }: MoneyAccountBalanceServiceOptions);
++    constructor({ messenger, policyOptions, trace, vaultConfig, }: MoneyAccountBalanceServiceOptions);
+     /**
+      * Eagerly reads already-loaded feature flags and initialises service state.
+      *
+diff --git a/dist/money-account-balance-service.js b/dist/money-account-balance-service.js
+index 29fbcb02bf3294e2b77ec46f15a01a1dd0bf4f3d..462b73961891aa0e6336c49ba8359975d1ae124e 100644
+--- a/dist/money-account-balance-service.js
++++ b/dist/money-account-balance-service.js
+@@ -86,6 +86,7 @@ const MESSENGER_EXPOSED_METHODS = [
+ ];
+ export class MoneyAccountBalanceService extends BaseDataService {
+     #vaultConfig;
++    #vaultConfigOverride;
+     /** Cache stale time (ms) for on-chain balance reads. Overridable via remote feature flag. */
+     #balanceStaleTime = DEFAULT_BALANCE_STALE_TIME;
+     /**
+@@ -99,8 +100,9 @@ export class MoneyAccountBalanceService extends BaseDataService {
+      * @param options.messenger - The messenger for this service.
+      * @param options.policyOptions - Options passed to `createServicePolicy`.
+      * @param options.trace - Optional callback to trace network requests.
++     * @param options.vaultConfig - Optional local vault configuration override.
+      */
+-    constructor({ messenger, policyOptions = {}, trace, }) {
++    constructor({ messenger, policyOptions = {}, trace, vaultConfig, }) {
+         super({
+             name: serviceName,
+             messenger,
+@@ -110,6 +112,7 @@ export class MoneyAccountBalanceService extends BaseDataService {
+                 ...policyOptions,
+             },
+         });
++        this.#vaultConfigOverride = vaultConfig;
+         this.#trace =
+             trace ??
+                 (async (_request, fn) => {
+@@ -237,7 +240,8 @@ export class MoneyAccountBalanceService extends BaseDataService {
+     #onRemoteFeatureFlagChange(remoteFeatureFlags) {
+         this.#applyBalanceStaleTimeFlag(remoteFeatureFlags[MONEY_ACCOUNT_BALANCE_STALETIME_FEATURE_FLAG_KEY]);
+         this.#applyBalanceSourcePolicyFlag(remoteFeatureFlags[MONEY_ACCOUNT_BALANCE_SOURCE_FEATURE_FLAG_KEY]);
+-        this.#applyVaultConfig(remoteFeatureFlags[VAULT_CONFIG_FEATURE_FLAG_KEY]);
++        this.#applyVaultConfig(this.#vaultConfigOverride ??
++            remoteFeatureFlags[VAULT_CONFIG_FEATURE_FLAG_KEY]);
+     }
+     /**
+      * Applies the balance source routing feature flag, falling back to

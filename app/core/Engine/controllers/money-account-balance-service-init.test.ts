@@ -13,6 +13,7 @@ import {
 } from '@metamask/money-account-balance-service';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { trace, TraceOperation } from '../../../util/trace';
+import { getMoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
 
 jest.mock('@metamask/money-account-balance-service', () => ({
   ...jest.requireActual('@metamask/money-account-balance-service'),
@@ -24,6 +25,10 @@ jest.mock('@metamask/money-account-balance-service', () => ({
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
   trace: jest.fn(),
+}));
+
+jest.mock('../../../selectors/featureFlagController/moneyAccount', () => ({
+  getMoneyAccountVaultConfig: jest.fn(),
 }));
 
 function getInitRequestMock(): jest.Mocked<
@@ -48,6 +53,7 @@ const getServiceConstructorOptions = (): MoneyAccountBalanceServiceOptions => {
 describe('moneyAccountBalanceServiceInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(getMoneyAccountVaultConfig).mockReturnValue(undefined);
   });
 
   it('returns a MoneyAccountBalanceService instance', () => {
@@ -77,6 +83,18 @@ describe('moneyAccountBalanceServiceInit', () => {
 
     const serviceMock = jest.mocked(MoneyAccountBalanceService);
     expect(serviceMock.mock.results[0].value.init).toHaveBeenCalled();
+  });
+
+  it('gets the vault config from the selector helper', () => {
+    moneyAccountBalanceServiceInit(getInitRequestMock());
+
+    expect(getMoneyAccountVaultConfig).toHaveBeenCalledWith(undefined);
+  });
+
+  it('does not pass a vault config override when the selector has no config', () => {
+    moneyAccountBalanceServiceInit(getInitRequestMock());
+
+    expect(getServiceConstructorOptions().vaultConfig).toBeUndefined();
   });
 });
 

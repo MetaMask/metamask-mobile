@@ -8,6 +8,7 @@ import {
 } from '@metamask/money-account-balance-service';
 import type { TraceContext } from '@metamask/controller-utils';
 import { trace, TraceOperation, TraceRequest } from '../../../util/trace';
+import { getMoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
 
 const traceMoneyAccountDataFetch: MoneyAccountBalanceServiceTraceCallback =
   async <ReturnType>(
@@ -41,6 +42,7 @@ export const moneyAccountBalanceServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new MoneyAccountBalanceService({
     messenger: controllerMessenger,
+    vaultConfig: getMoneyAccountVaultConfig(undefined),
     trace: traceMoneyAccountDataFetch,
   });
 

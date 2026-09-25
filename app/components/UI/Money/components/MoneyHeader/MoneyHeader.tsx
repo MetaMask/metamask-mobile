@@ -19,6 +19,7 @@ export interface MoneyHeaderProButton {
   /** Opens the Pro subscription flow, or the Pro hub for a subscriber. */
   onPress: () => void;
 }
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -57,6 +58,11 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
   const { onMenuPress, proButton } = props;
+  const isProSubscriber = useIsProSubscriber();
+
+  const proLabel = isProSubscriber
+    ? strings('pro_subscription.pro')
+    : strings('pro_subscription.join_pro');
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,

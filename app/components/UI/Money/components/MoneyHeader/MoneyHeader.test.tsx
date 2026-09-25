@@ -4,6 +4,14 @@ import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+
+jest.mock('../../../../../hooks/useProSubscriptionEnabled');
+jest.mock('../../../../../hooks/useIsProSubscriber');
+
+const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
+const mockUseIsProSubscriber = jest.mocked(useIsProSubscriber);
 
 const sharedValue = (value: number): SharedValue<number> =>
   ({ value }) as unknown as SharedValue<number>;
@@ -21,6 +29,15 @@ const proButton = {
 };
 
 describe('MoneyHeader', () => {
+  beforeEach(() => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+      variantName: 'control',
+      isActive: false,
+    });
+    mockUseIsProSubscriber.mockReturnValue(false);
+  });
+
   it('renders the menu button', () => {
     const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
@@ -124,9 +141,15 @@ describe('MoneyHeader', () => {
   });
 
   describe('Pro button', () => {
-    it('is not rendered without a proButton, leaving the menu in place', () => {
-      const { getByTestId, queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} />,
+    it('is not shown when the Pro subscription flag is disabled', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: false,
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { queryByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
       expect(
@@ -135,23 +158,52 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
 
-    it('renders the caller-provided label alongside the menu', () => {
+    it('invites the user to join when they are not subscribed', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUseIsProSubscriber.mockReturnValue(false);
+
       const { getByTestId, getByLabelText } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress: jest.fn() }}
-        />,
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
         'Pro',
       );
-      expect(getByLabelText('Pro')).toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByLabelText(strings('pro_subscription.join_pro')),
+      ).toBeOnTheScreen();
     });
 
-    it('calls the provided onPress when pressed', () => {
-      const mockOnPress = jest.fn();
+    it('shows the Pro label when the user is already subscribed', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUseIsProSubscriber.mockReturnValue(true);
+
+      const { getByTestId, getByLabelText } = render(
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.pro'),
+      );
+      expect(getByLabelText(strings('pro_subscription.pro'))).toBeOnTheScreen();
+    });
+
+    it('calls onGetProPress when pressed', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+
+      const mockOnGetProPress = jest.fn();
       const { getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
