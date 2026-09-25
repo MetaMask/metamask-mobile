@@ -13,6 +13,7 @@ import {
   resetSocialV1ComposedFeedStore,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import { isComposerCommentValid } from './commentValidation';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../utils/klipyGifComment';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
@@ -133,13 +134,16 @@ jest.mock('../components/PositionTokenAvatar', () => ({
 
 jest.mock('./GifPickerSheet', () => {
   const { Pressable, View } = jest.requireActual('react-native');
+  const { KLIPY_STATIC_GIF_EXAMPLE: gifUrl } = jest.requireActual(
+    '../utils/klipyGifComment',
+  );
   return {
     __esModule: true,
     default: ({ onSelect }: { onSelect: (gifUrl: string) => void }) => (
       <View testID="gif-picker-sheet">
         <Pressable
           testID="gif-picker-select"
-          onPress={() => onSelect('https://media.test/picked.gif')}
+          onPress={() => onSelect(gifUrl)}
         />
       </View>
     ),
@@ -307,7 +311,7 @@ describe('SocialPostComposerView', () => {
 
     await waitFor(() => {
       expect(mockCreateSwapComment).toHaveBeenCalledWith({
-        commentText: 'this is alpha',
+        commentText: `this is alpha\n${KLIPY_STATIC_GIF_EXAMPLE}`,
         positionUid: 'eth-spot',
         source: 'metamask-mobile',
       });
@@ -316,7 +320,7 @@ describe('SocialPostComposerView', () => {
     commitSocialV1PendingPost();
 
     expect(getSocialV1ComposedPosts()[0]?.gifUri).toBe(
-      'https://media.test/picked.gif',
+      KLIPY_STATIC_GIF_EXAMPLE,
     );
   });
 
@@ -331,7 +335,7 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW).props
         .source,
-    ).toEqual({ uri: 'https://media.test/picked.gif' });
+    ).toEqual({ uri: KLIPY_STATIC_GIF_EXAMPLE });
     expect(screen.queryByTestId('gif-picker-sheet')).toBeNull();
   });
 

@@ -55,6 +55,7 @@ import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSaf
 import { PositionCardBody } from '../SocialV1View/feed/components/SocialFeedPositionCard';
 import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import type { SocialV1FeedItem } from '../SocialV1View/feed/types';
+import { appendKlipyGifUrlToCommentText } from '../utils/klipyGifComment';
 import { createSwapComment } from './createSwapCommentApi';
 import {
   clipComposerComment,
@@ -183,7 +184,8 @@ const SocialPostComposerView: React.FC = () => {
     if (!selectedPosition || !canSubmit || isSubmitting) {
       return;
     }
-    const commentText = text.trim();
+    const caption = text.trim();
+    const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
     setIsSubmitting(true);
     try {
       const created = await createSwapComment({
@@ -191,14 +193,10 @@ const SocialPostComposerView: React.FC = () => {
         positionUid: selectedPosition.position.positionId,
         source: 'metamask-mobile',
       });
-      const item = mapPositionToFeedItem(
-        selectedPosition.position,
-        commentText,
-        {
-          isClosed: selectedPosition.isClosed,
-          author: composerAuthor,
-        },
-      );
+      const item = mapPositionToFeedItem(selectedPosition.position, caption, {
+        isClosed: selectedPosition.isClosed,
+        author: composerAuthor,
+      });
       submitSocialV1ComposedPost({
         id: created.uid,
         authorHandle: profile?.handle ?? '',

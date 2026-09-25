@@ -12,6 +12,7 @@ import { isEntryAction } from '../../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../../utils/tradeTimestamp';
 import { markMocked, type SocialV1MockedField } from '../mockMarker';
 import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
+import { splitKlipyGifFromCommentText } from '../../../utils/klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import type { SocialV1FeedItem, SocialV1SpotSide } from '../types';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
@@ -194,7 +195,9 @@ export function toSocialV1FeedItem(
   };
 
   const authorComment = readAuthorComment(core);
-  const commentText = authorComment?.text?.trim();
+  const { text: commentText } = splitKlipyGifFromCommentText(
+    authorComment?.text ?? '',
+  );
   const comment = commentText || undefined;
 
   // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
