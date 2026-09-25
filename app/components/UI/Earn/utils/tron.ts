@@ -10,6 +10,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
 import { normalizeToDotDecimal } from '../../../../util/number/bigint';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
@@ -161,6 +162,10 @@ export const handleTronStakingNavigationResult = (
       if (account) {
         AssetsController.getAssets([account], {
           forceUpdate: true,
+          assetTypes: FUNGIBLE_ASSET_TYPES,
+          // The stake/unstake just confirmed, so the Accounts API's cached
+          // snapshot is known stale — bypass it to show the new balance.
+          bypassServerCache: true,
         }).catch((error: Error) => {
           Logger.error(
             error,

@@ -4,7 +4,6 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ethers } from 'ethers';
@@ -14,13 +13,9 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BadgeNetwork,
-  ButtonIconSize,
-  FontWeight,
   HeaderStandard,
-  IconName,
   KeyValueRow,
   Text,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
@@ -30,7 +25,6 @@ import {
 } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { toAssetId } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -53,6 +47,7 @@ import {
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { registerLendingCounterToken } from '../../utils';
 import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLending';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
@@ -348,33 +343,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           if (!earnToken && selectedAccount?.id) {
-            try {
-              const counterTokenChainId = tokenSnapshot?.chainId as Hex;
-              const counterTokenAddress = tokenSnapshot?.token?.address || '';
-              const caipChainId = toEvmCaipChainId(counterTokenChainId);
-              const caipAssetType = toAssetId(counterTokenAddress, caipChainId);
-
-              if (caipAssetType) {
-                Engine.context.AssetsController.addCustomAsset(
-                  selectedAccount.id,
-                  caipAssetType,
-                  {
-                    decimals: tokenSnapshot?.token?.decimals || 0,
-                    symbol: tokenSnapshot?.token?.symbol || '',
-                    address: counterTokenAddress,
-                    name: tokenSnapshot?.token?.name || '',
-                    chainId: counterTokenChainId,
-                  },
-                ).catch(console.error);
-              }
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  outputToken?.symbol || outputToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
+            registerLendingCounterToken(
+              selectedAccount.id,
+              tokenSnapshot,
+              outputToken?.symbol || outputToken?.ticker || '',
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
