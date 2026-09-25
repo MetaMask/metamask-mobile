@@ -12,6 +12,10 @@ import {
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import AdvancedDetailsRow from './advanced-details-row';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../../component-library/components/Icons/Icon';
 
 jest.mock('../../../../../../UI/Name', () => ({
   __esModule: true,
@@ -88,6 +92,24 @@ describe('AdvancedDetailsRow', () => {
     );
     fireEvent.press(getByText('Advanced details'));
     expect(getByTestId('scroll-view-data')).toBeTruthy();
+  });
+
+  it('renders nonce tooltip and data copy icons in the alternative icon color', () => {
+    const { getByText, getByTestId, UNSAFE_getByProps } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state: generateContractInteractionState },
+      false,
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
+    expect(UNSAFE_getByProps({ name: IconName.Info }).props.color).toBe(
+      IconColor.Alternative,
+    );
+    expect(UNSAFE_getByProps({ name: IconName.Copy }).props.color).toBe(
+      IconColor.Alternative,
+    );
   });
 
   describe('Nonce editing', () => {
