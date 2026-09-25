@@ -94,6 +94,8 @@ export const perpsCompetitionBannerDismissedKey = (campaignId: string) =>
 
 export const PERPS_LAST_ACTION_AT = `${prefix}perpsLastActionAt`;
 
+export const PERPS_AGGREGATE_FILLS = `${prefix}perpsAggregateFills`;
+
 export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
 
 export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;

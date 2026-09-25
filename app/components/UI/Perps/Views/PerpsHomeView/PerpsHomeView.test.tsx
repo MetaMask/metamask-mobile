@@ -1145,6 +1145,20 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
   });
 
+  it('renders the Activity preview aggregated without an Aggregated toggle', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      recentActivity: [{ id: '1' }],
+    });
+
+    const { UNSAFE_getByType } = render(<PerpsHomeView />);
+
+    const activityList = UNSAFE_getByType('PerpsRecentActivityList' as never);
+    expect(activityList.props).not.toHaveProperty('onAggregateFillsChange');
+    expect(activityList.props).not.toHaveProperty('aggregateFills');
+    expect(mockUsePerpsHomeData).toHaveBeenCalledWith({});
+  });
+
   it('shows watchlist section when watchlist markets exist', () => {
     // Arrange
     mockUsePerpsHomeData.mockReturnValue({
