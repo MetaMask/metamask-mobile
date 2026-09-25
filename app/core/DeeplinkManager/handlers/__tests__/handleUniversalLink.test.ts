@@ -22,7 +22,10 @@ import { handleSwapUrl } from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
-import { handleNotificationsSettingsUrl } from '../legacy/handleNotificationsSettingsUrl';
+import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from '../intent/handleNotificationsSettingsUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
@@ -57,7 +60,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
-jest.mock('../legacy/handleNotificationsSettingsUrl');
+jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
 jest.mock('../intent/handleDappUrl', () => {
   const actual = jest.requireActual('../intent/handleDappUrl');
@@ -611,6 +614,48 @@ describe('handleUniversalLink', () => {
       expect(handleNotificationsSettingsUrl).toHaveBeenCalledWith({
         notificationsSettingsPath,
       });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a startup intent in resolve mode without executing notification settings navigation', async () => {
+      const notificationsSettingsPath = '?section=wallet-activity';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.NOTIFICATIONS_SETTINGS}${notificationsSettingsPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.NOTIFICATIONS_SETTINGS}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'SettingsView',
+          params: {
+            screen: 'NotificationsSettings',
+            params: { section: 'wallet-activity' },
+          },
+        },
+      };
+      (
+        createNotificationsSettingsDeeplinkIntent as jest.MockedFunction<
+          typeof createNotificationsSettingsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createNotificationsSettingsDeeplinkIntent).toHaveBeenCalledWith({
+        notificationsSettingsPath,
+      });
+      expect(handleNotificationsSettingsUrl).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
   });
