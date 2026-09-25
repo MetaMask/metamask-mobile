@@ -10,12 +10,7 @@ const mockUnsubscribe = jest.fn();
 let positionsCallback: ((positions: Position[]) => void) | undefined;
 let perpsEnabled = true;
 let selectedAddress: string | undefined = '0xabc';
-const mockSubscribeToPositions = jest.fn(
-  ({ callback }: { callback: (positions: Position[]) => void }) => {
-    positionsCallback = callback;
-    return mockUnsubscribe;
-  },
-);
+const mockSubscribeToPositions = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
