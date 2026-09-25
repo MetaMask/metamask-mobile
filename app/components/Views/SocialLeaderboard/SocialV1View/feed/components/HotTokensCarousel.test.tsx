@@ -2,8 +2,9 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
+import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
-import type { SocialV1HotToken } from '../types';
+import type { SocialV1HotToken, SocialV1TokenFeedState } from '../types';
 import HotTokensCarousel from './HotTokensCarousel';
 import {
   getSocialV1HotTokenChipTestId,
@@ -12,8 +13,20 @@ import {
 } from './HotTokensCarousel.testIds';
 
 jest.mock('../hooks/useSocialV1HotTokens');
+jest.mock('../hooks/useSocialV1TokenFeed');
 
 const mockUseSocialV1HotTokens = jest.mocked(useSocialV1HotTokens);
+const mockUseSocialV1TokenFeed = jest.mocked(useSocialV1TokenFeed);
+
+const idleTokenFeed = (): SocialV1TokenFeedState => ({
+  posts: [],
+  isLoading: false,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  loadMore: jest.fn(),
+  error: null,
+  refresh: jest.fn(),
+});
 
 const arrange = (tokens: SocialV1HotToken[], isLoading = false) => {
   mockUseSocialV1HotTokens.mockReturnValue({ tokens, isLoading, error: null });
@@ -28,6 +41,7 @@ const NVIDIA = mockHotToken({
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSocialV1TokenFeed.mockReturnValue(idleTokenFeed());
   });
 
   it('renders a chip per hot token', () => {
@@ -69,6 +83,82 @@ describe('HotTokensCarousel', () => {
     );
 
     expect(onTokenPress).toHaveBeenCalledWith(NVIDIA);
+  });
+
+  it('loads the token feed for a selected chip that has a contract', () => {
+    const onTokenFeedChange = jest.fn();
+    const token = mockHotToken({
+      id: 'hot-pump',
+      symbol: 'PUMP',
+      label: 'Pump',
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    const tokenFeed = idleTokenFeed();
+    mockUseSocialV1TokenFeed.mockReturnValue(tokenFeed);
+    arrange([token]);
+
+    renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenCalledWith({
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    expect(onTokenFeedChange).toHaveBeenCalledWith(tokenFeed);
+  });
+
+  it('keeps the selected contract feed after that asset leaves the rail', () => {
+    const onTokenFeedChange = jest.fn();
+    const token = mockHotToken({
+      id: 'hot-pump',
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    arrange([token]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    arrange([]);
+    onTokenFeedChange.mockClear();
+    rerender(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenLastCalledWith({
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    expect(onTokenFeedChange).not.toHaveBeenCalledWith(null);
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-pump')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not request a token feed for a chip without a contract', () => {
+    const onTokenFeedChange = jest.fn();
+    arrange([mockHotToken()]);
+
+    renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId="hot-btc"
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenCalledWith(null);
+    expect(onTokenFeedChange).toHaveBeenCalledWith(null);
   });
 
   it('marks the selected asset chip', () => {

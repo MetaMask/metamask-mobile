@@ -58,7 +58,7 @@ const fetchLimitOrdersDelegations = async ({
   });
 
   const response = await fetch(
-    `${BRIDGE_API_BASE_URL}/v2/limit-orders/delegations?${searchParams.toString()}`,
+    `${BRIDGE_API_BASE_URL}/v2/orders/limit/delegations?${searchParams.toString()}`,
     {
       method: 'GET',
       headers: {

@@ -23,6 +23,8 @@ describe('recurring order formatting', () => {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
       symbol: 'ETH',
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
     });
     expect(result.destinationToken).toMatchObject({
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',

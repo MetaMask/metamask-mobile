@@ -10685,25 +10685,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/kyc-controller@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@metamask/kyc-controller@npm:0.4.0"
+"@metamask/kyc-controller@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@metamask/kyc-controller@npm:0.6.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/geolocation-controller": "npm:^2.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^1.2.6"
-    "@tanstack/query-core": "npm:^5.62.16"
+    "@tanstack/query-core": "npm:^5.89.0"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/10d821cf8779a56738398ad1e9f3578f27ec06bc4c1aa6c10f610fede63eccd155c71f5c0b5a8f800e5f5e3d35e32dc2fd6af9e9823cd0e501b9191ee5d55e29
+  checksum: 10/f05fe92a9d73fca810588171854d4c54fb0cdc8ed08c86ea44afb72e9f62665eb1edb591b14f77f37eeb876663c609b8a8d3781274ff09643565b662e354d970
   languageName: node
   linkType: hard
 
@@ -11567,6 +11567,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/ramps-controller@npm:^26.0.0":
+  version: 26.0.0
+  resolution: "@metamask/ramps-controller@npm:26.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    bignumber.js: "npm:^9.1.2"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/58290a711f5d3fd8fbb88febbac6590c6bd51047e98201f5f0a529eafb1209d831ac1a6501e7a07c5fe373a3342ff9314c88ad58ab39532671b6089e800b9e2f
+  languageName: node
+  linkType: hard
+
 "@metamask/react-data-query@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/react-data-query@npm:1.0.0"
@@ -12143,17 +12158,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:3.1.0":
-  version: 3.1.0
-  resolution: "@metamask/social-controllers@npm:3.1.0"
+"@metamask/social-controllers@npm:3.3.0":
+  version: 3.3.0
+  resolution: "@metamask/social-controllers@npm:3.3.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.2.0"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/31dcfa19cb00bf8cbc27b5b17ae12b8311e6c512d1ea43050ee356b84e44a5d83db61df54c1bd50372d904864c3db30fbb0186fc0d135a5a987a48b00625dcbc
+  checksum: 10/d17c106538bb29aeab3c9f2b14aa709f6838702e50dc2a396c37f79bbe6267a76536a50dc5fbb409f625e5f5bae1bda201f059beff13fd67fcc5ee22e01b6780
   languageName: node
   linkType: hard
 
@@ -39289,7 +39304,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-snap-client": "npm:^10.0.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/kyc-controller": "npm:^0.4.0"
+    "@metamask/kyc-controller": "npm:^0.6.0"
     "@metamask/logging-controller": "npm:^9.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
@@ -39324,7 +39339,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A32.3.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-32.3.0-810e2a2b20.patch"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^25.1.0"
+    "@metamask/ramps-controller": "npm:^26.0.0"
     "@metamask/react-data-query": "npm:^1.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
@@ -39351,7 +39366,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.0"
-    "@metamask/social-controllers": "npm:3.1.0"
+    "@metamask/social-controllers": "npm:3.3.0"
     "@metamask/solana-wallet-snap": "npm:^5.0.1"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"

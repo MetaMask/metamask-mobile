@@ -928,7 +928,6 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(legacyGroup)).toEqual([
         Routes.RAMP.VBA_KYC_EMAIL,
         Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
-        Routes.RAMP.VBA_VERIFY_IDENTITY,
       ]);
       expect(vbaScreen).toEqual(
         expect.objectContaining({

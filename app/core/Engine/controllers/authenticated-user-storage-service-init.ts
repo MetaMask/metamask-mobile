@@ -5,15 +5,21 @@ import {
 } from '@metamask/authenticated-user-storage';
 import type { MessengerClientInitFunction } from '../types';
 import Logger from '../../../util/Logger';
-import { devApiEnv } from '../../devApiEnv';
+import { ApiEnv, getApiEnv } from '../../apiEnv';
+
+const USER_STORAGE_ENVIRONMENT_BY_API_ENV: Record<ApiEnv, Environment> = {
+  [ApiEnv.Dev]: 'dev',
+  [ApiEnv.Uat]: 'uat',
+  [ApiEnv.Prod]: 'prod',
+};
 
 /**
  * The environment MUST match the one used by `AuthenticationController`: a
  * PRD-issued JWT cannot be validated against dev user-storage APIs and
- * vice versa. Both read from the same `devApiEnv` source so they always agree.
+ * vice versa. Both read from the same `getApiEnv` source so they always agree.
  */
 export function getAuthenticatedUserStorageEnvironment(): Environment {
-  return devApiEnv();
+  return USER_STORAGE_ENVIRONMENT_BY_API_ENV[getApiEnv()];
 }
 
 /**

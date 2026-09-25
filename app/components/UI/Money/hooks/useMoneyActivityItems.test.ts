@@ -13,7 +13,7 @@ import {
   useMoneyActivityItems,
   AUTO_FILL_MAX_PAGES,
 } from './useMoneyActivityItems';
-import { MoneyActivityFilter } from '../constants/mockActivityData';
+import { MoneyActivityFilter } from '../constants/moneyActivity';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
@@ -348,7 +348,6 @@ describe('useMoneyActivityItems', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0xmoney',
-      mockDataEnabled: false,
       ...overrides,
     }) as ReturnType<typeof useMoneyAccountTransactions>;
 
@@ -582,40 +581,6 @@ describe('useMoneyActivityItems', () => {
     expect(refetch).toHaveBeenCalled();
   });
 
-  it('masks the API error in mock mode', () => {
-    mockUseMoneyAccountTransactions.mockReturnValue(
-      txResult({ mockDataEnabled: true }),
-    );
-    mockUseMoneyAccountApiActivity.mockReturnValue(apiResult({ error: true }));
-
-    const { result } = renderHook(() => useMoneyActivityItems());
-
-    expect(result.current.error).toBe(false);
-    expect(result.current.isSettling).toBe(false);
-  });
-
-  it('treats mock mode as exhaustive: no watermark gating, no pagination', () => {
-    const loadMore = jest.fn();
-    mockUseMoneyAccountTransactions.mockReturnValue(
-      txResult({ mockDataEnabled: true }),
-    );
-    mockUseMoneyAccountApiActivity.mockReturnValue(
-      apiResult({
-        watermark: 100,
-        hasMore: true,
-        isComplete: false,
-        loadMore,
-      }),
-    );
-
-    const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
-
-    expect(result.current.mockDataEnabled).toBe(true);
-    expect(result.current.hasMore).toBe(false);
-    expect(result.current.isLoadingMore).toBe(false);
-    expect(loadMore).not.toHaveBeenCalled();
-  });
-
   it('does not surface declined rows or enrichment when flags/capabilities are off', () => {
     const declined: CardTransaction = {
       id: 'declined-1',
@@ -705,38 +670,6 @@ describe('useMoneyActivityItems', () => {
     ).not.toContain('declined-1');
     expect(result.current.cardEnrichmentByHash.size).toBe(0);
     expect(result.current.isSettling).toBe(false);
-  });
-
-  it('disables enrichment entirely in mock mode', () => {
-    enableEnrichment();
-    mockUseMoneyAccountTransactions.mockReturnValue(
-      txResult({ mockDataEnabled: true }),
-    );
-    const declined: CardTransaction = {
-      id: 'declined-1',
-      providerId: 'baanx',
-      timestamp: 280,
-      status: CardTransactionStatus.Failed,
-      type: CardTransactionType.Purchase,
-      isDebit: true,
-      billingAmount: { value: '1.00', currency: 'USD' },
-      fundingSources: [],
-    };
-    mockUseCardTransactionIndex.mockReturnValue({
-      ...defaultIndexResult,
-      declined: [declined],
-      bySettlementHash: new Map([['0xabc', declined]]),
-    });
-
-    const { result } = renderHook(() => useMoneyActivityItems());
-
-    expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
-    );
-    expect(
-      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
-    ).not.toContain('declined-1');
-    expect(result.current.cardEnrichmentByHash.size).toBe(0);
   });
 
   it('reports isSettling while enrichment is paging an empty bucket', () => {

@@ -33,13 +33,20 @@ export interface OpenLimitOrderDetailsModalProps {
    */
   submittedAmount: string;
   /**
-   * Limit price the order triggers at, e.g. "2200 USDC".
+   * Limit price the order triggers at, e.g. "2200 USDC", or "€1800" for a
+   * fiat price shown in the user's display currency.
    */
   triggerPrice: string;
   /**
    * Token the trigger price is quoted in, used for the trigger row avatar.
    */
   triggerToken?: BridgeToken;
+  /**
+   * USD price the order is placed at, e.g. "$2200". When set, a notice
+   * explains that the trigger price is shown in the display currency but the
+   * order was placed at this USD price.
+   */
+  usdTriggerPrice?: string;
   /**
    * Expiration label, e.g. "Sep 27".
    */
@@ -66,4 +73,14 @@ export interface OpenLimitOrderDetailsModalProps {
    * Optional test ID for the sheet container.
    */
   testID?: string;
+}
+
+export interface TriggerPriceDisplay {
+  triggerPrice: string;
+  triggerToken: BridgeToken;
+  /**
+   * The USD price the order is placed at, set only when the trigger row shows
+   * it converted to another currency.
+   */
+  usdTriggerPrice?: string;
 }

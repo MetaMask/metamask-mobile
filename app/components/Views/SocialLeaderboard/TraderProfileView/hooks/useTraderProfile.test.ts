@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import type { TraderProfileResponse } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
@@ -56,7 +57,7 @@ const makeQueryResult = (
     ...overrides,
   }) as ReturnType<typeof useQuery>;
 
-const fixtureProfile = {
+const fixtureProfile: TraderProfileResponse = {
   profile: {
     profileId: 'trader-1',
     address: '0xabc',
@@ -74,6 +75,11 @@ const fixtureProfile = {
   socialHandles: {},
   followerCount: 45,
   followingCount: 12,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
 };
 
 describe('useTraderProfile', () => {
