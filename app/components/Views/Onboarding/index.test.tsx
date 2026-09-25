@@ -41,6 +41,10 @@ jest.mock('../../../actions/user', () => {
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
+jest.mock('../RevealPrivateCredential', () => ({
+  RevealPrivateCredential: () => null,
+}));
 
 jest.mock('react-native-elevated-view', () => ({
   __esModule: true,
@@ -491,21 +495,20 @@ describe('Onboarding', () => {
     expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
-  it('renders loading overlay with loading message', async () => {
+  it('renders the onboarding fox loader while social login is loading', async () => {
     mockSkipLoadingUnset = true;
-    const loadingMessage = 'Creating your wallet...';
     const loadingState = {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
         loadingSet: true,
-        loadingMsg: loadingMessage,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId, queryByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -514,8 +517,12 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText(loadingMessage)).toBeOnTheScreen();
+        expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
       });
+      expect(
+        queryByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(queryByTestId('fox-animation-mock')).not.toBeOnTheScreen();
     } finally {
       mockRoute.params = {};
       mockSkipLoadingUnset = false;
@@ -528,15 +535,15 @@ describe('Onboarding', () => {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
-        loadingSet: true,
-        loadingMsg: 'Loading...',
+        loadingSet: false,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -545,7 +552,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Loading...')).toBeOnTheScreen();
+        expect(
+          getByTestId(OnboardingSelectorIDs.CONTAINER_ID),
+        ).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -559,15 +568,15 @@ describe('Onboarding', () => {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
-        loadingSet: true,
-        loadingMsg: 'Loading...',
+        loadingSet: false,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -576,7 +585,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Loading...')).toBeOnTheScreen();
+        expect(
+          getByTestId(OnboardingSelectorIDs.CONTAINER_ID),
+        ).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};

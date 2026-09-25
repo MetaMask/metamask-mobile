@@ -145,7 +145,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
 
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
@@ -443,7 +443,7 @@ describe('ChoosePassword', () => {
   });
 
   describe('UI State', () => {
-    it('shows FoxRiveLoaderAnimation and hides form inputs during loading', async () => {
+    it('shows the onboarding fox loader and hides form inputs during loading', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
