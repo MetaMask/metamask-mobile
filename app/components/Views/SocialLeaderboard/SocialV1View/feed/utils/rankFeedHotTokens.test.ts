@@ -83,6 +83,11 @@ describe('rankFeedHotTokens', () => {
       'asset:BTC',
     ]);
     expect(tokens[0]?.symbol).toBe('xyz:PUMP');
+    expect(tokens[0]?.chain).toBe('solana');
+    expect(tokens[0]?.contractAddress).toBe(
+      'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    );
+    expect(tokens[1]?.contractAddress).toBeUndefined();
   });
 
   it('uses the asset name as the chip label when the feed has one', () => {

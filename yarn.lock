@@ -12181,6 +12181,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.1.0#~/.yarn/patches/@metamask-social-controllers-npm-3.1.0-70283cf984.patch":
+  version: 3.1.0
+  resolution: "@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.1.0#~/.yarn/patches/@metamask-social-controllers-npm-3.1.0-70283cf984.patch::version=3.1.0&hash=c10f8f"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-data-service": "npm:^2.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^32.2.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+  checksum: 10/7365a298858733690a5d37c46eac4a25d03f2b9b50cc10806313679f53641319a6937e034a7c18401e01592b36992dccfd5377aed88c4378c388a9f56ff79ddd
+  languageName: node
+  linkType: hard
+
 "@metamask/solana-wallet-snap@npm:^5.0.1":
   version: 5.0.1
   resolution: "@metamask/solana-wallet-snap@npm:5.0.1"
@@ -39483,7 +39497,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.0"
-    "@metamask/social-controllers": "npm:3.1.0"
+    "@metamask/social-controllers": "patch:@metamask/social-controllers@npm%3A3.1.0#~/.yarn/patches/@metamask-social-controllers-npm-3.1.0-70283cf984.patch"
     "@metamask/solana-wallet-snap": "npm:^5.0.1"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
