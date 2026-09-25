@@ -595,17 +595,23 @@ describe('isWatchOnlyAccount', () => {
       },
     ];
 
-    expect(isWatchOnlyAccount(watchOnlyAddress)).toBe(true);
+    const result = isWatchOnlyAccount(watchOnlyAddress);
+
+    expect(result).toBe(true);
   });
 
   it('returns false for an address in a non-watch-only keyring', () => {
-    expect(isWatchOnlyAccount(mockHDKeyringAddress)).toBe(false);
+    const result = isWatchOnlyAccount(mockHDKeyringAddress);
+
+    expect(result).toBe(false);
   });
 
   it('returns false for an address with no matching keyring', () => {
-    expect(
-      isWatchOnlyAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
-    ).toBe(false);
+    const result = isWatchOnlyAccount(
+      '0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278',
+    );
+
+    expect(result).toBe(false);
   });
 });
 
@@ -617,9 +623,9 @@ describe('getLabelTextByInternalAccount', () => {
       KeyringTypes.watchOnly,
     );
 
-    expect(getLabelTextByInternalAccount(account)).toBe(
-      strings('accounts.watch_only'),
-    );
+    const label = getLabelTextByInternalAccount(account);
+
+    expect(label).toBe(strings('accounts.watch_only'));
   });
 });
 
