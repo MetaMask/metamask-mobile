@@ -7,6 +7,7 @@ import {
   Scope,
   type Span,
   withIsolationScope,
+  getCurrentScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
@@ -48,6 +49,7 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('@sentry/core', () => ({
   withIsolationScope: jest.fn(),
+  getCurrentScope: jest.fn(),
   startNewTrace: jest.fn((fn: () => unknown) => fn()),
   SPAN_STATUS_ERROR: 2,
 }));
@@ -101,9 +103,11 @@ describe('Trace', () => {
   const startSpanManualMock = jest.mocked(startSpanManual);
   // mockImplementation doesn't choose the correct overload, so we ignore the types by casting to jest.Mock
   const withIsolationScopeMock = jest.mocked(withIsolationScope) as jest.Mock;
+  const getCurrentScopeMock = jest.mocked(getCurrentScope) as jest.Mock;
   const startNewTraceMock = jest.mocked(startNewTrace) as jest.Mock;
   const setMeasurementMock = jest.mocked(setMeasurement);
   const setTagMock = jest.fn();
+  const isolationScopeSetTagMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -124,8 +128,11 @@ describe('Trace', () => {
     );
 
     withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
-      fn({ setTag: setTagMock } as unknown as Scope),
+      fn({ setTag: isolationScopeSetTagMock } as unknown as Scope),
     );
+    getCurrentScopeMock.mockReturnValue({
+      setTag: setTagMock,
+    } as unknown as Scope);
     startNewTraceMock.mockImplementation((fn: () => unknown) => fn());
 
     // Discard rather than flush: flushing replays whatever the previous test
@@ -226,6 +233,25 @@ describe('Trace', () => {
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
+    });
+
+    it('tags the per-trace current scope and never the shared isolation scope', () => {
+      updateCachedConsent(true);
+
+      trace({
+        id: ID_MOCK,
+        name: NAME_MOCK,
+        tags: TAGS_MOCK,
+      });
+
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
+      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      // React Native has no async context strategy, so Sentry hands the same
+      // process-wide Scope to every `withIsolationScope` call. Tagging it would
+      // leak this trace's tags onto every later transaction and error.
+      expect(isolationScopeSetTagMock).not.toHaveBeenCalled();
     });
 
     it('uses data when tags and data contain the same attribute', () => {
@@ -1725,8 +1751,11 @@ describe('Trace', () => {
         fn(mockSpan, () => undefined),
       );
       withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
-        fn({ setTag: setTagMock } as unknown as Scope),
+        fn({ setTag: isolationScopeSetTagMock } as unknown as Scope),
       );
+      getCurrentScopeMock.mockReturnValue({
+        setTag: setTagMock,
+      } as unknown as Scope);
     });
 
     it('should clear buffer and not process traces when consent is not given', async () => {
