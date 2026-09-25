@@ -2,13 +2,14 @@ import { useCallback } from 'react';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import type { Quote } from '@metamask/ramps-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { resetWithRoutes } from '../../../../util/navigation/navUtils';
 import Device from '../../../../util/device';
 
 import {
-  EXTERNAL_OS_BROWSER,
   getCheckoutContext,
+  shouldUseSystemOpen,
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 
@@ -21,8 +22,13 @@ export interface OpenHostedBuyWidgetParams {
   orderId?: string | null;
   walletAddress?: string | null;
   chainId?: string;
-  /** buyWidget.browser from quotes/buy-widget; EXTERNAL_OS_BROWSER → system open */
+  /**
+   * Prefer buy-widget response `browser` when present. When omitted, falls
+   * back to `quote.quote.buyWidget.browser` via shouldUseSystemOpen.
+   */
   browser?: string | null;
+  /** Quote snapshot used when `browser` is omitted. */
+  quote?: Quote;
 }
 
 export interface UseOpenHostedBuyWidgetResult {
@@ -53,6 +59,7 @@ export function useOpenHostedBuyWidget(): UseOpenHostedBuyWidgetResult {
       walletAddress,
       chainId,
       browser,
+      quote,
     }: OpenHostedBuyWidgetParams) => {
       const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
         { chainId },
@@ -75,7 +82,9 @@ export function useOpenHostedBuyWidget(): UseOpenHostedBuyWidgetResult {
       // EXTERNAL_OS_BROWSER must system-open so partner universal links fire
       // (ASWebAuthenticationSession loads the URL like a typed address).
       const useSystemOpen =
-        isAndroid || !inAppBrowserAvailable || browser === EXTERNAL_OS_BROWSER;
+        isAndroid ||
+        !inAppBrowserAvailable ||
+        shouldUseSystemOpen(quote ?? ({ quote: {} } as Quote), browser);
 
       if (useSystemOpen) {
         await Linking.openURL(url);
