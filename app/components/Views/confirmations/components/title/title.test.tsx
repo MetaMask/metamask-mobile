@@ -3,6 +3,7 @@ import { merge } from 'lodash';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import {
+  mockTxId,
   generateContractInteractionState,
   personalSignatureConfirmationState,
   siweSignatureConfirmationState,
@@ -25,6 +26,13 @@ import {
 import { useGetTokenStandardAndDetails } from '../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../types/token';
 import Title from './title';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { strings } from '../../../../../../locales/i18n';
+import { ApprovalType } from '@metamask/controller-utils';
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(() => ({})),
+}));
 
 jest.mock('../../hooks/useGetTokenStandardAndDetails');
 
@@ -72,8 +80,11 @@ describe('Confirm Title', () => {
   const mockUseGetTokenStandardAndDetails = jest.mocked(
     useGetTokenStandardAndDetails,
   );
+  const mockUseParams = jest.mocked(useParams);
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseParams.mockReturnValue({});
     mockUseGetTokenStandardAndDetails.mockReturnValue({
       details: {
         standard: TokenStandard.ERC20,
@@ -81,6 +92,113 @@ describe('Confirm Title', () => {
       },
       isPending: false,
     } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+  });
+
+  describe('Money Account Deposit', () => {
+    it('renders the deposit title and hides the two-transaction badge', () => {
+      const moneyAccountState = merge({}, generateContractInteractionState, {
+        engine: {
+          backgroundState: {
+            ApprovalController: {
+              pendingApprovals: {
+                [mockTxId]: {
+                  id: mockTxId,
+                  type: ApprovalType.TransactionBatch,
+                  requestData: { txId: mockTxId },
+                },
+              },
+            },
+            TransactionController: {
+              transactions: [
+                {
+                  id: mockTxId,
+                  type: TransactionType.batch,
+                  chainId: '0x1',
+                  nestedTransactions: [
+                    { type: TransactionType.tokenMethodApprove },
+                    { type: TransactionType.moneyAccountDeposit },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<Title />, {
+        state: moneyAccountState,
+      });
+
+      expect(
+        getByText(strings('confirm.title.money_account_add_money')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(
+          strings('confirm.7702_functionality.includes_transaction', {
+            transactionCount: 2,
+          }),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('Perps', () => {
+    it('renders Perps Deposit title', () => {
+      const perpsDepositState = merge({}, generateContractInteractionState, {
+        engine: {
+          backgroundState: {
+            ApprovalController: {
+              pendingApprovals: {
+                [mockTxId]: {
+                  id: mockTxId,
+                  type: ApprovalType.Transaction,
+                  requestData: { txId: mockTxId },
+                },
+              },
+            },
+            TransactionController: {
+              transactions: [
+                {
+                  id: mockTxId,
+                  type: TransactionType.perpsDeposit,
+                  chainId: '0x1',
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const { getByText } = renderWithProvider(<Title />, {
+        state: perpsDepositState,
+      });
+
+      expect(
+        getByText(strings('confirm.title.perps_deposit')),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('forceBottomSheet', () => {
+    it('uses smaller font when forceBottomSheet is true', () => {
+      mockUseParams.mockReturnValue({ forceBottomSheet: true });
+      const { getByText } = renderWithProvider(<Title />, {
+        state: personalSignatureConfirmationState,
+      });
+
+      const titleEl = getByText('Signature request');
+      expect(titleEl).toHaveStyle({ fontSize: 16 });
+    });
+
+    it('uses default font when forceBottomSheet is false', () => {
+      mockUseParams.mockReturnValue({ forceBottomSheet: false });
+      const { getByText } = renderWithProvider(<Title />, {
+        state: personalSignatureConfirmationState,
+      });
+
+      const titleEl = getByText('Signature request');
+      expect(titleEl).toHaveStyle({ fontSize: 20 });
+    });
   });
 
   it('renders the title and subtitle for a permit signature', () => {

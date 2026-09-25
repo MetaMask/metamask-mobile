@@ -18,7 +18,10 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
-import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type {
+  ConfirmationParams,
+  FullScreenConfirmationParams,
+} from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
@@ -56,6 +59,7 @@ import type {
 import type { TooltipModalRouteParams } from '../../components/Views/TooltipModal/ToolTipModal.types';
 import type { ChoosePasswordRouteParams } from '../../components/Views/ChoosePassword/ChoosePassword.types';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
+import type { ManageAccountsParams } from '../../components/Views/ManageAccounts/ManageAccounts.types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import type { AccountConnectParams } from '../../components/Views/MultichainAccounts/shared/AccountConnect.types';
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
@@ -83,6 +87,7 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
+import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -234,6 +239,7 @@ import type {
   ShareAddressParams,
   ShareAddressQRParams,
   DeleteAccountParams,
+  RemoveAccountParams,
   SmartAccountParams,
   MultichainAccountDetailsParams,
   MultichainAccountGroupDetailsParams,
@@ -481,6 +487,7 @@ export type RootStackParamList = {
   AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
+  ManageAccountsView: ManageAccountsParams | undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -554,9 +561,14 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampGetPixKey: undefined;
+  RampCreateVirtualBankAccount: undefined;
   RampVbaVerifyIdentity: undefined;
   RampVbaKycEmail: undefined;
+  RampVbaSumSubKyc: undefined;
+  RampVbaKycPending: undefined;
+  RampVbaKycRejected: undefined;
+  RampVbaOnboardingError: undefined;
+  RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -820,6 +832,7 @@ export type RootStackParamList = {
   ShareAddress: ShareAddressParams | undefined;
   ShareAddressQR: ShareAddressQRParams | undefined;
   DeleteAccount: DeleteAccountParams | undefined;
+  RemoveAccount: RemoveAccountParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
   RevealSRPCredential: RevealSRPCredentialParams | undefined;
   SRPRevealQuizInMultichainAccountDetails: SRPRevealQuizParams | undefined;
@@ -930,6 +943,7 @@ export type RootStackParamList = {
   Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
+  PerpsBalanceOrder: PerpsNavigationParamList['PerpsBalanceOrder'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
@@ -959,6 +973,8 @@ export type RootStackParamList = {
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
+  PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
+  PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
   // Predict routes — `Predict` is a nested stack navigator.
   Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
@@ -1002,6 +1018,7 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: undefined;
+  SocialProfileOnboardingView: undefined;
   MyProfileView: undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;
@@ -1032,7 +1049,7 @@ export type RootStackParamList = {
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
-  ConfirmationRequestModal: undefined;
+  ConfirmationRequestModal: ConfirmationParams | undefined;
   ConfirmationSwitchAccountType:
     | NavigatorScreenParams<{
         ConfirmationSwitchAccountType: { address?: string } | undefined;

@@ -49,6 +49,7 @@ android/app/bin/
 android/app/gradle*
 android/app/_build*
 android/libs
+android/app/src/main/java/inline/
 .cxx/
 .kotlin/
 
@@ -267,3 +268,6 @@ sourcemaps/**/*.js.map
 
 # Platform API docs
 .platform-api-docs/
+
+# Regenerated from tests/tags.js and tests/tags.performance.js before Smart E2E analysis
+.ai-pr-analyzer/modes/smart-e2e/catalog.json

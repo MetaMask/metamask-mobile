@@ -9,8 +9,11 @@ are explicitly out of scope.
 
 This is complementary to:
 
-- GitHub workflow `Analyze App Profiling` (Actions → workflow_dispatch only)
-- Weekly rollup in `weekly-app-profiling-report.md` (7-day merged-PR averages)
+- GitHub workflow `Analyze App Profiling`
+  - 6-hour scheduled performance runs: collect `report.json` only (no Slack)
+  - Monday 09:00 UTC: week-over-week exception report (Slack DM)
+  - Manual performance dispatch: full per-run digest (Slack DM)
+- Weekly BrowserStack rollup in `weekly-app-profiling-report.md`
 
 Note: `workflow_dispatch` is only offered for workflows already on the default
 branch. After it lands on `main`, run it from Actions. Until then, use the
@@ -18,7 +21,8 @@ local command below.
 
 ## Suggested trigger
 
-- Cadence: ad-hoc only. Do not add a GitHub or Cursor schedule for this.
+- Cadence: ad-hoc investigation, or Actions → Analyze App Profiling → `weekly`.
+  Do not add a Cursor schedule; GitHub owns Monday and 6-hour collection.
 - Repo: `MetaMask/metamask-mobile`
 - Model: high-reasoning model preferred
 

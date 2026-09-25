@@ -133,12 +133,7 @@ export class Delegation7702PublishHook {
       (result) => result.chainId.toLowerCase() === chainId.toLowerCase(),
     );
 
-    const isChainSupported =
-      atomicBatchChainSupport &&
-      (!atomicBatchChainSupport.delegationAddress ||
-        atomicBatchChainSupport.isSupported);
-
-    if (!isChainSupported) {
+    if (!atomicBatchChainSupport) {
       log('Skipping as EIP-7702 is not supported', { from, chainId });
 
       if (isGaslessBridge || isSponsored) {
@@ -152,6 +147,7 @@ export class Delegation7702PublishHook {
 
     const { delegationAddress, upgradeContractAddress } =
       atomicBatchChainSupport;
+    const requiresUpgrade = !atomicBatchChainSupport.isSupported;
 
     if (
       (!selectedGasFeeToken || !gasFeeTokens?.length) &&
@@ -223,6 +219,7 @@ export class Delegation7702PublishHook {
       transactionMeta,
       upgradeContractAddress,
       delegationAddress,
+      requiresUpgrade,
     );
 
     if (authorizationList?.length) {
@@ -426,13 +423,15 @@ export class Delegation7702PublishHook {
    *
    * Always retain pre-signed authorizations whose recovered signer is not the
    * transaction `from` (e.g. Money Account upgrades bundled with an EOA-paid
-   * batch). When `from` itself is not upgraded, also include a freshly signed
+   * batch). When `from` itself is not upgraded, or is upgraded to a
+   * non-MetaMask contract (`requiresUpgrade`), also include a freshly signed
    * EOA authorization — without replacing the foreign entries.
    */
   async #resolveAuthorizationList(
     transactionMeta: TransactionMeta,
     upgradeContractAddress: Hex | undefined,
     delegationAddress: Hex | undefined,
+    requiresUpgrade: boolean,
   ): Promise<AuthorizationList | undefined> {
     const { from, authorizationList: existingAuthorizationList } =
       transactionMeta.txParams;
@@ -442,7 +441,13 @@ export class Delegation7702PublishHook {
       from as Hex,
     );
 
-    if (!delegationAddress) {
+    if (!delegationAddress || requiresUpgrade) {
+      log('Including authorization as not upgraded or overwriting delegation', {
+        from,
+        delegationAddress,
+        requiresUpgrade,
+      });
+
       const fromAuthorization = await this.#buildAuthorizationList(
         transactionMeta,
         upgradeContractAddress,
