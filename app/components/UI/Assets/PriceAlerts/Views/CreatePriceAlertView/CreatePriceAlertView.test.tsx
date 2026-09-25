@@ -11,6 +11,7 @@ import {
   type PercentChangeAlert,
 } from '../../constants';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import type { usePerpsLiveFocusedPrice } from '../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice';
 import CreatePriceAlertView from './CreatePriceAlertView';
 
 const mockGoBack = jest.fn();
@@ -75,6 +76,18 @@ jest.mock(
   }),
 );
 
+const mockUsePerpsLiveFocusedPrice = jest.fn<
+  ReturnType<typeof usePerpsLiveFocusedPrice>,
+  []
+>(() => undefined);
+jest.mock('../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice', () => ({
+  usePerpsLiveFocusedPrice: () => mockUsePerpsLiveFocusedPrice(),
+}));
+jest.mock('../../../../Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
 const absoluteAlert: AbsolutePriceAlert = {
   id: 'absolute-alert-1',
   userId: 'user-1',
@@ -114,6 +127,7 @@ describe('CreatePriceAlertView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = baseRoute;
+    mockUsePerpsLiveFocusedPrice.mockReturnValue(undefined);
   });
 
   it('switches from the absolute form to the percent-change form', () => {
@@ -318,5 +332,66 @@ describe('CreatePriceAlertView', () => {
     } finally {
       I18n.locale = originalLocale;
     }
+  });
+
+  it('formats a Perps BTC header like the live market header', () => {
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      szDecimals: 5,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$83,714')).toBeOnTheScreen();
+  });
+
+  it('formats a Perps kPEPE header like the live market header', () => {
+    mockRouteParams = {
+      symbol: 'kPEPE',
+      ticker: 'kPEPE',
+      currentPrice: 0.008764,
+      currentCurrency: 'usd',
+      assetId: 'kPEPE',
+      mode: 'perps',
+      marketId: 'kpepe-hyperliquid-mainnet',
+      szDecimals: 0,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$0.008764')).toBeOnTheScreen();
+  });
+
+  it('updates the Perps header subtitle when a live tick arrives', () => {
+    mockUsePerpsLiveFocusedPrice.mockReturnValue({
+      symbol: 'BTC',
+      price: '84000',
+      markPrice: '84000',
+      timestamp: 1,
+      isTradable: true,
+    });
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      szDecimals: 5,
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByText('$84,000')).toBeOnTheScreen();
+    expect(mockAbsoluteForm).toHaveBeenCalledWith(
+      expect.objectContaining({ currentPrice: 84000, szDecimals: 5 }),
+    );
   });
 });
