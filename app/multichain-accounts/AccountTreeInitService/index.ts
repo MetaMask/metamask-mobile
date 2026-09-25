@@ -11,7 +11,7 @@ export class AccountTreeInitService {
     } = Engine.context;
     const { remoteFeatureFlags } = RemoteFeatureFlagController.state;
 
-    AccountsController.init();
+    await AccountsController.updateAccounts();
 
     AccountTreeController.init();
 

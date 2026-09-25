@@ -9270,31 +9270,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/accounts-controller@npm:@metamask-previews/accounts-controller@40.0.0-preview-7aac301dc":
-  version: 40.0.0-preview-7aac301dc
-  resolution: "@metamask-previews/accounts-controller@npm:40.0.0-preview-7aac301dc"
+"@metamask/accounts-controller@npm:^39.1.0":
+  version: 39.1.1
+  resolution: "@metamask/accounts-controller@npm:39.1.1"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/eth-snap-keyring": "npm:^24.0.0"
     "@metamask/keyring-api": "npm:^24.0.0"
-    "@metamask/keyring-controller": "npm:^28.0.0"
+    "@metamask/keyring-controller": "npm:^27.1.1"
     "@metamask/keyring-internal-api": "npm:^12.0.0"
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/network-controller": "npm:^37.0.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/network-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^11.11.0"
     deepmerge: "npm:^4.2.2"
     ethereum-cryptography: "npm:^2.1.2"
     immer: "npm:^9.0.6"
-    lodash-es: "npm:^4.17.21"
-    uuid: "npm:^11.1.1"
+    lodash: "npm:^4.17.21"
+    uuid: "npm:^8.3.2"
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/68b5fa37547ff66a284e51b0512082128debc3f0c1954abd74f935683065d9bd625ab7c44281b235db0b14170a0df55b262e2cc963555214e14d7cbbc0531dd7
+  checksum: 10/c0b2a3fccd4e4fc8dc646c26cf575d520b4f80ccdbb9eee5c8c0317b137d6ca5caa5a55954748548e243d31f050119c815c1b9f66659af5498f346fa8e0a13bd
   languageName: node
   linkType: hard
 
@@ -52496,7 +52496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.1.0, uuid@npm:^11.1.1":
+"uuid@npm:^11.1.0":
   version: 11.1.1
   resolution: "uuid@npm:11.1.1"
   bin:
