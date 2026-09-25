@@ -230,7 +230,11 @@ class FCMService {
   onClickPushNotificationWhenAppClosed = async (): Promise<PushTapResult> => {
     try {
       const remoteMessage = await getInitialNotification();
-      await analyticsTrackPushClickEvent(remoteMessage);
+
+      if (remoteMessage !== null) {
+        await analyticsTrackPushClickEvent(remoteMessage);
+      }
+
       return toPushTapResult(remoteMessage?.data, Boolean(remoteMessage));
     } catch {
       return { opened: false, deeplink: null };
