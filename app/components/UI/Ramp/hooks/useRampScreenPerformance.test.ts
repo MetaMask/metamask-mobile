@@ -114,7 +114,6 @@ describe('useRampScreenPerformance', () => {
       appStateListener('inactive');
     });
     expect(mockEndTrace).not.toHaveBeenCalled();
-
     rerender({ contentReady: true });
 
     expect(mockEndTrace).toHaveBeenCalledWith(
@@ -138,7 +137,6 @@ describe('useRampScreenPerformance', () => {
       appState = 'background';
       appStateListener('background');
     });
-
     expect(mockEndTrace).toHaveBeenLastCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -148,11 +146,11 @@ describe('useRampScreenPerformance', () => {
       }),
     );
 
+    rerender({ contentReady: true });
     act(() => {
       appState = 'active';
       appStateListener('active');
     });
-    rerender({ contentReady: true });
 
     expect(mockTrace).toHaveBeenCalledTimes(2);
     expect(mockEndTrace).toHaveBeenLastCalledWith(
@@ -229,7 +227,7 @@ describe('useRampScreenPerformance', () => {
 
   it('starts its own transaction when no Buy CUF is active', () => {
     mockGetParentContext.mockReturnValueOnce(undefined);
-
+    appState = 'inactive';
     renderHook(() =>
       useRampScreenPerformance({
         screenId: RAMP_V2_SCREEN_ID.ERROR_DETAILS_MODAL,
@@ -237,7 +235,8 @@ describe('useRampScreenPerformance', () => {
         contentState: RAMP_SCREEN_CONTENT_STATE.ERROR,
       }),
     );
-
+    expect(mockTrace).not.toHaveBeenCalled();
+    act(() => appStateListener((appState = 'active')));
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         parentContext: undefined,

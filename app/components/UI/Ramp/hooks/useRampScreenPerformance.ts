@@ -123,10 +123,11 @@ export function useRampScreenPerformance({
       }
       if (hasReachedContentRef.current) {
         settleRampsBuyForegroundOnSpan(TraceName.RampScreenLoad);
-      } else if (contentReadyRef.current) {
-        endActiveTrace(true);
       } else if (mountedRef.current && enabledRef.current) {
         startScreenTrace();
+        if (contentReadyRef.current) {
+          endActiveTrace(true);
+        }
       }
     });
 
