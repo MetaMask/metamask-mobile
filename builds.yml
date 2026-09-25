@@ -403,10 +403,6 @@ builds:
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
-      # Pin uat: this build overrides the URLs above to uat/dev-api, but the
-      # e2e flavor also covers the BrowserStack performance builds below,
-      # which inherit production URLs and need the e2e default (prod).
-      MM_API_ENV: 'uat'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -608,9 +604,6 @@ builds:
       HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
-      # Pin uat: this build overrides the URLs above to uat/dev-api, but the
-      # e2e flavor default is prod (see main-e2e above for the full reason).
-      MM_API_ENV: 'uat'
     secrets: *secrets
     code_fencing: *code_fencing_flask
 

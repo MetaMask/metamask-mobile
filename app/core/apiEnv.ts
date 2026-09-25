@@ -5,10 +5,7 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
  *
  * `MM_API_ENV` (`dev`, `uat`, or `prod`) overrides the build flavor.
  * When it is unset, the flavor selects the cluster: `dev` → dev,
- * `exp`/`test` → uat, and every other flavor → prod. `e2e` is split
- * across builds with different intents (see `builds.yml`), so builds
- * that need uat pin `MM_API_ENV` explicitly instead of relying on the
- * flavor default.
+ * `exp` → uat, and every other flavor → prod.
  * Services without a host for the selected env keep their own URL.
  *
  * Read synchronously at controller-init time — no Redux, no remote flag,
@@ -37,8 +34,7 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
  * @returns The cluster for this build.
  */
 export const getApiEnv = (): ApiEnv => {
-  const override =
-    API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()];
+  const override = API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()];
   if (override) {
     return override;
   }
@@ -48,7 +44,6 @@ export const getApiEnv = (): ApiEnv => {
       return ApiEnv.Dev;
     case 'exp':
     case 'uat':
-    case 'test':
       return ApiEnv.Uat;
     default:
       return ApiEnv.Prod;
