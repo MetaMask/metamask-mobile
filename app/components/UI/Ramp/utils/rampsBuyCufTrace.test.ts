@@ -1,7 +1,10 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import {
   trace,
   endTrace,
+  getPerformanceTimestamp,
   getTraceContext,
+  setTraceMeasurement,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
@@ -25,31 +28,55 @@ import {
   RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_TIMEOUT_MS,
+  RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
 } from '../constants/rampsBuyCufTags';
 
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(() => ({ mocked: 'parent-span' })),
   endTrace: jest.fn(),
+  getPerformanceTimestamp: jest.fn(() => 0),
   getTraceContext: jest.fn(() => ({ mocked: 'parent-span' })),
+  setTraceMeasurement: jest.fn(),
 }));
 
 const mockTrace = trace as jest.Mock;
 const mockEndTrace = endTrace as jest.Mock;
 const mockGetTraceContext = getTraceContext as jest.Mock;
+const mockGetPerformanceTimestamp = getPerformanceTimestamp as jest.Mock;
+const mockSetTraceMeasurement = setTraceMeasurement as jest.Mock;
 
 describe('rampsBuyCufTrace', () => {
+  let appState: AppStateStatus;
+  let appStateListener: (state: AppStateStatus) => void;
+  let now: number;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
     mockTrace.mockReturnValue({ mocked: 'parent-span' });
     mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });
+    now = 0;
+    mockGetPerformanceTimestamp.mockImplementation(() => now);
+    appState = 'active';
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => appState,
+    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_, listener) => {
+        appStateListener = listener;
+        return { remove: jest.fn() };
+      });
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it.each([
@@ -80,6 +107,7 @@ describe('rampsBuyCufTrace', () => {
         id: opId,
         op: TraceOperation.RampOperation,
         forceTransaction: true,
+        maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
         tags: fields,
         data: fields,
       }),
@@ -140,7 +168,9 @@ describe('rampsBuyCufTrace', () => {
       expect.objectContaining({
         name: TraceName.RampBuyToOrderDetails,
         id: opId,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        }),
       }),
     );
     expect(hasActiveRampsBuyCufTrace()).toBe(false);
@@ -195,12 +225,102 @@ describe('rampsBuyCufTrace', () => {
       expect.objectContaining({
         name: TraceName.RampBuyToOrderDetails,
         id: timedOutId,
-        data: {
+        data: expect.objectContaining({
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.TIMEOUT,
-        },
+        }),
       }),
     );
+  });
+
+  it('accumulates only foreground-active time across a background resume', () => {
+    const opId = startRampsBuyCufTrace({ startTime: 0 });
+    now = 1_000;
+    appState = 'background';
+    appStateListener('background');
+    now = 6_000;
+    appState = 'active';
+    appStateListener('active');
+    now = 8_000;
+
+    endRampsBuyCufTrace();
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: TraceName.RampBuyToOrderDetails, id: opId },
+      RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+      3_000,
+      'millisecond',
+    );
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: 3_000,
+          [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 1,
+          [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 1,
+          [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]: 'background_resumed',
+        }),
+      }),
+    );
+  });
+
+  it('does not treat iOS inactive as a backgrounded quote fetch', () => {
+    startRampsBuyCufTrace();
+    const quoteId = startRampsBuyQuoteFetchTrace();
+    mockEndTrace.mockClear();
+    now = 1_000;
+    appState = 'inactive';
+
+    appStateListener('inactive');
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+
+    now = 2_000;
+    appState = 'active';
+    appStateListener('active');
+    endRampsBuyQuoteFetchTrace({
+      id: quoteId,
+      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampBuyQuoteFetch,
+        id: quoteId,
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      }),
+    );
+  });
+
+  it('keeps the Buy parent open when the app backgrounds', () => {
+    startRampsBuyCufTrace();
+    now = 1_000;
+    appState = 'background';
+
+    appStateListener('background');
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+  });
+
+  it('cancels an open quote fetch when the app backgrounds', () => {
+    startRampsBuyCufTrace();
+    const quoteId = startRampsBuyQuoteFetchTrace();
+    mockEndTrace.mockClear();
+    now = 1_000;
+    appState = 'background';
+
+    appStateListener('background');
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.RampBuyQuoteFetch,
+      id: quoteId,
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
+      },
+      timestamp: undefined,
+    });
   });
 
   it('does not end a parent from a stale timeout after a successful end', () => {
