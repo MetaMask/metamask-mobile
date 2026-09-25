@@ -64,9 +64,9 @@ describe('useSocialV1TokenFeed', () => {
     renderHook(() => useSocialV1TokenFeed(target), { wrapper });
     await waitFor(() => expect(mockCall).toHaveBeenCalled());
 
-    const query = client.getQueryCache().getAll()[0];
-    expect(query?.options.refetchOnWindowFocus).toBe(false);
-    expect(query?.options.refetchOnReconnect).toBe(false);
+    const observer = client.getQueryCache().getAll()[0]?.observers[0];
+    expect(observer?.options.refetchOnWindowFocus).toBe(false);
+    expect(observer?.options.refetchOnReconnect).toBe(false);
   });
 
   it('does not call the messenger when no token is selected', () => {
