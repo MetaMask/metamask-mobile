@@ -45,6 +45,12 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
+    expect(
+      screen.getAllByTestId(
+        new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
+      ),
+    ).toHaveLength(1);
 
     fireEvent(screen.getByRole('switch'), 'valueChange', false);
     fireEvent.press(

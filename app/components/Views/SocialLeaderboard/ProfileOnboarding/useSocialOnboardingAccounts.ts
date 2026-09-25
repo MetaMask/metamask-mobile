@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectInternalAccounts } from '../../../../selectors/accountsController';
+import { selectInternalEvmAccounts } from '../../../../selectors/accountsController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
 import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
@@ -20,11 +20,14 @@ const accountLabel = (name: string | undefined, address: string): string =>
   name?.trim() ? name : renderShortAddress(address);
 
 /**
- * Wallet accounts the profile can link, with fiat totals from the same
+ * EVM wallet accounts the profile can link, with fiat totals from the same
  * balance hooks the portfolio uses.
+ *
+ * Those hooks are EVM-only and checksum each address, so non-EVM accounts are
+ * left out. The hook runs when onboarding mounts, before the link-account step.
  */
 export const useSocialOnboardingAccounts = (): SocialOnboardingAccount[] => {
-  const accounts = useSelector(selectInternalAccounts);
+  const accounts = useSelector(selectInternalEvmAccounts);
   const enabledChains = useSelector(selectEVMEnabledNetworks);
   const currency = useSelector(selectCurrentCurrency);
   const formattedTokens = useGetFormattedTokensPerChain(

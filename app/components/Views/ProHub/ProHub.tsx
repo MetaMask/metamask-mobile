@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -30,6 +30,10 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../hooks/useMoneyAccountPlusAccess';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -101,10 +105,22 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const proAccess = useMoneyAccountPlusAccess();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // The hub is subscriber-only. Wait while subscriptions are unresolved so an
+  // empty controller slice does not bounce a paid user before the first fetch.
+  useEffect(() => {
+    if (
+      proAccess !== MoneyAccountPlusAccess.Subscriber &&
+      proAccess !== MoneyAccountPlusAccess.Unknown
+    ) {
+      navigation.goBack();
+    }
+  }, [proAccess, navigation]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
@@ -143,101 +159,103 @@ const ProHub = () => {
         {strings('pro_hub.title')}
       </HeaderBase>
 
-      <ScrollView
-        contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
-        showsVerticalScrollIndicator={false}
-      >
-        <Box twClassName="w-full mb-4 gap-y-4">
-          <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
+      {proAccess === MoneyAccountPlusAccess.Subscriber && (
+        <ScrollView
+          contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
+          showsVerticalScrollIndicator={false}
+        >
+          <Box twClassName="w-full mb-4 gap-y-4">
+            <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
 
-          <Box
-            twClassName="gap-y-4"
-            testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
-          >
-            <Box twClassName="gap-y-1">
+            <Box
+              twClassName="gap-y-4"
+              testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
+            >
+              <Box twClassName="gap-y-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('pro_hub.lifetime_earnings')}
+                </Text>
+                <Text
+                  variant={TextVariant.DisplayLg}
+                  color={TextColor.TextDefault}
+                >
+                  {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+                </Text>
+              </Box>
+
+              <Box twClassName="gap-y-4">
+                <StatRow
+                  iconName={IconName.TrendUp}
+                  label={strings('pro_hub.money_balance', {
+                    apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
+                  })}
+                  value={MOCK_PRO_HUB_STATS.moneyBalance}
+                  testID={ProHubTestIds.MONEY_BALANCE_ROW}
+                />
+                <StatRow
+                  iconName={IconName.Card}
+                  label={strings('pro_hub.musd_back', {
+                    rate: formatPercent(MOCK_PRO_HUB_STATS.musdBackRate),
+                  })}
+                  value={MOCK_PRO_HUB_STATS.musdBack}
+                  testID={ProHubTestIds.MUSD_BACK_ROW}
+                />
+              </Box>
+            </Box>
+          </Box>
+
+          <PhysicalCardBanner onPress={handleGetCard} />
+
+          <SectionDivider marginVertical={5} />
+
+          <MemberPricingOnTrades />
+
+          <SectionDivider marginVertical={5} />
+
+          <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
+            <Box twClassName="gap-y-6">
               <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('pro_hub.lifetime_earnings')}
-              </Text>
-              <Text
-                variant={TextVariant.DisplayLg}
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
                 color={TextColor.TextDefault}
               >
-                {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+                {strings('pro_hub.also_included.title')}
               </Text>
+              <Box twClassName="gap-y-3">
+                {ALSO_INCLUDED_ITEMS.map((item) => (
+                  <AlsoIncludedRow
+                    key={item.id}
+                    item={item}
+                    testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
+                  />
+                ))}
+              </Box>
             </Box>
-
-            <Box twClassName="gap-y-4">
-              <StatRow
-                iconName={IconName.TrendUp}
-                label={strings('pro_hub.money_balance', {
-                  apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
-                })}
-                value={MOCK_PRO_HUB_STATS.moneyBalance}
-                testID={ProHubTestIds.MONEY_BALANCE_ROW}
-              />
-              <StatRow
-                iconName={IconName.Card}
-                label={strings('pro_hub.musd_back', {
-                  rate: formatPercent(MOCK_PRO_HUB_STATS.musdBackRate),
-                })}
-                value={MOCK_PRO_HUB_STATS.musdBack}
-                testID={ProHubTestIds.MUSD_BACK_ROW}
-              />
-            </Box>
-          </Box>
-        </Box>
-
-        <PhysicalCardBanner onPress={handleGetCard} />
-
-        <SectionDivider marginVertical={5} />
-
-        <MemberPricingOnTrades />
-
-        <SectionDivider marginVertical={5} />
-
-        <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
-          <Box twClassName="gap-y-6">
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
+            <SectionDivider twClassName="mb-8" />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleManageMembership}
+              isFullWidth
+              testID={ProHubTestIds.MANAGE_BUTTON}
+              twClassName="mb-8"
             >
-              {strings('pro_hub.also_included.title')}
+              {strings('pro_hub.manage_membership')}
+            </Button>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextMuted}
+              testID={ProHubTestIds.DISCLAIMER_TEXT}
+            >
+              {strings('pro_hub.also_included.disclaimer')}
             </Text>
-            <Box twClassName="gap-y-3">
-              {ALSO_INCLUDED_ITEMS.map((item) => (
-                <AlsoIncludedRow
-                  key={item.id}
-                  item={item}
-                  testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
-                />
-              ))}
-            </Box>
           </Box>
-          <SectionDivider twClassName="mb-8" />
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={handleManageMembership}
-            isFullWidth
-            testID={ProHubTestIds.MANAGE_BUTTON}
-            twClassName="mb-8"
-          >
-            {strings('pro_hub.manage_membership')}
-          </Button>
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextMuted}
-            testID={ProHubTestIds.DISCLAIMER_TEXT}
-          >
-            {strings('pro_hub.also_included.disclaimer')}
-          </Text>
-        </Box>
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

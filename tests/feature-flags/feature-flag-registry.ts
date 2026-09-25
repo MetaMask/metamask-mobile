@@ -4385,6 +4385,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+      minimumVersion: '8.13.0',
+      startDate: '',
+      endDate: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  // Not in the production client-config response yet. inProd stays false so
+  // the weekly registry sync does not treat this as removed from production.
+  cardUkMigrationSignInRouting: {
+    name: 'cardUkMigrationSignInRouting',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6089,6 +6105,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  brazeEventBlocklist: {
+    name: 'brazeEventBlocklist',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      blockedEvents: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   brazeBannerHomeMinVersion: {
     name: 'brazeBannerHomeMinVersion',
     type: FeatureFlagType.Remote,
@@ -6097,25 +6125,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  brazeSegmentForwarding: {
-    name: 'brazeSegmentForwarding',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      allowedEvents: [],
-      allowedTraits: [],
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-  brazeBannerHome: {
-    name: 'brazeBannerHome',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 

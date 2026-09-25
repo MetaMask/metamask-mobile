@@ -11,15 +11,32 @@ const cloneFilters = (filters: SocialShellFilters): SocialShellFilters => ({
   volume24h: { ...filters.volume24h },
 });
 
-const filtersEqual = (a: SocialShellFilters, b: SocialShellFilters): boolean =>
-  a.type === b.type &&
-  a.traderCohort === b.traderCohort &&
-  a.timeframe === b.timeframe &&
-  a.network === b.network &&
-  a.marketCap.min === b.marketCap.min &&
-  a.marketCap.max === b.marketCap.max &&
-  a.volume24h.min === b.volume24h.min &&
-  a.volume24h.max === b.volume24h.max;
+const rangesEqual = (
+  a: SocialShellFilters['marketCap'],
+  b: SocialShellFilters['marketCap'],
+) => a.min === b.min && a.max === b.max;
+
+/**
+ * Compares only the fields a tab can edit, so leftover hidden values (network,
+ * leaderboard ranges) do not light the filter icon.
+ */
+const tabFiltersEqual = (
+  tab: SocialShellTab,
+  a: SocialShellFilters,
+  b: SocialShellFilters,
+): boolean => {
+  if (a.type !== b.type || a.traderCohort !== b.traderCohort) {
+    return false;
+  }
+  if (tab === 'leaderboard') {
+    return a.timeframe === b.timeframe;
+  }
+  return (
+    a.verification === b.verification &&
+    rangesEqual(a.marketCap, b.marketCap) &&
+    rangesEqual(a.volume24h, b.volume24h)
+  );
+};
 
 export interface UseSocialShellFiltersResult {
   /** The tab whose sheet is currently open, or `null` when closed. */
@@ -39,20 +56,16 @@ export interface UseSocialShellFiltersResult {
   updateDraft: (patch: Partial<SocialShellFilters>) => void;
   /** Applies the draft to the open tab and closes the sheet. */
   applyFilters: () => void;
-  /** Resets the open tab's draft back to its applied state. */
-  resetDraft: () => void;
+  /** Resets the open tab's draft to defaults. Apply still required to commit. */
+  resetDraftToDefaults: () => void;
 }
 
 /**
  * Per-tab filter state for the Social Bundle V1 unified Filters sheet.
  *
  * Each tab keeps its own `applied` + `draft` pair. Opening the sheet copies
- * `applied → draft`; closing without applying discards the draft. "Show
- * results" commits the draft to `applied` and closes the sheet.
- *
- * The hook is deliberately decoupled from any fetch layer — `getApiParams`
- * exposes API-ready params via `mapFiltersToApiParams` so the V1 lists can
- * consume them once they ship.
+ * `applied → draft`; closing without applying discards the draft. Apply
+ * commits the draft to `applied` and closes the sheet.
  */
 export function useSocialShellFilters(): UseSocialShellFiltersResult {
   const [applied, setApplied] = useState<
@@ -83,11 +96,6 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   const updateDraft = useCallback((patch: Partial<SocialShellFilters>) => {
     setDraft((prev) => {
       const next: SocialShellFilters = { ...prev, ...patch };
-      // Keep network valid for the new type. The sheet calls `updateDraft`
-      // with `{ type }` when the user taps a Type chip; we reconcile the
-      // network here so the rest of the sheet never has to. When the patch
-      // also includes a `network`, validate that against the new type
-      // instead of the previous network.
       if (patch.type && patch.type !== prev.type) {
         const candidateNetwork = patch.network ?? prev.network;
         next.network = resolveNetworkForType(next.type, candidateNetwork);
@@ -96,12 +104,12 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     });
   }, []);
 
-  const resetDraft = useCallback(() => {
+  const resetDraftToDefaults = useCallback(() => {
     if (!openTab) {
       return;
     }
-    setDraft(cloneFilters(applied[openTab]));
-  }, [applied, openTab]);
+    setDraft(cloneFilters(DEFAULT_FILTERS));
+  }, [openTab]);
 
   const applyFilters = useCallback(() => {
     if (!openTab) {
@@ -115,7 +123,8 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   }, [draft, openTab]);
 
   const hasActiveFilters = useCallback(
-    (tab: SocialShellTab) => !filtersEqual(applied[tab], DEFAULT_FILTERS),
+    (tab: SocialShellTab) =>
+      !tabFiltersEqual(tab, applied[tab], DEFAULT_FILTERS),
     [applied],
   );
 
@@ -125,7 +134,8 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   );
 
   const hasDraftChanges = useMemo(
-    () => (openTab ? !filtersEqual(draft, applied[openTab]) : false),
+    () =>
+      openTab ? !tabFiltersEqual(openTab, draft, applied[openTab]) : false,
     [draft, applied, openTab],
   );
 
@@ -140,6 +150,6 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     closeSheet,
     updateDraft,
     applyFilters,
-    resetDraft,
+    resetDraftToDefaults,
   };
 }

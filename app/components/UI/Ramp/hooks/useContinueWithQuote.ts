@@ -1,33 +1,30 @@
 import { useCallback } from 'react';
-import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import {
-  navigateWithDetails,
-  resetWithRoutes,
-} from '../../../../util/navigation/navUtils';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { selectHasAgreedTransakNativePolicy } from '../../../../reducers/fiatOrders';
-import Device from '../../../../util/device';
 
 import {
   buildQuoteWithRedirectUrl,
   getCheckoutContext,
   getWidgetRedirectConfig,
-  shouldUseSystemOpen,
 } from '../utils/buildQuoteWithRedirectUrl';
-import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
 import { isMonadMusdAssetId } from '../utils/fiatDepositAsset';
 import {
   acceptedAmountMatchesRequest,
   logTransakQuoteMismatch,
 } from '../utils/transakQuoteParity';
+import {
+  checkGooglePayAvailability,
+  needsGooglePayPreflight,
+} from '../utils/googlePayAvailability';
+import { getBuyWidgetFallback } from '@metamask/ramps-controller';
 import {
   type Quote,
   isNativeProvider,
@@ -43,6 +40,7 @@ import { useRampsController } from './useRampsController';
 import { useTransakController } from './useTransakController';
 import { useTransakRouting } from './useTransakRouting';
 import useRampAccountAddress from './useRampAccountAddress';
+import { useOpenHostedBuyWidget } from './useOpenHostedBuyWidget';
 import {
   endOpenRampsBuyCufChildrenByName,
   endRampsBuyCufChildTrace,
@@ -130,7 +128,6 @@ export function useContinueWithQuote(
     selectedPaymentMethod,
     userRegion,
     getBuyWidgetData,
-    addPrecreatedOrder,
   } = useRampsController();
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -145,18 +142,9 @@ export function useContinueWithQuote(
   const hasAgreedTransakNativePolicy = useSelector(
     selectHasAgreedTransakNativePolicy,
   );
+  const { openHostedBuyWidget } = useOpenHostedBuyWidget();
 
   const currency = userRegion?.country?.currency || 'USD';
-
-  const navigateAfterExternalBrowser = useCallback(
-    (opts: Parameters<typeof getNavigateAfterExternalBrowserRoutes>[0]) => {
-      resetWithRoutes(navigation, {
-        index: 0,
-        routes: getNavigateAfterExternalBrowserRoutes(opts),
-      });
-    },
-    [navigation],
-  );
 
   // The aggregator-format quote is used only by the caller to dispatch
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
@@ -306,6 +294,22 @@ export function useContinueWithQuote(
           },
         });
       };
+      // Some embedded pages go silent when Google Pay can't pay in the WebView,
+      // so ask Play Services before reserving an order. Only an explicit "no" stops.
+      const effectivePaymentMethodId =
+        quote.quote?.paymentMethod ??
+        ctx.paymentMethodId ??
+        selectedPaymentMethod?.id;
+      if (needsGooglePayPreflight(quote.provider, effectivePaymentMethodId)) {
+        const availability = await checkGooglePayAvailability();
+        if (availability === 'unavailable') {
+          endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.BAILED);
+          throw new Error(
+            strings('fiat_on_ramp_aggregator.google_pay_unavailable'),
+          );
+        }
+      }
+
       try {
         providerCode = quote.provider;
         if (
@@ -353,67 +357,24 @@ export function useContinueWithQuote(
       endCheckoutCuf(true);
 
       try {
-        const { network, effectiveWallet, effectiveOrderId } =
-          getCheckoutContext(
-            { chainId: effectiveChainId },
-            effectiveWalletAddress,
-            buyWidget.orderId,
-          );
-
         if (useExternalBrowser) {
-          if (effectiveOrderId && effectiveWallet && network) {
-            addPrecreatedOrder({
-              orderId: effectiveOrderId,
-              providerCode,
-              walletAddress: effectiveWallet,
-              chainId: network,
-            });
-          }
-
-          const isAndroid = Device.isAndroid();
-          const inAppBrowserAvailable =
-            !isAndroid && (await InAppBrowser.isAvailable());
-          // EXTERNAL_OS_BROWSER must system-open so partner universal links fire
-          // (ASWebAuthenticationSession loads the URL like a typed address).
-          // Prefer buy-widget response browser (open-time) over quote snapshot.
-          const useSystemOpen =
-            isAndroid ||
-            !inAppBrowserAvailable ||
-            shouldUseSystemOpen(quote, buyWidget.browser);
-
-          if (useSystemOpen) {
-            await Linking.openURL(buyWidget.url);
-            navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-            return;
-          }
-
-          try {
-            const result = await InAppBrowser.openAuth(
-              buyWidget.url,
-              redirectUrl,
-            );
-
-            if (result.type !== 'success' || !result.url) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            if (!effectiveWallet) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            navigateAfterExternalBrowser({
-              returnDestination: 'order',
-              callbackUrl: result.url,
-              providerCode,
-              walletAddress: effectiveWallet,
-            });
-          } finally {
-            InAppBrowser.closeAuth();
-          }
+          await openHostedBuyWidget({
+            url: buyWidget.url,
+            redirectUrl,
+            providerCode,
+            orderId: buyWidget.orderId,
+            walletAddress: effectiveWalletAddress,
+            chainId: effectiveChainId,
+            browser: buyWidget.browser,
+          });
           return;
         }
+
+        const { network, effectiveWallet } = getCheckoutContext(
+          { chainId: effectiveChainId },
+          effectiveWalletAddress,
+          buyWidget.orderId,
+        );
 
         navigateWithDetails(
           navigation,
@@ -429,6 +390,7 @@ export function useContinueWithQuote(
             cryptocurrency: effectiveCryptoSymbol,
             orderId: buyWidget.orderId?.trim() || undefined,
             headlessSessionId: ctx.headlessSessionId,
+            fallbackBuyWidget: getBuyWidgetFallback(quote),
           }),
         );
       } catch (error) {
@@ -447,12 +409,12 @@ export function useContinueWithQuote(
     [
       selectedProvider,
       selectedToken,
+      selectedPaymentMethod?.id,
       walletAddress,
       currency,
       navigation,
       getBuyWidgetData,
-      addPrecreatedOrder,
-      navigateAfterExternalBrowser,
+      openHostedBuyWidget,
     ],
   );
 

@@ -1,18 +1,13 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
 import type { ReactTestRendererJSON } from 'react-test-renderer';
 import { Slider } from '@metamask/design-system-react-native';
 import PerpsSlider from './PerpsSlider';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
-import { getPerpsSliderSelector } from '../../Perps.testIds';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   Slider: jest.fn(() => null),
-  Text: jest.requireActual('react-native').Text,
-  FontWeight: { Medium: 'medium' },
-  TextColor: { TextAlternative: 'text-alternative' },
-  TextVariant: { BodyXs: 'body-xs' },
 }));
 
 jest.mock('../../../../../util/haptics', () => ({
@@ -188,15 +183,10 @@ describe('PerpsSlider', () => {
 
     it('wraps the compact variant in a single over-wide, scaled-down container so the track still spans the full row', () => {
       const { toJSON } = render(
-        <PerpsSlider
-          {...defaultProps}
-          variant="compact"
-          showPercentageLabels={false}
-        />,
+        <PerpsSlider {...defaultProps} variant="compact" />,
       );
 
-      const wrapper = (toJSON() as ReactTestRendererJSON)
-        .children?.[0] as ReactTestRendererJSON;
+      const wrapper = toJSON() as ReactTestRendererJSON;
       // A single View declares the post-scale height/width; the Slider child
       // renders at its natural (pre-scale) size and overflows it by exactly
       // 1/0.75, which `transform: scale(0.75)` (anchored top-left) shrinks
@@ -210,26 +200,6 @@ describe('PerpsSlider', () => {
       });
     });
 
-    it('labels only the outer and middle compact marks with a percent sign, as in Figma', () => {
-      render(<PerpsSlider {...defaultProps} variant="compact" />);
-
-      expect(
-        screen.getByTestId(getPerpsSliderSelector.compactLabel(0)),
-      ).toHaveTextContent('0%');
-      expect(
-        screen.getByTestId(getPerpsSliderSelector.compactLabel(25)),
-      ).toHaveTextContent('25');
-      expect(
-        screen.getByTestId(getPerpsSliderSelector.compactLabel(50)),
-      ).toHaveTextContent('50%');
-      expect(
-        screen.getByTestId(getPerpsSliderSelector.compactLabel(75)),
-      ).toHaveTextContent('75');
-      expect(
-        screen.getByTestId(getPerpsSliderSelector.compactLabel(100)),
-      ).toHaveTextContent('100%');
-    });
-
     it('does not wrap the default variant in a scaling container', () => {
       const { toJSON } = render(<PerpsSlider {...defaultProps} />);
 
@@ -237,44 +207,16 @@ describe('PerpsSlider', () => {
       expect(toJSON()).toBeNull();
     });
 
-    it('renders its own full-size range labels for the compact variant instead of scaling the design system labels down', () => {
-      render(<PerpsSlider {...defaultProps} variant="compact" />);
-
-      expect(getSliderProps().showRangeLabels).toBe(false);
-      [0, 25, 50, 75, 100].forEach((percent) => {
-        expect(
-          screen.getByTestId(getPerpsSliderSelector.compactLabel(percent)),
-        ).toBeOnTheScreen();
-      });
-    });
-
-    it('keeps the design system labels for the default variant', () => {
-      render(<PerpsSlider {...defaultProps} />);
-
-      expect(getSliderProps().showRangeLabels).toBe(true);
-      expect(screen.queryByText('50%')).not.toBeOnTheScreen();
-    });
-
-    it('commits the tapped percentage of the value range from a compact label', () => {
-      const onValueChange = jest.fn();
-      const onDragEnd = jest.fn();
+    it('never renders range labels for the compact variant, whose wrapper is sized to the track and thumb only', () => {
       render(
         <PerpsSlider
           {...defaultProps}
           variant="compact"
-          minimumValue={0}
-          maximumValue={200}
-          onValueChange={onValueChange}
-          onDragEnd={onDragEnd}
+          showPercentageLabels
         />,
       );
 
-      fireEvent.press(
-        screen.getByTestId(getPerpsSliderSelector.compactLabel(25)),
-      );
-
-      expect(onValueChange).toHaveBeenCalledWith(50);
-      expect(onDragEnd).toHaveBeenCalledWith(50);
+      expect(getSliderProps().showRangeLabels).toBe(false);
     });
   });
 

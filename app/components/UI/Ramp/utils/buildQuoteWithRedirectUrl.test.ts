@@ -3,6 +3,7 @@ import {
   getCheckoutContext,
   getAggregatorRedirectConfig,
   getWidgetRedirectConfig,
+  getProviderDeeplinkRedirectUrl,
   shouldUseSystemOpen,
 } from './buildQuoteWithRedirectUrl';
 
@@ -126,5 +127,13 @@ describe('getWidgetRedirectConfig', () => {
 
     expect(result.useExternalBrowser).toBe(false);
     expect(result.redirectUrl).toBe('https://callback.example/base');
+  });
+});
+
+describe('getProviderDeeplinkRedirectUrl', () => {
+  it('builds the on-ramp provider deeplink', () => {
+    expect(getProviderDeeplinkRedirectUrl('coinbase-m')).toBe(
+      'metamask://on-ramp/providers/coinbase-m',
+    );
   });
 });

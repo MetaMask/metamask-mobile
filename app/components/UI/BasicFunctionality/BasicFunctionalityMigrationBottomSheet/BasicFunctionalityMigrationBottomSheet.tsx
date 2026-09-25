@@ -23,9 +23,9 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 export const BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK =
-  'https://metamask.io/news/updating-metamask-analytics';
+  'https://metamask.io/news/basic-functionality-profile-setting';
 export const BASIC_FUNCTIONALITY_MIGRATION_PRIVACY_NOTICE_LINK =
-  'https://consensys.io/privacy-notice';
+  'https://metamask.io/privacy-notice';
 
 export const SOCIAL_BF_PRIVACY_NOTICE_NAME = 'social_bf_privacy_notice';
 
@@ -76,17 +76,15 @@ const BasicFunctionalityMigrationBottomSheet = () => {
       testID="basic-functionality-migration-bottom-sheet"
     >
       <ScrollView>
-        <Box twClassName="items-center gap-4 px-6 pt-11 pb-6">
+        <Box twClassName="items-center gap-4 px-6 pt-11 pb-4">
           <Icon name={IconName.ShieldLock} size={IconSize.Xl} />
           <Text variant={TextVariant.HeadingSm}>
             {strings('basic_functionality_migration.social_title')}
           </Text>
         </Box>
-        <Box twClassName="gap-6 px-6 pb-8">
+        <Box twClassName="px-6 pb-8">
           <Text variant={TextVariant.BodyMd}>
-            {strings('basic_functionality_migration.social_body_1')}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>
+            {strings('basic_functionality_migration.social_body_1')}{' '}
             {strings('basic_functionality_migration.social_body_2_prefix')}{' '}
             <Text
               variant={TextVariant.BodyMd}

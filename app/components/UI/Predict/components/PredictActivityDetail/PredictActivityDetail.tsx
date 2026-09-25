@@ -29,6 +29,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
+  Text as DesignSystemText,
+  TextColor as DesignSystemTextColor,
+  TextVariant as DesignSystemTextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import UsdcIcon from './usdc.svg';
@@ -81,6 +84,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     value: string;
     color?: TextColor;
     isMonetary?: boolean;
+    isMarket?: boolean;
   }
 
   const activityDetails = useMemo(() => {
@@ -127,14 +131,9 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         })
       : strings('predict.transactions.not_available');
 
-    const MARKET_TITLE_MAX_LENGTH = 40;
     const marketTitleRaw =
       activity.marketTitle?.trim() ||
       strings('predict.transactions.not_available');
-    const marketTitleDisplay =
-      marketTitleRaw.length > MARKET_TITLE_MAX_LENGTH
-        ? `${marketTitleRaw.slice(0, MARKET_TITLE_MAX_LENGTH - 3)}...`
-        : marketTitleRaw;
     const outcomeTitle =
       activity.outcome ?? strings('predict.transactions.not_available');
 
@@ -143,7 +142,11 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     ];
 
     if (!isClaim) {
-      marketRows.push({ label: 'Market', value: marketTitleDisplay });
+      marketRows.push({
+        label: strings('predict.transactions.market'),
+        value: marketTitleRaw,
+        isMarket: true,
+      });
       marketRows.push({ label: 'Outcome', value: outcomeTitle });
     }
 
@@ -350,21 +353,52 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     </Box>
   );
 
+  const renderMarketDetailRow = (label: string, value: string) => (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Start}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="py-3 gap-2"
+    >
+      <DesignSystemText
+        variant={DesignSystemTextVariant.BodyMd}
+        color={DesignSystemTextColor.TextAlternative}
+        numberOfLines={1}
+        twClassName="shrink-0"
+        testID={PredictActivityDetailsSelectorsIDs.MARKET_LABEL}
+      >
+        {label}
+      </DesignSystemText>
+      <DesignSystemText
+        variant={DesignSystemTextVariant.BodySm}
+        color={DesignSystemTextColor.TextDefault}
+        twClassName="flex-1 text-right"
+        testID={PredictActivityDetailsSelectorsIDs.MARKET_VALUE}
+      >
+        {value}
+      </DesignSystemText>
+    </Box>
+  );
+
   const renderAmountDisplay = () => {
     if (!activityDetails?.showAmountBadge || !activityDetails.amountDisplay) {
       return null;
     }
 
     return (
-      <Box twClassName="items-center my-12">
-        <Box twClassName="w-20 h-20 rounded-full items-center justify-center">
-          <UsdcIcon
-            name="Usdc"
-            width={48}
-            height={48}
-            accessibilityLabel="USDC"
-          />
-        </Box>
+      // The icon is sized directly rather than centred inside a larger circle,
+      // so the section's top margin is the only space above it and the block
+      // sits evenly between the header and the first detail row.
+      <Box
+        twClassName="items-center gap-4 my-12"
+        testID={PredictActivityDetailsSelectorsIDs.AMOUNT_SECTION}
+      >
+        <UsdcIcon
+          name="Usdc"
+          width={48}
+          height={48}
+          accessibilityLabel="USDC"
+        />
         <SensitiveText
           variant={TextVariant.HeadingLG}
           color={TextColor.Default}
@@ -387,13 +421,15 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       <Box twClassName="mb-6">
         {activityDetails.marketRows.map((row, index) => (
           <React.Fragment key={`${row.label}-${index}`}>
-            {renderDetailRow(
-              row.label,
-              row.value,
-              row.color,
-              undefined,
-              row.isMonetary,
-            )}
+            {row.isMarket
+              ? renderMarketDetailRow(row.label, row.value)
+              : renderDetailRow(
+                  row.label,
+                  row.value,
+                  row.color,
+                  undefined,
+                  row.isMonetary,
+                )}
             {index < activityDetails.marketRows.length - 1 ? (
               <Box twClassName="w-full h-px" />
             ) : null}

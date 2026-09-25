@@ -6,8 +6,14 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RootState } from '../../../reducers';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import {
   createMockAccountGroup,
+  createMockHiddenAccountGroup,
   createMockInternalAccount,
   createMockState,
   createMockWallet,
@@ -16,6 +22,7 @@ import {
   getManageAccountRowRemoveId,
   getManageAccountRowEyeToggleId,
 } from './ManageAccounts.testIds';
+import type { ManageAccountsParams } from './ManageAccounts.types';
 import ManageAccounts from './ManageAccounts';
 import Engine from '../../../core/Engine';
 
@@ -30,10 +37,15 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+let mockRouteParams: ManageAccountsParams | undefined;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics');
+const mockTrackEvent = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -99,12 +111,54 @@ const buildImportedState = () => {
   };
 };
 
+// Two wallets holding three account groups, one of them hidden — enough for
+// each of the event's counts to come out at a different number.
+const buildMixedState = () => {
+  const entropyWallet = createMockWallet('keyring:srp', 'SRP', [
+    createMockAccountGroup('keyring:srp/0', 'Account 1'),
+    createMockHiddenAccountGroup('keyring:srp/1', 'Account 2'),
+  ]);
+  const importedWallet = createMockWallet('keyring:imported', 'Imported', [
+    createMockAccountGroup('keyring:imported/0', 'Imported 1'),
+  ]);
+
+  return {
+    state: {
+      ...createMockState([entropyWallet, importedWallet], {
+        'account-keyring:srp/0': createMockInternalAccount(
+          'account-keyring:srp/0',
+          '0xaaa',
+          'Account 1',
+        ),
+        'account-keyring:srp/1': createMockInternalAccount(
+          'account-keyring:srp/1',
+          '0xbbb',
+          'Account 2',
+        ),
+        'account-keyring:imported/0': createMockInternalAccount(
+          'account-keyring:imported/0',
+          '0xccc',
+          'Imported 1',
+        ),
+      }),
+      settings: { avatarAccountType: 'JazzIcon' },
+    } as unknown as RootState,
+  };
+};
+
 const renderManageAccounts = (state: RootState) =>
   renderWithProvider(<ManageAccounts />, { state });
 
 describe('ManageAccounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   describe('hardware account rows', () => {
@@ -162,6 +216,84 @@ describe('ManageAccounts', () => {
           },
         },
       );
+    });
+  });
+
+  describe('Manage Accounts Viewed', () => {
+    const manageAccountsViewedCalls = () =>
+      mockTrackEvent.mock.calls.filter(
+        ([event]) => event.name === EVENT_NAME.MANAGE_ACCOUNTS_VIEWED,
+      );
+
+    it('tracks the view with the account, wallet and hidden totals', () => {
+      const { state } = buildMixedState();
+
+      renderManageAccounts(state);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.MANAGE_ACCOUNTS_VIEWED,
+          properties: {
+            source: ManageAccountsViewedSource.AccountList,
+            total_accounts: 3,
+            total_wallets: 2,
+            hidden_count: 1,
+          },
+        }),
+      );
+    });
+
+    it('counts hidden accounts within the total rather than alongside it', () => {
+      const { state } = buildMixedState();
+
+      renderManageAccounts(state);
+
+      const [[event]] = manageAccountsViewedCalls();
+      const { total_accounts: total, hidden_count: hidden } = event.properties;
+      expect(hidden).toBeLessThan(total);
+    });
+
+    it('defaults the source to the account list when a caller omits it', () => {
+      const { state } = buildHardwareState();
+      mockRouteParams = undefined;
+
+      renderManageAccounts(state);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            source: ManageAccountsViewedSource.AccountList,
+          }),
+        }),
+      );
+    });
+
+    it('reports the source the caller navigated with', () => {
+      const { state } = buildHardwareState();
+      mockRouteParams = { source: ManageAccountsViewedSource.AccountMenu };
+
+      renderManageAccounts(state);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            source: ManageAccountsViewedSource.AccountMenu,
+          }),
+        }),
+      );
+    });
+
+    it('fires once per open, not again when hiding an account re-renders the screen', () => {
+      const { state } = buildHardwareState();
+      const { getByTestId } = renderManageAccounts(state);
+
+      act(() => {
+        fireEvent.press(
+          getByTestId(getManageAccountRowEyeToggleId('keyring:hw/0')),
+        );
+      });
+
+      expect(manageAccountsViewedCalls()).toHaveLength(1);
     });
   });
 });
