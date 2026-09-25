@@ -86,8 +86,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       await AppiumGestures.hideKeyboard();
 
-      await CreatePasswordView.tapIUnderstandCheckBox();
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await ProtectYourWalletView.tapRemindMeLater();
       await AppiumAssertions.expectElementToBeVisible(
         MetaMetricsOptInView.screenTitle,

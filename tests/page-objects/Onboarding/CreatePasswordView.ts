@@ -1,4 +1,5 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
+import { PasswordResetWarningSheetSelectorsIDs } from '../../../app/components/Views/ChoosePassword/PasswordResetWarningSheet.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -86,6 +87,12 @@ class CreatePasswordView {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
+  get passwordWarningConfirmButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PasswordResetWarningSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+  }
+
   get passwordError(): Promise<AppiumElement> {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
@@ -129,6 +136,12 @@ class CreatePasswordView {
   async tapIUnderstandCheckBox(): Promise<void> {
     await Gestures.waitAndTap(this.iUnderstandCheckbox, {
       elemDescription: 'Create Password - I Understand Checkbox',
+    });
+  }
+
+  async tapPasswordWarningConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.passwordWarningConfirmButton, {
+      elemDescription: 'Create Password - Password Warning I Understand Button',
     });
   }
 

@@ -607,11 +607,15 @@
     "create_password_cta": "Create password",
     "new_password_placeholder": "New password",
     "confirm_password_placeholder": "Re-enter new password",
-    "acknowledgement_error": "Confirm that you understand MetaMask cannot recover this password.",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
     "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "password_warning_title": "MetaMask can’t reset your password",
+    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_srp": "Secret Recovery Phrase",
+    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_confirm": "I understand",
+    "password_warning_cancel": "Cancel"
   },
   "wallet_creation_error": {
     "title": "Something went wrong",
