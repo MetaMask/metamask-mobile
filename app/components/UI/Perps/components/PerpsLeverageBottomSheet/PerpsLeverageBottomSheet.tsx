@@ -645,11 +645,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
         {isNestedScreen ? (
           <>
-            <SectionDivider />
+            {/* SectionDivider defaults to 20px vertical margin; drop the bottom
+                one so the explainer sits 16px below the rule. */}
+            <SectionDivider
+              twClassName="mb-0"
+              testID={
+                PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION_DIVIDER
+              }
+            />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="px-4 py-3"
+              twClassName="px-4 pt-4 pb-3"
               testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
             >
               {strings('perps.order.leverage_modal.description')}
