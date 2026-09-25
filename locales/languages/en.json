@@ -1161,9 +1161,38 @@
       "error_description": "We couldn't start your identity verification. Try again.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Email is missing. Go back and enter your email."
+    },
+    "kyc_pending": {
+      "title": "Verification in progress",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Check status"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Try again"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Try again"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Try again"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Options",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Popular"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
@@ -1285,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Position",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1312,11 +1347,15 @@
         "kols": "KOLs"
       },
       "filters": {
-        "title": "Filters",
-        "show_results": "Show results",
+        "title": "Custom filters",
+        "show_results": "Apply",
+        "apply": "Apply",
+        "reset": "Reset",
         "section": {
-          "type": "Type",
-          "trader_cohort": "Trader cohort",
+          "type": "Asset",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Traders",
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
@@ -1328,13 +1367,19 @@
           "perps": "Perps",
           "predictions": "Predictions"
         },
+        "verification": {
+          "all": "All",
+          "verified": "Verified",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "All",
           "following": "Following",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Verified"
         },
         "timeframe": {
           "1h": "1H",
@@ -3343,17 +3388,40 @@
       "predict_balance": "Predict balance",
       "total": "Total",
       "price_details": "Price details",
-      "confirm": "Confirm",
       "terms": "By continuing, you accept the platform terms.",
       "learn_more": "Learn more",
       "submitting": "Submitting your order…",
-      "success_title": "Order submitted",
       "done": "Done",
       "close": "Close",
       "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
-      "retry": "Try again"
+      "retry": "Try again",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Review your order",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order filled",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Filled",
+      "average_fill_price": "Avg. fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Try again"
     }
   },
   "predict": {
@@ -4154,6 +4222,7 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "Enable NFT autodetection",
     "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
@@ -4367,17 +4436,18 @@
   },
   "basic_functionality_migration": {
     "title": "We’ve updated our settings",
-    "social_title": "Privacy and product updates",
-    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
-    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
-    "social_body_2_middle": " and updated ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " and ",
     "social_body_2_suffix": ".",
     "blog_post_link": "blog post",
     "privacy_notice_link": "Privacy Notice",
-    "toast_description": "Basic functionality now includes third-party APIs. It’s turned on based on your previous settings. Adjust anytime in",
-    "toast_description_disabled": "Basic functionality now includes third-party APIs. It’s turned off based on your previous settings. Adjust anytime in",
-    "settings_link": "Settings > Privacy.",
-    "accept_and_close": "Accept and close"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy. ",
+    "learn_more_link": "Learn more.",
+    "accept_and_close": "Continue"
   },
   "onboarding_interest_questionnaire": {
     "title": "How will you use MetaMask?",
@@ -7176,6 +7246,12 @@
     "order_status_cancelled": "Cancelled",
     "webview_no_url_provided": "No URL was provided to continue",
     "webview_error_no_address_provided": "No wallet address was provided to continue",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Settings",
       "use_new_buy_experience": "More ways to buy",
@@ -9230,6 +9306,8 @@
       "limit": "Limit",
       "recurring": "Recurring"
     },
+    "generic_error_toast_title": "Something went wrong",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Open orders",
@@ -9297,7 +9375,13 @@
       "edit_cost_tolerance": "Edit cost tolerance",
       "try_again": "Try again",
       "error_calculation_network_fees": "Couldn't calculate the network fee.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Order created",
+      "order_created_description": "We'll let you know when it's filled.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "You get",
@@ -10390,7 +10474,7 @@
         },
         "unverified": {
           "title": "Verification required",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification status unavailable",
@@ -10717,8 +10801,8 @@
       "sign_in_help_got_it": "Got it",
       "errors": {
         "invalid_credentials": "Invalid login details",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "Email is required",
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
@@ -10740,7 +10824,7 @@
     "card_otp_authentication": {
       "title": "Confirm your phone number",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
-      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",
       "back_to_login_button": "Back to login",
@@ -10757,22 +10841,22 @@
       "success_title": "Card added!",
       "success_message": "Your MetaMask Card has been added to {{walletName}}.",
       "error_title": "Unable to add card",
-      "error_wallet_not_available": "{{walletName}} is not available on this device. Please ensure you have {{walletName}} set up.",
-      "error_wallet_not_initialized": "{{walletName}} is not initialized. Please set up your wallet and try again.",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Set up your wallet and try again.",
       "error_card_already_in_wallet": "This card is already added to {{walletName}}.",
-      "error_card_pending": "Your card is being set up in {{walletName}}. Please check back in a few minutes.",
-      "error_card_suspended": "Your card in {{walletName}} has been suspended. Please contact support for assistance.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
-      "error_encryption_failed": "Failed to encrypt card data. Please try again.",
-      "error_invalid_card_data": "Invalid card data. Please verify your card details and try again.",
-      "error_card_not_found": "Card not found. Please try again.",
+      "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
+      "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "Card provider is not available for your region.",
-      "error_card_id_mismatch": "Card verification failed. Please try again.",
-      "error_card_not_active": "Your card is not active. Please activate your card first.",
+      "error_card_id_mismatch": "Card verification failed. Try again.",
+      "error_card_not_active": "Your card is not active. Activate your card first.",
       "error_network": "Network error occurred. Check your connection and try again.",
-      "error_timeout": "The request timed out. Please try again.",
-      "error_server": "Server error occurred. Please try again later.",
-      "error_unknown": "An unexpected error occurred. Please try again or contact support.",
+      "error_timeout": "The request timed out. Try again.",
+      "error_server": "Server error occurred. Try again later.",
+      "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
       "try_again": "Try again",
       "cancel": "Cancel"
@@ -10819,7 +10903,7 @@
     },
     "version_guard": {
       "title": "Update required",
-      "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
+      "description": "A newer version of MetaMask is required to use Rewards. Update to continue.",
       "update_button": "Update MetaMask"
     },
     "season_error": {
@@ -10863,15 +10947,15 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.",
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.",
     "error_messages": {
       "unknown_error": "Unknown error occurred",
-      "something_went_wrong": "Something went wrong. Please try again shortly.",
-      "account_already_registered": "This account is already registered with another Rewards profile. Please switch account to continue.",
+      "something_went_wrong": "Something went wrong. Try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Switch account to continue.",
       "request_rejected": "You rejected the request.",
-      "failed_to_claim_reward": "Failed to claim reward. Please try again shortly.",
-      "service_not_available": "Service is not available at the moment. Please try again shortly.",
-      "invalid_referral_code": "Invalid referral code. Please check and try again.",
+      "failed_to_claim_reward": "Failed to claim reward. Try again shortly.",
+      "service_not_available": "Service is not available at the moment. Try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "You have already been referred by another user.",
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
       "invalid_bonus_code": "Invalid bonus code",
@@ -10951,7 +11035,7 @@
       "swap_title": "Swap",
       "perps_title": "Perps",
       "error_title": "Failed to load transactions",
-      "error_description": "Something went wrong while loading your transactions. Please try again.",
+      "error_description": "Something went wrong while loading your transactions. Try again.",
       "retry_button": "Retry",
       "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
@@ -11009,15 +11093,15 @@
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
-      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
       "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
       "step_finish": "Let's go",
@@ -11090,12 +11174,12 @@
         "cancel": "Cancel",
         "confirm": "Confirm",
         "error_title": "Something went wrong",
-        "error_message": "Failed to opt out of Rewards. Please try again.",
+        "error_message": "Failed to opt out of Rewards. Try again.",
         "processing": "Processing..."
       },
       "request_received": {
         "title": "Request received",
-        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, please contact support through the app."
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, contact support through the app."
       }
     },
     "toast_dismiss": "Dismiss",
@@ -11112,8 +11196,8 @@
       },
       "account_not_supported": {
         "title": "Account not supported",
-        "description_hardware": "Hardware wallet accounts are not yet eligible. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Please switch to a different account to proceed.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
         "confirm": "Go back"
       }
     },
@@ -11195,7 +11279,7 @@
       "arriving_soon": "Arriving soon",
       "check_back_soon": "Check back soon to claim",
       "redeem_failure_title": "Redeem failed",
-      "redeem_failure_description": "Please try again later.",
+      "redeem_failure_description": "Try again later.",
       "reward_details": "Reward Details",
       "select_account_description": "Select the account where you'd like this reward sent."
     },
@@ -11224,7 +11308,7 @@
       "geo_locked_cta": "Check eligibility",
       "geo_loading": "Checking region...",
       "remind_me_success_toast": "We'll let you know when this campaign starts.",
-      "remind_me_save_error": "Could not save your reminder. Please try again.",
+      "remind_me_save_error": "Could not save your reminder. Try again.",
       "view_details": "View details",
       "view_details_accessibility": "View details for {{campaignName}}"
     },
@@ -11237,7 +11321,7 @@
       "opt_in": "Opt in",
       "opting_in": "Opting in...",
       "opted_in": "You're opted in to this campaign",
-      "opt_in_error": "Failed to opt in. Please try again.",
+      "opt_in_error": "Failed to opt in. Try again.",
       "join_campaign": "Join the campaign",
       "competition_closed_title": "Competition no longer open",
       "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
@@ -11247,9 +11331,9 @@
       "open_position": "Trade now",
       "how_it_works": "How it works",
       "error_title": "Unable to load this campaign",
-      "error_description": "We couldn't load this campaign. Please try again.",
+      "error_description": "We couldn't load this campaign. Try again.",
       "stats_error_title": "Unable to load stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "retry": "Retry",
       "last_checked_at": "Last checked at",
       "ondo": {
@@ -11260,7 +11344,7 @@
     "campaign_ended_stats": {
       "title": "Stats",
       "error_title": "Unable to load all stats",
-      "error_description": "We had a problem loading your stats. Please try again later.",
+      "error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Retry",
       "total_participants": "Total participants",
       "total_volume": "Total volume",
@@ -11277,7 +11361,7 @@
       "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
       "max_badge": "Max",
       "error_title": "Failed to load prize pool",
-      "error_description": "There was an error loading the prize pool. Please try again.",
+      "error_description": "There was an error loading the prize pool. Try again.",
       "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
@@ -11285,7 +11369,7 @@
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load positions.",
-      "error_loading_description": "There was an error loading your positions. Please try again.",
+      "error_loading_description": "There was an error loading your positions. Try again.",
       "retry": "Retry",
       "loading": "Loading positions...",
       "empty": "You don't have any positions",
@@ -11310,7 +11394,7 @@
       "total_participants": "{{count}} participants",
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load leaderboard",
-      "error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "error_loading_position": "Failed to load your position",
       "retry": "Retry",
       "no_data": "No leaderboard data available",
@@ -11328,7 +11412,7 @@
     "ondo_campaign_stats": {
       "title": "Stats",
       "stats_error_title": "Unable to load all stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again later.",
+      "stats_error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Retry",
       "label_return": "Return",
       "label_market_value": "Market value",
@@ -11352,7 +11436,7 @@
       "type_rebalance": "Rebalance",
       "type_external_outflow": "Outflow",
       "error_title": "Failed to load activity",
-      "error_description": "Something went wrong while loading the activity. Please try again.",
+      "error_description": "Something went wrong while loading the activity. Try again.",
       "retry_button": "Retry",
       "empty_title": "No activity yet",
       "empty_description": "Your campaign activity will appear here once you have transactions."
@@ -11385,7 +11469,7 @@
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
       "leaderboard_error_loading": "Failed to load leaderboard",
-      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "leaderboard_powered_by_prefix": "Powered by ",
       "leaderboard_hypertracker_brand": "HyperTracker",
@@ -11395,7 +11479,7 @@
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "stats_retry": "Retry"
     },
     "predict_the_pitch_campaign": {
@@ -11414,7 +11498,7 @@
       "positions_open_badge": "{{count}} open",
       "positions_closed_badge": "{{count}} closed",
       "positions_error": "Failed to load predictions",
-      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_error_description": "Something went wrong while loading your predictions. Try again.",
       "positions_retry": "Retry",
       "positions_last_updated": "Last updated: {{time}}",
       "positions_empty": "No predictions yet",
@@ -11423,10 +11507,10 @@
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
       "leaderboard_error_loading": "Failed to load leaderboard",
-      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "label_markets_traded": "Markets traded",
       "stats_retry": "Retry",
       "performance_title": "Performance",
@@ -11456,7 +11540,7 @@
       "previous_title": "Previous",
       "empty_state": "No campaigns available",
       "error_title": "Unable to load campaigns",
-      "error_description": "We couldn't load any campaigns. Please try again.",
+      "error_description": "We couldn't load any campaigns. Try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     },
@@ -11605,7 +11689,7 @@
     },
     "show_error": {
       "title": "Connection error",
-      "description": "Failed to establish connection. Please try again."
+      "description": "Failed to establish connection. Try again."
     },
     "show_rejection": {
       "title": "Approval rejected",
@@ -11797,22 +11881,22 @@
     },
     "errors": {
       "device_locked": "Unlock it and try again to continue",
-      "app_not_open": "Please open the Ethereum app on your device",
-      "device_disconnected": "Your {{device}} was disconnected. Please reconnect and try again",
-      "device_not_found": "Could not find your {{device}}. Please make sure it's connected",
-      "device_not_ready": "Your device is not ready. Please check it and try again",
-      "blind_signing": "Blind signing is disabled. Please enable it in your device settings",
-      "connection_closed": "The connection was lost. Please try again",
-      "connection_timeout": "Connection timed out. Please try again",
+      "app_not_open": "Open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Make sure it's connected",
+      "device_not_ready": "Your device is not ready. Check it and try again",
+      "blind_signing": "Blind signing is disabled. Enable it in your device settings",
+      "connection_closed": "The connection was lost. Try again",
+      "connection_timeout": "Connection timed out. Try again",
       "user_cancelled": "The action was cancelled on your device",
-      "pending_confirmation": "There's a pending action on your device. Please complete or cancel it",
+      "pending_confirmation": "There's a pending action on your device. Complete or cancel it",
       "bluetooth_permission_denied": "Bluetooth permission is required to connect to your device",
       "location_permission_denied": "Location permission is required to scan for devices",
       "nearby_permission_denied": "Nearby devices permission is required",
-      "bluetooth_off": "Please turn on Bluetooth to connect to your device",
-      "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
-      "bluetooth_connection_failed": "The connection to your device failed. Please try again",
-      "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
+      "bluetooth_off": "Turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Try again",
+      "bluetooth_connection_failed": "The connection to your device failed. Try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "This operation is not supported",
       "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
@@ -12039,7 +12123,10 @@
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
+      "money_account": "Money account",
       "renews_on": "Renews on",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "Manage",
       "invoices": "Invoices",
       "contact_support": "Contact support",
@@ -12087,6 +12174,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

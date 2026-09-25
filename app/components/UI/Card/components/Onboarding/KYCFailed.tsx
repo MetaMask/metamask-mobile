@@ -87,6 +87,7 @@ const KYCFailed = () => {
         resizeMode="cover"
         style={staticStyles.backgroundImage}
         testID="kyc-failed-image"
+        accessible={false}
       />
 
       {/* Header with back button */}

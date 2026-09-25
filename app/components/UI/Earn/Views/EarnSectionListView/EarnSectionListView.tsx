@@ -34,8 +34,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
-import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
-import InlineTextFlow from '../../../../../component-library/components-temp/InlineTextFlow';
+import InlineTextFlow from '../../../InlineTextFlow';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
@@ -85,6 +84,7 @@ import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
+import DottedUnderline from '../../../DottedUnderline';
 
 const EarnSectionListSkeleton = () => (
   <Box testID={EARN_SECTION_LIST_TEST_IDS.LIST_LOADING} twClassName="px-4">

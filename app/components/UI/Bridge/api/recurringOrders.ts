@@ -1,16 +1,45 @@
 import { parseCaipAssetType } from '@metamask/utils';
 import { MOCK_RECURRING_ORDERS } from './recurringOrders.mock';
 import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from './recurringSwaps.mock';
-import type {
-  GetRecurringOrdersQuery,
-  GetRecurringOrdersResponse,
-  GetRecurringSwapsQuery,
-  GetRecurringSwapsResponse,
+import {
+  RecurringOrderStatus,
+  type GetRecurringOrdersQuery,
+  type GetRecurringOrdersResponse,
+  type GetRecurringSwapsQuery,
+  type GetRecurringSwapsResponse,
 } from './recurringOrders.types';
 
 const DEFAULT_ORDERS_PAGE_LIMIT = 20;
 const DEFAULT_SWAPS_PAGE_LIMIT = 20;
 const MOCK_API_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 500;
+const cancelledOrderIds = new Set<string>();
+
+export function resetRecurringOrdersMockState(): void {
+  cancelledOrderIds.clear();
+}
+
+export async function cancelRecurringOrder(
+  orderId: string,
+  delayMs = MOCK_API_DELAY_MS,
+): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+  const order = MOCK_RECURRING_ORDERS.find(
+    ({ orderId: candidateOrderId }) => candidateOrderId === orderId,
+  );
+  if (!order) {
+    throw new Error('order_not_found');
+  }
+
+  const effectiveStatus = cancelledOrderIds.has(orderId)
+    ? RecurringOrderStatus.Cancelled
+    : order.status;
+  if (effectiveStatus !== RecurringOrderStatus.Open) {
+    throw new Error('order_not_open');
+  }
+
+  cancelledOrderIds.add(orderId);
+}
 
 // TODO: Replace this mock with the real GET /recurring/orders API.
 export async function getRecurringOrders(
@@ -19,21 +48,28 @@ export async function getRecurringOrders(
 ): Promise<GetRecurringOrdersResponse> {
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-  const matchingOrders = MOCK_RECURRING_ORDERS.filter((order) => {
-    if (query.status && !query.status.includes(order.status)) {
-      return false;
-    }
-
-    if (!query.chainId) {
-      return true;
-    }
-
-    return (
-      parseCaipAssetType(order.src.asset.assetId).chainId === query.chainId
-    );
-  }).sort(
-    (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
+  const effectiveOrders = MOCK_RECURRING_ORDERS.map((order) =>
+    cancelledOrderIds.has(order.orderId)
+      ? { ...order, status: RecurringOrderStatus.Cancelled }
+      : order,
   );
+  const matchingOrders = effectiveOrders
+    .filter((order) => {
+      if (query.status && !query.status.includes(order.status)) {
+        return false;
+      }
+
+      if (!query.chainId) {
+        return true;
+      }
+
+      return (
+        parseCaipAssetType(order.src.asset.assetId).chainId === query.chainId
+      );
+    })
+    .sort(
+      (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
+    );
 
   const limit = query.limit ?? DEFAULT_ORDERS_PAGE_LIMIT;
   const pageStart = Number(query.cursor ?? 0);

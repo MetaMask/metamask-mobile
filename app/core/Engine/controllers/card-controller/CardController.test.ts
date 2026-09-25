@@ -6579,6 +6579,70 @@ describe('CardController — sign-in resolution and migration', () => {
     });
   });
 
+  describe('requestLegacyAccountClosure', () => {
+    it('calls the Baanx provider even when Immersve is the active provider', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController({
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+        },
+      });
+      baanx.validateTokens.mockReturnValue('valid');
+      baanx.requestAccountClosure = jest.fn().mockResolvedValue(undefined);
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(mockTokenStore.get).toHaveBeenCalledWith(CardProviderIds.Baanx);
+      expect(baanx.requestAccountClosure).toHaveBeenCalledWith(mockTokenSet);
+    });
+
+    it('does nothing when there are no Baanx tokens', async () => {
+      mockTokenStore.get.mockResolvedValue(null);
+      const { controller, baanx } = buildSignInController();
+      baanx.requestAccountClosure = jest.fn();
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(baanx.requestAccountClosure).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when Baanx tokens are expired', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController();
+      baanx.validateTokens.mockReturnValue('expired');
+      baanx.requestAccountClosure = jest.fn();
+
+      await controller.requestLegacyAccountClosure();
+
+      expect(baanx.requestAccountClosure).not.toHaveBeenCalled();
+    });
+
+    it('swallows and logs provider errors', async () => {
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      const { controller, baanx } = buildSignInController();
+      baanx.validateTokens.mockReturnValue('valid');
+      const error = new Error('closure failed');
+      baanx.requestAccountClosure = jest.fn().mockRejectedValue(error);
+      jest.mocked(Logger.error).mockClear();
+
+      await expect(
+        controller.requestLegacyAccountClosure(),
+      ).resolves.toBeUndefined();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: { feature: 'card', provider: CardProviderIds.Baanx },
+          context: expect.objectContaining({
+            name: 'CardController',
+            data: { method: 'requestLegacyAccountClosure' },
+          }),
+        }),
+      );
+    });
+  });
+
   describe('selectSignInOption', () => {
     it('pins activeProviderId without re-resolving from country', () => {
       const { controller } = buildSignInController({

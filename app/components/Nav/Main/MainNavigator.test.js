@@ -42,6 +42,7 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.RAMP.VBA_KYC_EMAIL).toBeDefined();
     expect(Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT).toBeDefined();
     expect(Routes.RAMP.VBA_VERIFY_IDENTITY).toBeDefined();
+    expect(Routes.RAMP.VBA_ONBOARDING).toBeDefined();
   });
 
   it('has deposit routes defined', () => {
