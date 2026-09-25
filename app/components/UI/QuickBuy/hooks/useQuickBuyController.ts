@@ -38,6 +38,7 @@ import {
 } from '../../Bridge/utils/currencyUtils';
 import { FIAT_INPUT_DECIMALS } from '../../Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../Bridge/utils/isGaslessQuote';
+import { useFeeDisclaimer } from '../../Bridge/hooks/useFeeDisclaimer';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { isSameAsset, selectDefaultSourceToken } from '../tokenSelection';
 import type {
@@ -176,6 +177,13 @@ export interface UseQuickBuyControllerResult {
   /** Display-only current price of the asset shown in the header. */
   tokenPrice?: number;
   metamaskFeePercent: number;
+  isGasless: boolean;
+  /** Fiat value of the quoted receive amount; undefined until a quote lands. */
+  estimatedReceiveFiat: string | undefined;
+  /** Gasless only: "-$x for gas" label shown beside Est. receive. */
+  gasFeeDeductionLabel: string | undefined;
+  discountBadge: ReturnType<typeof useFeeDisclaimer>['discountBadge'];
+  baseFeePercentage: string | undefined;
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
@@ -1079,6 +1087,22 @@ export function useQuickBuyController(
     () => getMetamaskFeePercent(activeQuote),
     [activeQuote],
   );
+  const isGasless = isGaslessQuote(activeQuote?.quote);
+  const estimatedReceiveFiatValue = useDisplayCurrencyValue(
+    estimatedReceiveAmount,
+    destToken,
+  );
+  const estimatedReceiveFiat =
+    activeQuote && estimatedReceiveAmount
+      ? estimatedReceiveFiatValue
+      : undefined;
+  const gasFeeDeductionLabel =
+    isGasless && formattedNetworkFee !== '-'
+      ? strings('bridge.gas_fee_deduction', { fee: formattedNetworkFee })
+      : undefined;
+  const { discountBadge, baseFeePercentage } = useFeeDisclaimer({
+    activeQuote,
+  });
 
   const handleClose = useCallback(() => {
     onClose();
@@ -1887,6 +1911,11 @@ export function useQuickBuyController(
     formattedExchangeRate,
     tokenPrice,
     metamaskFeePercent,
+    isGasless,
+    estimatedReceiveFiat,
+    gasFeeDeductionLabel,
+    discountBadge,
+    baseFeePercentage,
     estimatedReceiveAmount,
     sourceBalanceFiat,
     sourceBalanceDisplay,

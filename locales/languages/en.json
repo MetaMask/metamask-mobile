@@ -1492,6 +1492,8 @@
       "buy_mode": "Buy",
       "with": "with",
       "total": "Total",
+      "est_receive": "Est. receive",
+      "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "slippage": "Slippage",
       "minimum_received": "Minimum received",

@@ -95,9 +95,7 @@ const waitForQuoteTotal = async (screen: Pick<RenderAPI, 'getByTestId'>) => {
   await waitFor(
     () => {
       const rateTag = screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG);
-      expect(
-        within(rateTag).getByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD),
-      ).toBeOnTheScreen();
+      expect(rateTag).toBeOnTheScreen();
     },
     { timeout: WAIT_MS },
   );
@@ -169,12 +167,13 @@ describeForPlatforms('QuickBuySheet', () => {
     });
   });
 
-  it('shows the total row after a quote loads', async () => {
+  it('shows the estimated receive row after a gasless quote loads', async () => {
     const screen = renderQuickBuySheet();
 
     await selectTenDollarBuy(screen);
 
     await waitForQuoteTotal(screen);
+    expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
   });
 
   it('enables confirm when a valid amount and quote are available', async () => {

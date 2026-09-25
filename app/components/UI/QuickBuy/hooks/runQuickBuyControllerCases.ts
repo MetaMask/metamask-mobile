@@ -4,6 +4,8 @@ import type { Position } from '@metamask/social-controllers';
 import { act } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
+import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
@@ -4438,6 +4440,30 @@ export const runQuickBuyControllerCases = ({
         });
 
         expect(result.current.totalAmountFiat).toBe('$21.50');
+      });
+
+      it('exposes the receive value and gas deduction label for a gasless quote', () => {
+        setupQuoteSourceMock(quotedDisplayState());
+        jest.mocked(useDisplayCurrencyValue).mockReturnValue('$20.00');
+        jest.mocked(useFormattedNetworkFee).mockReturnValue('$1.50');
+
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        expect(result.current.estimatedReceiveFiat).toBe('$20.00');
+        expect(result.current.gasFeeDeductionLabel).toBeDefined();
+      });
+
+      it('exposes no receive value or gas deduction label without a quote', () => {
+        setupQuoteSourceMock({
+          ...quotedDisplayState(),
+          activeQuote: undefined,
+        });
+        jest.mocked(useDisplayCurrencyValue).mockReturnValue('$0.00');
+
+        const { result } = renderHook(createTarget(), jest.fn());
+
+        expect(result.current.estimatedReceiveFiat).toBeUndefined();
+        expect(result.current.gasFeeDeductionLabel).toBeUndefined();
       });
 
       it('omits the gasless network fee from totalAmountFiat when the fee is not numeric', () => {

@@ -3,6 +3,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  AvatarToken,
+  AvatarTokenSize,
   Icon,
   IconColor,
   IconName,
@@ -14,14 +16,13 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
-import {
-  KeyValueRowStubs,
-  KeyValueRowSectionAlignments,
-} from '../../../component-library/components-temp/KeyValueRow';
-import { IconName as IconNameLegacy } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import { getGaslessFeeAsset } from '../Bridge/utils/getGaslessFeeAsset';
+import { DiscountType } from '@metamask/bridge-controller';
+import RewardsVipBadge from '../Rewards/components/RewardsVipBadge';
+import { RewardsDiscountBadge } from '../Rewards/components/RewardsDiscountBadge';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
 import {
@@ -39,11 +40,15 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     hasValidAmount,
     formattedNetworkFee,
     formattedSlippage,
-    formattedMinimumReceived,
     formattedMinimumReceivedFiat,
     formattedRate,
     formattedPriceImpact,
     isPriceImpactError,
+    isBlockingQuoteLoad,
+    isGasless,
+    discountBadge,
+    baseFeePercentage,
+    metamaskFeePercent,
     quotesLastFetchedAt,
     quoteRefreshRateMs,
     onClose,
@@ -66,8 +71,13 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
   };
 
   const minReceivedLabel = formattedMinimumReceivedFiat
-    ? `${formattedMinimumReceived} ~${formattedMinimumReceivedFiat}`
-    : formattedMinimumReceived;
+    ? `~${formattedMinimumReceivedFiat}`
+    : '-';
+  // Same fee-token chip as Bridge's gasless quote details: only gasless
+  // quotes pay the fee in a token, so only they get a chip.
+  const gaslessFeeAsset = isGasless
+    ? getGaslessFeeAsset(activeQuote?.quote?.feeData?.txFee)
+    : undefined;
 
   return (
     <>
@@ -77,7 +87,13 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
         onClose={onClose}
       />
 
-      {!hasQuoteDetails ? (
+      {isBlockingQuoteLoad ? (
+        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.loading')}
+          </Text>
+        </Box>
+      ) : !hasQuoteDetails ? (
         <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings(
@@ -88,52 +104,36 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
           </Text>
         </Box>
       ) : (
-        <Box twClassName="px-4 pt-3" gap={3}>
-          <KeyValueRowStubs.Root>
-            <KeyValueRowStubs.Section>
-              <KeyValueRowStubs.Label
-                label={
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={1}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('social_leaderboard.quick_buy.rate')}
-                    </Text>
-                    <QuickBuyQuoteCountdown
-                      quotesLastFetchedAt={quotesLastFetchedAt}
-                      quoteRefreshRateMs={quoteRefreshRateMs}
-                    />
-                  </Box>
-                }
-                tooltip={{
-                  title: strings('bridge.quote_info_title'),
-                  content: strings('bridge.quote_info_content'),
-                  iconName: IconNameLegacy.Info,
-                }}
-              />
-            </KeyValueRowStubs.Section>
-            <KeyValueRowStubs.Section
-              align={KeyValueRowSectionAlignments.RIGHT}
-            >
+        <Box twClassName="px-4 pt-3" gap={2}>
+          <QuickBuyQuoteDetailRow
+            label={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.rate')}
+                </Text>
+                <QuickBuyQuoteCountdown
+                  quotesLastFetchedAt={quotesLastFetchedAt}
+                  quoteRefreshRateMs={quoteRefreshRateMs}
+                />
+              </Box>
+            }
+            tooltipTitle={strings('bridge.quote_info_title')}
+            tooltipContent={strings('bridge.quote_info_content')}
+            value={
               <QuickBuyQuoteDetailPressableValue
                 onPress={() => setActiveScreen('selectQuote')}
                 testID={QuickBuySheetSelectorsIDs.RATE_ROW}
                 text={formattedRate ?? '-'}
                 iconName={IconName.ArrowRight}
               />
-            </KeyValueRowStubs.Section>
-          </KeyValueRowStubs.Root>
-
-          <QuickBuyQuoteDetailRow
-            label={strings('social_leaderboard.quick_buy.network_fee')}
-            tooltipTitle={strings('bridge.network_fee_info_title')}
-            tooltipContent={strings('bridge.network_fee_info_content')}
-            value={<QuickBuyQuoteDetailTextValue text={formattedNetworkFee} />}
+            }
           />
 
           <QuickBuyQuoteDetailRow
@@ -149,6 +149,91 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
               />
             }
           />
+
+          <Box twClassName="h-px w-full bg-border-muted" />
+
+          <QuickBuyQuoteDetailRow
+            label={strings('social_leaderboard.quick_buy.network_fee')}
+            tooltipTitle={strings('bridge.network_fee_info_title')}
+            tooltipContent={strings('bridge.network_fee_info_content')}
+            value={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {formattedNetworkFee}
+                </Text>
+                {gaslessFeeAsset ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
+                    twClassName="rounded-md bg-muted px-1.5"
+                  >
+                    <AvatarToken
+                      name={gaslessFeeAsset.symbol}
+                      src={
+                        gaslessFeeAsset.iconUrl
+                          ? { uri: gaslessFeeAsset.iconUrl }
+                          : undefined
+                      }
+                      size={AvatarTokenSize.Xs}
+                    />
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
+                    >
+                      {gaslessFeeAsset.symbol}
+                    </Text>
+                  </Box>
+                ) : null}
+              </Box>
+            }
+          />
+
+          <QuickBuyQuoteDetailRow
+            label={strings('social_leaderboard.quick_buy.metamask_fee')}
+            tooltipTitle={strings('social_leaderboard.quick_buy.metamask_fee')}
+            tooltipContent={strings('bridge.fee_disclaimer', {
+              feePercentage: metamaskFeePercent,
+            })}
+            value={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                {discountBadge?.type === DiscountType.VIP ? (
+                  <RewardsVipBadge />
+                ) : null}
+                {discountBadge && discountBadge.type !== DiscountType.VIP ? (
+                  <RewardsDiscountBadge label={discountBadge.label ?? ''} />
+                ) : null}
+                {baseFeePercentage ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    twClassName="line-through"
+                  >
+                    {baseFeePercentage}
+                  </Text>
+                ) : null}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {`${metamaskFeePercent}%`}
+                </Text>
+              </Box>
+            }
+          />
+
+          <Box twClassName="h-px w-full bg-border-muted" />
 
           {isPriceImpactError && (
             <QuickBuyQuoteDetailRow

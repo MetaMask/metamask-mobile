@@ -14,6 +14,8 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useDispatch } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { setTokenSelectorNetworkFilter } from '../../../../core/redux/slices/bridge';
@@ -28,13 +30,13 @@ import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
+  const tw = useTailwind();
   const {
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
     isConfirmDisabled,
     handleBuy,
-    metamaskFeePercent,
     isHardwareSolanaBlocked,
     tradeMode,
     sourceToken,
@@ -42,13 +44,16 @@ const QuickBuyActionFooter: React.FC = () => {
     destBalanceFiat,
     selectedReceiveToken,
     features,
-    totalAmountFiat,
+    isBlockingQuoteLoad,
     isPriceImpactError,
+    estimatedReceiveFiat,
+    gasFeeDeductionLabel,
     hasNoPayWithFunds,
     setActiveScreen,
   } = useQuickBuyContext();
 
   const dispatch = useDispatch();
+  const isEstReceiveLoading = hasValidAmount && isBlockingQuoteLoad;
   const pickerToken = tradeMode === 'sell' ? selectedReceiveToken : sourceToken;
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
@@ -80,6 +85,69 @@ const QuickBuyActionFooter: React.FC = () => {
         {features.quickAmountPills ? (
           <Box twClassName="pb-3">
             <QuickBuyQuickAmounts />
+          </Box>
+        ) : null}
+
+        {isEstReceiveLoading || estimatedReceiveFiat ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="pb-5"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              {isEstReceiveLoading ? (
+                <Skeleton
+                  width={96}
+                  height={16}
+                  style={tw.style('rounded-md')}
+                  testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_LABEL_LOADING}
+                />
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.est_receive')}
+                </Text>
+              )}
+              {!isEstReceiveLoading && gasFeeDeductionLabel ? (
+                <Box
+                  twClassName="rounded-md bg-info-muted px-1.5"
+                  testID={QuickBuySheetSelectorsIDs.GAS_FEE_DEDUCTION}
+                >
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.PrimaryDefault}
+                  >
+                    {gasFeeDeductionLabel}
+                  </Text>
+                </Box>
+              ) : null}
+            </Box>
+
+            {isEstReceiveLoading ? (
+              <Skeleton
+                width={72}
+                height={20}
+                style={tw.style('rounded-md')}
+                testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_LOADING}
+              />
+            ) : (
+              <QuickBuyRateTag
+                label={estimatedReceiveFiat as string}
+                onPress={
+                  features.quoteDetails && !hasNoPayWithFunds
+                    ? () => setActiveScreen('quoteDetails')
+                    : undefined
+                }
+                isHighPriceImpact={isPriceImpactError}
+              />
+            )}
           </Box>
         ) : null}
 
@@ -130,32 +198,6 @@ const QuickBuyActionFooter: React.FC = () => {
             </Box>
           </TouchableOpacity>
         </Box>
-
-        {totalAmountFiat || isPriceImpactError ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="pb-5"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('social_leaderboard.quick_buy.total')}
-            </Text>
-
-            <QuickBuyRateTag
-              label={totalAmountFiat}
-              onPress={
-                features.quoteDetails && !hasNoPayWithFunds
-                  ? () => setActiveScreen('quoteDetails')
-                  : undefined
-              }
-              isHighPriceImpact={isPriceImpactError}
-            />
-          </Box>
-        ) : null}
       </QuickBuyDisabledSection>
 
       <QuickBuyConfirmButton
@@ -167,16 +209,6 @@ const QuickBuyActionFooter: React.FC = () => {
         tradeMode={tradeMode}
         testID={QuickBuySheetSelectorsIDs.CONFIRM_BUTTON}
       />
-
-      {metamaskFeePercent > 0 ? (
-        <Box twClassName="mt-2 items-center">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.quick_buy.includes_mm_fee', {
-              fee: metamaskFeePercent,
-            })}
-          </Text>
-        </Box>
-      ) : null}
     </Box>
   );
 };
