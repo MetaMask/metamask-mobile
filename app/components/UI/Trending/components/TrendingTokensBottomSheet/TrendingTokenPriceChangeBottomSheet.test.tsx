@@ -88,7 +88,7 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
   });
 
   it('renders with default "Price change" selected', () => {
-    const { getByText, getByTestId } = render(
+    const { getByText } = render(
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 

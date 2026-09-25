@@ -5,16 +5,16 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -173,7 +173,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           onPress={() => onOptionPress(PriceChangeOption.PriceChange)}
         >
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMd}
             numberOfLines={1}
             ellipsizeMode="tail"
             style={optionStyles.optionLabel}
@@ -186,8 +186,9 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
               testID="price-change-sort-direction"
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {sortDirection === SortDirection.Ascending
                   ? strings('trending.low_to_high')
@@ -216,7 +217,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           onPress={() => onOptionPress(PriceChangeOption.Volume)}
         >
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMd}
             numberOfLines={1}
             ellipsizeMode="tail"
             style={optionStyles.optionLabel}
@@ -229,8 +230,9 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
               testID="price-change-sort-direction"
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {sortDirection === SortDirection.Ascending
                   ? strings('trending.low_to_high')
@@ -259,7 +261,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           onPress={() => onOptionPress(PriceChangeOption.MarketCap)}
         >
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMd}
             numberOfLines={1}
             ellipsizeMode="tail"
             style={optionStyles.optionLabel}
@@ -272,8 +274,9 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
               testID="price-change-sort-direction"
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {sortDirection === SortDirection.Ascending
                   ? strings('trending.low_to_high')
