@@ -421,6 +421,38 @@ describe('PerpsProOrderForm', () => {
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
     });
 
+    it('keeps the limit price cursor at the end after live grouping inserts a separator', () => {
+      const onLimitPriceChange = jest.fn();
+      renderForm({
+        orderType: 'limit',
+        limitPrice: '100',
+        onLimitPriceChange,
+      });
+      const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+
+      fireEvent(input, 'focus');
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 3, end: 3 } },
+      });
+      fireEvent.changeText(input, '1000');
+
+      expect(input).toHaveProp('value', '1,000');
+      expect(input).toHaveProp('selection', { start: 5, end: 5 });
+      expect(onLimitPriceChange).toHaveBeenLastCalledWith('1000');
+
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 4, end: 4 } },
+      });
+
+      expect(input).toHaveProp('selection', { start: 5, end: 5 });
+
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 2, end: 2 } },
+      });
+
+      expect(input).toHaveProp('selection', { start: 2, end: 2 });
+    });
+
     it('omits the Mid chip when onUseMidPricePress is not provided', () => {
       renderForm({ orderType: 'limit' });
 

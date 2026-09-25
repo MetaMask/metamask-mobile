@@ -124,6 +124,34 @@ describe('PerpsProSizeInput', () => {
     expect(input).toHaveProp('value', '1.200');
   });
 
+  it('ignores stale native selection after live grouping inserts a separator', () => {
+    const onChangeText = jest.fn();
+    renderInput({ value: '100', onChangeText });
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+
+    fireEvent(input, 'focus');
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 3, end: 3 } },
+    });
+    fireEvent.changeText(input, '1000');
+
+    expect(input).toHaveProp('value', '1,000');
+    expect(input).toHaveProp('selection', { start: 5, end: 5 });
+    expect(onChangeText).toHaveBeenLastCalledWith('1000');
+
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 4, end: 4 } },
+    });
+
+    expect(input).toHaveProp('selection', { start: 5, end: 5 });
+
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 2, end: 2 } },
+    });
+
+    expect(input).toHaveProp('selection', { start: 2, end: 2 });
+  });
+
   it('plays PrimaryCTA when Add funds is pressed', () => {
     const onAddFundsPress = jest.fn();
     renderInput({ onAddFundsPress });
