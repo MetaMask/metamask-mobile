@@ -34,7 +34,8 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
  * @returns The cluster for this build.
  */
 export const getApiEnv = (): ApiEnv => {
-  const override = API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()];
+  const override =
+    API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()];
   if (override) {
     return override;
   }
