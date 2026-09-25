@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import {
   TrendingTokenPriceChangeBottomSheet,
   PriceChangeOption,
@@ -87,7 +88,7 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
   });
 
   it('renders with default "Price change" selected', () => {
-    const { getByText } = render(
+    const { getByText, getByTestId } = render(
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
@@ -104,6 +105,35 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     expect(getByText('Price change')).toBeOnTheScreen();
     expect(getByText('Volume')).toBeOnTheScreen();
     expect(getByText('Market cap')).toBeOnTheScreen();
+  });
+
+  it('truncates every sort option label before the selected direction', () => {
+    const { getByText, getByTestId } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
+
+    ['Price change', 'Volume', 'Market cap'].forEach((label) => {
+      const optionLabel = getByText(label);
+
+      expect(optionLabel.props).toEqual(
+        expect.objectContaining({
+          numberOfLines: 1,
+          ellipsizeMode: 'tail',
+        }),
+      );
+      expect(StyleSheet.flatten(optionLabel.props.style)).toEqual(
+        expect.objectContaining({
+          flex: 1,
+          minWidth: 0,
+        }),
+      );
+    });
+
+    const directionContainer = getByTestId('price-change-sort-direction');
+
+    expect(StyleSheet.flatten(directionContainer.props.style)).toEqual(
+      expect.objectContaining({ flexShrink: 0 }),
+    );
   });
 
   it('renders Apply button', () => {
