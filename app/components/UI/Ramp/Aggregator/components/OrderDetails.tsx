@@ -39,6 +39,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  Text as MMDSText,
+  TextVariant as MMDSTextVariant,
+} from '@metamask/design-system-react-native';
 import ListItemColumnEnd from './ListItemColumnEnd';
 
 /* eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
@@ -360,9 +364,9 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
           <Row>
             <ListItem style={styles.listItem}>
               <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodySM}>
+                <MMDSText variant={MMDSTextVariant.BodySm}>
                   {strings('fiat_on_ramp_aggregator.order_details.id')}
-                </Text>
+                </MMDSText>
               </ListItemColumn>
               <ListItemColumn widthType={WidthType.Fill}>
                 <Text
