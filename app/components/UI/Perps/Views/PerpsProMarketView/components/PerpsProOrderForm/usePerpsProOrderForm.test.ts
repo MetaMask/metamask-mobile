@@ -204,6 +204,8 @@ let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
+// Perps account-group EVM address; follows the internal account unless set.
+let mockPerpsAccountAddress: string | undefined;
 let mockPerpsNetwork: 'mainnet' | 'testnet' = 'mainnet';
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
@@ -434,9 +436,15 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: (selector: { isSelectedAccountSelector?: boolean }) => {
+  useSelector: (selector: {
+    isSelectedAccountSelector?: boolean;
+    isPerpsAccountSelector?: boolean;
+  }) => {
     if (selector.isSelectedAccountSelector) {
       return mockSelectedAddress;
+    }
+    if (selector.isPerpsAccountSelector) {
+      return mockPerpsAccountAddress ?? mockSelectedAddress;
     }
     const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
       jest.requireActual('../../../../selectors/featureFlags');
@@ -450,6 +458,12 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: Object.assign(() => undefined, {
     isSelectedAccountSelector: true,
+  }),
+}));
+
+jest.mock('../../../../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: Object.assign(() => undefined, {
+    isPerpsAccountSelector: true,
   }),
 }));
 
@@ -600,6 +614,7 @@ describe('usePerpsProOrderForm', () => {
     mockTotalFee = 5;
     mockSizeDecimals = 3;
     mockSelectedAddress = '0xaccount-a';
+    mockPerpsAccountAddress = undefined;
     mockPerpsNetwork = 'mainnet';
     mockOrderValidationParams = undefined;
     mockValidateCalculatedMargin = false;
@@ -3767,6 +3782,52 @@ describe('usePerpsProOrderForm', () => {
       rerender({});
       mockSelectedAddress = '0xaccount-a';
       rerender({});
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
+    it('drops a Cross pick after a Perps account group switch', () => {
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      mockPerpsAccountAddress = '0xgroup-b';
+      rerender({});
+      mockPerpsAccountAddress = undefined;
+      rerender({});
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
+    it('drops a Cross pick once Cross becomes unavailable', () => {
+      const { result, rerender } = renderHook(
+        ({ isCrossMarginAvailable }: { isCrossMarginAvailable: boolean }) =>
+          usePerpsProOrderForm({
+            market,
+            isTriggeredOrdersEnabled: true,
+            isTwapEnabled: true,
+            isTwapAvailabilityPending: false,
+            resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: true,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: jest.fn().mockResolvedValue('hyperliquid'),
+            chaseProviderId: 'hyperliquid',
+            isCrossMarginAvailable,
+          }),
+        { initialProps: { isCrossMarginAvailable: true } },
+      );
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      rerender({ isCrossMarginAvailable: false });
+      rerender({ isCrossMarginAvailable: true });
 
       expect(result.current.marginMode).toBe('isolated');
     });
