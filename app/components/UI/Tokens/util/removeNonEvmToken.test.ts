@@ -4,8 +4,8 @@ import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    MultichainAssetsController: {
-      ignoreAssets: jest.fn(() => Promise.resolve()),
+    AssetsController: {
+      hideAsset: jest.fn(),
     },
   },
 }));
@@ -21,7 +21,7 @@ describe('removeNonEvmToken', () => {
     jest.clearAllMocks();
   });
 
-  it('calls MultichainAssetsController.ignoreAssets when account is found', async () => {
+  it('calls AssetsController.hideAsset when account is found', async () => {
     mockSelectInternalAccountByScope.mockReturnValue({
       id: 'non-evm-account-id',
       address: 'solana-address',
@@ -36,9 +36,9 @@ describe('removeNonEvmToken', () => {
     expect(mockSelectInternalAccountByScope).toHaveBeenCalledWith(
       'solana:mainnet',
     );
-    expect(
-      Engine.context.MultichainAssetsController.ignoreAssets,
-    ).toHaveBeenCalledWith(['solana:token123'], 'non-evm-account-id');
+    expect(Engine.context.AssetsController.hideAsset).toHaveBeenCalledWith(
+      'solana:token123',
+    );
   });
 
   it('logs error and exits early when no account is found', async () => {
@@ -54,9 +54,7 @@ describe('removeNonEvmToken', () => {
       'solana:mainnet',
     );
     expect(Logger.log).toHaveBeenCalledWith('Tokens List: No account ID found');
-    expect(
-      Engine.context.MultichainAssetsController.ignoreAssets,
-    ).not.toHaveBeenCalled();
+    expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
   });
 
   it('passes correct chainId to selector', async () => {
@@ -76,7 +74,7 @@ describe('removeNonEvmToken', () => {
     );
   });
 
-  it('passes correct asset address to ignoreAssets', async () => {
+  it('passes correct asset address to hideAsset', async () => {
     mockSelectInternalAccountByScope.mockReturnValue({
       id: 'account-id',
       address: 'account-address',
@@ -88,8 +86,8 @@ describe('removeNonEvmToken', () => {
       selectInternalAccountByScope: mockSelectInternalAccountByScope,
     });
 
-    expect(
-      Engine.context.MultichainAssetsController.ignoreAssets,
-    ).toHaveBeenCalledWith(['solana:differenttoken456'], 'account-id');
+    expect(Engine.context.AssetsController.hideAsset).toHaveBeenCalledWith(
+      'solana:differenttoken456',
+    );
   });
 });
