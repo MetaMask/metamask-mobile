@@ -16,6 +16,8 @@ import { TOKEN_OVERVIEW_CHART_INTERVALS } from '../../AssetOverview/Price/tokenO
 const PILL_BASE = 'flex-row items-center justify-center rounded-full px-2 py-1';
 
 interface IntervalBarProps {
+  /** Override the default candle intervals (e.g. time-range labels for line mode). */
+  intervals?: readonly string[];
   selectedInterval: string;
   onIntervalSelect?: (interval: string) => void;
   chartType?: ChartType;
@@ -23,6 +25,7 @@ interface IntervalBarProps {
 }
 
 const IntervalBar: React.FC<IntervalBarProps> = ({
+  intervals = TOKEN_OVERVIEW_CHART_INTERVALS,
   selectedInterval,
   onIntervalSelect,
   chartType,
@@ -43,8 +46,8 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
         alignItems={BoxAlignItems.Center}
         twClassName="flex-1 gap-1"
       >
-        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval) => {
-          const isSelected = normalised === interval;
+        {intervals.map((interval) => {
+          const isSelected = normalised === interval.toLowerCase();
           return (
             <Pressable
               key={interval}
@@ -55,7 +58,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
                   pressed && 'opacity-70',
                 )
               }
-              onPress={() => onIntervalSelect?.(interval.toUpperCase())}
+              onPress={() => onIntervalSelect?.(interval)}
               accessibilityRole="button"
               accessibilityLabel={interval}
               accessibilityState={{ selected: isSelected }}

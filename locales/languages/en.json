@@ -5596,6 +5596,7 @@
       "all": "All"
     },
     "chart_time_period_navigation": {
+      "1h": "1H",
       "1d": "1D",
       "7d": "7D",
       "1w": "1W",

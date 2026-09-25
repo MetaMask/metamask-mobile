@@ -1,5 +1,8 @@
 import { Dimensions } from 'react-native';
-import type { OHLCVTimePeriod } from '../../Charts/AdvancedChart/TimeRangeSelector';
+import type {
+  OHLCVTimePeriod,
+  TimeRange,
+} from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
 
 /**
@@ -26,6 +29,7 @@ export const TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT = 34;
 const HOURS = 3_600_000;
 const DAYS = 24 * HOURS;
 export const TIME_PERIOD_MS: Record<TimePeriod, number | null> = {
+  '1h': 1 * HOURS,
   '1d': 1 * DAYS,
   '1w': 7 * DAYS,
   '7d': 7 * DAYS,
@@ -69,3 +73,15 @@ export const isTokenOverviewChartInterval = (
   value: string | undefined | null,
 ): value is TokenOverviewChartInterval =>
   typeof value === 'string' && value in CHART_INTERVAL_CONFIGS;
+
+/**
+ * Time-range options shown in the IntervalBar when chart type is Line.
+ * Matches the TimeRangeSelector options so the UX is consistent.
+ */
+export const LINE_CHART_TIME_RANGES: readonly TimeRange[] = [
+  '1H',
+  '1D',
+  '1W',
+  '1M',
+  '1Y',
+] as const;

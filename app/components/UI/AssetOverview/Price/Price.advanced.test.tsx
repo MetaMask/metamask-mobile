@@ -46,13 +46,13 @@ const {
   selectTokenOverviewChartInterval: selectTokenOverviewChartIntervalActual,
 } = jest.requireActual('../../../../reducers/user/selectors');
 
-const mockUseSelector = jest.fn((selector: unknown) => {
+const mockUseSelector = jest.fn((selector: unknown): unknown => {
   if (selector === selectTokenIndicatorsActual) return [];
   if (selector === selectTokenOverviewChartIntervalActual) return '15m';
   if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
     return mockSelectTechnicalIndicatorsEnabled();
   }
-  return ChartType.Line;
+  return ChartType.Candles;
 });
 
 jest.mock('react-redux', () => {
@@ -83,8 +83,7 @@ jest.mock('react-native-skeleton-placeholder', () => {
 });
 
 jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: (props: Record<string, unknown>) => (
@@ -94,8 +93,7 @@ jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
 });
 
 jest.mock('../../Charts/AdvancedChart/OHLCVBar/OHLCVBar', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     OHLCVBar: () => <View testID="mock-ohlcv-bar" />,
   };
@@ -213,16 +211,18 @@ jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
   return {
     __esModule: true,
     default: ({
+      intervals = TOKEN_OVERVIEW_CHART_INTERVALS,
       onIntervalSelect,
     }: {
+      intervals?: readonly string[];
       onIntervalSelect?: (interval: string) => void;
     }) => (
       <View testID="mock-interval-bar">
-        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval: string) => (
+        {intervals.map((interval: string) => (
           <Pressable
             key={interval}
             accessibilityLabel={interval}
-            onPress={() => onIntervalSelect?.(interval.toUpperCase())}
+            onPress={() => onIntervalSelect?.(interval)}
           >
             <Text>{interval}</Text>
           </Pressable>
@@ -232,9 +232,18 @@ jest.mock('../../Charts/AdvancedChart/IntervalBar', () => {
   };
 });
 
+jest.mock('../PriceChart/PriceChart', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => (
+      <View testID="mock-price-chart" {...props} />
+    ),
+  };
+});
+
 jest.mock('./Price.legacy', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: jest.fn(() => <View testID="price-legacy-fallback" />),
@@ -300,11 +309,11 @@ describe('PriceAdvanced', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenIndicatorsActual) return [];
       if (selector === selectTokenOverviewChartIntervalActual) return '15m';
-      if (selector === selectTokenOverviewChartType) return ChartType.Line;
+      if (selector === selectTokenOverviewChartType) return ChartType.Candles;
       if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
         return mockSelectTechnicalIndicatorsEnabled();
       }
-      return ChartType.Line;
+      return ChartType.Candles;
     });
   });
 
@@ -1772,7 +1781,7 @@ describe('PriceAdvanced', () => {
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return mockSelectTechnicalIndicatorsEnabled();
         }
-        return ChartType.Line;
+        return ChartType.Candles;
       });
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
     });
@@ -1784,7 +1793,7 @@ describe('PriceAdvanced', () => {
         defaultUseSelectorImpl(selector, chartType, ['RSI']),
       );
 
-      const { getByTestId, rerender } = render(
+      const { getByTestId, queryByTestId, rerender } = render(
         <PriceAdvanced {...baseProps} />,
       );
 
@@ -1798,7 +1807,10 @@ describe('PriceAdvanced', () => {
       );
       rerender(<PriceAdvanced {...baseProps} />);
 
-      expect(getByTestId('mock-advanced-chart').props.indicators).toEqual([]);
+      // Line mode renders PriceChart visible; AdvancedChart stays mounted but hidden
+      expect(getByTestId('mock-price-chart')).toBeOnTheScreen();
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      // Indicators are NOT cleared from Redux when switching to line mode
       expect(mockDispatch).not.toHaveBeenCalledWith({
         type: 'SET_TOKEN_INDICATORS',
         payload: { indicators: [] },
@@ -1955,7 +1967,7 @@ describe('PriceAdvanced', () => {
         if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
           return mockSelectTechnicalIndicatorsEnabled();
         }
-        return ChartType.Line;
+        return ChartType.Candles;
       });
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
     });
@@ -2026,6 +2038,127 @@ describe('PriceAdvanced', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('line mode', () => {
+    const enableLineMode = () => {
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Line;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return mockSelectTechnicalIndicatorsEnabled();
+        }
+        return ChartType.Line;
+      });
+    };
+
+    it('renders PriceChart visible and AdvancedChart hidden when chart type is Line', () => {
+      enableLineMode();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      // PriceChart should be visible in line mode
+      expect(getByTestId('mock-price-chart')).toBeOnTheScreen();
+      // AdvancedChart stays mounted but hidden to avoid re-initialization on toggle
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+    });
+
+    it('renders TimeRangeSelector in line mode when flag OFF', () => {
+      enableLineMode();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
+    });
+
+    it('renders IntervalBar with time ranges when flag ON and line mode', () => {
+      enableLineMode();
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      const { getByTestId, getByText } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+      expect(getByTestId('mock-interval-bar')).toBeOnTheScreen();
+      expect(getByText('1H')).toBeOnTheScreen();
+      expect(getByText('1D')).toBeOnTheScreen();
+      expect(getByText('1W')).toBeOnTheScreen();
+      expect(getByText('1M')).toBeOnTheScreen();
+      expect(getByText('1Y')).toBeOnTheScreen();
+    });
+
+    it('does not render IndicatorBar in line mode even when flag ON', () => {
+      enableLineMode();
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
+      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+    });
+
+    it('tracks timeframe_changed with chart_type line when time range is selected', () => {
+      enableLineMode();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      fireEvent.press(getByTestId('select-1W'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'chart_interacted',
+          properties: expect.objectContaining({
+            interaction_type: 'timeframe_changed',
+            chart_timeframe: '1W',
+            chart_type: 'line',
+          }),
+        }),
+      );
+    });
+
+    it('syncs timePeriod to parent when entering line mode', () => {
+      const mockSetTimePeriod = jest.fn();
+      enableLineMode();
+      render(
+        <PriceAdvanced {...baseProps} setTimePeriod={mockSetTimePeriod} />,
+      );
+      expect(mockSetTimePeriod).toHaveBeenCalledWith('1d');
+    });
+
+    it('falls back to PriceLegacy when OHLCV data is empty in line mode', () => {
+      enableLineMode();
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      expect(getByTestId('price-legacy-fallback')).toBeOnTheScreen();
+    });
+
+    it('calls onPriceDirectionChange based on parent priceDiff in line mode', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+      enableLineMode();
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          priceDiff={5}
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true);
+    });
+
+    it('renders price-label with time range label in line mode', () => {
+      enableLineMode();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      expect(getByTestId('price-label')).toBeOnTheScreen();
+    });
+
+    it('passes correct timePeriodMs to PriceChart', () => {
+      enableLineMode();
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const priceChart = getByTestId('mock-price-chart');
+      // Default timeRange is '1D' → timePeriod '1d' → 86400000 ms
+      expect(priceChart.props.timePeriodMs).toBe(86400000);
     });
   });
 });

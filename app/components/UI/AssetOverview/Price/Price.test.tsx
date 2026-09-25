@@ -47,8 +47,7 @@ jest.mock('react-redux', () => {
 });
 
 jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () => <View testID="mock-advanced-chart" />,
@@ -79,8 +78,7 @@ jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
 }));
 
 jest.mock('../PriceChart/PriceChart', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () => <View testID="mock-legacy-price-chart" />,
@@ -129,7 +127,7 @@ describe('Price Component', () => {
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewChartType) {
-        return ChartType.Line;
+        return ChartType.Candles;
       }
       if (selector === selectTokenIndicators) {
         return [];
