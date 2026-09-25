@@ -6,7 +6,13 @@ import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { Box, SectionHeader } from '@metamask/design-system-react-native';
+import {
+  Box,
+  SectionHeader,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -151,7 +157,11 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
         isInteractive
         onPress={handleHeaderPress}
         testID={PerpsRelatedMarketsSelectorsIDs.HEADER}
-      />
+      >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('trending.last_24h')}
+        </Text>
+      </SectionHeader>
 
       <PillScrollList<PerpsFeedItem>
         data={feedItems}

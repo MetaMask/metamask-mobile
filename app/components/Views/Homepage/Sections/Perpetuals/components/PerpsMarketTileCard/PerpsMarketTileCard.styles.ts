@@ -13,7 +13,7 @@ const styleSheet = (params: {
     card: {
       width: vars.cardWidth,
       height: vars.cardHeight,
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: CARD_BORDER_RADIUS,
       overflow: 'hidden',
     },
@@ -26,11 +26,11 @@ const styleSheet = (params: {
     },
     favoriteBadge: {
       position: 'absolute' as const,
-      top: -6,
-      right: -6,
+      top: -4,
+      right: -4,
       backgroundColor: theme.colors.background.alternative,
       borderRadius: 12,
-      padding: 3,
+      padding: 2,
     },
     sparklineContainer: {
       marginTop: 'auto' as const,

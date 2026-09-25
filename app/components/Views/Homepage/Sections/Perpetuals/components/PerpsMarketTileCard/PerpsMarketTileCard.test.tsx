@@ -31,12 +31,19 @@ jest.mock('../../../../../../UI/Perps/components/PerpsTokenLogo', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPerpsTokenLogo({
     symbol,
+    size,
     testID,
   }: {
     symbol: string;
+    size?: number;
     testID?: string;
   }) {
-    return <View testID={testID || 'perps-token-logo'} data-symbol={symbol} />;
+    return (
+      <View
+        testID={testID || `perps-token-logo-${size}`}
+        data-symbol={symbol}
+      />
+    );
   };
 });
 
@@ -116,11 +123,14 @@ describe('PerpsMarketTileCard', () => {
     mockUsePerpsLivePrices.mockReturnValue({});
   });
 
-  it('renders market symbol and leverage', () => {
+  it('renders market symbol, leverage, and price without a card interval', () => {
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.getByText('50x')).toBeOnTheScreen();
+    expect(screen.getByText('$52,000')).toBeOnTheScreen();
+    expect(screen.queryByText('24h')).toBeNull();
+    expect(screen.getByTestId('perps-token-logo-32')).toBeOnTheScreen();
   });
 
   it('renders positive percentage change', () => {

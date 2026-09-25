@@ -29,6 +29,7 @@ import {
   type SortOptionId,
   type SortDirection,
 } from '@metamask/perps-controller';
+import { getPerpsMarketSortLabel } from '../../utils/getPerpsMarketSortLabel';
 
 const DEFAULT_SORT_OPTION =
   MARKET_SORTING_CONFIG.SortOptions.find(
@@ -162,7 +163,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
         return (
           <ListItemSelect
             key={option.id}
-            title={strings(option.labelKey)}
+            title={getPerpsMarketSortLabel(option.labelKey)}
             variant={ListItemVariant.OneLine}
             isSelected={isSelected}
             showSelectedIcon={false}

@@ -14,6 +14,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.sort.low_to_high': 'Low to high',
       'perps.sort.apply': 'Apply',
       'perps.sort.reset': 'Reset',
+      'trending.24h': '24h',
     };
     return translations[key] || key;
   }),
@@ -63,6 +64,10 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
     it('renders all sort options with testIDs', () => {
       renderSheet();
 
+      expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Price change (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Open interest (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Funding rate (24h)')).toBeOnTheScreen();
       expect(
         screen.getByTestId('sort-field-sheet-option-volume'),
       ).toBeOnTheScreen();

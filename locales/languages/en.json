@@ -1629,6 +1629,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "change_24h": "{{change}} 24h",
     "trade_sheet": {
       "close": "Close trade",
       "settings": "Settings",
@@ -11755,6 +11756,7 @@
     "price_change": "Price change",
     "all_networks": "All networks",
     "24h": "24h",
+    "last_24h": "Last 24h",
     "time": "Time",
     "24_hours": "24 hours",
     "6_hours": "6 hours",

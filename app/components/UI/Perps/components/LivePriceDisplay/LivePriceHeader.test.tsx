@@ -88,11 +88,12 @@ describe('LivePriceHeader', () => {
         isTradable: true,
       },
     });
-    const { getByText } = render(
+    const { getByText, queryByText } = render(
       <LivePriceHeader symbol="ETH" currentPrice={3000} />,
     );
     expect(getByText('$3,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+5.50%')).toBeTruthy();
+    expect(queryByText('24h')).toBeNull();
   });
 
   it('should render valid price and negative change', () => {
@@ -305,12 +306,18 @@ describe('LivePriceHeader', () => {
           typeof el.props.children === 'string' &&
           el.props.children.includes('(+5.50%)'),
       );
+      const intervalText = textElements.find(
+        (el) => el.props.children === '24h',
+      );
 
       expect(priceText?.props.variant).toBe(TextVariant.DisplayLg);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
       expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
+      expect(intervalText?.props.variant).toBe(TextVariant.BodySm);
+      expect(intervalText?.props.fontWeight).toBe(FontWeight.Medium);
+      expect(intervalText?.props.color).toBe(TextColor.TextAlternative);
     });
 
     it('renders a smaller prominent price for the prominent variant (Pro)', () => {
@@ -322,9 +329,15 @@ describe('LivePriceHeader', () => {
       const priceText = textElements.find(
         (el) => el.props.children === '$3,000',
       );
+      const intervalText = textElements.find(
+        (el) => el.props.children === '24h',
+      );
 
       expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
+      expect(intervalText?.props.variant).toBe(TextVariant.BodySm);
+      expect(intervalText?.props.fontWeight).toBe(FontWeight.Medium);
+      expect(intervalText?.props.color).toBe(TextColor.TextAlternative);
     });
 
     it('shows the absolute change and percentage for the large variant', () => {

@@ -5,6 +5,9 @@ import {
   FilterButton,
   SectionHeader,
   SegmentedControl,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   type PerpsMarketData,
@@ -100,7 +103,11 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
         isInteractive
         onPress={handleViewAll}
         testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER}
-      />
+      >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('trending.last_24h')}
+        </Text>
+      </SectionHeader>
       <Box twClassName="px-4 mb-3">
         <SegmentedControl
           value={direction === 'desc' ? 'gainers' : 'losers'}

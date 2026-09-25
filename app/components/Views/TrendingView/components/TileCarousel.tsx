@@ -20,6 +20,8 @@ export interface TileCarouselProps<T> {
   max?: number;
   testID?: string;
   viewMoreTestID?: string;
+  contentContainerTwClassName?: string;
+  viewMoreTwClassName?: string;
 }
 
 /**
@@ -36,6 +38,8 @@ function TileCarousel<T>({
   max = TILE_CAROUSEL_DEFAULT_MAX_TILES,
   testID,
   viewMoreTestID,
+  contentContainerTwClassName = 'px-4 gap-2.5',
+  viewMoreTwClassName = 'w-[180px] flex-1',
 }: TileCarouselProps<T>) {
   const tw = useTailwind();
   const displayItems = useMemo(() => data.slice(0, max), [data, max]);
@@ -50,7 +54,7 @@ function TileCarousel<T>({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-2.5')}
+          contentContainerStyle={tw.style(contentContainerTwClassName)}
           testID={testID}
         >
           {displayItems.map((item, index) => (
@@ -61,7 +65,7 @@ function TileCarousel<T>({
           {onViewMore && (
             <ViewMoreCard
               onPress={onViewMore}
-              twClassName="w-[180px] flex-1"
+              twClassName={viewMoreTwClassName}
               testID={viewMoreTestID}
             />
           )}

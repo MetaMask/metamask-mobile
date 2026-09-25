@@ -11,10 +11,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
 import { styleSheet } from './PerpsMarketSortDropdowns.styles';
 import type { PerpsMarketSortDropdownsProps } from './PerpsMarketSortDropdowns.types';
 import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
+import { getPerpsMarketSortLabel } from '../../utils/getPerpsMarketSortLabel';
 
 /**
  * PerpsMarketSortDropdowns Component
@@ -34,7 +34,8 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
     const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOptionId,
     );
-    return option ? strings(option.labelKey) : strings('perps.sort.volume');
+    const labelKey = option?.labelKey ?? 'perps.sort.volume';
+    return getPerpsMarketSortLabel(labelKey);
   }, [selectedOptionId]);
 
   return (
