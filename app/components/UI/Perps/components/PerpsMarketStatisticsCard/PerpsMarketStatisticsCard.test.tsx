@@ -8,6 +8,7 @@ import {
   PerpsOrderBookViewSelectorsIDs,
 } from '../../Perps.testIds';
 import { Text, TextColor } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -110,6 +111,23 @@ describe('PerpsMarketStatisticsCard', () => {
 
     // Check oracle price label
     expect(getByText('perps.market.oracle_price')).toBeOnTheScreen();
+  });
+
+  it('allows the funding rate label to shrink before the info icon', () => {
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    const fundingRateLabel = getByText('perps.market.funding_rate');
+    const fundingRateLabelStyle = StyleSheet.flatten(
+      fundingRateLabel.props.style,
+    );
+
+    expect(fundingRateLabel.props.numberOfLines).toBe(1);
+    expect(fundingRateLabel.props.ellipsizeMode).toBe('tail');
+    expect(fundingRateLabelStyle).toEqual(
+      expect.objectContaining({ flexShrink: 1, minWidth: 0 }),
+    );
   });
 
   it('displays positive funding rate in success color', () => {
