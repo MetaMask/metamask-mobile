@@ -964,7 +964,10 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "cashbackLedger": {},
+      "commissions": {},
       "earningsSummary": {},
+      "referralFunnel": {},
       "referralMe": {}
     },
     "rpcEvents": {
