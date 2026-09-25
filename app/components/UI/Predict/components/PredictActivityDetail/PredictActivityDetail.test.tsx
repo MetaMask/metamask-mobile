@@ -493,6 +493,26 @@ describe('PredictActivityDetails - Sell Activity', () => {
     ).toBeOnTheScreen();
   });
 
+  it('spaces the amount section evenly above and below', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    const amountSection = getByTestId(
+      PredictActivityDetailsSelectorsIDs.AMOUNT_SECTION,
+    );
+
+    // Assert
+    expect(StyleSheet.flatten(amountSection.props.style)).toEqual(
+      expect.objectContaining({
+        marginTop: 48,
+        marginBottom: 48,
+        gap: 16,
+      }),
+    );
+  });
+
   it('renders shares sold label for sell activity', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(<PredictActivityDetails />, {

@@ -386,15 +386,19 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     }
 
     return (
-      <Box twClassName="items-center my-12">
-        <Box twClassName="w-20 h-20 rounded-full items-center justify-center">
-          <UsdcIcon
-            name="Usdc"
-            width={48}
-            height={48}
-            accessibilityLabel="USDC"
-          />
-        </Box>
+      // The icon is sized directly rather than centred inside a larger circle,
+      // so the section's top margin is the only space above it and the block
+      // sits evenly between the header and the first detail row.
+      <Box
+        twClassName="items-center gap-4 my-12"
+        testID={PredictActivityDetailsSelectorsIDs.AMOUNT_SECTION}
+      >
+        <UsdcIcon
+          name="Usdc"
+          width={48}
+          height={48}
+          accessibilityLabel="USDC"
+        />
         <SensitiveText
           variant={TextVariant.HeadingLG}
           color={TextColor.Default}
