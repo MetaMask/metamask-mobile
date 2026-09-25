@@ -243,10 +243,12 @@ const PerpsProCompactInput = React.forwardRef<
       onFocus?.();
     };
     const handleChangeText = (nextValue: string) => {
-      setDisplayValue(nextValue);
-      onChangeText(
-        normalizePerpsNumericInput(nextValue, inputLocaleRef.current),
+      const canonicalValue = normalizePerpsNumericInput(
+        nextValue,
+        inputLocaleRef.current,
       );
+      setDisplayValue(formatPerpsInput(canonicalValue, inputLocaleRef.current));
+      onChangeText(canonicalValue);
     };
     const handleBlur = () => {
       isNativeFocusedRef.current = false;
