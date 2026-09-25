@@ -2,6 +2,8 @@
  * Seedless Onboarding E2E Test Type Definitions
  */
 
+import type { SeedlessPasswordChangeFaultProfile } from './faultProfiles';
+
 export { SecretType } from '@metamask/seedless-onboarding-controller';
 
 /**
@@ -34,6 +36,11 @@ export interface OAuthMockttpServiceOptions {
    * Login provider type for the OAuth flow
    */
   loginProvider?: 'google' | 'apple';
+
+  /**
+   * Named mid-operation fault. SSS stays successful; metadata writes fail.
+   */
+  faultProfile?: SeedlessPasswordChangeFaultProfile;
 }
 
 /**

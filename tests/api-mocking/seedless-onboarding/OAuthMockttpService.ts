@@ -18,6 +18,10 @@ import {
 } from './constants';
 
 import {
+  SEEDLESS_PASSWORD_CHANGE_FAULT_PROFILE,
+  type SeedlessPasswordChangeFaultProfile,
+} from './faultProfiles';
+import {
   EncAccountDataGetMockPayload,
   OAuthMockttpServiceOptions,
   SecretType,
@@ -56,6 +60,8 @@ export interface E2EOAuthConfig {
  */
 export class OAuthMockttpService {
   private config: E2EOAuthConfig;
+
+  private faultProfile?: SeedlessPasswordChangeFaultProfile;
 
   constructor() {
     // Default config - new Google user
@@ -244,6 +250,8 @@ export class OAuthMockttpService {
     options?: OAuthMockttpServiceOptions,
   ): Promise<void> {
     // Update config from options if provided
+    this.faultProfile = options?.faultProfile;
+
     if (options?.userEmail) {
       this.configureCustom(
         options.userEmail,
@@ -666,10 +674,7 @@ export class OAuthMockttpService {
         return url.includes('/metadata/enc_account_data/set');
       })
       .asPriority(1000)
-      .thenJson(200, {
-        success: true,
-        message: 'Metadata set successfully',
-      });
+      .thenCallback(() => this.respondToMetadataWrite());
 
     await server
       .forPost('/proxy')
@@ -715,10 +720,33 @@ export class OAuthMockttpService {
         return url.includes('/metadata/enc_account_data/batch_set');
       })
       .asPriority(1000)
-      .thenJson(200, {
+      .thenCallback(() => this.respondToMetadataWrite());
+  }
+
+  private respondToMetadataWrite(): {
+    statusCode: number;
+    json: { success: boolean; message: string };
+  } {
+    if (
+      this.faultProfile ===
+      SEEDLESS_PASSWORD_CHANGE_FAULT_PROFILE.MetadataSetFailsAfterSssOk
+    ) {
+      return {
+        statusCode: 500,
+        json: {
+          success: false,
+          message: 'E2E fault profile: metadata set failed after SSS commit',
+        },
+      };
+    }
+
+    return {
+      statusCode: 200,
+      json: {
         success: true,
         message: 'Metadata set successfully',
-      });
+      },
+    };
   }
 
   /**
