@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { Icon } from '@metamask/design-system-react-native';
 import PerpsMarginModeBottomSheet from './PerpsMarginModeBottomSheet';
+import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -33,6 +34,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Each position uses only its allocated margin.',
       'perps.margin_mode.cross_title': 'Cross',
       'perps.margin_mode.cross_description':
+        'Your full account balance is shared across all positions. Coming soon.',
+      'perps.margin_mode.cross_description_available':
         'Your full account balance is shared across all positions.',
     };
     return translations[key] || key;
@@ -122,5 +125,124 @@ describe('PerpsMarginModeBottomSheet', () => {
       screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CLOSE_BUTTON),
     );
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  describe('cross margin availability', () => {
+    it('keeps Cross disabled with coming soon copy when unavailable', () => {
+      const onMarginModeSelect = jest.fn();
+      render(
+        <PerpsMarginModeBottomSheet
+          {...defaultProps}
+          onMarginModeSelect={onMarginModeSelect}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      );
+
+      expect(onMarginModeSelect).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(strings('perps.margin_mode.cross_description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('selects Cross and closes when available', () => {
+      const onClose = jest.fn();
+      const onMarginModeSelect = jest.fn();
+      render(
+        <PerpsMarginModeBottomSheet
+          {...defaultProps}
+          onClose={onClose}
+          isCrossMarginAvailable
+          onMarginModeSelect={onMarginModeSelect}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      );
+
+      expect(onMarginModeSelect).toHaveBeenCalledWith('cross');
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByText(
+          strings('perps.margin_mode.cross_description_available'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('selects Isolated when pressed while Cross is active', () => {
+      const onMarginModeSelect = jest.fn();
+      render(
+        <PerpsMarginModeBottomSheet
+          {...defaultProps}
+          isCrossMarginAvailable
+          selectedMarginMode="cross"
+          onMarginModeSelect={onMarginModeSelect}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+        ),
+      );
+
+      expect(onMarginModeSelect).toHaveBeenCalledWith('isolated');
+    });
+
+    it('highlights Cross when it is the selected mode', () => {
+      render(
+        <PerpsMarginModeBottomSheet
+          {...defaultProps}
+          isCrossMarginAvailable
+          selectedMarginMode="cross"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      ).toHaveStyle({ backgroundColor: 'muted' });
+    });
+
+    it('blocks switching away from an open position margin mode', () => {
+      const onMarginModeSelect = jest.fn();
+      render(
+        <PerpsMarginModeBottomSheet
+          {...defaultProps}
+          isCrossMarginAvailable
+          isMarginModeLocked
+          selectedMarginMode="cross"
+          onMarginModeSelect={onMarginModeSelect}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+        ),
+      );
+
+      expect(onMarginModeSelect).not.toHaveBeenCalled();
+    });
+
+    it('blocks Cross while an isolated position locks the margin mode', () => {
+      const onMarginModeSelect = jest.fn();
+      render(
+        <PerpsMarginModeBottomSheet
+          {...defaultProps}
+          isCrossMarginAvailable
+          isMarginModeLocked
+          onMarginModeSelect={onMarginModeSelect}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      );
+
+      expect(onMarginModeSelect).not.toHaveBeenCalled();
+    });
   });
 });

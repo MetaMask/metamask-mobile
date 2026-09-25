@@ -15,6 +15,7 @@ import {
   isTriggerOrderType,
   splitScaleSizes,
   type ChaseOrder,
+  type MarginMode,
   type OrderType,
   type PerpsMarketData,
   type PerpsProviderType,
@@ -484,6 +485,8 @@ export interface UsePerpsProOrderFormParams {
   chaseProviderId: PerpsProviderType | null;
   /** Whether this Pro market screen is currently focused. */
   isScreenFocused?: boolean;
+  /** Flag, provider, and market allow placing Cross margin orders. */
+  isCrossMarginAvailable?: boolean;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -527,6 +530,11 @@ export interface UsePerpsProOrderFormResult {
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
   onPlaceOrderPress: () => Promise<void>;
+  // Margin mode sheet
+  marginMode: MarginMode;
+  isCrossMarginAvailableForMarket: boolean;
+  isMarginModeLocked: boolean;
+  onMarginModeSelect: (marginMode: MarginMode) => void;
   // Leverage sheet
   isLeverageVisible: boolean;
   minLeverage: number;
@@ -585,6 +593,7 @@ export const usePerpsProOrderForm = ({
   refreshChaseCapability,
   chaseProviderId,
   isScreenFocused = true,
+  isCrossMarginAvailable = false,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -870,6 +879,44 @@ export const usePerpsProOrderForm = ({
     loadOnMount: true,
   });
   const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
+
+  // The venue also refuses Cross on assets restricted to isolated margin.
+  const isCrossMarginAvailableForMarket =
+    isCrossMarginAvailable &&
+    !marketData?.onlyIsolated &&
+    !marketData?.marginMode;
+  // A pick only applies to the market, account and network it was made in;
+  // any context change falls back to isolated until the trader picks again.
+  const marginModeContextKey = `${symbol}:${normalizedSelectedAddress}:${network}`;
+  const [marginModeSelection, setMarginModeSelection] = useState<{
+    contextKey: string;
+    marginMode: MarginMode;
+  } | null>(null);
+  const selectedMarginMode: MarginMode =
+    marginModeSelection?.contextKey === marginModeContextKey
+      ? marginModeSelection.marginMode
+      : 'isolated';
+  const onMarginModeSelect = useCallback(
+    (nextMarginMode: MarginMode) =>
+      setMarginModeSelection({
+        contextKey: marginModeContextKey,
+        marginMode: nextMarginMode,
+      }),
+    [marginModeContextKey],
+  );
+  // The venue refuses a mode change while a position is open, so an open
+  // position's mode wins over the picker. Undefined keeps the isolated default.
+  const resolveOrderMarginMode = useCallback(
+    (position?: Position | null): MarginMode | undefined =>
+      isCrossMarginAvailableForMarket
+        ? (position?.leverage?.type ?? selectedMarginMode)
+        : undefined,
+    [isCrossMarginAvailableForMarket, selectedMarginMode],
+  );
+  const marginMode =
+    resolveOrderMarginMode(currentMarketPosition) ?? 'isolated';
+  const isMarginModeLocked =
+    isCrossMarginAvailableForMarket && !!currentMarketPosition;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -1566,8 +1613,14 @@ export const usePerpsProOrderForm = ({
       orderForm.asset,
     ],
   );
-  const { liquidationPrice, isCalculating: isLiquidationCalculating } =
-    usePerpsLiquidationPrice(liquidationPriceParams);
+  const {
+    liquidationPrice: isolatedLiquidationPrice,
+    isCalculating: isLiquidationCalculating,
+  } = usePerpsLiquidationPrice(liquidationPriceParams);
+  // The estimate uses the isolated formula; a Cross order's liquidation depends
+  // on the whole account, so treat it as unknown instead of showing a wrong price.
+  const liquidationPrice =
+    marginMode === 'cross' ? '' : isolatedLiquidationPrice;
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -1956,7 +2009,10 @@ export const usePerpsProOrderForm = ({
       : PERPS_EVENT_VALUE.DIRECTION.SHORT;
   const rejectCrossMarginPosition = useCallback(
     (position?: Position | null) => {
-      if (position?.leverage?.type !== 'cross') {
+      if (
+        isCrossMarginAvailableForMarket ||
+        position?.leverage?.type !== 'cross'
+      ) {
         return false;
       }
 
@@ -1974,7 +2030,7 @@ export const usePerpsProOrderForm = ({
       });
       return true;
     },
-    [navigation, track],
+    [isCrossMarginAvailableForMarket, navigation, track],
   );
 
   const handlePlaceOrder = async (
@@ -2453,6 +2509,9 @@ export const usePerpsProOrderForm = ({
             maxSlippageBps: resolvedMaxSlippageBps,
             reduceOnly: latestScale.reduceOnly,
             providerId: expectedProviderId,
+            marginMode: resolveOrderMarginMode(
+              latestScale.currentMarketPosition,
+            ),
             isFullClose: latestScale.reduceOnly
               ? latestScale.reduceOnlyValidation.isFullClose ||
                 latestScale.isExactFullClose
@@ -2664,6 +2723,7 @@ export const usePerpsProOrderForm = ({
             ? undefined
             : placementOrderForm.stopLossPrice,
         reduceOnly: placementReduceOnly,
+        marginMode: resolveOrderMarginMode(placementCurrentMarketPosition),
         twapDuration: isTwapOrder ? twapDuration : undefined,
         twapRandomize: isTwapOrder ? twapRandomize : undefined,
         isFullClose: placementReduceOnly
@@ -3267,9 +3327,10 @@ export const usePerpsProOrderForm = ({
       effectiveMarginRequired !== undefined && effectiveMarginRequired !== null
         ? formatMargin(effectiveMarginRequired)
         : PERPS_CONSTANTS.FallbackDataDisplay;
-    const orderLiquidationDisplay = hasValidAmount
-      ? formatLiquidation(liquidationPrice)
-      : PERPS_CONSTANTS.FallbackDataDisplay;
+    const orderLiquidationDisplay =
+      hasValidAmount && liquidationPrice
+        ? formatLiquidation(liquidationPrice)
+        : PERPS_CONSTANTS.FallbackDataDisplay;
 
     let margin = orderMarginDisplay;
     let liquidationPriceDisplay = orderLiquidationDisplay;
@@ -3972,6 +4033,11 @@ export const usePerpsProOrderForm = ({
     isPlaceOrderLoading:
       isScalePlacementPending || isChasePreflightPending || isPlacing,
     onPlaceOrderPress,
+    // Margin mode sheet
+    marginMode,
+    isCrossMarginAvailableForMarket,
+    isMarginModeLocked,
+    onMarginModeSelect,
     // Leverage sheet
     isLeverageVisible,
     minLeverage: 1,
