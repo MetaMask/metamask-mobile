@@ -24,6 +24,7 @@ import { RootState } from '../../../../reducers';
 import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
 import { useComplianceGate } from '../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectIsSelectedAccountWatchOnly } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   createDepositConfirmationGuard,
   createDepositPrepSession,
@@ -47,6 +48,8 @@ export interface UsePerpsHomeActionsOptions {
 export interface UsePerpsHomeActionsReturn {
   /** Whether user is eligible for perps trading */
   isEligible: boolean;
+  /** Whether the selected account is watch-only and cannot move funds */
+  isWatchOnly: boolean;
   /** Whether eligibility modal is visible */
   isEligibilityModalVisible: boolean;
   /** Whether an action is currently processing */
@@ -85,6 +88,7 @@ export const usePerpsHomeActions = (
 ): UsePerpsHomeActionsReturn => {
   const navigation = useNavigation<AppNavigationProp>();
   const isEligible = useSelector(selectPerpsEligibility);
+  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -127,6 +131,9 @@ export const usePerpsHomeActions = (
   );
 
   const handleAddFunds = useCallback(() => {
+    if (isWatchOnly) {
+      return Promise.resolve();
+    }
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
 
     return gate(async () => {
@@ -197,6 +204,7 @@ export const usePerpsHomeActions = (
     });
   }, [
     gate,
+    isWatchOnly,
     isEligible,
     navigation,
     navigateToConfirmation,
@@ -209,6 +217,9 @@ export const usePerpsHomeActions = (
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    if (isWatchOnly) {
+      return;
+    }
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -269,6 +280,7 @@ export const usePerpsHomeActions = (
       setIsProcessing(false);
     }
   }, [
+    isWatchOnly,
     isEligible,
     navigation,
     perpsWithdrawConfig.enabled,
@@ -286,6 +298,7 @@ export const usePerpsHomeActions = (
 
   return {
     isEligible,
+    isWatchOnly,
     isEligibilityModalVisible,
     isProcessing,
     error,

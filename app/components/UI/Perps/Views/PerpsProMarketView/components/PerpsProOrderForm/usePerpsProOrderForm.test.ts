@@ -79,6 +79,7 @@ const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
 let mockComplianceActionDuringRender: (() => void) | undefined;
 
 let mockIsEligible = true;
+let mockIsWatchOnly = false;
 
 let mockExecutionOptions: {
   onSuccess?: (position?: unknown, result?: OrderResult) => void;
@@ -344,6 +345,7 @@ jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
   usePerpsHomeActions: () => ({
     handleAddFunds: mockHandleAddFunds,
     isEligible: mockIsEligible,
+    isWatchOnly: mockIsWatchOnly,
     isEligibilityModalVisible: false,
     closeEligibilityModal: mockCloseEligibilityModal,
     showEligibilityModal: mockShowEligibilityModal,
@@ -604,6 +606,7 @@ describe('usePerpsProOrderForm', () => {
     mockMarketData = { szDecimals: 3, maxLeverage: 40 };
     mockIsPlacing = false;
     mockIsEligible = true;
+    mockIsWatchOnly = false;
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -3031,6 +3034,21 @@ describe('usePerpsProOrderForm', () => {
         resolveOrder?.({ success: false, error: 'rejected' });
         await firstSubmission;
       });
+    });
+
+    it('shows a trading-disabled toast and skips execution for a watch-only account', async () => {
+      mockIsWatchOnly = true;
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.watch_only.trading_disabled'),
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it('opens geo-block modal and skips execution for an ineligible user', async () => {
