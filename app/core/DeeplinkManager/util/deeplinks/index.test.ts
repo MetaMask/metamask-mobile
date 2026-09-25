@@ -29,6 +29,9 @@ describe('deeplinks utils', () => {
       expect(
         isMetaMaskUniversalLink('https://link-test.metamask.io/send'),
       ).toBe(true);
+      expect(
+        isMetaMaskUniversalLink('https://link-test.metamask.com/send'),
+      ).toBe(true);
     });
 
     it('does NOT match custom-scheme URLs', () => {
@@ -90,6 +93,12 @@ describe('deeplinks utils', () => {
         true,
       );
       expect(isInternalDeepLink('https://link-test.metamask.io/send')).toBe(
+        true,
+      );
+      expect(isInternalDeepLink('https://link-test.metamask.com/swap')).toBe(
+        true,
+      );
+      expect(isInternalDeepLink('https://link-test.metamask.com/send')).toBe(
         true,
       );
     });
