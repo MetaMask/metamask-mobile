@@ -5,10 +5,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { isWatchOnlyAccount } from '../../../../../util/address';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
+import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useWatchOnlyAccountAlert } from './useWatchOnlyAccountAlert';
 
 jest.mock('../useApprovalRequest');
 jest.mock('../transactions/useTransactionPayingAccount');
+jest.mock('../pay/useTransactionPayData');
 jest.mock('../../../../../util/address');
 
 const PAYING_ADDRESS = '0xabc';
@@ -32,6 +34,9 @@ describe('useWatchOnlyAccountAlert', () => {
     useTransactionPayingAccount,
   );
   const isWatchOnlyAccountMock = jest.mocked(isWatchOnlyAccount);
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -41,6 +46,19 @@ describe('useWatchOnlyAccountAlert', () => {
     } as ReturnType<typeof useApprovalRequest>);
     useTransactionPayingAccountMock.mockReturnValue(undefined);
     isWatchOnlyAccountMock.mockReturnValue(false);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+  });
+
+  it('returns no alert for a watch-only payer when a fiat payment method is selected', () => {
+    useTransactionPayingAccountMock.mockReturnValue(PAYING_ADDRESS);
+    isWatchOnlyAccountMock.mockReturnValue(true);
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'payment-method-1',
+    } as ReturnType<typeof useTransactionPayFiatPayment>);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
   });
 
   it('returns no alert when there is no signer address', () => {
