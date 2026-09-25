@@ -988,7 +988,7 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
       "login_with_email": "Log in with email"
     },
@@ -4443,17 +4443,18 @@
   },
   "basic_functionality_migration": {
     "title": "We’ve updated our settings",
-    "social_title": "Privacy and product updates",
-    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
-    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
-    "social_body_2_middle": " and updated ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " and ",
     "social_body_2_suffix": ".",
     "blog_post_link": "blog post",
     "privacy_notice_link": "Privacy Notice",
-    "toast_description": "Basic functionality now includes third-party APIs. It’s turned on based on your previous settings. Adjust anytime in",
-    "toast_description_disabled": "Basic functionality now includes third-party APIs. It’s turned off based on your previous settings. Adjust anytime in",
-    "settings_link": "Settings > Privacy.",
-    "accept_and_close": "Accept and close"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy. ",
+    "learn_more_link": "Learn more.",
+    "accept_and_close": "Continue"
   },
   "onboarding_interest_questionnaire": {
     "title": "How will you use MetaMask?",
@@ -8112,7 +8113,7 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
@@ -10480,7 +10481,7 @@
         },
         "unverified": {
           "title": "Verification required",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification status unavailable",
@@ -10801,8 +10802,8 @@
       "sign_in_help_got_it": "Got it",
       "errors": {
         "invalid_credentials": "Invalid login details",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "Email is required",
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
@@ -11723,11 +11724,11 @@
     },
     "show_not_found": {
       "title": "Connection Not Found",
-      "description": "Please establish a new connection from the app to continue."
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Select project",
@@ -11736,7 +11737,7 @@
     },
     "show_method_error": {
       "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11868,7 +11869,7 @@
     },
     "awaiting_app": {
       "title": "Open {{app}}",
-      "message": "Please open the {{app}} app on your {{device}}",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "Currently open: {{app}}"
     },
     "awaiting_confirmation": {
@@ -11883,20 +11884,20 @@
       "device_locked": "Unlock it and try again to continue",
       "app_not_open": "Open the Ethereum app on your device",
       "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
-      "device_not_found": "Could not find your {{device}}. Please make sure it's connected",
-      "device_not_ready": "Your device is not ready. Please check it and try again",
-      "blind_signing": "Blind signing is disabled. Please enable it in your device settings",
-      "connection_closed": "The connection was lost. Please try again",
-      "connection_timeout": "Connection timed out. Please try again",
+      "device_not_found": "Could not find your {{device}}. Make sure it's connected",
+      "device_not_ready": "Your device is not ready. Check it and try again",
+      "blind_signing": "Blind signing is disabled. Enable it in your device settings",
+      "connection_closed": "The connection was lost. Try again",
+      "connection_timeout": "Connection timed out. Try again",
       "user_cancelled": "The action was cancelled on your device",
-      "pending_confirmation": "There's a pending action on your device. Please complete or cancel it",
+      "pending_confirmation": "There's a pending action on your device. Complete or cancel it",
       "bluetooth_permission_denied": "Bluetooth permission is required to connect to your device",
       "location_permission_denied": "Location permission is required to scan for devices",
       "nearby_permission_denied": "Nearby devices permission is required",
-      "bluetooth_off": "Please turn on Bluetooth to connect to your device",
-      "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
-      "bluetooth_connection_failed": "The connection to your device failed. Please try again",
-      "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
+      "bluetooth_off": "Turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Try again",
+      "bluetooth_connection_failed": "The connection to your device failed. Try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "This operation is not supported",
       "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
@@ -12123,7 +12124,10 @@
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
+      "money_account": "Money account",
       "renews_on": "Renews on",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "Manage",
       "invoices": "Invoices",
       "contact_support": "Contact support",
@@ -12171,6 +12175,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

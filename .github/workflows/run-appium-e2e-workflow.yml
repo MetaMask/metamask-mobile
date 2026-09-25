@@ -115,6 +115,15 @@ jobs:
     # two workloads apart. They are not the same workload: Gradle sits at 100%
     # CPU-saturated and wants more, while Appium peaks at 57% of 16 vCPU and 37%
     # of 32 GB and wants less. Right-sizing this profile is a follow-up.
+    #
+    # iOS stays on the `ios-e2e` profile: this job never compiles app code (the
+    # .app comes prebuilt from build-ios-e2e), it only builds WebDriverAgent.
+    # WDA must be built with an Xcode whose SDK matches the image's simulator
+    # runtime — on the tahoe-slim build image (Xcode 26.6 / iOS 26.5 SDK) the
+    # pool simulators run the iOS 18.6 runtime and WDA never launches
+    # ("Failed to start the preinstalled WebDriverAgent in 120000 ms").
+    # Xcode 26.6 is only required by Expo SDK 57 for the app build itself,
+    # which pins it explicitly in build-ios-e2e.yml.
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
@@ -287,6 +296,11 @@ jobs:
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
+          # Pinned rather than inherited so this stays correct if the action
+          # default moves: the app build (build-ios-e2e.yml) uses 26.6 for Expo
+          # SDK 57, but this job only compiles WebDriverAgent, which must match
+          # the simulator runtime on `ios-e2e`, not the app's SDK.
+          xcode-version: '26.3'
           setup-simulator: 'false'
           configure-keystores: 'false'
           install-foundry: 'true'

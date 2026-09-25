@@ -7,4 +7,5 @@ export const OpenLimitOrderDetailsModalSelectorsIDs = {
   TRIGGER_COMPARISON: 'open-order-details-modal-trigger-comparison',
   EXPIRY: 'open-order-details-modal-expiry',
   CANCEL_ORDER_BUTTON: 'open-order-details-modal-cancel-order-button',
+  USD_PRICE_NOTICE: 'open-order-details-modal-usd-price-notice',
 } as const;

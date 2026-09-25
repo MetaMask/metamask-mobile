@@ -1,20 +1,32 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
-import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { OpenLimitOrderDetailsModal } from './OpenLimitOrderDetailsModal';
 import type { OpenLimitOrderDetailsModalParams } from './types';
+import { getTriggerPrice } from './utils';
 
 export const OpenLimitOrderDetailsModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<OpenLimitOrderDetailsModalParams>();
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+  const fiatToUsdRate = useFiatToUsdRate(sourceToken.chainId);
+  const { triggerPrice, triggerToken, usdTriggerPrice } = getTriggerPrice(
+    order,
+    sourceToken,
+    destinationToken,
+    currentCurrency,
+    fiatToUsdRate,
+  );
 
   // STUB FOR LIMIT ORDER CANCELLATION: the order still needs to be cancelled
   // through the limit orders service.
@@ -43,18 +55,10 @@ export const OpenLimitOrderDetailsModalScreen = () => {
         ),
         symbol: sourceToken.symbol,
       })}
-      // `limitPrice` is quoted as destination token per unit of source token,
-      // so it reads as an amount of the destination token.
-      triggerPrice={strings('bridge.limit.quote_unit', {
-        amount:
-          formatLimitOrderQuickPrice(order.limitPrice) ?? order.limitPrice,
-        symbol: destinationToken.symbol,
-      })}
-      triggerToken={destinationToken}
-      // `triggerComparison` is left unset on purpose: the order carries neither
-      // a market price nor the side its trigger was quoted on, so the
-      // "% from market" line stays hidden until the response can support it.
-      expiry={formatLimitOrderDate(order.expiresAt)}
+      triggerPrice={triggerPrice}
+      triggerToken={triggerToken}
+      usdTriggerPrice={usdTriggerPrice}
+      expiry={formatLimitOrderDate(order.timingData.expiresAt)}
       onCancelOrder={handleCancelOrder}
       goBack={navigation.goBack}
     />

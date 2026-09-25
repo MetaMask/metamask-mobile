@@ -4,7 +4,12 @@ import { neoBankServiceInit } from './neo-bank-service-init';
 const mockNeoBankService = jest.fn().mockImplementation((opts) => opts);
 
 jest.mock('@metamask/ramps-controller', () => ({
-  NeoBankService: (...args: unknown[]) => mockNeoBankService(...args),
+  // The production initializer constructs this export with `new`, so the mock
+  // must be constructible too. Hermes-stable preserves arrow functions instead
+  // of down-leveling them into constructible function expressions.
+  NeoBankService: function NeoBankService(...args: unknown[]) {
+    return mockNeoBankService(...args);
+  },
   NeoBankServiceMessenger: jest.fn(),
   RampsEnvironment: {
     Production: 'PRODUCTION',

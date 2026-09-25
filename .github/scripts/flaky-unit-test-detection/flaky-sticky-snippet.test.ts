@@ -97,9 +97,7 @@ describe('snippetMismatchPreview', () => {
   it('quotes both sides so the CI log shows the mismatch', () => {
     const preview = snippetMismatchPreview('reported-code', 'actual-code');
 
-    expect(preview).toBe(
-      'reported="reported-code" actual="actual-code"',
-    );
+    expect(preview).toBe('reported="reported-code" actual="actual-code"');
   });
 });
 
