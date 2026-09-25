@@ -29,10 +29,6 @@ jest.mock('../../../hooks/useTransferAssetType', () => ({
   })),
 }));
 
-jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../../../../../core/Engine', () => {
   const { otherControllersMock } = jest.requireActual(
     '../../../__mocks__/controllers/other-controllers-mock',

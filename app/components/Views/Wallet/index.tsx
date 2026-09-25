@@ -69,7 +69,6 @@ import {
   ParamListBase,
   RouteProp,
   useFocusEffect,
-  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -186,10 +185,8 @@ import { Carousel } from '../../UI/Carousel';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
-import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
 const createStyles = ({ colors }: Theme) =>
@@ -384,8 +381,6 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
-
-  const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
   /**
    * A string that represents the selected address
@@ -809,8 +804,6 @@ const Wallet = ({
     onPerpsTabSelected: handlePerpsTabDeepLink,
     onNetworkSelectorSelected: handleNetworkSelectorDeepLink,
   });
-
-  const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
@@ -1236,7 +1229,6 @@ const Wallet = ({
                   });
                 }}
               >
-                {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >

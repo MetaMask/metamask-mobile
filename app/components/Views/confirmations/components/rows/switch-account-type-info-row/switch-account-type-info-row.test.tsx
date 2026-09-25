@@ -9,10 +9,6 @@ import {
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import SwitchAccountTypeInfoRow from './switch-account-type-info-row';
 
-jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {

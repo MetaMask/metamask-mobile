@@ -46,10 +46,6 @@ jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
     .mockReturnValue({ isBatched: true, isBatchedUpgrade: true }),
 }));
 
-jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {

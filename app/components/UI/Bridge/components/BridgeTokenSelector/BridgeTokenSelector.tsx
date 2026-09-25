@@ -82,7 +82,7 @@ import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
 import {
   ARC_NATIVE_ASSET_ID,
   ARC_NATIVE_ASSET_ID_LEGACY,
-} from '../../../../hooks/useArcDefaultTokens';
+} from '../../../../../enablement/assets/arc';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';

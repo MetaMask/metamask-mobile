@@ -8,10 +8,6 @@ import {
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import SwitchAccountType from './switch-account-type';
 
-jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
 jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
