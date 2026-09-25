@@ -2,7 +2,8 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View, Animated, Pressable } from 'react-native';
+import { View, Animated, Pressable, StyleSheet } from 'react-native';
+import { GlassView } from 'expo-glass-effect';
 
 // External dependencies.
 import Icon, { IconSize, IconColor } from '../../components/Icons/Icon';
@@ -12,6 +13,7 @@ import { useAnimatedPressable, useStyles } from '../../hooks';
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
 import styleSheet from './MainActionButton.styles';
+import { MAINACTIONBUTTON_GLASS_TEST_ID } from './MainActionButton.constants';
 
 /**
  * @deprecated Please update your code to use `MainActionButton` from `@metamask/design-system-react-native`.
@@ -28,18 +30,36 @@ const MainActionButton = ({
   style,
   containerStyle,
   isDisabled = false,
+  isGlass = false,
+  glassColorScheme = 'auto',
   testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
     style,
     isDisabled,
+    isGlass,
   });
 
   const { scaleAnim, handlePressIn, handlePressOut } = useAnimatedPressable({
     onPressIn: onPressIn ?? undefined,
     onPressOut: onPressOut ?? undefined,
   });
+
+  const content = (
+    <View style={styles.container}>
+      <Icon name={iconName} size={IconSize.Lg} color={IconColor.Alternative} />
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={TextColor.Default}
+        style={styles.label}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {label}
+      </Text>
+    </View>
+  );
 
   return (
     <Animated.View
@@ -55,22 +75,27 @@ const MainActionButton = ({
         disabled={isDisabled}
         {...props}
       >
-        <View style={styles.container}>
-          <Icon
-            name={iconName}
-            size={IconSize.Lg}
-            color={IconColor.Alternative}
-          />
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Default}
-            style={styles.label}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {label}
-          </Text>
-        </View>
+        {isGlass
+          ? ({ pressed }) => (
+              <GlassView
+                glassEffectStyle="regular"
+                colorScheme={glassColorScheme}
+                isInteractive
+                style={styles.glass}
+                testID={MAINACTIONBUTTON_GLASS_TEST_ID}
+              >
+                <View
+                  pointerEvents="none"
+                  style={[
+                    StyleSheet.absoluteFill,
+                    styles.glassFill,
+                    pressed && !isDisabled && styles.glassFillPressed,
+                  ]}
+                />
+                {content}
+              </GlassView>
+            )
+          : content}
       </Pressable>
     </Animated.View>
   );

@@ -4,6 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
+import { useLiquidGlass } from '../../../../component-library/hooks/useLiquidGlass';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -41,6 +42,8 @@ export interface AssetDetailsActionsProps {
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
   containerTestID?: string;
+  /** Renders the buttons as Liquid Glass where the OS can draw it. */
+  hasGlassButtons?: boolean;
 }
 
 // TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
@@ -57,8 +60,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
   containerTestID,
+  hasGlassButtons = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
+  const isGlass = hasGlassButtons && isGlassEnabled;
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -155,6 +161,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isBuyingAvailable}
           testID={buyButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
+          glassColorScheme={glassColorScheme}
         />
       )}
       {displaySwapsButton && (
@@ -165,6 +173,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isSwapsEnabled}
           testID={swapButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
+          glassColorScheme={glassColorScheme}
         />
       )}
       <MainActionButton
@@ -174,6 +184,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={!canSignTransactions}
         testID={sendButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
+        glassColorScheme={glassColorScheme}
       />
       <MainActionButton
         iconName={IconName.Received}
@@ -182,6 +194,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={false}
         testID={receiveButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
+        glassColorScheme={glassColorScheme}
       />
     </View>
   );

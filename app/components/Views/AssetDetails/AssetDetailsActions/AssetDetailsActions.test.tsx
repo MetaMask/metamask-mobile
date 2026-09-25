@@ -12,6 +12,12 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
+import { MAINACTIONBUTTON_GLASS_TEST_ID } from '../../../../component-library/components-temp/MainActionButton/MainActionButton.constants';
+
+const mockUseLiquidGlass = jest.fn();
+jest.mock('../../../../component-library/hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => mockUseLiquidGlass(),
+}));
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
@@ -86,6 +92,13 @@ describe('AssetDetailsActions', () => {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
+  });
+
+  beforeEach(() => {
+    mockUseLiquidGlass.mockReturnValue({
+      isGlassEnabled: false,
+      glassColorScheme: 'light',
+    });
   });
 
   afterEach(() => {
@@ -307,4 +320,43 @@ describe('AssetDetailsActions', () => {
   // is covered by the fund button logic in AssetDetailsActions component lines 61-66.
   // When isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported evaluates to false,
   // the fund button will not be displayed. This scenario is tested in the Asset component tests.
+
+  describe('glass buttons', () => {
+    it('renders opaque buttons when hasGlassButtons is not set', () => {
+      mockUseLiquidGlass.mockReturnValue({
+        isGlassEnabled: true,
+        glassColorScheme: 'dark',
+      });
+
+      const { queryAllByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} />,
+        { state: initialRootState },
+      );
+
+      expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
+    });
+
+    it('renders opaque buttons when the OS cannot draw glass', () => {
+      const { queryAllByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} hasGlassButtons />,
+        { state: initialRootState },
+      );
+
+      expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
+    });
+
+    it('renders every button as glass when requested and available', () => {
+      mockUseLiquidGlass.mockReturnValue({
+        isGlassEnabled: true,
+        glassColorScheme: 'dark',
+      });
+
+      const { getAllByTestId } = renderWithProvider(
+        <AssetDetailsActions {...defaultProps} hasGlassButtons />,
+        { state: initialRootState },
+      );
+
+      expect(getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(4);
+    });
+  });
 });

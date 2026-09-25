@@ -84,6 +84,9 @@ export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;
 /** Corner radius of the glass tray, matching `rounded-3xl`. */
 export const TRADE_TRAY_GLASS_RADIUS = 24;
 
+/** Corner radius of the homepage glass CTA buttons, matching `rounded-xl`. */
+export const CTA_BUTTON_GLASS_RADIUS = 12;
+
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
 

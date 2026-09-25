@@ -7,7 +7,10 @@ import { IconName } from '../../components/Icons/Icon';
 
 // Internal dependencies.
 import MainActionButton from './MainActionButton';
-import { MAINACTIONBUTTON_TEST_ID } from './MainActionButton.constants';
+import {
+  MAINACTIONBUTTON_GLASS_TEST_ID,
+  MAINACTIONBUTTON_TEST_ID,
+} from './MainActionButton.constants';
 
 describe('MainActionButton', () => {
   it('renders with required props', () => {
@@ -142,5 +145,50 @@ describe('MainActionButton', () => {
     expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toMatchObject(
       customStyle,
     );
+  });
+
+  it('renders an opaque surface by default', () => {
+    const { queryByTestId } = render(
+      <MainActionButton
+        iconName={IconName.Add}
+        label="Test Button"
+        onPress={jest.fn}
+      />,
+    );
+
+    expect(queryByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toBeNull();
+  });
+
+  it('renders a glass surface when isGlass is set', () => {
+    const { getByTestId, getByText } = render(
+      <MainActionButton
+        iconName={IconName.Add}
+        label="Glass Button"
+        onPress={jest.fn}
+        isGlass
+        glassColorScheme="dark"
+      />,
+    );
+
+    expect(getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toBeOnTheScreen();
+    expect(getByText('Glass Button')).toBeOnTheScreen();
+  });
+
+  it('calls onPress on the glass surface', () => {
+    const mockOnPress = jest.fn();
+
+    const { getByTestId } = render(
+      <MainActionButton
+        iconName={IconName.Add}
+        label="Glass Button"
+        onPress={mockOnPress}
+        isGlass
+        testID={MAINACTIONBUTTON_TEST_ID}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+
+    expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 });

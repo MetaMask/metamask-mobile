@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { PressableProps, StyleProp, ViewStyle } from 'react-native';
+import type { GlassColorScheme } from 'expo-glass-effect';
 
 // External dependencies.
 import { IconName } from '../../components/Icons/Icon';
@@ -25,6 +26,15 @@ export interface MainActionButtonProps extends PressableProps {
    * Optional param to disable the button.
    */
   isDisabled?: boolean;
+  /**
+   * Draws the surface as iOS 26 Liquid Glass. Callers resolve availability
+   * (see `useLiquidGlass`) so unsupported platforms keep the opaque surface.
+   */
+  isGlass?: boolean;
+  /**
+   * Theme the glass follows when `isGlass` is set; defaults to the system's.
+   */
+  glassColorScheme?: GlassColorScheme;
 }
 
 /**
@@ -35,4 +45,5 @@ export type MainActionButtonStyleSheetVars = Pick<
   'style'
 > & {
   isDisabled: boolean;
+  isGlass: boolean;
 };
