@@ -124,6 +124,21 @@ describe('PerpsProSizeInput', () => {
     expect(input).toHaveProp('value', '1.200');
   });
 
+  it('keeps an external value update when the field blurs', () => {
+    const onChangeText = jest.fn();
+    const { rerender } = renderInput({ value: '100', onChangeText });
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+
+    fireEvent(input, 'focus');
+    rerender(
+      <PerpsProSizeInput {...createProps({ value: '200', onChangeText })} />,
+    );
+    fireEvent(input, 'blur');
+
+    expect(input).toHaveProp('value', '200');
+    expect(onChangeText).not.toHaveBeenCalled();
+  });
+
   it('ignores stale native selection after live grouping inserts a separator', () => {
     const onChangeText = jest.fn();
     renderInput({ value: '100', onChangeText });
