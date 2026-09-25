@@ -41,7 +41,6 @@ import {
   CardRedeemWithdrawalInProgressError,
   CardProviderError,
   CardProviderErrorCode,
-  isCardErrorReported,
   CardStatus,
   emptyCardHomeData,
   type CardAuthSession,
@@ -81,6 +80,7 @@ import {
   type FundingApprovalParams,
   type ICardProvider,
   isCardAuthTokenError,
+  logUnreportedCardError,
   CardProviderIds,
   type CardProviderId,
   type RedeemWalletMode,
@@ -125,7 +125,11 @@ import {
   type CardResumeInfo,
 } from './providers/ImmersveProvider';
 import { CardService } from './services/CardService';
-import { CardApiError, classifyCardHttpOutcome } from './services/BaanxService';
+import {
+  CardApiError,
+  readCardRequestId,
+  readWalletLoadFields,
+} from './services/cardHttpObservability';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
@@ -272,41 +276,6 @@ export const defaultCardControllerState: CardControllerState = {
   signInLink: null,
   accountLookupCache: {},
 };
-
-function readCardRequestId(error: unknown): string | null {
-  if (error instanceof CardProviderError || error instanceof CardApiError) {
-    return error.requestId ?? null;
-  }
-  return null;
-}
-
-function walletLoadTelemetry(error?: unknown): {
-  outcome: string;
-  status_code: number | null;
-  reason: string | null;
-} {
-  if (error === undefined) {
-    return { outcome: 'success', status_code: null, reason: null };
-  }
-  if (error instanceof CardApiError) {
-    return {
-      outcome: error.outcome,
-      status_code: error.statusCode,
-      reason: error.errorCode ?? null,
-    };
-  }
-  if (error instanceof CardProviderError) {
-    return {
-      outcome:
-        typeof error.statusCode === 'number'
-          ? classifyCardHttpOutcome(error.statusCode)
-          : 'unknown',
-      status_code: error.statusCode ?? null,
-      reason: error.code,
-    };
-  }
-  return { outcome: 'unknown', status_code: null, reason: 'unknown' };
-}
 
 /**
  * CardController manages the MetaMask Card feature state.
@@ -1737,12 +1706,10 @@ export class CardController extends BaseController<
       );
       return fresh;
     } catch (error) {
-      if (!isCardErrorReported(error)) {
-        Logger.error(error as Error, {
-          tags: { feature: 'card', provider: pid },
-          context: { name: 'CardController', data: { method: '#doRefresh' } },
-        });
-      }
+      logUnreportedCardError(error, {
+        tags: { feature: 'card', provider: pid },
+        context: { name: 'CardController', data: { method: '#doRefresh' } },
+      });
       if (
         error instanceof CardProviderError &&
         error.code === CardProviderErrorCode.InvalidCredentials
@@ -2720,7 +2687,7 @@ export class CardController extends BaseController<
     startedAt: number;
     error?: unknown;
   }): void {
-    const fields = walletLoadTelemetry(params.error);
+    const fields = readWalletLoadFields(params.error);
     this.#trackCardEvent(
       params.error
         ? MetaMetricsEvents.CARD_WALLET_LOAD_FAILED
@@ -3028,7 +2995,6 @@ export class CardController extends BaseController<
       step: string;
     },
   ): void {
-    if (isCardAuthTokenError(error) || isCardErrorReported(error)) return;
     let code: string | null;
     if (error instanceof CardProviderError) {
       code = error.code;
@@ -3041,11 +3007,13 @@ export class CardController extends BaseController<
       error instanceof CardProviderError || error instanceof CardApiError
         ? (error.statusCode ?? null)
         : null;
-    Logger.error(error as Error, {
+    logUnreportedCardError(error, {
       tags: {
         feature: 'card',
         mode: data.mode,
-        provider: this.state.activeProviderId ?? undefined,
+        ...(this.state.activeProviderId
+          ? { provider: this.state.activeProviderId }
+          : {}),
       },
       context: {
         name: 'CardController',

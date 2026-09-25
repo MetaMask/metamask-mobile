@@ -7,6 +7,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../../util/trace';
+import { CardProviderError, CardProviderErrorCode } from '../provider-types';
 
 const REDACTED = '[redacted]';
 
@@ -23,8 +24,7 @@ export type CardHttpOutcome =
   | 'rate_limited'
   | 'http_5xx'
   | 'timeout'
-  | 'network_error'
-  | 'schema_error';
+  | 'network_error';
 
 export interface CardApiErrorMeta {
   requestId?: string;
@@ -33,6 +33,7 @@ export interface CardApiErrorMeta {
 
 export class CardApiError extends Error {
   readonly statusCode: number;
+  /** Normalized path. Id-like segments and query strings are stripped. */
   readonly path: string;
   /**
    * Kept for errorCode parsing. Non-enumerable so Sentry's
@@ -51,10 +52,11 @@ export class CardApiError extends Error {
     responseBody: string,
     meta?: CardApiErrorMeta,
   ) {
-    super(`Card API error ${statusCode} on ${path}`);
+    const endpoint = normalizeCardEndpoint(path);
+    super(`Card API error ${statusCode} on ${endpoint}`);
     this.name = 'CardApiError';
     this.statusCode = statusCode;
-    this.path = path;
+    this.path = endpoint;
     Object.defineProperty(this, 'responseBody', {
       value: responseBody,
       enumerable: false,
@@ -97,10 +99,7 @@ export function normalizeCardEndpoint(path: string): string {
     .join('/');
 }
 
-/**
- * Map an HTTP status onto the card outcome taxonomy.
- * `schema_error` is assigned by callers when a 2xx body fails to parse.
- */
+/** Map an HTTP status onto the card outcome taxonomy. */
 export function classifyCardHttpOutcome(status: number): CardHttpOutcome {
   if (status >= 200 && status < 300) return 'success';
   if (status === 408) return 'timeout';
@@ -249,7 +248,6 @@ export async function observeCardHttpCall<T>(
               data: {
                 endpoint,
                 httpStatus: status,
-                request_id: requestId,
                 outcome,
                 errorCode: apiError.errorCode ?? null,
               },
@@ -262,4 +260,132 @@ export async function observeCardHttpCall<T>(
       }
     },
   );
+}
+
+interface MappedCardApiError {
+  code: CardProviderErrorCode;
+  message: string;
+  statusCode?: number;
+  errorCode?: string;
+}
+
+function describeCardApiError(
+  error: CardApiError,
+  operation: string,
+): MappedCardApiError {
+  switch (error.statusCode) {
+    case 401:
+      return {
+        code: CardProviderErrorCode.InvalidCredentials,
+        message: `Authentication failed on ${operation}`,
+        statusCode: error.statusCode,
+      };
+    case 403:
+      return {
+        code: CardProviderErrorCode.Forbidden,
+        message: `Forbidden on ${operation}`,
+        statusCode: 403,
+        errorCode: error.errorCode,
+      };
+    case 404:
+      return {
+        code: CardProviderErrorCode.NotFound,
+        message: `Not found: ${operation}`,
+        statusCode: 404,
+      };
+    case 409:
+      return {
+        code: CardProviderErrorCode.Conflict,
+        message: `Conflict on ${operation}`,
+        statusCode: 409,
+      };
+    case 408:
+      return {
+        code: CardProviderErrorCode.Timeout,
+        message: `Request timeout on ${operation}`,
+        statusCode: 408,
+      };
+    case 429:
+      return {
+        code: CardProviderErrorCode.Unknown,
+        message: `Rate limited on ${operation}`,
+        statusCode: 429,
+      };
+    case 0:
+      return {
+        code: CardProviderErrorCode.Network,
+        message: `Network error on ${operation}`,
+        statusCode: 0,
+      };
+    default:
+      if (error.statusCode >= 500) {
+        return {
+          code: CardProviderErrorCode.ServerError,
+          message: `Server error on ${operation}`,
+          statusCode: error.statusCode,
+        };
+      }
+      return {
+        code: CardProviderErrorCode.Unknown,
+        message: error.message,
+      };
+  }
+}
+
+/** Translate an HTTP or provider error into the product error, once. */
+export function toCardProviderError(
+  error: unknown,
+  operation: string,
+): CardProviderError {
+  if (error instanceof CardProviderError) return error;
+  if (error instanceof CardApiError) {
+    const mapped = describeCardApiError(error, operation);
+    return new CardProviderError(
+      mapped.code,
+      mapped.message,
+      mapped.statusCode,
+      mapped.errorCode,
+      { requestId: error.requestId, reported: error.reported },
+    );
+  }
+  return new CardProviderError(
+    CardProviderErrorCode.Unknown,
+    (error as Error).message ?? `Unknown error on ${operation}`,
+  );
+}
+
+export function readCardRequestId(error: unknown): string | null {
+  if (error instanceof CardProviderError || error instanceof CardApiError) {
+    return error.requestId ?? null;
+  }
+  return null;
+}
+
+/** Analytics fields for one cashback or credit wallet GET. No secrets. */
+export function readWalletLoadFields(error?: unknown): {
+  outcome: string;
+  status_code: number | null;
+  reason: string | null;
+} {
+  if (error === undefined) {
+    return { outcome: 'success', status_code: null, reason: null };
+  }
+  if (error instanceof CardApiError) {
+    return {
+      outcome: error.outcome,
+      status_code: error.statusCode,
+      reason: error.errorCode ?? null,
+    };
+  }
+  if (error instanceof CardProviderError) {
+    return {
+      outcome:
+        typeof error.statusCode === 'number'
+          ? classifyCardHttpOutcome(error.statusCode)
+          : 'unknown',
+      status_code: error.statusCode ?? null,
+      reason: error.code,
+    };
+  }
+  return { outcome: 'unknown', status_code: null, reason: 'unknown' };
 }

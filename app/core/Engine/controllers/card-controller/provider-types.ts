@@ -1,4 +1,5 @@
 import type { CaipChainId, Json } from '@metamask/utils';
+import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
   CardStatus,
   CardType,
@@ -57,8 +58,8 @@ export class CardProviderError extends Error {
 }
 
 /**
- * True when BaanxService (or another choke point) already logged this failure.
- * Duck-typed so CardApiError can be recognized without a service import.
+ * True when observeCardHttpCall (or another choke point) already logged this
+ * failure. Duck-typed so the HTTP error can be recognized without importing it.
  */
 export function isCardErrorReported(error: unknown): boolean {
   return (
@@ -66,6 +67,18 @@ export function isCardErrorReported(error: unknown): boolean {
     error !== null &&
     (error as { reported?: unknown }).reported === true
   );
+}
+
+/**
+ * Log a card failure that no lower layer has sent to Sentry.
+ * Routine 401s and already-reported HTTP errors are skipped.
+ */
+export function logUnreportedCardError(
+  error: unknown,
+  sentryContext: LoggerErrorOptions,
+): void {
+  if (isCardAuthTokenError(error) || isCardErrorReported(error)) return;
+  Logger.error(error as Error, sentryContext);
 }
 
 export function isCardAuthTokenError(error: unknown): boolean {

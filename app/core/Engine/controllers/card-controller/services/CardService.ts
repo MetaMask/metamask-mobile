@@ -1,7 +1,7 @@
 import { create, isAxiosError, type AxiosInstance } from 'axios';
 import Logger from '../../../../../util/Logger';
 import type { CardProviderId } from '../provider-types';
-import { CardApiError } from './BaanxService';
+import { CardApiError } from './cardHttpObservability';
 import type { CardApiSupportedRegionsResponse } from './card-supported-regions.types';
 
 const DEFAULT_TIMEOUT_MS = 15_000;

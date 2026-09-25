@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 import { ethers } from 'ethers';
-import { BaanxService, CardApiError } from '../services/BaanxService';
+import { BaanxService } from '../services/BaanxService';
+import { CardApiError } from '../services/cardHttpObservability';
 import { CardStatus, CardType } from '../../../../../components/UI/Card/types';
 import {
   CardAccountStatus,
@@ -687,6 +688,43 @@ describe('BaanxProvider', () => {
       jest.mocked(Logger.error).mockClear();
     });
 
+    it.each([
+      {
+        method: 'getCashbackWallet',
+        verb: 'get',
+        path: '/v1/wallet/reward',
+        call: (provider: BaanxProvider, auth: CardAuthTokens) =>
+          provider.getCashbackWallet(auth),
+      },
+      {
+        method: 'getCreditWallet',
+        verb: 'get',
+        path: '/v1/wallet/credit',
+        call: (provider: BaanxProvider, auth: CardAuthTokens) =>
+          provider.getCreditWallet(auth),
+      },
+    ])(
+      '$method maps a reported failure without logging',
+      async ({ verb, path, call }) => {
+        const apiError = new CardApiError(500, path, '', {
+          requestId: 'req-wallet-1',
+        });
+        apiError.reported = true;
+        const http = jest.fn().mockRejectedValue(apiError);
+        const provider = new BaanxProvider({
+          service: { [verb]: http, apiKey: 'k' } as unknown as BaanxService,
+        });
+
+        await expect(call(provider, tokens)).rejects.toMatchObject({
+          name: 'CardProviderError',
+          code: CardProviderErrorCode.ServerError,
+          requestId: 'req-wallet-1',
+          reported: true,
+        });
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
+
     describe('getCashbackWallet', () => {
       it('returns the reward wallet from GET /v1/wallet/reward', async () => {
         const wallet = {
@@ -705,25 +743,6 @@ describe('BaanxProvider', () => {
           wallet,
         );
         expect(get).toHaveBeenCalledWith('/v1/wallet/reward', tokens);
-      });
-
-      it('maps non-auth failures without logging', async () => {
-        const apiError = new CardApiError(500, '/v1/wallet/reward', '', {
-          requestId: 'req-reward-1',
-        });
-        apiError.reported = true;
-        const get = jest.fn().mockRejectedValue(apiError);
-        const provider = new BaanxProvider({
-          service: { get, apiKey: 'k' } as unknown as BaanxService,
-        });
-
-        await expect(provider.getCashbackWallet(tokens)).rejects.toMatchObject({
-          name: 'CardProviderError',
-          code: CardProviderErrorCode.ServerError,
-          requestId: 'req-reward-1',
-          reported: true,
-        });
-        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -763,24 +782,6 @@ describe('BaanxProvider', () => {
         );
       });
 
-      it('maps non-auth failures without logging', async () => {
-        const get = jest
-          .fn()
-          .mockRejectedValue(
-            new CardApiError(500, '/v1/wallet/reward/withdraw-estimation', ''),
-          );
-        const provider = new BaanxProvider({
-          service: { get, apiKey: 'k' } as unknown as BaanxService,
-        });
-
-        await expect(
-          provider.getCashbackWithdrawEstimation(tokens),
-        ).rejects.toMatchObject({
-          code: CardProviderErrorCode.ServerError,
-        });
-        expect(Logger.error).not.toHaveBeenCalled();
-      });
-
       it('does not log auth failures', async () => {
         const get = jest
           .fn()
@@ -816,24 +817,6 @@ describe('BaanxProvider', () => {
           { amount: '5' },
           tokens,
         );
-      });
-
-      it('maps non-auth failures without logging', async () => {
-        const post = jest
-          .fn()
-          .mockRejectedValue(
-            new CardApiError(500, '/v1/wallet/reward/withdraw', ''),
-          );
-        const provider = new BaanxProvider({
-          service: { post, apiKey: 'k' } as unknown as BaanxService,
-        });
-
-        await expect(
-          provider.withdrawCashback({ amount: '5' }, tokens),
-        ).rejects.toMatchObject({
-          code: CardProviderErrorCode.ServerError,
-        });
-        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {
@@ -873,20 +856,6 @@ describe('BaanxProvider', () => {
         expect(get).toHaveBeenCalledWith('/v1/wallet/credit', tokens);
       });
 
-      it('maps non-auth failures without logging', async () => {
-        const get = jest
-          .fn()
-          .mockRejectedValue(new CardApiError(500, '/v1/wallet/credit', ''));
-        const provider = new BaanxProvider({
-          service: { get, apiKey: 'k' } as unknown as BaanxService,
-        });
-
-        await expect(provider.getCreditWallet(tokens)).rejects.toMatchObject({
-          code: CardProviderErrorCode.ServerError,
-        });
-        expect(Logger.error).not.toHaveBeenCalled();
-      });
-
       it('does not log auth failures', async () => {
         const get = jest
           .fn()
@@ -924,24 +893,6 @@ describe('BaanxProvider', () => {
         );
       });
 
-      it('maps non-auth failures without logging', async () => {
-        const get = jest
-          .fn()
-          .mockRejectedValue(
-            new CardApiError(500, '/v1/wallet/credit/withdraw-estimation', ''),
-          );
-        const provider = new BaanxProvider({
-          service: { get, apiKey: 'k' } as unknown as BaanxService,
-        });
-
-        await expect(
-          provider.getCreditWithdrawEstimation(tokens),
-        ).rejects.toMatchObject({
-          code: CardProviderErrorCode.ServerError,
-        });
-        expect(Logger.error).not.toHaveBeenCalled();
-      });
-
       it('does not log auth failures', async () => {
         const get = jest
           .fn()
@@ -977,24 +928,6 @@ describe('BaanxProvider', () => {
           { amount: '3' },
           tokens,
         );
-      });
-
-      it('maps non-auth failures without logging', async () => {
-        const post = jest
-          .fn()
-          .mockRejectedValue(
-            new CardApiError(500, '/v1/wallet/credit/withdraw', ''),
-          );
-        const provider = new BaanxProvider({
-          service: { post, apiKey: 'k' } as unknown as BaanxService,
-        });
-
-        await expect(
-          provider.withdrawCredit({ amount: '3' }, tokens),
-        ).rejects.toMatchObject({
-          code: CardProviderErrorCode.ServerError,
-        });
-        expect(Logger.error).not.toHaveBeenCalled();
       });
 
       it('does not log auth failures', async () => {

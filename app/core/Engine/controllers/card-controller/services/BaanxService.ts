@@ -3,14 +3,6 @@ import type { CardAuthTokens } from '../provider-types';
 import type { CardLocation } from '../../../../../components/UI/Card/types';
 import { observeCardHttpCall } from './cardHttpObservability';
 
-export {
-  CardApiError,
-  classifyCardHttpOutcome,
-  normalizeCardEndpoint,
-  type CardApiErrorMeta,
-  type CardHttpOutcome,
-} from './cardHttpObservability';
-
 const DEFAULT_TIMEOUT_MS = 15_000;
 const AUTH_TOKEN_ENDPOINT = '/v1/auth/oauth/token';
 
