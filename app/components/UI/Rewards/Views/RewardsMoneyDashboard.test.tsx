@@ -11,6 +11,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import RewardsMoneyDashboard, {
   REWARDS_MONEY_DASHBOARD_TEST_IDS,
@@ -86,7 +87,7 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
   };
 });
 
-jest.mock('../components/Money/PerformanceTab', () => {
+jest.mock('../components/Money/Tabs/PerformanceTab', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -391,10 +392,10 @@ describe('RewardsMoneyDashboard', () => {
     const { getByTestId } = renderDashboard();
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).toBeOnTheScreen();
     expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
     expect(getByTestId('benefits-preview')).toBeOnTheScreen();
@@ -503,10 +504,10 @@ describe('RewardsMoneyDashboard', () => {
     expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
     expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).not.toBeOnTheScreen();
   });
 
