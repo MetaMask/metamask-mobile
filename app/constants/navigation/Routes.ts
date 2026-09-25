@@ -48,6 +48,7 @@ const Routes = {
     VBA_KYC_PENDING: 'RampVbaKycPending',
     VBA_KYC_REJECTED: 'RampVbaKycRejected',
     VBA_ONBOARDING_ERROR: 'RampVbaOnboardingError',
+    VBA_ONBOARDING: 'RampVbaOnboarding',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',

@@ -1,19 +1,16 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
-import Routes from '../../../../../constants/navigation/Routes';
-
-const mockNavigate = jest.fn();
+const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
     goBack: mockGoBack,
   }),
 }));
@@ -51,7 +48,7 @@ describe('CreateVirtualBankAccount', () => {
 
   it('renders the activation design', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <CreateVirtualBankAccount />,
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
     expect(getByText('Activate your Virtual Bank Account')).toBeOnTheScreen();
@@ -66,7 +63,9 @@ describe('CreateVirtualBankAccount', () => {
   });
 
   it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(
       getByTestId(CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON),
@@ -75,8 +74,10 @@ describe('CreateVirtualBankAccount', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('stores Terms 1 locally before advancing to email', async () => {
-    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
+  it('stores vendor terms locally before advancing to email', async () => {
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
 
     const button = getByTestId(
       CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
@@ -87,7 +88,41 @@ describe('CreateVirtualBankAccount', () => {
 
     await waitFor(() => {
       expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC_EMAIL);
+      expect(mockOnSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('keeps the CTA disabled while advancing', async () => {
+    let resolveSuccess: (() => void) | undefined;
+    mockOnSuccess.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSuccess = resolve;
+        }),
+    );
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(button).toBeDisabled();
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.press(button);
+    expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSuccess?.();
+    });
+
+    await waitFor(() => {
+      expect(button).toBeEnabled();
     });
   });
 
@@ -101,7 +136,9 @@ describe('CreateVirtualBankAccount', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(<CreateVirtualBankAccount />);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
 
     expect(
       getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
@@ -124,7 +161,7 @@ describe('CreateVirtualBankAccount', () => {
     });
 
     const { queryByTestId, getByTestId } = renderWithProvider(
-      <CreateVirtualBankAccount />,
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
     expect(
@@ -144,7 +181,9 @@ describe('CreateVirtualBankAccount', () => {
 
   it('renders disclaimers from the KYC API and opens their URL when pressed', () => {
     const spy = jest.spyOn(Linking, 'openURL');
-    const { getByText } = renderWithProvider(<CreateVirtualBankAccount />);
+    const { getByText } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
 
     expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
 
@@ -164,7 +203,7 @@ describe('CreateVirtualBankAccount', () => {
     });
 
     const { getByTestId, getByText } = renderWithProvider(
-      <CreateVirtualBankAccount />,
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
     expect(

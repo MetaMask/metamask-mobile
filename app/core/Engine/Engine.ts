@@ -137,7 +137,7 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
-  predictOrderPreviewServiceInit,
+  predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
@@ -398,7 +398,7 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
-        PredictOrderPreviewService: predictOrderPreviewServiceInit,
+        PredictOrderService: predictOrderServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
@@ -709,8 +709,7 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
-      PredictOrderPreviewService:
-        messengerClientsByName.PredictOrderPreviewService,
+      PredictOrderService: messengerClientsByName.PredictOrderService,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,

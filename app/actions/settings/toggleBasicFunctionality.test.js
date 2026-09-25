@@ -529,6 +529,31 @@ describe('consolidateBasicFunctionality action', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
+  it('replaces the mixed toast with the social sheet once the profile is linked', async () => {
+    const dispatch = jest.fn();
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+    mockSelectShouldRepairSocialLoginBasicFunctionality.mockReturnValue(true);
+    mockIsBasicFunctionalitySocialLoginUser.mockReturnValue(true);
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        basicFunctionalityEnabled: true,
+        isBasicFunctionalityConsolidatedEnabled: true,
+        hasLinkedSocialLoginProfile: true,
+        basicFunctionalityMigrationNotification: 'toast',
+      },
+    }));
+
+    expect(dispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityMigrationNotification('bottom-sheet'),
+    );
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+  });
+
   it('turns Basic Functionality back on for a consolidated social-login wallet', async () => {
     const dispatch = jest.fn();
     mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);

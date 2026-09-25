@@ -399,10 +399,10 @@ import {
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import {
-  PredictOrderPreviewService,
-  type PredictOrderPreviewServiceActions,
-  type PredictOrderPreviewServiceEvents,
-} from '../../components/UI/PredictNext/services/PredictOrderPreviewService';
+  PredictOrderService,
+  type PredictOrderServiceActions,
+  type PredictOrderServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderService';
 import {
   RecurringOrdersDataService,
   type RecurringOrdersDataServiceActions,
@@ -732,7 +732,7 @@ export type GlobalActions =
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
-  | PredictOrderPreviewServiceActions
+  | PredictOrderServiceActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
   | CardControllerActions
@@ -857,7 +857,7 @@ export type GlobalEvents =
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
-  | PredictOrderPreviewServiceEvents
+  | PredictOrderServiceEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
   | CardControllerEvents
@@ -1022,7 +1022,7 @@ export type MessengerClients = {
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
-  PredictOrderPreviewService: PredictOrderPreviewService;
+  PredictOrderService: PredictOrderService;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
   CardController: CardController;
@@ -1238,7 +1238,7 @@ export type MessengerClientsToInitialize =
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
-  | 'PredictOrderPreviewService'
+  | 'PredictOrderService'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
   | 'CardController'

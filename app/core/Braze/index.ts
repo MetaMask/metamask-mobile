@@ -9,6 +9,7 @@ import {
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
+import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -29,6 +30,33 @@ export function getBrazePlugin(): BrazePlugin {
     });
   }
   return brazePlugin;
+}
+
+/**
+ * Apply the LaunchDarkly Braze event blocklist to the Segment plugin.
+ *
+ * A missing, disabled, or malformed flag clears the blocklist so events are
+ * sent. Called on analytics init and whenever remote flags change.
+ *
+ * @param flagValue - Raw `brazeEventBlocklist` variation.
+ */
+export function syncBrazeEventBlocklist(flagValue: unknown): void {
+  try {
+    getBrazePlugin().setBlockedEvents(getBrazeBlockedEventNames(flagValue));
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      '[Braze] Failed to sync event blocklist from remote config',
+    );
+    try {
+      getBrazePlugin().setBlockedEvents([]);
+    } catch (resetError) {
+      Logger.error(
+        resetError as Error,
+        '[Braze] Failed to clear event blocklist after a sync error',
+      );
+    }
+  }
 }
 
 /**

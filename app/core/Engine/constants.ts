@@ -41,7 +41,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictMarketDataService',
   'PredictLiveDataService',
   'PredictPortfolioService',
-  'PredictOrderPreviewService',
+  'PredictOrderService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
 ] as const;
