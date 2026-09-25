@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   Box,
-  BottomSheetFooter,
   BottomSheetHeader,
+  Button,
   ButtonSize,
-  ButtonsAlignment,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -46,22 +46,26 @@ const ClaimResidencySheet: React.FC<ClaimResidencySheetProps> = ({
         {strings('rewards.kol.claim_residency_description')}
       </Text>
     </Box>
-    <BottomSheetFooter
-      buttonsAlignment={ButtonsAlignment.Vertical}
-      secondaryButtonProps={{
-        children: strings('rewards.kol.claim_residency_no'),
-        onPress: onConfirmNonUs,
-        size: ButtonSize.Lg,
-        testID: KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO,
-      }}
-      primaryButtonProps={{
-        children: strings('rewards.kol.claim_residency_yes'),
-        onPress: onConfirmUs,
-        size: ButtonSize.Lg,
-        testID: KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES,
-      }}
-      twClassName="px-4 pt-6"
-    />
+    <Box twClassName="gap-3 px-4 pt-6">
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={onConfirmUs}
+        testID={KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_YES}
+      >
+        {strings('rewards.kol.claim_residency_yes')}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={onConfirmNonUs}
+        testID={KOL_DASHBOARD_SELECTORS.CLAIM_RESIDENCY_NO}
+      >
+        {strings('rewards.kol.claim_residency_no')}
+      </Button>
+    </Box>
   </KolDashboardSheet>
 );
 

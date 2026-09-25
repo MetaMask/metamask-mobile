@@ -231,6 +231,7 @@ const Routes = {
     ADD_DEVICE_TO_WALLET: 'AddDeviceToWallet',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
     CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
+    INVITE: 'OnboardingInvite',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

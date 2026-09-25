@@ -2,10 +2,10 @@ import React, { useCallback } from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
-  BottomSheetFooter,
   BottomSheetHeader,
+  Button,
   ButtonSize,
-  ButtonsAlignment,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -60,28 +60,32 @@ const TaxFormRequiredSheet: React.FC<TaxFormRequiredSheetProps> = ({
           {strings('rewards.kol.tax_form_description')}
         </Text>
       </Box>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        secondaryButtonProps={{
-          children: strings('rewards.kol.tax_form_remind_later'),
-          onPress: onClose,
-          size: ButtonSize.Lg,
-          testID: KOL_DASHBOARD_SELECTORS.TAX_FORM_REMIND_LATER,
-        }}
-        primaryButtonProps={{
-          children: strings('rewards.kol.tax_form_continue'),
-          onPress: handleContinue,
-          size: ButtonSize.Lg,
-          endAccessory: (
+      <Box twClassName="gap-3 px-4 pt-6">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleContinue}
+          endAccessory={
             <ArrowSquareOutIcon
               fill="currentColor"
               style={tw.style('h-5 w-5 text-primary-inverse')}
             />
-          ),
-          testID: KOL_DASHBOARD_SELECTORS.TAX_FORM_CONTINUE,
-        }}
-        twClassName="px-4 pt-6"
-      />
+          }
+          testID={KOL_DASHBOARD_SELECTORS.TAX_FORM_CONTINUE}
+        >
+          {strings('rewards.kol.tax_form_continue')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={onClose}
+          testID={KOL_DASHBOARD_SELECTORS.TAX_FORM_REMIND_LATER}
+        >
+          {strings('rewards.kol.tax_form_remind_later')}
+        </Button>
+      </Box>
     </KolDashboardSheet>
   );
 };

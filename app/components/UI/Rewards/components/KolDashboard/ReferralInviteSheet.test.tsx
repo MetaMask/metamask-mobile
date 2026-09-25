@@ -33,9 +33,9 @@ describe('ReferralInviteSheet', () => {
     const { getByTestId } = renderSheet();
 
     expect(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_SHEET)).toBeOnTheScreen();
-    expect(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE)).toHaveTextContent(
-      '8F3A21',
-    );
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT).props.value,
+    ).toBe('8F3A21');
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_DECLINE),
     ).toBeOnTheScreen();
@@ -53,53 +53,30 @@ describe('ReferralInviteSheet', () => {
     expect(modal.props.visible).toBe(true);
   });
 
-  it('swaps the code for an input when a different code is requested', () => {
-    const { getByTestId, queryByTestId } = renderSheet();
+  it('uppercases the typed code and drops separators', () => {
+    const { getByTestId } = renderSheet({ referralCode: '' });
 
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_EDIT_CODE));
+    fireEvent.changeText(
+      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT),
+      'ab-12cd',
+    );
 
     expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE)).toBeNull();
+      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT).props.value,
+    ).toBe('AB12CD');
   });
 
-  it('uppercases the typed code and confirms it once it is complete', () => {
-    const { getByTestId, queryByTestId } = renderSheet();
+  it('keeps accept disabled until the code is complete', () => {
+    const onAccept = jest.fn();
+    const { getByTestId } = renderSheet({ onAccept, referralCode: '' });
 
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_EDIT_CODE));
     fireEvent.changeText(
       getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT),
       'ab12',
     );
+    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_ACCEPT));
 
-    expect(
-      queryByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_COMPLETE),
-    ).toBeNull();
-
-    fireEvent.changeText(
-      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT),
-      'ab12cd',
-    );
-
-    expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_COMPLETE),
-    ).toBeOnTheScreen();
-  });
-
-  it('restores the original code when the edit is cancelled', () => {
-    const { getByTestId } = renderSheet();
-
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_EDIT_CODE));
-    fireEvent.changeText(
-      getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT),
-      'zz99',
-    );
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CANCEL_EDIT));
-
-    expect(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE)).toHaveTextContent(
-      '8F3A21',
-    );
+    expect(onAccept).not.toHaveBeenCalled();
   });
 
   it('accepts with the code currently shown', async () => {
@@ -115,7 +92,6 @@ describe('ReferralInviteSheet', () => {
     const onAccept = jest.fn();
     const { getByTestId } = renderSheet({ onAccept });
 
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_EDIT_CODE));
     fireEvent.changeText(
       getByTestId(KOL_DASHBOARD_SELECTORS.INVITE_CODE_INPUT),
       'ab12cd',

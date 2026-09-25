@@ -4464,6 +4464,13 @@
     "skip": "Skip",
     "next": "Next"
   },
+  "onboarding_invite": {
+    "title": "You’re invited",
+    "description": "Get 2X back when you trade Swaps and Perps, for a limited time.",
+    "referral_code": "Referral code",
+    "continue": "Continue",
+    "cancel": "Continue without referral"
+  },
   "onboarding_crypto_experience_questionnaire": {
     "title": "What's your experience with crypto?",
     "option_new": "New",
@@ -11036,12 +11043,9 @@
       "rebate_swaps": "Swaps",
       "invite_title": "You’re invited",
       "invite_illustration_label": "Referral invite illustration",
-      "invite_body": "Earn 2× cashback on Swaps and Perps trades for a limited time.",
+      "invite_body": "Get 2X back when you trade Swaps and Perps, for a limited time.",
       "invite_referral_code": "Referral code",
-      "invite_use_different_code": "Use a different code",
-      "invite_code_placeholder": "Enter code",
-      "invite_cancel_edit": "Cancel",
-      "invite_decline": "Decline",
+      "invite_decline": "Continue without referral",
       "invite_accept": "Accept",
       "invite_accepted_eyebrow": "Referral activated",
       "invite_accepted_title": "Your 2× rebate boost is active",

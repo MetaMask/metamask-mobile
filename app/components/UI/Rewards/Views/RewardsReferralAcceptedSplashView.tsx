@@ -130,15 +130,6 @@ const RewardsReferralAcceptedSplashViewContent: React.FC = () => {
 
       <Box twClassName="gap-3 px-4 pb-4">
         <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleDismiss}
-          testID={KOL_DASHBOARD_SELECTORS.INVITE_ACCEPTED_VIEW_REWARDS}
-        >
-          {strings('rewards.kol.invite_accepted_view_rewards')}
-        </Button>
-        <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
@@ -146,6 +137,15 @@ const RewardsReferralAcceptedSplashViewContent: React.FC = () => {
           testID={KOL_DASHBOARD_SELECTORS.INVITE_ACCEPTED_START_TRADING}
         >
           {strings('rewards.kol.invite_accepted_start_trading')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleDismiss}
+          testID={KOL_DASHBOARD_SELECTORS.INVITE_ACCEPTED_VIEW_REWARDS}
+        >
+          {strings('rewards.kol.invite_accepted_view_rewards')}
         </Button>
       </Box>
     </SafeAreaView>
