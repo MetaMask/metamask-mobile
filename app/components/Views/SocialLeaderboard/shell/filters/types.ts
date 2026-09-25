@@ -7,8 +7,8 @@ import type { SocialShellTab } from '../types';
 export type SocialFilterType = 'all' | 'tokens' | 'perps' | 'predictions';
 
 /**
- * Trader cohort filter. `following` is exposed on the Live trades sheet
- * (see `TAB_COHORT_OPTIONS`). The Leaderboard chip row omits it.
+ * Trader cohort filter. `following` is tab-specific; `verified` is a
+ * Leaderboard Traders chip (Following / Live trades use `verification`).
  */
 export type SocialTraderCohort =
   | 'all'
@@ -16,7 +16,9 @@ export type SocialTraderCohort =
   | 'shrimp'
   | 'dolphin'
   | 'whale'
-  | 'kol';
+  | 'verified';
+
+export type SocialFilterVerification = 'all' | 'verified' | 'unverified';
 
 /**
  * Trailing window for the unified Filters sheet. The V0 sheet only offered
@@ -54,6 +56,7 @@ export interface SocialRangeFilter {
 export interface SocialShellFilters {
   type: SocialFilterType;
   traderCohort: SocialTraderCohort;
+  verification: SocialFilterVerification;
   timeframe: SocialFilterTimeframe;
   network: SocialFilterNetwork;
   marketCap: SocialRangeFilter;
@@ -62,8 +65,8 @@ export interface SocialShellFilters {
 
 /**
  * Per-tab filter state. The draft is what the user is editing inside the
- * sheet; `applied` is what was committed by the last "Show results" tap.
- * `hasActiveFilters` compares `applied` against `DEFAULT_FILTERS`.
+ * sheet; `applied` is what was committed by the last Apply tap.
+ * `hasActiveFilters` compares visible fields on `applied` against defaults.
  */
 export interface SocialShellTabFilterState {
   applied: SocialShellFilters;
@@ -86,6 +89,7 @@ export interface SocialFilterApiParams {
   timeframe: SocialFilterTimeframe;
   network: SocialFilterNetwork;
   traderCohort: SocialTraderCohort;
+  verification: SocialFilterVerification;
   marketCap: SocialRangeFilter;
   volume24h: SocialRangeFilter;
 }
