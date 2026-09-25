@@ -18,3 +18,8 @@
 // which would create type-identity conflicts with `import BrazeKit` in Swift.
 id _Nonnull BrazeHelperInit(id _Nonnull configuration);
 void BrazeHelperPopulateInitialPayload(NSDictionary * _Nullable launchOptions);
+
+// BrazePushModule.m — completes a push unregistration that is waiting for the
+// APNs device token. Plain C so Swift does not import BrazeKit-Swift.h.
+void BrazePushHandleApnsDeviceToken(NSData * _Nonnull deviceToken);
+void BrazePushHandleApnsRegistrationFailure(NSString * _Nonnull message);
