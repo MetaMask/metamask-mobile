@@ -380,13 +380,13 @@ describe('PerpsProOrderForm', () => {
       );
     });
 
-    it('passes raw size text to sizeInput.onChange', () => {
+    it('normalizes repeated decimal separators before sizeInput.onChange', () => {
       const onChange = jest.fn();
       renderForm({ sizeInput: createSizeInput({ onChange }) });
 
       fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '1..2');
 
-      expect(onChange).toHaveBeenCalledWith('1..2');
+      expect(onChange).toHaveBeenCalledWith('1.2');
     });
 
     it('groups displayed size values while preserving canonical callbacks', () => {
