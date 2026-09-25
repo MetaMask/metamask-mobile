@@ -25,8 +25,6 @@ jest.mock('../../../../util/trace', () => ({
   TraceOperation: { RampOperation: 'ramp.operation' },
 }));
 
-// Only the parent-context lookup is stubbed. The real tag builder stays in
-// play so these assertions pin the tags Sentry actually receives.
 jest.mock('../utils/rampsBuyCufTrace', () => ({
   ...jest.requireActual('../utils/rampsBuyCufTrace'),
   getRampsBuyCufParentContext: jest.fn(() => ({ mocked: 'parent' })),
@@ -43,8 +41,6 @@ describe('useRampScreenPerformance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // A completed span settles the foreground to warm, so the module-level
-    // context must not leak into the next test.
     resetRampsBuyLifecycleContextForTests();
     appState = 'active';
     Object.defineProperty(AppState, 'currentState', {
@@ -78,8 +74,6 @@ describe('useRampScreenPerformance', () => {
         name: TraceName.RampScreenLoad,
         parentContext: { mocked: 'parent' },
         forceTransaction: true,
-        // feature and ramp_type come from the shared Buy CUF builder, so
-        // screen spans cohort alongside the rest of the Buy journey.
         tags: {
           feature: 'buy',
           ramp_type: 'UNIFIED_BUY_2',
