@@ -373,13 +373,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('on submit editing, keyboard dismisses without creating new input', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
+      const { getByPlaceholderText, queryByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
 
-      // Enter a word
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
@@ -388,29 +387,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(input, 'say');
       });
 
-      // Wait for the first grid input to be created
-      await waitFor(() => {
-        const firstGridInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-        );
-        expect(firstGridInput).toBeOnTheScreen();
-      });
-
-      // Get the first grid input
-      const firstGridInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-
       await act(async () => {
-        fireEvent(firstGridInput, 'onSubmitEditing');
+        fireEvent(input, 'onSubmitEditing');
       });
 
-      // Verify no new input was created (keyboard just dismisses)
-      await waitFor(() => {
-        expect(
-          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeNull();
-      });
+      expect(
+        queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
+      ).toBeNull();
     });
 
     it('creates a 13th input when space follows a valid 12-word prefix of a longer SRP', async () => {
@@ -1368,7 +1351,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       },
     };
 
-    it('renders the import-from-extension link when add-device sync is enabled', () => {
+    it('opens the import menu when the scan button is pressed and add-device sync is enabled', () => {
       const stateWithAddDeviceSync = {
         ...initialState,
         engine: {
@@ -1389,15 +1372,22 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         { state: stateWithAddDeviceSync },
       );
 
+      fireEvent.press(
+        getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
+      );
+
       expect(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_OPTIONS_SHEET_ID),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('import_from_seed.import_wallet_from_extension')),
+        getByText(strings('import_from_seed.import_from_srp_qr')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('import_from_seed.import_from_extension_menu')),
       ).toBeOnTheScreen();
     });
 
-    it('navigates to AddDeviceToWallet when import-from-extension link is pressed', () => {
+    it('navigates to AddDeviceToWallet when import-from-extension is selected from the scan menu', () => {
       const mockNavigate = jest.fn();
       const Stack = createNativeStackNavigator();
       const stateWithAddDeviceSync = {
@@ -1432,12 +1422,64 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       fireEvent.press(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+        getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
+      );
+      fireEvent.press(
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_OPTION_ID),
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
       );
+    });
+
+    it('navigates to the QR scanner when import from SRP QR is selected from the scan menu', () => {
+      const mockNavigate = jest.fn();
+      const Stack = createNativeStackNavigator();
+      const stateWithAddDeviceSync = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                addDeviceSyncEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="TestScreen">
+              {({ navigation }) => {
+                jest
+                  .spyOn(navigation, 'navigate')
+                  .mockImplementation(mockNavigate);
+                return <ImportFromSecretRecoveryPhrase />;
+              }}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>,
+        { state: stateWithAddDeviceSync },
+        false,
+      );
+
+      fireEvent.press(
+        getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
+      );
+      fireEvent.press(
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_SRP_QR_OPTION_ID),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
+        initialScreen: QRTabSwitcherScreens.Scanner,
+        disableTabber: true,
+        onScanSuccess: expect.any(Function),
+        onScanError: expect.any(Function),
+      });
     });
 
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {

@@ -2,59 +2,26 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
-  StyleProp,
-  StyleSheet,
   TextInput,
-  NativeSyntheticEvent,
-  TouchableWithoutFeedback,
-  TextInputSelectionChangeEventData,
-  TextStyle,
   type BlurEvent,
   type FocusEvent,
+  type TextInputSelectionChangeEvent,
 } from 'react-native';
 
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
-
-import Input from './Input';
-import { TextFieldProps } from '../../../component-library/components/Form/TextField/TextField.types';
 import {
-  TEXTFIELD_TEST_ID,
-  TEXTFIELD_STARTACCESSORY_TEST_ID,
-  TEXTFIELD_ENDACCESSORY_TEST_ID,
-} from '../../../component-library/components/Form/TextField/TextField.constants';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+  TextField,
+  type TextFieldProps,
+} from '@metamask/design-system-react-native';
 
-const TextField = React.forwardRef<
-  TextInput,
-  TextFieldProps & {
-    inputStyle?: StyleProp<TextStyle>;
-    onInputFocus?: () => void;
-  }
->(
-  (
-    {
-      style,
-      startAccessory,
-      endAccessory,
-      isError = false,
-      inputElement,
-      isDisabled = false,
-      autoFocus = false,
-      onBlur,
-      onFocus,
-      testID,
-      inputStyle,
-      onInputFocus,
-      value,
-      ...props
-    },
-    ref,
-  ) => {
-    const tw = useTailwind();
+/**
+ * Text field for a single Secret Recovery Phrase word. It keeps the caret at
+ * the end of the word every time the field is focused so that backspace moves
+ * through the phrase one word at a time.
+ */
+const SrpInput = React.forwardRef<TextInput, TextFieldProps>(
+  ({ inputProps, onBlur, onFocus, value, ...props }, ref) => {
     const inputRef = useRef<TextInput | null>(null);
-    const [isFocused, setIsFocused] = useState(false);
-    const [inputSelection, setInputSelection] = useState<
+    const [selection, setSelection] = useState<
       { start: number; end: number } | undefined
     >(undefined);
 
@@ -72,91 +39,50 @@ const TextField = React.forwardRef<
 
     const placeCaretAtEnd = useCallback(() => {
       const end = value?.length ?? 0;
-      const selection = { start: end, end };
-      setInputSelection(selection);
-      inputRef.current?.setNativeProps({ selection });
+      const caretSelection = { start: end, end };
+      setSelection(caretSelection);
+      inputRef.current?.setNativeProps({ selection: caretSelection });
     }, [value]);
 
     const onBlurHandler = useCallback(
       (e: BlurEvent) => {
-        if (!isDisabled) {
-          setIsFocused(false);
-          onBlur?.(e);
-        }
+        onBlur?.(e);
         const end = value?.length ?? 0;
-        setInputSelection({ start: end, end });
+        setSelection({ start: end, end });
       },
-      [isDisabled, onBlur, value],
+      [onBlur, value],
     );
 
     const onFocusHandler = useCallback(
       (e: FocusEvent) => {
-        if (!isDisabled) {
-          setIsFocused(true);
-          onFocus?.(e);
-          placeCaretAtEnd();
-        }
+        onFocus?.(e);
+        placeCaretAtEnd();
       },
-      [isDisabled, onFocus, placeCaretAtEnd],
+      [onFocus, placeCaretAtEnd],
     );
 
-    const handleSelectionChange = (
-      event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-    ) => {
-      setInputSelection(event.nativeEvent.selection);
-    };
-
-    let borderStyleClass = 'border-muted';
-    if (isError) {
-      borderStyleClass = 'border-error-default';
-    } else if (isFocused) {
-      borderStyleClass = 'border-default';
-    }
+    const handleSelectionChange = useCallback(
+      (e: TextInputSelectionChangeEvent) => {
+        setSelection(e.nativeEvent.selection);
+      },
+      [],
+    );
 
     return (
-      <TouchableWithoutFeedback onPress={onInputFocus}>
-        <Box
-          style={tw.style(
-            'flex-row items-center rounded-xl h-12 border px-4 bg-muted',
-            isDisabled && 'opacity-50',
-            borderStyleClass,
-            ...(style ? [StyleSheet.flatten(style)] : []),
-          )}
-          testID={TEXTFIELD_TEST_ID}
-        >
-          {startAccessory && (
-            <Box twClassName="mr-3" testID={TEXTFIELD_STARTACCESSORY_TEST_ID}>
-              {startAccessory}
-            </Box>
-          )}
-          <Box twClassName="flex-1 h-[46px]">
-            {inputElement ?? (
-              <Input
-                textVariant={TextVariant.BodyMD}
-                isDisabled={isDisabled}
-                autoFocus={autoFocus}
-                onBlur={onBlurHandler}
-                onFocus={onFocusHandler}
-                testID={testID}
-                {...props}
-                ref={assignRef}
-                isStateStylesDisabled
-                inputStyle={inputStyle}
-                selection={inputSelection}
-                onSelectionChange={handleSelectionChange}
-                value={value}
-              />
-            )}
-          </Box>
-          {endAccessory && (
-            <Box twClassName="ml-3" testID={TEXTFIELD_ENDACCESSORY_TEST_ID}>
-              {endAccessory}
-            </Box>
-          )}
-        </Box>
-      </TouchableWithoutFeedback>
+      <TextField
+        {...props}
+        value={value}
+        onBlur={onBlurHandler}
+        onFocus={onFocusHandler}
+        inputRef={assignRef}
+        inputProps={{
+          ...inputProps,
+          selection,
+          onSelectionChange: handleSelectionChange,
+        }}
+      />
     );
   },
 );
 
-export default TextField;
+export default SrpInput;
