@@ -370,6 +370,8 @@ export const PredictActivityDetailsSelectorsIDs = {
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
   MARKET_SECTION: 'predict-activity-details-market-section',
   SECTION_DIVIDER: 'predict-activity-details-section-divider',
+  MARKET_LABEL: 'predict-activity-details-market-label',
+  MARKET_VALUE: 'predict-activity-details-market-value',
 } as const;
 
 // ========================================

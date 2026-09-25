@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { InputStepperDescriptionRow } from './InputStepperDescriptionRow';
 import { InputStepperDescriptionType } from './constants';
@@ -314,6 +315,35 @@ describe('InputStepperDescriptionRow', () => {
       expect(getByTestId('input-stepper-description-row')).toBeOnTheScreen();
       expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
       expect(getByTestId('input-text-description-message')).toBeOnTheScreen();
+    });
+
+    it('aligns the icon and message to the start of the row', () => {
+      const description = {
+        type: InputStepperDescriptionType.WARNING,
+        message:
+          'High price slippage, which may lead to an unfavourable exchange',
+        color: TextColor.WarningDefault,
+        icon: {
+          name: IconName.Danger,
+          size: IconSize.Lg,
+          color: IconColor.WarningDefault,
+        },
+      };
+
+      const { getByTestId } = render(
+        <InputStepperDescriptionRow description={description} />,
+      );
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId('input-stepper-description-row').props.style,
+        ),
+      ).toEqual(expect.objectContaining({ justifyContent: 'flex-start' }));
+      expect(
+        StyleSheet.flatten(
+          getByTestId('input-text-description-message').props.style,
+        ),
+      ).toEqual(expect.objectContaining({ textAlign: 'left' }));
     });
   });
 });
