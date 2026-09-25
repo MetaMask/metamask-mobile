@@ -15,7 +15,11 @@ import {
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import {
   setOrdersNetworkFilter,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
   setRecurringPriceRange,
+  setRecurringRepeatCount,
+  setSourceAmount,
 } from '../../../../../../core/redux/slices/bridge';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
@@ -1359,10 +1363,19 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the completed order details from History', async () => {
+  it('duplicates a completed order into a cleared recurring form', async () => {
     const renderResult = renderBridgeViewWithRecurringOrderDetails();
 
     await openRecurringTab(renderResult);
+    act(() => {
+      renderResult.store.dispatch(setSourceAmount('4'));
+      renderResult.store.dispatch(setRecurringEveryUnit('hour'));
+      renderResult.store.dispatch(setRecurringEveryValue('2'));
+      renderResult.store.dispatch(setRecurringRepeatCount('9'));
+      renderResult.store.dispatch(
+        setRecurringPriceRange(STORED_USD_PRICE_RANGE),
+      );
+    });
     await userEvent.press(
       renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
     );
@@ -1395,6 +1408,71 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
       ),
     ).not.toBeOnTheScreen();
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.SCREEN,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
+        ),
+      ).getByText(MOCK_RECURRING_COMPLETED_ORDER.src.asset.symbol),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA,
+        ),
+      ).getByText(MOCK_RECURRING_COMPLETED_ORDER.dest.asset.symbol),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue(String(MOCK_RECURRING_COMPLETED_ORDER.schedule.every));
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    ).toHaveTextContent(
+      strings(
+        `bridge.recurring.unit.${MOCK_RECURRING_COMPLETED_ORDER.schedule.unit}`,
+      ),
+    );
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveDisplayValue(
+      String(MOCK_RECURRING_COMPLETED_ORDER.schedule.repeatCount),
+    );
+    expect(
+      renderResult.getByTestId(
+        BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
+      ),
+    ).toHaveDisplayValue('');
+    expect(
+      renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
+    ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
+    expect(renderResult.store.getState().bridge.sourceAmount).toBeUndefined();
+    expect(
+      renderResult.store.getState().bridge.recurring.priceRange,
+    ).toBeUndefined();
+    expect(renderResult.store.getState().bridge.isDestTokenManuallySet).toBe(
+      true,
+    );
   });
 
   it('hides the footer confirm button after opening the tab without a quote', async () => {
