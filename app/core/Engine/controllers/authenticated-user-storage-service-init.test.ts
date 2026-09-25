@@ -62,13 +62,10 @@ describe('getAuthenticatedUserStorageEnvironment', () => {
     expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
   });
 
-  it.each(['dev', 'uat', 'prod'] as const)(
-    'tracks MM_API_ENV=%s',
-    (value) => {
-      process.env.MM_API_ENV = value;
-      expect(getAuthenticatedUserStorageEnvironment()).toBe(value);
-    },
-  );
+  it.each(['dev', 'uat', 'prod'] as const)('tracks MM_API_ENV=%s', (value) => {
+    process.env.MM_API_ENV = value;
+    expect(getAuthenticatedUserStorageEnvironment()).toBe(value);
+  });
 
   it('falls back to prod for unrecognized MM_API_ENV values', () => {
     process.env.MM_API_ENV = 'nonsense';
