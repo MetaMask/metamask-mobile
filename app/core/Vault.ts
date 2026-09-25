@@ -3,7 +3,7 @@ import Logger from '../util/Logger';
 import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
-import { Authentication } from './Authentication/Authentication';
+import { completeSeedlessPasswordChangeKeySync } from './Authentication/seedlessPasswordChangeCoordinator';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -83,9 +83,6 @@ export const recreateVaultsWithNewPassword = async (
     ReduxService.store.getState(),
   );
 
-  // we change the password in the seedless flow first
-  // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
-  // and ask user to login with new password
   if (isSeedlessFlow) {
     await recreateSeedlessVaultWithNewPassword(newPassword, password);
   }
@@ -93,7 +90,7 @@ export const recreateVaultsWithNewPassword = async (
   await KeyringController.changePassword(newPassword);
 
   if (isSeedlessFlow) {
-    await Authentication.syncKeyringEncryptionKey();
+    await completeSeedlessPasswordChangeKeySync();
   }
   Engine.setSelectedAddress(selectedAddress);
 };

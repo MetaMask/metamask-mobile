@@ -3179,6 +3179,41 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith({ skipCache: true });
     });
 
+    it('returns true when resolvePasswordSyncState reports password-outdated', async () => {
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      const resolvePasswordSyncState = jest
+        .fn()
+        .mockResolvedValue('password-outdated');
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        resolvePasswordSyncState,
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+      });
+
+      expect(result).toBe(true);
+      expect(resolvePasswordSyncState).toHaveBeenCalledWith({
+        skipCache: true,
+      });
+    });
+
     it('calls Logger.error when captureSentryError is true and the controller throws', async () => {
       mockIsOutdated = true;
       const mockState: RecursivePartial<RootState> = {

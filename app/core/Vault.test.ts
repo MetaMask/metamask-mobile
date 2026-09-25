@@ -296,6 +296,52 @@ describe('Vault', () => {
       ).toHaveBeenCalled();
     });
 
+    it('marks and clears the password-change phase when the lifecycle API is present', async () => {
+      const mockReduxState = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'valid vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+
+      mockEngine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('enc-key');
+      const lifecycleController = mockEngine.context
+        .SeedlessOnboardingController as unknown as Record<string, jest.Mock>;
+      lifecycleController.markPasswordChangeKeySyncPending = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      lifecycleController.loadKeyringEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('enc-key');
+      lifecycleController.completePasswordChange = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      await recreateVaultsWithNewPassword(
+        'old-password',
+        'new-password',
+        '0x123',
+      );
+
+      expect(
+        lifecycleController.markPasswordChangeKeySyncPending,
+      ).toHaveBeenCalledTimes(1);
+      expect(lifecycleController.completePasswordChange).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
     it('should restore when seedless change password failed if seedless onboarding flow is active', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
