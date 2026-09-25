@@ -736,7 +736,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Deposit cancelled',
+      'Funding cancelled',
     );
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
     expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
