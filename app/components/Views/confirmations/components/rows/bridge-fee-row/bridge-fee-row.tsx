@@ -30,7 +30,7 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { Json } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import Icon, {
   IconColor,
@@ -43,6 +43,9 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -237,22 +240,64 @@ function Tooltip({
 
   if (!key) return null;
 
-  return <FeesTooltip message={strings(key)} totals={totals} />;
+  return (
+    <FeesTooltip
+      message={strings(key)}
+      totals={totals}
+      transactionMeta={transactionMeta}
+    />
+  );
+}
+
+/**
+ * Resolve the token used to pay the source network fee.
+ * Defaults to the native token of the source chain, unless a gas fee token is
+ * used, in which case the source (payment) token pays the fee.
+ */
+function useNetworkFeeToken({
+  totals,
+  transactionMeta,
+}: {
+  totals: TransactionPayTotals;
+  transactionMeta: TransactionMeta;
+}): { address: Hex; chainId: Hex } {
+  const { payToken } = useTransactionPayToken();
+
+  const chainId = payToken?.chainId ?? transactionMeta.chainId;
+
+  const address =
+    totals.fees.isSourceGasFeeToken && payToken?.address
+      ? payToken.address
+      : getNativeTokenAddress(chainId);
+
+  return { address, chainId };
 }
 
 function FeesTooltip({
   message,
   totals,
+  transactionMeta,
 }: {
   message: string;
   totals: TransactionPayTotals;
+  transactionMeta: TransactionMeta;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
-  const networkFeeUsd = useMemo(() => {
-    const networkFeeUsdBN = getNetworkFeeUsdBN({ totals });
-    return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
-  }, [totals, formatFiat]);
+  const networkFeeToken = useNetworkFeeToken({ totals, transactionMeta });
+
+  const networkFeeUsdBN = useMemo(
+    () => getNetworkFeeUsdBN({ totals }),
+    [totals],
+  );
+
+  const networkFeeUsd = useMemo(
+    () => (networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : ''),
+    [networkFeeUsdBN, formatFiat],
+  );
+
+  // No token is paid when there is no fee, so the icon would be misleading.
+  const showNetworkFeeToken = Boolean(networkFeeUsdBN?.isGreaterThan(0));
 
   const providerFeeUsd = useMemo(
     () => formatFiat(new BigNumber(totals.fees.provider.usd)),
@@ -270,11 +315,25 @@ function FeesTooltip({
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
+        alignItems={AlignItems.center}
       >
         <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.network_fee')}
         </Text>
-        <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={6}
+        >
+          {showNetworkFeeToken && (
+            <TokenIcon
+              address={networkFeeToken.address}
+              chainId={networkFeeToken.chainId}
+              variant={TokenIconVariant.Row}
+            />
+          )}
+          <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
+        </Box>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
