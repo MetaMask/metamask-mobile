@@ -89,6 +89,7 @@ const PerpsProSizeInput = ({
   const internalInputRef = useRef<TextInput>(null);
   const inputRef = externalInputRef ?? internalInputRef;
   const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
+  const lastEmittedValueRef = useRef(value);
   const shouldIgnoreNextSelectionChangeRef = useRef(false);
   const [isFocused, setIsFocused] = useState(false);
   const [displayValue, setDisplayValue] = useState(() =>
@@ -149,6 +150,7 @@ const PerpsProSizeInput = ({
         });
 
         setDisplayValue(nextDisplayValue);
+        lastEmittedValueRef.current = canonicalValue;
         if (nextSelection) {
           selectionRef.current = nextSelection;
           setSelection(nextSelection);
@@ -185,10 +187,10 @@ const PerpsProSizeInput = ({
 
   const handleBlur = useCallback(() => {
     if (!isDisabled) {
-      const canonicalValue = normalizePerpsNumericInput(
-        displayValue,
-        inputLocaleRef.current,
-      );
+      const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
+      const canonicalValue = hasExternalValueUpdate
+        ? value
+        : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
       setIsFocused(false);
       selectionRef.current = undefined;
       shouldIgnoreNextSelectionChangeRef.current = false;
@@ -196,7 +198,7 @@ const PerpsProSizeInput = ({
       setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
 
-      if (canonicalValue !== value) {
+      if (!hasExternalValueUpdate && canonicalValue !== value) {
         onChangeText(canonicalValue);
       }
     }

@@ -186,6 +186,20 @@ describe('PerpsProCompactInput', () => {
     expect(input).toHaveProp('value', '1.200');
   });
 
+  it('keeps an external value update when the field blurs', () => {
+    const onChangeText = jest.fn();
+    const initialProps = { ...defaultProps, value: '100', onChangeText };
+    const { rerender } = render(<PerpsProCompactInput {...initialProps} />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    rerender(<PerpsProCompactInput {...initialProps} value="200" />);
+    fireEvent(input, 'blur');
+
+    expect(input).toHaveProp('value', '200');
+    expect(onChangeText).not.toHaveBeenCalled();
+  });
+
   describe('onFieldPress', () => {
     it('uses onFocus instead of reporting a second alignment for an initial direct input tap', () => {
       const onFieldPress = jest.fn();

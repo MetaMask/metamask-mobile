@@ -170,6 +170,7 @@ const PerpsProCompactInput = React.forwardRef<
     const isNativeFocusedRef = useRef(false);
     const directPressPhaseRef = useRef<DirectPressPhase>('idle');
     const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
+    const lastEmittedValueRef = useRef(value);
     const shouldIgnoreNextSelectionChangeRef = useRef(false);
     const [isFocused, setIsFocused] = useState(false);
     const [displayValue, setDisplayValue] = useState(() =>
@@ -268,6 +269,7 @@ const PerpsProCompactInput = React.forwardRef<
       });
 
       setDisplayValue(nextDisplayValue);
+      lastEmittedValueRef.current = canonicalValue;
       if (nextSelection) {
         selectionRef.current = nextSelection;
         setSelection(nextSelection);
@@ -287,10 +289,10 @@ const PerpsProCompactInput = React.forwardRef<
     const handleBlur = () => {
       isNativeFocusedRef.current = false;
       directPressPhaseRef.current = 'idle';
-      const canonicalValue = normalizePerpsNumericInput(
-        displayValue,
-        inputLocaleRef.current,
-      );
+      const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
+      const canonicalValue = hasExternalValueUpdate
+        ? value
+        : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
       setIsFocused(false);
       selectionRef.current = undefined;
       shouldIgnoreNextSelectionChangeRef.current = false;
@@ -298,7 +300,7 @@ const PerpsProCompactInput = React.forwardRef<
       setDisplayValue(formatPerpsInput(canonicalValue, locale));
       onBlur?.();
 
-      if (canonicalValue !== value) {
+      if (!hasExternalValueUpdate && canonicalValue !== value) {
         onChangeText(canonicalValue);
       }
     };
