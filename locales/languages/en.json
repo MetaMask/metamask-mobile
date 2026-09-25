@@ -988,7 +988,7 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
       "login_with_email": "Log in with email"
     },
@@ -8106,7 +8106,7 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
@@ -11717,11 +11717,11 @@
     },
     "show_not_found": {
       "title": "Connection Not Found",
-      "description": "Please establish a new connection from the app to continue."
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Select project",
@@ -11730,7 +11730,7 @@
     },
     "show_method_error": {
       "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11862,7 +11862,7 @@
     },
     "awaiting_app": {
       "title": "Open {{app}}",
-      "message": "Please open the {{app}} app on your {{device}}",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "Currently open: {{app}}"
     },
     "awaiting_confirmation": {
