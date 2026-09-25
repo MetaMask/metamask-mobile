@@ -29,6 +29,7 @@ import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
 import { PERFORMANCE_PREVIEW_COUNT } from '../performancePreview';
 import ReferralFunnelBar from '../ReferralFunnelBar';
+import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
@@ -210,7 +211,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
               />
             ) : null}
             {commissionsLoading ? (
-              <Skeleton style={tw.style('h-16 w-full rounded-xl')} />
+              <TradingActivityListSkeleton rows={PERFORMANCE_PREVIEW_COUNT} />
             ) : (
               <Box
                 twClassName="gap-4"
@@ -261,7 +262,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
               />
             ) : null}
             {rebatesLoading ? (
-              <Skeleton style={tw.style('h-16 w-full rounded-xl')} />
+              <TradingActivityListSkeleton rows={PERFORMANCE_PREVIEW_COUNT} />
             ) : (
               <Box
                 twClassName="gap-4"

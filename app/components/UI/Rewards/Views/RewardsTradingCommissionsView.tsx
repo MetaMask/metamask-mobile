@@ -1,14 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Box,
-  HeaderStandard,
-  Skeleton,
-} from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
@@ -16,6 +12,7 @@ import type { CommissionEntryView } from '../../../../core/Engine/controllers/re
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { PerformanceCommissionRow } from '../components/Money/PerformanceActivityRows';
+import TradingActivityListSkeleton from '../components/Money/TradingActivityListSkeleton';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { useCommissions } from '../hooks/useCommissions';
 import { strings } from '../../../../../locales/i18n';
@@ -23,6 +20,7 @@ import { strings } from '../../../../../locales/i18n';
 export const REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS = {
   CONTAINER: 'rewards-trading-commissions-view',
   LIST: 'rewards-trading-commissions-list',
+  SKELETON_SLOT: 'rewards-trading-commissions-skeleton-slot',
 } as const;
 
 const RewardsTradingCommissionsView: React.FC = () => {
@@ -49,6 +47,7 @@ const RewardsTradingCommissionsView: React.FC = () => {
     localizedText?.tradeCommissions ??
     '';
   const isInitialLoadPending = isLoading || items === null;
+  const [bodyHeight, setBodyHeight] = useState(0);
 
   const onEndReached = useCallback(() => {
     if (
@@ -86,22 +85,19 @@ const RewardsTradingCommissionsView: React.FC = () => {
     if (error) {
       return (
         <RewardsErrorBanner
-          title={strings('rewards.referral_details_error.error_fetching_title')}
+          title={strings('rewards.trading_activity_error.error_fetching_title')}
           description={strings(
-            'rewards.referral_details_error.error_fetching_description',
+            'rewards.trading_activity_error.error_fetching_description',
           )}
           onConfirm={retry}
           confirmButtonLabel={strings(
-            'rewards.referral_details_error.retry_button',
+            'rewards.trading_activity_error.retry_button',
           )}
         />
       );
     }
-    if (isInitialLoadPending) {
-      return <Skeleton style={tw.style('h-16 w-full rounded-xl')} />;
-    }
     return null;
-  }, [error, isInitialLoadPending, retry, tw]);
+  }, [error, retry]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsTradingCommissionsView">
@@ -116,20 +112,37 @@ const RewardsTradingCommissionsView: React.FC = () => {
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
-        <FlatList
-          data={items ?? []}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          onEndReached={onEndReached}
-          onEndReachedThreshold={0.4}
-          ListFooterComponent={renderFooter}
-          ListEmptyComponent={renderEmpty}
-          contentContainerStyle={tw.style('gap-4 px-4 pb-8')}
-          testID={REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS.LIST}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
-          }
-        />
+        <Box twClassName="flex-1 px-4 pb-8 pt-2">
+          {isInitialLoadPending && !error ? (
+            <Box
+              collapsable={false}
+              twClassName="flex-1"
+              testID={REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS.SKELETON_SLOT}
+              onLayout={(event) => {
+                const next = event.nativeEvent.layout.height;
+                setBodyHeight((current) => (current === next ? current : next));
+              }}
+            >
+              <TradingActivityListSkeleton height={bodyHeight} />
+            </Box>
+          ) : (
+            <FlatList
+              style={tw.style('flex-1')}
+              data={items ?? []}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              onEndReached={onEndReached}
+              onEndReachedThreshold={0.4}
+              ListFooterComponent={renderFooter}
+              ListEmptyComponent={renderEmpty}
+              contentContainerStyle={tw.style('gap-4')}
+              testID={REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS.LIST}
+              refreshControl={
+                <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+              }
+            />
+          )}
+        </Box>
       </SafeAreaView>
     </ErrorBoundary>
   );
