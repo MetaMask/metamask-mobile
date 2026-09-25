@@ -29,7 +29,9 @@ import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useWatchOnlyAccountAlert } from './useWatchOnlyAccountAlert';
 
+jest.mock('./useWatchOnlyAccountAlert');
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
 jest.mock('./useGasLimitBelowMinimumAlert');
@@ -225,6 +227,7 @@ describe('useConfirmationAlerts', () => {
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
     (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -267,6 +270,24 @@ describe('useConfirmationAlerts', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(result.current).toEqual(mockUpgradeAccountAlert);
+  });
+
+  it('returns watch-only account alerts', () => {
+    const mockWatchOnlyAccountAlert: Alert[] = [
+      {
+        key: 'watch_only_account',
+        title: 'Test Watch Only Account Alert',
+        message: ALERT_MESSAGE_MOCK,
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ];
+    (useWatchOnlyAccountAlert as jest.Mock).mockReturnValue(
+      mockWatchOnlyAccountAlert,
+    );
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+
+    expect(result.current).toEqual(mockWatchOnlyAccountAlert);
   });
 
   it('returns combined alerts when both blockaid and domain mismatch alerts are present', () => {
