@@ -12,30 +12,29 @@ export enum ActionType {
   SET_OS_AUTH_ENABLED = 'SET_OS_AUTH_ENABLED',
 }
 
-export interface AllowLoginWithRememberMeUpdated
-  extends ReduxAction<ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME> {
+export type AllowLoginWithRememberMeUpdated =
+  ReduxAction<ActionType.SET_ALLOW_LOGIN_WITH_REMEMBER_ME> & {
+    enabled: boolean;
+  };
+
+export type SetNftAutoDetectionModalOpen =
+  ReduxAction<ActionType.SET_NFT_AUTO_DETECTION_MODAL_OPEN> & {
+    open: boolean;
+  };
+
+export type SetMultiRpcMigrationModalOpen =
+  ReduxAction<ActionType.SET_MULTI_RPC_MIGRATION_MODAL_OPEN> & {
+    open: boolean;
+  };
+
+export type SetDataCollectionForMarketing =
+  ReduxAction<ActionType.SET_DATA_COLLECTION_FOR_MARKETING> & {
+    enabled: boolean;
+  };
+
+export type SetOsAuthEnabled = ReduxAction<ActionType.SET_OS_AUTH_ENABLED> & {
   enabled: boolean;
-}
-
-export interface SetNftAutoDetectionModalOpen
-  extends ReduxAction<ActionType.SET_NFT_AUTO_DETECTION_MODAL_OPEN> {
-  open: boolean;
-}
-
-export interface SetMultiRpcMigrationModalOpen
-  extends ReduxAction<ActionType.SET_MULTI_RPC_MIGRATION_MODAL_OPEN> {
-  open: boolean;
-}
-
-export interface SetDataCollectionForMarketing
-  extends ReduxAction<ActionType.SET_DATA_COLLECTION_FOR_MARKETING> {
-  enabled: boolean;
-}
-
-export interface SetOsAuthEnabled
-  extends ReduxAction<ActionType.SET_OS_AUTH_ENABLED> {
-  enabled: boolean;
-}
+};
 
 export type Action =
   | AllowLoginWithRememberMeUpdated

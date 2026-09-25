@@ -527,7 +527,7 @@ describe('OnboardingInterestQuestionnaire', () => {
   describe('Redux account_type', () => {
     it('uses account_type from Redux store in the Viewed event when route has no accountType', () => {
       const useSelectorMock = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
+        .useSelector as unknown as jest.Mock;
       useSelectorMock.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectOnboardingAccountType) return 'hardware';
@@ -550,7 +550,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
     it('includes account_type from Redux in the Submitted event when route has no accountType', async () => {
       const useSelectorMock = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
+        .useSelector as unknown as jest.Mock;
       useSelectorMock.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectOnboardingAccountType) return 'hardware';

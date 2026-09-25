@@ -118,7 +118,9 @@ describe('AppInformation', () => {
   describe('Support Links', () => {
     it('shows the support consent sheet via navigateToSupportConsent when the support center link is pressed', () => {
       const mockNavigate = jest.fn();
-      const mockNavigation = { navigate: mockNavigate };
+      const mockNavigation = {
+        navigate: mockNavigate,
+      } as unknown as React.ComponentProps<typeof AppInformation>['navigation'];
       const { getByText } = renderWithProvider(
         <AppInformation navigation={mockNavigation} />,
         { state: MOCK_STATE },
@@ -136,7 +138,9 @@ describe('AppInformation', () => {
 
     it('navigates to the SimpleWebview with the resolved URL and title when the opener is invoked', () => {
       const mockNavigate = jest.fn();
-      const mockNavigation = { navigate: mockNavigate };
+      const mockNavigation = {
+        navigate: mockNavigate,
+      } as unknown as React.ComponentProps<typeof AppInformation>['navigation'];
       const { getByText } = renderWithProvider(
         <AppInformation navigation={mockNavigation} />,
         { state: MOCK_STATE },
@@ -174,7 +178,7 @@ describe('AppInformation', () => {
       const mockNavigation = {
         goBack: mockGoBack,
         navigate: jest.fn(),
-      };
+      } as unknown as React.ComponentProps<typeof AppInformation>['navigation'];
 
       const { getByTestId } = renderWithProvider(
         <AppInformation navigation={mockNavigation} />,

@@ -4,7 +4,7 @@ import {
   AccountTreeControllerState,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
-import { DeepPartial } from 'redux';
+import type { DeepPartial } from '../../util/test/renderWithProvider';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 

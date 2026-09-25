@@ -384,17 +384,19 @@ describe('OndoPortfolio', () => {
     };
 
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        if (selector === selectAllTokens) return {};
-        return null;
-      });
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          if (selector === selectAllTokens) return {};
+          return null;
+        },
+      );
     });
 
     afterEach(() => {
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(null);
     });
 
     it('pressing a position row does not throw', () => {
@@ -427,44 +429,46 @@ describe('OndoPortfolio', () => {
     const buildPropsWithBalance = (rawHexBalance: string) => {
       const mockOnOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
-          '../../../../../selectors/rewards',
-        );
-        const { selectAllTokenBalances } = jest.requireMock(
-          '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        const { selectInternalAccountByAddresses } = jest.requireMock(
-          '../../../../../selectors/accountsController',
-        );
-        const { selectAccountToGroupMap } = jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-        if (selector === selectCurrentSubscriptionAccounts)
-          return [{ account: CAIP_ACCOUNT }];
-        if (selector === selectInternalAccountByAddresses) {
-          const accounts = [{ id: 'acc-test', address: ACCOUNT_ADDRESS }];
-          const map = new Map(
-            accounts.map((a) => [a.address.toLowerCase(), a]),
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+            '../../../../../selectors/rewards',
           );
-          return (addresses: string[]) =>
-            addresses
-              .map((addr) => map.get(addr.toLowerCase()))
-              .filter(Boolean);
-        }
-        if (selector === selectAllTokenBalances)
-          return {
-            [ACCOUNT_ADDRESS.toLowerCase()]: {
-              '0x1': { [TOKEN_ADDRESS]: rawHexBalance },
-            },
-          };
-        if (selector === selectAllTokens) return {};
-        if (selector === selectAccountToGroupMap) return {};
-        return null;
-      });
+          const { selectAllTokenBalances } = jest.requireMock(
+            '../../../../../selectors/tokenBalancesController',
+          );
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          const { selectInternalAccountByAddresses } = jest.requireMock(
+            '../../../../../selectors/accountsController',
+          );
+          const { selectAccountToGroupMap } = jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+          if (selector === selectCurrentSubscriptionAccounts)
+            return [{ account: CAIP_ACCOUNT }];
+          if (selector === selectInternalAccountByAddresses) {
+            const accounts = [{ id: 'acc-test', address: ACCOUNT_ADDRESS }];
+            const map = new Map(
+              accounts.map((a) => [a.address.toLowerCase(), a]),
+            );
+            return (addresses: string[]) =>
+              addresses
+                .map((addr) => map.get(addr.toLowerCase()))
+                .filter(Boolean);
+          }
+          if (selector === selectAllTokenBalances)
+            return {
+              [ACCOUNT_ADDRESS.toLowerCase()]: {
+                '0x1': { [TOKEN_ADDRESS]: rawHexBalance },
+              },
+            };
+          if (selector === selectAllTokens) return {};
+          if (selector === selectAccountToGroupMap) return {};
+          return null;
+        },
+      );
 
       return {
         ...baseProps,
@@ -475,7 +479,7 @@ describe('OndoPortfolio', () => {
 
     afterEach(() => {
       // Restore the default useSelector mock for other tests
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(null);
     });
 
     it.each([
@@ -638,61 +642,63 @@ describe('OndoPortfolio', () => {
     const GROUP_2 = { id: 'group-2', metadata: { name: 'Account 2' } } as never;
 
     afterEach(() => {
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as unknown as jest.Mock).mockReturnValue(null);
     });
 
     it('auto-switches to the single group with balance when user is on a different group', () => {
       const onOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
-          '../../../../../selectors/rewards',
-        );
-        const { selectAllTokenBalances } = jest.requireMock(
-          '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        const { selectInternalAccountByAddresses } = jest.requireMock(
-          '../../../../../selectors/accountsController',
-        );
-        const {
-          selectAccountToGroupMap,
-          selectSelectedAccountGroup,
-          selectResolvedSelectedAccountGroup,
-        } = jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-
-        if (selector === selectCurrentSubscriptionAccounts)
-          return [{ account: CAIP_1 }];
-        if (selector === selectInternalAccountByAddresses) {
-          const accounts = [{ id: 'acc-1', address: ACCOUNT_1 }];
-          const map = new Map(
-            accounts.map((a) => [a.address.toLowerCase(), a]),
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+            '../../../../../selectors/rewards',
           );
-          return (addresses: string[]) =>
-            addresses
-              .map((addr) => map.get(addr.toLowerCase()))
-              .filter(Boolean);
-        }
-        if (selector === selectAllTokenBalances)
-          return {
-            [ACCOUNT_1]: {
-              '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
-            },
-          };
-        if (selector === selectAllTokens) return {};
-        if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
-        // User is on GROUP_2, not GROUP_1 — picker should still open
-        if (
-          selector === selectSelectedAccountGroup ||
-          selector === selectResolvedSelectedAccountGroup
-        )
-          return GROUP_2;
-        return null;
-      });
+          const { selectAllTokenBalances } = jest.requireMock(
+            '../../../../../selectors/tokenBalancesController',
+          );
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          const { selectInternalAccountByAddresses } = jest.requireMock(
+            '../../../../../selectors/accountsController',
+          );
+          const {
+            selectAccountToGroupMap,
+            selectSelectedAccountGroup,
+            selectResolvedSelectedAccountGroup,
+          } = jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+
+          if (selector === selectCurrentSubscriptionAccounts)
+            return [{ account: CAIP_1 }];
+          if (selector === selectInternalAccountByAddresses) {
+            const accounts = [{ id: 'acc-1', address: ACCOUNT_1 }];
+            const map = new Map(
+              accounts.map((a) => [a.address.toLowerCase(), a]),
+            );
+            return (addresses: string[]) =>
+              addresses
+                .map((addr) => map.get(addr.toLowerCase()))
+                .filter(Boolean);
+          }
+          if (selector === selectAllTokenBalances)
+            return {
+              [ACCOUNT_1]: {
+                '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
+              },
+            };
+          if (selector === selectAllTokens) return {};
+          if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
+          // User is on GROUP_2, not GROUP_1 — picker should still open
+          if (
+            selector === selectSelectedAccountGroup ||
+            selector === selectResolvedSelectedAccountGroup
+          )
+            return GROUP_2;
+          return null;
+        },
+      );
 
       const { getByText } = render(
         <OndoPortfolio
@@ -711,55 +717,57 @@ describe('OndoPortfolio', () => {
     it('navigates directly without picker when single group with balance is the currently selected group', () => {
       const onOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
-          '../../../../../selectors/rewards',
-        );
-        const { selectAllTokenBalances } = jest.requireMock(
-          '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        const { selectInternalAccountByAddresses } = jest.requireMock(
-          '../../../../../selectors/accountsController',
-        );
-        const {
-          selectAccountToGroupMap,
-          selectSelectedAccountGroup,
-          selectResolvedSelectedAccountGroup,
-        } = jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-
-        if (selector === selectCurrentSubscriptionAccounts)
-          return [{ account: CAIP_1 }];
-        if (selector === selectInternalAccountByAddresses) {
-          const accounts = [{ id: 'acc-1', address: ACCOUNT_1 }];
-          const map = new Map(
-            accounts.map((a) => [a.address.toLowerCase(), a]),
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+            '../../../../../selectors/rewards',
           );
-          return (addresses: string[]) =>
-            addresses
-              .map((addr) => map.get(addr.toLowerCase()))
-              .filter(Boolean);
-        }
-        if (selector === selectAllTokenBalances)
-          return {
-            [ACCOUNT_1]: {
-              '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
-            },
-          };
-        if (selector === selectAllTokens) return {};
-        if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
-        // User IS on the group that holds the balance
-        if (
-          selector === selectSelectedAccountGroup ||
-          selector === selectResolvedSelectedAccountGroup
-        )
-          return GROUP_1;
-        return null;
-      });
+          const { selectAllTokenBalances } = jest.requireMock(
+            '../../../../../selectors/tokenBalancesController',
+          );
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          const { selectInternalAccountByAddresses } = jest.requireMock(
+            '../../../../../selectors/accountsController',
+          );
+          const {
+            selectAccountToGroupMap,
+            selectSelectedAccountGroup,
+            selectResolvedSelectedAccountGroup,
+          } = jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+
+          if (selector === selectCurrentSubscriptionAccounts)
+            return [{ account: CAIP_1 }];
+          if (selector === selectInternalAccountByAddresses) {
+            const accounts = [{ id: 'acc-1', address: ACCOUNT_1 }];
+            const map = new Map(
+              accounts.map((a) => [a.address.toLowerCase(), a]),
+            );
+            return (addresses: string[]) =>
+              addresses
+                .map((addr) => map.get(addr.toLowerCase()))
+                .filter(Boolean);
+          }
+          if (selector === selectAllTokenBalances)
+            return {
+              [ACCOUNT_1]: {
+                '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
+              },
+            };
+          if (selector === selectAllTokens) return {};
+          if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
+          // User IS on the group that holds the balance
+          if (
+            selector === selectSelectedAccountGroup ||
+            selector === selectResolvedSelectedAccountGroup
+          )
+            return GROUP_1;
+          return null;
+        },
+      );
 
       const { getByText } = render(
         <OndoPortfolio
@@ -788,55 +796,57 @@ describe('OndoPortfolio', () => {
           assetReference: CHECKSUMMED_TOKEN,
         });
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
-          '../../../../../selectors/rewards',
-        );
-        const { selectAllTokenBalances } = jest.requireMock(
-          '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        const { selectInternalAccountByAddresses } = jest.requireMock(
-          '../../../../../selectors/accountsController',
-        );
-        const {
-          selectAccountToGroupMap,
-          selectSelectedAccountGroup,
-          selectResolvedSelectedAccountGroup,
-        } = jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-
-        if (selector === selectCurrentSubscriptionAccounts)
-          return [{ account: CAIP_1 }];
-        if (selector === selectInternalAccountByAddresses) {
-          const accounts = [{ id: 'acc-1', address: ACCOUNT_1 }];
-          const map = new Map(
-            accounts.map((a) => [a.address.toLowerCase(), a]),
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+            '../../../../../selectors/rewards',
           );
-          return (addresses: string[]) =>
-            addresses
-              .map((addr) => map.get(addr.toLowerCase()))
-              .filter(Boolean);
-        }
-        if (selector === selectAllTokenBalances)
-          return {
-            [ACCOUNT_1]: {
-              // Key is checksummed — the old direct lookup would miss this
-              '0x1': { [CHECKSUMMED_TOKEN]: '0x56bc75e2d63100000' },
-            },
-          };
-        if (selector === selectAllTokens) return {};
-        if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
-        if (
-          selector === selectSelectedAccountGroup ||
-          selector === selectResolvedSelectedAccountGroup
-        )
+          const { selectAllTokenBalances } = jest.requireMock(
+            '../../../../../selectors/tokenBalancesController',
+          );
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          const { selectInternalAccountByAddresses } = jest.requireMock(
+            '../../../../../selectors/accountsController',
+          );
+          const {
+            selectAccountToGroupMap,
+            selectSelectedAccountGroup,
+            selectResolvedSelectedAccountGroup,
+          } = jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+
+          if (selector === selectCurrentSubscriptionAccounts)
+            return [{ account: CAIP_1 }];
+          if (selector === selectInternalAccountByAddresses) {
+            const accounts = [{ id: 'acc-1', address: ACCOUNT_1 }];
+            const map = new Map(
+              accounts.map((a) => [a.address.toLowerCase(), a]),
+            );
+            return (addresses: string[]) =>
+              addresses
+                .map((addr) => map.get(addr.toLowerCase()))
+                .filter(Boolean);
+          }
+          if (selector === selectAllTokenBalances)
+            return {
+              [ACCOUNT_1]: {
+                // Key is checksummed — the old direct lookup would miss this
+                '0x1': { [CHECKSUMMED_TOKEN]: '0x56bc75e2d63100000' },
+              },
+            };
+          if (selector === selectAllTokens) return {};
+          if (selector === selectAccountToGroupMap) return { 'acc-1': GROUP_1 };
+          if (
+            selector === selectSelectedAccountGroup ||
+            selector === selectResolvedSelectedAccountGroup
+          )
+            return null;
           return null;
-        return null;
-      });
+        },
+      );
 
       const { getByText } = render(
         <OndoPortfolio
@@ -856,61 +866,63 @@ describe('OndoPortfolio', () => {
     it('opens account picker when multiple groups hold the token', () => {
       const onOpenAccountPicker = jest.fn();
 
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
-          '../../../../../selectors/rewards',
-        );
-        const { selectAllTokenBalances } = jest.requireMock(
-          '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        const { selectInternalAccountByAddresses } = jest.requireMock(
-          '../../../../../selectors/accountsController',
-        );
-        const {
-          selectAccountToGroupMap,
-          selectSelectedAccountGroup,
-          selectResolvedSelectedAccountGroup,
-        } = jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-
-        if (selector === selectCurrentSubscriptionAccounts)
-          return [{ account: CAIP_1 }, { account: CAIP_2 }];
-        if (selector === selectInternalAccountByAddresses) {
-          const accounts = [
-            { id: 'acc-1', address: ACCOUNT_1 },
-            { id: 'acc-2', address: ACCOUNT_2 },
-          ];
-          const map = new Map(
-            accounts.map((a) => [a.address.toLowerCase(), a]),
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+            '../../../../../selectors/rewards',
           );
-          return (addresses: string[]) =>
-            addresses
-              .map((addr) => map.get(addr.toLowerCase()))
-              .filter(Boolean);
-        }
-        if (selector === selectAllTokenBalances)
-          return {
-            [ACCOUNT_1]: {
-              '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
-            },
-            [ACCOUNT_2]: {
-              '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
-            },
-          };
-        if (selector === selectAllTokens) return {};
-        if (selector === selectAccountToGroupMap)
-          return { 'acc-1': GROUP_1, 'acc-2': GROUP_2 };
-        if (
-          selector === selectSelectedAccountGroup ||
-          selector === selectResolvedSelectedAccountGroup
-        )
+          const { selectAllTokenBalances } = jest.requireMock(
+            '../../../../../selectors/tokenBalancesController',
+          );
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          const { selectInternalAccountByAddresses } = jest.requireMock(
+            '../../../../../selectors/accountsController',
+          );
+          const {
+            selectAccountToGroupMap,
+            selectSelectedAccountGroup,
+            selectResolvedSelectedAccountGroup,
+          } = jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+
+          if (selector === selectCurrentSubscriptionAccounts)
+            return [{ account: CAIP_1 }, { account: CAIP_2 }];
+          if (selector === selectInternalAccountByAddresses) {
+            const accounts = [
+              { id: 'acc-1', address: ACCOUNT_1 },
+              { id: 'acc-2', address: ACCOUNT_2 },
+            ];
+            const map = new Map(
+              accounts.map((a) => [a.address.toLowerCase(), a]),
+            );
+            return (addresses: string[]) =>
+              addresses
+                .map((addr) => map.get(addr.toLowerCase()))
+                .filter(Boolean);
+          }
+          if (selector === selectAllTokenBalances)
+            return {
+              [ACCOUNT_1]: {
+                '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
+              },
+              [ACCOUNT_2]: {
+                '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
+              },
+            };
+          if (selector === selectAllTokens) return {};
+          if (selector === selectAccountToGroupMap)
+            return { 'acc-1': GROUP_1, 'acc-2': GROUP_2 };
+          if (
+            selector === selectSelectedAccountGroup ||
+            selector === selectResolvedSelectedAccountGroup
+          )
+            return null;
           return null;
-        return null;
-      });
+        },
+      );
 
       const { getByText } = render(
         <OndoPortfolio
@@ -930,60 +942,62 @@ describe('OndoPortfolio', () => {
     it('excludes accounts not in the subscription even if they hold the token balance', () => {
       const onOpenAccountPicker = jest.fn();
       // ACCOUNT_2 has balance but is NOT in the subscription
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        const { selectCurrentSubscriptionAccounts } = jest.requireMock(
-          '../../../../../selectors/rewards',
-        );
-        const { selectAllTokenBalances } = jest.requireMock(
-          '../../../../../selectors/tokenBalancesController',
-        );
-        const { selectAllTokens } = jest.requireMock(
-          '../../../../../selectors/tokensController',
-        );
-        const { selectInternalAccountByAddresses } = jest.requireMock(
-          '../../../../../selectors/accountsController',
-        );
-        const {
-          selectAccountToGroupMap,
-          selectSelectedAccountGroup,
-          selectResolvedSelectedAccountGroup,
-        } = jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-
-        if (selector === selectCurrentSubscriptionAccounts)
-          return [{ account: CAIP_1 }]; // only ACCOUNT_1 is subscribed
-        if (selector === selectInternalAccountByAddresses) {
-          const accounts = [
-            { id: 'acc-1', address: ACCOUNT_1 },
-            { id: 'acc-2', address: ACCOUNT_2 },
-          ];
-          const map = new Map(
-            accounts.map((a) => [a.address.toLowerCase(), a]),
+      (useSelector as unknown as jest.Mock).mockImplementation(
+        (selector: unknown) => {
+          const { selectCurrentSubscriptionAccounts } = jest.requireMock(
+            '../../../../../selectors/rewards',
           );
-          return (addresses: string[]) =>
-            addresses
-              .map((addr) => map.get(addr.toLowerCase()))
-              .filter(Boolean);
-        }
-        if (selector === selectAllTokenBalances)
-          return {
-            // ACCOUNT_1 has zero balance, ACCOUNT_2 has balance but not subscribed
-            [ACCOUNT_1]: { '0x1': { [TOKEN_ADDRESS]: '0x0' } },
-            [ACCOUNT_2]: {
-              '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
-            },
-          };
-        if (selector === selectAllTokens) return {};
-        if (selector === selectAccountToGroupMap)
-          return { 'acc-1': GROUP_1, 'acc-2': GROUP_2 };
-        if (
-          selector === selectSelectedAccountGroup ||
-          selector === selectResolvedSelectedAccountGroup
-        )
+          const { selectAllTokenBalances } = jest.requireMock(
+            '../../../../../selectors/tokenBalancesController',
+          );
+          const { selectAllTokens } = jest.requireMock(
+            '../../../../../selectors/tokensController',
+          );
+          const { selectInternalAccountByAddresses } = jest.requireMock(
+            '../../../../../selectors/accountsController',
+          );
+          const {
+            selectAccountToGroupMap,
+            selectSelectedAccountGroup,
+            selectResolvedSelectedAccountGroup,
+          } = jest.requireMock(
+            '../../../../../selectors/multichainAccounts/accountTreeController',
+          );
+
+          if (selector === selectCurrentSubscriptionAccounts)
+            return [{ account: CAIP_1 }]; // only ACCOUNT_1 is subscribed
+          if (selector === selectInternalAccountByAddresses) {
+            const accounts = [
+              { id: 'acc-1', address: ACCOUNT_1 },
+              { id: 'acc-2', address: ACCOUNT_2 },
+            ];
+            const map = new Map(
+              accounts.map((a) => [a.address.toLowerCase(), a]),
+            );
+            return (addresses: string[]) =>
+              addresses
+                .map((addr) => map.get(addr.toLowerCase()))
+                .filter(Boolean);
+          }
+          if (selector === selectAllTokenBalances)
+            return {
+              // ACCOUNT_1 has zero balance, ACCOUNT_2 has balance but not subscribed
+              [ACCOUNT_1]: { '0x1': { [TOKEN_ADDRESS]: '0x0' } },
+              [ACCOUNT_2]: {
+                '0x1': { [TOKEN_ADDRESS]: '0x56bc75e2d63100000' },
+              },
+            };
+          if (selector === selectAllTokens) return {};
+          if (selector === selectAccountToGroupMap)
+            return { 'acc-1': GROUP_1, 'acc-2': GROUP_2 };
+          if (
+            selector === selectSelectedAccountGroup ||
+            selector === selectResolvedSelectedAccountGroup
+          )
+            return null;
           return null;
-        return null;
-      });
+        },
+      );
 
       const { getByText } = render(
         <OndoPortfolio

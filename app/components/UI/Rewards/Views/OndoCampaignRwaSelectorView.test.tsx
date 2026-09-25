@@ -348,7 +348,7 @@ describe('OndoCampaignRwaSelectorView', () => {
     );
     mockActiveGroupAccounts = [];
     mockAllTokenBalances = {};
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroupInternalAccounts)
         return mockActiveGroupAccounts;
       if (selector === selectAllTokenBalances) return mockAllTokenBalances;

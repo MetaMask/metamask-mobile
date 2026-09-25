@@ -199,7 +199,7 @@ describe('RwasTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       return false;
     });
@@ -244,7 +244,7 @@ describe('RwasTab', () => {
   });
 
   it('does not render the perps section when perps feature flag is off', () => {
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
     const { queryByTestId } = renderTab();
     expect(queryByTestId('mock-perps-toggle-block')).toBeNull();

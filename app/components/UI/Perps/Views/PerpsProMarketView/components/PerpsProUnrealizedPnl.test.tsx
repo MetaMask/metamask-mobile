@@ -15,7 +15,7 @@ describe('PerpsProUnrealizedPnl', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
   });
 
   it('renders aggregate PnL and close-all control', () => {
@@ -49,7 +49,7 @@ describe('PerpsProUnrealizedPnl', () => {
   });
 
   it('hides PnL value when privacy mode is enabled', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     render(
       <PerpsProUnrealizedPnl

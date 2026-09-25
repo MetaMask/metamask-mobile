@@ -3,6 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { RootState } from '../../../reducers';
 import { PayloadAction } from '@reduxjs/toolkit';
+import type { UnknownAction } from 'redux';
 import { FormState, SnapId } from '@metamask/snaps-sdk';
 import { SnapUIRenderer } from './SnapUIRenderer';
 import { act } from '@testing-library/react-native';
@@ -152,10 +153,17 @@ export function renderInterface(
     { state: storeState as unknown as RootState },
   );
 
+  // redux 5 types `replaceReducer` as `Reducer<S, UnknownAction, S>`, so a
+  // reducer can no longer narrow its action parameter in its signature. Accept
+  // the wide action type and narrow inside instead.
   const reducer = (
     reducerState: RootState | undefined,
-    action: PayloadAction<{ content: JSXElement; state: FormState }>,
+    wideAction: UnknownAction,
   ): RootState => {
+    const action = wideAction as PayloadAction<{
+      content: JSXElement;
+      state: FormState;
+    }>;
     // Handle initial state
     const currentState = reducerState || result.store.getState();
 

@@ -72,7 +72,7 @@ import { useSelector } from 'react-redux';
 import { useBridgeSession } from '../useBridgeSession';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUseBridgeSession = jest.mocked(useBridgeSession);
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [

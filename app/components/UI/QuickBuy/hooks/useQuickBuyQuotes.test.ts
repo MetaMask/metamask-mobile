@@ -104,7 +104,7 @@ jest.mock('@metamask/bridge-controller', () => {
 
 const fetchQuotesMock = Engine.context.BridgeController
   .fetchQuotes as jest.Mock;
-const useSelectorMock = useSelector as jest.Mock;
+const useSelectorMock = useSelector as unknown as jest.Mock;
 const isQuoteStreamingEnabledMock = isQuoteStreamingEnabled as jest.Mock;
 const streamQuickBuyQuotesMock = streamQuickBuyQuotes as jest.Mock;
 

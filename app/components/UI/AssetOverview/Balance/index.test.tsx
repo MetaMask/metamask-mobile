@@ -242,7 +242,7 @@ describe('Balance', () => {
     // Reset and set default mock behavior
     mockSelectPricePercentChange1d.mockReturnValue(null);
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       // Try to match by function name or string contents
       if (selector === selectNetworkName) return {};
       if (selector === selectChainId) return '1';

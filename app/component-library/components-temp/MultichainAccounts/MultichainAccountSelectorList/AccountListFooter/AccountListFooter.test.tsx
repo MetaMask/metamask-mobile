@@ -102,13 +102,15 @@ describe('AccountListFooter', () => {
     };
 
     // Always return the mock wallet by default
-    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-      // Check if this is the selectWalletsMap selector by comparing the function reference
-      if (selector === selectWalletsMap) {
-        return { [mockWalletId]: mockWallet };
-      }
-      return {};
-    });
+    (useSelector as unknown as jest.Mock).mockImplementation(
+      (selector: unknown) => {
+        // Check if this is the selectWalletsMap selector by comparing the function reference
+        if (selector === selectWalletsMap) {
+          return { [mockWalletId]: mockWallet };
+        }
+        return {};
+      },
+    );
 
     (useWalletInfo as jest.Mock).mockReturnValue(mockWalletInfo);
 
@@ -578,7 +580,7 @@ describe('AccountListFooter', () => {
         };
 
         // Override the selector mock for this test
-        (useSelector as jest.Mock).mockImplementationOnce(
+        (useSelector as unknown as jest.Mock).mockImplementationOnce(
           (selector: unknown) => {
             if (selector === selectWalletsMap) {
               return { [mockWalletId]: mockNonEntropyWallet };
@@ -600,12 +602,14 @@ describe('AccountListFooter', () => {
 
     it('does not render Add account button when wallet is undefined', () => {
       // Override the selector mock for this test
-      (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
-        if (selector === selectWalletsMap) {
-          return { [mockWalletId]: undefined };
-        }
-        return {};
-      });
+      (useSelector as unknown as jest.Mock).mockImplementationOnce(
+        (selector: unknown) => {
+          if (selector === selectWalletsMap) {
+            return { [mockWalletId]: undefined };
+          }
+          return {};
+        },
+      );
 
       const { queryByText } = render(
         <AccountListFooter

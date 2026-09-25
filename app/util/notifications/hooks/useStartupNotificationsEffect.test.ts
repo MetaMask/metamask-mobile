@@ -1,6 +1,5 @@
 import { waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
-import * as ReactRedux from 'react-redux';
 
 // eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
@@ -14,6 +13,7 @@ import * as SettingsSelectors from '../../../selectors/settings';
 import * as IdentitySelectors from '../../../selectors/identity';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
+import { setLockTime } from '../../../actions/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as Constants from '../constants/config';
 // eslint-disable-next-line import-x/no-namespace
@@ -294,13 +294,13 @@ describe('useRegisterAndFetchNotifications', () => {
   it('re-runs effect when dependencies change', async () => {
     const mocks = arrange();
 
-    // Mocking useSelector so it does not memoize the selectors passed in.
-    const originalUseSelector = ReactRedux.useSelector;
-    jest.spyOn(ReactRedux, 'useSelector').mockImplementation((selector) => {
-      // Ensure the selector input is a new reference
-      const wrappedSelector = (state: unknown) => selector(state);
-      return originalUseSelector(wrappedSelector);
-    });
+    // react-redux 9 reads state through `useSyncExternalStore` and caches the
+    // selection against the store snapshot, so flipping a spied selector's
+    // return value is invisible until the store itself changes. (The previous
+    // `jest.spyOn(ReactRedux, 'useSelector')` workaround silently stops
+    // intercepting the hook's import under react-redux 9.) Dispatching a real
+    // state change below forces the selectors to re-run, and because they are
+    // all spies that ignore state, they then return the new values.
 
     // First render - conditions not met
     mocks.selectors.mockIsNotifsEnabled.mockReturnValue(false);
@@ -308,7 +308,7 @@ describe('useRegisterAndFetchNotifications', () => {
     mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
     mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
 
-    const { rerender } = renderHookWithProvider(
+    const { rerender, store } = renderHookWithProvider(
       () => useRegisterAndFetchNotifications(),
       {},
     );
@@ -319,6 +319,7 @@ describe('useRegisterAndFetchNotifications', () => {
     mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
     mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
 
+    store.dispatch(setLockTime(Date.now()));
     rerender({});
 
     await waitFor(() => {
@@ -623,18 +624,18 @@ describe('useEnableNotificationsByDefaultEffect', () => {
 
   it('re-runs effect when dependencies change', async () => {
     const mocks = arrange();
-    // Mocking useSelector so it does not memoize the selectors passed in.
-    const originalUseSelector = ReactRedux.useSelector;
-    jest.spyOn(ReactRedux, 'useSelector').mockImplementation((selector) => {
-      // Ensure the selector input is a new reference
-      const wrappedSelector = (state: unknown) => selector(state);
-      return originalUseSelector(wrappedSelector);
-    });
+    // react-redux 9 reads state through `useSyncExternalStore` and caches the
+    // selection against the store snapshot, so flipping a spied selector's
+    // return value is invisible until the store itself changes. (The previous
+    // `jest.spyOn(ReactRedux, 'useSelector')` workaround silently stops
+    // intercepting the hook's import under react-redux 9.) Dispatching a real
+    // state change below forces the selectors to re-run, and because they are
+    // all spies that ignore state, they then return the new values.
 
     // First render - conditions not met (wallet locked)
     mocks.selectors.mockSelectIsUnlocked.mockReturnValue(false);
 
-    const { rerender } = renderHookWithProvider(
+    const { rerender, store } = renderHookWithProvider(
       () => useEnableNotificationsByDefaultEffect(),
       {},
     );
@@ -642,6 +643,7 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     // Second render - conditions met (notifications disabled and wallet is unlocked)
     mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
 
+    store.dispatch(setLockTime(Date.now()));
     rerender({});
 
     await waitFor(() => {

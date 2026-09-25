@@ -48,7 +48,7 @@ describe('ControllersGate', () => {
   });
 
   it('renders FoxLoader when appServicesReady is false', () => {
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);
 
@@ -56,7 +56,7 @@ describe('ControllersGate', () => {
   });
 
   it('renders children when appServicesReady is true', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);
 
@@ -64,7 +64,7 @@ describe('ControllersGate', () => {
   });
 
   it('renders FoxLoader overlay until animation completes', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);
 
@@ -75,7 +75,7 @@ describe('ControllersGate', () => {
 
   it('removes FoxLoader overlay after animation completes and services are ready', () => {
     jest.useFakeTimers();
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);
 
@@ -94,7 +94,7 @@ describe('ControllersGate', () => {
 
   it('keeps FoxLoader overlay when animation completes but services are not ready', () => {
     jest.useFakeTimers();
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);
 
@@ -116,7 +116,7 @@ describe('ControllersGate', () => {
     // already faded the fox out, so there is nothing to settle. Re-introducing
     // a delay here would silently add latency to every cold start.
     jest.useFakeTimers();
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     const timingSpy = jest.spyOn(Animated, 'timing');
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);

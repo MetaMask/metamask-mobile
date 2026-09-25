@@ -28,12 +28,12 @@ const mockAssetIdSol =
 describe('useAssetMetadata', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(true); // allowExternalServices = true
+    (useSelector as unknown as jest.Mock).mockReturnValue(true); // allowExternalServices = true
     mockGetAssetImageUrl.mockReturnValue('mock-image-url');
   });
 
   it('should return undefined when external services are disabled', async () => {
-    (useSelector as jest.Mock).mockReturnValue(false); // allowExternalServices = false
+    (useSelector as unknown as jest.Mock).mockReturnValue(false); // allowExternalServices = false
 
     const { result } = renderHook(() =>
       useAssetMetadata(mockSearchQuerySol, true, mockChainIdSol),

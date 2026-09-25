@@ -27,7 +27,7 @@ describe('DefaultSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
   });
 
   it('should render correctly', () => {
@@ -88,7 +88,7 @@ describe('DefaultSettings', () => {
   });
 
   it('hides the empty Security category for consolidated SRP onboarding', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectMobileUxBftcConsolidationFlagEnabled) return true;
       if (selector === selectSeedlessOnboardingLoginFlow) return false;
       return null;
@@ -102,7 +102,7 @@ describe('DefaultSettings', () => {
   });
 
   it('keeps the Security category for consolidated social-login onboarding', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectMobileUxBftcConsolidationFlagEnabled) return true;
       if (selector === selectSeedlessOnboardingLoginFlow) return true;
       return null;

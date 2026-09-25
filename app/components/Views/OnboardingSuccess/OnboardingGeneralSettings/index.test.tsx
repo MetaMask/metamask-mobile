@@ -37,7 +37,7 @@ describe('OnboardingGeneralSettings', () => {
   });
 
   it('should render correctly', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { getByText } = renderWithProvider(<OnboardingGeneralSettings />);
@@ -47,7 +47,7 @@ describe('OnboardingGeneralSettings', () => {
   });
 
   it('navigates back when the header back button is pressed', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { getAllByTestId } = renderWithProvider(

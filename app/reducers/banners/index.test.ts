@@ -5,11 +5,11 @@ import bannersReducer, {
 } from './index';
 import { Action } from '@reduxjs/toolkit';
 
-interface RehydrateAction extends Action<'persist/REHYDRATE'> {
+type RehydrateAction = Action<'persist/REHYDRATE'> & {
   payload?: {
     banners?: BannersState;
   };
-}
+};
 
 describe('bannersReducer', () => {
   const initialState: BannersState = {

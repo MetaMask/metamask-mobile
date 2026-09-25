@@ -14,7 +14,7 @@ jest.mock('../../../../../UI/Perps/hooks', () => ({
 describe('usePerpsTrendingCarouselData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue([]);
+    (useSelector as unknown as jest.Mock).mockReturnValue([]);
     (usePerpsMarkets as jest.Mock).mockReturnValue({
       markets: [],
       isLoading: false,

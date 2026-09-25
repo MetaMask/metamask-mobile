@@ -157,7 +157,7 @@ describe('PerpsOrderTransactionView', () => {
     jest.clearAllMocks();
 
     // Mock useSelector to return a function that returns the account
-    (useSelector as jest.Mock).mockImplementation(() => () => ({
+    (useSelector as unknown as jest.Mock).mockImplementation(() => () => ({
       address: '0x1234567890abcdef1234567890abcdef12345678',
     }));
 
@@ -332,7 +332,9 @@ describe('PerpsOrderTransactionView', () => {
     });
 
     // Mock useSelector to return null for no account
-    (useSelector as jest.Mock).mockImplementationOnce(() => () => null);
+    (useSelector as unknown as jest.Mock).mockImplementationOnce(
+      () => () => null,
+    );
 
     const { getByTestId } = render(<PerpsOrderTransactionView />);
 

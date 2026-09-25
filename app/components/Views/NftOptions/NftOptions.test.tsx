@@ -94,7 +94,7 @@ const networkConfigurations = {
 };
 
 const setupSelectorMock = (chainId: string) => {
-  (useSelector as jest.Mock).mockImplementation((selector) => {
+  (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
     if (selector === selectChainId) return chainId;
     if (selector === selectSelectedInternalAccountFormattedAddress)
       return '0xUserAddress';

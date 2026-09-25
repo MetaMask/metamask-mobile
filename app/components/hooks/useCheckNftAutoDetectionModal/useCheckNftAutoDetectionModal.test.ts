@@ -54,7 +54,7 @@ describe('useCheckNftAutoDetectionModal', () => {
     isConsolidationRolloutEnabled?: boolean;
     isBasicFunctionalityEnabled?: boolean;
   } = {}) => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
         case selectUseNftDetection:
           return false;
@@ -71,7 +71,7 @@ describe('useCheckNftAutoDetectionModal', () => {
   };
 
   beforeEach(() => {
-    (useDispatch as jest.Mock).mockReturnValue(dispatchMock);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(dispatchMock);
     (useNavigation as jest.Mock).mockReturnValue({ navigate: navigateMock });
     mockSelectors();
     (isMainNet as unknown as jest.Mock).mockReturnValue(true);

@@ -33,7 +33,7 @@ describe('useNftDetectionChainIds', () => {
   });
 
   it('returns current chain id when enabledNetworks is empty', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectChainId) {
         return '0x1';
       }
@@ -51,7 +51,7 @@ describe('useNftDetectionChainIds', () => {
   });
 
   it('returns array of enabled network chain ids when enabledNetworks has networks', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectChainId) {
         return '0x1';
       }

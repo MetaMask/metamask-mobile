@@ -10,9 +10,9 @@ export enum AccountsActionType {
 /**
  * Extend redux Action interface to add rpcName, eventStage and error properties
  */
-export interface iAccountActions extends Action {
+export type iAccountActions = Action & {
   reloadAccounts: boolean;
-}
+};
 
 /**
  * setReloadAccounts action creator

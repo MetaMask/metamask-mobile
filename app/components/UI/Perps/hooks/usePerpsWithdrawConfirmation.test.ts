@@ -118,7 +118,7 @@ describe('usePerpsWithdrawConfirmation', () => {
       },
     } as never);
 
-    (useSelector as jest.Mock).mockImplementation(((
+    (useSelector as unknown as jest.Mock).mockImplementation(((
       selector: (state: object) => unknown,
     ) => selector({})) as typeof useSelector);
   });

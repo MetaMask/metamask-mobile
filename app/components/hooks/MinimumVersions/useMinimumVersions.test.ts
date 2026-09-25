@@ -37,7 +37,7 @@ describe('useMinimumVersions', () => {
   });
 
   it('requires update only if currentBuildNumber is lower than appMinimumBuild', () => {
-    (useSelector as jest.Mock).mockImplementation(() => ({
+    (useSelector as unknown as jest.Mock).mockImplementation(() => ({
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {

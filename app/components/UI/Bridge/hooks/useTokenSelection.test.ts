@@ -114,7 +114,7 @@ jest.mock('../../../../util/networks/customNetworks', () => {
 
 import { useSelector } from 'react-redux';
 import { useIsNetworkEnabled } from './useIsNetworkEnabled';
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUseIsNetworkEnabled = useIsNetworkEnabled as jest.Mock;
 
 const mockSourceToken = createMockToken({

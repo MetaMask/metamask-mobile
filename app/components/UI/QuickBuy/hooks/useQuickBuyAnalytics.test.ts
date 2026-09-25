@@ -96,7 +96,7 @@ const CAIP19 = 'eip155:1/erc20:0xtoken';
 describe('useQuickBuyAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
   });
 
   describe('trackAmountSelected', () => {

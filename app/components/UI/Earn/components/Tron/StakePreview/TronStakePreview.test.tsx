@@ -44,7 +44,7 @@ jest.mock('../../../hooks/useTronStakeApy', () => ({
   default: () => mockUseTronStakeApy(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 const createMockSpecialAssetsMap = (
   totalStakedTrx: number,

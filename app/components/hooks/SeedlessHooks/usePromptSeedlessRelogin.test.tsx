@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import usePromptSeedlessRelogin from './usePromptSeedlessRelogin';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -46,7 +46,12 @@ const mockDeleteWallet = Authentication.deleteWallet as jest.MockedFunction<
 >;
 
 describe('usePromptSeedlessRelogin', () => {
-  const mockStore = configureMockStore([thunk]);
+  // redux-mock-store's types are written against redux 4, whose `Dispatch`
+  // used `AnyAction`; redux-thunk 3 is typed against redux 5's
+  // `UnknownAction`. Cast to whatever redux-mock-store declares.
+  const mockStore = configureMockStore([thunk] as unknown as Parameters<
+    typeof configureMockStore
+  >[0]);
   const mockSignOut = jest.fn();
   const mockMetrics = createMockUseAnalyticsHook();
 

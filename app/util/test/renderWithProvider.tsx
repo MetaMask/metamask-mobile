@@ -103,7 +103,13 @@ export default function renderWithProvider(
 }
 
 export function renderScreen(
-  Component: React.ComponentType,
+  // `React.ComponentType` with no argument means `ComponentType<{}>`, which
+  // react-redux 9's `ConnectedComponent` no longer satisfies: it now surfaces
+  // its ownProps as required. The navigator supplies those props at runtime,
+  // so accept any component here.
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Component: React.ComponentType<any>,
   options: {
     name: string;
     options?: NativeStackNavigationOptions;

@@ -64,7 +64,7 @@ describe('PerpsProOrderCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
   });
 
   it('renders stop order details and display-only cancel control', () => {
@@ -456,7 +456,7 @@ describe('PerpsProOrderCard', () => {
 
   describe('Privacy Mode', () => {
     it('hides monetary values but keeps size and labels visible', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
       render(
         <PerpsProOrderCard

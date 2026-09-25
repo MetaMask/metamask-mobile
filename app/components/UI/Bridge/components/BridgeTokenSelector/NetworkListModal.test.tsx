@@ -102,7 +102,7 @@ const mockChainRanking = [
   { chainId: 'eip155:10' as CaipChainId, name: 'Optimism' },
 ];
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockDispatch = jest.fn();
 
 // Cell uses ListItemSelect which relies on theme context.
@@ -136,7 +136,7 @@ describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
     jest.mocked(useABTest).mockReturnValue({
       variant: { orderByValue: false },
       variantName: 'control',

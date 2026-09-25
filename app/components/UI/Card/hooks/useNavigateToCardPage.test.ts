@@ -100,7 +100,7 @@ const setupMocks = (
   mockEventBuilder: ReturnType<typeof createMockEventBuilder>,
   browserTabs: BrowserTab[] | null | undefined = STABLE_EMPTY_TABS,
 ) => {
-  (useSelector as jest.Mock).mockImplementation((selector) => {
+  (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
     if (selector === selectCardActiveProviderId) {
       return 'baanx';
     }
@@ -173,7 +173,7 @@ describe('useNavigateToInternalBrowserPage', () => {
 
       it('navigates to existing tab when one exists', () => {
         const tab = createMockBrowserTab({ id: tabId, url });
-        (useSelector as jest.Mock).mockImplementation((selector) => {
+        (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
           if (selector === selectCardActiveProviderId) {
             return 'baanx';
           }
@@ -227,7 +227,7 @@ describe('useNavigateToInternalBrowserPage', () => {
     it.each([undefined, null, []])(
       'handles browser tabs as %p without throwing',
       (tabsValue) => {
-        (useSelector as jest.Mock).mockImplementation((selector) => {
+        (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
           if (selector === selectCardActiveProviderId) {
             return 'baanx';
           }
@@ -259,7 +259,7 @@ describe('useNavigateToInternalBrowserPage', () => {
           url: 'https://travel.metamask.io/access/page2',
         }),
       ];
-      (useSelector as jest.Mock).mockReturnValue(tabs);
+      (useSelector as unknown as jest.Mock).mockReturnValue(tabs);
       (isCardTravelUrl as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>

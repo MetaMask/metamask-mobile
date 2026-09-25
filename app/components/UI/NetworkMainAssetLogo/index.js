@@ -8,6 +8,20 @@ import {
   selectEvmTicker,
 } from '../../../selectors/networkController';
 
+/**
+ * react-redux 9 derives ownProps from the component's props type. Without an
+ * annotation TS infers every destructured param as required `any`, so callers
+ * that pass only `style` fail to typecheck. The propTypes below are all
+ * optional; this mirrors them for TS.
+ *
+ * @param {object} props
+ * @param {string} [props.chainId] - Supplied by `mapStateToProps`.
+ * @param {string} [props.ticker] - Supplied by `mapStateToProps`.
+ * @param {object} [props.style]
+ * @param {boolean} [props.big]
+ * @param {boolean} [props.biggest]
+ * @param {string} [props.testID]
+ */
 function NetworkMainAssetLogo({
   chainId,
   ticker,

@@ -16,7 +16,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 const createMockPosition = (id = 'pos-1'): PredictPosition =>
   ({ id }) as PredictPosition;

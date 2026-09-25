@@ -234,7 +234,7 @@ describe('RpcSelectionModal', () => {
   };
 
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkConfigurations) {
         return mockNetworks; // to show all networks
       }
@@ -321,7 +321,7 @@ describe('RpcSelectionModal', () => {
   });
 
   it('should not call preferences controller setTokenNetworkFilter when a popular networks filter is selected', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsAllNetworks) {
         return true; // to show all networks
       }
@@ -338,7 +338,7 @@ describe('RpcSelectionModal', () => {
   });
 
   it('should not call preferences controller setTokenNetworkFilter when the network is not part of PopularList', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsAllNetworks) {
         return false; // to show current network
       }

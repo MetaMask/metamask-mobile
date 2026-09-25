@@ -130,12 +130,14 @@ const defaultProps = {
 };
 
 const setupSelectorMock = (geolocation?: string) => {
-  (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-    if (selector === getDetectedGeolocation) {
-      return geolocation;
-    }
-    return undefined;
-  });
+  (useSelector as unknown as jest.Mock).mockImplementation(
+    (selector: unknown) => {
+      if (selector === getDetectedGeolocation) {
+        return geolocation;
+      }
+      return undefined;
+    },
+  );
 };
 
 describe('TokenDetailsStickyFooter', () => {

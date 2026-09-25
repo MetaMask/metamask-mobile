@@ -121,7 +121,7 @@ describe('usePerpsHomeActions', () => {
       action(),
     );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     });
@@ -344,7 +344,7 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleAddFunds - ineligible user', () => {
     it('opens eligibility modal without calling deposit functions', async () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -357,7 +357,7 @@ describe('usePerpsHomeActions', () => {
     });
 
     it('tracks geo-block screen viewed event for deposit action', async () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -436,7 +436,7 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleWithdraw - ineligible user (TAT-2337: withdrawals not geo-blocked)', () => {
     it('allows withdrawal navigation even for ineligible users', async () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -452,7 +452,7 @@ describe('usePerpsHomeActions', () => {
     });
 
     it('does not show geo-block notification for withdraw action', async () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -471,7 +471,7 @@ describe('usePerpsHomeActions', () => {
     });
 
     it('tracks geo-blocked withdrawal with IS_GEO_BLOCKED property for monitoring', async () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -493,7 +493,7 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleWithdraw - eligible user geo-block tracking', () => {
     it('tracks eligible withdrawal with IS_GEO_BLOCKED: false', async () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
@@ -518,7 +518,7 @@ describe('usePerpsHomeActions', () => {
       // First call: selectPerpsEligibility → true
       // Second call: selectSelectedInternalAccountAddress → address string
       // Third call: selectPayQuoteConfig → { enabled: true }
-      (useSelector as jest.Mock)
+      (useSelector as unknown as jest.Mock)
         .mockReturnValueOnce(true)
         .mockReturnValueOnce('0x1234567890abcdef1234567890abcdef12345678')
         .mockReturnValueOnce({ enabled: true });
@@ -611,7 +611,7 @@ describe('usePerpsHomeActions', () => {
     });
 
     it('closes eligibility modal when closeEligibilityModal is called', async () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => usePerpsHomeActions());
 

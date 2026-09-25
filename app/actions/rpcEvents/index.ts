@@ -13,11 +13,11 @@ export enum ActionType {
 /**
  * Extend redux Action interface to add rpcName, eventStage and error properties
  */
-export interface iEventAction extends Action {
+export type iEventAction = Action & {
   rpcName: string;
   eventStage?: string;
   error?: Error | unknown;
-}
+};
 
 /**
  * Set the new RPC event stage.

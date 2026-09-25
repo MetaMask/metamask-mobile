@@ -51,7 +51,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
     ).mockReturnValue(undefined);
 
     // Default setup: user is authenticated
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsCardAuthenticated) {
         return true; // Default: authenticated
       }
@@ -75,7 +75,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         return undefined;
       });
 
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectIsCardAuthenticated) {
           return false; // Not authenticated
         }
@@ -98,7 +98,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
     });
 
     it('returns true when user is not authenticated even with undefined priority token', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectIsCardAuthenticated) {
           return false; // Not authenticated
         }
@@ -126,7 +126,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         return undefined;
       });
 
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectIsCardAuthenticated) {
           return true; // Authenticated
         }

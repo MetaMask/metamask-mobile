@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('TokenSortBottomSheet', () => {
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectTokenSortConfig) {
         return {
           key: 'tokenFiatAmount',
@@ -100,7 +100,7 @@ describe('TokenSortBottomSheet', () => {
   });
 
   it('displays the correct selection based on tokenSortConfig', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectTokenSortConfig) {
         return { key: 'symbol', order: 'dsc', sortCallback: 'stringNumeric' };
       }

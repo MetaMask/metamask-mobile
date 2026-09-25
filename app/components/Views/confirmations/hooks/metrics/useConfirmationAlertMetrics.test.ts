@@ -48,7 +48,7 @@ describe('useConfirmationAlertMetrics', () => {
   };
 
   it('tracks inline alert clicked', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: {
         ...baseAlertProperties,
         alert_visualized: [],
@@ -69,7 +69,7 @@ describe('useConfirmationAlertMetrics', () => {
   });
 
   it('tracks alert rendered', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: {
         ...baseAlertProperties,
       },
@@ -93,7 +93,7 @@ describe('useConfirmationAlertMetrics', () => {
       (key: string) => key === AlertKeys.Blockaid,
     );
 
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: baseAlertProperties,
     });
 
@@ -119,7 +119,7 @@ describe('useConfirmationAlertMetrics', () => {
     };
 
     (useAlerts as jest.Mock).mockReturnValue(mockUseAlertsWithUnknownKey);
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: {
         alert_trigger_count: 1,
         alert_trigger_name: [UNKNOWN_ALERT_KEY_MOCK],
@@ -148,7 +148,7 @@ describe('useConfirmationAlertMetrics', () => {
 
   it('handles undefined alert_visualized', () => {
     (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: {
         ...baseAlertProperties,
         alert_visualized: undefined,
@@ -170,7 +170,7 @@ describe('useConfirmationAlertMetrics', () => {
 
   it('handles undefined alert_key', () => {
     (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: {
         ...baseAlertProperties,
         alert_key_clicked: undefined,
@@ -192,7 +192,7 @@ describe('useConfirmationAlertMetrics', () => {
 
   it('handles undefined properties in selectConfirmationMetricsById', () => {
     (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
-    (useSelector as jest.Mock).mockReturnValue({});
+    (useSelector as unknown as jest.Mock).mockReturnValue({});
 
     const { result } = renderHook(() => useConfirmationAlertMetrics());
 
@@ -208,7 +208,7 @@ describe('useConfirmationAlertMetrics', () => {
   });
 
   it('tracks alert metrics', () => {
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: baseAlertProperties,
     });
 
@@ -227,7 +227,7 @@ describe('useConfirmationAlertMetrics', () => {
       isAlertConfirmed: jest.fn(),
       alertKey: '',
     });
-    (useSelector as jest.Mock).mockReturnValue({});
+    (useSelector as unknown as jest.Mock).mockReturnValue({});
 
     const { result } = renderHook(() => useConfirmationAlertMetrics());
     result.current.trackAlertMetrics();
@@ -242,7 +242,7 @@ describe('useConfirmationAlertMetrics', () => {
       isAlertConfirmed: jest.fn(),
       alertKey: compositeKey,
     });
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: {},
     });
 
@@ -259,7 +259,7 @@ describe('useConfirmationAlertMetrics', () => {
 
   it('handles undefined signatureRequest', () => {
     (useSignatureRequest as jest.Mock).mockReturnValue(undefined);
-    (useSelector as jest.Mock).mockReturnValue({
+    (useSelector as unknown as jest.Mock).mockReturnValue({
       properties: baseAlertProperties,
     });
 

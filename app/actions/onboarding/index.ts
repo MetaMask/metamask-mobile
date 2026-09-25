@@ -26,55 +26,55 @@ export const SUPPRESS_WALLET_HOME_ONBOARDING_STEPS =
 export const MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED =
   'MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED';
 
-interface SaveEventAction {
+type SaveEventAction = {
   type: typeof SAVE_EVENT;
   event: [ITrackingEvent];
-}
+};
 
-interface ClearEventsAction {
+type ClearEventsAction = {
   type: typeof CLEAR_EVENTS;
-}
+};
 
-export interface SetCompletedOnboardingAction {
+export type SetCompletedOnboardingAction = {
   type: typeof SET_COMPLETED_ONBOARDING;
   completedOnboarding: boolean;
-}
+};
 
-interface SetAccountTypeAction {
+type SetAccountTypeAction = {
   type: typeof SET_ACCOUNT_TYPE;
   accountType: AccountType;
   onboardingVersion: string;
-}
+};
 
-interface ClearAccountTypeAction {
+type ClearAccountTypeAction = {
   type: typeof CLEAR_ACCOUNT_TYPE;
-}
+};
 
-export interface SetPendingSocialLoginMarketingConsentBackfillAction {
+export type SetPendingSocialLoginMarketingConsentBackfillAction = {
   type: typeof SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL;
   authConnection: string | null;
-}
+};
 
-export interface SetSeedlessOnboardingAction {
+export type SetSeedlessOnboardingAction = {
   type: typeof SET_SEEDLESS_ONBOARDING;
   clientId: string;
   authConnection: AuthConnection;
-}
+};
 
-export interface ClearSeedlessOnboardingAction {
+export type ClearSeedlessOnboardingAction = {
   type: typeof CLEAR_SEEDLESS_ONBOARDING;
-}
+};
 
-export interface SetIosGoogleWarningSheetLastDismissedAtAction {
+export type SetIosGoogleWarningSheetLastDismissedAtAction = {
   type: typeof SET_IOS_GOOGLE_WARNING_SHEET_LAST_DISMISSED_AT;
   iosGoogleWarningSheetLastDismissedAt: number;
-}
+};
 
-export interface ClearOnboardingAction {
+export type ClearOnboardingAction = {
   type: typeof CLEAR_ONBOARDING;
-}
+};
 
-export interface SetWalletHomeOnboardingStepsEligibleAction {
+export type SetWalletHomeOnboardingStepsEligibleAction = {
   type: typeof SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE;
   eligible: boolean;
   /**
@@ -82,25 +82,25 @@ export interface SetWalletHomeOnboardingStepsEligibleAction {
    * (user just finished onboarding). Never persisted.
    */
   skipInitialBalanceWait: boolean;
-}
+};
 
-export interface ResetWalletHomeOnboardingStepsAction {
+export type ResetWalletHomeOnboardingStepsAction = {
   type: typeof RESET_WALLET_HOME_ONBOARDING_STEPS;
-}
+};
 
-export interface SetWalletHomeOnboardingStepsStepAction {
+export type SetWalletHomeOnboardingStepsStepAction = {
   type: typeof SET_WALLET_HOME_ONBOARDING_STEPS_STEP;
   stepIndex: number;
-}
+};
 
-export interface SuppressWalletHomeOnboardingStepsAction {
+export type SuppressWalletHomeOnboardingStepsAction = {
   type: typeof SUPPRESS_WALLET_HOME_ONBOARDING_STEPS;
   reason: WalletHomeOnboardingStepsSuppressedReason;
-}
+};
 
-export interface MarkPushNotificationOsPromptRequestedAction {
+export type MarkPushNotificationOsPromptRequestedAction = {
   type: typeof MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED;
-}
+};
 
 export type OnboardingActionTypes =
   | SaveEventAction

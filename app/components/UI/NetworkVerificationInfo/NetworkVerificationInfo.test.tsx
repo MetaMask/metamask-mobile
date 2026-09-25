@@ -29,10 +29,10 @@ jest.mock('react-redux', () => ({
 
 describe('NetworkVerificationInfo', () => {
   beforeEach(() => {
-    (useSelector as jest.Mock).mockClear();
+    (useSelector as unknown as jest.Mock).mockClear();
   });
   it('renders correctly', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     const { toJSON } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
@@ -45,7 +45,7 @@ describe('NetworkVerificationInfo', () => {
   });
 
   it('renders updated details when isNetworkRpcUpdate is true', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     const networkWithCustomRpcUrl = {
       ...PopularList[0],
@@ -85,7 +85,7 @@ describe('NetworkVerificationInfo', () => {
   });
 
   it('renders one alert', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
@@ -99,7 +99,7 @@ describe('NetworkVerificationInfo', () => {
   });
 
   it('should render the banner', () => {
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
@@ -113,7 +113,7 @@ describe('NetworkVerificationInfo', () => {
   });
 
   it('should not render alert', () => {
-    (useSelector as jest.Mock).mockReturnValue(false);
+    (useSelector as unknown as jest.Mock).mockReturnValue(false);
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
@@ -128,7 +128,7 @@ describe('NetworkVerificationInfo', () => {
   });
 
   it('renders chainId as a decimal', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
     const { getByText } = render(
       <NetworkVerificationInfo
@@ -142,7 +142,7 @@ describe('NetworkVerificationInfo', () => {
   });
 
   it('should not render Network URL warning banner when the custom rpc url has all ascii characters', () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
+    (useSelector as unknown as jest.Mock).mockReturnValue(true);
     const { getByText } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
@@ -160,7 +160,7 @@ describe('NetworkVerificationInfo', () => {
 
   describe('when the custom rpc url has non-ascii characters', () => {
     it('should render Network URL warning banner and display punycode encoded version', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
       const { getByText } = render(
         <NetworkVerificationInfo
           customNetworkInformation={{

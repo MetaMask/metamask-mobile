@@ -199,7 +199,9 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
-      <AccountFromToInfoCard transactionState={NFTTransaction} />,
+      <AccountFromToInfoCard
+        transactionState={NFTTransaction as unknown as Transaction}
+      />,
       { state: mockInitialState },
     );
     expect(await findByText('0xF4e82...e287B')).toBeDefined();

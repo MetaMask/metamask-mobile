@@ -24,7 +24,7 @@ jest.mock('react-redux', () => ({
 
 import { useSelector } from 'react-redux';
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 const mockUpdateAssetPriority = Engine.context.CardController
   .updateAssetPriority as jest.Mock;

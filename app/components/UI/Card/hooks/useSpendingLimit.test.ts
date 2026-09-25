@@ -152,7 +152,7 @@ const mockCreateSpendingLimitOptionsNavigationDetails =
   createSpendingLimitOptionsNavigationDetails as jest.MockedFunction<
     typeof createSpendingLimitOptionsNavigationDetails
   >;
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUseMoneyAccountCardLinkage =
   useMoneyAccountCardLinkage as jest.MockedFunction<
     typeof useMoneyAccountCardLinkage

@@ -45,7 +45,7 @@ describe('BlockExplorerFooter', () => {
   });
 
   it('returns null when no URL is available', () => {
-    (useSelector as jest.Mock).mockReturnValue({});
+    (useSelector as unknown as jest.Mock).mockReturnValue({});
     (getNetworkDetailsFromNotifPayload as jest.Mock).mockReturnValue({
       blockExplorerUrl: undefined,
     });
@@ -74,7 +74,7 @@ describe('BlockExplorerFooter', () => {
   });
 
   it('tracks event with chain_id when present in notification', () => {
-    (useSelector as jest.Mock).mockReturnValue({});
+    (useSelector as unknown as jest.Mock).mockReturnValue({});
     (getNetworkDetailsFromNotifPayload as jest.Mock).mockReturnValue({
       blockExplorerUrl: 'https://blockexplorer.com',
     });

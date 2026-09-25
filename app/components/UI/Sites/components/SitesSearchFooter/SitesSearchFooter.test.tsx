@@ -28,7 +28,7 @@ describe('SitesSearchFooter', () => {
     } as unknown as jest.Mocked<NavigationProp<ParamListBase>>;
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useSelector as jest.Mock).mockReturnValue('Brave');
+    (useSelector as unknown as jest.Mock).mockReturnValue('Brave');
     dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(1234567890);
   });
 
@@ -193,7 +193,7 @@ describe('SitesSearchFooter', () => {
     });
 
     it('navigates to DuckDuckGo search when DuckDuckGo is selected', () => {
-      (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
+      (useSelector as unknown as jest.Mock).mockReturnValue('DuckDuckGo');
 
       const { getByTestId } = render(
         <SitesSearchFooter searchQuery="ethereum" />,
@@ -206,7 +206,7 @@ describe('SitesSearchFooter', () => {
     });
 
     it('encodes special characters in DuckDuckGo search query', () => {
-      (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
+      (useSelector as unknown as jest.Mock).mockReturnValue('DuckDuckGo');
 
       const { getByTestId } = render(
         <SitesSearchFooter searchQuery="ethereum & bitcoin" />,
@@ -231,7 +231,7 @@ describe('SitesSearchFooter', () => {
     });
 
     it('displays search query in DuckDuckGo search link when DuckDuckGo is selected', () => {
-      (useSelector as jest.Mock).mockReturnValue('DuckDuckGo');
+      (useSelector as unknown as jest.Mock).mockReturnValue('DuckDuckGo');
 
       const { getByText } = render(
         <SitesSearchFooter searchQuery="ethereum" />,

@@ -74,7 +74,7 @@ describe('OnboardingSecuritySettings', () => {
 
   describe('Basic rendering', () => {
     it('should render correctly with no auth connection', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
@@ -86,7 +86,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should always render NetworkDetailsCheckSettings regardless of auth connection', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
@@ -98,7 +98,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('navigates back when the header back button is pressed', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
@@ -113,7 +113,7 @@ describe('OnboardingSecuritySettings', () => {
 
   describe('Social login detection and conditional rendering', () => {
     it('hides consolidated child settings but keeps social-login settings', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return true;
         if (selector === selectMobileUxBftcConsolidationFlagEnabled)
@@ -131,7 +131,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should render security sections when social login is enabled', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return true;
         return null;
@@ -150,7 +150,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should render security sections when social login is active', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return true;
         return null;
@@ -169,7 +169,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should NOT render security sections when auth connection is null', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
@@ -182,7 +182,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should NOT render security sections when auth connection is undefined', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return undefined;
         return null;
@@ -195,7 +195,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should NOT render security sections for non-social login auth connections', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
@@ -210,7 +210,7 @@ describe('OnboardingSecuritySettings', () => {
 
   describe('Component props validation', () => {
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return true;
         return null;
@@ -247,7 +247,7 @@ describe('OnboardingSecuritySettings', () => {
 
   describe('Selector usage', () => {
     it('should call selectSeedlessOnboardingLoginFlow selector', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return true;
         return null;
@@ -261,7 +261,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should call selectUseSafeChainsListValidation selector', () => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
@@ -277,7 +277,7 @@ describe('OnboardingSecuritySettings', () => {
 
   describe('Analytics state management', () => {
     beforeEach(() => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
         if (selector === selectSeedlessOnboardingLoginFlow) return true;
         return null;

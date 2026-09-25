@@ -111,7 +111,7 @@ describe('useOpenSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
 
     // Mock selector and hook return values
     (
@@ -122,7 +122,9 @@ describe('useOpenSwaps', () => {
     );
     (useTokensWithBalance as jest.Mock).mockReturnValue(mockTokensWithBalance);
 
-    (useSelector as jest.Mock).mockImplementation((selector) => selector());
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
+      selector(),
+    );
 
     const { useSwapBridgeNavigation } = jest.requireMock(
       '../../Bridge/hooks/useSwapBridgeNavigation',

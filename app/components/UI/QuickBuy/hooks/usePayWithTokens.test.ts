@@ -57,7 +57,7 @@ jest.mock('./enrichTokenBalance', () => ({
   enrichTokenBalance: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockUseTokensWithBalance = useTokensWithBalance as jest.Mock;
 const mockEnrich = enrichTokenBalance as jest.Mock;
 const mockGetIgnoredTokens =

@@ -174,7 +174,7 @@ describe('MultichainTransactionsView', () => {
     const mockTransactionsData = { transactions: mockTransactions };
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -186,7 +186,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('handles case when transactions data is not available', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -219,7 +219,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('renders activity rows for asset details', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -283,7 +283,7 @@ describe('MultichainTransactionsView', () => {
         timestamp: 1742400000,
       };
 
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSelectedInternalAccountFormattedAddress) {
           return mockSelectedAddress;
         }
@@ -330,7 +330,7 @@ describe('MultichainTransactionsView', () => {
       },
     };
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -387,7 +387,7 @@ describe('MultichainTransactionsView', () => {
       },
     };
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -418,7 +418,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('falls back to the page chainId when a transaction has no chain', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -483,7 +483,7 @@ describe('MultichainTransactionsView', () => {
       },
     };
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -556,7 +556,7 @@ describe('MultichainTransactionsView', () => {
       },
     };
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
@@ -599,7 +599,7 @@ describe('MultichainTransactionsView', () => {
       txParams: { from: '0xabc', to: '0xrouter', value: '0x0' },
     };
 
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }

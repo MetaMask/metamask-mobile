@@ -70,7 +70,7 @@ describe('PerpsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Default: Cross margin flag on, privacy mode off
-    (useSelector as jest.Mock).mockImplementation(
+    (useSelector as unknown as jest.Mock).mockImplementation(
       (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
     );
     // Set up default mock return value
@@ -473,7 +473,7 @@ describe('PerpsCard', () => {
 
     it('hides position value and PnL label when privacy mode is enabled', () => {
       // Arrange
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
       const positivePosition = {
         ...mockPosition,
         positionValue: '4350.00',
@@ -496,7 +496,7 @@ describe('PerpsCard', () => {
 
     it('shows position value and PnL label when privacy mode is disabled', () => {
       // Arrange
-      (useSelector as jest.Mock).mockReturnValue(false);
+      (useSelector as unknown as jest.Mock).mockReturnValue(false);
       const positivePosition = {
         ...mockPosition,
         unrealizedPnl: '100.50',
@@ -516,7 +516,7 @@ describe('PerpsCard', () => {
 
     it('hides order price value but not the order type label when privacy mode is enabled', () => {
       // Arrange
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
       // Act
       const { queryByText, getAllByText, getByText } = render(
@@ -532,7 +532,7 @@ describe('PerpsCard', () => {
 
     it('does not hide non-financial labels (symbol, direction) when privacy mode is enabled', () => {
       // Arrange
-      (useSelector as jest.Mock).mockReturnValue(true);
+      (useSelector as unknown as jest.Mock).mockReturnValue(true);
 
       // Act
       const { getByText, queryByText } = render(

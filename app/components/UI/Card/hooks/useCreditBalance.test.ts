@@ -41,7 +41,7 @@ jest.mock('../../Money/utils/moneyActivityFiat', () => ({
 }));
 
 const mockUseSelector = jest.requireMock('react-redux')
-  .useSelector as jest.Mock;
+  .useSelector as unknown as jest.Mock;
 const mockGetCreditWallet = Engine.context.CardController
   .getCreditWallet as jest.Mock;
 

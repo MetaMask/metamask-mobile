@@ -18,7 +18,7 @@ describe('EarnWithdrawalTokenListItem', () => {
   const mockOnPress = jest.fn();
 
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation(() => undefined);
+    (useSelector as unknown as jest.Mock).mockImplementation(() => undefined);
     jest.clearAllMocks();
   });
 

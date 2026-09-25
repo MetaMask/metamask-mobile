@@ -14,7 +14,7 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('useAccountWalletNames', () => {
-  const mockUseSelector = useSelector as jest.Mock;
+  const mockUseSelector = useSelector as unknown as jest.Mock;
 
   const mockAccount1 = {
     id: 'account1',

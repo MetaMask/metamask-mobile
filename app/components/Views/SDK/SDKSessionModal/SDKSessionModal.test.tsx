@@ -82,7 +82,7 @@ describe('SDKSessionModal', () => {
       navigate: mockNavigate,
     });
 
-    (useSelector as jest.Mock).mockReturnValue({});
+    (useSelector as unknown as jest.Mock).mockReturnValue({});
 
     (useAccounts as jest.Mock).mockReturnValue({
       evmAccounts: mockAccounts,

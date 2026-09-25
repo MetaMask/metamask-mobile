@@ -167,7 +167,7 @@ describe('AccountsMenu', () => {
     );
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
-    (useSelector as jest.Mock).mockImplementation((selector) => {
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       if (selector === selectCardActiveProviderId) {
         return mockActiveProviderId;
       }
@@ -432,7 +432,7 @@ describe('AccountsMenu', () => {
       unreadCount = 0,
       readCount = 0,
     } = {}) => {
-      (useSelector as jest.Mock).mockImplementation((selector) => {
+      (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
         const mockState = {
           engine: {
             backgroundState: {

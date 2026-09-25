@@ -20,7 +20,7 @@ jest.mock('../adapters', () => ({
   createAdapter: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockCreateAdapter = createAdapter as jest.MockedFunction<
   typeof createAdapter
 >;

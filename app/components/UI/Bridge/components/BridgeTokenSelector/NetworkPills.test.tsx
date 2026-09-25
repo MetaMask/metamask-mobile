@@ -25,7 +25,7 @@ jest.mock('../../hooks/useChainValueOrder', () => ({
   useChainValueOrder: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 // Mock chain ranking array with names from feature flags
 const mockChainRanking = [
@@ -116,7 +116,7 @@ describe('NetworkPills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
     jest.mocked(useABTest).mockReturnValue({
       variant: { orderByValue: false },
       variantName: 'control',

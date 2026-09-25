@@ -27,7 +27,7 @@ jest.mock('../../Bridge/utils/exchange-rates', () => ({
   calcTokenFiatRate: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockCalcTokenFiatRate = calcTokenFiatRate as jest.Mock;
 
 const STATE = {

@@ -180,7 +180,7 @@ const createActiveQuote = (
   ) as EnrichedQuickBuyQuote;
 
 const setupDefaultMocks = () => {
-  (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+  (useDispatch as unknown as jest.Mock).mockReturnValue(mockDispatch);
   mockUseRampNavigation.mockReturnValue({
     goToBuy: mockGoToBuy,
   } as unknown as ReturnType<typeof useRampNavigation>);
@@ -205,7 +205,7 @@ const setupDefaultMocks = () => {
 
   // Each useSelector call is dispatched to the corresponding mocked selector.
   // Selectors are jest.fn() so we set their return values.
-  (useSelector as jest.Mock).mockImplementation(
+  (useSelector as unknown as jest.Mock).mockImplementation(
     (selector: (state: unknown) => unknown) => selector({}),
   );
   (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
