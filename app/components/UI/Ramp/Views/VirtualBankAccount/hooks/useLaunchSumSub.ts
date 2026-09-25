@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type {
+  KycCatalogDocument,
+  KycConsentDocument,
+  KycConsentRecord,
+} from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import type { VbaIdentityVerificationCompletion } from '../modules/types';
@@ -14,13 +19,49 @@ export interface UseLaunchSumSubResult {
   retry: () => void;
 }
 
+const toAcceptedDisclaimerKeys = (
+  documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
+): KycConsentRecord[] =>
+  (documents ?? []).map(({ key, version }) => ({ key, version }));
+
 /**
- * On mount, launches the SumSub document-verification journey and reports the
- * outcome to the VBA coordinator.
+ * Records session-scoped idOS and SumSub provider consents.
  *
- * Session-scoped idOS / SumSub consents must be recorded before this hook runs
- * (typically on the prior screen's success action) to ensure idOS applicant
- * creation and provider launch remain back-to-back. Splitting those operations
+ * This operation must run immediately before `launchProviderFlow` to ensure
+ * idOS applicant creation and provider launch remain back-to-back. Splitting
+ * these operations across screens or with navigation in between yields a
+ * "Failed to get applicant" error from the provider.
+ *
+ * `recordSessionDisclaimers` is idempotent; a 409 for already-accepted
+ * consents is swallowed by the controller.
+ */
+async function recordSessionConsents(): Promise<void> {
+  const { KycController, KycService } = Engine.context;
+  if (!KycService) {
+    throw new Error('KYC service is unavailable');
+  }
+
+  const country = await KycService.getGeoCountry();
+  const catalog = await KycController.fetchSessionDisclaimers({
+    country,
+  });
+  await KycController.recordSessionDisclaimers({
+    providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
+      catalog.kycProvider,
+    ),
+    idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
+    credentialReusabilityConsentGiven: false,
+  });
+}
+
+/**
+ * On mount, records session-scoped idOS / SumSub consents and launches the
+ * SumSub document-verification journey back-to-back, then reports the outcome
+ * to the VBA coordinator.
+ *
+ * The UKYC session was created at the email step. The identity module displays
+ * the session terms first, but records consent immediately before launch to
+ * keep consent recording and provider launch atomic. Splitting those operations
  * across screens yields a "Failed to get applicant" error.
  *
  * `launchProviderFlow` returns a durable provider-flow outcome. A submitted
@@ -63,6 +104,8 @@ export const useLaunchSumSub = (
         if (!KycController) {
           throw new Error('KYC controller is unavailable');
         }
+
+        await recordSessionConsents();
 
         const outcome = await KycController.launchProviderFlow({});
         if (outcome === 'submitted') {

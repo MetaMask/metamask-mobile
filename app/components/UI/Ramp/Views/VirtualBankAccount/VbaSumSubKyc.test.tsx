@@ -9,7 +9,12 @@ const mockOnSubmitted = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
+      fetchSessionDisclaimers: jest.fn(),
+      recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
+    },
+    KycService: {
+      getGeoCountry: jest.fn(),
     },
   },
 }));
@@ -23,12 +28,25 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
+  fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
+  recordSessionDisclaimers: jest.Mock<Promise<void>, [unknown]>;
   launchProviderFlow: jest.Mock<Promise<KycProviderFlowStatus>, [unknown]>;
+};
+const mockKycService = Engine.context.KycService as unknown as {
+  getGeoCountry: jest.Mock<Promise<string>, []>;
+};
+
+const catalog = {
+  idOS: [{ key: 'idos-privacy', version: '1' }],
+  kycProvider: [{ key: 'sumsub-terms', version: '2' }],
 };
 
 describe('VbaSumSubKyc', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockKycService.getGeoCountry.mockResolvedValue('BRA');
+    mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
     mockKycController.launchProviderFlow.mockResolvedValue('submitted');
   });
 
@@ -45,8 +63,14 @@ describe('VbaSumSubKyc', () => {
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
-      expect(mockOnSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
     });
+    expect(mockKycService.getGeoCountry).toHaveBeenCalled();
+    expect(mockKycController.recordSessionDisclaimers).toHaveBeenCalledWith({
+      providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
+      idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
+      credentialReusabilityConsentGiven: false,
+    });
+    expect(mockOnSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
   });
 
   it('shows more information needed when SumSub is closed before submission', async () => {

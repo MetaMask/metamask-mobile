@@ -5,16 +5,9 @@ import {
   type NativeStackScreenProps,
 } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import type {
-  KycCatalogDocument,
-  KycConsentDocument,
-  KycConsentRecord,
-} from '@metamask/kyc-controller';
 import VerifyIdentity from '../VerifyIdentity';
 import VbaSumSubKyc from '../VbaSumSubKyc';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
 import {
   VbaIdentityVerificationRoutes,
   type VbaIdentityVerificationParamList,
@@ -26,49 +19,18 @@ import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 
 const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 
-const toAcceptedDisclaimerKeys = (
-  documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
-): KycConsentRecord[] =>
-  (documents ?? []).map(({ key, version }) => ({ key, version }));
-
 const ProviderTermsStep = () => {
   const navigation =
     useNavigation<
       NativeStackNavigationProp<VbaIdentityVerificationParamList>
     >();
-  const handleSuccess = useCallback(async () => {
-    try {
-      const { KycController, KycService } = Engine.context;
-      if (!KycService) {
-        throw new Error('KYC service is unavailable');
-      }
-
-      const country = await KycService.getGeoCountry();
-      const catalog = await KycController.fetchSessionDisclaimers({
-        country,
-      });
-      await KycController.recordSessionDisclaimers({
-        providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
-          catalog.kycProvider,
-        ),
-        idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
-        credentialReusabilityConsentGiven: false,
-      });
-
+  const handleSuccess = useCallback(
+    () =>
       navigation.navigate(VbaIdentityVerificationRoutes.PROVIDER, {
         initialNeedsMoreInfo: false,
-      });
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'vba-kyc', provider: 'sumsub' },
-        context: {
-          name: 'ProviderTermsStep',
-          data: { step: 'recordSessionDisclaimers' },
-        },
-      });
-      throw error;
-    }
-  }, [navigation]);
+      }),
+    [navigation],
+  );
 
   return <VerifyIdentity onSuccess={handleSuccess} />;
 };
