@@ -184,7 +184,7 @@ const Settings = ({
     const { AssetsController } = Engine.context;
     // AssetsController is the sole source of truth for the active currency;
     // the UI reads it from AssetsController.selectedCurrency.
-    await AssetsController.setSelectedCurrency(currency);
+    AssetsController.setSelectedCurrency(currency);
     updateUserTraitsWithCurrentCurrency(currency);
   };
 

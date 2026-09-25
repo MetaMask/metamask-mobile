@@ -8,6 +8,7 @@ import {
   BUILT_IN_NETWORKS,
 } from '@metamask/controller-utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { FUNGIBLE_ASSET_TYPES } from '../../../core/Assets/accountGroupAssetLoader';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipChainId,
@@ -203,6 +204,7 @@ export function useSwitchNetworks({
         AssetsController.getAssets([...selectedAccountGroupAccounts], {
           forceUpdate: true,
           chainIds: [toEvmCaipChainId(networkConfiguration.chainId)],
+          assetTypes: FUNGIBLE_ASSET_TYPES,
         }).catch((error) => {
           Logger.error(
             error as Error,

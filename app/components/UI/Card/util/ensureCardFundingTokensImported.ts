@@ -5,6 +5,7 @@ import { store } from '../../../../store';
 import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import type { CardFundingToken } from '../types';
 import { safeFormatChainIdToHex } from './safeFormatChainIdToHex';
@@ -54,8 +55,13 @@ export async function ensureCardFundingTokensImported(
         continue;
       }
 
+      // toAssetId embeds the address verbatim and AssetsController stores
+      // normalized (checksummed) ids, so the CAIP id built here must be
+      // checksummed too or it won't match ids built by other call sites.
+      const checksummedAddress =
+        safeToChecksumAddress(token.address) ?? token.address;
       const caipChainId = toEvmCaipChainId(hexChainId);
-      const caipAssetType = toAssetId(token.address, caipChainId);
+      const caipAssetType = toAssetId(checksummedAddress, caipChainId);
 
       if (!caipAssetType) {
         continue;
@@ -65,7 +71,7 @@ export async function ensureCardFundingTokensImported(
         selectedAccount.id,
         caipAssetType,
         {
-          address: token.address,
+          address: checksummedAddress,
           decimals: token.decimals,
           name: token.name ?? token.symbol,
           symbol: token.symbol,
