@@ -104,6 +104,7 @@ import {
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
+import { isPerpsErrorCode } from '../../../../utils/translatePerpsError';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -1931,7 +1932,7 @@ export const usePerpsProOrderForm = ({
     onError: (error) => {
       if (
         isChaseExecutionRef.current &&
-        error === PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED)
       ) {
         trackChaseConcurrencyLimitHit();
       }
@@ -2435,6 +2436,7 @@ export const usePerpsProOrderForm = ({
           feeResults: latestScale.feeResults,
           marketPrice: latestScale.assetPrice,
           inputMethod: 'default',
+          orderType: 'scale',
           source,
           sourceSection,
           currentMarketPosition: latestScale.currentMarketPosition,
@@ -2677,12 +2679,19 @@ export const usePerpsProOrderForm = ({
           feeResults: submissionChaseSnapshot?.feeResults ?? feeResults,
           marketPrice: submissionChaseSnapshot?.assetPrice ?? assetData.price,
           inputMethod: 'default',
+          orderType: placementOrderForm.type,
           source,
           sourceSection,
           currentMarketPosition: placementCurrentMarketPosition,
           direction: placementOrderForm.direction,
           chartLibrary,
           vipTier,
+          maxSlippageBps: resolvedMaxSlippageBps,
+          maxSlippageSource,
+          estimatedSlippageBps:
+            typeof estimatedSlippageBps === 'number'
+              ? estimatedSlippageBps
+              : undefined,
         }),
       });
 
