@@ -43,6 +43,12 @@ const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const SOURCE_CHAIN_ID_MOCK = '0xa';
 const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
 
+function createQuoteMock(
+  request: Partial<TransactionPayQuote<Json>['request']>,
+): TransactionPayQuote<Json> {
+  return { request } as unknown as TransactionPayQuote<Json>;
+}
+
 function render(
   options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
 ) {
@@ -99,12 +105,10 @@ describe('BridgeFeeRow', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
 
     useTransactionPayQuotesMock.mockReturnValue([
-      {
-        request: {
-          sourceChainId: SOURCE_CHAIN_ID_MOCK,
-          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
-        },
-      } as TransactionPayQuote<Json>,
+      createQuoteMock({
+        sourceChainId: SOURCE_CHAIN_ID_MOCK,
+        sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+      }),
     ]);
 
     useTransactionPaySourceAmountsMock.mockReturnValue([]);
@@ -479,15 +483,13 @@ describe('BridgeFeeRow', () => {
       // Post-quote treats the payment token as the destination, so the source
       // chain of the fee differs from the payment token's chain.
       useTransactionPayQuotesMock.mockReturnValue([
-        {
-          request: {
-            isPostQuote: true,
-            sourceChainId: SOURCE_CHAIN_ID_MOCK,
-            sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
-            targetChainId: '0x1',
-            targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-          },
-        } as TransactionPayQuote<Json>,
+        createQuoteMock({
+          isPostQuote: true,
+          sourceChainId: SOURCE_CHAIN_ID_MOCK,
+          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+          targetChainId: '0x1',
+          targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        }),
       ]);
 
       const { getByTestId } = render({ type: TransactionType.perpsWithdraw });
