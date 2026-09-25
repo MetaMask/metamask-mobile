@@ -107,6 +107,24 @@ describe('AdvancedDetailsRow', () => {
     expect(getByTestId('scroll-view-data')).toBeTruthy();
   });
 
+  it('renders nonce tooltip and data copy icons in the alternative icon color', () => {
+    const { getByText, getByTestId, UNSAFE_getByProps } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state: generateContractInteractionState },
+      false,
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
+    expect(UNSAFE_getByProps({ name: IconName.Info }).props.color).toBe(
+      IconColor.Alternative,
+    );
+    expect(UNSAFE_getByProps({ name: IconName.Copy }).props.color).toBe(
+      IconColor.Alternative,
+    );
+  });
+
   describe('Nonce editing', () => {
     const mockSetShowNonceModal = jest.fn();
     beforeEach(() => {
