@@ -12,10 +12,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
-import {
-  selectIsSelectedAccountWatchOnly,
-  selectSelectedAccountGroupEvmInternalAccount,
-} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectWatchOnlyKeyringAddress } from '../../../../selectors/keyringController';
 import { WatchOnlySession } from '../../../../core/WatchOnly/WatchOnlySession';
 import styleSheet from './DeveloperOptions.styles';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
@@ -23,12 +20,9 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 const WatchOnlyDeveloperOptionsSection = () => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const account = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
+  const watchedAddress = useSelector(selectWatchOnlyKeyringAddress);
   const [address, setAddress] = useState('');
   const [error, setError] = useState<string | null>(null);
-
-  const watchedAddress = isWatchOnly ? account?.address : undefined;
 
   const run = useCallback(async (action: () => Promise<unknown>) => {
     setError(null);

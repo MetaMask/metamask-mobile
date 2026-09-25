@@ -3,7 +3,9 @@ import {
   selectFlattenedKeyringAccounts,
   selectIsUnlocked,
   selectPrimaryHDKeyring,
+  selectWatchOnlyKeyringAddress,
 } from './index';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import {
@@ -92,6 +94,41 @@ describe('KeyringController Selectors', () => {
           },
         } as RootState),
       ).toBeUndefined();
+    });
+  });
+
+  describe('selectWatchOnlyKeyringAddress', () => {
+    const watchedAddress = '0x1234567890123456789012345678901234567890';
+    const buildState = (keyrings: typeof MOCK_KEYRINGS) =>
+      ({
+        engine: {
+          backgroundState: {
+            KeyringController: { ...MOCK_KEYRING_CONTROLLER, keyrings },
+          },
+        },
+      }) as RootState;
+
+    it('returns the watched address when a watch-only keyring exists', () => {
+      const state = buildState([
+        ...MOCK_KEYRINGS,
+        {
+          type: KeyringTypes.watchOnly,
+          accounts: [watchedAddress],
+          metadata: { id: 'watch-only', name: '' },
+        },
+      ]);
+
+      const result = selectWatchOnlyKeyringAddress(state);
+
+      expect(result).toBe(watchedAddress);
+    });
+
+    it('returns undefined when no watch-only keyring exists', () => {
+      const state = buildState(MOCK_KEYRINGS);
+
+      const result = selectWatchOnlyKeyringAddress(state);
+
+      expect(result).toBeUndefined();
     });
   });
 });

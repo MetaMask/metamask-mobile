@@ -1,11 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
 import { strings } from '../../../../../locales/i18n';
-import {
-  selectIsSelectedAccountWatchOnly,
-  selectSelectedAccountGroupEvmInternalAccount,
-} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectWatchOnlyKeyringAddress } from '../../../../selectors/keyringController';
 import { WatchOnlySession } from '../../../../core/WatchOnly/WatchOnlySession';
 import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 
@@ -21,7 +19,7 @@ jest.mock('../../../../core/WatchOnly/WatchOnlySession', () => ({
   },
 }));
 
-const { useSelector } = jest.requireMock('react-redux');
+const mockUseSelector = jest.mocked(useSelector);
 
 const WATCHED_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -32,15 +30,13 @@ function mockSelectors({
   isWatchOnly: boolean;
   address?: string;
 }) {
-  useSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectIsSelectedAccountWatchOnly) {
-      return isWatchOnly;
-    }
-    if (selector === selectSelectedAccountGroupEvmInternalAccount) {
-      return address ? { address } : null;
-    }
-    return undefined;
-  });
+  // The section reads the watch-only keyring, not the selected account, so a
+  // session stays stoppable after the user switches to another account.
+  mockUseSelector.mockImplementation((selector: unknown) =>
+    selector === selectWatchOnlyKeyringAddress && isWatchOnly
+      ? address
+      : undefined,
+  );
 }
 
 describe('WatchOnlyDeveloperOptionsSection', () => {
