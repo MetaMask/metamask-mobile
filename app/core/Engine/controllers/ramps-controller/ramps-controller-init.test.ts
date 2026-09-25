@@ -8,6 +8,7 @@ import {
   RampsControllerState,
   type UserRegion,
 } from '@metamask/ramps-controller';
+import { WebSocketState } from '@metamask/core-backend';
 import { rampsControllerInit } from './ramps-controller-init';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
@@ -46,6 +47,7 @@ jest.mock('@metamask/ramps-controller', () => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
     instance.constructor = MockRampsControllerSpy;
     instance.init = mockInit;
+    instance.refreshAutoramps = jest.fn().mockResolvedValue([]);
     return instance;
   });
 
@@ -225,18 +227,99 @@ describe('ramps controller init', () => {
   // subscription, so an already-terminal callback order (added via addOrder,
   // never polled) never reaches the metrics handler. This is the mobile-side
   // half of the root cause pinned by the core RampsController TRAM-3691 tests.
-  it('subscribes order handlers ONLY to RampsController:orderStatusChanged', () => {
+  it('subscribes order handlers to RampsController:orderStatusChanged', () => {
     rampsControllerInit(initRequestMock);
 
     const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
 
     expect(subscribeMock).toHaveBeenCalled();
     const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
-    expect(
-      subscribedEvents.every(
-        (event) => event === 'RampsController:orderStatusChanged',
-      ),
-    ).toBe(true);
+    expect(subscribedEvents).toEqual(
+      expect.arrayContaining([
+        'RampsController:orderStatusChanged',
+        'RampsController:orderStatusChanged',
+        'RampsActivityService:eventReceived',
+        'RampsActivityService:statusChanged',
+      ]),
+    );
+  });
+
+  it('refreshes autoramps when a ramps-activity event needs fetch', async () => {
+    const { controller } = rampsControllerInit(initRequestMock);
+    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
+    const activityHandler = subscribeMock.mock.calls.find(
+      ([event]) => event === 'RampsActivityService:eventReceived',
+    )?.[1] as (event: { needsFetch: boolean }) => void;
+
+    activityHandler({ needsFetch: true });
+
+    await waitFor(() => {
+      expect(controller.refreshAutoramps).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('runs one trailing refresh for signals received during a refresh', async () => {
+    const { controller } = rampsControllerInit(initRequestMock);
+    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
+    const activityHandler = subscribeMock.mock.calls.find(
+      ([event]) => event === 'RampsActivityService:eventReceived',
+    )?.[1] as (event: { needsFetch: boolean }) => void;
+    let resolveRefresh: (() => void) | undefined;
+    jest.mocked(controller.refreshAutoramps).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRefresh = () => resolve([]);
+      }),
+    );
+
+    activityHandler({ needsFetch: true });
+    activityHandler({ needsFetch: true });
+    activityHandler({ needsFetch: true });
+
+    expect(controller.refreshAutoramps).toHaveBeenCalledTimes(1);
+
+    resolveRefresh?.();
+
+    await waitFor(() => {
+      expect(controller.refreshAutoramps).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('does not refresh autoramps when a ramps-activity event does not need fetch', () => {
+    const { controller } = rampsControllerInit(initRequestMock);
+    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
+    const activityHandler = subscribeMock.mock.calls.find(
+      ([event]) => event === 'RampsActivityService:eventReceived',
+    )?.[1] as (event: { needsFetch: boolean }) => void;
+
+    activityHandler({ needsFetch: false });
+
+    expect(controller.refreshAutoramps).not.toHaveBeenCalled();
+  });
+
+  it('refreshes autoramps when the ramps activity socket connects', async () => {
+    const { controller } = rampsControllerInit(initRequestMock);
+    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
+    const statusHandler = subscribeMock.mock.calls.find(
+      ([event]) => event === 'RampsActivityService:statusChanged',
+    )?.[1] as (event: { status: WebSocketState }) => void;
+
+    statusHandler({ status: WebSocketState.CONNECTED });
+
+    await waitFor(() => {
+      expect(controller.refreshAutoramps).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not refresh autoramps when the ramps activity socket disconnects', () => {
+    const { controller } = rampsControllerInit(initRequestMock);
+    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
+    const statusHandler = subscribeMock.mock.calls.find(
+      ([event]) => event === 'RampsActivityService:statusChanged',
+    )?.[1] as (event: { status: WebSocketState }) => void;
+
+    statusHandler({ status: WebSocketState.DISCONNECTED });
+
+    expect(controller.refreshAutoramps).not.toHaveBeenCalled();
   });
 
   describe('when __DEV__ is true', () => {

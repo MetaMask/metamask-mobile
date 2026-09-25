@@ -9830,6 +9830,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/core-backend@npm:@metamask-previews/core-backend@11.0.0-preview-d1cca62":
+  version: 11.0.0-preview-d1cca62
+  resolution: "@metamask-previews/core-backend@npm:11.0.0-preview-d1cca62"
+  dependencies:
+    "@metamask/account-tree-controller": "npm:^10.0.1"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/keyring-controller": "npm:^28.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^32.1.1"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/utils": "npm:^12.0.0"
+    "@tanstack/query-core": "npm:^5.62.16"
+    async-mutex: "npm:^0.5.0"
+    cockatiel: "npm:^3.1.2"
+    uuid: "npm:^11.1.1"
+  checksum: 10/adce9f747075104b1135bf28cc046506af8d0c74a7e117d3250bbcd36dbb4fce4734e9525ff743e2b13e425d49799d0fc4c58541c742e0a735c0934524d2c5d4
+  languageName: node
+  linkType: hard
+
 "@metamask/core-backend@npm:^11.0.0":
   version: 11.0.0
   resolution: "@metamask/core-backend@npm:11.0.0"
@@ -39230,7 +39249,7 @@ __metadata:
     "@metamask/config-registry-controller": "npm:^3.1.0"
     "@metamask/connectivity-controller": "npm:^0.3.0"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^11.0.0"
+    "@metamask/core-backend": "npm:@metamask-previews/core-backend@11.0.0-preview-d1cca62"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
     "@metamask/design-system-react-native": "npm:^0.50.0"
