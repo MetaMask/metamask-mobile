@@ -1,5 +1,11 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -11,7 +17,11 @@ import {
   selectInternalAccountListSpreadByScopesByGroupId,
   selectInternalAccountsByGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName, toast } from '@metamask/design-system-react-native';
+import {
+  IconName,
+  Skeleton,
+  toast,
+} from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -51,6 +61,18 @@ export const AddressList = () => {
   const { groupId, title, source, onLoad } = useParams<AddressListProps>();
 
   const hasCompletedLoadTraceRef = useRef(false);
+
+  // Defer mounting the FlashList (14+ native rows with AvatarNetwork,
+  // ButtonIcon, etc.) until interactions (e.g. the native push transition)
+  // have settled, so the first render stays cheap. A lightweight skeleton is
+  // shown until then.
+  const [isListReady, setIsListReady] = useState(false);
+  useEffect(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
+      setIsListReady(true);
+    });
+    return () => handle.cancel();
+  }, []);
 
   const completeLoadTrace = useCallback(() => {
     if (hasCompletedLoadTraceRef.current) {
@@ -161,6 +183,18 @@ export const AddressList = () => {
       });
     }
   }, [navigation, title]);
+
+  if (!isListReady) {
+    return (
+      <View style={styles.safeArea}>
+        {internalAccountsSpreadByScopes.slice(0, 6).map((item) => (
+          <View key={item.scope} style={styles.skeletonRow}>
+            <Skeleton height={48} width="100%" />
+          </View>
+        ))}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.safeArea}>
