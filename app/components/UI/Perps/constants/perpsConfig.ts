@@ -294,6 +294,12 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
   RetryDelayMs: 1000,
 } as const;
 
+/**
+ * Longest a filled market close keeps its market locked while the positions
+ * stream catches up. Bounded so a stalled stream cannot block closing.
+ */
+export const PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS = 10_000;
+
 /** Extra capability requests after transient provider unavailability. */
 export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
 

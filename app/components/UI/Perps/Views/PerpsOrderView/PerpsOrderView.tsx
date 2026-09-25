@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
-  Button as DSButton,
+  Button,
   ButtonBaseSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
@@ -244,8 +244,9 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   marginInfo: 1,
   liquidationInfo: 1,
 };
-/** Short explainers size to their content instead of the Trade screen height. */
+/** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
+  'leverage',
   'marginInfo',
   'liquidationInfo',
 ];
@@ -2254,19 +2255,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? rawPercentChange
       : null;
     const isTradeSheetHeaderLoading = !currentPrice || assetData.price <= 0;
-    const isTradeSheetPayWithLoading =
-      isLoadingAccount || (hasCustomTokenSelected && isPayStateNotReady);
+    // Keep the selected pay token visible while its quote refreshes after form
+    // changes. The token and balance are still valid during that refetch.
+    const isTradeSheetPayWithLoading = isLoadingAccount;
     const isTradeSheetMarginLoading =
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
-    // Mirrors the full-screen Liquidation price row: only meaningful once an
-    // amount is entered, and blank (not "$0") while the API is still working.
-    const isTradeSheetLiquidationLoading =
-      isLoadingMarketData || (hasValidAmount && isCalculatingLiquidationPrice);
     const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
     const hasLiquidationPrice =
       hasValidAmount &&
       Number.isFinite(parsedLiquidationPrice) &&
       parsedLiquidationPrice > 0;
+    // Keep the last valid price visible during a refetch. The liquidation hook
+    // retains it while calculating; only the initial unresolved request needs
+    // a skeleton.
+    const isTradeSheetLiquidationLoading =
+      isLoadingMarketData ||
+      (hasValidAmount && isCalculatingLiquidationPrice && !hasLiquidationPrice);
     const tradeSheetLiquidationPrice = hasLiquidationPrice
       ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
       : PERPS_CONSTANTS.FallbackDataDisplay;
@@ -2410,6 +2414,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
+                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2814,42 +2819,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <DSButton
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.25)}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               25%
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={() => handlePercentagePress(0.5)}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               50%
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleMaxPress}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.max_button')}
-            </DSButton>
-            <DSButton
+            </Button>
+            <Button
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Md}
+              size={ButtonSizeRNDesignSystem.Lg}
               onPress={handleDonePress}
-              style={styles.percentageButton}
+              twClassName="flex-1 min-w-0 h-12 rounded-xl"
             >
               {strings('perps.deposit.done_button')}
-            </DSButton>
+            </Button>
           </View>
 
           <Keypad
@@ -2916,7 +2921,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               {placeOrderLabel}
             </ButtonSemantic>
           ) : (
-            <DSButton
+            <Button
               variant={ButtonVariant.Primary}
               size={ButtonSizeRNDesignSystem.Lg}
               isFullWidth
@@ -2926,7 +2931,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
-            </DSButton>
+            </Button>
           )}
         </View>
       )}

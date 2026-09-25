@@ -912,20 +912,32 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
     });
 
-    it('shares slide-from-right options on one Group for the VBA screens', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
+    it('registers the modular host alongside transitional VBA routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
-
-      const group = findGroupContaining(root, Routes.RAMP.GET_PIX_KEY);
-
-      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
-      expect(groupedScreenNames(group)).toEqual([
+      const legacyGroup = findGroupContaining(
+        container.root,
         Routes.RAMP.VBA_KYC_EMAIL,
-        Routes.RAMP.GET_PIX_KEY,
+      );
+
+      const vbaScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_ONBOARDING,
+      );
+
+      expect(groupedScreenNames(legacyGroup)).toEqual([
+        Routes.RAMP.VBA_KYC_EMAIL,
+        Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
         Routes.RAMP.VBA_VERIFY_IDENTITY,
       ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);
+      expect(vbaScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_ONBOARDING,
+          options: expect.objectContaining({
+            headerShown: false,
+          }),
+        }),
+      );
     });
 
     it('shares slide-from-right options on one Group for trending and RWA full views', () => {
