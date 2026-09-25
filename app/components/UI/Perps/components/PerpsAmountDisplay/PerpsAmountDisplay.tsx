@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import { useTheme } from '../../../../../util/theme';
@@ -265,37 +266,30 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {label}
         </Text>
       )}
-      <View style={styles.amountRow}>
-        {/* Text only takes 1 arg */}
-        {isLoading ? (
-          <Skeleton width={80} height={20} />
-        ) : (
-          <Text
-            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            style={
-              Platform.OS === 'android'
-                ? styles.amountValueTokenAndroid
-                : styles.amountValueToken
-            }
-          >
-            {displayValue}
-          </Text>
-        )}
-        {isActive && (
-          <Animated.View
-            testID="cursor"
-            style={[
-              styles.cursor,
-              {
-                opacity: fadeAnim,
-              },
-            ]}
-          />
-        )}
-      </View>
+      <AnimatedAmountDisplay
+        color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+        containerStyle={styles.amountRow}
+        cursor={
+          isActive
+            ? {
+                testID: 'cursor',
+                style: styles.cursor,
+              }
+            : false
+        }
+        fontWeight={FontWeight.Bold}
+        loading={isLoading}
+        loadingContent={<Skeleton width={80} height={20} />}
+        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+        rollDigits={false}
+        style={
+          Platform.OS === 'android'
+            ? styles.amountValueTokenAndroid
+            : styles.amountValueToken
+        }
+        value={displayValue}
+        variant={TextVariant.BodyMd}
+      />
       {/* Display token amount equivalent for current input */}
       {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text
@@ -323,8 +317,6 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     return (
       <TouchableOpacity
         testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
         onPress={onPress}
         activeOpacity={0.7}
       >

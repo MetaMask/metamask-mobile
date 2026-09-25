@@ -55,6 +55,13 @@ export const ImpactMoment = {
   /** Quick amount selection — Light impact. Paired with quick amount selection animation. */
   QuickAmountSelection: 'quickAmountSelection',
 
+  /**
+   * Single key press on an in-app numeric keypad — Light impact. Distinct from
+   * `QuickAmountSelection` so per-key typing feedback can be tuned without
+   * changing the percentage/Max buttons that sit on the same keypad.
+   */
+  KeypadKey: 'keypadKey',
+
   /** Slider step / tick — Light impact. Paired with slider animation. */
   SliderTick: 'sliderTick',
 

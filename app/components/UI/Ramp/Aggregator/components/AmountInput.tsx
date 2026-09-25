@@ -1,5 +1,6 @@
 import React from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
@@ -7,13 +8,8 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 import { useTheme } from '../../../../../util/theme';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
 const styles = StyleSheet.create({
   amount: {
@@ -65,9 +61,12 @@ const AmountInput: React.FC<Props> = ({
   onCurrencyPress,
 }: Props) => {
   const { colors } = useTheme();
-  const cursorOpacity = useBlinkingCursor(highlighted);
-
-  const textColor = highlightedError ? TextColor.Error : TextColor.Default;
+  const amountStyle = [
+    styles.amount,
+    {
+      color: highlightedError ? colors.error.default : colors.text.default,
+    },
+  ];
 
   const renderAmountContent = () => {
     if (loading) {
@@ -75,20 +74,6 @@ const AmountInput: React.FC<Props> = ({
     }
 
     if (highlighted) {
-      const cursorView = (
-        <Animated.View
-          style={[
-            styles.cursor,
-            {
-              backgroundColor: colors.primary.default,
-              opacity: cursorOpacity,
-            },
-          ]}
-          testID={BuildQuoteSelectors.AMOUNT_INPUT_CURSOR}
-        />
-      );
-
-      // For sell: show "12.5 | ETH" with cursor before token symbol
       if (tokenSymbol) {
         const suffix = ` ${tokenSymbol}`;
         const amountWithoutSymbol = amount.endsWith(suffix)
@@ -96,58 +81,50 @@ const AmountInput: React.FC<Props> = ({
           : amount.replace(tokenSymbol, '').trimEnd();
 
         return (
-          <View style={styles.amountWithCursor}>
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              style={styles.amount}
-              variant={TextVariant.BodyMDMedium}
-              color={textColor}
-            >
-              {amountWithoutSymbol}
-            </Text>
-            {cursorView}
-            <Text
-              style={styles.amount}
-              variant={TextVariant.BodyMDMedium}
-              color={textColor}
-            >
-              {' '}
-              {tokenSymbol}
-            </Text>
-          </View>
+          <AnimatedAmountDisplay
+            containerStyle={styles.amountWithCursor}
+            cursor={{
+              testID: BuildQuoteSelectors.AMOUNT_INPUT_CURSOR,
+              style: [
+                styles.cursor,
+                { backgroundColor: colors.primary.default },
+              ],
+            }}
+            onPress={onPress}
+            rollDigits={false}
+            style={amountStyle}
+            suffix={suffix}
+            testID={BuildQuoteSelectors.AMOUNT_INPUT}
+            value={amountWithoutSymbol}
+          />
         );
       }
 
-      // For buy: show "$100 |" with cursor after amount
       return (
-        <View style={styles.amountWithCursor}>
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={styles.amount}
-            variant={TextVariant.BodyMDMedium}
-            color={textColor}
-          >
-            {currencySymbol || ''}
-            {amount}
-          </Text>
-          {cursorView}
-        </View>
+        <AnimatedAmountDisplay
+          containerStyle={styles.amountWithCursor}
+          cursor={{
+            testID: BuildQuoteSelectors.AMOUNT_INPUT_CURSOR,
+            style: [styles.cursor, { backgroundColor: colors.primary.default }],
+          }}
+          onPress={onPress}
+          prefix={currencySymbol}
+          rollDigits={false}
+          style={amountStyle}
+          testID={BuildQuoteSelectors.AMOUNT_INPUT}
+          value={amount}
+        />
       );
     }
 
     return (
-      <Text
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        style={styles.amount}
-        variant={TextVariant.BodyMDMedium}
-        color={textColor}
-      >
-        {currencySymbol || ''}
-        {amount}
-      </Text>
+      <AnimatedAmountDisplay
+        onPress={onPress}
+        prefix={currencySymbol}
+        style={amountStyle}
+        testID={BuildQuoteSelectors.AMOUNT_INPUT}
+        value={amount}
+      />
     );
   };
 

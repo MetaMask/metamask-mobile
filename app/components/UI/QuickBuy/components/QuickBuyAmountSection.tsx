@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Animated, TextInput, TouchableOpacity } from 'react-native';
+import { TextInput, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -11,8 +11,8 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { AnimatedAmountDisplay } from '../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
-import { useBlinkingCursor } from '../../Ramp/hooks/useBlinkingCursor';
 import useCurrency from '../../../Base/Keypad/useCurrency';
 import {
   formatCurrency,
@@ -100,7 +100,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
-  const cursorOpacity = useBlinkingCursor(showCursor);
   // Same currency → decimal mapping as QuickBuyKeypad so the headline separator
   // matches what the keypad is typing.
   const { decimalSeparator } = useCurrency(
@@ -136,98 +135,56 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       return null;
     }
 
-    const cursor = (
-      <Animated.View
-        testID="quick-buy-amount-cursor"
-        style={[
-          tw.style('mx-0.5 w-0.5 h-8 bg-primary-default'),
-          { opacity: cursorOpacity },
-        ]}
-      />
-    );
+    const cursor = {
+      testID: 'quick-buy-amount-cursor',
+      style: tw.style('mx-0.5 w-0.5 h-8 bg-primary-default'),
+    };
 
     if (isUnpricedSource) {
-      const amountDigits = formatAmountDigitsForDisplay(
-        sourceCryptoAmount || '0',
-        decimalSeparator,
-      );
       return (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-        >
-          <Text
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {amountDigits}
-          </Text>
-          {cursor}
-          {sourceSymbol ? (
-            <Text
-              variant={TextVariant.DisplayLg}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {` ${sourceSymbol}`}
-            </Text>
-          ) : null}
-        </Box>
+        <AnimatedAmountDisplay
+          color={TextColor.TextDefault}
+          containerStyle={tw.style('justify-center')}
+          cursor={cursor}
+          fontWeight={FontWeight.Bold}
+          rollDigits={false}
+          suffix={sourceSymbol ? ` ${sourceSymbol}` : undefined}
+          value={formatAmountDigitsForDisplay(
+            sourceCryptoAmount || '0',
+            decimalSeparator,
+          )}
+          variant={TextVariant.DisplayLg}
+        />
       );
     }
 
-    const amountDigits = formatAmountDigitsForDisplay(
-      fiatAmount || '0',
-      decimalSeparator,
-    );
     const symbol = currency ? getCurrencySymbol(currency) : '';
     const symbolIsPrefix = currency ? isCurrencySymbolPrefix(currency) : true;
 
     return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
-        {symbol && symbolIsPrefix ? (
-          <Text
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {symbol}
-          </Text>
-        ) : null}
-        <Text
-          variant={TextVariant.DisplayLg}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-        >
-          {amountDigits}
-        </Text>
-        {cursor}
-        {symbol && !symbolIsPrefix ? (
-          <Text
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {` ${symbol}`}
-          </Text>
-        ) : null}
-      </Box>
+      <AnimatedAmountDisplay
+        color={TextColor.TextDefault}
+        containerStyle={tw.style('justify-center')}
+        cursor={cursor}
+        fontWeight={FontWeight.Bold}
+        rollDigits={false}
+        prefix={symbol && symbolIsPrefix ? symbol : undefined}
+        suffix={symbol && !symbolIsPrefix ? ` ${symbol}` : undefined}
+        value={formatAmountDigitsForDisplay(
+          fiatAmount || '0',
+          decimalSeparator,
+        )}
+        variant={TextVariant.DisplayLg}
+      />
     );
   }, [
-    showCursor,
-    isUnpricedSource,
-    sourceCryptoAmount,
-    sourceSymbol,
-    fiatAmount,
     currency,
     decimalSeparator,
-    cursorOpacity,
+    fiatAmount,
+    isUnpricedSource,
+    showCursor,
+    sourceCryptoAmount,
+    sourceSymbol,
     tw,
   ]);
 
@@ -240,13 +197,12 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA}
     >
       {editingPrimary ?? (
-        <Text
-          variant={TextVariant.DisplayLg}
-          fontWeight={FontWeight.Bold}
+        <AnimatedAmountDisplay
           color={TextColor.TextDefault}
-        >
-          {primaryLabel}
-        </Text>
+          fontWeight={FontWeight.Bold}
+          value={primaryLabel}
+          variant={TextVariant.DisplayLg}
+        />
       )}
 
       {isQuoteLoading ? (

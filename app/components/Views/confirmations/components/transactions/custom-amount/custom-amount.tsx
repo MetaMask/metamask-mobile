@@ -1,5 +1,6 @@
 import React from 'react';
-import { Animated, Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -8,7 +9,6 @@ import { Skeleton } from '../../../../../../component-library/components-temp/Sk
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
 import { Text } from '@metamask/design-system-react-native';
 import { formatAmountForDisplay } from '../../../utils/transaction-pay';
 
@@ -56,8 +56,6 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   // so there is no Max-specific quote-loading skeleton to show here.
   const showLoader = isLoading;
   const cursorVisible = showCursor && !disabled && !showLoader;
-  const cursorOpacity = useBlinkingCursor(cursorVisible);
-
   if (showLoader) {
     // Pressable so the user can always fall back to entering an amount, even
     // when the prefill or quote being awaited never resolves.
@@ -65,24 +63,28 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text testID="custom-amount-symbol" style={styles.input}>
-        {fiatSymbol}
-      </Text>
-      <Text
-        testID="custom-amount-input"
-        style={styles.input}
-        onPress={disabled ? undefined : onPress}
-      >
-        {formattedAmount}
-      </Text>
-      {cursorVisible && (
-        <Animated.View
-          testID="custom-amount-cursor"
-          style={[styles.cursor, { opacity: cursorOpacity }]}
-        />
-      )}
-    </View>
+    <AnimatedAmountDisplay
+      containerStyle={styles.container}
+      cursor={
+        cursorVisible
+          ? {
+              testID: 'custom-amount-cursor',
+              style: styles.cursor,
+            }
+          : false
+      }
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
+      amountTestID="custom-amount-input"
+      prefix={
+        <Text testID="custom-amount-symbol" style={styles.input}>
+          {fiatSymbol}
+        </Text>
+      }
+      rollDigits={false}
+      style={styles.input}
+      value={formattedAmount}
+    />
   );
 });
 

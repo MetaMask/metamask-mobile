@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import QuickBuyAmountSection, {
   formatAmountDigitsForDisplay,
 } from './QuickBuyAmountSection';
@@ -44,21 +44,19 @@ describe('QuickBuyAmountSection', () => {
   };
 
   it('renders the primary amount with DisplayLg', () => {
-    const { UNSAFE_getAllByType } = render(
-      <QuickBuyAmountSection {...baseProps} />,
-    );
+    const { getByTestId } = render(<QuickBuyAmountSection {...baseProps} />);
 
-    const primaryAmount = UNSAFE_getAllByType(Text).find(
-      (el) => el.props.children === '$2.55',
-    );
-
-    expect(primaryAmount?.props.variant).toBe(TextVariant.DisplayLg);
+    expect(
+      getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_AREA),
+    ).toHaveTextContent(/\$2\.55/);
   });
 
   it('renders the secondary amount label when not loading', () => {
     render(<QuickBuyAmountSection {...baseProps} />);
 
-    expect(screen.getByText('$2.55')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_AREA),
+    ).toHaveTextContent(/\$2\.55/);
     expect(screen.getByText('56.52037 GIGA')).toBeOnTheScreen();
     expect(
       screen.queryByTestId('quick-buy-amount-loading'),
@@ -68,7 +66,9 @@ describe('QuickBuyAmountSection', () => {
   it('shows skeleton and token symbol while quote is loading', () => {
     render(<QuickBuyAmountSection {...baseProps} isQuoteLoading />);
 
-    expect(screen.getByText('$2.55')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_AREA),
+    ).toHaveTextContent(/\$2\.55/);
     expect(screen.getByTestId('quick-buy-amount-loading')).toBeOnTheScreen();
     expect(
       screen.getByTestId('quick-buy-amount-loading-skeleton'),

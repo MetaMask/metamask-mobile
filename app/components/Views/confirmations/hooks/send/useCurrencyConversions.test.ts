@@ -69,7 +69,7 @@ describe('getFiatDisplayValueFn', () => {
         currentCurrency: 'usd',
         amount: '10',
       }),
-    ).toStrictEqual('$ 38905.56');
+    ).toStrictEqual('$ 38,905.56');
   });
 
   it('return 0 if amount is not passed', () => {

@@ -24,7 +24,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.getByText('$100.50')).toBeOnTheScreen();
+    expect(screen.getByLabelText('$100.50')).toBeOnTheScreen();
   });
 
   it('renders correctly with currency selector', () => {
@@ -43,7 +43,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} onPress={mockOnPress} />, {
       state: defaultState,
     });
-    fireEvent.press(screen.getByText('$100.50'));
+    fireEvent.press(screen.getByLabelText('$100.50'));
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 

@@ -229,6 +229,8 @@ const config = {
       '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
+    '^react-native-laminar$':
+      '<rootDir>/app/__mocks__/react-native-laminar.tsx',
   },
   cache: true,
   ...(process.env.JEST_CACHE_DIRECTORY && {
