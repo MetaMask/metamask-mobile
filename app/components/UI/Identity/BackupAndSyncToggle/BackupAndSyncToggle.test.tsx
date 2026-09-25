@@ -1,6 +1,8 @@
 import React from 'react';
 
-import BackupAndSyncToggle from './BackupAndSyncToggle';
+import BackupAndSyncToggle, {
+  type ConfirmTurnOnBackupAndSyncModalNavigateParams,
+} from './BackupAndSyncToggle';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { BACKUP_AND_SYNC_TOGGLE_TEST_IDS } from './BackupAndSyncToggle.testIds';
@@ -25,8 +27,21 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// Mock SwitchLoadingModal to prevent test pollution from loading/error states
-jest.mock('../../Notification/SwitchLoadingModal', () => () => null);
+// Capture the loader props rather than rendering the modal, whose own loading
+// and error states pollute the other tests.
+const mockSwitchLoadingModal = jest.fn(
+  (_props: { loading: boolean; loadingText: string; error?: string }) => null,
+);
+jest.mock(
+  '../../Notification/SwitchLoadingModal',
+  () => (props: { loading: boolean; loadingText: string; error?: string }) =>
+    mockSwitchLoadingModal(props),
+);
+
+const getLatestLoadingProp = () => {
+  const { calls } = mockSwitchLoadingModal.mock;
+  return calls[calls.length - 1][0].loading;
+};
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -229,5 +244,58 @@ describe('BackupAndSyncToggle', () => {
         trackEnableBackupAndSyncEvent: expect.any(Function),
       },
     });
+  });
+
+  it('hides its loading sheet while the confirmation sheet enables backup and sync', async () => {
+    const { getByRole } = renderWithProvider(
+      <BackupAndSyncToggle
+        trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
+      />,
+      {
+        state: {
+          ...MOCK_STORE_STATE,
+          engine: {
+            backgroundState: {
+              ...MOCK_STORE_STATE.engine.backgroundState,
+              UserStorageController: {
+                isBackupAndSyncEnabled: false,
+                isBackupAndSyncUpdateLoading: true,
+              },
+            },
+          },
+          settings: {
+            ...MOCK_STORE_STATE.settings,
+            basicFunctionalityEnabled: false,
+          },
+        },
+      },
+    );
+
+    expect(getLatestLoadingProp()).toBe(true);
+
+    let resolveEnableBackupAndSync: () => void = () => undefined;
+    mockSetIsBackupAndSyncFeatureEnabled.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveEnableBackupAndSync = resolve;
+        }),
+    );
+
+    fireEvent(getByRole('switch'), 'onValueChange', true);
+
+    const { enableBackupAndSync } = mockNavigate.mock.calls[0][1]
+      .params as ConfirmTurnOnBackupAndSyncModalNavigateParams;
+
+    await act(async () => {
+      enableBackupAndSync();
+    });
+
+    expect(getLatestLoadingProp()).toBe(false);
+
+    await act(async () => {
+      resolveEnableBackupAndSync();
+    });
+
+    expect(getLatestLoadingProp()).toBe(true);
   });
 });
