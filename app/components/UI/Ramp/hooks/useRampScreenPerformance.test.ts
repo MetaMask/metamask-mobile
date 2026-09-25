@@ -100,6 +100,22 @@ describe('useRampScreenPerformance', () => {
     );
   });
 
+  it('does not cancel on iOS inactive', () => {
+    renderHook(() =>
+      useRampScreenPerformance({
+        screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+        contentReady: false,
+      }),
+    );
+
+    act(() => {
+      appState = 'inactive';
+      appStateListener('inactive');
+    });
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
   it('cancels on background and restarts on foreground', () => {
     const { rerender } = renderHook(
       ({ contentReady }) =>

@@ -126,8 +126,12 @@ export function useRampScreenPerformance({
     }
 
     const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
+      // iOS `inactive` is Face ID / prompts, not a real background.
+      if (nextState === 'background') {
         endActiveTrace(false, RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED);
+        return;
+      }
+      if (nextState !== 'active') {
         return;
       }
       // A screen that already reached content has nothing left to measure, so
