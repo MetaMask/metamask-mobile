@@ -66,6 +66,7 @@ const PredictFeedView: React.FC = () => {
   const {
     status,
     titleKey,
+    label,
     header,
     tabs,
     showTabBar,
@@ -80,6 +81,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const title =
+    label ?? (titleKey ? strings(titleKey, { defaultValue: feedId }) : feedId);
   const showSportsLiveFirst =
     feedId === 'sports' && activeFilter?.showLiveFirst === true;
 
@@ -334,7 +337,7 @@ const PredictFeedView: React.FC = () => {
             color={TextColor.PrimaryAlternative}
           >
             {strings('predict.search_empty_state', {
-              category: titleKey ? strings(titleKey) : '',
+              category: title ?? '',
             })}
           </Text>
         </Box>
@@ -377,7 +380,7 @@ const PredictFeedView: React.FC = () => {
     >
       <HeaderStandard
         includesTopInset
-        title={titleKey ? strings(titleKey) : undefined}
+        title={title}
         onBack={header?.showBackButton ? handleBack : undefined}
         backButtonProps={{ testID: PredictMarketListSelectorsIDs.BACK_BUTTON }}
         endButtonIconProps={

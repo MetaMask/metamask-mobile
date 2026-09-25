@@ -11,6 +11,7 @@ import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAna
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_HIDDEN_MARKETS_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -397,6 +398,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
   predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };
 

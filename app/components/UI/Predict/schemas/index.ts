@@ -6,6 +6,8 @@ export {
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
   PredictHiddenMarketsSchema,
+  PredictHomeCategoriesSchema,
+  PredictHomeCategorySchema,
   PredictSportsFeedSchema,
   PredictSportsFeedTabSchema,
   PredictSportsFeedChipSchema,
