@@ -155,6 +155,7 @@ import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -181,6 +182,7 @@ import { deriveOrderSizing } from '../../utils/orderSizing';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
+  resolvePerpsOrderMarginMode,
 } from '../../utils/orderParams';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
@@ -280,6 +282,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const chartLibrary =
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
@@ -1772,8 +1775,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
       try {
-        // Check for cross-margin position (MetaMask only supports isolated margin)
-        if (currentMarketPosition?.leverage?.type === 'cross') {
+        // Without cross-margin support, block orders on a Cross position
+        if (
+          !isCrossMarginEnabled &&
+          currentMarketPosition?.leverage?.type === 'cross'
+        ) {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
             screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
           });
@@ -1829,6 +1835,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           limitPrice: orderForm.limitPrice,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
+          // Lite has no mode picker: follow an open position, else isolated
+          marginMode: resolvePerpsOrderMarginMode({
+            isCrossMarginEnabled,
+            position: currentMarketPosition,
+          }),
           trackingData: buildPerpsOrderTrackingData({
             marginRequired,
             feeResults,
@@ -1934,6 +1945,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       navigationMarketData,
       navigateToMarketAfterOrder,
       currentMarketPosition,
+      isCrossMarginEnabled,
       executeOrder,
       showToast,
       updateOrderForm,

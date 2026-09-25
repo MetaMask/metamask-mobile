@@ -26,6 +26,9 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   const toDirection = isLong
     ? strings('perps.order.short_label').toLowerCase()
     : strings('perps.order.long_label').toLowerCase();
+  // Flipping re-applies isolated leverage, which the venue rejects for an open
+  // Cross position ("Cannot switch leverage type with open position").
+  const canFlip = position?.leverage?.type !== 'cross';
 
   const actionOptions: PerpsActionSheetOption<ModifyAction>[] = useMemo(
     () => [
@@ -47,18 +50,22 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
         iconName: IconName.Minus,
         testID: `${testID}-reduce_position`,
       },
-      {
-        action: 'flip_position',
-        label: strings('perps.modify.flip_position'),
-        description: strings('perps.modify.flip_position_description', {
-          fromDirection,
-          toDirection,
-        }),
-        iconName: IconName.SwapHorizontal,
-        testID: `${testID}-flip_position`,
-      },
+      ...(canFlip
+        ? [
+            {
+              action: 'flip_position' as const,
+              label: strings('perps.modify.flip_position'),
+              description: strings('perps.modify.flip_position_description', {
+                fromDirection,
+                toDirection,
+              }),
+              iconName: IconName.SwapHorizontal,
+              testID: `${testID}-flip_position`,
+            },
+          ]
+        : []),
     ],
-    [fromDirection, testID, toDirection],
+    [canFlip, fromDirection, testID, toDirection],
   );
 
   return (

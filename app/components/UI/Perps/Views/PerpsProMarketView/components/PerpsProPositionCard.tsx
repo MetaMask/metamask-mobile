@@ -464,6 +464,9 @@ const PerpsProPositionCard = ({
             startIconName={IconName.Refresh}
             twClassName="flex-1"
             onPress={() => onReverse?.(position)}
+            // Reversing re-applies isolated leverage, which the venue rejects
+            // for an open Cross position.
+            isDisabled={position.leverage.type === 'cross'}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
           >
             {strings('perps.pro_positions_panel.card.reverse')}

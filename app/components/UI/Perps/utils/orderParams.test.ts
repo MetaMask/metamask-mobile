@@ -1,8 +1,12 @@
-import { ORDER_SLIPPAGE_CONFIG } from '@metamask/perps-controller';
+import {
+  ORDER_SLIPPAGE_CONFIG,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
   buildEditOrderParamsFromOrder,
+  resolvePerpsOrderMarginMode,
 } from './orderParams';
 
 const trackingData = buildPerpsOrderTrackingData({
@@ -245,6 +249,72 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('triggerPrice');
     expect(params).not.toHaveProperty('takeProfitPrice');
     expect(params).not.toHaveProperty('stopLossPrice');
+  });
+});
+
+describe('buildPerpsOrderParams marginMode', () => {
+  const base = {
+    asset: 'BTC',
+    isBuy: true,
+    size: '0.001',
+    orderType: 'market' as const,
+    effectivePrice: 90000,
+    leverage: 5,
+    maxSlippageBps: 100,
+    trackingData,
+  };
+
+  it('passes an explicit margin mode to the controller params', () => {
+    const params = buildPerpsOrderParams({ ...base, marginMode: 'cross' });
+
+    expect(params.marginMode).toBe('cross');
+  });
+
+  it('omits marginMode when none is given', () => {
+    const params = buildPerpsOrderParams(base);
+
+    expect(params).not.toHaveProperty('marginMode');
+  });
+});
+
+describe('resolvePerpsOrderMarginMode', () => {
+  const positionWithMode = (type: 'cross' | 'isolated') =>
+    ({ leverage: { type, value: 5 } }) as Position;
+
+  it('returns undefined when cross margin is disabled', () => {
+    expect(
+      resolvePerpsOrderMarginMode({
+        isCrossMarginEnabled: false,
+        position: positionWithMode('cross'),
+        selectedMarginMode: 'cross',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('follows the open position mode over the selection', () => {
+    expect(
+      resolvePerpsOrderMarginMode({
+        isCrossMarginEnabled: true,
+        position: positionWithMode('cross'),
+        selectedMarginMode: 'isolated',
+      }),
+    ).toBe('cross');
+  });
+
+  it('uses the selection when there is no open position', () => {
+    expect(
+      resolvePerpsOrderMarginMode({
+        isCrossMarginEnabled: true,
+        position: null,
+        selectedMarginMode: 'cross',
+      }),
+    ).toBe('cross');
+  });
+
+  it('defaults to isolated without a position or selection', () => {
+    expect(resolvePerpsOrderMarginMode({ isCrossMarginEnabled: true })).toBe(
+      'isolated',
+    );
   });
 });
 

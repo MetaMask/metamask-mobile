@@ -4,6 +4,7 @@ import {
   isStrategyOrderType,
   isTriggerOrderType,
   type InputMethod,
+  type MarginMode,
   type Order,
   type OrderParams,
   type OrderType,
@@ -114,6 +115,8 @@ export interface BuildPerpsOrderParamsInput {
   twapRandomize?: boolean;
   /** Provider route required for strategy placement. */
   providerId?: PerpsProviderType;
+  /** Explicit collateral mode; omit to keep the controller's isolated default. */
+  marginMode?: MarginMode;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -144,6 +147,7 @@ export const buildPerpsOrderParams = ({
   limitPrice,
   chaseMaxDistanceBps,
   providerId,
+  marginMode,
   triggerPrice,
   takeProfitPrice,
   stopLossPrice,
@@ -191,10 +195,43 @@ export const buildPerpsOrderParams = ({
       ? { twapRandomize }
       : {}),
     ...(providerId !== undefined ? { providerId } : {}),
+    ...(marginMode !== undefined ? { marginMode } : {}),
     ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
     ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
     trackingData,
   };
+};
+
+export interface ResolvePerpsOrderMarginModeInput {
+  /** Remote flag gating cross margin (`perpsCrossMarginEnabled`). */
+  isCrossMarginEnabled: boolean;
+  /** Open position on the order's market, if any. */
+  position?: Position | null;
+  /** Mode the user picked for a market with no open position. */
+  selectedMarginMode?: MarginMode;
+}
+
+/**
+ * Collateral mode to send with an order. An open position fixes the mode on
+ * the venue, so it wins over the user's pick. With the flag off this returns
+ * undefined, keeping the controller's isolated default.
+ *
+ * @param input - Flag, open position and user selection.
+ * @returns The margin mode for `OrderParams`, or undefined to omit it.
+ */
+export const resolvePerpsOrderMarginMode = ({
+  isCrossMarginEnabled,
+  position,
+  selectedMarginMode,
+}: ResolvePerpsOrderMarginModeInput): MarginMode | undefined => {
+  if (!isCrossMarginEnabled) {
+    return undefined;
+  }
+  const positionMode = position?.leverage?.type;
+  if (positionMode === 'cross' || positionMode === 'isolated') {
+    return positionMode;
+  }
+  return selectedMarginMode ?? 'isolated';
 };
 
 export interface BuildEditOrderParamsInput {

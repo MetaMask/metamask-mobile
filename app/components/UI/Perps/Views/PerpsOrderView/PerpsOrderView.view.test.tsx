@@ -645,4 +645,60 @@ describe('PerpsOrderView', () => {
     ).toBeOnTheScreen();
     expect(placeOrder).not.toHaveBeenCalled();
   });
+
+  it('places a Cross order on a Cross position when cross margin is enabled', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const { stream } = renderPerpsOrderView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsCrossMarginEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.0',
+                },
+              },
+            },
+          },
+        },
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 10,
+      },
+      streamOverrides: {
+        account,
+        positions: [
+          {
+            ...defaultPositionForViews,
+            leverage: { value: 10, type: 'cross' },
+          },
+        ],
+        orders: [],
+        marketData: [ethMarket],
+      },
+      extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => {
+      expect(placeOrderButton).not.toBeDisabled();
+    });
+    fireEvent.press(placeOrderButton);
+
+    await waitFor(() => {
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', marginMode: 'cross' }),
+      );
+    });
+  });
 });

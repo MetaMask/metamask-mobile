@@ -192,6 +192,7 @@ let mockExistingPosition: {
 let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
 let mockIsAwaitingPositionModifyPreview = false;
 let mockIsPositionModifyPreviewEnabled = true;
+let mockIsCrossMarginEnabled = false;
 let mockPositionModifyPreviewParams:
   | { providerId?: PerpsProviderType; enabled?: boolean }
   | undefined;
@@ -433,10 +434,15 @@ jest.mock('react-redux', () => ({
     if (selector.isSelectedAccountSelector) {
       return mockSelectedAddress;
     }
-    const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
-      jest.requireActual('../../../../selectors/featureFlags');
+    const {
+      selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag,
+      selectPerpsCrossMarginEnabledFlag: mockCrossMarginFlag,
+    } = jest.requireActual('../../../../selectors/featureFlags');
     if (selector === mockPreviewFlag) {
       return mockIsPositionModifyPreviewEnabled;
+    }
+    if (selector === mockCrossMarginFlag) {
+      return mockIsCrossMarginEnabled;
     }
     return false;
   },
@@ -583,6 +589,7 @@ describe('usePerpsProOrderForm', () => {
     mockPositionModifyPreviewParams = undefined;
     mockIsAwaitingPositionModifyPreview = false;
     mockIsPositionModifyPreviewEnabled = true;
+    mockIsCrossMarginEnabled = false;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -6908,6 +6915,93 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockSetLeverage).toHaveBeenCalledWith(10);
       expect(mockSetAmount).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('margin mode', () => {
+    it('keeps Cross unavailable and omits marginMode when the flag is off', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.marginMode).toBe('isolated');
+      expect(result.current.isCrossMarginAvailable).toBe(false);
+      expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
+        'marginMode',
+      );
+    });
+
+    it('places a Cross order after the user picks Cross', async () => {
+      mockIsCrossMarginEnabled = true;
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isCrossMarginAvailable).toBe(true);
+      expect(result.current.marginMode).toBe('cross');
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ orderType: 'market', marginMode: 'cross' }),
+      );
+    });
+
+    it('trades an open Cross position in Cross instead of showing the warning', async () => {
+      mockIsCrossMarginEnabled = true;
+      mockExistingPosition = {
+        size: '1',
+        leverage: { type: 'cross', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isIsolatedMarginAvailable).toBe(false);
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+      });
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'cross' }),
+      );
+    });
+
+    it('locks an open Isolated position to Isolated', () => {
+      mockIsCrossMarginEnabled = true;
+      mockExistingPosition = {
+        size: '1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.isCrossMarginAvailable).toBe(false);
+      expect(result.current.marginMode).toBe('isolated');
+    });
+
+    it('keeps Cross unavailable on HIP-3 markets', () => {
+      mockIsCrossMarginEnabled = true;
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, symbol: 'xyz:NVDA', isHip3: true },
+      );
+
+      expect(result.current.isCrossMarginAvailable).toBe(false);
     });
   });
 
