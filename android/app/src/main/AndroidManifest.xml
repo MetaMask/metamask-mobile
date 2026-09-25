@@ -75,6 +75,7 @@
 		android:largeHeap="true"
      	android:exported="false"
      	>
+		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="__METAMASK_NATIVE_FINGERPRINT__" />
 		<activity
 			android:launchMode="singleTask"
 			android:name=".MainActivity"

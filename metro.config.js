@@ -167,10 +167,15 @@ module.exports = function (baseConfig) {
         (process.env.PREDEFINED_PASSWORD || process.env.ADDITIONAL_SRP_1
           ? 'with-srp'
           : 'without-srp');
+      const nativeFingerprint =
+        process.env.METAMASK_NATIVE_FINGERPRINT || 'not-set';
 
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
-          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
+          // The fingerprint is inlined into index.js. Include it in Metro's
+          // cache key so a native change cannot reuse an index transform that
+          // contains the previous checkout fingerprint.
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}:${nativeFingerprint}`,
           resolver: {
             // Exclude local runtime artifacts from the file watcher so that
             // log writes, state updates, and artifact captures don't
