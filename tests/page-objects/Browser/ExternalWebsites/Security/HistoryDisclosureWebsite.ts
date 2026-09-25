@@ -1,8 +1,8 @@
 import { BrowserViewSelectorsIDs } from '../../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Assertions from '../../../../framework/Assertions';
+import ChromeCdpHelpers from '../../../../framework/ChromeCdpHelpers';
 import Matchers from '../../../../framework/Matchers';
 import { PlatformDetector } from '../../../../framework/PlatformLocator';
-import AppiumContextHelpers from '../../../../framework/AppiumContextHelpers';
 
 const VISITED_TARGET_LEAKED_XPATH =
   "//p[@id='result' and contains(text(), 'visited-target.html was visited')]";
@@ -10,6 +10,9 @@ const NO_HISTORY_LEAKED_XPATH =
   "//p[@id='result' and contains(text(), 'No history leaked')]";
 const UNISWAP_VISITED_XPATH =
   "//p[@id='result' and contains(text(), 'uniswap.org was visited')]";
+const RESULT_ELEMENT_ID = 'result';
+const NO_HISTORY_LEAKED_TEXT = 'No history leaked';
+const HISTORY_RESULT_TIMEOUT_MS = 15_000;
 
 class HistoryDisclosureWebsite {
   /**
@@ -36,16 +39,19 @@ class HistoryDisclosureWebsite {
    */
   async verifyVisitedTargetNotLeaked(pageUrl: string): Promise<void> {
     if (PlatformDetector.isAndroid()) {
-      await AppiumContextHelpers.switchToNativeContext();
-      await Assertions.expectElementToBeVisible(
-        Matchers.getElementByAndroidUIAutomator(
-          '.textContains("No history leaked")',
-        ),
-        {
-          timeout: 10000,
-          description: 'History disclosure page reports no leak (Android)',
-        },
+      // Native UiAutomator often lags or misses WebView `#result` text after
+      // URL-bar navigation. Poll the fixture DOM via CDP (same approach as ENS
+      // / test-dapp load waits) so we assert the page outcome, not a11y lag.
+      const text = await ChromeCdpHelpers.waitForElementTextInWebView(
+        pageUrl,
+        RESULT_ELEMENT_ID,
+        HISTORY_RESULT_TIMEOUT_MS,
       );
+      if (!text?.includes(NO_HISTORY_LEAKED_TEXT)) {
+        throw new Error(
+          `History disclosure #result did not report no leak within ${HISTORY_RESULT_TIMEOUT_MS}ms (got ${JSON.stringify(text)})`,
+        );
+      }
       return;
     }
 
