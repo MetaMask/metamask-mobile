@@ -37,11 +37,18 @@ interface VbaSumSubKycProps {
   onSubmitted: (
     result: VbaIdentityVerificationCompletion,
   ) => void | Promise<void>;
+  initialNeedsMoreInfo?: boolean;
 }
 
-const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
+const VbaSumSubKyc = ({
+  onSubmitted,
+  initialNeedsMoreInfo = false,
+}: VbaSumSubKycProps) => {
   const tw = useTailwind();
-  const { needsMoreInfo, hasError, retry } = useLaunchSumSub(onSubmitted);
+  const { needsMoreInfo, hasError, retry } = useLaunchSumSub(
+    onSubmitted,
+    initialNeedsMoreInfo,
+  );
 
   return (
     <SafeAreaView

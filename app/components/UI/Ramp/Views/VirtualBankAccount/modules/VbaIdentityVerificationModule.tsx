@@ -25,18 +25,31 @@ const ProviderTermsStep = () => {
       NativeStackNavigationProp<VbaIdentityVerificationParamList>
     >();
   const handleSuccess = useCallback(
-    () => navigation.navigate(VbaIdentityVerificationRoutes.PROVIDER),
+    () =>
+      navigation.navigate(VbaIdentityVerificationRoutes.PROVIDER, {
+        initialNeedsMoreInfo: false,
+      }),
     [navigation],
   );
 
   return <VerifyIdentity onSuccess={handleSuccess} />;
 };
 
-const ProviderStep = () => {
+type ProviderStepProps = NativeStackScreenProps<
+  VbaIdentityVerificationParamList,
+  typeof VbaIdentityVerificationRoutes.PROVIDER
+>;
+
+const ProviderStep = ({ route }: ProviderStepProps) => {
   const advance = useOpenVbaOnboarding('identity-verification-submitted');
   const handleSubmitted = useCallback(() => advance(), [advance]);
 
-  return <VbaSumSubKyc onSubmitted={handleSubmitted} />;
+  return (
+    <VbaSumSubKyc
+      onSubmitted={handleSubmitted}
+      initialNeedsMoreInfo={route.params.initialNeedsMoreInfo}
+    />
+  );
 };
 
 type Props = NativeStackScreenProps<
@@ -50,6 +63,12 @@ export const getVbaIdentityVerificationInitialRoute = (
   snapshot.sessionDisclaimersComplete
     ? VbaIdentityVerificationRoutes.PROVIDER
     : VbaIdentityVerificationRoutes.PROVIDER_TERMS;
+
+export const getVbaIdentityVerificationInitialProviderParams = (
+  snapshot: VbaOnboardingSnapshot,
+): VbaIdentityVerificationParamList['VbaIdentityVerificationProvider'] => ({
+  initialNeedsMoreInfo: snapshot.providerFlowStatus === 'abandoned',
+});
 
 const VbaIdentityVerificationModule = ({ route }: Props) => {
   const initialRouteName = getVbaIdentityVerificationInitialRoute(
@@ -68,6 +87,9 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
       <Stack.Screen
         name={VbaIdentityVerificationRoutes.PROVIDER}
         component={ProviderStep}
+        initialParams={getVbaIdentityVerificationInitialProviderParams(
+          route.params.snapshot,
+        )}
       />
     </Stack.Navigator>
   );

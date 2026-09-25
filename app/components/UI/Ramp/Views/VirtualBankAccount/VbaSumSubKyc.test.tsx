@@ -3,21 +3,12 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
 import Engine from '../../../../../core/Engine';
+import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
-
-const mockKycControllerState = {
-  email: 'a@b.co' as string | null,
-  sessionStatus: {
-    finalStatus: 'new',
-  },
-};
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      get state() {
-        return mockKycControllerState;
-      },
       fetchSessionDisclaimers: jest.fn(),
       recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
@@ -39,7 +30,7 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockKycController = Engine.context.KycController as unknown as {
   fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
   recordSessionDisclaimers: jest.Mock<Promise<void>, [unknown]>;
-  launchProviderFlow: jest.Mock<Promise<void>, [unknown]>;
+  launchProviderFlow: jest.Mock<Promise<KycProviderFlowStatus>, [unknown]>;
 };
 const mockKycService = Engine.context.KycService as unknown as {
   getGeoCountry: jest.Mock<Promise<string>, []>;
@@ -53,14 +44,10 @@ const catalog = {
 describe('VbaSumSubKyc', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockKycControllerState.email = 'a@b.co';
-    mockKycControllerState.sessionStatus.finalStatus = 'new';
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
-    mockKycController.launchProviderFlow.mockImplementation(async () => {
-      mockKycControllerState.sessionStatus.finalStatus = 'pending';
-    });
+    mockKycController.launchProviderFlow.mockResolvedValue('submitted');
   });
 
   it('renders the container', () => {
@@ -87,7 +74,7 @@ describe('VbaSumSubKyc', () => {
   });
 
   it('shows more information needed when SumSub is closed before submission', async () => {
-    mockKycController.launchProviderFlow.mockResolvedValue(undefined);
+    mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
     const { getByTestId } = renderWithProvider(
       <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
@@ -101,6 +88,30 @@ describe('VbaSumSubKyc', () => {
     expect(
       getByTestId(VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
+    expect(mockOnSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('shows more information needed on resume without launching SumSub', () => {
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+    );
+
+    expect(
+      getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
+    ).toBeOnTheScreen();
+    expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
+  });
+
+  it('shows a retryable error when the provider flow fails', async () => {
+    mockKycController.launchProviderFlow.mockResolvedValue('failed');
+
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId(VbaSumSubKycSelectorsIDs.ERROR)).toBeOnTheScreen();
+    });
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 

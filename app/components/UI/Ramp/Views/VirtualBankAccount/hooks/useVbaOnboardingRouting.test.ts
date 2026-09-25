@@ -179,6 +179,7 @@ describe('useOpenVbaOnboarding', () => {
       sessionExists: true,
       vendorDisclaimersComplete: true,
       sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted',
       kycStatus: 'pending',
     });
 

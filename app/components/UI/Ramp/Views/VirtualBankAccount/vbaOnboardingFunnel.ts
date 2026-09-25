@@ -40,9 +40,9 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
     id: 'identityVerification',
     isComplete: (snapshot) =>
       snapshot.sessionDisclaimersComplete &&
-      snapshot.kycStatus !== 'none' &&
-      snapshot.kycStatus !== 'new' &&
-      snapshot.kycStatus !== 'retry',
+      (snapshot.kycStatus === 'approved' ||
+        (snapshot.providerFlowStatus === 'submitted' &&
+          snapshot.kycStatus === 'pending')),
   },
 ];
 

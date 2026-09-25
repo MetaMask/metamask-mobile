@@ -55,6 +55,17 @@ describe('getVbaDestinationForSnapshot', () => {
           sessionExists: true,
           vendorDisclaimersComplete: true,
           sessionDisclaimersComplete: true,
+          providerFlowStatus: 'submitted',
+          kycStatus: 'pending',
+        }),
+      ],
+      [
+        'sumsub abandoned',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'abandoned',
           kycStatus: 'pending',
         }),
       ],
@@ -120,6 +131,7 @@ describe('getVbaDestinationForSnapshot', () => {
         "provider done": "identityVerification",
         "session exists without vendor disclaimers recorded": "identityVerification",
         "session pending before provider terms": "identityVerification",
+        "sumsub abandoned": "identityVerification",
         "sumsub submitted": "kycPending",
         "vendor terms done": "email",
       }

@@ -36,19 +36,18 @@ const toAcceptedDisclaimerKeys = (
  * applicant" error. `recordSessionDisclaimers` is idempotent (a 409 for
  * already-accepted consents is swallowed).
  *
- * `launchProviderFlow` fails closed (it never throws) and records the outcome
- * on `sessionStatus.finalStatus`:
- * - A completed run advances `finalStatus` to `pending` and reports success.
- * - An unchanged status means the applicant closed the SDK before submitting.
- * Mobile then shows "More information needed" and offers to continue.
+ * `launchProviderFlow` returns a durable provider-flow outcome. A submitted
+ * run advances onboarding, an abandoned run remains retryable, and a failed
+ * run surfaces an error.
  */
 export const useLaunchSumSub = (
   onSubmitted: (
     result: VbaIdentityVerificationCompletion,
   ) => void | Promise<void>,
+  initialNeedsMoreInfo = false,
 ): UseLaunchSumSubResult => {
-  const [isLaunching, setIsLaunching] = useState(true);
-  const [needsMoreInfo, setNeedsMoreInfo] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(!initialNeedsMoreInfo);
+  const [needsMoreInfo, setNeedsMoreInfo] = useState(initialNeedsMoreInfo);
   const [hasError, setHasError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   // Guards against React 18 strict-mode double-invoke and re-renders launching
@@ -63,6 +62,9 @@ export const useLaunchSumSub = (
   }, []);
 
   useEffect(() => {
+    if (initialNeedsMoreInfo && attempt === 0) {
+      return;
+    }
     if (inFlightRef.current) {
       return;
     }
@@ -87,16 +89,14 @@ export const useLaunchSumSub = (
           credentialReusabilityConsentGiven: false,
         });
 
-        await KycController.launchProviderFlow({});
-        if (KycController.state.sessionStatus?.finalStatus === 'pending') {
+        const outcome = await KycController.launchProviderFlow({});
+        if (outcome === 'submitted') {
           await onSubmitted({ status: 'submitted' });
-        } else {
-          // SumSub resolves when its close button is pressed. The controller
-          // deliberately leaves finalStatus unchanged unless the applicant
-          // submitted, so keep verification retryable instead of showing the
-          // pending-review screen.
+        } else if (outcome === 'abandoned') {
           setNeedsMoreInfo(true);
           setIsLaunching(false);
+        } else {
+          throw new Error('KYC provider flow failed');
         }
       } catch (error) {
         Logger.error(error as Error, {
@@ -110,7 +110,7 @@ export const useLaunchSumSub = (
     };
 
     launch();
-  }, [attempt, onSubmitted]);
+  }, [attempt, initialNeedsMoreInfo, onSubmitted]);
 
   return { isLaunching, needsMoreInfo, hasError, retry };
 };
