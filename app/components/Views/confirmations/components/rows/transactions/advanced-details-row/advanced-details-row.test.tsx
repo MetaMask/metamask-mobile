@@ -12,6 +12,10 @@ import {
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import AdvancedDetailsRow from './advanced-details-row';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../../component-library/components/Icons/Icon';
 
 jest.mock('../../../../../../UI/Name', () => ({
   __esModule: true,
@@ -74,6 +78,19 @@ describe('AdvancedDetailsRow', () => {
 
     // Verify the hook was called
     expect(useEditNonce).toHaveBeenCalled();
+  });
+
+  it('renders the collapsed chevron in the alternative icon color', () => {
+    const { getByText, UNSAFE_getByProps } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state: generateContractInteractionState },
+      false,
+    );
+
+    expect(getByText('Advanced details')).toBeOnTheScreen();
+    expect(UNSAFE_getByProps({ name: IconName.ArrowDown }).props.color).toBe(
+      IconColor.Alternative,
+    );
   });
 
   it('renders data scroll view when data is too long', () => {
