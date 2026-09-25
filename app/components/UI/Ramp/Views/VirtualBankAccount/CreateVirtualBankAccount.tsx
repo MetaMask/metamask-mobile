@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +22,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
@@ -53,9 +52,16 @@ const BenefitRow = ({
   </Box>
 );
 
-const CreateVirtualBankAccount = () => {
+interface CreateVirtualBankAccountProps {
+  onSuccess: () => void | Promise<void>;
+}
+
+const CreateVirtualBankAccount = ({
+  onSuccess,
+}: CreateVirtualBankAccountProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const [isAdvancing, setIsAdvancing] = useState(false);
   const {
     disclaimers,
     isLoading,
@@ -67,17 +73,30 @@ const CreateVirtualBankAccount = () => {
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
-    !isLoading && !isAccepting && !error && Boolean(disclaimers?.length);
+    !isLoading &&
+    !isAccepting &&
+    !isAdvancing &&
+    !error &&
+    Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(async () => {
-    // Persist Terms 1 locally. Email creates the vendor session and flushes
-    // these accepted ids to the account before routing to Terms 2.
-    if (await acceptDisclaimers()) {
-      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
+    if (isAdvancing) {
+      return;
     }
-  }, [acceptDisclaimers, navigation]);
+
+    setIsAdvancing(true);
+    try {
+      // Persist vendor terms locally. Email creates the vendor session and
+      // records these accepted ids before continuing.
+      if (await acceptDisclaimers()) {
+        await onSuccess();
+      }
+    } finally {
+      setIsAdvancing(false);
+    }
+  }, [acceptDisclaimers, isAdvancing, onSuccess]);
 
   return (
     <SafeAreaView
@@ -157,7 +176,7 @@ const CreateVirtualBankAccount = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isLoading={isAccepting}
+          isLoading={isAccepting || isAdvancing}
           isDisabled={!canAgreeAndContinue}
           onPress={handleAgreeAndContinue}
           testID={
