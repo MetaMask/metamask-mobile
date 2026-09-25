@@ -101,6 +101,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
+              twClassName="text-center"
               {...titleProps}
             >
               {title}
@@ -114,6 +115,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
+                  twClassName="text-center"
                   {...subtitleProps}
                 >
                   {subtitle}

@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 // External dependencies.
 import { IconName } from '@metamask/design-system-react-native';
@@ -106,6 +106,48 @@ describe('HeaderCompactStandard', () => {
 
       expect(getByText('Main Title')).toBeOnTheScreen();
       expect(getByText('Supporting Text')).toBeOnTheScreen();
+    });
+
+    it('centers the title text so it stays centered when it wraps', () => {
+      const { getByTestId } = render(
+        <HeaderCompactStandard
+          title="A title long enough to wrap onto a second line"
+          titleProps={{ testID: TITLE_TEST_ID }}
+          onBack={jest.fn()}
+        />,
+      );
+
+      expect(
+        StyleSheet.flatten(getByTestId(TITLE_TEST_ID).props.style),
+      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    });
+
+    it('centers the subtitle text so it stays centered when it wraps', () => {
+      const SUBTITLE_TEST_ID = 'subtitle-test-id';
+      const { getByTestId } = render(
+        <HeaderCompactStandard
+          title="Test Title"
+          subtitle="A subtitle long enough to wrap onto a second line"
+          subtitleProps={{ testID: SUBTITLE_TEST_ID }}
+        />,
+      );
+
+      expect(
+        StyleSheet.flatten(getByTestId(SUBTITLE_TEST_ID).props.style),
+      ).toEqual(expect.objectContaining({ textAlign: 'center' }));
+    });
+
+    it('lets titleProps override the default centering', () => {
+      const { getByTestId } = render(
+        <HeaderCompactStandard
+          title="Test Title"
+          titleProps={{ testID: TITLE_TEST_ID, twClassName: 'text-left' }}
+        />,
+      );
+
+      expect(
+        StyleSheet.flatten(getByTestId(TITLE_TEST_ID).props.style),
+      ).toEqual(expect.objectContaining({ textAlign: 'left' }));
     });
 
     it('renders title when passed as React node', () => {
