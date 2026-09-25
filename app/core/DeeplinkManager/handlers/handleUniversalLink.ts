@@ -63,6 +63,7 @@ import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
+import { handleNotificationsSettingsUrl } from './legacy/handleNotificationsSettingsUrl';
 import {
   getDeeplinkProcessedTraceContext,
   markDeeplinkInterstitialShown,
@@ -131,6 +132,7 @@ const SUPPORTED_ACTIONS = {
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
   PRIVACY: ACTIONS.PRIVACY,
+  NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -843,6 +845,12 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.PRIVACY: {
       handlePrivacyUrl({ privacyPath: actionBasedRampPath });
+      break;
+    }
+    case SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS: {
+      handleNotificationsSettingsUrl({
+        notificationsSettingsPath: actionBasedRampPath,
+      });
       break;
     }
   }

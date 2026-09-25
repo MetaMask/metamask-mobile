@@ -12,5 +12,18 @@ export interface Props {
   /**
    * contains params that are passed in from navigation
    */
-  route: RouteProp<{ params: { isFullScreenModal?: boolean } }, 'params'>;
+  route: RouteProp<
+    {
+      params: {
+        isFullScreenModal?: boolean;
+        /**
+         * Deeplink `section` query value. When set to a known slug (e.g.
+         * `wallet-activity`, `price-alerts`), the screen opens that preference
+         * section. Unknown values are ignored.
+         */
+        section?: string;
+      };
+    },
+    'params'
+  >;
 }

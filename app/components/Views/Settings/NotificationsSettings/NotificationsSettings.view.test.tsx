@@ -80,13 +80,14 @@ function renderSettings(
 
 function renderSettingsWithSectionRoute(
   stateOverrides?: Parameters<typeof buildNotificationsState>[0],
+  initialParams?: Record<string, unknown>,
 ) {
   return renderScreenWithRoutes(
     NotificationsSettings as unknown as React.ComponentType,
     { name: 'NotificationsSettings' },
     [{ name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION }],
     { state: buildNotificationsState(stateOverrides) },
-    { isFullScreenModal: false },
+    { isFullScreenModal: false, ...initialParams },
   );
 }
 
@@ -229,5 +230,58 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
         `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the wallet activity section when rendered with a wallet-activity deeplink section', async () => {
+    const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
+      section: 'wallet-activity',
+    });
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the price alerts section when rendered with a price-alerts deeplink section', async () => {
+    const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
+      section: 'price-alerts',
+    });
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('stays on notification settings when the section deeplink value is unknown', async () => {
+    const { findByText, queryByTestId } = renderSettingsWithSectionRoute(
+      undefined,
+      { section: 'not-a-section' },
+    );
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(
+      queryByTestId(`route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`),
+    ).toBeNull();
+  });
+
+  it('stays on notification settings when a section deeplink is opened while notifications are off', async () => {
+    const { getByTestId, queryByTestId } = renderSettingsWithSectionRoute(
+      { notificationsEnabled: false },
+      { section: 'wallet-activity' },
+    );
+
+    expect(
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+    ).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(`route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`),
+      ).toBeNull();
+    });
   });
 });
