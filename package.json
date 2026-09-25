@@ -273,6 +273,12 @@
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5"
   },
+  "previewBuilds": {
+    "@metamask/transaction-pay-controller": {
+      "type": "breaking",
+      "previewVersion": "29.2.1-preview-ff2ab0583"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",

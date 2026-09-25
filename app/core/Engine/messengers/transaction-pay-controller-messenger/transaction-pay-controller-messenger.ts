@@ -27,9 +27,8 @@ export function getTransactionPayControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
-      'AccountTrackerController:getState',
-      'AssetsController:getStateForTransactionPay',
-      'CurrencyRateController:getState',
+      'AccountsController:getState',
+      'AssetsController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -38,9 +37,6 @@ export function getTransactionPayControllerMessenger(
       'RampsController:getQuoteWithFees',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
-      'TokenBalancesController:getState',
-      'TokenRatesController:getState',
-      'TokensController:getState',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
       'TransactionController:getGasFeeTokens',
