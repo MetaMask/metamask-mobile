@@ -362,10 +362,10 @@ index e7178c1396358450b873f66ea77ef3654181f4d3..7271adc884d97fc6ef0190b79df250f1
      /**
       * Prepares asset for trading by updating leverage if specified
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index d5173397330d02c050f0218c41a8a41732d8f642..702a58f15e41ceedd5a35d0a0b251b37e51121f6 100644
+index 9a4be90f405ecf574fc14f087517b32cda098c95..6ca344d3c9cee55a070ec3707b023a7fb80679f3 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
-@@ -1298,6 +1298,34 @@ export type GetOrderCapabilitiesParams = {
+@@ -1305,6 +1305,34 @@ export type GetOrderCapabilitiesParams = {
      providerId?: PerpsProviderType;
  };
  /** Inputs for a provider-normalized Scale price ladder preview. */
@@ -400,7 +400,7 @@ index d5173397330d02c050f0218c41a8a41732d8f642..702a58f15e41ceedd5a35d0a0b251b37
  export type GetScalePriceLadderParams = {
      /** Market symbol, including its provider route when applicable. */
      symbol: string;
-@@ -1512,6 +1540,12 @@ export type PerpsProvider = {
+@@ -1519,6 +1547,12 @@ export type PerpsProvider = {
       * omit this hook; the controller then reports capabilities as unavailable.
       */
      getOrderCapabilities?(params: GetOrderCapabilitiesParams): Promise<PerpsOrderCapabilities>;
