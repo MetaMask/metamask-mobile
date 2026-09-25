@@ -9,7 +9,6 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export interface PerpsAggregatedFillsCheckboxProps {
   isSelected: boolean;
@@ -28,16 +27,7 @@ export interface PerpsAggregatedFillsCheckboxProps {
  */
 const PerpsAggregatedFillsCheckbox: React.FC<
   PerpsAggregatedFillsCheckboxProps
-> = ({ isSelected, onChange, testID }) => {
-  if (testID !== 'activity-screen-aggregated-checkbox') {
-    DevLogger.log(
-      '[PR-TAT-4008] BUG_MARKER: Aggregated checkbox rendered outside Activity Trades:',
-      testID,
-      'isSelected:',
-      isSelected,
-    );
-  }
-  return (
+> = ({ isSelected, onChange, testID }) => (
   <ButtonBase
     size={ButtonBaseSize.Md}
     startAccessory={
@@ -65,7 +55,6 @@ const PerpsAggregatedFillsCheckbox: React.FC<
   >
     {strings('perps.transactions.aggregated')}
   </ButtonBase>
-  );
-};
+);
 
 export default PerpsAggregatedFillsCheckbox;
