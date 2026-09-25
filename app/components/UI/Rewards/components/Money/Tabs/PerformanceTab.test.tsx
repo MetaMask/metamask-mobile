@@ -5,15 +5,15 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
-} from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { navigateToRewardsRoute } from '../../utils';
-import { useReferralFunnel } from '../../hooks/useReferralFunnel';
-import { useCommissions } from '../../hooks/useCommissions';
-import { useCashbackLedger } from '../../hooks/useCashbackLedger';
+} from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
+import Routes from '../../../../../../constants/navigation/Routes';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { navigateToRewardsRoute } from '../../../utils';
+import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
+import { useCommissions } from '../../../hooks/useCommissions';
+import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
 import PerformanceTab, { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from './PerformanceActivityRows';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows';
 
 const mockNavigate = jest.fn();
 
@@ -28,13 +28,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../utils', () => ({
+jest.mock('../../../utils', () => ({
   navigateToRewardsRoute: jest.fn(),
 }));
 
-jest.mock('../../hooks/useReferralFunnel');
-jest.mock('../../hooks/useCommissions');
-jest.mock('../../hooks/useCashbackLedger');
+jest.mock('../../../hooks/useReferralFunnel');
+jest.mock('../../../hooks/useCommissions');
+jest.mock('../../../hooks/useCashbackLedger');
 
 const PROFILE_ID = 'profile-a';
 
@@ -97,7 +97,7 @@ const emptyList = {
 };
 
 const renderTab = (
-  variant: 'REFERRER' | 'REFEREE',
+  persona: 'referrer' | 'referee',
   {
     commissions = [commission],
     rebates = [rebate],
@@ -119,7 +119,7 @@ const renderTab = (
   });
 
   return renderWithProvider(
-    <PerformanceTab profileId={PROFILE_ID} variant={variant} />,
+    <PerformanceTab profileId={PROFILE_ID} persona={persona} />,
     {
       state: {
         rewardsMoney: {
@@ -128,7 +128,6 @@ const renderTab = (
               loading: false,
               error: false,
               data: {
-                variant,
                 localized_text: LOCALIZED_TEXT,
               } as ReferralMeDto,
             },
@@ -153,7 +152,7 @@ describe('PerformanceTab', () => {
 
   it('shows the two-stage funnel and commissions for a referrer, not rebates', () => {
     const { getByTestId, getByText, queryByTestId, queryByText } =
-      renderTab('REFERRER');
+      renderTab('referrer');
 
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
     expect(getByText('Confirmed referrals')).toBeOnTheScreen();
@@ -174,7 +173,7 @@ describe('PerformanceTab', () => {
   });
 
   it('shows commissions and rebates for a referee, not the funnel', () => {
-    const { getByTestId, getByText, queryByTestId } = renderTab('REFEREE');
+    const { getByTestId, getByText, queryByTestId } = renderTab('referee');
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
@@ -195,7 +194,7 @@ describe('PerformanceTab', () => {
       id: `row-${index}`,
     }));
 
-    const { getAllByTestId } = renderTab('REFERRER', { commissions });
+    const { getAllByTestId } = renderTab('referrer', { commissions });
 
     expect(
       getAllByTestId(new RegExp(PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW)),
@@ -203,7 +202,7 @@ describe('PerformanceTab', () => {
   });
 
   it('navigates to the commissions list from the section header', () => {
-    const { getByTestId } = renderTab('REFERRER');
+    const { getByTestId } = renderTab('referrer');
 
     fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER));
 
@@ -214,7 +213,7 @@ describe('PerformanceTab', () => {
   });
 
   it('navigates to the rebates list from the section header', () => {
-    const { getByTestId } = renderTab('REFEREE');
+    const { getByTestId } = renderTab('referee');
 
     fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
 

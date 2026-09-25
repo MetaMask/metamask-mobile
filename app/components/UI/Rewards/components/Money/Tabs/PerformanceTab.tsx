@@ -13,25 +13,26 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import type { RootState } from '../../../../../reducers';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../../reducers';
 import {
   selectReferralFunnelEntry,
   selectReferralMeLocalizedText,
-} from '../../../../../reducers/rewardsMoney/selectors';
-import { strings } from '../../../../../../locales/i18n';
-import { navigateToRewardsRoute } from '../../utils';
-import RewardsErrorBanner from '../RewardsErrorBanner';
-import { useReferralFunnel } from '../../hooks/useReferralFunnel';
-import { useCommissions } from '../../hooks/useCommissions';
-import { useCashbackLedger } from '../../hooks/useCashbackLedger';
-import { PERFORMANCE_PREVIEW_COUNT } from './performancePreview';
-import ReferralFunnelBar from './ReferralFunnelBar';
+  type MoneyDashboardPersona,
+} from '../../../../../../reducers/rewardsMoney/selectors';
+import { strings } from '../../../../../../../locales/i18n';
+import { navigateToRewardsRoute } from '../../../utils';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
+import { useCommissions } from '../../../hooks/useCommissions';
+import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
+import { PERFORMANCE_PREVIEW_COUNT } from '../performancePreview';
+import ReferralFunnelBar from '../ReferralFunnelBar';
 import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
-} from './PerformanceActivityRows';
+} from '../PerformanceActivityRows';
 
 export const PERFORMANCE_TAB_TEST_IDS = {
   CONTAINER: 'rewards-money-performance-tab',
@@ -48,17 +49,17 @@ export const PERFORMANCE_TAB_TEST_IDS = {
 
 interface PerformanceTabProps {
   profileId: string;
-  variant: 'REFERRER' | 'REFEREE' | 'NONE';
+  persona: MoneyDashboardPersona;
 }
 
 const PerformanceTab: React.FC<PerformanceTabProps> = ({
   profileId,
-  variant,
+  persona,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const isReferrer = variant === 'REFERRER';
-  const isReferee = variant === 'REFEREE';
+  const isReferrer = persona === 'referrer';
+  const isReferee = persona === 'referee';
   const showCommissions = isReferrer || isReferee;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),

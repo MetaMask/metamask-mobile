@@ -8,7 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  SectionDivider,
   TitleStandard,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
@@ -31,16 +30,11 @@ import {
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
 } from '../../../../reducers/rewardsMoney/selectors';
-import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
-import BenefitsPreview from '../components/Benefits/BenefitsPreview';
-import RefererHeroCard from '../components/Money/RefererHeroCard';
-import RefereeHeroCard from '../components/Money/RefereeHeroCard';
-import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import PerformanceTab from '../components/Money/PerformanceTab';
+import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
+import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
@@ -63,8 +57,6 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
   PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
-  CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
-  BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
 } as const;
 
 type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
@@ -112,50 +104,6 @@ function dashboardStillLoading(
     return true;
   }
   return Boolean(profileId) && !hasReferral && !settledEmpty;
-}
-
-function WaysToEarnBody({
-  profileId,
-  referralMe,
-  subscriptionId,
-}: {
-  profileId: string;
-  referralMe: ReferralMeDto;
-  subscriptionId: string | null | undefined;
-}) {
-  const persona = moneyDashboardPersona(referralMe);
-  return (
-    <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}>
-      {persona === 'referrer' ? (
-        <RefererHeroCard
-          profileId={profileId}
-          referralCode={referralMe.referral_code}
-          localizedText={referralMe.localized_text}
-        />
-      ) : null}
-      {persona === 'referee' ? (
-        <RefereeHeroCard
-          profileId={profileId}
-          referredBy={referralMe.referred_by}
-          localizedText={referralMe.localized_text}
-        />
-      ) : null}
-      {subscriptionId ? (
-        <>
-          <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION}>
-            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
-            <CampaignsPreview />
-          </Box>
-          <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION}>
-            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
-            <BenefitsPreview />
-          </Box>
-        </>
-      ) : (
-        <RewardsOptInSection localizedText={referralMe.localized_text} />
-      )}
-    </Box>
-  );
 }
 
 const RewardsMoneyDashboard: React.FC = () => {
@@ -383,11 +331,15 @@ const RewardsMoneyDashboard: React.FC = () => {
                   Ways to earn. Claim history reads its cached page on focus
                   and refreshes behind it. */}
               {activeTab === 'waysToEarn' ? (
-                <WaysToEarnBody
-                  profileId={profileId}
-                  referralMe={referralMe}
-                  subscriptionId={subscriptionId}
-                />
+                <Box
+                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                >
+                  <WaysToEarnTab
+                    profileId={profileId}
+                    referralMe={referralMe}
+                    isSubscribed={Boolean(subscriptionId)}
+                  />
+                </Box>
               ) : null}
               {activeTab === 'earnings' ? (
                 <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
@@ -396,7 +348,7 @@ const RewardsMoneyDashboard: React.FC = () => {
                 <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}>
                   <PerformanceTab
                     profileId={profileId}
-                    variant={referralMe.variant}
+                    persona={moneyDashboardPersona(referralMe)}
                   />
                 </Box>
               ) : null}
