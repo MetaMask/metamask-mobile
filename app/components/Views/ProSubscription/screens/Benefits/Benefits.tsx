@@ -61,7 +61,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
 
   const resolvedPlan = resolveSelectedPlanId(selectedPlan, plusPricing);
   const priceLine = getBenefitsPriceLine(plusPricing);
-  const isPricingReady = plusPricing.status === 'ready';
+  const isPricingReady = plusPricing.status === PLUS_PRICING_STATUS.ready;
 
   const visiblePlans = useMemo(
     () =>
@@ -77,7 +77,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
 
   const canSelectPlans =
     !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
-  const isCtaDisabled = !canSelectPlans || isSubmitting;
+  const isCtaDisabled = !canSelectPlans;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -197,7 +197,9 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           </Box>
         ) : null}
 
-        {!isLoading && !hasError && plusPricing.status === 'unavailable' ? (
+        {!isLoading &&
+        !hasError &&
+        plusPricing.status === PLUS_PRICING_STATUS.unavailable ? (
           <Box
             twClassName="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_UNAVAILABLE}
@@ -218,7 +220,9 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           </Box>
         ) : null}
 
-        {!isLoading && !hasError && plusPricing.status === 'malformed' ? (
+        {!isLoading &&
+        !hasError &&
+        plusPricing.status === PLUS_PRICING_STATUS.malformed ? (
           <Box
             twClassName="flex flex-col gap-y-3"
             testID={BenefitsTestIds.PRICING_MALFORMED}
@@ -250,15 +254,6 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
               />
             ))
           : null}
-
-        {errorMessage ? (
-          <Box testID={BenefitsTestIds.JOIN_ERROR}>
-            <BannerAlert
-              severity={BannerAlertSeverity.Danger}
-              description={errorMessage}
-            />
-          </Box>
-        ) : null}
 
         <Button
           variant={ButtonVariant.Primary}

@@ -4,7 +4,10 @@ import {
   type RecurringInterval,
 } from '@metamask/subscription-controller';
 import type { PlanId } from '../Benefits.constants';
-import type { MoneyAccountPlusPricingView } from './mapMoneyAccountPlusPricing';
+import {
+  PLUS_PRICING_STATUS,
+  type MoneyAccountPlusPricingView,
+} from './mapMoneyAccountPlusPricing';
 
 /**
  * Normalized plan the Benefits screen hands off for checkout (SUB-1030).
@@ -33,7 +36,7 @@ export const getSelectedPlusPlan = (
   planId: PlanId,
   plusPricing: MoneyAccountPlusPricingView,
 ): SelectedPlusPlan | undefined => {
-  if (plusPricing.status !== 'ready') {
+  if (plusPricing.status !== PLUS_PRICING_STATUS.ready) {
     return undefined;
   }
 

@@ -44,6 +44,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { DetailRow } from '../../components/LimitOrderConfirmationModal/DetailRow';
 import type { BridgeToken } from '../../types';
 import { getTokenImageSource } from '../../utils';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { showRecurringOrderCanceledToast } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import {
   RecurringOrderStatus,
@@ -65,6 +66,9 @@ import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 import { type RecurringOrderDetailsRouteParams } from './RecurringOrderDetailsView.types';
 import { RecurringSwapRow } from './RecurringSwapRow';
+import { useCancelRecurringOrder } from '../../hooks/useCancelRecurringOrder';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
 
 const LOAD_MORE_SCROLL_THRESHOLD = 100;
 
@@ -132,6 +136,12 @@ function RecurringOrderDetailsView() {
   const currentCurrency = useSelector(selectCurrentCurrency) ?? 'USD';
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const { setRecurringOrdersTab } = useBridgeSession();
+  const {
+    cancelRecurringOrder,
+    isSubmitting,
+    reset: resetCancelMutation,
+  } = useCancelRecurringOrder();
   const swapsQuery = useRecurringSwaps({ orderId: order.orderId });
 
   const handleBack = useCallback(() => {
@@ -139,17 +149,29 @@ function RecurringOrderDetailsView() {
   }, [navigation]);
 
   const handleOpenCancelSheet = useCallback(() => {
+    resetCancelMutation();
     setIsCancelSheetVisible(true);
-  }, []);
+  }, [resetCancelMutation]);
 
   const handleCloseCancelSheet = useCallback(() => {
+    resetCancelMutation();
     setIsCancelSheetVisible(false);
-  }, []);
+  }, [resetCancelMutation]);
 
-  const handleConfirmCancel = useCallback(() => {
+  const handleCancelSubmit = useCallback(async () => {
+    try {
+      await cancelRecurringOrder(order);
+    } catch (error) {
+      showGenericErrorToast();
+      throw error;
+    }
+  }, [cancelRecurringOrder, order]);
+
+  const handleCancelSuccess = useCallback(() => {
     showRecurringOrderCanceledToast();
-    setIsCancelSheetVisible(false);
-  }, []);
+    setRecurringOrdersTab?.(OrdersTabKey.History);
+    navigation.goBack();
+  }, [navigation, setRecurringOrdersTab]);
 
   const handleDuplicateOrder = useCallback(() => undefined, []);
 
@@ -474,7 +496,9 @@ function RecurringOrderDetailsView() {
       <RecurringOrderCancelSheet
         isVisible={isCancelSheetVisible}
         onClose={handleCloseCancelSheet}
-        onConfirm={handleConfirmCancel}
+        onSubmit={handleCancelSubmit}
+        onSuccess={handleCancelSuccess}
+        isSubmitting={isSubmitting}
       />
     </SafeAreaView>
   );

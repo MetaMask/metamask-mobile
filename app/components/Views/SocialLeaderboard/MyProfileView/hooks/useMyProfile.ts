@@ -1,5 +1,8 @@
-import { useCallback } from 'react';
-import { PLACEHOLDER_FOLLOWER_COUNT } from '../../FollowConnectionsView/hooks/placeholderFollowers';
+import { useCallback, useSyncExternalStore } from 'react';
+import {
+  getLocalSocialProfileSnapshot,
+  subscribeLocalSocialProfile,
+} from './localSocialProfileStore';
 
 export type ProfileRankingTag = 'shrimp' | 'dolphin' | 'whale';
 
@@ -9,6 +12,8 @@ export interface MySocialProfile {
   handle: string;
   bio?: string | null;
   imageUrl?: string | null;
+  /** Local onboarding preset. Ignored once `imageUrl` is a remote avatar. */
+  avatarPresetId?: string | null;
   rankingTag?: ProfileRankingTag | null;
   xHandle?: string | null;
   followerCount?: number | null;
@@ -21,6 +26,10 @@ export interface MySocialProfile {
   /** Preformatted hold-time label until median minutes land on the API. */
   holdTimeLabel?: string | null;
   timesCopied?: number | null;
+  /** Wallet account chosen during local onboarding. */
+  linkedAccountId?: string | null;
+  linkedAccountAddress?: string | null;
+  shareTradingActivity?: boolean | null;
 }
 
 export interface UseMyProfileResult {
@@ -33,29 +42,20 @@ export interface UseMyProfileResult {
 /**
  * Temporary owner-profile data seam.
  *
- * Replace the mock with the authenticated social profile query once the API
- * exposes current-user identity. Keeping the query-like result contract here
- * lets both the SocialV1 avatar and My Profile screen migrate together.
+ * The profile lives in an in-memory store so debug reset and onboarding can
+ * rewrite it without a backend. Replace the store with the authenticated
+ * social profile query once the API exposes current-user identity.
  */
 export const useMyProfile = (): UseMyProfileResult => {
+  const { profile } = useSyncExternalStore(
+    subscribeLocalSocialProfile,
+    getLocalSocialProfileSnapshot,
+    getLocalSocialProfileSnapshot,
+  );
   const refresh = useCallback(async () => undefined, []);
 
   return {
-    profile: {
-      profileId: 'current-user',
-      displayName: 'Giga Whale',
-      handle: 'giga-whale',
-      bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
-      imageUrl: null,
-      rankingTag: 'whale',
-      xHandle: 'giga-whale',
-      followerCount: PLACEHOLDER_FOLLOWER_COUNT,
-      shareUrl: 'https://metamask.io/social/giga-whale',
-      winRatePercent: 60,
-      pnlUsd: 7100,
-      holdTimeLabel: '4d',
-      timesCopied: 981,
-    },
+    profile,
     isLoading: false,
     error: null,
     refresh,

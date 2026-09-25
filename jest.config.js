@@ -76,6 +76,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
+  '@metamask/client-utils',
+  '@metamask/chomp-api-service',
   '@metamask/config-registry-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
@@ -96,6 +98,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
+  '@metamask/seedless-onboarding-controller',
   // 3.x ships ESM-only under dist/*.js (2.x used dist/index.cjs).
   '@metamask/social-controllers',
   '@signinwithethereum',

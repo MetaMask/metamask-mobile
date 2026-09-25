@@ -597,6 +597,7 @@
     "drafts": []
   },
   "AuthenticationController": {
+    "enrolledCredentials": [],
     "isSignedIn": false,
     "needsProfilePairing": true,
     "needsSocialPairing": true
@@ -903,6 +904,7 @@
     "predictThePitchPrizePool": {},
     "moneyAccountSweepstakesStats": {},
     "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesVolumeStats": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
     "campaignParticipantStatus": {},

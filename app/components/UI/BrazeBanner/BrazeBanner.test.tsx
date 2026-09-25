@@ -43,7 +43,6 @@ const mockLogBrazeBannerClick = jest.fn();
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
-  refreshBrazeBanners: jest.fn(),
   dismissBrazeBanner: jest.fn(),
   logBrazeBannerImpression: (...args: unknown[]) =>
     mockLogBrazeBannerImpression(...args),

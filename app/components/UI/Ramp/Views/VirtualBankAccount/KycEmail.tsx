@@ -18,6 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import { useKycEmailVerification } from './hooks/useKycEmailVerification';
+import type { VbaEmailCompletion } from './modules/types';
 
 export const KycEmailSelectorsIDs = {
   CONTAINER: 'vba-kyc-email-container',
@@ -38,7 +39,11 @@ const formatKycStateValue = (value: unknown): string => {
   return JSON.stringify(value);
 };
 
-const KycEmail = () => {
+interface KycEmailProps {
+  onSuccess: (result: VbaEmailCompletion) => void | Promise<void>;
+}
+
+const KycEmail = ({ onSuccess }: KycEmailProps) => {
   const tw = useTailwind();
   const {
     email,
@@ -48,7 +53,7 @@ const KycEmail = () => {
     goBack,
     startVerification,
     resetKyc,
-  } = useKycEmailVerification();
+  } = useKycEmailVerification(onSuccess);
   const kycControllerState = useSelector(
     (state: RootState) => state.engine.backgroundState.KycController,
   );
