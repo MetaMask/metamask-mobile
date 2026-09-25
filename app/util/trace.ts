@@ -8,6 +8,7 @@ import {
   type StartSpanOptions,
   type Span,
   withIsolationScope,
+  getCurrentScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
@@ -1322,8 +1323,8 @@ function startSpan<T>(
     forceTransaction,
   };
 
-  return withIsolationScope((scope) => {
-    setScopeTags(scope, request);
+  return withIsolationScope(() => {
+    setScopeTags(getCurrentScope(), request);
 
     if (forceTransaction && !parentSpan) {
       return startNewTrace(() => callback(spanOptions));
@@ -1345,8 +1346,15 @@ function getTraceKey(request: TraceRequest | EndTraceRequest) {
 }
 
 /**
- * Initialise the isolated Sentry scope created for each trace.
- * Includes setting all non-numeric tags.
+ * Apply all non-numeric tags to the Sentry scope created for each trace.
+ *
+ * Must be given the current scope, never the isolation scope. React Native has
+ * no async context strategy registered, so Sentry falls back to the stack
+ * strategy, where `withIsolationScope` yields one process-wide Scope instance
+ * that is never cloned. Tagging it makes every trace's tags accumulate there
+ * and get stamped onto every later transaction and error. The current scope is
+ * cloned per `withScope` and captured by root spans, so tags still reach the
+ * transaction event without outliving the trace.
  *
  * @param scope - The Sentry scope to initialise.
  * @param request - The trace request.
