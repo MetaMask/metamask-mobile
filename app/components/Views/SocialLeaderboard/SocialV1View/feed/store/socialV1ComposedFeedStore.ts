@@ -1,6 +1,6 @@
-// THIS IS A MOCK STORE FOR THE SOCIAL POST COMPOSER VIEW
-// It’s an in-memory module store so a post can survive leaving the composer.
-// TODO(Social):  When real POST exists, this should go away (or shrink to “optimistic UI while the request is in flight”).
+// Optimistic overlay so a post can appear on Social V1 while feed queries
+// refetch after POST /api/v1/swap-comments. The social-api remains the source
+// of truth; this store is not a substitute for that write.
 import type { SocialV1FeedPost } from '../types';
 
 export const COMPOSER_POSTING_DELAY_MS = 1500;

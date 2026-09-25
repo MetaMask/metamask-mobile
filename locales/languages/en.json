@@ -1333,7 +1333,8 @@
       "empty_closed": "No closed positions",
       "error_title": "Couldn't load positions",
       "retry": "Try again",
-      "posting": "Posting..."
+      "posting": "Posting...",
+      "post_failed": "Couldn't create post. Try again."
     },
     "shell": {
       "subnav": {

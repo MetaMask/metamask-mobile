@@ -6,6 +6,7 @@ import type { MessengerClientInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
 import { registerCommentReactionHandlersIfNeeded } from './registerCommentReactionHandlers';
+import { registerCreateSwapCommentHandlerIfNeeded } from './registerCreateSwapCommentHandler';
 
 /**
  * Initialize the SocialService.
@@ -24,6 +25,7 @@ export const socialServiceInit: MessengerClientInitFunction<
       baseUrl: AppConstants.SOCIAL_API_URL,
     });
     registerCommentReactionHandlersIfNeeded(controller, controllerMessenger);
+    registerCreateSwapCommentHandlerIfNeeded(controller, controllerMessenger);
 
     return { controller };
   } catch (error) {
