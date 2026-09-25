@@ -79,6 +79,10 @@ const INITIAL_FEED_SKELETON_KEYS = Array.from(
  */
 const REFRESH_MIN_DURATION_MS = 1000;
 
+/** No-op paging while a contract chip waits for its first token-feed page. */
+export const holdTokenFeedLoadMore = () => undefined;
+export const holdTokenFeedRefresh = async () => undefined;
+
 /**
  * How close to the bottom a settled scroll must land to pull the next page.
  * Generous because this fires on scroll end rather than continuously.
@@ -211,9 +215,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         isLoading: true,
         isFetchingNextPage: false,
         hasNextPage: false,
-        loadMore: () => undefined,
+        loadMore: holdTokenFeedLoadMore,
         error: null,
-        refresh: async () => undefined,
+        refresh: holdTokenFeedRefresh,
       });
     } else {
       setTokenFeed(null);

@@ -90,6 +90,35 @@ describe('rankFeedHotTokens', () => {
     expect(tokens[1]?.contractAddress).toBeUndefined();
   });
 
+  it('fills the contract from a later spot row when the first row is a perp', () => {
+    const posts = [
+      postFor(
+        mockOpenPerpsFeedItem({
+          id: 'pump-perp',
+          asset: {
+            symbol: 'PUMP',
+            avatar: {
+              positionId: 'pump-perp',
+              chain: 'hyperliquid',
+              tokenAddress: '',
+              tokenImageUrl: null,
+              tokenSymbol: 'xyz:PUMP',
+            },
+          },
+        }),
+      ),
+      postFor(mockOpenSpotFeedItem()),
+    ];
+
+    const [pump] = rankFeedHotTokens(posts);
+
+    expect(pump?.chain).toBe('solana');
+    expect(pump?.contractAddress).toBe(
+      'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    );
+    expect(pump?.symbol).toBe('xyz:PUMP');
+  });
+
   it('uses the asset name as the chip label when the feed has one', () => {
     const posts = [
       postFor(

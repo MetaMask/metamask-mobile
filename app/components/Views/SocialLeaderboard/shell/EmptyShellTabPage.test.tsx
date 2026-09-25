@@ -1,10 +1,10 @@
 import React from 'react';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import EmptyShellTabPage from './EmptyShellTabPage';
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
   mockOpenPerpsFeedItem,
+  mockOpenSpotFeedItem,
 } from '../SocialV1View/feed/mocks/socialV1Feed.mock';
 import { SocialFeedPostingBannerSelectorsIDs } from '../SocialV1View/feed/components/SocialFeedPostingBanner.testIds';
 import {
@@ -21,6 +21,13 @@ import { FeedSortFilterSelectorsIDs } from '../components/Filters';
 import { getSocialFeedPostSkeletonTestId } from '../SocialV1View/feed/components/SocialFeedPostSkeleton.testIds';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
+import type { SocialV1TokenFeedState } from '../SocialV1View/feed/types';
+import EmptyShellTabPage, {
+  holdTokenFeedLoadMore,
+  SOCIAL_V1_FEED_ERROR_TEST_ID,
+  SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
+  SOCIAL_V1_FEED_RETRY_TEST_ID,
+} from './EmptyShellTabPage';
 
 jest.mock('../SocialV1View/feed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
@@ -63,17 +70,24 @@ jest.mock('../SocialV1View/feed/components', () => {
     '../SocialV1View/feed/utils/rankFeedHotTokens',
   ) as typeof import('../SocialV1View/feed/utils/rankFeedHotTokens');
 
+  const tokenFeedApi: {
+    report: ((next: SocialV1TokenFeedState | null) => void) | null;
+  } = { report: null };
+
   const HotTokensCarousel = ({
     posts = [],
     selectedTokenId = null,
     onTokenPress,
+    onTokenFeedChange,
   }: {
     posts?: import('../SocialV1View/feed/types').SocialV1FeedPost[];
     selectedTokenId?: string | null;
     onTokenPress?: (
       token: import('../SocialV1View/feed/types').SocialV1HotToken,
     ) => void;
+    onTokenFeedChange?: (next: SocialV1TokenFeedState | null) => void;
   }) => {
+    tokenFeedApi.report = onTokenFeedChange ?? null;
     const tokens = pinSelectedHotToken(
       rankFeedHotTokens(posts),
       posts,
@@ -94,7 +108,7 @@ jest.mock('../SocialV1View/feed/components', () => {
     );
   };
 
-  return { HotTokensCarousel };
+  return { HotTokensCarousel, tokenFeedApi };
 });
 
 // See the view suite: the real hook needs keyring state and React Query, and
@@ -416,5 +430,168 @@ describe('EmptyShellTabPage', () => {
       screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+  });
+
+  describe('token feed for a contract chip', () => {
+    const tokenFeedApi = () =>
+      (
+        jest.requireMock('../SocialV1View/feed/components') as {
+          tokenFeedApi: {
+            report: ((next: SocialV1TokenFeedState | null) => void) | null;
+          };
+        }
+      ).tokenFeedApi;
+
+    const reportTokenFeed = (next: SocialV1TokenFeedState | null) => {
+      act(() => {
+        tokenFeedApi().report?.(next);
+      });
+    };
+
+    const tokenFeedPost = {
+      id: 'token-feed-post',
+      authorHandle: 'frogwater',
+      timestampMs: 1,
+      reactions: [],
+      item: mockOpenSpotFeedItem({ id: 'token-feed-item' }),
+    };
+
+    const renderTrending = () =>
+      renderWithProvider(
+        <EmptyShellTabPage
+          tab="trending"
+          isActive
+          containerTestID="trending-page-content"
+          scrollTestID="trending-page-scroll"
+        />,
+      );
+
+    const scrollNearEnd = () => {
+      fireEvent(
+        screen.getByTestId('trending-page-scroll'),
+        'momentumScrollEnd',
+        {
+          nativeEvent: {
+            contentOffset: { y: 1900, x: 0 },
+            contentSize: { height: 2800, width: 400 },
+            layoutMeasurement: { height: 800, width: 400 },
+          },
+        },
+      );
+    };
+
+    it('shows the token feed instead of the client-side filter', async () => {
+      const mainRefresh = jest.fn().mockResolvedValue(undefined);
+      const mainLoadMore = jest.fn();
+      jest.mocked(useSocialV1Feed).mockImplementation((tab) => ({
+        ...mockUseSocialV1Feed(tab),
+        refresh: mainRefresh,
+        loadMore: mainLoadMore,
+      }));
+      jest.useFakeTimers();
+
+      const loadMore = jest.fn();
+      const refresh = jest.fn().mockResolvedValue(undefined);
+      const posts = [tokenFeedPost];
+      const idle = {
+        posts,
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore,
+        error: null,
+        refresh,
+      };
+
+      renderTrending();
+      // Nothing selected yet: a null report keeps the current feed state.
+      reportTokenFeed(null);
+
+      fireEvent.press(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
+      );
+
+      expect(
+        screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId('popular-traders-carousel-section'),
+      ).toBeNull();
+
+      await act(async () => {
+        const pending = screen
+          .getByTestId('trending-page-scroll')
+          .props.refreshControl.props.onRefresh();
+        await jest.advanceTimersByTimeAsync(1000);
+        await pending;
+      });
+      expect(mainRefresh).not.toHaveBeenCalled();
+      holdTokenFeedLoadMore();
+
+      reportTokenFeed(idle);
+      expect(
+        screen.getByTestId('social-v1-feed-card-token-feed-item'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeNull();
+
+      // Same state reference, then an equal copy, must not replace the feed.
+      reportTokenFeed(idle);
+      reportTokenFeed({ ...idle });
+      expect(
+        screen.getByTestId('social-v1-feed-card-token-feed-item'),
+      ).toBeOnTheScreen();
+
+      reportTokenFeed({ ...idle, posts: [] });
+      reportTokenFeed({ ...idle, isLoading: true });
+      reportTokenFeed({ ...idle, isFetchingNextPage: true, hasNextPage: true });
+      expect(
+        screen.getByTestId(SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID),
+      ).toBeOnTheScreen();
+      scrollNearEnd();
+      expect(loadMore).toHaveBeenCalledTimes(1);
+      expect(mainLoadMore).not.toHaveBeenCalled();
+
+      reportTokenFeed({ ...idle, hasNextPage: false });
+      scrollNearEnd();
+      expect(loadMore).toHaveBeenCalledTimes(1);
+
+      reportTokenFeed({ ...idle, error: 'token feed down', posts: [] });
+      expect(
+        screen.getByTestId(SOCIAL_V1_FEED_ERROR_TEST_ID),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(SOCIAL_V1_FEED_RETRY_TEST_ID));
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(mainRefresh).not.toHaveBeenCalled();
+
+      const otherLoadMore = jest.fn();
+      const otherRefresh = jest.fn().mockResolvedValue(undefined);
+      reportTokenFeed({ ...idle, loadMore: otherLoadMore });
+      reportTokenFeed({ ...idle, refresh: otherRefresh });
+      reportTokenFeed(null);
+
+      fireEvent.press(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
+      );
+      expect(
+        screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
+      ).toBeOnTheScreen();
+      reportTokenFeed({
+        ...idle,
+        posts: [tokenFeedPost],
+      });
+      expect(
+        screen.queryByTestId('social-v1-feed-card-token-feed-item'),
+      ).toBeNull();
+
+      jest.useRealTimers();
+    });
   });
 });
