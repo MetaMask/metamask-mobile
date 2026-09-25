@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useSharedValue } from 'react-native-reanimated';
@@ -11,7 +11,8 @@ import { fontStyles } from '../../../../styles/common';
 import decodeTransaction from '../../TransactionElement/utils';
 import TransactionActionContent from '../../TransactionActionModal/TransactionActionContent';
 import ActionContent from '../../ActionModal/ActionContent';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { TouchableOpacity } from 'react-native';
+import Icon, { IconName, IconSize } from '../../../../component-library/components/Icons/Icon';
 import TransactionDetails from '../../TransactionElement/TransactionDetails';
 import BaseNotification from '../../../../component-library/components-temp/BaseNotification';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
@@ -299,12 +300,17 @@ function TransactionNotification(props) {
                 <Text style={styles.title} onPress={onCloseDetails}>
                   {transactionElement?.actionKey}
                 </Text>
-                <Ionicons
+                <TouchableOpacity
                   onPress={onCloseDetails}
-                  name={'close'}
-                  size={38}
                   style={styles.closeIcon}
-                />
+                  accessibilityRole="button"
+                  accessibilityLabel={strings('navigation.close')}
+                >
+                  <Icon
+                    name={IconName.Close}
+                    size={IconSize.Xl}
+                  />
+                </TouchableOpacity>
               </View>
               <TransactionDetails
                 transactionObject={tx}
