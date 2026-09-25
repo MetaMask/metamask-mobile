@@ -12132,7 +12132,10 @@
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
+      "money_account": "Money account",
       "renews_on": "Renews on",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "Manage",
       "invoices": "Invoices",
       "contact_support": "Contact support",
@@ -12180,6 +12183,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

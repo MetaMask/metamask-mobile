@@ -507,7 +507,9 @@ describe('Confirm', () => {
     const backHandlerCallback = jest.mocked(BackHandler.addEventListener).mock
       .calls[0][1];
 
-    expect(backHandlerCallback()).toBe(true);
+    expect(
+      backHandlerCallback({ type: 'hardwareBackPress', timeStamp: 0 }),
+    ).toBe(true);
   });
 
   it('displays alternate loader if specified', () => {
