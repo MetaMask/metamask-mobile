@@ -23,7 +23,6 @@ import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/H
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1TokenFeedState } from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
-  holdTokenFeedLoadMore,
   SOCIAL_V1_FEED_ERROR_TEST_ID,
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
   SOCIAL_V1_FEED_RETRY_TEST_ID,
@@ -529,7 +528,6 @@ describe('EmptyShellTabPage', () => {
         await pending;
       });
       expect(mainRefresh).not.toHaveBeenCalled();
-      holdTokenFeedLoadMore();
 
       reportTokenFeed(idle);
       expect(

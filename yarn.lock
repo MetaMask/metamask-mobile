@@ -12183,7 +12183,7 @@ __metadata:
 
 "@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.1.0#~/.yarn/patches/@metamask-social-controllers-npm-3.1.0-70283cf984.patch":
   version: 3.1.0
-  resolution: "@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.1.0#~/.yarn/patches/@metamask-social-controllers-npm-3.1.0-70283cf984.patch::version=3.1.0&hash=c10f8f"
+  resolution: "@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.1.0#~/.yarn/patches/@metamask-social-controllers-npm-3.1.0-70283cf984.patch::version=3.1.0&hash=bdde55"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.0.0"
@@ -12191,7 +12191,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^32.2.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/7365a298858733690a5d37c46eac4a25d03f2b9b50cc10806313679f53641319a6937e034a7c18401e01592b36992dccfd5377aed88c4378c388a9f56ff79ddd
+  checksum: 10/19babb8c5e93b69e02c312cdc32371719a1e622d960d0c8df6c2fe99e18a38fba2cd767ad60e74099d46088c90f8b9b5ef764184ed5328bc5460054cec97c3f5
   languageName: node
   linkType: hard
 

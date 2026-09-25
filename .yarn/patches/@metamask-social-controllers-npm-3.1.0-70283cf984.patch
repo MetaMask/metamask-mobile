@@ -2,15 +2,10 @@ diff --git a/dist/SocialService-method-action-types.d.ts b/dist/SocialService-me
 index f6d2ce02ae2c279598ff59b54ac905d27922573c..b891910b95e3322b946be5d75b3fe88d504414e2 100644
 --- a/dist/SocialService-method-action-types.d.ts
 +++ b/dist/SocialService-method-action-types.d.ts
-@@ -111,6 +111,15 @@ export type SocialServiceFetchFeedAction = {
+@@ -111,6 +111,10 @@ export type SocialServiceFetchFeedAction = {
      type: `SocialService:fetchFeed`;
      handler: SocialService['fetchFeed'];
  };
-+/**
-+ * Fetches a page of positions in one token, most recently traded first.
-+ *
-+ * Calls `GET ${baseUrl}/tokens/${chain}/${contractAddress}/feed`.
-+ */
 +export type SocialServiceFetchTokenFeedAction = {
 +    type: `SocialService:fetchTokenFeed`;
 +    handler: SocialService['fetchTokenFeed'];
@@ -18,7 +13,7 @@ index f6d2ce02ae2c279598ff59b54ac905d27922573c..b891910b95e3322b946be5d75b3fe88d
  /**
   * Adds or replaces the current user's reaction on a swap comment (Call).
   *
-@@ -219,5 +228,5 @@ export type SocialServiceRefreshNotificationPreferencesCacheAction = {
+@@ -219,5 +223,5 @@ export type SocialServiceRefreshNotificationPreferencesCacheAction = {
  /**
   * Union of all SocialService action types.
   */
@@ -39,15 +34,10 @@ index 2ced30e595280ccc90093aa835a06fcd52840979..63a30e769e7fa6d53b5c22761ed20cb8
  import type { SocialServiceMethodActions } from './SocialService-method-action-types.js';
  export type SocialServiceActions = SocialServiceMethodActions | DataServiceInvalidateQueriesAction<typeof serviceName>;
  export type SocialServiceEvents = DataServiceCacheUpdatedEvent<typeof serviceName> | DataServiceGranularCacheUpdatedEvent<typeof serviceName>;
-@@ -108,6 +108,12 @@ export declare class SocialService extends BaseDataService<typeof serviceName, S
+@@ -108,6 +108,7 @@ export declare class SocialService extends BaseDataService<typeof serviceName, S
       * @returns The feed response with items and pagination cursors.
       */
      fetchFeed(options?: FetchFeedOptions): Promise<FeedResponse>;
-+    /**
-+     * Fetches a page of positions in one token, most recently traded first.
-+     *
-+     * Calls `GET ${baseUrl}/tokens/${chain}/${contractAddress}/feed`.
-+     */
 +    fetchTokenFeed(options: FetchTokenFeedOptions): Promise<FeedResponse>;
      /**
       * Adds or replaces the current user's reaction on a swap comment (Call).
@@ -56,47 +46,33 @@ diff --git a/dist/SocialService.js b/dist/SocialService.js
 index ce95abbcd04aef74490233db5ab7b84c47d3d1f9..b8d92b865e18a5d7c68b3ea4b6b3a361f9f547d7 100644
 --- a/dist/SocialService.js
 +++ b/dist/SocialService.js
-@@ -436,6 +436,44 @@ export class SocialService extends BaseDataService {
+@@ -436,6 +436,30 @@ export class SocialService extends BaseDataService {
          });
          return feedResponse;
      }
-+    /**
-+     * Fetches a page of positions in one token, most recently traded first.
-+     *
-+     * Calls `GET ${baseUrl}/tokens/${chain}/${contractAddress}/feed`.
-+     */
 +    async fetchTokenFeed(options) {
-+        const tokenFeedResponse = await this.fetchQuery({
++        return this.fetchQuery({
 +            queryKey: [`${this.name}:fetchTokenFeed`, options],
 +            staleTime: 0,
 +            queryFn: async () => {
 +                const { chain, contractAddress, status, limit, olderThan, newerThan } = options;
 +                const url = new URL(`${this.#v1Url}/tokens/${encodeURIComponent(chain)}/${encodeURIComponent(contractAddress)}/feed`);
-+                if (status) {
++                if (status)
 +                    url.searchParams.append('status', status);
-+                }
-+                if (limit !== undefined) {
++                if (limit !== undefined)
 +                    url.searchParams.append('limit', String(limit));
-+                }
-+                if (olderThan) {
++                if (olderThan)
 +                    url.searchParams.append('olderThan', olderThan);
-+                }
-+                if (newerThan) {
++                if (newerThan)
 +                    url.searchParams.append('newerThan', newerThan);
-+                }
-+                const authHeaders = await this.#getAuthHeaders();
-+                const response = await fetch(url.toString(), {
-+                    headers: authHeaders,
-+                });
++                const response = await fetch(url.toString(), { headers: await this.#getAuthHeaders() });
 +                _a.#throwIfNotOk(response, SocialServiceErrorMessage.FETCH_TOKEN_FEED_FAILED);
 +                const feedData = await response.json();
-+                if (!is(feedData, FeedResponseStruct)) {
++                if (!is(feedData, FeedResponseStruct))
 +                    throw new Error(SocialServiceErrorMessage.FETCH_TOKEN_FEED_INVALID_RESPONSE);
-+                }
 +                return feedData;
 +            },
 +        });
-+        return tokenFeedResponse;
 +    }
      /**
       * Adds or replaces the current user's reaction on a swap comment (Call).
@@ -147,32 +123,17 @@ diff --git a/dist/social-types.d.ts b/dist/social-types.d.ts
 index 2e800733969fcc9a352d5ac755136c342866d4e7..ff4cc31b8f216837e76a8ccd681cee6c05f23459 100644
 --- a/dist/social-types.d.ts
 +++ b/dist/social-types.d.ts
-@@ -388,6 +388,30 @@ export type FetchFollowersOptions = {
+@@ -388,6 +388,15 @@ export type FetchFollowersOptions = {
      /** Wallet address or Clicker profile ID. */
      addressOrId: string;
  };
 +export type TokenFeedStatus = 'open' | 'closed';
-+/**
-+ * Options for `GET /v1/tokens/:chain/:contractAddress/feed`.
-+ */
 +export type FetchTokenFeedOptions = {
-+    /**
-+     * Chain name where the token is deployed (`base`, `bsc`, `ethereum`,
-+     * `hyperliquid`, `robinhood`, or `solana`).
-+     */
 +    chain: string;
-+    /** Token contract address. */
 +    contractAddress: string;
-+    /**
-+     * Only open or only closed positions. Omit for both. Closed positions are
-+     * limited to the API's recent lookback.
-+     */
 +    status?: TokenFeedStatus;
-+    /** Number of results to return (1–100). Server default is 25. */
 +    limit?: number;
-+    /** Cursor for older items (infinite scroll). Use `pagination.olderCursor`. */
 +    olderThan?: string;
-+    /** Cursor for newer items (pull to refresh). Use `pagination.newerCursor`. */
 +    newerThan?: string;
 +};
  export type FetchFeedOptions = {

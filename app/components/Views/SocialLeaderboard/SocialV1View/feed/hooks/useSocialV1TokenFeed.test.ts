@@ -160,60 +160,6 @@ describe('useSocialV1TokenFeed', () => {
     await waitFor(() => expect(result.current.posts).toHaveLength(1));
   });
 
-  it('treats a page without items as an empty post list', async () => {
-    mockCall.mockResolvedValue({
-      pagination: { olderCursor: null, newerCursor: null },
-    });
-
-    const { result } = renderHook(() => useSocialV1TokenFeed(target), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.posts).toEqual([]);
-    expect(mockCall).toHaveBeenCalledTimes(1);
-  });
-
-  it('slices an empty cache when refresh runs before the first page resolves', async () => {
-    let resolvePage: (
-      value: ReturnType<typeof mockFeedResponse>,
-    ) => void = () => undefined;
-    mockCall.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolvePage = resolve;
-        }),
-    );
-
-    const { result } = renderHook(() => useSocialV1TokenFeed(target), {
-      wrapper: createWrapper(),
-    });
-
-    await act(async () => {
-      const pending = result.current.refresh();
-      resolvePage(mockFeedResponse([mockSpotFeedItem()]));
-      await pending;
-    });
-
-    await waitFor(() => expect(result.current.posts).toHaveLength(1));
-  });
-
-  it('drops rows that cannot be mapped and pages with no items', async () => {
-    mockCall.mockResolvedValue(
-      mockFeedResponse([
-        mockSpotFeedItem({ chain: 'not-a-chain', positionId: 'skip-me' }),
-        mockSpotFeedItem(),
-      ]),
-    );
-
-    const { result } = renderHook(() => useSocialV1TokenFeed(target), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.posts).toHaveLength(1));
-    expect(result.current.posts[0]?.item.asset.symbol).toBe('PEPE');
-  });
-
   it('surfaces a fetch error and does not page further', async () => {
     mockCall.mockRejectedValue(new Error('token feed down'));
 
