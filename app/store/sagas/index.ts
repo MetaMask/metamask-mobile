@@ -422,6 +422,19 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
+    // Password and biometric unlock dispatch SET_COMPLETED_ONBOARDING from the
+    // login or lock screen, before navigateToPostUnlockHome reads the pending
+    // link. Consuming it here clears the URL, then the home reset replaces any
+    // navigation this parse managed to start.
+    const currentRouteName = NavigationService.getCurrentRoute()?.name;
+    if (
+      value.type === SET_COMPLETED_ONBOARDING &&
+      (currentRouteName === Routes.ONBOARDING.LOGIN ||
+        currentRouteName === Routes.LOCK_SCREEN)
+    ) {
+      continue;
+    }
+
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
       AppStateEventProcessor.pendingDeeplinkSource ??
