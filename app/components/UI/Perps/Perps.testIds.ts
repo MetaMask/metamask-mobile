@@ -1183,6 +1183,7 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
 export const PerpsLeverageBottomSheetSelectorsIDs = {
   PICKER: 'perps-leverage-picker',
   PICKER_ITEM: 'perps-leverage-picker-item',
+  PRICE_SUMMARY: 'perps-leverage-price-summary',
   CURRENT_PRICE_VALUE: 'perps-leverage-current-price-value',
   LIQUIDATION_PRICE_VALUE: 'perps-leverage-liquidation-price-value',
   LIQUIDATION_PRICE_SKELETON: 'perps-leverage-liquidation-price-skeleton',

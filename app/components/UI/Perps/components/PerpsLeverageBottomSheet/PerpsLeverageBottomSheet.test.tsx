@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import {
@@ -30,16 +31,6 @@ jest.mock('react-native-gesture-handler', () => {
         return ReactActual.createElement(RNScrollView, props);
       },
     ),
-  };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const actual = jest.requireActual('@metamask/design-system-twrnc-preset');
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return {
-    ...actual,
-    useTailwind: () => tw,
   };
 });
 
@@ -209,6 +200,29 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(
         screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION),
       ).toHaveTextContent('perps.order.leverage_modal.description');
+    });
+
+    it('insets the price rows level with the rest of the sheet', () => {
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} presentation="screen" />,
+      );
+
+      // KeyValueRow already insets itself by px-4, so the container grouping
+      // the two price rows must not add a second one — that is what pushed
+      // them out of line with the description and the footer button.
+      const summaryStyle = StyleSheet.flatten(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.PRICE_SUMMARY)
+          .props.style,
+      );
+      const descriptionStyle = StyleSheet.flatten(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION)
+          .props.style,
+      );
+
+      expect(summaryStyle.paddingLeft).toBeUndefined();
+      expect(summaryStyle.paddingRight).toBeUndefined();
+      expect(descriptionStyle.paddingLeft).toBe(16);
+      expect(descriptionStyle.paddingRight).toBe(16);
     });
 
     it('returns null when hidden', () => {
