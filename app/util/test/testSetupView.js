@@ -340,6 +340,9 @@ jest.mock('react-native-quick-crypto', () => {
       : (mockNodeCrypto.randomFillSync(arr), arr);
 
   return {
+    createHmac: jest.fn((algorithm, key) =>
+      mockNodeCrypto.createHmac(algorithm, key),
+    ),
     getRandomValues: jest.fn((array) => getRandomValuesCompatLocal(array)),
     subtle: {
       importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) =>

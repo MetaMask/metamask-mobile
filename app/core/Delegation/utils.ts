@@ -1,4 +1,5 @@
 /* eslint-disable no-plusplus */
+import { keccak256 } from '@metamask/native-utils';
 import {
   bytesToHex,
   isHexString,
@@ -10,7 +11,6 @@ import {
   stringToBytes,
   type Hex,
 } from '@metamask/utils';
-import { keccak } from 'ethereumjs-util';
 
 type Address = Hex;
 
@@ -239,7 +239,7 @@ function normalizeSignature(signature: string): string {
 }
 
 function hashSignature(fn: string) {
-  return keccak(Buffer.from(stringToBytes(normalizeSignature(fn))));
+  return keccak256(stringToBytes(normalizeSignature(fn)));
 }
 /**
  * Returns the function selector for a given function definition.
