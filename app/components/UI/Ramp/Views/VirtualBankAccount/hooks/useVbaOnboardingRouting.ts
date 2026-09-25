@@ -13,7 +13,10 @@ import {
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
-import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import {
+  getVbaVendorTermsAcceptance,
+  hasAcceptedVbaVendorTerms,
+} from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes } from '../routes';
 
 export const navigateToVbaOnboardingDestination = (
@@ -84,6 +87,28 @@ export const useOpenVbaOnboarding = (
           await Engine.context.RampsController.hydrateVbaOnboarding({
             walletAddress,
           });
+        if (
+          accountSnapshot.sessionExists &&
+          !accountSnapshot.vendorDisclaimersComplete
+        ) {
+          try {
+            const vendorTermsAcceptance =
+              await getVbaVendorTermsAcceptance(walletAddress);
+            if (vendorTermsAcceptance?.disclaimerIds.length) {
+              await Engine.context.KycController.recordVendorDisclaimers({
+                disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+              });
+            }
+          } catch (error) {
+            Logger.error(error as Error, {
+              tags: { feature: 'vba-onboarding' },
+              context: {
+                name: 'useOpenVbaOnboarding',
+                data: { source, step: 'recordVendorDisclaimers' },
+              },
+            });
+          }
+        }
         const snapshot: VbaOnboardingSnapshot = {
           ...accountSnapshot,
           vendorTermsAcceptedLocally:
