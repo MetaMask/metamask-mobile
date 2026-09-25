@@ -33,7 +33,7 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        
+
         await WalletView.waitForBalanceToStabilize();
         await AppiumGestures.terminateApp(currentDeviceDetails);
 
