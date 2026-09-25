@@ -44,6 +44,8 @@ export function getAccountTreeControllerMessenger(
       'MultichainAccountService:createMultichainAccountGroups',
       // account-tree-controller ^8.0.0: required for :{import,export}State
       'MultichainAccountService:createMultichainAccountWallet',
+      'MultichainAccountService:removeMultichainAccountWallet',
+      'KeyringController:removeAccount',
       'SnapController:getSnap',
       'KeyringController:getState',
       'KeyringController:verifyPassword',
