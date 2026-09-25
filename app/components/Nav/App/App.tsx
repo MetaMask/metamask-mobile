@@ -251,11 +251,7 @@ const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
 
-const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
-
-const SocialLoginSuccessExistingUser = () => (
-  <SocialLoginIosUser type="existing" />
-);
+const SocialLoginSuccessExistingUser = () => <SocialLoginIosUser />;
 
 const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
@@ -325,11 +321,6 @@ const OnboardingNav = () => {
           headerShown: false,
           contentStyle: { backgroundColor: onboardingCanvasColor },
         }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
-        component={SocialLoginSuccessNewUser}
-        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="ChoosePassword"

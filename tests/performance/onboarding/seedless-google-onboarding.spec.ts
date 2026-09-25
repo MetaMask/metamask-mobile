@@ -93,54 +93,23 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       let isNewUser = true;
       let postOauthScreen: OnboardingScreenId = 'choose_pw';
 
-      if (platform === 'ios') {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
-          postOauthScreen =
-            result === 'new_user'
-              ? 'social_login_success_new_user'
-              : 'account_already_exists';
-        });
-        trackTimer(performanceTracker, timer2);
-        await captureOnboardingTtc(
-          performanceTracker,
-          postOauthScreen,
-          platform,
-        );
-
-        if (isNewUser) {
-          await SocialLoginView.tapIosNewUserSetPinButton();
-          await timer3.measure(async () => {
-            await CreatePasswordView.isVisible();
-          });
-          trackTimer(performanceTracker, timer3);
-          await captureOnboardingTtc(performanceTracker, 'choose_pw', platform);
-        }
-      } else {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            CreatePasswordView.isVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
-          postOauthScreen =
-            result === 'new_user' ? 'choose_pw' : 'account_already_exists';
-        });
-        trackTimer(performanceTracker, timer2);
-        await captureOnboardingTtc(
-          performanceTracker,
-          postOauthScreen,
-          platform,
-        );
-      }
+      await timer2.measure(async () => {
+        const result = await waitForFirstSuccessful([
+          CreatePasswordView.isVisible().then(() => 'new_user'),
+          SocialLoginView.isAccountFoundScreenVisible().then(
+            () => 'existing_user',
+          ),
+        ]);
+        isNewUser = result === 'new_user';
+        postOauthScreen =
+          result === 'new_user' ? 'choose_pw' : 'account_already_exists';
+      });
+      trackTimer(performanceTracker, timer2);
+      await captureOnboardingTtc(
+        performanceTracker,
+        postOauthScreen,
+        platform,
+      );
 
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);

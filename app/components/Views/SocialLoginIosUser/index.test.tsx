@@ -19,7 +19,6 @@ jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
 }));
 
-// Mock navigation
 const mockReplace = jest.fn();
 
 const mockNavigation = {
@@ -66,173 +65,73 @@ describe('SocialLoginIosUser', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
+    (useRoute as jest.Mock).mockReturnValue(mockRoute);
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
   });
 
-  describe('SocialLoginSuccessNewUser', () => {
-    beforeEach(() => {
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
-      (useRoute as jest.Mock).mockReturnValue(mockRoute);
-    });
-
-    it('renders correctly', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginIosUser type="new" />,
-      );
-      expect(
-        getByText(strings('social_login_ios_user.new_user_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders correctly with medium device', () => {
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { getByText } = renderWithProvider(
-        <SocialLoginIosUser type="new" />,
-      );
-      expect(
-        getByText(strings('social_login_ios_user.new_user_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders title and button with correct text', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginIosUser type="new" />,
-      );
-      expect(
-        getByText(strings('social_login_ios_user.new_user_title')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('social_login_ios_user.new_user_button')),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigate to rehydrate screen on click of secure wallet button', () => {
-      const { getByTestId } = renderWithProvider(
-        <SocialLoginIosUser type="new" />,
-      );
-      const secureWalletButton = getByTestId(
-        OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
-      );
-      fireEvent.press(secureWalletButton);
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
-        Routes.ONBOARDING.CHOOSE_PASSWORD,
-        {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true,
-          accountName: 'test@example.com',
-          provider: 'google',
-        },
-      );
-    });
-
-    it('tracks viewed and CTA events with account_type', () => {
-      const { getByTestId } = renderWithProvider(
-        <SocialLoginIosUser type="new" />,
-      );
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        is_new_user: true,
-        account_type: AccountType.MetamaskGoogle,
-      });
-      expect(mockTrackEvent).toHaveBeenCalledWith('mockEvent');
-
-      const secureWalletButton = getByTestId(
-        OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
-      );
-      fireEvent.press(secureWalletButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenLastCalledWith({
-        is_new_user: true,
-        account_type: AccountType.MetamaskGoogle,
-      });
-    });
+  it('renders correctly', () => {
+    const { getByText } = renderWithProvider(<SocialLoginIosUser />);
+    expect(
+      getByText(strings('social_login_ios_user.existing_user_title')),
+    ).toBeOnTheScreen();
   });
 
-  describe('SocialLoginSuccessExistingUser', () => {
-    beforeEach(() => {
-      (useRoute as jest.Mock).mockReturnValue(mockRoute);
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
+  it('renders correctly with medium device', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+    const { getByText } = renderWithProvider(<SocialLoginIosUser />);
+    expect(
+      getByText(strings('social_login_ios_user.existing_user_title')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders title and button with correct text', () => {
+    const { getByText } = renderWithProvider(<SocialLoginIosUser />);
+    expect(
+      getByText(strings('social_login_ios_user.existing_user_title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('social_login_ios_user.existing_user_button')),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigate to rehydrate screen on click of unlock wallet button', () => {
+    const { getByTestId } = renderWithProvider(<SocialLoginIosUser />);
+    const unlockWalletButton = getByTestId(
+      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
+    );
+    fireEvent.press(unlockWalletButton);
+    expect(mockNavigation.replace).toHaveBeenCalledWith(
+      Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+      {
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      },
+    );
+  });
+
+  it('tracks viewed and CTA events with imported account_type', () => {
+    const { getByTestId } = renderWithProvider(<SocialLoginIosUser />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      is_new_user: false,
+      account_type: AccountType.ImportedGoogle,
     });
 
-    it('renders correctly', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginIosUser type="existing" />,
-      );
-      expect(
-        getByText(strings('social_login_ios_user.existing_user_title')),
-      ).toBeOnTheScreen();
-    });
+    const unlockWalletButton = getByTestId(
+      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
+    );
+    fireEvent.press(unlockWalletButton);
 
-    it('renders correctly with medium device', () => {
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { getByText } = renderWithProvider(
-        <SocialLoginIosUser type="existing" />,
-      );
-      expect(
-        getByText(strings('social_login_ios_user.existing_user_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders title and button with correct text', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginIosUser type="existing" />,
-      );
-      expect(
-        getByText(strings('social_login_ios_user.existing_user_title')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('social_login_ios_user.existing_user_button')),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigate to rehydrate screen on click of secure wallet button', () => {
-      const { getByTestId } = renderWithProvider(
-        <SocialLoginIosUser type="existing" />,
-      );
-      const secureWalletButton = getByTestId(
-        OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
-      );
-      fireEvent.press(secureWalletButton);
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
-        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
-        {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true,
-          provider: 'google',
-        },
-      );
-    });
-
-    it('tracks viewed and CTA events with imported account_type', () => {
-      const { getByTestId } = renderWithProvider(
-        <SocialLoginIosUser type="existing" />,
-      );
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        is_new_user: false,
-        account_type: AccountType.ImportedGoogle,
-      });
-
-      const secureWalletButton = getByTestId(
-        OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
-      );
-      fireEvent.press(secureWalletButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenLastCalledWith({
-        is_new_user: false,
-        account_type: AccountType.ImportedGoogle,
-      });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenLastCalledWith({
+      is_new_user: false,
+      account_type: AccountType.ImportedGoogle,
     });
   });
 });

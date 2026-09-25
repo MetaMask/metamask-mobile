@@ -904,7 +904,6 @@ describe('App', () => {
     });
 
     it('has social login routes defined', () => {
-      expect(Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER).toBeDefined();
       expect(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
       ).toBeDefined();

@@ -34,37 +34,26 @@ import { useNavigationPerformance } from '../../../hooks/performance/useNavigati
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
-interface SocialLoginIosUserProps {
-  type: 'new' | 'existing';
-}
-
-const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
+const SocialLoginIosUser: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { accountName, oauthLoginSuccess, provider } =
+  const { provider } =
     (route.params as {
-      accountName?: string;
-      oauthLoginSuccess?: boolean;
       provider?: string;
     }) || {};
 
-  const isUserTypeNew = type === 'new';
-  const accountType = getSocialAccountType(provider ?? '', !isUserTypeNew);
+  const accountType = getSocialAccountType(provider ?? '', true);
 
   useNavigationPerformance({
-    destinationScreenId: isUserTypeNew
-      ? OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_NEW_USER
-      : OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+    destinationScreenId: OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
     destinationReady: true,
   });
 
   useScreenPerformance({
-    screenId: isUserTypeNew
-      ? OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_NEW_USER
-      : OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+    screenId: OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
     contentReady: true,
     isEmpty: false,
   });
@@ -76,37 +65,18 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED)
         .addProperties({
-          is_new_user: isUserTypeNew,
+          is_new_user: false,
           account_type: accountType,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder, isUserTypeNew, accountType]);
-
-  const handleSetMetaMaskPin = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED)
-        .addProperties({
-          is_new_user: isUserTypeNew,
-          account_type: accountType,
-        })
-        .build(),
-    );
-    navigation.dispatch(
-      StackActions.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess,
-        accountName,
-        provider,
-      }),
-    );
-  };
+  }, [trackEvent, createEventBuilder, accountType]);
 
   const handleSecureWallet = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED)
         .addProperties({
-          is_new_user: isUserTypeNew,
+          is_new_user: false,
           account_type: accountType,
         })
         .build(),
@@ -169,37 +139,21 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           <Text
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
-            testID={
-              isUserTypeNew
-                ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE
-                : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE
-            }
+            testID={OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE}
           >
-            {strings(
-              isUserTypeNew
-                ? 'social_login_ios_user.new_user_title'
-                : 'social_login_ios_user.existing_user_title',
-            )}
+            {strings('social_login_ios_user.existing_user_title')}
           </Text>
         </Box>
 
         <Button
           variant={ButtonVariant.Primary}
-          testID={
-            isUserTypeNew
-              ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
-              : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
-          }
+          testID={OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON}
           isFullWidth
           size={isMedium ? ButtonSize.Md : ButtonSize.Lg}
-          onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
+          onPress={handleSecureWallet}
           twClassName="w-full mb-4"
         >
-          {strings(
-            isUserTypeNew
-              ? 'social_login_ios_user.new_user_button'
-              : 'social_login_ios_user.existing_user_button',
-          )}
+          {strings('social_login_ios_user.existing_user_button')}
         </Button>
       </Box>
     </SafeAreaView>

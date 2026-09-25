@@ -706,7 +706,6 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   OnboardingNav: undefined;
-  SocialLoginSuccessNewUser: SocialLoginRouteParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;

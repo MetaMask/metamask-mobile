@@ -150,10 +150,7 @@ export function renderAccountNotFound(
   );
 }
 
-const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
-const SocialLoginSuccessExistingUser = () => (
-  <SocialLoginIosUser type="existing" />
-);
+const SocialLoginSuccessExistingUser = () => <SocialLoginIosUser />;
 
 interface SocialLoginIosUserRendererOptions {
   overrides?: DeepPartial<RootState>;
@@ -162,26 +159,6 @@ interface SocialLoginIosUserRendererOptions {
     oauthLoginSuccess?: boolean;
     provider?: string;
   };
-}
-
-export function renderSocialLoginIosNewUser(
-  options: SocialLoginIosUserRendererOptions = {},
-) {
-  syncSeedlessAccessToken();
-
-  const defaultParams = {
-    accountName: 'seedless-cv@example.com',
-    oauthLoginSuccess: true,
-    provider: AuthConnection.Google,
-  };
-
-  return renderScreenWithRoutes(
-    SocialLoginSuccessNewUser as unknown as React.ComponentType,
-    { name: Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER },
-    [{ name: Routes.ONBOARDING.CHOOSE_PASSWORD }],
-    { state: buildSeedlessOnboardingState(options) },
-    { ...defaultParams, ...options.routeParams },
-  );
 }
 
 export function renderSocialLoginIosExistingUser(

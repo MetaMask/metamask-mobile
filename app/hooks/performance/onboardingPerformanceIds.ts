@@ -20,7 +20,6 @@ export const OnboardingScreenIds = {
   ACCOUNT_ALREADY_EXISTS: 'account_already_exists',
   ACCOUNT_NOT_FOUND: 'account_not_found',
   SOCIAL_REHYDRATE: 'social_rehydrate',
-  SOCIAL_LOGIN_SUCCESS_NEW_USER: 'social_login_success_new_user',
   SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'social_login_success_existing_user',
 } as const;
 

@@ -8,31 +8,6 @@ import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/
 import { AccountStatusSelectorIDs } from '../../../app/components/Views/AccountStatus/AccountStatus.testIds';
 
 class SocialLoginView {
-  get iosNewUserTitle(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE,
-    );
-  }
-
-  get iosNewUserButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
-    );
-  }
-
-  async isIosNewUserScreenVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.iosNewUserTitle, {
-      timeout: 30000,
-      description: 'iOS New User Social Login screen should be visible',
-    });
-  }
-
-  async tapIosNewUserSetPinButton(): Promise<void> {
-    await Gestures.waitAndTap(this.iosNewUserButton, {
-      elemDescription: 'Set MetaMask PIN button on iOS new user screen',
-    });
-  }
-
   get iosExistingUserTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,

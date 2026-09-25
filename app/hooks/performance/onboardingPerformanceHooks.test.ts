@@ -387,7 +387,7 @@ describe('onboarding performance hooks', () => {
     ],
     ['AccountAlreadyExists / AccountNotFound', 'AccountStatus/index.tsx'],
     [
-      Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+      Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
       'SocialLoginIosUser/index.tsx',
     ],
   ])('instruments the registered %s destination', (_routeName, entry) => {

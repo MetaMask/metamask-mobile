@@ -1085,7 +1085,7 @@ describe('Onboarding', () => {
       });
     });
 
-    it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
+    it('calls Google OAuth login for create wallet flow on iOS and navigates to ChoosePassword', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1140,9 +1140,9 @@ describe('Onboarding', () => {
         }),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
-          accountName: 'test@example.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
         }),
       );
@@ -1195,9 +1195,8 @@ describe('Onboarding', () => {
         false,
         expect.anything(),
       );
-      // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        'ChoosePassword',
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
@@ -1208,7 +1207,7 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
-    it('calls Apple OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
+    it('calls Apple OAuth login for create wallet flow on iOS and navigates to ChoosePassword', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1254,11 +1253,10 @@ describe('Onboarding', () => {
         false,
         expect.anything(),
       );
-      // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
-          accountName: 'test@icloud.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
         }),
       );
@@ -2287,11 +2285,7 @@ describe('Onboarding', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        'ChoosePassword',
-        expect.anything(),
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.anything(),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(
