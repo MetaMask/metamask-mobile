@@ -812,6 +812,50 @@ export const runQuoteRequestCases = ({
       }
     });
 
+    it.each(['0', ''])(
+      'cancels an in-flight quote trace when source amount becomes %s',
+      async (clearedSourceAmount) => {
+        const { result, rerender } = renderUseBridgeQuoteRequest({
+          sourceAmount: '1',
+        });
+
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        const startedTraceId = mockTrace.mock.calls[0][0].id as string;
+        mockEndTrace.mockClear();
+        spyUpdateBridgeQuoteRequestParams.mockClear();
+
+        jest
+          .spyOn(bridgeSlice, 'selectSourceAmount')
+          .mockReturnValue(clearedSourceAmount);
+        rerender?.(undefined);
+
+        await act(async () => {
+          result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.SwapQuoteFetch,
+            id: startedTraceId,
+            data: { result: 'cancelled' },
+          }),
+        );
+      },
+    );
+
     it('converts source amount to wei with 18 decimals', async () => {
       const { result } = renderUseBridgeQuoteRequest({
         sourceAmount: '1.5',

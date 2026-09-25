@@ -103,6 +103,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
           // if quoteRequest has no src amount, don't trace
           !isValidQuoteRequest(genericQuoteRequest, true)
         ) {
+          cancelOwnedTrace();
           return updateQuoteParams(requestOptions);
         }
 
