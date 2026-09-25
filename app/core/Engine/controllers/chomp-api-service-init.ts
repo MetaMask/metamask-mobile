@@ -40,7 +40,7 @@ export const chompApiServiceInit: MessengerClientInitFunction<
 
   let baseUrl: string;
   if (devOverrideUrl) {
-    Logger.log(LOG_PREFIX, `MM_DEV_API_ENV=${env}; using env URL`, {
+    Logger.log(LOG_PREFIX, `API_ENV=${env}; using env URL`, {
       baseUrl: devOverrideUrl,
     });
     baseUrl = devOverrideUrl;

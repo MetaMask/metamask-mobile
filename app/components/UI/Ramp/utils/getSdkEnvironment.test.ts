@@ -3,31 +3,31 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 
 describe('getSdkEnvironment', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
-  const originalApiEnv = process.env.MM_DEV_API_ENV;
+  const originalApiEnv = process.env.API_ENV;
 
   beforeEach(() => {
-    delete process.env.MM_DEV_API_ENV;
+    delete process.env.API_ENV;
   });
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
     if (originalApiEnv !== undefined) {
-      process.env.MM_DEV_API_ENV = originalApiEnv;
+      process.env.API_ENV = originalApiEnv;
     } else {
-      delete process.env.MM_DEV_API_ENV;
+      delete process.env.API_ENV;
     }
   });
 
-  describe('when MM_DEV_API_ENV is set', () => {
-    it('returns Staging when MM_DEV_API_ENV is dev', () => {
+  describe('when API_ENV is set', () => {
+    it('returns Staging when API_ENV is dev', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.MM_DEV_API_ENV = 'dev';
+      process.env.API_ENV = 'dev';
       expect(getSdkEnvironment()).toBe(SdkEnvironment.Staging);
     });
 
-    it('returns Production when MM_DEV_API_ENV is prod', () => {
+    it('returns Production when API_ENV is prod', () => {
       process.env.METAMASK_ENVIRONMENT = 'dev';
-      process.env.MM_DEV_API_ENV = 'prod';
+      process.env.API_ENV = 'prod';
       expect(getSdkEnvironment()).toBe(SdkEnvironment.Production);
     });
   });

@@ -24,6 +24,30 @@ function getRemoteFFEnv(env: string | undefined): string {
 }
 
 /**
+ * `API_ENV` overrides the build flavor. Otherwise dev → dev, exp → uat,
+ * and every other flavor → prod. Matches `devApiEnv()` in the app.
+ */
+function resolveApiEnv(
+  apiEnv: string | undefined,
+  metamaskEnvironment: string | undefined,
+): string {
+  const override = (apiEnv ?? '').toLowerCase();
+  if (override === 'dev' || override === 'uat' || override === 'prod') {
+    return override;
+  }
+
+  switch ((metamaskEnvironment ?? '').toLowerCase()) {
+    case 'dev':
+      return 'dev';
+    case 'exp':
+    case 'uat':
+      return 'uat';
+    default:
+      return 'prod';
+  }
+}
+
+/**
  * Maps METAMASK_BUILD_TYPE to Remote Feature Flag Distribution display value
  */
 function getRemoteFFDistribution(buildType: string | undefined): string {
@@ -61,7 +85,10 @@ export function buildEnvValidationSection(
   const buildType = result.extractedValues.METAMASK_BUILD_TYPE ?? '—';
   const rewardsUrl = result.extractedValues.REWARDS_API_URL ?? '—';
   const portfolioUrl = result.extractedValues.MM_PORTFOLIO_URL ?? '—';
-  const apiEnv = result.extractedValues.MM_DEV_API_ENV ?? 'prod';
+  const apiEnv = resolveApiEnv(
+    result.extractedValues.API_ENV,
+    result.extractedValues.METAMASK_ENVIRONMENT,
+  );
 
   // Main environment info table (like About MetaMask screen)
   lines.push('| Setting | Value |');

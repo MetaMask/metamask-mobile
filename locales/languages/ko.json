@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "식별 정보",
-        "description": "저장된 인증 세션을 삭제합니다. MM_DEV_API_ENV를 변경한 후에는 이 작업을 수행하세요. 그러지 않으면 프로덕션 환경에서 발급된 JWT가 만료될 때까지 계속 개발 API에 전달됩니다. 현재 MM_DEV_API_ENV: {{env}}",
+        "description": "저장된 인증 세션을 삭제합니다. API_ENV를 변경한 후에는 이 작업을 수행하세요. 그러지 않으면 프로덕션 환경에서 발급된 JWT가 만료될 때까지 계속 개발 API에 전달됩니다. 현재 API_ENV: {{env}}",
         "clear_auth_session_button": "저장된 인증 세션 삭제"
       },
       "notifications": {

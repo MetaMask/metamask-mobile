@@ -139,7 +139,7 @@ const loadAgenticCliQrLogin = (
 
 describe('AgenticCliQrLoginService', () => {
   const originalFetch = global.fetch;
-  const originalMmDevApiEnv = process.env.MM_DEV_API_ENV;
+  const originalMmDevApiEnv = process.env.API_ENV;
 
   const createMockConnection = (): jest.Mocked<Connection> =>
     ({
@@ -151,7 +151,7 @@ describe('AgenticCliQrLoginService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.MM_DEV_API_ENV = 'dev';
+    process.env.API_ENV = 'dev';
     mockGetBearerToken.mockResolvedValue('hydra-token');
     mockIsUnlocked.mockReturnValue(true);
     (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
@@ -166,9 +166,9 @@ describe('AgenticCliQrLoginService', () => {
   afterEach(() => {
     global.fetch = originalFetch;
     if (originalMmDevApiEnv === undefined) {
-      delete process.env.MM_DEV_API_ENV;
+      delete process.env.API_ENV;
     } else {
-      process.env.MM_DEV_API_ENV = originalMmDevApiEnv;
+      process.env.API_ENV = originalMmDevApiEnv;
     }
   });
 
@@ -341,8 +341,8 @@ describe('AgenticCliQrLoginService', () => {
     });
   });
 
-  it('uses prod auth API when MM_DEV_API_ENV is prod', async () => {
-    process.env.MM_DEV_API_ENV = 'prod';
+  it('uses prod auth API when API_ENV is prod', async () => {
+    process.env.API_ENV = 'prod';
     const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
     const conn = createMockConnection();
 

@@ -5213,7 +5213,7 @@
       },
       "identity": {
         "title": "Identity",
-        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
       "notifications": {

@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Identidad",
-        "description": "Borra la sesión de autenticación persistente. Usa esta opción después de alternar MM_DEV_API_ENV; de lo contrario, se seguirá entregando un JWT generado en producción a los consumidores de la API de desarrollo hasta que caduque. MM_DEV_API_ENV actual: {{env}}.",
+        "description": "Borra la sesión de autenticación persistente. Usa esta opción después de alternar API_ENV; de lo contrario, se seguirá entregando un JWT generado en producción a los consumidores de la API de desarrollo hasta que caduque. API_ENV actual: {{env}}.",
         "clear_auth_session_button": "Borrar sesión de autenticación persistente"
       },
       "notifications": {

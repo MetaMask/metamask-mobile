@@ -51,27 +51,27 @@ describe('authenticatedUserStorageServiceInit', () => {
 });
 
 describe('getAuthenticatedUserStorageEnvironment', () => {
-  // Tracks `MM_DEV_API_ENV` so it agrees with the env the auth controller
+  // Tracks `API_ENV` so it agrees with the env the auth controller
   // mints JWTs for — a PRD token will 403 against dev user-storage and
   // vice versa.
   afterEach(() => {
-    delete process.env.MM_DEV_API_ENV;
+    delete process.env.API_ENV;
   });
 
-  it('returns prod when MM_DEV_API_ENV is unset', () => {
+  it('returns prod when API_ENV is unset', () => {
     expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
   });
 
   it.each(['dev', 'uat', 'prod'] as const)(
-    'tracks MM_DEV_API_ENV=%s',
+    'tracks API_ENV=%s',
     (value) => {
-      process.env.MM_DEV_API_ENV = value;
+      process.env.API_ENV = value;
       expect(getAuthenticatedUserStorageEnvironment()).toBe(value);
     },
   );
 
-  it('falls back to prod for unrecognized MM_DEV_API_ENV values', () => {
-    process.env.MM_DEV_API_ENV = 'nonsense';
+  it('falls back to prod for unrecognized API_ENV values', () => {
+    process.env.API_ENV = 'nonsense';
     expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
   });
 });

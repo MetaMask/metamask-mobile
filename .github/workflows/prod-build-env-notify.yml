@@ -57,7 +57,17 @@ jobs:
           BUILD_TYPE=$(jq -r '.env.METAMASK_BUILD_TYPE' "$JSON_FILE")
           REWARDS_URL=$(jq -r '.env.REWARDS_API_URL' "$JSON_FILE")
           PORTFOLIO_URL=$(jq -r '.env.MM_PORTFOLIO_URL' "$JSON_FILE")
-          API_ENV=$(jq -r '.env.MM_DEV_API_ENV // "prod"' "$JSON_FILE")
+          RAW_API_ENV=$(jq -r '.env.API_ENV // empty' "$JSON_FILE")
+          case "$RAW_API_ENV" in
+            dev|uat|prod) API_ENV="$RAW_API_ENV" ;;
+            *)
+              case "$METAMASK_ENV" in
+                dev) API_ENV="dev" ;;
+                exp|uat) API_ENV="uat" ;;
+                *) API_ENV="prod" ;;
+              esac
+              ;;
+          esac
 
           # Map to Remote Feature Flag values
           case "$METAMASK_ENV" in

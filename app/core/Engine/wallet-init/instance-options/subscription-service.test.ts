@@ -7,18 +7,18 @@ jest.mock('@sentry/react-native', () => ({
 }));
 
 describe('getSubscriptionServiceInstanceOptions', () => {
-  const originalEnv = process.env.MM_DEV_API_ENV;
+  const originalEnv = process.env.API_ENV;
 
   afterEach(() => {
     if (originalEnv === undefined) {
-      delete process.env.MM_DEV_API_ENV;
+      delete process.env.API_ENV;
     } else {
-      process.env.MM_DEV_API_ENV = originalEnv;
+      process.env.API_ENV = originalEnv;
     }
   });
 
   it('builds options with fetch, production env, and Sentry capture by default', () => {
-    delete process.env.MM_DEV_API_ENV;
+    delete process.env.API_ENV;
 
     const options = getSubscriptionServiceInstanceOptions();
 
@@ -29,16 +29,16 @@ describe('getSubscriptionServiceInstanceOptions', () => {
     });
   });
 
-  it('maps MM_DEV_API_ENV=dev to Env.DEV', () => {
-    process.env.MM_DEV_API_ENV = 'dev';
+  it('maps API_ENV=dev to Env.DEV', () => {
+    process.env.API_ENV = 'dev';
 
     const options = getSubscriptionServiceInstanceOptions();
 
     expect(options.env).toBe(Env.DEV);
   });
 
-  it('maps MM_DEV_API_ENV=uat to Env.UAT', () => {
-    process.env.MM_DEV_API_ENV = 'uat';
+  it('maps API_ENV=uat to Env.UAT', () => {
+    process.env.API_ENV = 'uat';
 
     const options = getSubscriptionServiceInstanceOptions();
 

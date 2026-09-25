@@ -41,12 +41,12 @@ describe('IdentityDeveloperOptionsSection', () => {
     expect(getByText('Identity')).toBeDefined();
   });
 
-  it('surfaces the current MM_DEV_API_ENV in the description', () => {
+  it('surfaces the current API_ENV in the description', () => {
     const { getByText } = renderWithProvider(
       <IdentityDeveloperOptionsSection />,
     );
 
-    expect(getByText(/Current MM_DEV_API_ENV: prod/)).toBeDefined();
+    expect(getByText(/Current API_ENV: prod/)).toBeDefined();
   });
 
   it('calls performSignOut when the clear button is pressed', () => {

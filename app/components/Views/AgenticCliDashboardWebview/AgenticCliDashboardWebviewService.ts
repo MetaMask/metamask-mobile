@@ -19,7 +19,7 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/staging-developer\.metamask\.io$/,
 ];
 
-/** Non-prod dashboard hosts used when `MM_DEV_API_ENV=dev`. */
+/** Non-prod dashboard hosts used when `API_ENV=dev`. */
 const DEV_API_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/dev-developer\.metamask\.io$/,

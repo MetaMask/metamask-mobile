@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "Identité",
-        "description": "Efface la session d’authentification mémorisée. Utilisez cette commande après avoir activé ou désactivé MM_DEV_API_ENV ; sinon, un JWT généré en production continuera d’être transmis aux consommateurs de l’API de développement jusqu’à son expiration. Valeur actuelle de MM_DEV_API_ENV : {{env}}.",
+        "description": "Efface la session d’authentification mémorisée. Utilisez cette commande après avoir activé ou désactivé API_ENV ; sinon, un JWT généré en production continuera d’être transmis aux consommateurs de l’API de développement jusqu’à son expiration. Valeur actuelle de API_ENV : {{env}}.",
         "clear_auth_session_button": "Effacer la session d’authentification mémorisée"
       },
       "notifications": {
