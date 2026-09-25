@@ -301,7 +301,7 @@ describe('useGetVipTransactions', () => {
     });
   });
 
-  it('shows cache and suppresses error when first-page fetch fails', async () => {
+  it('keeps cached transactions and reports the error when a first-page fetch fails', async () => {
     mockCall.mockRejectedValueOnce(new Error('Network failure') as never);
     setupSelectors({
       subscriptionId: SUBSCRIPTION_ID,
@@ -315,7 +315,7 @@ describe('useGetVipTransactions', () => {
     });
 
     expect(result.current.transactions).toEqual([MOCK_TX]);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe('Network failure');
   });
 
   it('refresh resets and re-fetches first page with forceFresh', async () => {

@@ -96,26 +96,44 @@ const emptyList = {
   isRefreshing: false,
 };
 
+const fetchReferralFunnel = jest.fn();
+const retryCommissions = jest.fn();
+const retryRebates = jest.fn();
+
 const renderTab = (
   variant: 'REFERRER' | 'REFEREE',
   {
     commissions = [commission],
     rebates = [rebate],
+    commissionsError = null,
+    rebatesError = null,
+    funnelError = false,
+    funnelLoading = false,
+    funnelData = { enrolled: 12, earning_generating: 5 },
   }: {
     commissions?: CommissionEntryView[];
     rebates?: LedgerEarningEntryDto[];
+    commissionsError?: string | null;
+    rebatesError?: string | null;
+    funnelError?: boolean;
+    funnelLoading?: boolean;
+    funnelData?: { enrolled: number; earning_generating: number } | null;
   } = {},
 ) => {
   (useReferralFunnel as jest.Mock).mockReturnValue({
-    fetchReferralFunnel: jest.fn(),
+    fetchReferralFunnel,
   });
   (useCommissions as jest.Mock).mockReturnValue({
     ...emptyList,
     items: commissions,
+    error: commissionsError,
+    retry: retryCommissions,
   });
   (useCashbackLedger as jest.Mock).mockReturnValue({
     ...emptyList,
     items: rebates,
+    error: rebatesError,
+    retry: retryRebates,
   });
 
   return renderWithProvider(
@@ -135,9 +153,9 @@ const renderTab = (
           },
           referralFunnel: {
             [PROFILE_ID]: {
-              loading: false,
-              error: false,
-              data: { enrolled: 12, earning_generating: 5 },
+              loading: funnelLoading,
+              error: funnelError,
+              data: funnelData,
             },
           },
         },
@@ -211,6 +229,121 @@ describe('PerformanceTab', () => {
       expect.anything(),
       Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
     );
+  });
+
+  it('shows a funnel row skeleton while the funnel is loading', () => {
+    const { getByTestId, queryByTestId } = renderTab('REFERRER', {
+      funnelData: null,
+      funnelLoading: true,
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
+  });
+
+  it('shows a referral error above cached funnel data', () => {
+    const { getByTestId, getByText, queryByText } = renderTab('REFERRER', {
+      funnelError: true,
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR),
+    ).toBeOnTheScreen();
+    expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
+    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
+    expect(getByText('BTC')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('Retry'));
+
+    expect(fetchReferralFunnel).toHaveBeenCalledWith({ forceFresh: true });
+    expect(retryCommissions).not.toHaveBeenCalled();
+  });
+
+  it('shows a transactions error above cached commissions', () => {
+    const { getByTestId, getByText, queryByText } = renderTab('REFERRER', {
+      commissionsError: 'failed',
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
+    ).toBeOnTheScreen();
+    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+    expect(queryByText('Referral details couldn’t be loaded')).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
+
+    fireEvent.press(getByText('Retry'));
+
+    expect(retryCommissions).toHaveBeenCalledTimes(1);
+    expect(fetchReferralFunnel).not.toHaveBeenCalled();
+  });
+
+  it('keeps one banner and retries commissions when the funnel also failed', () => {
+    const { getByTestId, getByText, queryByTestId } = renderTab('REFERRER', {
+      commissionsError: 'failed',
+      funnelError: true,
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR)).toBeNull();
+    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
+    expect(getByText('BTC')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('Retry'));
+
+    expect(retryCommissions).toHaveBeenCalledTimes(1);
+    expect(fetchReferralFunnel).not.toHaveBeenCalled();
+  });
+
+  it('retries rebates from the transactions error when only rebates failed', () => {
+    const { getByTestId, getByText, queryByTestId } = renderTab('REFEREE', {
+      rebatesError: 'failed',
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
+    ).toBeNull();
+    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('Retry'));
+
+    expect(retryRebates).toHaveBeenCalledTimes(1);
+    expect(retryCommissions).not.toHaveBeenCalled();
+  });
+
+  it('hides a section header when that request failed and nothing is cached', () => {
+    const { getByText, queryByText } = renderTab('REFEREE', {
+      commissions: [],
+      rebates: [],
+      commissionsError: 'failed',
+      rebatesError: 'failed',
+      funnelError: true,
+      funnelData: null,
+    });
+
+    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+    expect(queryByText('Trading commissions')).toBeNull();
+    expect(queryByText('Trading rebates')).toBeNull();
+  });
+
+  it('hides the referrals header when the funnel failed with no cache', () => {
+    const { getByText, queryByText } = renderTab('REFERRER', {
+      funnelError: true,
+      funnelData: null,
+    });
+
+    expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
+    expect(queryByText('Referrals')).toBeNull();
+    expect(getByText('Trade commissions')).toBeOnTheScreen();
   });
 
   it('navigates to the rebates list from the section header', () => {

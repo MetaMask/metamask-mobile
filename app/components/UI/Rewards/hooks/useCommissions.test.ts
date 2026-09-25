@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import type { CommissionsPageDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { setCommissions } from '../../../../reducers/rewardsMoney';
 import {
   FOLLOW_TRADE_COMMISSIONS_ORIGIN,
@@ -20,7 +21,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const PROFILE_A = 'profile-a';
-const page = {
+const page: CommissionsPageDto = {
   results: [
     {
       id: 'SOCIAL_FOLLOW_TRADE:2026-09-01:perps:BTC',

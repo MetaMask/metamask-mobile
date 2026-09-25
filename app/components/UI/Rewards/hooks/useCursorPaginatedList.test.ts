@@ -318,7 +318,7 @@ describe('useCursorPaginatedList', () => {
     });
   });
 
-  it('shows cache and suppresses error when first-page fetch fails', async () => {
+  it('keeps cache and reports the error when a first-page fetch fails', async () => {
     const fetchPage = jest.fn().mockRejectedValue(new Error('boom'));
     const cached = [{ id: 'cached' }];
 
@@ -336,7 +336,7 @@ describe('useCursorPaginatedList', () => {
     });
 
     expect(result.current.items).toEqual(cached);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe('boom');
   });
 
   it('keeps current rows visible during pull-to-refresh', async () => {
