@@ -377,6 +377,7 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import { MoneyAccountMigrationController } from './controllers/money-account-migration-controller/MoneyAccountMigrationController';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -418,6 +419,11 @@ import type {
   CardControllerActions,
   CardControllerEvents,
 } from './controllers/card-controller/types';
+import type {
+  MoneyAccountMigrationControllerState,
+  MoneyAccountMigrationControllerActions,
+  MoneyAccountMigrationControllerEvents,
+} from './controllers/money-account-migration-controller/types';
 import { QrSyncController } from '../QrSync/QrSyncController';
 import type {
   QrSyncControllerState,
@@ -748,6 +754,7 @@ export type GlobalActions =
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
   | CardControllerActions
+  | MoneyAccountMigrationControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
@@ -874,6 +881,7 @@ export type GlobalEvents =
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
   | CardControllerEvents
+  | MoneyAccountMigrationControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
@@ -1038,6 +1046,7 @@ export type MessengerClients = {
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
   CardController: CardController;
+  MoneyAccountMigrationController: MoneyAccountMigrationController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
@@ -1142,6 +1151,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  MoneyAccountMigrationController: MoneyAccountMigrationControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
@@ -1254,6 +1264,7 @@ export type MessengerClientsToInitialize =
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
   | 'CardController'
+  | 'MoneyAccountMigrationController'
   | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'

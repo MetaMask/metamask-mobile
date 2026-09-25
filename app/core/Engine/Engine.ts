@@ -205,6 +205,7 @@ import { kycServiceInit } from './controllers/kyc/kyc-service-init';
 import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
+import { moneyAccountMigrationControllerInit } from './controllers/money-account-migration-controller';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
@@ -430,6 +431,7 @@ export class Engine {
         KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
+        MoneyAccountMigrationController: moneyAccountMigrationControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -735,6 +737,8 @@ export class Engine {
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
+      MoneyAccountMigrationController:
+        messengerClientsByName.MoneyAccountMigrationController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1701,6 +1705,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      MoneyAccountMigrationController,
       QrSyncController,
     } = instance.context;
 
@@ -1787,6 +1792,7 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      MoneyAccountMigrationController: MoneyAccountMigrationController.state,
       QrSyncController: QrSyncController.state,
     };
   },

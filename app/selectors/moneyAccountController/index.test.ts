@@ -25,6 +25,12 @@ const MOCK_MONEY_ACCOUNTS = {
   [MOCK_MONEY_ACCOUNT.id]: MOCK_MONEY_ACCOUNT,
 };
 
+const PRIMARY_KEYRING = {
+  type: KeyringTypes.hd,
+  accounts: [],
+  metadata: MOCK_HD_KEYRING_METADATA,
+};
+
 describe('MoneyAccountController selectors', () => {
   describe('selectMoneyAccounts', () => {
     it('returns the moneyAccounts record', () => {
@@ -38,21 +44,36 @@ describe('MoneyAccountController selectors', () => {
 
   describe('selectPrimaryMoneyAccount', () => {
     it('returns the money account matching the primary HD keyring', () => {
-      const result = selectPrimaryMoneyAccount.resultFunc(MOCK_MONEY_ACCOUNTS, {
-        type: KeyringTypes.hd,
-        accounts: [],
-        metadata: MOCK_HD_KEYRING_METADATA,
-      });
+      const result = selectPrimaryMoneyAccount.resultFunc(
+        MOCK_MONEY_ACCOUNTS,
+        PRIMARY_KEYRING,
+        {},
+      );
 
       expect(result).toEqual(MOCK_MONEY_ACCOUNT);
     });
 
+    it('points the address at the migrated destination', () => {
+      const newAddress = '0x2222222222222222222222222222222222222222';
+
+      const result = selectPrimaryMoneyAccount.resultFunc(
+        MOCK_MONEY_ACCOUNTS,
+        PRIMARY_KEYRING,
+        { '0xabc123': { newAddress, migratedAt: 1 } },
+      );
+
+      expect(result).toEqual({ ...MOCK_MONEY_ACCOUNT, address: newAddress });
+    });
+
     it('returns undefined when no account matches the primary HD keyring', () => {
-      const result = selectPrimaryMoneyAccount.resultFunc(MOCK_MONEY_ACCOUNTS, {
-        type: KeyringTypes.hd,
-        accounts: [],
-        metadata: { id: 'different-keyring-id', name: '' },
-      });
+      const result = selectPrimaryMoneyAccount.resultFunc(
+        MOCK_MONEY_ACCOUNTS,
+        {
+          ...PRIMARY_KEYRING,
+          metadata: { id: 'different-keyring-id', name: '' },
+        },
+        {},
+      );
 
       expect(result).toBeUndefined();
     });
@@ -60,11 +81,8 @@ describe('MoneyAccountController selectors', () => {
     it('returns undefined when moneyAccounts is empty', () => {
       const result = selectPrimaryMoneyAccount.resultFunc(
         {},
-        {
-          type: KeyringTypes.hd,
-          accounts: [],
-          metadata: MOCK_HD_KEYRING_METADATA,
-        },
+        PRIMARY_KEYRING,
+        {},
       );
 
       expect(result).toBeUndefined();
@@ -74,6 +92,7 @@ describe('MoneyAccountController selectors', () => {
       const result = selectPrimaryMoneyAccount.resultFunc(
         MOCK_MONEY_ACCOUNTS,
         undefined,
+        {},
       );
 
       expect(result).toBeUndefined();
