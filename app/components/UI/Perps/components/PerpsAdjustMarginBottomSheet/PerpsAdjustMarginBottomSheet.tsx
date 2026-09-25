@@ -229,6 +229,12 @@ const PerpsAdjustMarginBottomSheet: React.FC<
 
   const hasNoRemovableMargin =
     !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
+  // Close an open keypad once nothing is left to remove.
+  useEffect(() => {
+    if (hasNoRemovableMargin) {
+      setIsInputFocused(false);
+    }
+  }, [hasNoRemovableMargin]);
 
   const validationError = useMemo(() => {
     // The zero-removable explanation replaces an error on a retained amount.

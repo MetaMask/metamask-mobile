@@ -764,6 +764,15 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
   });
 
+  it('closes an open keypad once no margin can be removed', () => {
+    renderRemoveWithNoLimitLeft(() => {
+      fireEvent.press(screen.getByTestId('amount-display'));
+    });
+
+    expect(screen.queryByTestId('keypad')).not.toBeOnTheScreen();
+    expect(screen.queryByText('25%')).not.toBeOnTheScreen();
+  });
+
   it('explains a zero limit instead of an earlier submission error', () => {
     renderRemoveWithNoLimitLeft(() => {
       mockMarginAdjustmentOptions?.onError?.('Margin update failed');

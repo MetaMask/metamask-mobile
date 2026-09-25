@@ -442,18 +442,13 @@ describe('PerpsAdjustMarginView', () => {
       expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 200);
     });
 
-    it('explains a zero limit instead of an error on a retained amount', () => {
+    const renderRemoveWithNoLimitLeft = (before: () => void) => {
       mockUsePerpsAdjustMarginData.mockReturnValue({
         ...removeModeData,
         hasValidPositionData: true,
       });
       const { rerender } = render(<PerpsAdjustMarginView />);
-      act(() => {
-        (
-          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
-            .props as { onValueChange: (v: number) => void }
-        ).onValueChange(50);
-      });
+      act(before);
       expect(
         screen.queryByTestId(
           PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
@@ -465,8 +460,16 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 0,
         exchangeMaxAmount: 0,
       });
-
       rerender(<PerpsAdjustMarginView />);
+    };
+
+    it('explains a zero limit instead of an error on a retained amount', () => {
+      renderRemoveWithNoLimitLeft(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(50);
+      });
       const confirmButton = screen.getByTestId(
         PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
       );
@@ -482,6 +485,16 @@ describe('PerpsAdjustMarginView', () => {
       ).not.toBeOnTheScreen();
       expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
       expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+    });
+
+    it('closes an open keypad once no margin can be removed', () => {
+      renderRemoveWithNoLimitLeft(() => {
+        fireEvent.press(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+        );
+      });
+
+      expect(screen.queryByTestId('mock-keypad')).not.toBeOnTheScreen();
     });
 
     it('sets the amount to the new safe max when removable margin shrank before submit', () => {
