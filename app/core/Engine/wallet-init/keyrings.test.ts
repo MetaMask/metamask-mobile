@@ -198,14 +198,16 @@ describe('wallet-init/keyrings', () => {
   });
 
   describe('watch-only keyring builder (__DEV__-gated)', () => {
-    const originalDev = global.__DEV__;
+    // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+    const devGlobal = global as unknown as { __DEV__: boolean };
+    const originalDev = devGlobal.__DEV__;
 
     afterEach(() => {
-      global.__DEV__ = originalDev;
+      devGlobal.__DEV__ = originalDev;
     });
 
     it('registers the watch-only builder when __DEV__ is true', () => {
-      global.__DEV__ = true;
+      devGlobal.__DEV__ = true;
 
       const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
@@ -214,7 +216,7 @@ describe('wallet-init/keyrings', () => {
     });
 
     it('omits the watch-only builder when __DEV__ is false', () => {
-      global.__DEV__ = false;
+      devGlobal.__DEV__ = false;
 
       const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const types = builders.map((b) => b.type);

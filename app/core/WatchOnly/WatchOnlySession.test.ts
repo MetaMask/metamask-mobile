@@ -23,21 +23,23 @@ const mockRemoveAccount = Engine.context.KeyringController
 const mockSetSelectedAddress = Engine.setSelectedAddress as jest.Mock;
 
 describe('WatchOnlySession', () => {
-  const originalDev = global.__DEV__;
+  // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+  const devGlobal = global as unknown as { __DEV__: boolean };
+  const originalDev = devGlobal.__DEV__;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    global.__DEV__ = true;
+    devGlobal.__DEV__ = true;
     Engine.context.KeyringController.state.keyrings = [];
   });
 
   afterEach(() => {
-    global.__DEV__ = originalDev;
+    devGlobal.__DEV__ = originalDev;
   });
 
   describe('start', () => {
     it('throws outside of development builds', async () => {
-      global.__DEV__ = false;
+      devGlobal.__DEV__ = false;
 
       await expect(WatchOnlySession.start(VALID_ADDRESS)).rejects.toThrow(
         'Watch-only sessions are only available in development',
@@ -77,7 +79,7 @@ describe('WatchOnlySession', () => {
 
   describe('stop', () => {
     it('throws outside of development builds', async () => {
-      global.__DEV__ = false;
+      devGlobal.__DEV__ = false;
 
       await expect(WatchOnlySession.stop()).rejects.toThrow(
         'Watch-only sessions are only available in development',
