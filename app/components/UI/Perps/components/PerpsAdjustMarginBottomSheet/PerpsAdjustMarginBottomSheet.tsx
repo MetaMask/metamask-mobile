@@ -54,6 +54,7 @@ import Keypad from '../../../../Base/Keypad';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
+import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -115,6 +116,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const { playImpact: playHapticImpact } = useHaptics();
   const [mode, setMode] = useState<PerpsAdjustMarginMode>(initialMode);
   const [marginAmountString, setMarginAmountString] = useState('0');
+  const [freshMaxAmount, setFreshMaxAmount] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [selectedTooltip, setSelectedTooltip] =
@@ -156,6 +158,11 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       onSuccess: () => {
         handleClose();
       },
+      onAmountChanged: (safeMaxAmount) => {
+        submittedEstimateRef.current = null;
+        setFreshMaxAmount(safeMaxAmount);
+        setMarginAmountString(safeMaxAmount.toFixed(2));
+      },
       onError: (errorMessage) => {
         submittedEstimateRef.current = null;
         setSubmissionError(errorMessage);
@@ -191,6 +198,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     currentMargin,
     newMargin,
     maxAmount,
+    exchangeMaxAmount,
     currentLiquidationPrice,
     newLiquidationPrice,
     currentLiquidationDistance,
@@ -202,8 +210,15 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     inputAmount: marginAmount,
   });
 
-  const flooredMaxAmount =
-    Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0;
+  const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
+    freshMaxAmount,
+    setFreshMaxAmount,
+    position,
+    snapshotMaxAmount:
+      Number.isFinite(maxAmount) && maxAmount > 0 ? floorUsd(maxAmount) : 0,
+    exchangeMaxAmount,
+    isAddMode,
+  });
   const sliderPercentage = useMemo(
     () =>
       flooredMaxAmount <= 0
@@ -212,14 +227,34 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     [flooredMaxAmount, marginAmount],
   );
 
+  const hasNoRemovableMargin =
+    !isAddMode && !isLoading && hasValidPositionData && flooredMaxAmount <= 0;
+  // Close an open keypad once nothing is left to remove.
+  useEffect(() => {
+    if (hasNoRemovableMargin) {
+      setIsInputFocused(false);
+    }
+  }, [hasNoRemovableMargin]);
+
   const validationError = useMemo(() => {
-    if (isInputFocused || marginAmount <= flooredMaxAmount) {
+    // The zero-removable explanation replaces an error on a retained amount.
+    if (
+      isInputFocused ||
+      hasNoRemovableMargin ||
+      marginAmount <= submitLimitAmount
+    ) {
       return null;
     }
     return isAddMode
       ? strings('perps.adjust_margin.exceeds_available')
       : strings('perps.errors.marginValidation.exceedsMaxRemovable');
-  }, [flooredMaxAmount, isAddMode, isInputFocused, marginAmount]);
+  }, [
+    submitLimitAmount,
+    isAddMode,
+    isInputFocused,
+    hasNoRemovableMargin,
+    marginAmount,
+  ]);
 
   const isPositionGone = !isLoading && !position;
   const positionError = isPositionGone
@@ -231,12 +266,16 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     ? strings('perps.adjust_margin.position_data_unavailable')
     : null;
   const displayedError =
-    positionError ?? positionDataError ?? submissionError ?? validationError;
+    positionError ??
+    positionDataError ??
+    (hasNoRemovableMargin ? null : submissionError) ??
+    validationError;
   const isValidationErrorDisplayed =
     Boolean(validationError) && displayedError === validationError;
   const hasInvalidAmount =
+    hasNoRemovableMargin ||
     marginAmount <= 0 ||
-    marginAmount > flooredMaxAmount ||
+    marginAmount > submitLimitAmount ||
     Boolean(validationError);
 
   usePerpsMeasurement({
@@ -295,6 +334,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       }
       setMode(nextMode);
       setMarginAmountString('0');
+      setFreshMaxAmount(null);
       setIsInputFocused(false);
       setSubmissionError(null);
       submittedEstimateRef.current = null;
@@ -492,7 +532,9 @@ const PerpsAdjustMarginBottomSheet: React.FC<
           <PerpsAmountDisplay
             variant="tradeSheet"
             amount={marginAmountString}
-            onPress={() => setIsInputFocused(true)}
+            onPress={
+              hasNoRemovableMargin ? undefined : () => setIsInputFocused(true)
+            }
             isActive={isInputFocused}
             hasError={Boolean(validationError)}
             isLoading={isLoading}
@@ -519,7 +561,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               trackInset={8}
               showRangeLabels
               showRangeDots
-              isDisabled={isAdjusting}
+              isDisabled={isAdjusting || hasNoRemovableMargin}
               onGrip={() => playImpact(ImpactMoment.SliderGrip)}
               onMark={() => playImpact(ImpactMoment.SliderTick)}
               accessibilityLabel={strings(
@@ -537,6 +579,17 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               accessibilityRole="alert"
             >
               {displayedError}
+            </HelpText>
+          )}
+
+          {hasNoRemovableMargin && !displayedError && (
+            <HelpText
+              twClassName="justify-center text-center"
+              testID={
+                PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN
+              }
+            >
+              {strings('perps.adjust_margin.no_removable_margin')}
             </HelpText>
           )}
         </Box>
