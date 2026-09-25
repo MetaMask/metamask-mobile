@@ -1,5 +1,9 @@
+import { StackActions } from '@react-navigation/native';
 import { checkForDeeplink } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
+import { decideRouteRestore } from '../../../util/navigation/routeRestoration';
+import { trackRouteRestoreEvaluated } from '../../../util/analytics/routeRestoreTracking';
+import { selectRouteRestorationEnabled } from '../../../selectors/featureFlagController/routeRestoration';
 import AppConstants from '../../AppConstants';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
 import Logger from '../../../util/Logger';
@@ -123,14 +127,47 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 };
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
+  // An external deeplink is fresh, explicit intent and outranks any restore.
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;
   }
 
-  NavigationService.navigation?.reset({
-    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+  const navigation = NavigationService.navigation;
+  const backgroundedAt = AppStateEventProcessor.lastBackgroundedAt;
+  const decision = decideRouteRestore({
+    rootState: navigation?.getRootState(),
+    backgroundedAt,
+    enabled: selectRouteRestorationEnabled(ReduxService.store.getState()),
   });
+
+  // `no_tree` is cold start, manual lock and logout — no restore was possible,
+  // so counting them would dilute the denominator.
+  if (decision.restore || decision.reason !== 'no_tree') {
+    trackRouteRestoreEvaluated(
+      decision,
+      backgroundedAt === null ? null : Date.now() - backgroundedAt,
+    );
+  }
+
+  if (decision.restore && navigation) {
+    // The screens are still mounted beneath the lock and login screens, so
+    // removing those reveals them with their route keys — and their component
+    // state — untouched.
+    navigation.dispatch(StackActions.popTo(Routes.ONBOARDING.HOME_NAV));
+
+    if (!decision.exact) {
+      // The user was deeper than a top-level route, so trim back to it. The
+      // target is often the navigator containing that screen rather than the
+      // screen itself, and it is still mounted either way, so it keeps its
+      // scroll position rather than rebuilding.
+      navigation.dispatch(StackActions.popTo(decision.target));
+    }
+  } else {
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+  }
 
   retryPendingDeeplinkAfterDefaultNavigation();
 };

@@ -210,9 +210,10 @@ async function promptUnlockFromLockScreen(): Promise<void> {
   try {
     await tryBiometricUnlock();
   } catch (error) {
-    // Navigate to login.
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    // Cover the existing screens with login rather than replacing them, so
+    // unlocking can reveal them again.
+    NavigationService.navigation?.navigate(Routes.ONBOARDING.LOGIN, {
+      locked: true,
     });
     trackErrorAsAnalytics(
       'Lockscreen: Authentication failed',

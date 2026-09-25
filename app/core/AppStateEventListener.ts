@@ -79,6 +79,7 @@ export class AppStateEventListener {
   private openedFromPushAt = 0;
   private openedFromPush: PushOpenDetails | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
+  private backgroundedAt: number | null = null;
 
   constructor() {
     this.lastAppState = AppState.currentState;
@@ -151,7 +152,20 @@ export class AppStateEventListener {
     this.pendingDeeplinkSource = null;
   }
 
+  /**
+   * When the app last entered the background, or null if it has not since
+   * launch. Route restoration measures its window from here rather than from
+   * the lock, so it is independent of the user's auto-lock setting.
+   */
+  public get lastBackgroundedAt(): number | null {
+    return this.backgroundedAt;
+  }
+
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
+    if (nextAppState === 'background') {
+      this.backgroundedAt = Date.now();
+    }
+
     // Only fire APP_OPENED when transitioning from background to active.
     // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
     // back to active should NOT count as the user opening the app.

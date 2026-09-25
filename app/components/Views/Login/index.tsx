@@ -188,6 +188,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        // Covering a locked session: the previous screens are still mounted
+        // underneath, so back must not be allowed to reveal them.
+        if (isLocked) {
+          return true;
+        }
         lockApp({ reset: false });
         return false;
       },
@@ -196,7 +201,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return () => {
       subscription.remove();
     };
-  }, [lockApp]);
+  }, [lockApp, isLocked]);
 
   useEffect(() => {
     if (Platform.OS === 'android' && !hasTestOverrides) {

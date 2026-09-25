@@ -5396,6 +5396,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  routeRestoration: {
+    name: 'routeRestoration',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   rwaTokensEnabled: {
     name: 'rwaTokensEnabled',
     type: FeatureFlagType.Remote,

@@ -1,4 +1,5 @@
 import { checkForDeeplink } from '../../../actions/user';
+import { StackActions } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../AppConstants';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
@@ -17,6 +18,10 @@ import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 const mockDispatch = jest.fn();
 const mockReset = jest.fn();
+const mockNavigationDispatch = jest.fn();
+const mockTrackRouteRestoreEvaluated = jest.fn();
+let mockRestoreEnabled = false;
+let mockRootState: unknown = { index: 0, routes: [{ name: 'Login' }] };
 const mockResolve = jest.fn();
 const mockExecuteStartupDeeplinkIntent = jest.fn();
 const mockClearPendingDeeplink = jest.fn();
@@ -43,6 +48,7 @@ jest.mock('../../redux', () => ({
   default: {
     store: {
       dispatch: (action: unknown) => mockDispatch(action),
+      getState: () => ({}),
     },
   },
 }));
@@ -52,8 +58,19 @@ jest.mock('../../NavigationService', () => ({
   default: {
     navigation: {
       reset: (...args: unknown[]) => mockReset(...args),
+      dispatch: (...args: unknown[]) => mockNavigationDispatch(...args),
+      getRootState: () => mockRootState,
     },
   },
+}));
+
+jest.mock('../../../selectors/featureFlagController/routeRestoration', () => ({
+  selectRouteRestorationEnabled: () => mockRestoreEnabled,
+}));
+
+jest.mock('../../../util/analytics/routeRestoreTracking', () => ({
+  trackRouteRestoreEvaluated: (...args: unknown[]) =>
+    mockTrackRouteRestoreEvaluated(...args),
 }));
 
 jest.mock('../DeeplinkManager', () => ({
@@ -115,6 +132,8 @@ describe('startupDeeplinkNavigation', () => {
     setRequestAnimationFrame(mockRequestAnimationFrame);
     mockResolve.mockResolvedValue(intent);
     mockExecuteStartupDeeplinkIntent.mockResolvedValue(true);
+    mockRestoreEnabled = false;
+    mockRootState = { index: 0, routes: [{ name: 'Login' }] };
   });
 
   afterEach(() => {
@@ -251,6 +270,124 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
     expect(mockReset).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  describe('route restoration', () => {
+    // The getter lives on the prototype, so define it on the instance instead.
+    const setBackgroundedAt = (value: number | null) => {
+      Object.defineProperty(AppStateEventProcessor, 'lastBackgroundedAt', {
+        configurable: true,
+        get: () => value,
+      });
+    };
+
+    const restorableTree = {
+      index: 0,
+      routes: [
+        {
+          name: 'NavigationChildren',
+          state: {
+            index: 1,
+            routes: [
+              {
+                name: Routes.ONBOARDING.HOME_NAV,
+                state: {
+                  index: 0,
+                  routes: [{ name: Routes.PERPS.PERPS_HOME }],
+                },
+              },
+              { name: Routes.ONBOARDING.LOGIN },
+            ],
+          },
+        },
+      ],
+    };
+
+    it('uncovers the screens the user left instead of resetting', async () => {
+      mockRestoreEnabled = true;
+      mockRootState = restorableTree;
+      setBackgroundedAt(Date.now() - 1000);
+
+      await navigateToPostUnlockHome();
+
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
+        StackActions.popTo(Routes.ONBOARDING.HOME_NAV),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockNavigationDispatch).toHaveBeenCalledTimes(1);
+      expect(mockTrackRouteRestoreEvaluated).toHaveBeenCalledWith(
+        {
+          restore: true,
+          route: Routes.PERPS.PERPS_HOME,
+          target: Routes.PERPS.PERPS_HOME,
+          exact: true,
+        },
+        expect.any(Number),
+      );
+    });
+
+    it('trims the section stack when the user was deeper than a top-level route', async () => {
+      mockRestoreEnabled = true;
+      mockRootState = {
+        index: 0,
+        routes: [
+          {
+            name: 'NavigationChildren',
+            state: {
+              index: 1,
+              routes: [
+                {
+                  name: Routes.ONBOARDING.HOME_NAV,
+                  state: {
+                    index: 1,
+                    routes: [
+                      { name: Routes.PERPS.PERPS_HOME },
+                      { name: 'PerpsOrderForm' },
+                    ],
+                  },
+                },
+                { name: Routes.ONBOARDING.LOGIN },
+              ],
+            },
+          },
+        ],
+      };
+      setBackgroundedAt(Date.now() - 1000);
+
+      await navigateToPostUnlockHome();
+
+      // Covers first, then the section's own stack.
+      expect(mockNavigationDispatch).toHaveBeenNthCalledWith(
+        1,
+        StackActions.popTo(Routes.ONBOARDING.HOME_NAV),
+      );
+      expect(mockNavigationDispatch).toHaveBeenNthCalledWith(
+        2,
+        StackActions.popTo(Routes.PERPS.PERPS_HOME),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('resets when the flag is off, and does not dispatch a pop', async () => {
+      mockRootState = restorableTree;
+      setBackgroundedAt(Date.now() - 1000);
+
+      await navigateToPostUnlockHome();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+      expect(mockNavigationDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not report cold start, where no restore was possible', async () => {
+      mockRestoreEnabled = true;
+
+      await navigateToPostUnlockHome();
+
+      expect(mockReset).toHaveBeenCalled();
+      expect(mockTrackRouteRestoreEvaluated).not.toHaveBeenCalled();
+    });
   });
 
   it('navigates home and retries pending deeplinks that need the legacy flow', async () => {
