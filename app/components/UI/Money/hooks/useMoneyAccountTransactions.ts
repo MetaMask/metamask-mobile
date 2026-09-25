@@ -7,8 +7,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyActivityMockDataEnabledFlag } from '../selectors/featureFlags';
-import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
@@ -66,19 +64,14 @@ export interface UseMoneyAccountTransactionsResult {
   /** Transactions awaiting confirmation (not in a final on-chain state) */
   submittedTransactions: TransactionMeta[];
   moneyAddress: string | undefined;
-  // TODO: remove this after design implementation of the activity view is done
-  mockDataEnabled: boolean;
 }
 
 /**
- * Money account activity. When `moneyActivityMockDataEnabled` is on (remote or
- * `MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED`), returns static mock rows for UI/QA.
- * Otherwise reads real transactions from TransactionController, filtered to
- * those involving the primary Money account address.
+ * Money account activity from TransactionController, filtered to transactions
+ * involving the primary Money account address.
  */
 export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const mockDataEnabled = useSelector(selectMoneyActivityMockDataEnabledFlag);
   const nonReplacedTransactions = useSelector(selectNonReplacedTransactions);
 
   const moneyAddress = useMemo(() => {
@@ -87,18 +80,6 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
   }, [primaryMoneyAccount]);
 
   return useMemo(() => {
-    if (mockDataEnabled) {
-      const allTransactions = [...MOCK_MONEY_TRANSACTIONS];
-      return {
-        allTransactions,
-        deposits: allTransactions.filter(isMoneyActivityDeposit),
-        transfers: allTransactions.filter(isMoneyActivityTransfer),
-        submittedTransactions: [],
-        moneyAddress,
-        mockDataEnabled: true,
-      };
-    }
-
     const moneyTransactions = nonReplacedTransactions
       .filter((tx) => {
         // Direct Money account transactions.
@@ -168,7 +149,6 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
       transfers: moneyTransactions.filter(isMoneyActivityTransfer),
       submittedTransactions,
       moneyAddress,
-      mockDataEnabled: false,
     };
-  }, [mockDataEnabled, moneyAddress, nonReplacedTransactions]);
+  }, [moneyAddress, nonReplacedTransactions]);
 }
