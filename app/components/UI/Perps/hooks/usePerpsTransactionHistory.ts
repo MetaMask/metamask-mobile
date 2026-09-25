@@ -15,7 +15,6 @@ import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { isUnconfirmedPerpsDepositOrder } from '../../../../util/transactions/perps-deposit-order';
 import {
   PerpsTransaction,
   PerpsTransactionType,
@@ -127,9 +126,6 @@ export const usePerpsTransactionHistory = ({
 
       for (const tx of walletTransactions) {
         if (!areAddressesEqual(tx.txParams?.from ?? '', selectedAddress)) {
-          continue;
-        }
-        if (isUnconfirmedPerpsDepositOrder(tx)) {
           continue;
         }
         if (

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -19,6 +18,28 @@ import { usePerpsTrading } from './usePerpsTrading';
 
 /** Lighter trades from its own balance, so it has no deposit-with-order route. */
 const LIGHTER_PROVIDER = 'lighter';
+const PREWARM_IDLE_TIMEOUT_MS = 1000;
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout?: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
+
+const scheduleIdleTask = (task: () => void): (() => void) => {
+  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+  if (idleGlobals.requestIdleCallback) {
+    const handle = idleGlobals.requestIdleCallback(task, {
+      timeout: PREWARM_IDLE_TIMEOUT_MS,
+    });
+    return () => idleGlobals.cancelIdleCallback?.(handle);
+  }
+
+  const timeout = setTimeout(task, 0);
+  return () => clearTimeout(timeout);
+};
 
 export interface UsePerpsPrewarmDepositOrderParams {
   /**
@@ -76,7 +97,7 @@ export function usePerpsPrewarmDepositOrder({
       }
 
       let aborted = false;
-      const task = InteractionManager.runAfterInteractions(() => {
+      const cancelIdleTask = scheduleIdleTask(() => {
         if (aborted) {
           return;
         }
@@ -101,7 +122,7 @@ export function usePerpsPrewarmDepositOrder({
 
       return () => {
         aborted = true;
-        task.cancel();
+        cancelIdleTask();
         discardPrewarmedDepositOrder();
       };
     }, [canPrewarm, accountAddress, depositProvider]),

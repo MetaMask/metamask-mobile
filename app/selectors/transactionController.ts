@@ -18,7 +18,6 @@ import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { isMusdOnMoneyAccountChain } from '@metamask/money-account-utils';
 import { areAddressesEqual } from '../util/address';
 import { decodeErc20Transfer } from '../util/transactions/erc20-transfer';
-import { isUnconfirmedPerpsDepositOrder } from '../util/transactions/perps-deposit-order';
 
 interface MetaMaskPayToken {
   address: Hex;
@@ -317,11 +316,7 @@ const selectRelatedAddressesByTransactionId = createSelector(
 export const selectHasUnapprovedTransactions = createSelector(
   selectTransactions,
   (transactions) =>
-    transactions.some(
-      (tx) =>
-        tx.status === TransactionStatus.unapproved &&
-        !isUnconfirmedPerpsDepositOrder(tx),
-    ),
+    transactions.some((tx) => tx.status === TransactionStatus.unapproved),
 );
 
 /**
@@ -465,9 +460,6 @@ export const selectLocalTransactions = createSelector(
         return false;
       }
       if (gasPaymentTransactionIds.has(transaction.id)) {
-        return false;
-      }
-      if (isUnconfirmedPerpsDepositOrder(transaction)) {
         return false;
       }
       return belongsToActiveAccount(

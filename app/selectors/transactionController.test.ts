@@ -145,53 +145,6 @@ describe('TransactionController Selectors', () => {
 
       expect(selectHasUnapprovedTransactions(state)).toBe(false);
     });
-
-    it('returns false when the only unapproved transaction is a perps deposit-and-order', () => {
-      const transactions = [
-        {
-          id: 'prewarmed-trade',
-          status: TransactionStatus.unapproved,
-          type: TransactionType.perpsDepositAndOrder,
-        },
-      ];
-      const state = {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions,
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      expect(selectHasUnapprovedTransactions(state)).toBe(false);
-    });
-
-    it('returns true when an unapproved send exists beside a perps deposit-and-order', () => {
-      const transactions = [
-        {
-          id: 'prewarmed-trade',
-          status: TransactionStatus.unapproved,
-          type: TransactionType.perpsDepositAndOrder,
-        },
-        {
-          id: 'send',
-          status: TransactionStatus.unapproved,
-          type: TransactionType.simpleSend,
-        },
-      ];
-      const state = {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions,
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      expect(selectHasUnapprovedTransactions(state)).toBe(true);
-    });
   });
 
   describe('selectNonReplacedTransactions', () => {
@@ -547,42 +500,6 @@ describe('TransactionController Selectors', () => {
     it('filters required child transactions before nonce dedupe', () => {
       expect(selectLocalTransactions(buildLocalTxState())).toStrictEqual([
         expect.objectContaining({ id: 'parent' }),
-      ]);
-    });
-
-    it('excludes a perps deposit-and-order the user has not confirmed yet', () => {
-      const state = buildLocalTxState({
-        transactions: [
-          {
-            id: 'prewarmed-trade',
-            chainId: '0x1',
-            time: 100,
-            type: TransactionType.perpsDepositAndOrder,
-            status: TransactionStatus.unapproved,
-            txParams: { from: evmAddress, nonce: '0x1' },
-          },
-        ],
-      });
-
-      expect(selectLocalTransactions(state)).toStrictEqual([]);
-    });
-
-    it('includes a perps deposit-and-order once the user confirmed it', () => {
-      const state = buildLocalTxState({
-        transactions: [
-          {
-            id: 'placed-trade',
-            chainId: '0x1',
-            time: 100,
-            type: TransactionType.perpsDepositAndOrder,
-            status: TransactionStatus.submitted,
-            txParams: { from: evmAddress, nonce: '0x1' },
-          },
-        ],
-      });
-
-      expect(selectLocalTransactions(state)).toStrictEqual([
-        expect.objectContaining({ id: 'placed-trade' }),
       ]);
     });
 

@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
@@ -48,36 +47,20 @@ describe('usePerpsPrewarmDepositOrder', () => {
   let mockActiveProvider: string | undefined;
   let mockAccountAddress: string | undefined;
   let mockIsInitialized: boolean;
-  let cancelTask: jest.Mock;
-  let deferredAfterInteractions: (() => void) | undefined;
-
-  const mockRunAfterInteractions = (mode: 'immediate' | 'deferred') => {
-    jest
-      .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((task) => {
-        const run = () => (task as () => void)();
-        if (mode === 'immediate') {
-          run();
-        } else {
-          deferredAfterInteractions = run;
-        }
-        return {
-          then: jest.fn(),
-          done: jest.fn(),
-          cancel: cancelTask,
-        } as unknown as ReturnType<
-          typeof InteractionManager.runAfterInteractions
-        >;
-      });
-  };
+  let deferredIdleTask: (() => void) | undefined;
+  const cancelIdleCallback = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockActiveProvider = PROVIDER_CONFIG.DefaultProvider;
     mockAccountAddress = '0xabc';
     mockIsInitialized = true;
-    cancelTask = jest.fn();
-    deferredAfterInteractions = undefined;
+    deferredIdleTask = undefined;
+    Reflect.set(globalThis, 'requestIdleCallback', (callback: () => void) => {
+      callback();
+      return 1;
+    });
+    Reflect.set(globalThis, 'cancelIdleCallback', cancelIdleCallback);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProvider) return mockActiveProvider;
@@ -94,7 +77,11 @@ describe('usePerpsPrewarmDepositOrder', () => {
           typeof usePerpsConnection
         >,
     );
-    mockRunAfterInteractions('immediate');
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, 'requestIdleCallback');
+    Reflect.deleteProperty(globalThis, 'cancelIdleCallback');
   });
 
   it('prewarms for the active account and provider', () => {
@@ -179,7 +166,7 @@ describe('usePerpsPrewarmDepositOrder', () => {
 
     unmount();
 
-    expect(cancelTask).toHaveBeenCalled();
+    expect(cancelIdleCallback).toHaveBeenCalledWith(1);
     expect(mockDiscardPrewarmedDepositOrder).toHaveBeenCalledTimes(1);
   });
 
@@ -218,13 +205,16 @@ describe('usePerpsPrewarmDepositOrder', () => {
   });
 
   it('does not prewarm after leaving if the idle callback still fires', () => {
-    mockRunAfterInteractions('deferred');
+    Reflect.set(globalThis, 'requestIdleCallback', (callback: () => void) => {
+      deferredIdleTask = callback;
+      return 2;
+    });
     const { unmount } = renderHook(() =>
       usePerpsPrewarmDepositOrder({ enabled: true }),
     );
 
     unmount();
-    deferredAfterInteractions?.();
+    deferredIdleTask?.();
 
     expect(mockPrewarmDepositOrder).not.toHaveBeenCalled();
     expect(mockDiscardPrewarmedDepositOrder).toHaveBeenCalledTimes(1);

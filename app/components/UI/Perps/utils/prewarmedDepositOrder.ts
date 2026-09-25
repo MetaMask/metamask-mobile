@@ -47,12 +47,20 @@ interface PrewarmCriteria {
   providerId: string;
 }
 
-let generation = 0;
-let prewarmed: PrewarmedDepositOrder | undefined;
-let inFlight: Promise<string> | undefined;
-let inFlightCriteria: PrewarmCriteria | undefined;
-/** Rejects a discarded in-flight prep. New prep waits so ids cannot be mixed. */
-let draining: Promise<void> | undefined;
+interface DepositWithOrderResult {
+  result: Promise<string>;
+}
+
+type PrewarmState =
+  | { status: 'idle' }
+  | {
+      status: 'preparing';
+      criteria: PrewarmCriteria;
+      transactionId: Promise<string>;
+    }
+  | { status: 'ready'; entry: PrewarmedDepositOrder };
+
+let state: PrewarmState = { status: 'idle' };
 
 function matchesCriteria(
   stored: PrewarmCriteria | undefined,
@@ -68,49 +76,11 @@ function matchesCriteria(
   );
 }
 
-/** Drops module ownership so in-flight prep stops publishing into it. */
-function releaseOwnership(): {
-  entry: PrewarmedDepositOrder | undefined;
-  pending: Promise<string> | undefined;
-} {
-  const released = { entry: prewarmed, pending: inFlight };
-  generation += 1;
-  prewarmed = undefined;
-  inFlight = undefined;
-  inFlightCriteria = undefined;
-  return released;
-}
-
-function knownTransactionIds(): Set<string> {
-  return new Set(
-    Engine.context.TransactionController.state.transactions.map(
-      (transaction) => transaction.id,
-    ),
-  );
-}
-
-/**
- * Id created by this `depositWithOrder` call. Prefers a transaction that
- * appeared after the snapshot so a discarded prep cannot pick up a later
- * prewarm's `lastDepositTransactionId`.
- */
-function readCreatedTransactionId(idsBefore: Set<string>): string | null {
-  const created =
-    Engine.context.TransactionController.state.transactions.filter(
-      (transaction) => !idsBefore.has(transaction.id),
-    );
-  if (created.length === 1) {
-    return created[0].id;
-  }
-
-  const lastId = Engine.context.PerpsController.state.lastDepositTransactionId;
-  if (lastId && created.some((transaction) => transaction.id === lastId)) {
-    return lastId;
-  }
-  if (created.length > 0) {
-    return created[created.length - 1].id;
-  }
-  return lastId;
+/** Gives the current state to the caller and clears module ownership. */
+function takeState(): PrewarmState {
+  const current = state;
+  state = { status: 'idle' };
+  return current;
 }
 
 /**
@@ -153,49 +123,61 @@ function isUsable(
  */
 export function prewarmDepositOrder(
   criteria: PrewarmCriteria,
-  depositWithOrder: () => Promise<unknown>,
+  depositWithOrder: () => Promise<DepositWithOrderResult>,
 ): Promise<string> | undefined {
-  if (inFlight) {
-    if (matchesCriteria(inFlightCriteria, criteria)) {
-      return inFlight;
+  if (state.status === 'preparing') {
+    if (matchesCriteria(state.criteria, criteria)) {
+      return state.transactionId;
     }
     discardPrewarmedDepositOrder();
   }
-  if (prewarmed) {
-    if (isUsable(prewarmed, criteria)) {
+  if (state.status === 'ready') {
+    if (isUsable(state.entry, criteria)) {
       return undefined;
     }
-    rejectTransaction(prewarmed.transactionId);
-    prewarmed = undefined;
+    rejectTransaction(state.entry.transactionId);
+    state = { status: 'idle' };
   }
 
-  const ownedGeneration = generation;
-  const pending = (async () => {
-    if (draining) {
-      await draining;
-      draining = undefined;
-    }
+  const transactionId = depositWithOrder()
+    .then(({ result }) => result)
+    .then((id) => {
+      if (
+        state.status === 'preparing' &&
+        state.transactionId === transactionId
+      ) {
+        state = { status: 'ready', entry: { transactionId: id, ...criteria } };
+      }
+      return id;
+    })
+    .catch((error: unknown) => {
+      if (
+        state.status === 'preparing' &&
+        state.transactionId === transactionId
+      ) {
+        state = { status: 'idle' };
+      }
+      throw error;
+    });
 
-    const idsBefore = knownTransactionIds();
-    await depositWithOrder();
-    const transactionId = readCreatedTransactionId(idsBefore);
-    if (!transactionId) {
-      throw new Error('Prewarmed deposit order produced no transaction id');
-    }
-    if (generation === ownedGeneration) {
-      prewarmed = { transactionId, ...criteria };
-    }
-    return transactionId;
-  })().finally(() => {
-    if (generation === ownedGeneration) {
-      inFlight = undefined;
-      inFlightCriteria = undefined;
-    }
-  });
+  state = {
+    status: 'preparing',
+    criteria,
+    transactionId,
+  };
+  return transactionId;
+}
 
-  inFlight = pending;
-  inFlightCriteria = criteria;
-  return pending;
+function validateClaimedTransaction(
+  transactionId: string,
+  criteria: PrewarmCriteria,
+): string {
+  const entry = { transactionId, ...criteria };
+  if (!isUsable(entry, criteria)) {
+    rejectTransaction(transactionId);
+    throw new Error('Prewarmed deposit order is no longer usable');
+  }
+  return transactionId;
 }
 
 /**
@@ -208,34 +190,34 @@ export function prewarmDepositOrder(
 export function claimPrewarmedDepositOrder(
   criteria: PrewarmCriteria,
 ): Promise<string> | undefined {
-  if (inFlight) {
-    if (!matchesCriteria(inFlightCriteria, criteria)) {
+  if (state.status === 'preparing') {
+    if (!matchesCriteria(state.criteria, criteria)) {
       discardPrewarmedDepositOrder();
       return undefined;
     }
 
-    const pending = releaseOwnership().pending;
-    return pending?.then((transactionId) => {
-      const entry = { transactionId, ...criteria };
-      if (!isUsable(entry, criteria)) {
-        rejectTransaction(transactionId);
-        throw new Error('Prewarmed deposit order is no longer usable');
-      }
-      return transactionId;
-    });
+    const preparing = takeState();
+    return preparing.status === 'preparing'
+      ? preparing.transactionId.then((id) =>
+          validateClaimedTransaction(id, criteria),
+        )
+      : undefined;
   }
 
-  const entry = prewarmed;
-  if (!entry || !isUsable(entry, criteria)) {
-    if (entry) {
-      rejectTransaction(entry.transactionId);
-    }
-    releaseOwnership();
+  if (state.status !== 'ready') {
     return undefined;
   }
 
-  releaseOwnership();
-  return Promise.resolve(entry.transactionId);
+  const ready = takeState();
+  if (ready.status !== 'ready') {
+    return undefined;
+  }
+  if (!isUsable(ready.entry, criteria)) {
+    rejectTransaction(ready.entry.transactionId);
+    return undefined;
+  }
+
+  return Promise.resolve(ready.entry.transactionId);
 }
 
 /**
@@ -243,14 +225,12 @@ export function claimPrewarmedDepositOrder(
  * unapproved transaction. Safe to call when there is nothing to discard.
  */
 export function discardPrewarmedDepositOrder(): void {
-  const { entry, pending } = releaseOwnership();
+  const current = takeState();
 
-  if (entry) {
-    rejectTransaction(entry.transactionId);
-  }
-
-  if (pending) {
-    draining = pending
+  if (current.status === 'ready') {
+    rejectTransaction(current.entry.transactionId);
+  } else if (current.status === 'preparing') {
+    current.transactionId
       .then((transactionId) => {
         rejectTransaction(transactionId);
       })
@@ -275,9 +255,5 @@ function rejectTransaction(transactionId: string): void {
 
 /** Test-only: clears module state without touching the controllers. */
 export function resetPrewarmedDepositOrderForTesting(): void {
-  generation += 1;
-  prewarmed = undefined;
-  inFlight = undefined;
-  inFlightCriteria = undefined;
-  draining = undefined;
+  state = { status: 'idle' };
 }

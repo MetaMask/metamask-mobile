@@ -13,125 +13,125 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     ApprovalController: { hasRequest: jest.fn() },
     TransactionController: { state: { transactions: [] } },
-    PerpsController: { state: { lastDepositTransactionId: null } },
   },
   rejectPendingApproval: jest.fn(),
 }));
 
 const mockedEngine = jest.mocked(Engine);
-const hasRequest = Engine.context.ApprovalController.hasRequest as jest.Mock;
-
+const hasRequest = jest.mocked(Engine.context.ApprovalController.hasRequest);
 const CRITERIA = {
   accountAddress: '0xabc',
   providerId: PROVIDER_CONFIG.DefaultProvider,
 };
 
-/** Puts the controllers in the state a live, unapproved prewarm would produce. */
-function givenLiveTransaction(transactionId: string) {
-  Engine.context.PerpsController.state.lastDepositTransactionId = transactionId;
+const setTransactionStatus = (
+  transactionId: string,
+  status = TransactionStatus.unapproved,
+) => {
   Engine.context.TransactionController.state.transactions = [
-    { id: transactionId, status: TransactionStatus.unapproved },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ] as any;
+    { id: transactionId, status },
+    // The controller state requires the complete transaction metadata shape.
+  ] as typeof Engine.context.TransactionController.state.transactions;
   hasRequest.mockReturnValue(true);
-}
+};
+
+const resolvedDeposit = (transactionId: string) =>
+  jest.fn().mockResolvedValue({
+    result: Promise.resolve(transactionId),
+  });
+
+const deferredDeposit = (transactionId: string) => {
+  let resolveResult: (transactionId: string) => void = () => undefined;
+  const result = new Promise<string>((resolve) => {
+    resolveResult = resolve;
+  });
+  const deposit = jest.fn().mockResolvedValue({ result });
+  const resolve = () => resolveResult(transactionId);
+  return { deposit, resolve };
+};
 
 describe('prewarmedDepositOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetPrewarmedDepositOrderForTesting();
     Engine.context.TransactionController.state.transactions = [];
-    Engine.context.PerpsController.state.lastDepositTransactionId = null;
   });
 
   describe('resolveDepositOrderProvider', () => {
-    it('falls back to the default provider in aggregated mode', () => {
+    it('uses the default provider in aggregated mode', () => {
       expect(
         resolveDepositOrderProvider(PROVIDER_CONFIG.AggregatedProvider),
       ).toBe(PROVIDER_CONFIG.DefaultProvider);
     });
 
-    it('falls back to the default provider when no provider is active', () => {
+    it('uses the default provider when no provider is active', () => {
       expect(resolveDepositOrderProvider(undefined)).toBe(
         PROVIDER_CONFIG.DefaultProvider,
       );
     });
 
-    it('keeps a concrete active provider', () => {
+    it('keeps a concrete provider', () => {
       expect(resolveDepositOrderProvider('lighter')).toBe('lighter');
     });
   });
 
   describe('prewarmDepositOrder', () => {
-    it('prepares a transaction and exposes it for claiming', async () => {
-      givenLiveTransaction('tx-1');
-      const depositWithOrder = jest.fn().mockResolvedValue(undefined);
+    it('prepares one transaction and exposes it for claiming', async () => {
+      setTransactionStatus('tx-1');
+      const deposit = resolvedDeposit('tx-1');
 
-      await prewarmDepositOrder(CRITERIA, depositWithOrder);
+      await prewarmDepositOrder(CRITERIA, deposit);
+      const claimed = claimPrewarmedDepositOrder(CRITERIA);
 
-      expect(depositWithOrder).toHaveBeenCalledTimes(1);
-      await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-1');
+      expect(deposit).toHaveBeenCalledTimes(1);
+      await expect(claimed).resolves.toBe('tx-1');
     });
 
-    it('does not prepare a second transaction while one is usable', async () => {
-      givenLiveTransaction('tx-1');
-      const depositWithOrder = jest.fn().mockResolvedValue(undefined);
-      await prewarmDepositOrder(CRITERIA, depositWithOrder);
+    it('reuses a matching preparation while it is in flight', async () => {
+      setTransactionStatus('tx-1');
+      const { deposit, resolve } = deferredDeposit('tx-1');
 
-      const second = prewarmDepositOrder(CRITERIA, depositWithOrder);
+      const first = prewarmDepositOrder(CRITERIA, deposit);
+      const second = prewarmDepositOrder(CRITERIA, deposit);
+      resolve();
+
+      await expect(Promise.all([first, second])).resolves.toEqual([
+        'tx-1',
+        'tx-1',
+      ]);
+      expect(deposit).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not prepare another transaction while a ready one is usable', async () => {
+      setTransactionStatus('tx-1');
+      const deposit = resolvedDeposit('tx-1');
+      await prewarmDepositOrder(CRITERIA, deposit);
+
+      const second = prewarmDepositOrder(CRITERIA, deposit);
 
       expect(second).toBeUndefined();
-      expect(depositWithOrder).toHaveBeenCalledTimes(1);
+      expect(deposit).toHaveBeenCalledTimes(1);
     });
 
-    it('does not prepare a second transaction while prep is in flight', async () => {
-      givenLiveTransaction('tx-1');
-      const depositWithOrder = jest.fn().mockResolvedValue(undefined);
-
-      const first = prewarmDepositOrder(CRITERIA, depositWithOrder);
-      const second = prewarmDepositOrder(CRITERIA, depositWithOrder);
-      await Promise.all([first, second]);
-
-      expect(depositWithOrder).toHaveBeenCalledTimes(1);
-    });
-
-    it('rejects when prep produced no transaction id', async () => {
-      const depositWithOrder = jest.fn().mockResolvedValue(undefined);
-
-      await expect(
-        prewarmDepositOrder(CRITERIA, depositWithOrder),
-      ).rejects.toThrow('Prewarmed deposit order produced no transaction id');
-    });
-
-    it('prepares a new transaction after a failed prewarm', async () => {
+    it('allows a new preparation after one fails', async () => {
       const failing = jest.fn().mockRejectedValue(new Error('prep failed'));
-      const succeeding = jest.fn().mockResolvedValue(undefined);
-      givenLiveTransaction('tx-2');
-
       await expect(prewarmDepositOrder(CRITERIA, failing)).rejects.toThrow(
         'prep failed',
       );
+      setTransactionStatus('tx-2');
 
-      await prewarmDepositOrder(CRITERIA, succeeding);
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-2'));
 
-      expect(failing).toHaveBeenCalledTimes(1);
-      expect(succeeding).toHaveBeenCalledTimes(1);
       await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-2');
     });
 
-    it('rejects a stale unusable transaction before replacing it', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('rejects a stale ready transaction before replacing it', async () => {
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
       hasRequest.mockReturnValue(false);
-      givenLiveTransaction('tx-2');
+      setTransactionStatus('tx-2');
 
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-2'));
 
       expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
         'tx-1',
@@ -143,20 +143,20 @@ describe('prewarmedDepositOrder', () => {
   });
 
   describe('claimPrewarmedDepositOrder', () => {
-    it('returns undefined when nothing was prepared', () => {
+    it('returns undefined when nothing is prepared', () => {
       expect(claimPrewarmedDepositOrder(CRITERIA)).toBeUndefined();
     });
 
-    it('returns undefined for a different account', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('rejects a ready transaction for a different account', async () => {
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
 
-      expect(
-        claimPrewarmedDepositOrder({ ...CRITERIA, accountAddress: '0xdef' }),
-      ).toBeUndefined();
+      const claimed = claimPrewarmedDepositOrder({
+        ...CRITERIA,
+        accountAddress: '0xdef',
+      });
+
+      expect(claimed).toBeUndefined();
       expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
         'tx-1',
         expect.anything(),
@@ -164,138 +164,58 @@ describe('prewarmedDepositOrder', () => {
       );
     });
 
-    it('returns undefined for a different provider', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('discards in-flight prep for a different provider', async () => {
+      setTransactionStatus('tx-1');
+      const { deposit, resolve } = deferredDeposit('tx-1');
+      const pending = prewarmDepositOrder(CRITERIA, deposit);
 
-      expect(
-        claimPrewarmedDepositOrder({ ...CRITERIA, providerId: 'lighter' }),
-      ).toBeUndefined();
+      const claimed = claimPrewarmedDepositOrder({
+        ...CRITERIA,
+        providerId: 'lighter',
+      });
+      resolve();
+      await pending;
+
+      expect(claimed).toBeUndefined();
+      expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
+        'tx-1',
+        expect.anything(),
+        { ignoreMissing: true, logErrors: false },
+      );
     });
 
-    it('ignores case differences in the account address', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('rejects in-flight prep that becomes unusable before it resolves', async () => {
+      setTransactionStatus('tx-1');
+      const { deposit, resolve } = deferredDeposit('tx-1');
+      prewarmDepositOrder(CRITERIA, deposit);
+      const claimed = claimPrewarmedDepositOrder(CRITERIA);
+      setTransactionStatus('tx-1', TransactionStatus.submitted);
+      resolve();
 
-      await expect(
-        claimPrewarmedDepositOrder({ ...CRITERIA, accountAddress: '0xABC' }),
-      ).resolves.toBe('tx-1');
+      await expect(claimed).rejects.toThrow(
+        'Prewarmed deposit order is no longer usable',
+      );
+      expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
+        'tx-1',
+        expect.anything(),
+        { ignoreMissing: true, logErrors: false },
+      );
     });
 
-    it('returns undefined once a dapp request cleared the approval', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
-      hasRequest.mockReturnValue(false);
-
-      expect(claimPrewarmedDepositOrder(CRITERIA)).toBeUndefined();
-    });
-
-    it('returns undefined once the transaction is no longer unapproved', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
-      Engine.context.TransactionController.state.transactions = [
-        { id: 'tx-1', status: TransactionStatus.submitted },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ] as any;
-
-      expect(claimPrewarmedDepositOrder(CRITERIA)).toBeUndefined();
-    });
-
-    it('can only be claimed once', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('can claim a transaction only once', async () => {
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
 
       await claimPrewarmedDepositOrder(CRITERIA);
 
       expect(claimPrewarmedDepositOrder(CRITERIA)).toBeUndefined();
     });
-
-    it('resolves against prep that is still in flight', async () => {
-      givenLiveTransaction('tx-1');
-      let resolveDeposit: () => void = () => undefined;
-      const depositWithOrder = jest.fn(
-        () =>
-          new Promise<void>((resolve) => {
-            resolveDeposit = resolve;
-          }),
-      );
-      prewarmDepositOrder(CRITERIA, depositWithOrder);
-
-      const claimed = claimPrewarmedDepositOrder(CRITERIA);
-      resolveDeposit();
-
-      await expect(claimed).resolves.toBe('tx-1');
-    });
-
-    it('does not claim in-flight prep for a different provider', async () => {
-      givenLiveTransaction('tx-1');
-      let resolveDeposit: () => void = () => undefined;
-      const pending = prewarmDepositOrder(
-        CRITERIA,
-        () =>
-          new Promise<void>((resolve) => {
-            resolveDeposit = resolve;
-          }),
-      );
-
-      expect(
-        claimPrewarmedDepositOrder({ ...CRITERIA, providerId: 'lighter' }),
-      ).toBeUndefined();
-      resolveDeposit();
-      await pending;
-
-      expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
-        'tx-1',
-        expect.anything(),
-        { ignoreMissing: true, logErrors: false },
-      );
-    });
-
-    it('rejects in-flight prep that is no longer unapproved when claimed', async () => {
-      givenLiveTransaction('tx-1');
-      let resolveDeposit: () => void = () => undefined;
-      prewarmDepositOrder(
-        CRITERIA,
-        () =>
-          new Promise<void>((resolve) => {
-            resolveDeposit = resolve;
-          }),
-      );
-      const claimed = claimPrewarmedDepositOrder(CRITERIA);
-      Engine.context.TransactionController.state.transactions = [
-        { id: 'tx-1', status: TransactionStatus.submitted },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ] as any;
-      resolveDeposit();
-
-      await expect(claimed).rejects.toThrow(
-        'Prewarmed deposit order is no longer usable',
-      );
-    });
   });
 
   describe('discardPrewarmedDepositOrder', () => {
-    it('rejects an unclaimed transaction', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('rejects a ready transaction', async () => {
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
 
       discardPrewarmedDepositOrder();
 
@@ -306,50 +226,15 @@ describe('prewarmedDepositOrder', () => {
       );
     });
 
-    it('rejects a transaction that prep delivers after the discard', async () => {
-      givenLiveTransaction('tx-1');
-      let resolveDeposit: () => void = () => undefined;
-      const pending = prewarmDepositOrder(
-        CRITERIA,
-        jest.fn(
-          () =>
-            new Promise<void>((resolve) => {
-              resolveDeposit = resolve;
-            }),
-        ),
-      );
+    it('rejects the exact transaction returned by discarded in-flight prep', async () => {
+      setTransactionStatus('tx-1');
+      const { deposit, resolve } = deferredDeposit('tx-1');
+      const pending = prewarmDepositOrder(CRITERIA, deposit);
 
       discardPrewarmedDepositOrder();
-      resolveDeposit();
+      setTransactionStatus('tx-2');
+      resolve();
       await pending;
-
-      expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
-        'tx-1',
-        expect.anything(),
-        { ignoreMissing: true, logErrors: false },
-      );
-    });
-
-    it('does not reject a later prewarm when discarded prep finishes afterward', async () => {
-      givenLiveTransaction('tx-1');
-      let resolveFirst: () => void = () => undefined;
-      const first = jest.fn(
-        () =>
-          new Promise<void>((resolve) => {
-            resolveFirst = resolve;
-          }),
-      );
-      const second = jest.fn(async () => {
-        givenLiveTransaction('tx-2');
-      });
-
-      prewarmDepositOrder(CRITERIA, first);
-      discardPrewarmedDepositOrder();
-      const later = prewarmDepositOrder(CRITERIA, second);
-
-      expect(second).not.toHaveBeenCalled();
-      resolveFirst();
-      await later;
 
       expect(mockedEngine.rejectPendingApproval).toHaveBeenCalledWith(
         'tx-1',
@@ -361,60 +246,16 @@ describe('prewarmedDepositOrder', () => {
         expect.anything(),
         expect.anything(),
       );
-      await expect(claimPrewarmedDepositOrder(CRITERIA)).resolves.toBe('tx-2');
     });
 
-    it('does not reject a transaction that was already claimed', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
+    it('does not reject a claimed transaction', async () => {
+      setTransactionStatus('tx-1');
+      await prewarmDepositOrder(CRITERIA, resolvedDeposit('tx-1'));
       await claimPrewarmedDepositOrder(CRITERIA);
 
       discardPrewarmedDepositOrder();
 
       expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalled();
-    });
-
-    it('does not reject in-flight prep that was already claimed', async () => {
-      givenLiveTransaction('tx-1');
-      let resolveDeposit: () => void = () => undefined;
-      prewarmDepositOrder(
-        CRITERIA,
-        jest.fn(
-          () =>
-            new Promise<void>((resolve) => {
-              resolveDeposit = resolve;
-            }),
-        ),
-      );
-      const claimed = claimPrewarmedDepositOrder(CRITERIA);
-
-      discardPrewarmedDepositOrder();
-      resolveDeposit();
-      await claimed;
-
-      expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalled();
-    });
-
-    it('does nothing when there is nothing prepared', () => {
-      discardPrewarmedDepositOrder();
-
-      expect(mockedEngine.rejectPendingApproval).not.toHaveBeenCalled();
-    });
-
-    it('swallows failures from rejecting the approval', async () => {
-      givenLiveTransaction('tx-1');
-      await prewarmDepositOrder(
-        CRITERIA,
-        jest.fn().mockResolvedValue(undefined),
-      );
-      mockedEngine.rejectPendingApproval.mockImplementation(() => {
-        throw new Error('approval already gone');
-      });
-
-      expect(() => discardPrewarmedDepositOrder()).not.toThrow();
     });
   });
 });

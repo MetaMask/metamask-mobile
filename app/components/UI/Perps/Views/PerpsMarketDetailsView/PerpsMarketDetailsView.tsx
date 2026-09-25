@@ -419,12 +419,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
+  const { gate, isBlocked } = useComplianceGate(selectedAddress ?? '');
 
-  // Prepare the deposit-with-order transaction up front so Long/Short opens the
-  // trade confirmation without waiting on transaction creation.
+  // Limit the approval prewarm to the bottom-sheet treatment that needs the
+  // tap-to-sheet performance improvement. Control keeps its existing flow.
   usePerpsPrewarmDepositOrder({
-    enabled: isEligible,
+    enabled: isEligible && !isBlocked && useBottomSheet,
     marketProviderId: market?.providerId,
     transactionActiveAbTests,
   });
