@@ -64,11 +64,11 @@ const createWrapper = () => {
 
 describe('useMyProfilePosts', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('fetches commented-only posts for the owner address', async () => {
-    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
 
     const { result } = renderHook(() => useMyProfilePosts('0xabc'), {
       wrapper: createWrapper(),

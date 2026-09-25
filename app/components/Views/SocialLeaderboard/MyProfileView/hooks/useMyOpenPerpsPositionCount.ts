@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/perps-controller';
+import Engine from '../../../../../core/Engine';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { getPreloadedData } from '../../../../UI/Perps/hooks/stream/hasCachedPerpsData';
 
@@ -12,8 +13,9 @@ const readOpenCount = (perpsEnabled: boolean): number => {
 };
 
 /**
- * Open Hyperliquid perps on the selected wallet (PerpsController cache).
- * Same snapshot the composer uses — no SocialService positions fetch.
+ * Open Hyperliquid perps on the selected wallet.
+ * Seeds from the PerpsController cache, then follows subscribeToPositions so
+ * the owner stats sheet does not freeze on the mount snapshot.
  */
 export const useMyOpenPerpsPositionCount = (): number => {
   const perpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -21,6 +23,19 @@ export const useMyOpenPerpsPositionCount = (): number => {
 
   useEffect(() => {
     setCount(readOpenCount(perpsEnabled));
+    if (!perpsEnabled) {
+      return;
+    }
+
+    const unsubscribe = Engine.context.PerpsController?.subscribeToPositions({
+      callback: (positions) => {
+        setCount(positions.length);
+      },
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
   }, [perpsEnabled]);
 
   return count;
