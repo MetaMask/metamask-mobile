@@ -16,7 +16,7 @@ export interface UseMoneyAccountSweepstakesBindingResult {
 
 /**
  * Bind (or re-assert) the primary Money Account address to the active rewards
- * subscription via POST /wr/money-account/binding.
+ * subscription via POST /wr/money-account/binding/signed.
  *
  * - No address / subscription → `'unavailable'` (non-fatal; re-assert later).
  * - Network errors → `'unavailable'` (same; do not block campaign opt-in).

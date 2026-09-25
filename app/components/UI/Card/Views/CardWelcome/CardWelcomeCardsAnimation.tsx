@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import {
+  Alignment,
   Fit,
   RiveView,
   useRive,
@@ -49,7 +50,19 @@ export const CARDS_ENTRANCE_START_TIMEOUT_MS = 2000;
 
 interface CardWelcomeCardsAnimationProps {
   animate: boolean;
+  /**
+   * Style for the static stacked-cards fallback image. Kept separate from
+   * `animationStyle` because `resizeMode: 'contain'` on a 1:1 PNG letterboxes
+   * differently than Rive `Fit.Contain` against the taller `cards` artboard —
+   * sharing one rect makes the animation hang lower than the image.
+   */
   style: StyleProp<ImageStyle>;
+  /**
+   * Style for the Rive view. Defaults to `style` when omitted. Prefer a wide
+   * box sized like `image`, shifted so its bottom sits behind the primary CTA
+   * (paired with `Alignment.BottomCenter`).
+   */
+  animationStyle?: StyleProp<ViewStyle>;
   /**
    * Called once the file has loaded and the native view reports ready, which is
    * when the state machine actually starts playing `CardsIn`. Callers sequencing
@@ -68,6 +81,7 @@ interface CardWelcomeCardsAnimationProps {
 const CardWelcomeCardsAnimation = ({
   animate,
   style,
+  animationStyle,
   onEntranceStart,
   onRiveError,
   testID,
@@ -121,7 +135,7 @@ const CardWelcomeCardsAnimation = ({
   }, [animate, hasRiveError, riveFile, riveViewRef, onEntranceStart]);
 
   if (animate && !hasRiveError) {
-    const riveStyle: ViewStyle = StyleSheet.flatten(style);
+    const riveStyle: ViewStyle = StyleSheet.flatten(animationStyle ?? style);
     return riveFile ? (
       <RiveView
         hybridRef={setHybridRef}
@@ -130,6 +144,7 @@ const CardWelcomeCardsAnimation = ({
         stateMachineName={RIVE_STATE_MACHINE}
         autoPlay
         fit={Fit.Contain}
+        alignment={Alignment.BottomCenter}
         style={riveStyle}
         onError={handleError}
         testID={testID ?? CardWelcomeSelectors.CARDS_ANIMATION}

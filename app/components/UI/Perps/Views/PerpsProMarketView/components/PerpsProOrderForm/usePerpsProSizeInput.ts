@@ -26,8 +26,6 @@ export interface UsePerpsProSizeInputParams {
   szDecimals: number;
   maxPossibleAmount: number;
   maxDigits?: number;
-  /** Keeps the canonical USD denomination visible and disables switching. */
-  forceUsd?: boolean;
   /**
    * When true, the size field stays empty and slider drags are visual-only
    * (used for reduce-only `no_position` / `wrong_side`).
@@ -129,15 +127,13 @@ export const usePerpsProSizeInput = ({
   szDecimals,
   maxPossibleAmount,
   maxDigits,
-  forceUsd = false,
   keepSizeEmpty = false,
   preserveMaxIntent = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
-    !forceUsd && Number.isFinite(effectivePrice) && effectivePrice > 0;
-  const [denominationUnit, setDenominationUnit] =
+    Number.isFinite(effectivePrice) && effectivePrice > 0;
+  const [activeDenominationUnit, setDenominationUnit] =
     useState<SizeDenominationUnit>('usd');
-  const activeDenominationUnit = forceUsd ? 'usd' : denominationUnit;
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({

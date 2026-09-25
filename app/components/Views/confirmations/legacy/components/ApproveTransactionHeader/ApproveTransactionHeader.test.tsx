@@ -31,8 +31,8 @@ jest.mock('../../../../../../core/Engine', () => {
     );
   return {
     context: {
-      TokensController: {
-        addToken: () => undefined,
+      AssetsController: {
+        addCustomAsset: () => undefined,
       },
       KeyringController: {
         state: {
