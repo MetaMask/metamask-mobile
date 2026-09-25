@@ -13,7 +13,12 @@
 // before anything else pulls in `@metamask/perps-controller`.
 import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
 
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
+import {
+  PERPS_ERROR_CODES,
+  type AggregatedProviderConfig,
+  type PerpsProvider,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 
 const OTHER_USER_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
@@ -33,6 +38,25 @@ const btcPosition = (type: 'isolated' | 'cross') => ({
   },
   type: 'oneWay',
 });
+
+// Not exported from the package root; loaded from the patched dist so the
+// routing added by the patch runs for real.
+const { AggregatedPerpsProvider } = jest.requireActual<{
+  AggregatedPerpsProvider: new (
+    config: AggregatedProviderConfig,
+  ) => PerpsProvider;
+}>('@metamask/perps-controller/providers/AggregatedPerpsProvider');
+
+const buildAggregatedProvider = (
+  harness: ReturnType<typeof buildPerpsIntegrationHarness>,
+) =>
+  new AggregatedPerpsProvider({
+    providers: new Map<PerpsProviderType, PerpsProvider>([
+      ['hyperliquid', harness.provider],
+    ]),
+    defaultProvider: 'hyperliquid',
+    infrastructure: harness.mocks.infrastructure,
+  });
 
 const withPositions = (
   harness: ReturnType<typeof buildPerpsIntegrationHarness>,
@@ -147,6 +171,56 @@ describe('Perps margin-mode lock — integration', () => {
         reason: 'provider_unavailable',
       });
       expect(harness.mocks.infoClient.activeAssetData).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('routing through the aggregated provider', () => {
+    it('reads the lock from the default provider', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      withPositions(harness, [btcPosition('cross')]);
+
+      const lock = await buildAggregatedProvider(harness).getMarginModeLock?.({
+        symbol: 'BTC',
+      });
+
+      expect(lock).toStrictEqual({
+        status: 'locked',
+        providerId: 'hyperliquid',
+        marginMode: 'cross',
+        reason: 'position',
+      });
+    });
+
+    it('reports unavailable for a provider that is not registered', async () => {
+      const harness = buildPerpsIntegrationHarness();
+
+      const lock = await buildAggregatedProvider(harness).getMarginModeLock?.({
+        symbol: 'BTC',
+        providerId: 'lighter',
+      });
+
+      expect(lock).toStrictEqual({
+        status: 'unavailable',
+        providerId: 'lighter',
+        reason: 'provider_not_found',
+      });
+    });
+
+    it('reports unavailable when the provider read throws', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      jest
+        .spyOn(harness.provider, 'getMarginModeLock')
+        .mockRejectedValue(new Error('offline'));
+
+      const lock = await buildAggregatedProvider(harness).getMarginModeLock?.({
+        symbol: 'BTC',
+      });
+
+      expect(lock).toStrictEqual({
+        status: 'unavailable',
+        providerId: 'hyperliquid',
+        reason: 'provider_unavailable',
+      });
     });
   });
 
