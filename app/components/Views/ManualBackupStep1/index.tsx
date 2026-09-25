@@ -11,6 +11,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
@@ -103,6 +107,8 @@ const ManualBackupStep1 = () => {
   const seedPhrase = route?.params?.seedPhrase;
 
   const showHeader = settingsBackup || backupFlow;
+  const isNativeHeader = useNativeHeader({ isBackButtonHidden: !showHeader });
+  const nativeHeaderInset = useNativeHeaderInset();
 
   const track = useMemo(
     () => createTrackFunction(saveOnboardingEvent),
@@ -434,20 +440,25 @@ const ManualBackupStep1 = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('bg-default flex-1')}
     >
-      <HeaderStandard
-        includesTopInset
-        onBack={showHeader ? () => navigation.goBack() : undefined}
-        backButtonProps={
-          showHeader
-            ? {
-                testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
-              }
-            : undefined
-        }
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          includesTopInset
+          onBack={showHeader ? () => navigation.goBack() : undefined}
+          backButtonProps={
+            showHeader
+              ? {
+                  testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+                }
+              : undefined
+          }
+        />
+      )}
       {ready ? (
         <>
-          <Box twClassName="flex-1 px-4">
+          <Box
+            twClassName="flex-1 px-4"
+            style={tw.style({ paddingTop: nativeHeaderInset })}
+          >
             {view === SEED_PHRASE
               ? renderSeedphraseView()
               : renderConfirmPassword()}

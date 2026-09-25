@@ -18,6 +18,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { StyleSheet, View } from 'react-native';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../../hooks/useNativeHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -155,21 +159,29 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
     });
   };
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.contacts_title'),
+  });
+  // The address list owns its scroller, so pad under the bar here.
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <SafeAreaView
-      style={styles.wrapper}
+      style={[styles.wrapper, { paddingTop: nativeHeaderInset }]}
       testID={ContactsViewSelectorIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
-      <HeaderStandard
-        title={strings('app_settings.contacts_title')}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-        testID={ContactsViewSelectorIDs.HEADER}
-        backButtonProps={{
-          testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
-        }}
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.contacts_title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+          testID={ContactsViewSelectorIDs.HEADER}
+          backButtonProps={{
+            testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
+          }}
+        />
+      )}
       {hasContacts ? (
         <AddressList
           chainId={chainId}

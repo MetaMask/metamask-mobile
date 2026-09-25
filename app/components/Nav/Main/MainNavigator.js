@@ -135,6 +135,7 @@ import {
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
 import { useTheme } from '../../../util/theme';
+import { useNativeHeaderScreenOptions } from '../../hooks/useNativeHeader';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
@@ -448,12 +449,20 @@ const SnapsSettingsStack = () => {
 };
 ///: END:ONLY_INCLUDE_IF
 
+/** Screens in a native-header flow that still draw their own JS header. */
+const JS_HEADER_SCREEN_OPTIONS = { headerShown: false };
+
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
+  const nativeHeaderScreenOptions = useNativeHeaderScreenOptions();
+  const screenOptions = useMemo(
+    () => ({ ...defaultScreenOptions, ...nativeHeaderScreenOptions }),
+    [defaultScreenOptions, nativeHeaderScreenOptions],
+  );
   return (
     <NativeStack.Navigator
       initialRouteName={Routes.ACCOUNTS_MENU_VIEW}
-      screenOptions={defaultScreenOptions}
+      screenOptions={screenOptions}
     >
       <NativeStack.Screen
         name={Routes.ACCOUNTS_MENU_VIEW}
@@ -527,12 +536,16 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
+        // Class component: cannot call useNativeHeader.
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen name="ResetPassword" component={ResetPassword} />
       <NativeStack.Screen name="WalletRecovery" component={WalletRecovery} />
       <NativeStack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
+        // Its title is the MetaMask wordmark image; a native bar title is text.
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
@@ -545,10 +558,13 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen
         name="EnterPasswordSimple"
         component={EnterPasswordSimple}
+        // Class component: cannot call useNativeHeader.
+        options={JS_HEADER_SCREEN_OPTIONS}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
@@ -573,6 +589,8 @@ const SettingsFlow = () => {
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
+          // Nested stack draws its own bar; a parent bar would print the route name.
+          options={JS_HEADER_SCREEN_OPTIONS}
         />
       )}
       {

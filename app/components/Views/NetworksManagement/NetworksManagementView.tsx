@@ -12,6 +12,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import {
+  useNativeHeader,
+  useNativeHeaderInset,
+} from '../../hooks/useNativeHeader';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -114,17 +118,27 @@ const NetworksManagementView = () => {
     [handleEditNetwork],
   );
 
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.networks_title'),
+  });
+  // The search field sits above the scroller, so pad the whole screen instead.
+  const nativeHeaderInset = useNativeHeaderInset();
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-background-default')}
+      style={tw.style('flex-1 bg-background-default', {
+        paddingTop: nativeHeaderInset,
+      })}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        title={strings('app_settings.networks_title')}
-        onBack={handleBack}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.networks_title')}
+          onBack={handleBack}
+          includesTopInset
+        />
+      )}
 
       <Box twClassName="px-4 py-2">
         <TextFieldSearch

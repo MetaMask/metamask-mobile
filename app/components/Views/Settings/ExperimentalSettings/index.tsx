@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../locales/i18n';
@@ -183,18 +184,29 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       </Button>
     </View>
   );
+  const isNativeHeader = useNativeHeader({
+    title: strings('app_settings.experimental_title'),
+  });
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
-        title={strings('app_settings.experimental_title')}
-        onBack={handleBack}
-        backButtonProps={{
-          testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
-        }}
-        testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
-        includesTopInset
-      />
-      <ScrollView style={styles.content}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('app_settings.experimental_title')}
+          onBack={handleBack}
+          backButtonProps={{
+            testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
+          }}
+          testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
+          includesTopInset
+        />
+      )}
+      <ScrollView
+        style={styles.content}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         {renderWalletConnectSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
         {isTestEnvironment && renderPerformanceSettings()}

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Image, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
@@ -132,6 +133,7 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
   };
 
   const aboutTitle = strings('app_settings.info_title');
+  const isNativeHeader = useNativeHeader({ title: aboutTitle });
 
   return (
     <SafeAreaView
@@ -139,13 +141,20 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
       style={styles.wrapper}
       testID={AboutMetaMaskSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        includesTopInset
-        title={aboutTitle}
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
-      />
-      <ScrollView contentContainerStyle={styles.wrapperContent}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          includesTopInset
+          title={aboutTitle}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
+        />
+      )}
+      <ScrollView
+        contentContainerStyle={styles.wrapperContent}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <View style={styles.logoWrapper}>
           <TouchableOpacity
             delayLongPress={10 * 1000} // 10 seconds

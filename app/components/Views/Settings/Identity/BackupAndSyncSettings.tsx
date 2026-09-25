@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNativeHeader } from '../../../hooks/useNativeHeader';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
@@ -24,6 +25,9 @@ const BackupAndSyncSettings = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+  const isNativeHeader = useNativeHeader({
+    title: strings('backupAndSync.title'),
+  });
 
   return (
     <SafeAreaView
@@ -31,16 +35,23 @@ const BackupAndSyncSettings = () => {
       style={tw.style('flex-1 bg-default')}
       testID={BackupAndSyncSettingsSelectorsIDs.SAFE_AREA}
     >
-      <HeaderStandard
-        title={strings('backupAndSync.title')}
-        onBack={handleBack}
-        includesTopInset
-        testID={BackupAndSyncSettingsSelectorsIDs.HEADER}
-        backButtonProps={{
-          testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
-        }}
-      />
-      <ScrollView style={styles.wrapper}>
+      {!isNativeHeader && (
+        <HeaderStandard
+          title={strings('backupAndSync.title')}
+          onBack={handleBack}
+          includesTopInset
+          testID={BackupAndSyncSettingsSelectorsIDs.HEADER}
+          backButtonProps={{
+            testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
+          }}
+        />
+      )}
+      <ScrollView
+        style={styles.wrapper}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
+      >
         <BackupAndSyncToggle />
         <BackupAndSyncFeaturesToggles />
       </ScrollView>

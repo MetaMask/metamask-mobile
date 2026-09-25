@@ -3,6 +3,7 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
@@ -25,6 +26,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useNativeHeader } from '../../hooks/useNativeHeader';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
@@ -122,6 +124,23 @@ const AccountsMenu = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // First screen of the settings stack, so the native bar draws no back button.
+  const nativeHeaderLeftItems = useCallback(
+    (): NativeStackHeaderItem[] => [
+      {
+        type: 'button',
+        label: strings('navigation.back'),
+        icon: { type: 'sfSymbol', name: 'chevron.backward' },
+        onPress: handleBack,
+      },
+    ],
+    [handleBack],
+  );
+  const isNativeHeader = useNativeHeader({
+    leftItems: nativeHeaderLeftItems,
+    isBackButtonHidden: true,
+  });
 
   const onPressSettings = useCallback(() => {
     trackEvent(createEventBuilder(EVENT_NAME.SETTINGS_VIEWED).build());
@@ -356,15 +375,20 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
+      {!isNativeHeader && (
+        <HeaderStandard
+          onBack={handleBack}
+          backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
       <ScrollView
         style={tw.style('flex-1', {
           backgroundColor: colors.background.default,
         })}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
         {/* Quick Actions Section */}
