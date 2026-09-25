@@ -170,10 +170,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     (heldContractTokenRef.current?.id === selectedTokenId
       ? heldContractTokenRef.current
       : null);
-  const railTokens =
-    selectedToken && !tokens.some((token) => token.id === selectedToken.id)
-      ? [selectedToken, ...tokens]
-      : tokens;
+  const railTokens = useMemo(
+    () =>
+      selectedToken && !tokens.some((token) => token.id === selectedToken.id)
+        ? [selectedToken, ...tokens]
+        : tokens,
+    [selectedToken, tokens],
+  );
   const tokenFeedTarget = useMemo((): TokenFeedTarget | null => {
     if (!selectedToken?.chain || !selectedToken.contractAddress) {
       return null;
