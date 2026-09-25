@@ -12,19 +12,19 @@ const DEVELOPMENT_CALLBACK =
 
 describe('getRampCallbackBaseUrl', () => {
   const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  const originalApiEnv = process.env.MM_DEV_API_ENV;
+  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
 
   afterEach(() => {
     process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
-    if (originalApiEnv !== undefined) {
-      process.env.MM_DEV_API_ENV = originalApiEnv;
+    if (originalRampsEnvironment !== undefined) {
+      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
     } else {
-      delete process.env.MM_DEV_API_ENV;
+      delete process.env.RAMPS_ENVIRONMENT;
     }
   });
 
   beforeEach(() => {
-    delete process.env.MM_DEV_API_ENV;
+    delete process.env.RAMPS_ENVIRONMENT;
   });
 
   it.each([
@@ -33,8 +33,8 @@ describe('getRampCallbackBaseUrl', () => {
     ['rc', PRODUCTION_CALLBACK],
     ['dev', DEVELOPMENT_CALLBACK],
     ['exp', STAGING_CALLBACK],
-    ['test', PRODUCTION_CALLBACK],
-    ['e2e', PRODUCTION_CALLBACK],
+    ['test', STAGING_CALLBACK],
+    ['e2e', STAGING_CALLBACK],
   ] as const)(
     'matches getDefaultRedirectCallbackUrl(getRampsEnvironment()) for METAMASK_ENVIRONMENT=%s',
     (metamaskEnvironment, expected) => {
@@ -46,17 +46,17 @@ describe('getRampCallbackBaseUrl', () => {
     },
   );
 
-  it('returns the production callback when METAMASK_ENVIRONMENT is unset', () => {
+  it('returns staging content callback when METAMASK_ENVIRONMENT is unset', () => {
     delete process.env.METAMASK_ENVIRONMENT;
-    expect(getRampCallbackBaseUrl()).toBe(PRODUCTION_CALLBACK);
+    expect(getRampCallbackBaseUrl()).toBe(STAGING_CALLBACK);
     expect(getRampCallbackBaseUrl()).toBe(
       getDefaultRedirectCallbackUrl(getRampsEnvironment()),
     );
   });
 
-  it('prefers MM_DEV_API_ENV over METAMASK_ENVIRONMENT', () => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
-    process.env.MM_DEV_API_ENV = 'prod';
+  it('prefers RAMPS_ENVIRONMENT over METAMASK_ENVIRONMENT', () => {
+    process.env.METAMASK_ENVIRONMENT = 'e2e';
+    process.env.RAMPS_ENVIRONMENT = 'production';
     expect(getRampCallbackBaseUrl()).toBe(PRODUCTION_CALLBACK);
     expect(getRampCallbackBaseUrl()).toBe(
       getDefaultRedirectCallbackUrl(getRampsEnvironment()),

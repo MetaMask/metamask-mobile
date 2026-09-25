@@ -7,8 +7,8 @@ import { getRampsEnvironment } from '../../../../core/Engine/controllers/ramps-c
  *
  * Thin wrapper around core's canonical environment-to-callback map so BuildQuote,
  * Checkout completion detection, Continue rewrite, and the controller's widened
- * default all resolve from the same `getRampsEnvironment()` source, which
- * follows the shared dev / uat / prod cluster.
+ * default all resolve from the same `getRampsEnvironment()` source (which honors
+ * `RAMPS_ENVIRONMENT` from builds.yml, then `METAMASK_ENVIRONMENT`).
  */
 export function getRampCallbackBaseUrl(): string {
   return getDefaultRedirectCallbackUrl(getRampsEnvironment());

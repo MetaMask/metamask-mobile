@@ -9,7 +9,6 @@ type ClaimsServiceInstanceOptions = NonNullable<
 
 const CLAIMS_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
   dev: Env.DEV,
-  uat: Env.UAT,
   prod: Env.PRD,
 };
 

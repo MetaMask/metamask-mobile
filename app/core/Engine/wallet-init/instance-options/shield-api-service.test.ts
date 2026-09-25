@@ -36,12 +36,4 @@ describe('getShieldApiServiceInstanceOptions', () => {
 
     expect(options.env).toBe(Env.DEV);
   });
-
-  it('maps MM_DEV_API_ENV=uat to Env.UAT', () => {
-    process.env.MM_DEV_API_ENV = 'uat';
-
-    const options = getShieldApiServiceInstanceOptions();
-
-    expect(options.env).toBe(Env.UAT);
-  });
 });

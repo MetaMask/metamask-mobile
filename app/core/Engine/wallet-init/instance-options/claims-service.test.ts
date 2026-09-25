@@ -36,12 +36,4 @@ describe('getClaimsServiceInstanceOptions', () => {
 
     expect(options.env).toBe(Env.DEV);
   });
-
-  it('maps MM_DEV_API_ENV=uat to Env.UAT', () => {
-    process.env.MM_DEV_API_ENV = 'uat';
-
-    const options = getClaimsServiceInstanceOptions();
-
-    expect(options.env).toBe(Env.UAT);
-  });
 });

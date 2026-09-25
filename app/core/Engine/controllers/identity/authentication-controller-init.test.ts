@@ -138,24 +138,4 @@ describe('AuthenticationControllerInit', () => {
       );
     });
   });
-
-  describe('when MM_DEV_API_ENV=uat', () => {
-    beforeEach(() => {
-      process.env.MM_DEV_API_ENV = 'uat';
-    });
-
-    afterEach(() => {
-      delete process.env.MM_DEV_API_ENV;
-    });
-
-    it('mints the JWT against the uat OIDC endpoint', () => {
-      authenticationControllerInit(getInitRequestMock());
-
-      expect(jest.mocked(AuthenticationController)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          config: expect.objectContaining({ env: 'uat' }),
-        }),
-      );
-    });
-  });
 });

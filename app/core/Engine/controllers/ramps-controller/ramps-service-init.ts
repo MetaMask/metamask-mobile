@@ -6,20 +6,39 @@ import {
   RampsEnvironment,
 } from '@metamask/ramps-controller';
 import { getBaseSemVerVersion } from '../../../../util/version';
-import { devApiEnv, type DevApiEnv } from '../../../devApiEnv';
-
-const RAMPS_ENVIRONMENT_BY_API_ENV: Record<DevApiEnv, RampsEnvironment> = {
-  dev: RampsEnvironment.Development,
-  uat: RampsEnvironment.Staging,
-  prod: RampsEnvironment.Production,
-};
 
 /**
- * Ramps keeps its Development / Staging / Production enum.
- * Mobile translates the shared `dev | uat | prod` cluster onto it.
+ * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
+ * Otherwise (e.g. Jest, environments without builds.yml), uses METAMASK_ENVIRONMENT switch.
+ *
+ * Mobile `dev` builds map to RAM Development (`on-ramp.dev-api`) so UNIFIED_BUY_2
+ * hits the RAM Dev API instead of Staging/UAT.
  */
 export function getRampsEnvironment(): RampsEnvironment {
-  return RAMPS_ENVIRONMENT_BY_API_ENV[devApiEnv()];
+  if (process.env.RAMPS_ENVIRONMENT) {
+    switch (process.env.RAMPS_ENVIRONMENT) {
+      case 'production':
+        return RampsEnvironment.Production;
+      case 'development':
+        return RampsEnvironment.Development;
+      default:
+        return RampsEnvironment.Staging;
+    }
+  }
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+  switch (metamaskEnvironment) {
+    case 'production':
+    case 'beta':
+    case 'rc':
+      return RampsEnvironment.Production;
+    case 'dev':
+      return RampsEnvironment.Development;
+    case 'exp':
+    case 'test':
+    case 'e2e':
+    default:
+      return RampsEnvironment.Staging;
+  }
 }
 
 /**
