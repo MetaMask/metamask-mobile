@@ -649,9 +649,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 one so the explainer sits 16px below the rule. */}
             <SectionDivider
               twClassName="mb-0"
-              testID={
-                PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION_DIVIDER
-              }
+              testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION_DIVIDER}
             />
             <Text
               variant={TextVariant.BodySm}
