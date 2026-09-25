@@ -1,4 +1,5 @@
 import { ScreenOrientationService } from './ScreenOrientationService';
+import { isExpandedDisplay } from './expandedDisplay';
 import {
   lockAsync,
   unlockAsync,
@@ -7,15 +8,22 @@ import {
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../util/Logger');
+jest.mock('./expandedDisplay', () => ({
+  isExpandedDisplay: jest.fn(() => false),
+}));
 
 const mockLockAsync = lockAsync as jest.MockedFunction<typeof lockAsync>;
 const mockUnlockAsync = unlockAsync as jest.MockedFunction<typeof unlockAsync>;
+const mockIsExpandedDisplay = isExpandedDisplay as jest.MockedFunction<
+  typeof isExpandedDisplay
+>;
 
 describe('ScreenOrientationService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLockAsync.mockResolvedValue(undefined);
     mockUnlockAsync.mockResolvedValue(undefined);
+    mockIsExpandedDisplay.mockReturnValue(false);
   });
 
   describe('lockToPortrait', () => {
@@ -29,6 +37,16 @@ describe('ScreenOrientationService', () => {
       await ScreenOrientationService.lockToPortrait();
 
       expect(ScreenOrientationService.isLockedToPortrait()).toBe(true);
+    });
+
+    it('keeps rotation enabled on the unfolded display', async () => {
+      mockIsExpandedDisplay.mockReturnValue(true);
+
+      await ScreenOrientationService.lockToPortrait();
+
+      expect(mockUnlockAsync).toHaveBeenCalled();
+      expect(mockLockAsync).not.toHaveBeenCalled();
+      expect(ScreenOrientationService.isLockedToPortrait()).toBe(false);
     });
 
     it('handles lock errors gracefully', async () => {
