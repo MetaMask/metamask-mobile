@@ -190,6 +190,7 @@
     ]
   },
   "resolutions": {
+    "@tanstack/query-core": "5.101.4",
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
@@ -418,7 +419,7 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^70.1.0",
-    "@metamask/transaction-pay-controller": "^29.1.0",
+    "@metamask/transaction-pay-controller": "^29.2.1",
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.12.1",
     "@metamask/wallet": "^12.0.3",
