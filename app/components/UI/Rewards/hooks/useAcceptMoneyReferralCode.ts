@@ -25,6 +25,7 @@ import {
  */
 const SELF_REFERRAL_BODY_SNIPPET = 'own referral code';
 const REFERRER_REFUSAL_BODY_SNIPPET = 'kol cannot register as a referee';
+const RESTRICTED_COUNTRY_BODY_SNIPPET = 'restrictedcountrycodeerror';
 
 /**
  * A refresh discarded because the session changed is retried under the new
@@ -53,6 +54,12 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
     }
     if (body.includes(REFERRER_REFUSAL_BODY_SNIPPET)) {
       return strings('rewards.error_messages.referrer_cannot_be_referred');
+    }
+    if (
+      body.includes(RESTRICTED_COUNTRY_BODY_SNIPPET) ||
+      body.includes('not available in your country')
+    ) {
+      return strings('rewards.onboarding.not_supported_region_description');
     }
   }
   return strings('rewards.error_messages.something_went_wrong');

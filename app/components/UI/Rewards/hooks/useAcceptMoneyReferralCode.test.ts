@@ -61,6 +61,7 @@ const buildReferralMe = (
   },
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 });
 
 describe('useAcceptMoneyReferralCode', () => {
@@ -350,6 +351,14 @@ describe('useAcceptMoneyReferralCode', () => {
         403,
         'Accounts with recent trading activity cannot register as a referee',
         'rewards.error_messages.something_went_wrong',
+      ],
+      [
+        403,
+        JSON.stringify({
+          message: 'Product is not available in your country',
+          error: 'RestrictedCountryCodeError',
+        }),
+        'rewards.onboarding.not_supported_region_description',
       ],
       [500, 'boom', 'rewards.error_messages.something_went_wrong'],
     ])(

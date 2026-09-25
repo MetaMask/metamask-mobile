@@ -174,6 +174,11 @@ export type ReferralMeDto = {
   localized_text: ReferralLocalizedText;
   /** Null when Contentful has no invite hero synced. */
   invite_hero: ThemeImage | null;
+  /**
+   * Program-scoped ISO 3166-1 alpha-2 codes excluded from accepting an invite.
+   * Always present from the API; treat missing as `[]` for older cached payloads.
+   */
+  excluded_regions: string[];
 };
 
 /** `GET /referral/me/funnel` */

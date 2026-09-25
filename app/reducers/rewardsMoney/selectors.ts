@@ -3,7 +3,9 @@ import type {
   ReferralLocalizedText,
   ReferralVariant,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
+import { selectGeoLocation } from '../rewards/selectors';
 import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
+import { isMoneyReferralAllowedForGeo } from './isMoneyReferralAllowedForGeo';
 
 /**
  * Referral-me entry for one Hydra profile.
@@ -36,6 +38,22 @@ export function selectReferralMeLocalizedText(
   profileId: string | undefined,
 ): ReferralLocalizedText | undefined {
   return selectReferralMeEntry(state, profileId)?.data?.localized_text;
+}
+
+/**
+ * Whether the current device country may accept a Money referral invite.
+ *
+ * Combines Rewards geo metadata with the program's `excluded_regions` from
+ * referral me. Unknown geo fails open (same as Rewards opt-in on error).
+ */
+export function selectMoneyReferralAllowedForGeo(
+  state: RootState,
+  profileId: string | undefined,
+): boolean {
+  const geoLocation = selectGeoLocation(state);
+  const excludedRegions = selectReferralMeEntry(state, profileId)?.data
+    ?.excluded_regions;
+  return isMoneyReferralAllowedForGeo(geoLocation, excludedRegions);
 }
 
 /**

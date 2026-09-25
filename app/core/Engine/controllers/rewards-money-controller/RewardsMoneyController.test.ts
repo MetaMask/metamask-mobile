@@ -44,6 +44,7 @@ const mockReferralMe: ReferralMeDto = {
   // No assertion reads copy keys; the server always sends all of them.
   localized_text: {} as ReferralLocalizedText,
   invite_hero: null,
+  excluded_regions: [],
 };
 
 const mockFunnel: ReferralFunnelDto = {

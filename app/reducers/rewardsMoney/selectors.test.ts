@@ -7,6 +7,7 @@ import initialRootState from '../../util/test/initial-root-state';
 import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   selectEarningsSummaryEntry,
+  selectMoneyReferralAllowedForGeo,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
   selectReferralMeVariant,
@@ -39,6 +40,7 @@ const mockReferralMe: ReferralMeDto = {
   },
   localized_text: mockLocalizedText,
   invite_hero: null,
+  excluded_regions: [],
 };
 
 const settledEntry: ReferralMeEntry = {
@@ -149,6 +151,44 @@ describe('rewardsMoney selectors', () => {
       const state = buildState({ [PROFILE_A]: loadingEntry });
 
       expect(selectReferralMeLocalizedText(state, PROFILE_A)).toBeUndefined();
+    });
+  });
+
+  describe('selectMoneyReferralAllowedForGeo', () => {
+    it('refuses when the device country is on excluded_regions', () => {
+      const state = {
+        ...buildState({
+          [PROFILE_A]: {
+            loading: false,
+            error: false,
+            data: { ...mockReferralMe, excluded_regions: ['GB'] },
+          },
+        }),
+        rewards: {
+          ...initialRootState.rewards,
+          geoLocation: 'GB',
+        },
+      } as RootState;
+
+      expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(false);
+    });
+
+    it('allows when geo is unknown', () => {
+      const state = {
+        ...buildState({
+          [PROFILE_A]: {
+            loading: false,
+            error: false,
+            data: { ...mockReferralMe, excluded_regions: ['GB'] },
+          },
+        }),
+        rewards: {
+          ...initialRootState.rewards,
+          geoLocation: null,
+        },
+      } as RootState;
+
+      expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(true);
     });
   });
 
