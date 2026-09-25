@@ -58,6 +58,11 @@ export const useSocialV1TokenFeed = (
       lastPage.pagination?.olderCursor ?? undefined,
     initialPageParam: undefined as string | undefined,
     enabled: Boolean(target) && isUnlocked,
+    // ReactQueryService marks TanStack focused on foreground before React
+    // commits enabled:false after auto-lock. Match the other auth-gated
+    // social queries so queryFn does not run while the wallet is locked.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     retry: false,
   });
 

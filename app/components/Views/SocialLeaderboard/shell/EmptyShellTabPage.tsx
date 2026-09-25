@@ -169,23 +169,28 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
 
-  const selectedStillPresent =
+  const selectedInPosts =
     selectedHotTokenId != null &&
     posts.some(
       (post) => getSocialV1HotTokenId(post.item) === selectedHotTokenId,
     );
-  const activeHotTokenId = selectedStillPresent ? selectedHotTokenId : null;
+  // A contract chip's token feed does not depend on the unfiltered posts.
+  // Keep it, and the chip selection, until the user deselects. Perp-only
+  // chips have no token feed, so they still drop when the asset leaves.
+  const contractFeedSelected = selectedHotTokenId != null && tokenFeed != null;
+  const activeHotTokenId =
+    contractFeedSelected || selectedInPosts ? selectedHotTokenId : null;
 
   useEffect(() => {
-    if (selectedHotTokenId && !selectedStillPresent) {
+    if (selectedHotTokenId && !selectedInPosts && !tokenFeed) {
       setSelectedHotTokenId(null);
     }
-  }, [selectedHotTokenId, selectedStillPresent]);
+  }, [selectedHotTokenId, selectedInPosts, tokenFeed]);
 
   // A selected chip with a contract replaces the client-side filter with
   // `SocialService:fetchTokenFeed`. Perp-only chips have no contract, so they
   // keep filtering the posts already on screen.
-  const activeTokenFeed = activeHotTokenId ? tokenFeed : null;
+  const activeTokenFeed = contractFeedSelected ? tokenFeed : null;
 
   const filteredPosts = useMemo(() => {
     if (!activeHotTokenId) {

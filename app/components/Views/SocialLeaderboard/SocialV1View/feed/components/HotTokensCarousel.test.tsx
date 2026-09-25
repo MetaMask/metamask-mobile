@@ -112,6 +112,40 @@ describe('HotTokensCarousel', () => {
     expect(onTokenFeedChange).toHaveBeenCalledWith(tokenFeed);
   });
 
+  it('keeps the selected contract feed after that asset leaves the rail', () => {
+    const onTokenFeedChange = jest.fn();
+    const token = mockHotToken({
+      id: 'hot-pump',
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    arrange([token]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    arrange([]);
+    onTokenFeedChange.mockClear();
+    rerender(
+      <HotTokensCarousel
+        selectedTokenId={token.id}
+        onTokenFeedChange={onTokenFeedChange}
+      />,
+    );
+
+    expect(mockUseSocialV1TokenFeed).toHaveBeenLastCalledWith({
+      chain: 'solana',
+      contractAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    });
+    expect(onTokenFeedChange).not.toHaveBeenCalledWith(null);
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('hot-pump')),
+    ).toBeOnTheScreen();
+  });
+
   it('does not request a token feed for a chip without a contract', () => {
     const onTokenFeedChange = jest.fn();
     arrange([mockHotToken()]);

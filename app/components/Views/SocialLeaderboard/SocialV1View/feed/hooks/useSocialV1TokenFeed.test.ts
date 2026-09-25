@@ -53,6 +53,22 @@ describe('useSocialV1TokenFeed', () => {
     jest.clearAllMocks();
   });
 
+  it('does not refetch the token feed on focus or reconnect', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(QueryClientProvider, { client }, children);
+
+    renderHook(() => useSocialV1TokenFeed(target), { wrapper });
+    await waitFor(() => expect(mockCall).toHaveBeenCalled());
+
+    const query = client.getQueryCache().getAll()[0];
+    expect(query?.options.refetchOnWindowFocus).toBe(false);
+    expect(query?.options.refetchOnReconnect).toBe(false);
+  });
+
   it('does not call the messenger when no token is selected', () => {
     const { result } = renderHook(() => useSocialV1TokenFeed(null), {
       wrapper: createWrapper(),

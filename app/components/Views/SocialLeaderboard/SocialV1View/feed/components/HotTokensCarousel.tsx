@@ -151,10 +151,29 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     feedIsLoading,
     selectedTokenId,
   );
-  const selectedToken = useMemo(
+  const rankedToken = useMemo(
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
   );
+  // The rail is ranked from the unfiltered feed. Remember the selected
+  // contract chip so a refetch that drops that asset does not cancel its feed.
+  const heldContractTokenRef = useRef<SocialV1HotToken | null>(null);
+  if (!selectedTokenId) {
+    heldContractTokenRef.current = null;
+  } else if (rankedToken?.chain && rankedToken.contractAddress) {
+    heldContractTokenRef.current = rankedToken;
+  } else if (heldContractTokenRef.current?.id !== selectedTokenId) {
+    heldContractTokenRef.current = null;
+  }
+  const selectedToken =
+    rankedToken ??
+    (heldContractTokenRef.current?.id === selectedTokenId
+      ? heldContractTokenRef.current
+      : null);
+  const railTokens =
+    selectedToken && !tokens.some((token) => token.id === selectedToken.id)
+      ? [selectedToken, ...tokens]
+      : tokens;
   const tokenFeedTarget = useMemo((): TokenFeedTarget | null => {
     if (!selectedToken?.chain || !selectedToken.contractAddress) {
       return null;
@@ -280,13 +299,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   }));
 
   const loopTokens = useMemo(
-    () => (shouldMarquee ? tokens : []),
-    [shouldMarquee, tokens],
+    () => (shouldMarquee ? railTokens : []),
+    [shouldMarquee, railTokens],
   );
 
   // Returning null instead of an empty wrapper lets the page's gap collapse,
   // rather than leaving a rail-shaped hole above the first post.
-  if (!isLoading && tokens.length === 0) {
+  if (!isLoading && railTokens.length === 0) {
     return null;
   }
 
@@ -303,7 +322,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       <GestureDetector gesture={pan}>
         <Animated.View style={[styles.row, trackStyle]}>
           <HotTokenTrack
-            tokens={tokens}
+            tokens={railTokens}
             onPress={onTokenPress}
             onLayout={handleTrackLayout}
             testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}

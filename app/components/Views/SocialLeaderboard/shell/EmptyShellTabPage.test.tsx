@@ -591,5 +591,48 @@ describe('EmptyShellTabPage', () => {
 
       jest.useRealTimers();
     });
+
+    it('keeps the token feed when the asset leaves the main feed', () => {
+      let omitPump = false;
+      jest.mocked(useSocialV1Feed).mockImplementation((tab) => {
+        const result = mockUseSocialV1Feed(tab);
+        return {
+          ...result,
+          posts: omitPump
+            ? result.posts.filter((post) => post.item.asset.symbol !== 'PUMP')
+            : result.posts,
+        };
+      });
+      const { rerender } = renderTrending();
+      fireEvent.press(
+        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
+      );
+      reportTokenFeed({
+        posts: [tokenFeedPost],
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore: jest.fn(),
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      omitPump = true;
+      rerender(
+        <EmptyShellTabPage
+          tab="trending"
+          isActive
+          containerTestID="trending-page-content"
+          scrollTestID="trending-page-scroll"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('social-v1-feed-card-token-feed-item'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('popular-traders-carousel-section'),
+      ).toBeNull();
+    });
   });
 });
