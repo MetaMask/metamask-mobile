@@ -48,7 +48,7 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
-// Captures the onOpenDialog callback registered by QuickBuyRootInner.
+// Captures the onOpenBottomSheet callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -61,7 +61,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    BottomSheet: ReactMock.forwardRef(
       (
         {
           children,
@@ -73,10 +73,10 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
+          onOpenBottomSheet: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
-          onCloseDialog: (cb?: () => void) => cb?.(),
+          onCloseBottomSheet: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
           View,
@@ -262,6 +262,12 @@ const buildHookResult = (
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
   hasNoPayWithFunds: false,
+  hasInsufficientBalance: false,
+  isGasless: false,
+  estimatedReceiveFiat: undefined,
+  gasFeeDeductionLabel: undefined,
+  discountBadge: undefined,
+  baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
@@ -284,8 +290,9 @@ const buildHookResult = (
   hasSourcePrice: true,
   isSliderDisabled: false,
   sellDestTokenOptions: [],
-  selectedDestStable: undefined,
-  handleSelectDestStable: jest.fn(),
+  positionTokenFromSetup: undefined,
+  selectedReceiveToken: undefined,
+  handleSelectReceiveToken: jest.fn(),
   amountDisplayMode: 'fiat',
   handleConfirm: jest.fn(),
   ...overrides,

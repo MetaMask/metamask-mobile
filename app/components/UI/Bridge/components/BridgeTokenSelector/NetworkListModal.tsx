@@ -52,6 +52,90 @@ export interface NetworkListModalParams {
   filterTarget?: NetworkListModalFilterTarget;
 }
 
+export interface NetworkListProps {
+  chainRanking: ChainRankingEntry[];
+  selectedChainId?: CaipChainId;
+  onSelect: (chainId?: CaipChainId) => void;
+}
+
+const NetworkListRows: React.FC<NetworkListProps> = ({
+  chainRanking,
+  selectedChainId,
+  onSelect,
+}) => {
+  const isAllSelected = !selectedChainId;
+
+  return (
+    <ScrollView testID="network-list-modal-scroll">
+      {/* All networks option */}
+      <Cell
+        variant={CellVariant.Select}
+        title={strings('bridge.all_networks')}
+        isSelected={isAllSelected}
+        onPress={() => onSelect(undefined)}
+        avatarProps={{
+          variant: AvatarVariant.Icon,
+          name: ComponentLibraryIconName.Global,
+          size: AvatarSize.Sm,
+        }}
+        testID="network-option-all"
+      >
+        {isAllSelected && <Icon name={IconName.Check} size={IconSize.Md} />}
+      </Cell>
+
+      {chainRanking.map((chain: { chainId: CaipChainId; name: string }) => {
+        const isSelected = selectedChainId === chain.chainId;
+        return (
+          <Cell
+            key={chain.chainId}
+            variant={CellVariant.Select}
+            title={chain.name}
+            isSelected={isSelected}
+            onPress={() => onSelect(chain.chainId)}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name: chain.name,
+              imageSource: getNetworkImageSource({
+                chainId: chain.chainId,
+              }),
+              size: AvatarSize.Sm,
+            }}
+            testID={`network-option-${chain.chainId}`}
+          >
+            {isSelected && <Icon name={IconName.Check} size={IconSize.Md} />}
+          </Cell>
+        );
+      })}
+    </ScrollView>
+  );
+};
+
+const NetworkValueOrderedList: React.FC<NetworkListProps> = ({
+  chainRanking,
+  ...rest
+}) => (
+  <NetworkListRows chainRanking={useChainValueOrder(chainRanking)} {...rest} />
+);
+
+/**
+ * Selectable network rows (All networks + chain ranking), ordered per the
+ * chain-value-order experiment. Rendered without a sheet or header so hosts
+ * can embed it in their own container.
+ */
+export const NetworkList: React.FC<NetworkListProps> = (props) => {
+  const { variant } = useABTest(
+    CHAIN_VALUE_ORDER_AB_KEY,
+    CHAIN_VALUE_ORDER_VARIANTS,
+    CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  );
+
+  return variant.orderByValue ? (
+    <NetworkValueOrderedList {...props} />
+  ) : (
+    <NetworkListRows {...props} />
+  );
+};
+
 interface NetworkListModalContentProps {
   chainRanking: ChainRankingEntry[];
   filterTarget: NetworkListModalFilterTarget;
@@ -85,69 +169,17 @@ const NetworkListModalContent: React.FC<NetworkListModalContentProps> = ({
     [dispatch, filterTarget],
   );
 
-  const isAllSelected = !selectedChainId;
-
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onClose={handleClose}>
         {strings('bridge.select_network')}
       </BottomSheetHeader>
-      <ScrollView testID="network-list-modal-scroll">
-        {/* All networks option */}
-        <Cell
-          variant={CellVariant.Select}
-          title={strings('bridge.all_networks')}
-          isSelected={isAllSelected}
-          onPress={() => handleNetworkPress(undefined)}
-          avatarProps={{
-            variant: AvatarVariant.Icon,
-            name: ComponentLibraryIconName.Global,
-            size: AvatarSize.Sm,
-          }}
-          testID="network-option-all"
-        >
-          {isAllSelected && <Icon name={IconName.Check} size={IconSize.Md} />}
-        </Cell>
-
-        {chainRanking.map((chain: { chainId: CaipChainId; name: string }) => {
-          const isSelected = selectedChainId === chain.chainId;
-          return (
-            <Cell
-              key={chain.chainId}
-              variant={CellVariant.Select}
-              title={chain.name}
-              isSelected={isSelected}
-              onPress={() => handleNetworkPress(chain.chainId)}
-              avatarProps={{
-                variant: AvatarVariant.Network,
-                name: chain.name,
-                imageSource: getNetworkImageSource({
-                  chainId: chain.chainId,
-                }),
-                size: AvatarSize.Sm,
-              }}
-              testID={`network-option-${chain.chainId}`}
-            >
-              {isSelected && <Icon name={IconName.Check} size={IconSize.Md} />}
-            </Cell>
-          );
-        })}
-      </ScrollView>
+      <NetworkList
+        chainRanking={chainRanking}
+        selectedChainId={selectedChainId}
+        onSelect={handleNetworkPress}
+      />
     </BottomSheet>
-  );
-};
-
-const NetworkValueOrderedListModal: React.FC<NetworkListModalContentProps> = ({
-  chainRanking,
-  filterTarget,
-}) => {
-  const orderedChainRanking = useChainValueOrder(chainRanking);
-
-  return (
-    <NetworkListModalContent
-      chainRanking={orderedChainRanking}
-      filterTarget={filterTarget}
-    />
   );
 };
 
@@ -159,21 +191,6 @@ const NetworkListModal: React.FC = () => {
   const chainRanking: ChainRankingEntry[] = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
-  const { variant } = useABTest(
-    CHAIN_VALUE_ORDER_AB_KEY,
-    CHAIN_VALUE_ORDER_VARIANTS,
-    CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
-  );
-
-  if (variant.orderByValue) {
-    return (
-      <NetworkValueOrderedListModal
-        chainRanking={chainRanking}
-        filterTarget={filterTarget}
-      />
-    );
-  }
-
   return (
     <NetworkListModalContent
       chainRanking={chainRanking}

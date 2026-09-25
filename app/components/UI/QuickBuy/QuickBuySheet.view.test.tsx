@@ -27,19 +27,20 @@ import {
   quickBuyUsdtPayWithOverrides,
   quickBuyZeroEthOverrides,
 } from '../../../../tests/component-view/presets/quickBuy';
-import { USDT_DEST } from '../Bridge/_mocks_/bridgeViewTestConstants';
+import {
+  USDC_DEST,
+  USDT_DEST,
+} from '../Bridge/_mocks_/bridgeViewTestConstants';
 import Routes from '../../../constants/navigation/Routes';
+import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
   getQuickBuyBuyPillTestId,
-  getQuickBuyChainFilterTestId,
   getQuickBuyEditBuyFieldTestId,
-  getQuickBuyPayWithRowTestId,
   getQuickBuySellPillTestId,
   QuickBuySheetSelectorsIDs,
 } from './QuickBuySheet.testIds';
 
-const BASE_CHAIN_ID = '0x2105';
-const BASE_USDC_ADDRESS = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+const USDT_PICKER_ROW = getAssetTestId(`${USDT_DEST.chainId}-USDT`);
 
 const WAIT_MS = 8000;
 
@@ -94,9 +95,7 @@ const waitForQuoteTotal = async (screen: Pick<RenderAPI, 'getByTestId'>) => {
   await waitFor(
     () => {
       const rateTag = screen.getByTestId(QuickBuySheetSelectorsIDs.RATE_TAG);
-      expect(
-        within(rateTag).getByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD),
-      ).toBeOnTheScreen();
+      expect(rateTag).toBeOnTheScreen();
     },
     { timeout: WAIT_MS },
   );
@@ -168,12 +167,13 @@ describeForPlatforms('QuickBuySheet', () => {
     });
   });
 
-  it('shows the total row after a quote loads', async () => {
+  it('shows the estimated receive row after a gasless quote loads', async () => {
     const screen = renderQuickBuySheet();
 
     await selectTenDollarBuy(screen);
 
     await waitForQuoteTotal(screen);
+    expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
   });
 
   it('enables confirm when a valid amount and quote are available', async () => {
@@ -341,16 +341,6 @@ describeForPlatforms('QuickBuySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onClose when the toolbar close button is pressed', async () => {
-    const onClose = jest.fn();
-    const screen = renderQuickBuySheet({ onClose });
-
-    await waitForSheetReady(screen);
-    fireEvent.press(screen.getByTestId(QuickBuySheetSelectorsIDs.CLOSE_BUTTON));
-
-    expect(onClose).toHaveBeenCalled();
-  });
-
   it('opens the high price impact screen instead of submitting', async () => {
     mockFetchQuotes((params) => [
       createQuickBuyFetchedQuote(String(params.srcTokenAmount ?? '0'), {
@@ -432,7 +422,7 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitForSheetReady(screen);
     fireEvent.press(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_SELL),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
 
     expect(
@@ -450,14 +440,15 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await waitForSheetReady(screen);
     fireEvent.press(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_SELL),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
-    const usdtRow = await screen.findByTestId(
-      getQuickBuyPayWithRowTestId(USDT_DEST.address, USDT_DEST.chainId),
-    );
+    const usdtRow = await screen.findByTestId(USDT_PICKER_ROW);
+    expect(
+      screen.queryByTestId(getAssetTestId(`${USDC_DEST.chainId}-USDC`)),
+    ).not.toBeOnTheScreen();
     fireEvent.press(usdtRow);
 
     const payWith = await screen.findByTestId(
@@ -478,50 +469,12 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
-    fireEvent.press(
-      await screen.findByTestId(
-        getQuickBuyPayWithRowTestId(USDT_DEST.address, USDT_DEST.chainId),
-      ),
-    );
+    fireEvent.press(await screen.findByTestId(USDT_PICKER_ROW));
 
     const payWith = await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON,
     );
     expect(within(payWith).getByText(/USDT/)).toBeOnTheScreen();
-  });
-
-  it('filters receive tokens to one chain and hides the others', async () => {
-    const screen = renderQuickBuySheet({
-      overrides: quickBuySellableUsdcOverrides(),
-    });
-    const mainnetUsdtRow = getQuickBuyPayWithRowTestId(
-      USDT_DEST.address,
-      USDT_DEST.chainId,
-    );
-    const baseUsdcRow = getQuickBuyPayWithRowTestId(
-      BASE_USDC_ADDRESS,
-      BASE_CHAIN_ID,
-    );
-
-    await waitForSheetReady(screen);
-    fireEvent.press(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_SELL),
-    );
-    fireEvent.press(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
-    );
-    await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_HEADER);
-    fireEvent.press(
-      await screen.findByTestId(getQuickBuyChainFilterTestId(null)),
-    );
-    expect(await screen.findByTestId(mainnetUsdtRow)).toBeOnTheScreen();
-    expect(screen.getByTestId(baseUsdcRow)).toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByTestId(getQuickBuyChainFilterTestId(BASE_CHAIN_ID)),
-    );
-
-    expect(await screen.findByTestId(baseUsdcRow)).toBeOnTheScreen();
-    expect(screen.queryByTestId(mainnetUsdtRow)).not.toBeOnTheScreen();
   });
 
   it('saves an edited buy pill and shows it on the amount screen', async () => {

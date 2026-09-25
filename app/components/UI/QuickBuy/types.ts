@@ -26,6 +26,7 @@ export type QuickBuyScreen =
   | 'quoteDetails'
   | 'selectQuote'
   | 'payWith'
+  | 'selectNetwork'
   | 'priceImpactConfirm';
 
 /** Feature flags for optional flow pieces (enabled per consumer). */

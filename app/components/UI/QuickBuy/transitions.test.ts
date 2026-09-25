@@ -35,6 +35,7 @@ describe('SCREEN_DEPTH', () => {
       payWith: 1,
       quoteDetails: 1,
       selectQuote: 2,
+      selectNetwork: 2,
       priceImpactConfirm: 1,
     });
   });

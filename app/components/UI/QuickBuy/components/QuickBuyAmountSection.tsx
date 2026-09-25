@@ -21,6 +21,7 @@ import {
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../Views/SocialLeaderboard/utils/formatters';
+import { strings } from '../../../../../locales/i18n';
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -34,6 +35,8 @@ interface QuickBuyAmountSectionProps {
   /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
   isQuoteLoading: boolean;
+  /** Highlights the entered amount when it exceeds the source balance. */
+  hasInsufficientBalance?: boolean;
   /**
    * When true, the user is acting on an unpriced source token (sell mode only).
    * The headline switches to the entered source-token amount, the secondary
@@ -45,6 +48,8 @@ interface QuickBuyAmountSectionProps {
   sourceCryptoAmount?: string;
   /** Source token symbol (unpriced path), e.g. "CAKE". */
   sourceSymbol?: string;
+  /** Available source balance shown in Sell mode. */
+  sourceBalanceDisplay?: string;
   /** When true, shows a blinking caret after the editable digits (keypad open). */
   showCursor?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
@@ -93,9 +98,11 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   destSymbol,
   estimatedReceiveAmount,
   isQuoteLoading,
+  hasInsufficientBalance = false,
   isUnpricedSource = false,
   sourceCryptoAmount,
   sourceSymbol,
+  sourceBalanceDisplay,
   showCursor = false,
   onAmountAreaPress,
 }) => {
@@ -108,7 +115,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   );
 
   const cryptoAmountLabel = estimatedReceiveAmount
-    ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
+    ? `≈ ${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
 
   let primaryLabel: string;
@@ -121,12 +128,21 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     const sourceLabel =
       `${sourceCryptoAmount || '0'} ${sourceSymbol ?? ''}`.trim();
     primaryLabel = sourceLabel;
-    secondaryLabel = `≈ ${cryptoAmountLabel}`;
+    secondaryLabel = cryptoAmountLabel;
   } else {
     const isCryptoPrimary = amountDisplayMode === 'crypto';
     primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
     secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
   }
+  if (sourceBalanceDisplay) {
+    secondaryLabel = `${sourceBalanceDisplay} Available`;
+  }
+  if (hasInsufficientBalance) {
+    secondaryLabel = strings('social_leaderboard.quick_buy.add_funds');
+  }
+  const amountColor = hasInsufficientBalance
+    ? TextColor.ErrorDefault
+    : TextColor.TextDefault;
 
   // While the keypad is open, render amount digits + caret + currency/token
   // affix separately so the caret sits where typing happens (after digits),
@@ -160,7 +176,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           <Text
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
+            color={amountColor}
           >
             {amountDigits}
           </Text>
@@ -169,7 +185,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             <Text
               variant={TextVariant.DisplayLg}
               fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
+              color={amountColor}
             >
               {` ${sourceSymbol}`}
             </Text>
@@ -195,7 +211,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           <Text
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
+            color={amountColor}
           >
             {symbol}
           </Text>
@@ -203,7 +219,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         <Text
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
+          color={amountColor}
         >
           {amountDigits}
         </Text>
@@ -212,7 +228,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           <Text
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
+            color={amountColor}
           >
             {` ${symbol}`}
           </Text>
@@ -229,6 +245,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     decimalSeparator,
     cursorOpacity,
     tw,
+    amountColor,
   ]);
 
   const content = (
@@ -243,13 +260,13 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         <Text
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
+          color={amountColor}
         >
           {primaryLabel}
         </Text>
       )}
 
-      {isQuoteLoading ? (
+      {isQuoteLoading && !hasInsufficientBalance ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -273,7 +290,11 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       ) : (
         <Text
           variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
+          color={
+            hasInsufficientBalance
+              ? TextColor.ErrorDefault
+              : TextColor.TextAlternative
+          }
           numberOfLines={1}
         >
           {secondaryLabel}

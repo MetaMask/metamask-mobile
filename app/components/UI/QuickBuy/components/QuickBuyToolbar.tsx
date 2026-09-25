@@ -7,22 +7,41 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName as DsIconName,
+  Icon,
+  IconColor,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import QuickBuyTradeModeToggle from './QuickBuyTradeModeToggle';
+import { formatCurrency } from '../../Bridge/utils/currencyUtils';
+import { TouchableOpacity } from 'react-native';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyToolbar: React.FC = () => {
   const {
     features,
     hasSellableBalance,
     isQuickAmountPreferencesLoaded,
-    onClose,
+    currentCurrency,
+    sourceToken,
+    destToken,
+    tokenPrice,
+    target,
+    tradeMode,
+    setTradeMode,
     setActiveScreen,
   } = useQuickBuyContext();
 
   const showFullToggle = features.tradeModes.length > 1 && hasSellableBalance;
   const showSettings = features.quickAmountPills;
+  const headerToken = tradeMode === 'sell' ? sourceToken : destToken;
+  const tokenPriceLabel =
+    tokenPrice !== undefined
+      ? formatCurrency(tokenPrice, currentCurrency)
+      : undefined;
 
   return (
     <Box
@@ -31,29 +50,69 @@ const QuickBuyToolbar: React.FC = () => {
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
     >
-      {showSettings ? (
-        <ButtonIcon
-          iconName={DsIconName.Setting}
-          size={ButtonIconSize.Md}
-          isDisabled={!isQuickAmountPreferencesLoaded}
-          onPress={() => setActiveScreen('editQuickAmounts')}
-          testID={QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON}
-        />
-      ) : (
-        // Keep the toggle optically centered when settings is hidden.
-        <Box twClassName="w-6 h-6" />
-      )}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={3}
+      >
+        {headerToken ? (
+          <QuickBuyTokenIcon token={headerToken} />
+        ) : (
+          <Box twClassName="h-10 w-10" />
+        )}
+        <Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
+              {tradeMode === 'sell' ? 'Sell' : 'Buy'}{' '}
+              {headerToken?.symbol ?? target?.tokenSymbol ?? ''}
+            </Text>
+            {showFullToggle ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Change trade mode"
+                onPress={() =>
+                  setTradeMode(tradeMode === 'buy' ? 'sell' : 'buy')
+                }
+                testID="quick-buy-trade-mode-toggle"
+              >
+                <Icon
+                  name={DsIconName.SwapHorizontal}
+                  size={IconSize.Sm}
+                  color={IconColor.PrimaryDefault}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </Box>
+          {tokenPriceLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {tokenPriceLabel}
+            </Text>
+          ) : null}
+        </Box>
+      </Box>
 
-      {/* Hide the header control when Buy is the only option — a lone "Buy"
-          pill is redundant next to the primary Buy CTA. */}
-      {showFullToggle ? <QuickBuyTradeModeToggle /> : null}
-
-      <ButtonIcon
-        iconName={DsIconName.Close}
-        size={ButtonIconSize.Md}
-        onPress={onClose}
-        testID={QuickBuySheetSelectorsIDs.CLOSE_BUTTON}
-      />
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        {showSettings ? (
+          <ButtonIcon
+            iconName={DsIconName.Setting}
+            size={ButtonIconSize.Md}
+            isDisabled={!isQuickAmountPreferencesLoaded}
+            onPress={() => setActiveScreen('editQuickAmounts')}
+            testID={QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON}
+          />
+        ) : null}
+      </Box>
     </Box>
   );
 };

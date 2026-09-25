@@ -83,6 +83,7 @@ describe('useInitialBridgeTokens', () => {
             assetId: 'eip155:1/slip44:60',
           }),
         ],
+        tokensWithBalance: expect.any(Array),
         fetchPopularTokens: expect.any(Function),
         balancesByAssetId: expect.objectContaining({
           'eip155:1/erc20:0x0000000000000000000000000000000000000002':
