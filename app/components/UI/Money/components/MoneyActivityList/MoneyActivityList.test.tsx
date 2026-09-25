@@ -9,7 +9,7 @@ import {
   type CardTransaction,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { strings } from '../../../../../../locales/i18n';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import { onchainItem } from '../../types/moneyActivity';
 import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
@@ -29,7 +29,7 @@ const mockSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
 const mockMoneyActivityRow = jest.mocked(MoneyActivityRow);
-const items = MOCK_MONEY_TRANSACTIONS.map(onchainItem);
+const items = MONEY_ACTIVITY_TRANSACTIONS.map(onchainItem);
 const cardEnrichment = {
   id: 'card-transaction-1',
   providerId: CardProviderIds.Baanx,
@@ -213,10 +213,12 @@ describe('MoneyActivityList', () => {
       <MoneyActivityList items={items.slice(0, 1)} onItemPress={onItemPress} />,
     );
 
-    mockMoneyActivityRow.mock.calls[0][0].onPress?.(MOCK_MONEY_TRANSACTIONS[0]);
+    mockMoneyActivityRow.mock.calls[0][0].onPress?.(
+      MONEY_ACTIVITY_TRANSACTIONS[0],
+    );
 
     expect(onItemPress).toHaveBeenCalledTimes(1);
-    expect(onItemPress).toHaveBeenCalledWith(MOCK_MONEY_TRANSACTIONS[0]);
+    expect(onItemPress).toHaveBeenCalledWith(MONEY_ACTIVITY_TRANSACTIONS[0]);
   });
 
   it('removes the activity callback from rows when details are disabled', () => {
