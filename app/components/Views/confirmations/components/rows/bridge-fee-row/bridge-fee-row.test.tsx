@@ -23,12 +23,10 @@ import {
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { Json } from '@metamask/utils';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useIsPaidByMetaMask');
-jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../token-icon', () => ({
   ...jest.requireActual('../../token-icon'),
   TokenIcon: jest.fn(() => null),
@@ -41,8 +39,8 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   }),
 }));
 
-const PAY_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-const PAY_TOKEN_CHAIN_ID_MOCK = '0xa';
+const SOURCE_TOKEN_ADDRESS_MOCK = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const SOURCE_CHAIN_ID_MOCK = '0xa';
 const NATIVE_TOKEN_ADDRESS_MOCK = '0x0000000000000000000000000000000000000000';
 
 function render(
@@ -82,21 +80,12 @@ describe('BridgeFeeRow', () => {
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
-  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const tokenIconMock = jest.mocked(TokenIcon);
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     tokenIconMock.mockReturnValue(null);
-
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
-        address: PAY_TOKEN_ADDRESS_MOCK,
-        chainId: PAY_TOKEN_CHAIN_ID_MOCK,
-      } as never,
-      setPayToken: jest.fn(),
-    });
 
     useTransactionTotalsMock.mockReturnValue({
       fees: {
@@ -110,7 +99,12 @@ describe('BridgeFeeRow', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
 
     useTransactionPayQuotesMock.mockReturnValue([
-      {} as TransactionPayQuote<Json>,
+      {
+        request: {
+          sourceChainId: SOURCE_CHAIN_ID_MOCK,
+          sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+        },
+      } as TransactionPayQuote<Json>,
     ]);
 
     useTransactionPaySourceAmountsMock.mockReturnValue([]);
@@ -447,14 +441,14 @@ describe('BridgeFeeRow', () => {
       expect(tokenIconMock).toHaveBeenCalledWith(
         expect.objectContaining({
           address: NATIVE_TOKEN_ADDRESS_MOCK,
-          chainId: PAY_TOKEN_CHAIN_ID_MOCK,
+          chainId: SOURCE_CHAIN_ID_MOCK,
           variant: TokenIconVariant.Row,
         }),
         undefined,
       );
     });
 
-    it('renders the pay token when a source gas fee token is used', async () => {
+    it('renders the source token when a source gas fee token is used', async () => {
       useTransactionTotalsMock.mockReturnValue({
         fees: {
           isSourceGasFeeToken: true,
@@ -473,9 +467,39 @@ describe('BridgeFeeRow', () => {
 
       expect(tokenIconMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          address: PAY_TOKEN_ADDRESS_MOCK,
-          chainId: PAY_TOKEN_CHAIN_ID_MOCK,
+          address: SOURCE_TOKEN_ADDRESS_MOCK,
+          chainId: SOURCE_CHAIN_ID_MOCK,
           variant: TokenIconVariant.Row,
+        }),
+        undefined,
+      );
+    });
+
+    it('uses the quote source, not the payment token, for post-quote withdrawals', async () => {
+      // Post-quote treats the payment token as the destination, so the source
+      // chain of the fee differs from the payment token's chain.
+      useTransactionPayQuotesMock.mockReturnValue([
+        {
+          request: {
+            isPostQuote: true,
+            sourceChainId: SOURCE_CHAIN_ID_MOCK,
+            sourceTokenAddress: SOURCE_TOKEN_ADDRESS_MOCK,
+            targetChainId: '0x1',
+            targetTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+          },
+        } as TransactionPayQuote<Json>,
+      ]);
+
+      const { getByTestId } = render({ type: TransactionType.perpsWithdraw });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(tokenIconMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: NATIVE_TOKEN_ADDRESS_MOCK,
+          chainId: SOURCE_CHAIN_ID_MOCK,
         }),
         undefined,
       );
@@ -519,11 +543,10 @@ describe('BridgeFeeRow', () => {
       expect(tokenIconMock).not.toHaveBeenCalled();
     });
 
-    it('falls back to the transaction chain when there is no pay token', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: undefined,
-        setPayToken: jest.fn(),
-      });
+    it('falls back to the transaction chain when the quote has no request', async () => {
+      useTransactionPayQuotesMock.mockReturnValue([
+        {} as TransactionPayQuote<Json>,
+      ]);
 
       const { getByTestId } = render();
 

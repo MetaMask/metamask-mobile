@@ -45,7 +45,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -149,7 +148,11 @@ function TransactionFeeRow({
       label={strings('confirm.label.transaction_fees')}
       tooltip={
         !paidByMetaMask && hasQuotes && totals ? (
-          <Tooltip transactionMeta={transactionMeta} totals={totals} />
+          <Tooltip
+            quotes={quotes}
+            transactionMeta={transactionMeta}
+            totals={totals}
+          />
         ) : undefined
       }
       tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
@@ -222,9 +225,11 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
 };
 
 function Tooltip({
+  quotes,
   transactionMeta,
   totals,
 }: {
+  quotes?: TransactionPayQuote<Json>[];
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
@@ -243,6 +248,7 @@ function Tooltip({
   return (
     <FeesTooltip
       message={strings(key)}
+      quotes={quotes}
       totals={totals}
       transactionMeta={transactionMeta}
     />
@@ -250,24 +256,28 @@ function Tooltip({
 }
 
 /**
- * Resolve the token used to pay the source network fee.
- * Defaults to the native token of the source chain, unless a gas fee token is
- * used, in which case the source (payment) token pays the fee.
+ * Resolve the token that pays the source network fee.
+ *
+ * The source is read from the quote request rather than the payment token,
+ * since post-quote flows (withdrawals) treat the payment token as the
+ * destination. Defaults to the native token of the source chain, unless a gas
+ * fee token is used, which the gas station always prices in the source token.
  */
-function useNetworkFeeToken({
+function getNetworkFeeToken({
+  quotes,
   totals,
   transactionMeta,
 }: {
+  quotes?: TransactionPayQuote<Json>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } {
-  const { payToken } = useTransactionPayToken();
-
-  const chainId = payToken?.chainId ?? transactionMeta.chainId;
+  const request = quotes?.[0]?.request;
+  const chainId = request?.sourceChainId ?? transactionMeta.chainId;
 
   const address =
-    totals.fees.isSourceGasFeeToken && payToken?.address
-      ? payToken.address
+    totals.fees.isSourceGasFeeToken && request?.sourceTokenAddress
+      ? request.sourceTokenAddress
       : getNativeTokenAddress(chainId);
 
   return { address, chainId };
@@ -275,16 +285,22 @@ function useNetworkFeeToken({
 
 function FeesTooltip({
   message,
+  quotes,
   totals,
   transactionMeta,
 }: {
   message: string;
+  quotes?: TransactionPayQuote<Json>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
-  const networkFeeToken = useNetworkFeeToken({ totals, transactionMeta });
+  const networkFeeToken = getNetworkFeeToken({
+    quotes,
+    totals,
+    transactionMeta,
+  });
 
   const networkFeeUsdBN = useMemo(
     () => getNetworkFeeUsdBN({ totals }),
