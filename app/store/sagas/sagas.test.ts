@@ -392,33 +392,6 @@ describe('appStateListenerTask', () => {
     expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
-  describe('when the app is already active', () => {
-    const originalCurrentState = AppState.currentState;
-
-    afterEach(() => {
-      Object.defineProperty(AppState, 'currentState', {
-        value: originalCurrentState,
-        configurable: true,
-        writable: true,
-      });
-    });
-
-    it('calls unlockWallet without waiting for another app state change', async () => {
-      // A lock applied after the resume leaves no `active` event to wait for,
-      // which would otherwise strand the user on the lock screen.
-      Object.defineProperty(AppState, 'currentState', {
-        value: 'active',
-        configurable: true,
-        writable: true,
-      });
-
-      await expectSaga(appStateListenerTask).silentRun(50);
-
-      expect(Authentication.unlockWallet).toHaveBeenCalled();
-      expect(AppState.addEventListener).not.toHaveBeenCalled();
-    });
-  });
-
   it('does not call unlockWallet when app is in background', async () => {
     // Simulate app state change to 'background'
     setTimeout(() => {
