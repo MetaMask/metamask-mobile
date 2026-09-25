@@ -169,13 +169,15 @@ const PerpsProCompactInput = React.forwardRef<
     const inputRef = useRef<TextInput>(null);
     const isNativeFocusedRef = useRef(false);
     const directPressPhaseRef = useRef<DirectPressPhase>('idle');
-    const selectionRef = useRef<PerpsInputSelection>();
+    const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
     const shouldIgnoreNextSelectionChangeRef = useRef(false);
     const [isFocused, setIsFocused] = useState(false);
     const [displayValue, setDisplayValue] = useState(() =>
       formatPerpsInput(value, locale),
     );
-    const [selection, setSelection] = useState<PerpsInputSelection>();
+    const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
+      undefined,
+    );
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || displayValue.length > 0;
     const usesFloatingLabel =
