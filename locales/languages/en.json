@@ -139,6 +139,10 @@
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
+    "watch_only_account": {
+      "title": "Watch-only account",
+      "message": "This account has no keys and can't sign. Switch accounts to continue."
+    },
     "address_poisoning": {
       "title": "Address poisoning detected",
       "message": "This address closely resembles one you've used before. It may have been designed to trick you into sending funds to the wrong recipient.",
@@ -5216,6 +5220,14 @@
         "title": "Identity",
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
+      },
+      "watch_only": {
+        "title": "Watch-only account",
+        "description": "Browse any EVM address read-only. The account has no keys, so every signature is rejected. Stop removes it and restores your previous account.",
+        "address_placeholder": "0x…",
+        "start_button": "Watch address",
+        "stop_button": "Stop watching",
+        "active": "Watching {{address}}"
       },
       "notifications": {
         "title": "Notifications",
