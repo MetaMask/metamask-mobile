@@ -210,6 +210,10 @@ function createMockInfoClient() {
     perpDexs: jest.fn().mockResolvedValue([null]),
     allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
     frontendOpenOrders: jest.fn().mockResolvedValue([]),
+    twapHistory: jest.fn().mockResolvedValue([]),
+    activeAssetData: jest
+      .fn()
+      .mockResolvedValue({ leverage: { type: 'isolated', value: 5 } }),
     l2Book: jest.fn().mockResolvedValue({
       levels: [
         [{ px: '49999', sz: '1', n: 1 }],
