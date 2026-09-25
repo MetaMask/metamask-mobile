@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import {
@@ -30,16 +31,6 @@ jest.mock('react-native-gesture-handler', () => {
         return ReactActual.createElement(RNScrollView, props);
       },
     ),
-  };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const actual = jest.requireActual('@metamask/design-system-twrnc-preset');
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return {
-    ...actual,
-    useTailwind: () => tw,
   };
 });
 
@@ -209,6 +200,38 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(
         screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION),
       ).toHaveTextContent('perps.order.leverage_modal.description');
+    });
+
+    it('renders the inline explainer 16px below the divider', () => {
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} presentation="screen" />,
+      );
+
+      const description = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION,
+      );
+
+      expect(StyleSheet.flatten(description.props.style)).toEqual(
+        expect.objectContaining({
+          paddingTop: 16,
+          paddingLeft: 16,
+          paddingRight: 16,
+        }),
+      );
+    });
+
+    it('removes the divider margin that would add to the explainer inset', () => {
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} presentation="screen" />,
+      );
+
+      const divider = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION_DIVIDER,
+      );
+
+      expect(StyleSheet.flatten(divider.props.style)).toEqual(
+        expect.objectContaining({ marginBottom: 0, marginTop: 20 }),
+      );
     });
 
     it('returns null when hidden', () => {

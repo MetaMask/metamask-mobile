@@ -1189,6 +1189,7 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   LIQUIDATION_DISTANCE_VALUE: 'perps-leverage-liquidation-distance-value',
   LIQUIDATION_TREND_ICON: 'perps-leverage-liquidation-trend-icon',
   DESCRIPTION: 'perps-leverage-description',
+  DESCRIPTION_DIVIDER: 'perps-leverage-description-divider',
   SET_BUTTON: 'perps-leverage-set-button',
 } as const;
 
