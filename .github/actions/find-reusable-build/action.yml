@@ -80,6 +80,15 @@ inputs:
       native artifacts.
     required: false
     default: 'false'
+  max-age-days:
+    description: >-
+      When set to a positive integer, reject any candidate run whose
+      `created_at` is older than this many days. Applies to every tier.
+      Use with `latest-main-only: true` to prevent test-only PRs from
+      silently reusing a months-old main-branch build.
+      0 (the default) disables the check.
+    required: false
+    default: '0'
 
 outputs:
   found:
@@ -113,6 +122,7 @@ runs:
         MAX_CANDIDATES_CROSS_PR: ${{ inputs.max-candidates-cross-pr }}
         MAIN_BRANCH_ONLY: ${{ inputs.main-branch-only }}
         LATEST_MAIN_ONLY: ${{ inputs.latest-main-only }}
+        MAX_AGE_DAYS: ${{ inputs.max-age-days }}
         HEAD_BRANCH: ${{ github.head_ref || github.ref_name }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         CURRENT_RUN_ID: ${{ github.run_id }}
@@ -130,6 +140,7 @@ runs:
             MAX_CANDIDATES_CROSS_PR,
             MAIN_BRANCH_ONLY,
             LATEST_MAIN_ONLY,
+            MAX_AGE_DAYS,
             HEAD_BRANCH,
             HEAD_SHA,
             CURRENT_RUN_ID,
@@ -172,6 +183,9 @@ runs:
           const maxCandidates = Number(MAX_CANDIDATES) || 10;
           const maxCandidatesCrossPr = Number(MAX_CANDIDATES_CROSS_PR) || 50;
           const currentRunId = String(CURRENT_RUN_ID);
+          const maxAgeDays = Number(MAX_AGE_DAYS) || 0;
+          const maxAgeMs = maxAgeDays > 0 ? maxAgeDays * 24 * 60 * 60 * 1000 : 0;
+          const ageThreshold = maxAgeMs > 0 ? new Date(Date.now() - maxAgeMs) : null;
 
           // Three-tier discovery:
           //   1. same-branch  — fastest path, catches retries and new commits
@@ -356,6 +370,11 @@ runs:
               seenRunIds.add(runIdStr);
 
               if (tier.skipHeadBranch && run.head_branch === tier.skipHeadBranch) continue;
+
+              if (ageThreshold && new Date(run.created_at) < ageThreshold) {
+                core.info(`Run ${run.id} skipped: created_at=${run.created_at} is older than ${maxAgeDays}-day limit`);
+                continue;
+              }
 
               // Deliberately no `run.status === 'completed'` gate: artifact
               // availability, not run completion, is what makes a donor usable, and

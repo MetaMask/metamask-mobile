@@ -13,6 +13,9 @@ import { AppiumElement } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
 import Matchers from './Matchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { getDriver } from './AppiumUtilities.ts';
+import { tapWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
+import { getPerformanceLocatorRecovery } from './ai-locator/PerformanceLocatorRecovery.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 type TapAtIndexElement =
@@ -98,13 +101,7 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    const el = await elem;
-    await AppiumGestures.waitAndTap(el, {
-      timeout: options.timeout,
-      delay: options.delay,
-      checkForDisplayed: options.checkForDisplayed ?? true,
-      checkForEnabled: options.checkEnabled,
-    });
+    await this.performTap(elem, options);
   }
 
   /**
@@ -118,16 +115,40 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    const el = await elem;
-    await AppiumGestures.waitAndTap(el, {
-      timeout: options.timeout,
-      delay: options.delay,
-      checkForDisplayed: options.checkForDisplayed ?? true,
-      checkForEnabled: options.checkEnabled,
-      waitForInteractive: options.waitForInteractive,
-      enabledStableReads: options.enabledStableReads,
-      postEnabledSettleMs: options.postEnabledSettleMs,
-      checkForStable: options.checkStability,
+    await this.performTap(elem, options);
+  }
+
+  private static async performTap(
+    elementOrPromise: AppiumElement | Promise<AppiumElement>,
+    options: TapOptions,
+  ): Promise<void> {
+    const tap = async (target: AppiumElement): Promise<void> => {
+      await AppiumGestures.waitAndTap(target, {
+        timeout: options.timeout,
+        delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed ?? true,
+        checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        enabledStableReads: options.enabledStableReads,
+        postEnabledSettleMs: options.postEnabledSettleMs,
+        checkForStable: options.checkStability,
+      });
+    };
+
+    const recovery = getPerformanceLocatorRecovery();
+    if (!recovery) {
+      const resolvedElement = await elementOrPromise;
+      await tap(resolvedElement);
+      return;
+    }
+
+    await tapWithSelfHealingLocator({
+      intent: options.elemDescription ?? 'tap the current mobile control',
+      primary: async () => elementOrPromise,
+      driver: getDriver(),
+      recovery: recovery.provider,
+      tap,
+      onRecovered: recovery.onRecovered,
     });
   }
 

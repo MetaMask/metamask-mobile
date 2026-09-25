@@ -205,6 +205,7 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
           latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+          max-age-days: ${{ inputs.reuse_latest_main_builds && '2' || '0' }}
 
       - name: Find reusable performance APKs on run-performance-e2e.yml
         id: find-perf
@@ -231,6 +232,7 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
           latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+          max-age-days: ${{ inputs.reuse_latest_main_builds && '2' || '0' }}
 
       - name: Find reusable performance APKs on run-performance-e2e-manual.yml
         id: find-manual
@@ -257,6 +259,7 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
           latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+          max-age-days: ${{ inputs.reuse_latest_main_builds && '2' || '0' }}
 
       # Select a candidate run only. found=true is deferred until both APK downloads
       # succeed (mirrors build-android-e2e.yml gate: never skip native build on lookup alone).
