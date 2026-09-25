@@ -11,6 +11,8 @@ describe('myProfileToSheetProfile', () => {
     pnlUsd: 7100,
     holdTimeLabel: '4d',
     timesCopied: 981,
+    volumeUsd30d: 386_260,
+    tradeCount30d: 39,
     followerCount: 4,
   };
 
@@ -20,6 +22,8 @@ describe('myProfileToSheetProfile', () => {
     expect(sheetProfile.stats.pnl30d).toBe(7100);
     expect(sheetProfile.stats.winRate30d).toBe(0.6);
     expect(sheetProfile.stats.medianHoldMinutes).toBe(5760);
+    expect(sheetProfile.stats.volumeUsd30d).toBe(386_260);
+    expect(sheetProfile.stats.tradeCount30d).toBe(39);
     expect(sheetProfile.copytradedAllTime.count).toBe(981);
     expect(sheetProfile.followerCount).toBe(4);
   });

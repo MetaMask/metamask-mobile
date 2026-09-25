@@ -387,6 +387,8 @@ const MyProfileView: React.FC = () => {
           fallbackFields={overlayedStats.fallbackFields}
           hideHoldTime
           openPositionsCount={openPositionsCount}
+          profileAgeLabel={overlayedStats.profileAgeLabel}
+          copySuccessRateLabel={overlayedStats.copySuccessRateLabel}
           headerAvatar={
             <ProfileAvatar
               imageUrl={profile.imageUrl}

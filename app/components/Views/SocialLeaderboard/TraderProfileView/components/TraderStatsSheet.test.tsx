@@ -152,4 +152,23 @@ describe('TraderStatsSheet', () => {
       screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_POSITIONS),
     ).toHaveTextContent(/3/);
   });
+
+  it('renders optional profile age and copy success labels', () => {
+    renderWithProvider(
+      <TraderStatsSheet
+        profile={profile}
+        profileHandle="mint-cat"
+        profileAgeLabel="*2y"
+        copySuccessRateLabel="*72%"
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_PROFILE_AGE),
+    ).toHaveTextContent(/\*2y/);
+    expect(
+      screen.getByTestId(TraderStatsSheetSelectorsIDs.ROW_COPY_SUCCESS_RATE),
+    ).toHaveTextContent(/\*72%/);
+  });
 });

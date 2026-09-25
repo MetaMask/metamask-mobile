@@ -34,8 +34,8 @@ export function myProfileToSheetProfile(
       winRate30d:
         profile.winRatePercent != null ? profile.winRatePercent / 100 : null,
       medianHoldMinutes: holdTimeLabelToMinutes(profile.holdTimeLabel),
-      tradeCount30d: null,
-      volumeUsd30d: null,
+      tradeCount30d: profile.tradeCount30d ?? null,
+      volumeUsd30d: profile.volumeUsd30d ?? null,
     },
     perChainBreakdown: {
       perChainPnl: {},

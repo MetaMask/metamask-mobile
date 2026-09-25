@@ -26,6 +26,14 @@ export interface MySocialProfile {
   /** Preformatted hold-time label until median minutes land on the API. */
   holdTimeLabel?: string | null;
   timesCopied?: number | null;
+  /** 30d trading volume in USD until the profile endpoint is authoritative. */
+  volumeUsd30d?: number | null;
+  /** 30d trade count until the profile endpoint is authoritative. */
+  tradeCount30d?: number | null;
+  /** Preformatted profile-age label for the stats sheet (no API field yet). */
+  profileAgeLabel?: string | null;
+  /** Whole-percent copy success rate for the stats sheet (no API field yet). */
+  copySuccessRatePercent?: number | null;
   /** Wallet account chosen during local onboarding. */
   linkedAccountId?: string | null;
   linkedAccountAddress?: string | null;

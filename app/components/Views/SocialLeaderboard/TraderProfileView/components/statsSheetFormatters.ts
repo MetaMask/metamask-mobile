@@ -25,6 +25,8 @@ export interface StatsSheetFallbackFields {
   timesCopied?: boolean;
   volume?: boolean;
   tradeCount?: boolean;
+  profileAge?: boolean;
+  copySuccessRate?: boolean;
 }
 
 /** Unsigned full USD for the sheet hero (e.g. `$7,100`). Sign is shown via color. */

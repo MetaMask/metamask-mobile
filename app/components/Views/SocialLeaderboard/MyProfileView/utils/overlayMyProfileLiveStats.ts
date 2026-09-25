@@ -13,6 +13,7 @@ import {
   type StatsSheetFallbackFields,
 } from '../../TraderProfileView/components/statsSheetFormatters';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import { applyMyProfileMockDefaults } from './myProfileMockDefaults';
 import { myProfileToSheetProfile } from './myProfileToSheetProfile';
 
 export { FAKE_STATS_PREFIX };
@@ -27,6 +28,8 @@ export interface OverlayedMyProfileStats {
   isPnlPositive: boolean;
   holdTimeLabel: string;
   timesCopiedLabel: string;
+  profileAgeLabel: string;
+  copySuccessRateLabel: string;
   fallbackFields: Required<StatsSheetFallbackFields>;
   sheetProfile: TraderProfileWithSheetStats;
 }
@@ -48,7 +51,8 @@ export const overlayMyProfileLiveStats = (
   local: MySocialProfile,
   live: TraderProfileResponse | null,
 ): OverlayedMyProfileStats => {
-  const localSheet = myProfileToSheetProfile(local);
+  const localWithMocks = applyMyProfileMockDefaults(local);
+  const localSheet = myProfileToSheetProfile(localWithMocks);
   const liveWinRate = live?.stats.winRate30d;
   const livePnl = live?.stats.pnl30d;
   const liveHold = live?.stats.medianHoldMinutes;
@@ -63,30 +67,40 @@ export const overlayMyProfileLiveStats = (
     timesCopied: !isPresentNumber(liveCopied),
     volume: !isPresentNumber(liveVolume),
     tradeCount: !isPresentNumber(liveTradeCount),
+    profileAge: true,
+    copySuccessRate: true,
   };
 
   const winRateValue = isPresentNumber(liveWinRate)
     ? liveWinRate * 100
-    : (local.winRatePercent ?? 0);
+    : (localWithMocks.winRatePercent ?? 0);
   const winRateRaw = isPresentNumber(liveWinRate)
     ? formatPercent(liveWinRate * 100, { showSign: false, decimals: 0 })
-    : formatLocalWinRate(local.winRatePercent);
-  const pnlValue = fallbackFields.pnl ? local.pnlUsd : livePnl;
+    : formatLocalWinRate(localWithMocks.winRatePercent);
+  const pnlValue = fallbackFields.pnl ? localWithMocks.pnlUsd : livePnl;
   const pnlRaw = formatSignedFullUsdNoDecimals(pnlValue);
   const holdRaw = fallbackFields.holdTime
-    ? (local.holdTimeLabel ?? EM_DASH)
+    ? (localWithMocks.holdTimeLabel ?? EM_DASH)
     : formatSheetHoldFromMinutes(liveHold) || EM_DASH;
   const copiedRaw = fallbackFields.timesCopied
-    ? formatCount(local.timesCopied)
+    ? formatCount(localWithMocks.timesCopied)
     : formatCount(liveCopied);
+  const profileAgeRaw = localWithMocks.profileAgeLabel?.trim() || EM_DASH;
+  const copySuccessRaw =
+    localWithMocks.copySuccessRatePercent != null
+      ? formatPercent(localWithMocks.copySuccessRatePercent, {
+          showSign: false,
+          decimals: 0,
+        })
+      : EM_DASH;
 
   const sheetProfile: TraderProfileWithSheetStats = live
     ? {
         ...live,
         profile: {
           ...live.profile,
-          name: local.displayName,
-          imageUrl: local.imageUrl ?? live.profile.imageUrl,
+          name: localWithMocks.displayName,
+          imageUrl: localWithMocks.imageUrl ?? live.profile.imageUrl,
         },
         stats: {
           ...live.stats,
@@ -97,12 +111,16 @@ export const overlayMyProfileLiveStats = (
           medianHoldMinutes: fallbackFields.holdTime
             ? localSheet.stats.medianHoldMinutes
             : liveHold,
-          volumeUsd30d: live.stats.volumeUsd30d,
-          tradeCount30d: live.stats.tradeCount30d,
+          volumeUsd30d: fallbackFields.volume
+            ? localSheet.stats.volumeUsd30d
+            : liveVolume,
+          tradeCount30d: fallbackFields.tradeCount
+            ? localSheet.stats.tradeCount30d
+            : liveTradeCount,
         },
         socialHandles: {
           ...live.socialHandles,
-          twitter: local.xHandle ?? live.socialHandles.twitter,
+          twitter: localWithMocks.xHandle ?? live.socialHandles.twitter,
         },
         followerCount: live.followerCount,
         copytradedAllTime:
@@ -111,11 +129,13 @@ export const overlayMyProfileLiveStats = (
     : localSheet;
 
   return {
-    rankingTag: (live?.rankingTag ?? local.rankingTag) as
+    rankingTag: (live?.rankingTag ?? localWithMocks.rankingTag) as
       | ProfileRankingTag
       | null
       | undefined,
-    followerCount: live ? live.followerCount : (local.followerCount ?? 0),
+    followerCount: live
+      ? live.followerCount
+      : (localWithMocks.followerCount ?? 0),
     winRateLabel: fallbackFields.winRate
       ? markFakeStat(winRateRaw)
       : winRateRaw,
@@ -127,6 +147,8 @@ export const overlayMyProfileLiveStats = (
     timesCopiedLabel: fallbackFields.timesCopied
       ? markFakeStat(copiedRaw)
       : copiedRaw,
+    profileAgeLabel: markFakeStat(profileAgeRaw),
+    copySuccessRateLabel: markFakeStat(copySuccessRaw),
     fallbackFields,
     sheetProfile,
   };

@@ -49,6 +49,10 @@ export interface TraderStatsSheetProps {
   hideHoldTime?: boolean;
   /** Open position count from the owner's wallet perps cache. */
   openPositionsCount?: number;
+  /** Preformatted profile age (My Profile mock). */
+  profileAgeLabel?: string;
+  /** Preformatted copy success rate (My Profile mock). */
+  copySuccessRateLabel?: string;
   onClose: () => void;
 }
 
@@ -117,6 +121,8 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
   fallbackFields,
   hideHoldTime = false,
   openPositionsCount,
+  profileAgeLabel,
+  copySuccessRateLabel,
   onClose,
 }) => {
   const sheetRef = React.useRef<BottomSheetRef>(null);
@@ -269,7 +275,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
           label={strings(
             'social_leaderboard.trader_profile.stats_sheet_profile_age',
           )}
-          value=""
+          value={profileAgeLabel ?? ''}
           testID={TraderStatsSheetSelectorsIDs.ROW_PROFILE_AGE}
         />
         <ListRow
@@ -320,7 +326,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
           label={strings(
             'social_leaderboard.trader_profile.stats_sheet_copy_success_rate',
           )}
-          value=""
+          value={copySuccessRateLabel ?? ''}
           testID={TraderStatsSheetSelectorsIDs.ROW_COPY_SUCCESS_RATE}
         />
       </Box>

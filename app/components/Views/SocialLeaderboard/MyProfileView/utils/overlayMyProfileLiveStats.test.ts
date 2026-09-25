@@ -14,6 +14,10 @@ const localProfile: MySocialProfile = {
   pnlUsd: 7100,
   holdTimeLabel: '4d',
   timesCopied: 981,
+  volumeUsd30d: 386_260,
+  tradeCount30d: 39,
+  profileAgeLabel: '2y',
+  copySuccessRatePercent: 72,
   followerCount: 4,
   rankingTag: 'whale',
 };
@@ -64,6 +68,10 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
     expect(result.sheetProfile.profile.name).toBe('Giga Whale');
+    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
+    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
+    expect(result.profileAgeLabel).toBe('*2y');
+    expect(result.copySuccessRateLabel).toBe('*72%');
   });
 
   it('uses live stats without a fake prefix when the profile fetch succeeds', () => {
@@ -103,5 +111,30 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.fallbackFields.pnl).toBe(false);
     expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
+    expect(result.fallbackFields.volume).toBe(true);
+    expect(result.fallbackFields.tradeCount).toBe(true);
+    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
+    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
+    expect(result.profileAgeLabel).toBe('*2y');
+    expect(result.copySuccessRateLabel).toBe('*72%');
+  });
+
+  it('backfills sheet mocks on legacy profiles that omit the new fields', () => {
+    const legacyOnly: MySocialProfile = {
+      profileId: 'current-user',
+      displayName: 'Giga Whale',
+      handle: 'giga-whale',
+      shareUrl: 'https://metamask.io/social/giga-whale',
+      winRatePercent: 60,
+      pnlUsd: 7100,
+      timesCopied: 981,
+    };
+
+    const result = overlayMyProfileLiveStats(legacyOnly, null);
+
+    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
+    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
+    expect(result.profileAgeLabel).toBe('*2y');
+    expect(result.copySuccessRateLabel).toBe('*72%');
   });
 });
