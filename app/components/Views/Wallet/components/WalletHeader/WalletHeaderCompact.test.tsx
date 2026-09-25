@@ -7,10 +7,21 @@ import WalletHeaderCompact, {
 } from './WalletHeaderCompact';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectIsSelectedAccountWatchOnly: jest.fn(() => false),
+  }),
+);
 
 const defaultProps: WalletHeaderCompactProps = {
   accountAddress: '0x1234567890123456789012345678901234567890',
@@ -28,6 +39,31 @@ describe('WalletHeaderCompact', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
+    jest.mocked(selectIsSelectedAccountWatchOnly).mockReturnValue(false);
+  });
+
+  describe('watch-only tag', () => {
+    it('hides the watch-only tag for a regular account', () => {
+      const { queryByTestId } = renderWithProvider(
+        <WalletHeaderCompact {...defaultProps} />,
+      );
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WATCH_ONLY_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the watch-only tag when the selected account is watch-only', () => {
+      jest.mocked(selectIsSelectedAccountWatchOnly).mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <WalletHeaderCompact {...defaultProps} />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WATCH_ONLY_TAG),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('renders the rewards button without a search button by default', () => {
