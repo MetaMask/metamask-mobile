@@ -38,6 +38,7 @@ import {
   snapKeyringV2Builder,
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
+import { WatchOnlyKeyring } from '../../WatchOnly/WatchOnlyKeyring';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -132,6 +133,13 @@ export function getKeyringBuilders(
     });
   moneyKeyringBuilder.type = MoneyKeyring.type;
   keyrings.push(moneyKeyringBuilder);
+
+  // Development-only read-only accounts, see app/core/WatchOnly.
+  if (__DEV__) {
+    const watchOnlyKeyringBuilder = () => new WatchOnlyKeyring();
+    watchOnlyKeyringBuilder.type = WatchOnlyKeyring.type;
+    keyrings.push(watchOnlyKeyringBuilder);
+  }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringMessenger = getLegacySnapKeyringBuilderMessenger(messenger);

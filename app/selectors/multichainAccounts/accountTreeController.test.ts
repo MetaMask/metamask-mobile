@@ -17,6 +17,7 @@ import {
   selectInternalAccountFromAccountGroup,
   selectSelectedAccountGroupInternalAccounts,
   selectSelectedAccountGroupWithInternalAccountsAddresses,
+  selectIsSelectedAccountWatchOnly,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -1842,6 +1843,84 @@ describe('AccountTreeController Selectors', () => {
         '0x2',
         'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
       ]);
+    });
+  });
+
+  describe('selectIsSelectedAccountWatchOnly', () => {
+    it('returns false when no account group is selected', () => {
+      const state = createMockState({ accountTree: { wallets: {} } });
+
+      const result = selectIsSelectedAccountWatchOnly(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the selected EVM account is not watch-only', () => {
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1', KeyringTypes.hd),
+          id: 'account1',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        {
+          accountTree: { wallets: { [walletId]: wallet } },
+          selectedAccountGroup: groupId,
+        },
+        true,
+        internalAccounts,
+      );
+
+      const result = selectIsSelectedAccountWatchOnly(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when the selected EVM account belongs to the watch-only keyring', () => {
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount(
+            '0x1',
+            'Account 1',
+            KeyringTypes.watchOnly,
+          ),
+          id: 'account1',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        {
+          accountTree: { wallets: { [walletId]: wallet } },
+          selectedAccountGroup: groupId,
+        },
+        true,
+        internalAccounts,
+      );
+
+      const result = selectIsSelectedAccountWatchOnly(state);
+
+      expect(result).toBe(true);
     });
   });
 });

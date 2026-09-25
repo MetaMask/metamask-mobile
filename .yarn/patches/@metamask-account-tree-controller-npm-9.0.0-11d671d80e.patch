@@ -1,0 +1,48 @@
+diff --git a/dist/rules/keyring.cjs b/dist/rules/keyring.cjs
+index 697974e6ec189db93ef3c9fe0dfb81c568b17ad0..0a4d68ee4c6780c9e4701a0aea66bf57a5154562 100644
+--- a/dist/rules/keyring.cjs
++++ b/dist/rules/keyring.cjs
+@@ -49,6 +49,9 @@ function getAccountWalletNameFromKeyringType(type) {
+         case keyring_controller_1.KeyringTypes.snap: {
+             return 'Snap Wallet';
+         }
++        case keyring_controller_1.KeyringTypes.watchOnly: {
++            return 'Watch-only accounts';
++        }
+         // ------------------------------------------------------------------------
+         default: {
+             return 'Unknown';
+@@ -98,6 +101,9 @@ function getAccountGroupPrefixFromKeyringType(type) {
+         case keyring_controller_1.KeyringTypes.snap: {
+             return 'Snap Account';
+         }
++        case keyring_controller_1.KeyringTypes.watchOnly: {
++            return 'Watch-only Account';
++        }
+         // ------------------------------------------------------------------------
+         default: {
+             return 'Unknown Account';
+diff --git a/dist/rules/keyring.mjs b/dist/rules/keyring.mjs
+index 287b0f0b6f0c44009b3dcacd7d24de83fd89ce50..29ca6352731c6f713faef2d26d057940b32d71b5 100644
+--- a/dist/rules/keyring.mjs
++++ b/dist/rules/keyring.mjs
+@@ -46,6 +46,9 @@ export function getAccountWalletNameFromKeyringType(type) {
+         case KeyringTypes.snap: {
+             return 'Snap Wallet';
+         }
++        case KeyringTypes.watchOnly: {
++            return 'Watch-only accounts';
++        }
+         // ------------------------------------------------------------------------
+         default: {
+             return 'Unknown';
+@@ -94,6 +97,9 @@ export function getAccountGroupPrefixFromKeyringType(type) {
+         case KeyringTypes.snap: {
+             return 'Snap Account';
+         }
++        case KeyringTypes.watchOnly: {
++            return 'Watch-only Account';
++        }
+         // ------------------------------------------------------------------------
+         default: {
+             return 'Unknown Account';
