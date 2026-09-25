@@ -80,6 +80,7 @@ import {
   type FundingApprovalParams,
   type ICardProvider,
   isCardAuthTokenError,
+  logUnreportedCardError,
   CardProviderIds,
   type CardProviderId,
   type RedeemWalletMode,
@@ -124,7 +125,11 @@ import {
   type CardResumeInfo,
 } from './providers/ImmersveProvider';
 import { CardService } from './services/CardService';
-import { CardApiError } from './services/BaanxService';
+import {
+  CardApiError,
+  readCardRequestId,
+  readWalletLoadFields,
+} from './services/cardHttpObservability';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
@@ -1731,7 +1736,7 @@ export class CardController extends BaseController<
       );
       return fresh;
     } catch (error) {
-      Logger.error(error as Error, {
+      logUnreportedCardError(error, {
         tags: { feature: 'card', provider: pid },
         context: { name: 'CardController', data: { method: '#doRefresh' } },
       });
@@ -2539,6 +2544,7 @@ export class CardController extends BaseController<
   // -- Cashback --
 
   async getCashbackWallet(): Promise<CashbackWalletResponse> {
+    const startedAt = Date.now();
     try {
       const provider = this.getActiveProvider();
       const getCashbackWallet = provider.getCashbackWallet?.bind(provider);
@@ -2548,12 +2554,26 @@ export class CardController extends BaseController<
           'Cashback not supported',
         );
       }
-      return await this.#withAuthRetry((tokens) => getCashbackWallet(tokens));
+      const wallet = await this.#withAuthRetry((tokens) =>
+        getCashbackWallet(tokens),
+      );
+      this.#trackWalletLoad({
+        mode: 'cashback',
+        endpoint: '/v1/wallet/reward',
+        startedAt,
+      });
+      return wallet;
     } catch (error) {
       this.#logRedeemError(error, {
         method: 'getCashbackWallet',
         mode: 'cashback',
         step: 'wallet_fetch',
+      });
+      this.#trackWalletLoad({
+        mode: 'cashback',
+        endpoint: '/v1/wallet/reward',
+        startedAt,
+        error,
       });
       throw error;
     }
@@ -2592,6 +2612,7 @@ export class CardController extends BaseController<
   // -- Credit --
 
   async getCreditWallet(): Promise<CreditWalletResponse> {
+    const startedAt = Date.now();
     try {
       const provider = this.getActiveProvider();
       const getCreditWallet = provider.getCreditWallet?.bind(provider);
@@ -2601,12 +2622,26 @@ export class CardController extends BaseController<
           'Credit not supported',
         );
       }
-      return await this.#withAuthRetry((tokens) => getCreditWallet(tokens));
+      const wallet = await this.#withAuthRetry((tokens) =>
+        getCreditWallet(tokens),
+      );
+      this.#trackWalletLoad({
+        mode: 'credit',
+        endpoint: '/v1/wallet/credit',
+        startedAt,
+      });
+      return wallet;
     } catch (error) {
       this.#logRedeemError(error, {
         method: 'getCreditWallet',
         mode: 'credit',
         step: 'wallet_fetch',
+      });
+      this.#trackWalletLoad({
+        mode: 'credit',
+        endpoint: '/v1/wallet/credit',
+        startedAt,
+        error,
       });
       throw error;
     }
@@ -2647,7 +2682,7 @@ export class CardController extends BaseController<
    * up to three minutes and survives the user navigating away, so a view-side
    * emit would drop exactly the slow failures worth measuring.
    */
-  #trackRedeemEvent(
+  #trackCardEvent(
     event: IMetaMetricsEvent,
     properties: Record<string, string | number | null>,
   ): void {
@@ -2665,10 +2700,37 @@ export class CardController extends BaseController<
         tags: { feature: 'card' },
         context: {
           name: 'CardController',
-          data: { method: '#trackRedeemEvent' },
+          data: { method: '#trackCardEvent' },
         },
       });
     }
+  }
+
+  /**
+   * One event per cashback or credit wallet GET, including the 401 refresh
+   * retry inside this call. React Query may call again; each attempt is a
+   * separate event so the rate stays per request.
+   */
+  #trackWalletLoad(params: {
+    mode: RedeemWalletMode;
+    endpoint: string;
+    startedAt: number;
+    error?: unknown;
+  }): void {
+    const fields = readWalletLoadFields(params.error);
+    this.#trackCardEvent(
+      params.error
+        ? MetaMetricsEvents.CARD_WALLET_LOAD_FAILED
+        : MetaMetricsEvents.CARD_WALLET_LOAD_COMPLETED,
+      {
+        mode: params.mode,
+        endpoint: params.endpoint,
+        duration_ms: Date.now() - params.startedAt,
+        outcome: fields.outcome,
+        status_code: fields.status_code,
+        reason: fields.reason,
+      },
+    );
   }
 
   /**
@@ -2710,7 +2772,7 @@ export class CardController extends BaseController<
       generation,
     );
 
-    this.#trackRedeemEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_STARTED, {
+    this.#trackCardEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_STARTED, {
       mode,
       amount_bucket: amountBucket,
     });
@@ -2804,7 +2866,7 @@ export class CardController extends BaseController<
             generation,
           );
 
-          this.#trackRedeemEvent(
+          this.#trackCardEvent(
             MetaMetricsEvents.CARD_REDEEM_PROCESS_COMPLETED,
             {
               mode,
@@ -2856,8 +2918,9 @@ export class CardController extends BaseController<
             code: classified?.code != null ? classified.code : 'none',
             statusCode:
               classified?.statusCode != null ? classified.statusCode : -1,
+            requestId: readCardRequestId(error) ?? 'none',
           });
-          this.#trackRedeemEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_FAILED, {
+          this.#trackCardEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_FAILED, {
             mode,
             amount_bucket: amountBucket,
             chain_id: pollingChainId,
@@ -2962,7 +3025,6 @@ export class CardController extends BaseController<
       step: string;
     },
   ): void {
-    if (isCardAuthTokenError(error)) return;
     let code: string | null;
     if (error instanceof CardProviderError) {
       code = error.code;
@@ -2975,11 +3037,13 @@ export class CardController extends BaseController<
       error instanceof CardProviderError || error instanceof CardApiError
         ? (error.statusCode ?? null)
         : null;
-    Logger.error(error as Error, {
+    logUnreportedCardError(error, {
       tags: {
         feature: 'card',
         mode: data.mode,
-        provider: this.state.activeProviderId ?? undefined,
+        ...(this.state.activeProviderId
+          ? { provider: this.state.activeProviderId }
+          : {}),
       },
       context: {
         name: 'CardController',
@@ -2988,6 +3052,7 @@ export class CardController extends BaseController<
           step: data.step,
           code,
           statusCode,
+          requestId: readCardRequestId(error),
         },
       },
     });

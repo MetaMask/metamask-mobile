@@ -12,7 +12,10 @@ import {
   type ImmersveFundingTokenInfo,
 } from '../../../../../components/UI/Card/util/immersveFunding';
 import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
-import { CardApiError } from '../services/BaanxService';
+import {
+  CardApiError,
+  toCardProviderError,
+} from '../services/cardHttpObservability';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
@@ -49,6 +52,7 @@ import {
   FundingAssetStatus,
   ICardProvider,
   isCardAuthTokenError,
+  logUnreportedCardError,
 } from '../provider-types';
 import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
 import { minorUnitsToDecimal } from './utils/currencyMinorUnits';
@@ -105,91 +109,23 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
 }
 
 /**
- * Report non-auth API failures to Sentry, then rethrow as CardProviderError.
- * Auth-token / 401 errors are intentionally excluded to avoid Sentry noise
- * (matching setCardPin / getCardHomeData).
+ * Log an unreported failure, then rethrow it as a CardProviderError.
+ * HTTP failures are logged once in observeCardHttpCall.
  */
 function reportAndMap(
   error: unknown,
   method: string,
   extra?: Record<string, unknown>,
 ): never {
-  const isAuthFailure =
-    isCardAuthTokenError(error) ||
-    (error instanceof CardApiError && error.statusCode === 401);
-  if (!isAuthFailure) {
-    Logger.error(
-      error as Error,
-      getErrorContext(method, {
-        httpStatus:
-          error instanceof CardApiError ? error.statusCode : undefined,
-        errorCode: error instanceof CardApiError ? error.errorCode : undefined,
-        ...extra,
-      }),
-    );
-  }
-  throw mapApiError(error, method);
-}
-
-function mapApiError(error: unknown, operation: string): CardProviderError {
-  if (error instanceof CardProviderError) return error;
-  if (error instanceof CardApiError) {
-    if (error.statusCode === 401) {
-      return new CardProviderError(
-        CardProviderErrorCode.InvalidCredentials,
-        `Authentication failed on ${operation}`,
-        error.statusCode,
-      );
-    }
-
-    if (error.statusCode === 403) {
-      return new CardProviderError(
-        CardProviderErrorCode.Forbidden,
-        `Forbidden on ${operation}`,
-        403,
-        error.errorCode,
-      );
-    }
-    if (error.statusCode === 404) {
-      return new CardProviderError(
-        CardProviderErrorCode.NotFound,
-        `Not found: ${operation}`,
-        404,
-      );
-    }
-    if (error.statusCode === 409) {
-      return new CardProviderError(
-        CardProviderErrorCode.Conflict,
-        `Conflict on ${operation}`,
-        409,
-      );
-    }
-    if (error.statusCode >= 500) {
-      return new CardProviderError(
-        CardProviderErrorCode.ServerError,
-        `Server error on ${operation}`,
-        error.statusCode,
-      );
-    }
-    if (error.statusCode === 408) {
-      return new CardProviderError(
-        CardProviderErrorCode.Timeout,
-        `Request timeout on ${operation}`,
-        408,
-      );
-    }
-    if (error.statusCode === 0) {
-      return new CardProviderError(
-        CardProviderErrorCode.Network,
-        `Network error on ${operation}`,
-        0,
-      );
-    }
-  }
-  return new CardProviderError(
-    CardProviderErrorCode.Unknown,
-    (error as Error).message ?? `Unknown error on ${operation}`,
+  logUnreportedCardError(
+    error,
+    getErrorContext(method, {
+      httpStatus: error instanceof CardApiError ? error.statusCode : undefined,
+      errorCode: error instanceof CardApiError ? error.errorCode : undefined,
+      ...extra,
+    }),
   );
+  throw toCardProviderError(error, method);
 }
 
 function decodeJwtExpiryMs(token: string): number | null {
@@ -617,6 +553,8 @@ export class ImmersveProvider implements ICardProvider {
           CardProviderErrorCode.InvalidCredentials,
           'Refresh token rejected',
           error.statusCode,
+          undefined,
+          { requestId: error.requestId, reported: error.reported },
         );
       }
       reportAndMap(error, 'refreshTokens');
@@ -661,7 +599,7 @@ export class ImmersveProvider implements ICardProvider {
     try {
       await this.service.post('/auth/logout', {}, tokens);
     } catch (error) {
-      Logger.error(error as Error, getErrorContext('logout'));
+      logUnreportedCardError(error, getErrorContext('logout'));
     }
   }
 
@@ -966,7 +904,7 @@ export class ImmersveProvider implements ICardProvider {
       if (isCardAuthTokenError(error)) {
         throw error;
       }
-      Logger.error(error as Error, getErrorContext('getCardHomeData'));
+      logUnreportedCardError(error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
   }
@@ -1044,7 +982,7 @@ export class ImmersveProvider implements ICardProvider {
 
       return { items, nextCursor };
     } catch (error) {
-      throw mapApiError(error, 'listTransactions');
+      throw toCardProviderError(error, 'listTransactions');
     }
   }
 
@@ -1059,7 +997,7 @@ export class ImmersveProvider implements ICardProvider {
       );
       return this.mapImmersveTransactionDetails(raw);
     } catch (error) {
-      throw mapApiError(error, 'getTransaction');
+      throw toCardProviderError(error, 'getTransaction');
     }
   }
 
@@ -1220,8 +1158,8 @@ export class ImmersveProvider implements ICardProvider {
           .get<ImmersveFundingSourceDetail>(`/api/funding-source/${id}`, tokens)
           .catch((error) => {
             if (isCardAuthTokenError(error)) throw error;
-            Logger.error(
-              error as Error,
+            logUnreportedCardError(
+              error,
               getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
             );
             return null;

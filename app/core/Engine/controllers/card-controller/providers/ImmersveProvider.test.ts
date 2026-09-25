@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
 import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
-import { CardApiError } from '../services/BaanxService';
+import { CardApiError } from '../services/cardHttpObservability';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
@@ -309,6 +309,24 @@ describe('ImmersveProvider', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
+    it('does not log a failure the service already reported', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(500, '/auth/login-init', 'fail', {
+        requestId: 'req-immersve-1',
+      });
+      apiError.reported = true;
+      service.post.mockRejectedValue(apiError);
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.ServerError,
+        reported: true,
+        requestId: 'req-immersve-1',
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('maps ACCOUNT_DOES_NOT_EXIST to NotFound without Sentry', async () => {
       const { provider, service } = createProvider();
       const apiError = new CardApiError(
@@ -480,7 +498,7 @@ describe('ImmersveProvider', () => {
       expect(result.tokenSet?.refreshTokenExpiresAt).toBeUndefined();
     });
 
-    it('maps login-complete API failures through mapApiError', async () => {
+    it('maps login-complete API failures through toCardProviderError', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(
         new CardApiError(500, '/auth/login-complete', 'down'),
@@ -552,7 +570,7 @@ describe('ImmersveProvider', () => {
       },
     );
 
-    it('maps non-auth refresh failures through mapApiError', async () => {
+    it('maps non-auth refresh failures through toCardProviderError', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(
         new CardApiError(500, '/auth/token', 'down'),

@@ -75,6 +75,7 @@ import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinka
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import useCreditBalance from '../../hooks/useCreditBalance';
+import { getCreditLoadErrorValues } from '../../util/getCardProviderErrorMessage';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import MoneyCardTiltAnimation from '../../../Money/components/MoneyCardTiltAnimation';
@@ -538,6 +539,8 @@ const CardHome = () => {
   );
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
+  const creditSurfacesBlocked =
+    hasSetupActions || hasAlertOnlyState || isUkMigrationForced;
 
   const showSpendingLimitProgress =
     isAuthenticated &&
@@ -825,25 +828,33 @@ const CardHome = () => {
             )}
         </Box>
 
-        {credit.hasCredit &&
-          !hasSetupActions &&
-          !hasAlertOnlyState &&
-          !isUkMigrationForced && (
-            <Box
-              twClassName="mx-4 mt-4"
-              testID={CardHomeSelectors.CREDIT_BANNER}
-            >
-              <CardMessageBox
-                messageType={
-                  redeemsToMoneyAccount
-                    ? CardMessageBoxType.CreditAvailable
-                    : CardMessageBoxType.CreditAvailableNoMoneyAccount
-                }
-                values={{ amount: refundFiatLabel }}
-                onConfirm={actions.redeemCreditAction}
-              />
-            </Box>
-          )}
+        {credit.error && !credit.isLoading && !creditSurfacesBlocked && (
+          <Box
+            twClassName="mx-4 mt-4"
+            testID={CardHomeSelectors.CREDIT_LOAD_ERROR}
+          >
+            <CardMessageBox
+              messageType={CardMessageBoxType.CreditLoadFailed}
+              values={getCreditLoadErrorValues(credit.error)}
+              onConfirm={credit.refetch}
+              onConfirmLoading={credit.isRefetching}
+            />
+          </Box>
+        )}
+
+        {credit.hasCredit && !credit.error && !creditSurfacesBlocked && (
+          <Box twClassName="mx-4 mt-4" testID={CardHomeSelectors.CREDIT_BANNER}>
+            <CardMessageBox
+              messageType={
+                redeemsToMoneyAccount
+                  ? CardMessageBoxType.CreditAvailable
+                  : CardMessageBoxType.CreditAvailableNoMoneyAccount
+              }
+              values={{ amount: refundFiatLabel }}
+              onConfirm={actions.redeemCreditAction}
+            />
+          </Box>
+        )}
 
         {!isLoading && canAddToWallet && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
