@@ -1,7 +1,7 @@
 import { Env } from '@metamask/profile-sync-controller/sdk';
 
 /**
- * Switch that selects which backend env mobile talks to.
+ * Cluster that selects which backend env mobile talks to.
  *
  * `API_ENV` (`dev`, `uat`, or `prod`) overrides the build flavor.
  * When it is unset, the flavor selects the cluster: `dev` → dev,
@@ -12,8 +12,17 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
  * no ordering between controllers required. Each consumer reads the same
  * source independently.
  */
+export enum ApiEnv {
+  Dev = 'dev',
+  Uat = 'uat',
+  Prod = 'prod',
+}
 
-export type DevApiEnv = 'dev' | 'uat' | 'prod';
+const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
+  [ApiEnv.Dev]: ApiEnv.Dev,
+  [ApiEnv.Uat]: ApiEnv.Uat,
+  [ApiEnv.Prod]: ApiEnv.Prod,
+};
 
 /**
  * Read at call time (not module load) so tests can set/unset
@@ -21,29 +30,31 @@ export type DevApiEnv = 'dev' | 'uat' | 'prod';
  *
  * Disclaimer: Enabling dev will break authenticated services that had
  * not adopted our new dev authentication standards.
+ *
+ * @returns The cluster for this build.
  */
-export const devApiEnv = (): DevApiEnv => {
-  const raw = (process.env.API_ENV ?? '').toLowerCase();
-  if (raw === 'dev' || raw === 'uat' || raw === 'prod') {
-    return raw;
+export const getApiEnv = (): ApiEnv => {
+  const override = API_ENV_BY_VALUE[(process.env.API_ENV ?? '').toLowerCase()];
+  if (override) {
+    return override;
   }
 
   switch ((process.env.METAMASK_ENVIRONMENT ?? '').toLowerCase()) {
     case 'dev':
-      return 'dev';
+      return ApiEnv.Dev;
     case 'exp':
     case 'uat':
-      return 'uat';
+      return ApiEnv.Uat;
     default:
-      return 'prod';
+      return ApiEnv.Prod;
   }
 };
 
-const AUTH_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
-  dev: Env.DEV,
-  uat: Env.UAT,
-  prod: Env.PRD,
+const AUTH_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
+  [ApiEnv.Dev]: Env.DEV,
+  [ApiEnv.Uat]: Env.UAT,
+  [ApiEnv.Prod]: Env.PRD,
 };
 
 /** `Env` enum value to hand to `AuthenticationController` / `profile-sync` SDK. */
-export const authEnv = (): Env => AUTH_ENV_BY_DEV_API_ENV[devApiEnv()];
+export const authEnv = (): Env => AUTH_ENV_BY_API_ENV[getApiEnv()];

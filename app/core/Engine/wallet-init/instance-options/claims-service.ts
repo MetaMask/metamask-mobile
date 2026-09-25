@@ -1,28 +1,28 @@
 import { Env } from '@metamask/claims-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { captureException } from '@sentry/react-native';
-import { devApiEnv, type DevApiEnv } from '../../../devApiEnv';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
 
 type ClaimsServiceInstanceOptions = NonNullable<
   WalletOptions['instanceOptions']['claimsService']
 >;
 
-const CLAIMS_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
-  dev: Env.DEV,
-  uat: Env.UAT,
-  prod: Env.PRD,
+const CLAIMS_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
+  [ApiEnv.Dev]: Env.DEV,
+  [ApiEnv.Uat]: Env.UAT,
+  [ApiEnv.Prod]: Env.PRD,
 };
 
 /**
  * Mobile supplies fetch, env (aligned with AuthenticationController via
- * `devApiEnv`), and Sentry error capture for the wallet-owned ClaimsService.
+ * `getApiEnv`), and Sentry error capture for the wallet-owned ClaimsService.
  *
  * @returns The mobile ClaimsService instance options.
  */
 export function getClaimsServiceInstanceOptions(): ClaimsServiceInstanceOptions {
   return {
     fetchFunction: fetch,
-    env: CLAIMS_ENV_BY_DEV_API_ENV[devApiEnv()],
+    env: CLAIMS_ENV_BY_API_ENV[getApiEnv()],
     captureException,
   };
 }

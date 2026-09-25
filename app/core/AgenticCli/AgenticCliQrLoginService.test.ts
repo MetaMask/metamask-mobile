@@ -139,7 +139,7 @@ const loadAgenticCliQrLogin = (
 
 describe('AgenticCliQrLoginService', () => {
   const originalFetch = global.fetch;
-  const originalMmDevApiEnv = process.env.API_ENV;
+  const originalApiEnv = process.env.API_ENV;
 
   const createMockConnection = (): jest.Mocked<Connection> =>
     ({
@@ -165,10 +165,10 @@ describe('AgenticCliQrLoginService', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    if (originalMmDevApiEnv === undefined) {
+    if (originalApiEnv === undefined) {
       delete process.env.API_ENV;
     } else {
-      process.env.API_ENV = originalMmDevApiEnv;
+      process.env.API_ENV = originalApiEnv;
     }
   });
 

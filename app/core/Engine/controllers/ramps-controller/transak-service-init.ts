@@ -6,18 +6,18 @@ import {
   TransakServiceMessenger,
   TransakEnvironment,
 } from '@metamask/ramps-controller';
-import { devApiEnv, type DevApiEnv } from '../../../devApiEnv';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
 import { getRampsClientIdentity } from './ramps-service-init';
 
-const TRANSAK_ENVIRONMENT_BY_API_ENV: Record<DevApiEnv, TransakEnvironment> = {
-  dev: TransakEnvironment.Development,
-  uat: TransakEnvironment.Staging,
-  prod: TransakEnvironment.Production,
+const TRANSAK_ENVIRONMENT_BY_API_ENV: Record<ApiEnv, TransakEnvironment> = {
+  [ApiEnv.Dev]: TransakEnvironment.Development,
+  [ApiEnv.Uat]: TransakEnvironment.Staging,
+  [ApiEnv.Prod]: TransakEnvironment.Production,
 };
 
 /** Same cluster as `getRampsEnvironment()`, in Transak's enum. */
 export function getTransakEnvironment(): TransakEnvironment {
-  return TRANSAK_ENVIRONMENT_BY_API_ENV[devApiEnv()];
+  return TRANSAK_ENVIRONMENT_BY_API_ENV[getApiEnv()];
 }
 
 function getTransakContext(): string {

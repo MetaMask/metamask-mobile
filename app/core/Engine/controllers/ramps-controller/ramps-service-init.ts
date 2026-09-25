@@ -6,20 +6,20 @@ import {
   RampsEnvironment,
 } from '@metamask/ramps-controller';
 import { getBaseSemVerVersion } from '../../../../util/version';
-import { devApiEnv, type DevApiEnv } from '../../../devApiEnv';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
 
-const RAMPS_ENVIRONMENT_BY_API_ENV: Record<DevApiEnv, RampsEnvironment> = {
-  dev: RampsEnvironment.Development,
-  uat: RampsEnvironment.Staging,
-  prod: RampsEnvironment.Production,
+const RAMPS_ENVIRONMENT_BY_API_ENV: Record<ApiEnv, RampsEnvironment> = {
+  [ApiEnv.Dev]: RampsEnvironment.Development,
+  [ApiEnv.Uat]: RampsEnvironment.Staging,
+  [ApiEnv.Prod]: RampsEnvironment.Production,
 };
 
 /**
  * Ramps keeps its Development / Staging / Production enum.
- * Mobile translates the shared `dev | uat | prod` cluster onto it.
+ * Mobile translates `ApiEnv` onto it.
  */
 export function getRampsEnvironment(): RampsEnvironment {
-  return RAMPS_ENVIRONMENT_BY_API_ENV[devApiEnv()];
+  return RAMPS_ENVIRONMENT_BY_API_ENV[getApiEnv()];
 }
 
 /**

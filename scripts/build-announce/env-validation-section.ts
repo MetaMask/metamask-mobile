@@ -25,7 +25,7 @@ function getRemoteFFEnv(env: string | undefined): string {
 
 /**
  * `API_ENV` overrides the build flavor. Otherwise dev → dev, exp → uat,
- * and every other flavor → prod. Matches `devApiEnv()` in the app.
+ * and every other flavor → prod. Matches `getApiEnv()` in the app.
  */
 function resolveApiEnv(
   apiEnv: string | undefined,

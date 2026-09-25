@@ -1,4 +1,4 @@
-import { devApiEnv } from '../../../../core/devApiEnv';
+import { ApiEnv, getApiEnv } from '../../../../core/apiEnv';
 import { SdkEnvironment } from '../types/legacyDeposit';
 
 /**
@@ -6,7 +6,7 @@ import { SdkEnvironment } from '../types/legacyDeposit';
  * Dev and UAT clusters both use Staging. Prod uses Production.
  */
 export function getSdkEnvironment() {
-  return devApiEnv() === 'prod'
+  return getApiEnv() === ApiEnv.Prod
     ? SdkEnvironment.Production
     : SdkEnvironment.Staging;
 }
