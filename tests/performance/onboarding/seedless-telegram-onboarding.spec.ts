@@ -15,9 +15,9 @@ import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import { measureCreatePasswordToWalletHome } from './helpers/seedlessOnboardingTimers';
 import {
   captureOnboardingTtc,
   trackTimer,
@@ -92,12 +92,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         platform,
       );
       const timer4 = new TimerHelper(
-        'Telegram: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 4000 },
-        platform,
-      );
-      const timer5 = new TimerHelper(
-        'Telegram: Tap "Done" → wallet main screen visible',
+        'Telegram: Final onboarding action → wallet main screen visible',
         { ios: 30000, android: 5000 },
         platform,
       );
@@ -182,17 +177,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-        await timer4.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            OnboardingSuccessView.doneButton,
-          );
-        });
+        await measureCreatePasswordToWalletHome(timer4);
         trackTimer(performanceTracker, timer4);
-        await captureOnboardingTtc(
-          performanceTracker,
-          'onboarding_success',
-          platform,
-        );
         // Sheet probe was recorded in-app earlier; read it only after OAuth.
         await captureOnboardingTtc(
           performanceTracker,
@@ -200,18 +186,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           platform,
         );
 
-        await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
         await closePredictModal();
-        await timer5.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
-            {
-              description: 'Wallet main screen should be visible',
-            },
-          );
-        });
-        trackTimer(performanceTracker, timer5);
       } else {
         // Existing-user rehydration when the QA mock / account returns Account Found.
         // E2E_MOCK_OAUTH QA mock currently forces new-user results; keep this path
