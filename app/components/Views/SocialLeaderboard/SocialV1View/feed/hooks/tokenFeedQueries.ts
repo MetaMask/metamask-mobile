@@ -1,6 +1,6 @@
 import type {
   FeedResponse,
-  FetchTokenFeedOptions,
+  TokenFeedChain,
 } from '@metamask/social-controllers';
 import Engine from '../../../../../../core/Engine';
 
@@ -26,17 +26,12 @@ export const buildTokenFeedQueryKey = (
 export const fetchTokenFeedPage = (
   target: TokenFeedTarget,
   pageParam?: string,
-): Promise<FeedResponse> => {
-  const messenger = Engine.controllerMessenger as unknown as {
-    call: (
-      action: 'SocialService:fetchTokenFeed',
-      fetchOptions: FetchTokenFeedOptions,
-    ) => Promise<FeedResponse>;
-  };
-  return messenger.call('SocialService:fetchTokenFeed', {
-    chain: target.chain,
+): Promise<FeedResponse> =>
+  Engine.controllerMessenger.call('SocialService:fetchTokenFeed', {
+    // Feed rows carry the chain as a string. The request still sends that
+    // value; TokenFeedChain is the published option type.
+    chain: target.chain as TokenFeedChain,
     contractAddress: target.contractAddress,
     limit: TOKEN_FEED_PAGE_LIMIT,
     ...(pageParam ? { olderThan: pageParam } : {}),
   });
-};
