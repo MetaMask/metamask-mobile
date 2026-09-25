@@ -222,4 +222,51 @@ describe('useOpenHostedBuyWidget', () => {
 
     expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
   });
+
+  it('system-opens on iOS when browser is EXTERNAL_OS_BROWSER', async () => {
+    mockDeviceIsAndroid.mockReturnValue(false);
+    mockInAppBrowser.isAvailable.mockResolvedValue(true);
+
+    const { result } = renderHook(() => useOpenHostedBuyWidget());
+
+    await act(async () => {
+      await result.current.openHostedBuyWidget({
+        ...BASE_PARAMS,
+        url: 'https://ramp.revolut.codes/app/onramp',
+        browser: 'EXTERNAL_OS_BROWSER',
+      });
+    });
+
+    expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+      'https://ramp.revolut.codes/app/onramp',
+    );
+    expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+    expect(mockNavigationReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
+    });
+  });
+
+  it('system-opens on iOS when buy-widget omits browser but quote snapshot is EXTERNAL_OS_BROWSER', async () => {
+    mockDeviceIsAndroid.mockReturnValue(false);
+    mockInAppBrowser.isAvailable.mockResolvedValue(true);
+
+    const { result } = renderHook(() => useOpenHostedBuyWidget());
+
+    await act(async () => {
+      await result.current.openHostedBuyWidget({
+        ...BASE_PARAMS,
+        url: 'https://ramp.revolut.codes/app/onramp',
+        browser: undefined,
+        quote: {
+          quote: { buyWidget: { browser: 'EXTERNAL_OS_BROWSER' } },
+        } as never,
+      });
+    });
+
+    expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+      'https://ramp.revolut.codes/app/onramp',
+    );
+    expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+  });
 });

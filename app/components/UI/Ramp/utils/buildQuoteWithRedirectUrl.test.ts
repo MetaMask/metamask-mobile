@@ -4,16 +4,44 @@ import {
   getAggregatorRedirectConfig,
   getWidgetRedirectConfig,
   getProviderDeeplinkRedirectUrl,
+  shouldUseSystemOpen,
 } from './buildQuoteWithRedirectUrl';
 
 jest.mock('./getRampCallbackBaseUrl', () => ({
   getRampCallbackBaseUrl: () => 'https://callback.example/base',
 }));
 
-const makeQuote = (browser?: 'APP_BROWSER' | 'IN_APP_OS_BROWSER'): Quote =>
+const makeQuote = (
+  browser?: 'APP_BROWSER' | 'IN_APP_OS_BROWSER' | 'EXTERNAL_OS_BROWSER',
+): Quote =>
   ({
     quote: browser ? { buyWidget: { browser } } : {},
   }) as unknown as Quote;
+
+describe('shouldUseSystemOpen', () => {
+  it('is true when quote buyWidget.browser is EXTERNAL_OS_BROWSER', () => {
+    expect(shouldUseSystemOpen(makeQuote('EXTERNAL_OS_BROWSER'))).toBe(true);
+  });
+
+  it('is false for IN_APP_OS_BROWSER on the quote alone', () => {
+    expect(shouldUseSystemOpen(makeQuote('IN_APP_OS_BROWSER'))).toBe(false);
+  });
+
+  it('prefers buy-widget response browser over quote snapshot', () => {
+    expect(
+      shouldUseSystemOpen(
+        makeQuote('IN_APP_OS_BROWSER'),
+        'EXTERNAL_OS_BROWSER',
+      ),
+    ).toBe(true);
+    expect(
+      shouldUseSystemOpen(
+        makeQuote('EXTERNAL_OS_BROWSER'),
+        'IN_APP_OS_BROWSER',
+      ),
+    ).toBe(false);
+  });
+});
 
 describe('getCheckoutContext', () => {
   describe('network from chainId', () => {
@@ -69,6 +97,16 @@ describe('getAggregatorRedirectConfig (Phase 1 in-app vs external predicate)', (
 
     expect(result.useExternalBrowser).toBe(true);
     expect(result.redirectUrl).toBe('metamask://on-ramp/providers/coinbase');
+  });
+
+  it('classifies EXTERNAL_OS_BROWSER as external (provider deeplink)', () => {
+    const result = getAggregatorRedirectConfig(
+      makeQuote('EXTERNAL_OS_BROWSER'),
+      'revolut',
+    );
+
+    expect(result.useExternalBrowser).toBe(true);
+    expect(result.redirectUrl).toBe('metamask://on-ramp/providers/revolut');
   });
 });
 

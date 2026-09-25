@@ -791,6 +791,57 @@ describe('useContinueWithQuote', () => {
         routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
       });
     });
+
+    it('system-opens on iOS when quote browser is EXTERNAL_OS_BROWSER', async () => {
+      mockDeviceIsAndroid.mockReturnValue(false);
+      mockInAppBrowser.isAvailable.mockResolvedValue(true);
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://ramp.revolut.com/app/onramp',
+        browser: 'EXTERNAL_OS_BROWSER',
+      });
+
+      const externalOsQuote = {
+        ...WIDGET_PROVIDER_QUOTE,
+        provider: 'revolut',
+        quote: {
+          buyWidget: { browser: 'EXTERNAL_OS_BROWSER' as const },
+          buyURL: 'https://ramp.revolut.com/app/onramp',
+        },
+      };
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, externalOsQuote);
+
+      expect(caught).toBeUndefined();
+      expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+        'https://ramp.revolut.com/app/onramp',
+      );
+      expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+      expect(mockNavigationReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
+      });
+    });
+
+    it('system-opens on iOS when buy-widget browser is EXTERNAL_OS_BROWSER even if quote snapshot is IN_APP', async () => {
+      mockDeviceIsAndroid.mockReturnValue(false);
+      mockInAppBrowser.isAvailable.mockResolvedValue(true);
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://ramp.revolut.codes/app/onramp',
+        browser: 'EXTERNAL_OS_BROWSER',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
+
+      expect(caught).toBeUndefined();
+      expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+        'https://ramp.revolut.codes/app/onramp',
+      );
+      expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+    });
   });
 
   describe('context overrides (headless-ready)', () => {

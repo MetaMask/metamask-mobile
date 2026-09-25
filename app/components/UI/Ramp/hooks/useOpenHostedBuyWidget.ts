@@ -2,11 +2,15 @@ import { useCallback } from 'react';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import type { Quote } from '@metamask/ramps-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { resetWithRoutes } from '../../../../util/navigation/navUtils';
 import Device from '../../../../util/device';
 
-import { getCheckoutContext } from '../utils/buildQuoteWithRedirectUrl';
+import {
+  getCheckoutContext,
+  shouldUseSystemOpen,
+} from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 
 import { useRampsController } from './useRampsController';
@@ -18,6 +22,13 @@ export interface OpenHostedBuyWidgetParams {
   orderId?: string | null;
   walletAddress?: string | null;
   chainId?: string;
+  /**
+   * Prefer buy-widget response `browser` when present. When omitted, falls
+   * back to `quote.quote.buyWidget.browser` via shouldUseSystemOpen.
+   */
+  browser?: string | null;
+  /** Quote snapshot used when `browser` is omitted. */
+  quote?: Quote;
 }
 
 export interface UseOpenHostedBuyWidgetResult {
@@ -47,6 +58,8 @@ export function useOpenHostedBuyWidget(): UseOpenHostedBuyWidgetResult {
       orderId,
       walletAddress,
       chainId,
+      browser,
+      quote,
     }: OpenHostedBuyWidgetParams) => {
       const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
         { chainId },
@@ -66,8 +79,14 @@ export function useOpenHostedBuyWidget(): UseOpenHostedBuyWidgetResult {
       const isAndroid = Device.isAndroid();
       const inAppBrowserAvailable =
         !isAndroid && (await InAppBrowser.isAvailable());
+      // EXTERNAL_OS_BROWSER must system-open so partner universal links fire
+      // (ASWebAuthenticationSession loads the URL like a typed address).
+      const useSystemOpen =
+        isAndroid ||
+        !inAppBrowserAvailable ||
+        shouldUseSystemOpen(quote ?? ({ quote: {} } as Quote), browser);
 
-      if (isAndroid || !inAppBrowserAvailable) {
+      if (useSystemOpen) {
         await Linking.openURL(url);
         navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
         return;

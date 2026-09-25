@@ -219,6 +219,7 @@ export function useCheckoutPageEvents({
         orderId: hostedBuyWidget.orderId,
         walletAddress,
         chainId,
+        browser: hostedBuyWidget.browser,
       });
     } catch (fallbackError) {
       Logger.error(fallbackError as Error, {
