@@ -4,7 +4,6 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { isEmpty } from 'lodash';
@@ -15,7 +14,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { toAssetId } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { capitalize } from '../../../../../util/general';
 import {
@@ -33,7 +31,11 @@ import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
-import { parseFloatSafe, doesTokenRequireAllowanceReset } from '../../utils';
+import {
+  parseFloatSafe,
+  doesTokenRequireAllowanceReset,
+  registerLendingCounterToken,
+} from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
@@ -431,33 +433,11 @@ const EarnLendingDepositConfirmationView = () => {
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken && selectedAccount?.id) {
-            try {
-              const counterTokenChainId = tokenSnapshot?.chainId as Hex;
-              const counterTokenAddress = tokenSnapshot?.token?.address || '';
-              const caipChainId = toEvmCaipChainId(counterTokenChainId);
-              const caipAssetType = toAssetId(counterTokenAddress, caipChainId);
-
-              if (caipAssetType) {
-                Engine.context.AssetsController.addCustomAsset(
-                  selectedAccount.id,
-                  caipAssetType,
-                  {
-                    decimals: tokenSnapshot?.token?.decimals || 0,
-                    symbol: tokenSnapshot?.token?.symbol || '',
-                    address: counterTokenAddress,
-                    name: tokenSnapshot?.token?.name || '',
-                    chainId: counterTokenChainId,
-                  },
-                ).catch(console.error);
-              }
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  earnToken?.symbol || earnToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
+            registerLendingCounterToken(
+              selectedAccount.id,
+              tokenSnapshot,
+              earnToken?.symbol || earnToken?.ticker || '',
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,

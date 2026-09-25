@@ -5,7 +5,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import type { Hex } from '@metamask/utils';
+import { isStrictHexString, type Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import EngineService from '../../../../core/EngineService';
@@ -13,9 +13,8 @@ import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
-import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
-import { store } from '../../../../store';
 
 interface PayTokenSelection {
   address: Hex;
@@ -174,29 +173,35 @@ export async function ensureMusdTokenRegistered({
     return;
   }
 
-  const allTokens = getTokensControllerAllTokens(store.getState());
-  const accountTokens = Object.values(allTokens[chainId] ?? {}).flat();
-  const hasMusdToken = accountTokens.some(
-    (t) => t.address.toLowerCase() === musdTokenAddress.toLowerCase(),
-  );
+  // toAssetId embeds the address verbatim, but customAssets stores the
+  // normalized (checksummed) id, so checksum first or the lookup misses.
+  // Guard on hex so a non-hex address can't make toChecksumAddress throw.
+  const checksummedAddress = isStrictHexString(musdTokenAddress)
+    ? (safeToChecksumAddress(musdTokenAddress) ?? musdTokenAddress)
+    : musdTokenAddress;
+  const caipChainId = toEvmCaipChainId(chainId);
+  const caipAssetType = toAssetId(checksummedAddress, caipChainId);
+
+  if (!caipAssetType) {
+    return;
+  }
+
+  // Scope the check to this account's custom assets. Read controller state
+  // directly (not the Redux-derived allTokens selector) so we don't get a
+  // cross-account false positive or a stale read within the Redux batch window.
+  const { AssetsController } = Engine.context;
+  const accountCustomAssets =
+    AssetsController.state.customAssets[accountId] ?? [];
+  const hasMusdToken = accountCustomAssets.includes(caipAssetType);
 
   if (!hasMusdToken) {
-    const caipChainId = toEvmCaipChainId(chainId);
-    const caipAssetType = toAssetId(musdTokenAddress, caipChainId);
-
-    if (caipAssetType) {
-      await Engine.context.AssetsController.addCustomAsset(
-        accountId,
-        caipAssetType,
-        {
-          address: musdTokenAddress,
-          decimals: MUSD_TOKEN.decimals,
-          name: MUSD_TOKEN.name,
-          symbol: MUSD_TOKEN.symbol,
-          chainId,
-        },
-      );
-    }
+    await AssetsController.addCustomAsset(accountId, caipAssetType, {
+      address: checksummedAddress,
+      decimals: MUSD_TOKEN.decimals,
+      name: MUSD_TOKEN.name,
+      symbol: MUSD_TOKEN.symbol,
+      chainId,
+    });
   }
 }
 

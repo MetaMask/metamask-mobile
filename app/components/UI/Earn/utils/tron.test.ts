@@ -4,6 +4,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
 import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 import {
   buildTronEarnTokenIfEligible,
   getLocalizedErrorMessage,
@@ -388,6 +389,8 @@ describe('tron utils', () => {
       expect(mockGetAccount).toHaveBeenCalledWith(accountId);
       expect(mockGetAssets).toHaveBeenCalledWith([mockAccount], {
         forceUpdate: true,
+        assetTypes: FUNGIBLE_ASSET_TYPES,
+        bypassServerCache: true,
       });
       expect(navigation.goBack).toHaveBeenCalledTimes(1);
     });
