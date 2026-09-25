@@ -250,6 +250,30 @@ describe('Toast', () => {
         }),
       ).toBe(true);
     });
+
+    it('top-aligns when the title wraps to multiple lines', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 2,
+          hasDescription: false,
+          descriptionLineCount: null,
+          hasActionButton: true,
+          hasTrailingTextButton: false,
+        }),
+      ).toBe(true);
+    });
+
+    it('keeps single-line title-only toasts vertically centered', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 1,
+          hasDescription: false,
+          descriptionLineCount: null,
+          hasActionButton: false,
+          hasTrailingTextButton: false,
+        }),
+      ).toBe(false);
+    });
   });
 
   describe('avatar variants', () => {
@@ -573,6 +597,25 @@ describe('Toast', () => {
       });
 
       expect(screen.queryByText('Auto dismiss toast')).toBeNull();
+    });
+
+    it('auto-dismisses toast after a custom timeoutMs', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Custom timeout toast' }],
+        hasNoTimeout: false,
+        timeoutMs: 4000,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Custom timeout toast')).toBeNull();
     });
 
     it('top-aligns labels after multi-line title and description layout events', async () => {

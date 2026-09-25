@@ -1,4 +1,5 @@
 // Third party dependencies.
+import { ReactNode } from 'react';
 import { PressableProps, LayoutChangeEvent } from 'react-native';
 
 /**
@@ -25,4 +26,8 @@ export interface TabProps extends PressableProps {
    * Callback when tab layout changes
    */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /**
+   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   */
+  endAccessory?: ReactNode;
 }
