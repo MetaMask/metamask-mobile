@@ -1390,6 +1390,8 @@ describe('Trace', () => {
       return { spanEndMock, spanMock };
     };
 
+    beforeEach(() => jest.clearAllMocks());
+
     afterEach(() => {
       jest.useRealTimers();
     });
