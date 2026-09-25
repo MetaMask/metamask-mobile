@@ -14,7 +14,7 @@ import { selectCardTransactionHistoryEnabled } from '../../../../../selectors/fe
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { useCardTransactionIndex } from '../../../Card/hooks/useCardTransactionIndex';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
@@ -215,8 +215,12 @@ const defaultCardIndexResult = {
   isError: false,
 };
 
-const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
-const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
+const MOCK_DEPOSITS = MONEY_ACTIVITY_TRANSACTIONS.filter(
+  isMoneyActivityDeposit,
+);
+const MOCK_TRANSFERS = MONEY_ACTIVITY_TRANSACTIONS.filter(
+  isMoneyActivityTransfer,
+);
 
 const CARD_TX: AccountsApiActivity = {
   kind: 'card',
@@ -296,12 +300,11 @@ describe('MoneyActivityView', () => {
     mockedSelectCardHistory.mockReturnValue(false);
     mockUseCardTransactionIndex.mockReturnValue(defaultCardIndexResult);
     mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_MONEY_TRANSACTIONS,
+      allTransactions: MONEY_ACTIVITY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
       transfers: MOCK_TRANSFERS,
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackScreenViewed: mockTrackScreenViewed,
@@ -421,7 +424,6 @@ describe('MoneyActivityView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
@@ -459,7 +461,6 @@ describe('MoneyActivityView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
     mockApiActivity({ activity: [] });
     mockUseCardTransactionIndex.mockReturnValue({
@@ -487,7 +488,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     }
 
@@ -594,7 +594,6 @@ describe('MoneyActivityView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
 
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
@@ -605,7 +604,7 @@ describe('MoneyActivityView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pressing a row navigates to the transaction details sheet when mockDataEnabled is false', () => {
+  it('pressing a row navigates to the transaction details sheet', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
     fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
@@ -726,22 +725,6 @@ describe('MoneyActivityView', () => {
     expect(getByTestId(REFUND_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('does not render real Accounts-API rows in mock-data mode', () => {
-    mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_MONEY_TRANSACTIONS,
-      deposits: MOCK_DEPOSITS,
-      transfers: MOCK_TRANSFERS,
-      submittedTransactions: [],
-      moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: true,
-    });
-    mockApiActivity({ activity: [CARD_TX] });
-
-    const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
-
-    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
-  });
-
   describe('infinite scroll', () => {
     it('fetches the next page when the list end is reached and more remain', () => {
       mockApiActivity({
@@ -823,7 +806,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
     it('fetches more pages on mount while the active bucket is below a screenful and pages remain', () => {
@@ -887,27 +869,6 @@ describe('MoneyActivityView', () => {
 
       expect(mockLoadMore).not.toHaveBeenCalled();
     });
-
-    it('does not fetch on mount in mock-data mode', () => {
-      mockUseMoneyAccountTransactions.mockReturnValue({
-        allTransactions: [],
-        deposits: [],
-        transfers: [],
-        submittedTransactions: [],
-        moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: true,
-      });
-      mockApiActivity({
-        activity: [],
-        hasMore: true,
-        isComplete: false,
-        pageCount: 1,
-      });
-
-      renderWithProvider(<MoneyActivityView />);
-
-      expect(mockLoadMore).not.toHaveBeenCalled();
-    });
   });
 
   describe('empty vs. still-loading', () => {
@@ -918,7 +879,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
     it('keeps the skeleton (not the empty message) while no rows yet and pages remain', () => {
@@ -984,7 +944,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
     it('shows an error footer with retry (not a spinner) when paging fails mid-list', () => {

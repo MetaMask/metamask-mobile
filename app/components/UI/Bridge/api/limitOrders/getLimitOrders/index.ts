@@ -1,48 +1,81 @@
-import { parseCaipAssetType } from '@metamask/utils';
-import { MOCK_LIMIT_ORDERS } from './mock';
+import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
+import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
+import Engine from '../../../../../../core/Engine';
+import { getBaseSemVerVersion } from '../../../../../../util/version';
 import type { GetLimitOrdersQuery, GetLimitOrdersResponse } from './types';
+import { parseLimitOrderPageResponse } from './validators';
 
-const DEFAULT_PAGE_LIMIT = 20;
-const MOCK_API_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 500;
+/**
+ * Fetches one page of the wallet's limit orders, newest first. Pass the
+ * `nextCursor` of a page as `cursor` to fetch the page after it.
+ *
+ * @param query - The orders to fetch.
+ * @returns One page of orders, and the cursor of the next page if there is one.
+ */
+export async function getLimitOrders({
+  walletAddress,
+  states,
+  chainId,
+  limit,
+  cursor,
+}: GetLimitOrdersQuery): Promise<GetLimitOrdersResponse> {
+  const bearerToken =
+    await Engine.context.AuthenticationController.getBearerToken();
 
-// TODO: Replace this mock with the real GET /limit/orders API.
-export async function getLimitOrders(
-  query: GetLimitOrdersQuery,
-  delayMs = MOCK_API_DELAY_MS,
-): Promise<GetLimitOrdersResponse> {
-  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  const searchParams = new URLSearchParams({
+    // Orders are matched on the wallet alone: the API ignores the chain of the
+    // account id, so any EVM chain will do.
+    accountAddress: toCaipAccountId(
+      KnownCaipNamespace.Eip155,
+      '1',
+      walletAddress,
+    ),
+  });
 
-  const matchingOrders = MOCK_LIMIT_ORDERS.filter((order) => {
-    if (query.status && !query.status.includes(order.status)) {
-      return false;
-    }
+  if (states?.length) {
+    searchParams.set('states', states.join(','));
+  }
 
-    if (!query.chainId) {
-      return true;
-    }
+  if (chainId) {
+    searchParams.set('chainIds', chainId);
+  }
 
-    return (
-      parseCaipAssetType(order.src.asset.assetId).chainId === query.chainId
-    );
-  }).sort(
-    (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
+  if (limit !== undefined) {
+    searchParams.set('limit', String(limit));
+  }
+
+  if (cursor) {
+    searchParams.set('after', cursor);
+  }
+
+  const response = await fetch(
+    `${BRIDGE_API_BASE_URL}/v2/orders/limit?${searchParams.toString()}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getClientHeaders({
+          clientId: BridgeClientId.MOBILE,
+          clientVersion: getBaseSemVerVersion(),
+          jwt: bearerToken ?? '',
+        }),
+      },
+    },
   );
 
-  const limit = query.limit ?? DEFAULT_PAGE_LIMIT;
-  const pageStart = Number(query.cursor ?? 0);
-  const orders = matchingOrders
-    .slice(pageStart, pageStart + limit)
-    .map((order) => ({
-      ...order,
-      src: { ...order.src, walletAddress: query.walletAddress },
-      dest: { ...order.dest, walletAddress: query.walletAddress },
-    }));
-  const nextPageStart = pageStart + orders.length;
+  if (!response.ok) {
+    throw new Error(
+      `getLimitOrders: Request failed with status ${response.status}`,
+    );
+  }
+
+  const { orders, endCursor, hasNextPage } = parseLimitOrderPageResponse(
+    await response.json(),
+  );
 
   return {
     orders,
-    ...(nextPageStart < matchingOrders.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage && endCursor ? { nextCursor: endCursor } : {}),
   };
 }

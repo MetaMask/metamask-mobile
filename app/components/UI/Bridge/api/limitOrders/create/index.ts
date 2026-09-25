@@ -1,8 +1,9 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import Engine from '../../../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../../../util/version';
+import { limitOrdersQueries } from '../../../queries/limitOrders';
 import { parseCreateLimitOrderResponse } from './validators';
 import type {
   CreateLimitOrderResponse,
@@ -66,7 +67,7 @@ export const createLimitOrder = async (
   const bearerToken =
     await Engine.context.AuthenticationController.getBearerToken();
 
-  const response = await fetch(`${BRIDGE_API_BASE_URL}/v2/limit-orders`, {
+  const response = await fetch(`${BRIDGE_API_BASE_URL}/v2/orders/limit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -88,7 +89,15 @@ export const createLimitOrder = async (
   return parseCreateLimitOrderResponse(await response.json());
 };
 
-export const useCreateLimitOrder = () =>
-  useMutation<CreateLimitOrderResponse, Error, CreateLimitOrderParams>({
+export const useCreateLimitOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<CreateLimitOrderResponse, Error, CreateLimitOrderParams>({
     mutationFn: createLimitOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: limitOrdersQueries.openOrdersKey(),
+      });
+    },
   }).mutateAsync;
+};
