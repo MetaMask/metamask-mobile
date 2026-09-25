@@ -115,6 +115,24 @@ export const isValidUrl = (url: URLParse<string>): boolean => {
 };
 
 /**
+ * True for http(s) page URLs that can own a BackgroundBridge.
+ * Blank, file, and other non-page navigations are excluded so a WebView
+ * remount does not tear down the live provider.
+ */
+export const isHttpPageUrl = (url: string): boolean => {
+  try {
+    const parsed = new URLParse(url);
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      Boolean(parsed.origin) &&
+      parsed.origin !== 'null'
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Checks if it is a ENS website
  */
 export const isENSUrl = (urlToCheck: string, ensIgnoreList: string[]) => {
