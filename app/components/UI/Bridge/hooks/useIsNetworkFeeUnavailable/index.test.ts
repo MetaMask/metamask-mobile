@@ -7,10 +7,10 @@ import {
 } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { isQuoteNetworkFeeUnavailable } from '.';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { mergeWith } from 'lodash';
+import { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
 
-type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+type ActiveQuote = ReturnType<typeof useBridgeQuoteDataContext>['activeQuote'];
 
 const createQuote = (
   overrides: DeepPartial<NonNullable<ActiveQuote>> = {},

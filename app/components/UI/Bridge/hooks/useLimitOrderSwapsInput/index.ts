@@ -6,9 +6,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
 import {
-  selectDestToken,
-  selectSourceAmount,
-  selectSourceToken,
   setDestToken,
   setSourceAmount,
   setSourceAmountAsMax,
@@ -40,9 +37,6 @@ export const useLimitOrderSwapInputs = () => {
   );
   const enabledChainIds = limitOrderFeatureFlags?.enabledChainIds;
 
-  const sourceAmount = useSelector(selectSourceAmount);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const isFiatToggleEnabled = useSelector(
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
@@ -78,6 +72,11 @@ export const useLimitOrderSwapInputs = () => {
     didResetTokensRef.current = true;
   }, [enabledChainIds, dispatch]);
 
+  const {
+    latestSourceBalance,
+    quoteParams: { srcAmount: sourceAmount, srcToken: sourceToken, destToken },
+  } = useBridgeSession();
+
   useEffect(() => {
     if (didResetTokensRef.current) {
       // Avoid overwriting the freshly reset dest token with one computed from stale data.
@@ -105,8 +104,6 @@ export const useLimitOrderSwapInputs = () => {
         : nativeToken;
     dispatch(setDestToken(nextDestToken));
   }, [sourceToken, destToken, dispatch]);
-
-  const { latestSourceBalance } = useBridgeSession();
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {

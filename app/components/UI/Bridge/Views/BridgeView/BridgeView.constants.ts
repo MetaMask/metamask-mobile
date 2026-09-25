@@ -24,4 +24,4 @@ export const DEBOUNCE_WAIT = 300;
  * Feature IDs that have been migrated to use the SwapQuotesProvider
  * To migrate a feature ID, add it to this list and replace the useBridgeQuoteRequest hook with useSwapQuotes.
  */
-export const MIGRATED_FEATURE_IDS: FeatureId[] = [];
+export const MIGRATED_FEATURE_IDS: FeatureId[] = [FeatureId.LIMIT_ORDER];
