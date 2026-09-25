@@ -26,13 +26,15 @@ import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
-import { PERFORMANCE_PREVIEW_COUNT } from '../performancePreview';
 import ReferralFunnelBar from '../ReferralFunnelBar';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from '../PerformanceActivityRows';
+
+/** Rows shown under each Performance section before "see all". */
+const PERFORMANCE_PREVIEW_COUNT = 5;
 
 export const PERFORMANCE_TAB_TEST_IDS = {
   CONTAINER: 'rewards-money-performance-tab',
@@ -42,10 +44,40 @@ export const PERFORMANCE_TAB_TEST_IDS = {
   COMMISSIONS_HEADER: 'rewards-money-performance-commissions-header',
   REBATES: 'rewards-money-performance-rebates',
   REBATES_HEADER: 'rewards-money-performance-rebates-header',
+  FUNNEL_SKELETON: 'rewards-money-performance-funnel-skeleton',
   FUNNEL_ERROR: 'rewards-money-performance-funnel-error',
   COMMISSIONS_ERROR: 'rewards-money-performance-commissions-error',
   REBATES_ERROR: 'rewards-money-performance-rebates-error',
 } as const;
+
+const FUNNEL_SKELETON_ROWS = [
+  { title: 'w-40', bar: 'w-full', description: 'w-56' },
+  { title: 'w-36', bar: 'w-2/3', description: 'w-48' },
+] as const;
+
+const ReferralFunnelSkeleton: React.FC = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box twClassName="gap-5" testID={PERFORMANCE_TAB_TEST_IDS.FUNNEL_SKELETON}>
+      {FUNNEL_SKELETON_ROWS.map((row) => (
+        <Box key={row.title}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+          >
+            <Skeleton style={tw.style(`h-4 ${row.title} rounded-md`)} />
+            <Skeleton style={tw.style('h-4 w-6 rounded-md')} />
+          </Box>
+          <Skeleton style={tw.style(`mt-2 h-2 ${row.bar} rounded-full`)} />
+          <Skeleton
+            style={tw.style(`mt-1 h-3 ${row.description} rounded-md`)}
+          />
+        </Box>
+      ))}
+    </Box>
+  );
+};
 
 interface PerformanceTabProps {
   profileId: string;
@@ -111,10 +143,67 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   const rebatesLoading = isReferee && rebates.isLoading && !rebates.items;
   const funnelLoading =
     isReferrer && !funnel && (!funnelEntry || Boolean(funnelEntry.loading));
+  const funnelError = isReferrer && Boolean(funnelEntry?.error);
+  const commissionsError = showCommissions && Boolean(commissions.error);
+  const rebatesError = isReferee && Boolean(rebates.error);
+  // One banner for the tab. Commissions win when more than one request failed,
+  // and retry refetches only that source.
+  const errorSource = commissionsError
+    ? 'commissions'
+    : rebatesError
+      ? 'rebates'
+      : funnelError
+        ? 'funnel'
+        : null;
+  const errorCopy =
+    errorSource === 'funnel'
+      ? 'rewards.referral_details_error'
+      : 'rewards.trading_activity_error';
+  const showFunnelSection = isReferrer && !(funnelError && !funnel);
+  const showCommissionsSection =
+    showCommissions &&
+    !(
+      commissionsError &&
+      previewCommissions.length === 0 &&
+      !commissionsLoading
+    );
+  const showRebatesSection =
+    isReferee &&
+    !(rebatesError && previewRebates.length === 0 && !rebatesLoading);
 
   return (
     <Box testID={PERFORMANCE_TAB_TEST_IDS.CONTAINER}>
-      {isReferrer ? (
+      {errorSource ? (
+        <Box twClassName="mt-3 px-4 pt-4">
+          <RewardsErrorBanner
+            title={strings(`${errorCopy}.error_fetching_title`)}
+            description={strings(`${errorCopy}.error_fetching_description`)}
+            onConfirm={() => {
+              if (errorSource === 'commissions') {
+                commissions.retry();
+                return;
+              }
+              if (errorSource === 'rebates') {
+                rebates.retry();
+                return;
+              }
+              fetchReferralFunnel({ forceFresh: true });
+            }}
+            confirmButtonLabel={strings(`${errorCopy}.retry_button`)}
+            onConfirmLoading={
+              errorSource === 'funnel' ? Boolean(funnelEntry?.loading) : false
+            }
+            testID={
+              errorSource === 'commissions'
+                ? PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR
+                : errorSource === 'rebates'
+                  ? PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR
+                  : PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR
+            }
+          />
+        </Box>
+      ) : null}
+      {showFunnelSection ? (
         <>
           <SectionHeader
             title={localizedText.referrals}
@@ -128,25 +217,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
             </Text>
           </SectionHeader>
           <Box twClassName="px-4">
-            {funnelEntry?.error && !funnel ? (
-              <RewardsErrorBanner
-                title={strings(
-                  'rewards.referral_details_error.error_fetching_title',
-                )}
-                description={strings(
-                  'rewards.referral_details_error.error_fetching_description',
-                )}
-                onConfirm={() => fetchReferralFunnel({ forceFresh: true })}
-                confirmButtonLabel={strings(
-                  'rewards.referral_details_error.retry_button',
-                )}
-                onConfirmLoading={Boolean(funnelEntry.loading)}
-                testID={PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR}
-              />
-            ) : null}
-            {funnelLoading ? (
-              <Skeleton style={tw.style('h-24 w-full rounded-xl')} />
-            ) : null}
+            {funnelLoading ? <ReferralFunnelSkeleton /> : null}
             {funnel ? (
               <Box twClassName="gap-5" testID={PERFORMANCE_TAB_TEST_IDS.FUNNEL}>
                 {funnelRows.map((row, index) => (
@@ -179,7 +250,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
         </>
       ) : null}
 
-      {showCommissions ? (
+      {showCommissionsSection ? (
         <>
           <SectionHeader
             title={commissionsTitle}
@@ -190,25 +261,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
                 Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
               )
             }
-            twClassName={isReferrer ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+            twClassName={showFunnelSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
             testID={PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER}
           />
           <Box twClassName="px-4">
-            {commissions.error && previewCommissions.length === 0 ? (
-              <RewardsErrorBanner
-                title={strings(
-                  'rewards.referral_details_error.error_fetching_title',
-                )}
-                description={strings(
-                  'rewards.referral_details_error.error_fetching_description',
-                )}
-                onConfirm={commissions.retry}
-                confirmButtonLabel={strings(
-                  'rewards.referral_details_error.retry_button',
-                )}
-                testID={PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR}
-              />
-            ) : null}
             {commissionsLoading ? (
               <TradingActivityListSkeleton rows={PERFORMANCE_PREVIEW_COUNT} />
             ) : (
@@ -229,9 +285,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
         </>
       ) : null}
 
-      {isReferee ? (
+      {showRebatesSection ? (
         <>
-          <SectionDivider marginVertical={8} />
+          {showCommissionsSection ? (
+            <SectionDivider marginVertical={8} />
+          ) : null}
           <SectionHeader
             title={localizedText.tradingRebates}
             isInteractive
@@ -241,25 +299,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
                 Routes.REWARDS_TRADING_REBATES_VIEW,
               )
             }
-            twClassName="pt-0 pb-4"
+            twClassName={showCommissionsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
             testID={PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER}
           />
           <Box twClassName="px-4 pb-8">
-            {rebates.error && previewRebates.length === 0 ? (
-              <RewardsErrorBanner
-                title={strings(
-                  'rewards.referral_details_error.error_fetching_title',
-                )}
-                description={strings(
-                  'rewards.referral_details_error.error_fetching_description',
-                )}
-                onConfirm={rebates.retry}
-                confirmButtonLabel={strings(
-                  'rewards.referral_details_error.retry_button',
-                )}
-                testID={PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR}
-              />
-            ) : null}
             {rebatesLoading ? (
               <TradingActivityListSkeleton rows={PERFORMANCE_PREVIEW_COUNT} />
             ) : (
