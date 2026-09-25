@@ -283,7 +283,7 @@ describe('SocialFeedPostShell', () => {
     ).toBe('https://cdn.test/alice.png');
   });
 
-  it('opens the options sheet from the more button and closes after Report', () => {
+  it('opens the report reason sheet from the post options', () => {
     renderShell(basePost());
 
     fireEvent.press(
@@ -298,6 +298,24 @@ describe('SocialFeedPostShell', () => {
 
     expect(
       screen.queryByTestId('social-entry-options-bottom-sheet'),
+    ).toBeNull();
+    expect(
+      screen.getByTestId('social-entry-report-reason-bottom-sheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('removes a post after Hide post is pressed', () => {
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.MORE}-post-1`),
+    );
+    fireEvent.press(screen.getByTestId('social-entry-options-hide-post'));
+
+    expect(
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.CONTAINER}-post-1`,
+      ),
     ).toBeNull();
   });
 });
