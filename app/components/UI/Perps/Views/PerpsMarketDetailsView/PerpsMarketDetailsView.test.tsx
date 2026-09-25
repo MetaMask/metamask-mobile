@@ -24,6 +24,7 @@ import {
   selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   CandlePeriod,
   PerpsMode,
@@ -1373,6 +1374,90 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the trading actions footer for a watch-only account', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const defaultSelectorImpl = useSelector.getMockImplementation();
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectIsSelectedAccountWatchOnly
+        ? true
+        : defaultSelectorImpl(selector),
+    );
+
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('disables position write actions and hides the stop-loss prompt for a watch-only account', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const defaultSelectorImpl = useSelector.getMockImplementation();
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectIsSelectedAccountWatchOnly
+        ? true
+        : defaultSelectorImpl(selector),
+    );
+    mockUseHasExistingPosition.mockReturnValue({
+      hasPosition: true,
+      isLoading: false,
+      error: null,
+      existingPosition: {
+        symbol: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        leverage: { value: 10, type: 'isolated' },
+        marginUsed: '5000',
+        unrealizedPnl: '-500',
+        returnOnEquity: '-0.10',
+        liquidationPrice: '45000',
+      },
+      refreshPosition: jest.fn(),
+      positionOpenedTimestamp: MOCK_TWO_MINUTES_AGO_MS,
+    });
+    const { useStopLossPrompt } = jest.requireMock(
+      '../../hooks/useStopLossPrompt',
+    );
+    useStopLossPrompt.mockReturnValue({
+      variant: 'add_margin',
+      liquidationDistance: 2.5,
+      suggestedStopLossPrice: null,
+      suggestedStopLossPercent: null,
+      isVisible: true,
+      onDismissComplete: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByTestId('perps-position-card')).toBeOnTheScreen();
+    expect(
+      queryByTestId('perps-position-card-auto-close-button'),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('perps-position-card-margin-button'),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('stop-loss-prompt-add-margin-button'),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders related markets rail when flag is enabled and market has category', () => {

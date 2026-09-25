@@ -763,6 +763,7 @@ export const usePerpsProOrderForm = ({
   const {
     handleAddFunds,
     isEligible,
+    isWatchOnly,
     isEligibilityModalVisible,
     closeEligibilityModal,
     showEligibilityModal,
@@ -3757,6 +3758,14 @@ export const usePerpsProOrderForm = ({
           }
           return;
         }
+        if (isWatchOnly) {
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.watch_only.trading_disabled'),
+            ),
+          );
+          return;
+        }
         if (!isEligible) {
           showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
           return;
@@ -3787,6 +3796,7 @@ export const usePerpsProOrderForm = ({
     gate,
     isChaseLimitBannerVisible,
     isEligible,
+    isWatchOnly,
     orderForm.type,
     PerpsToastOptions.formValidation.orderForm,
     isScaleOrder,

@@ -53,6 +53,7 @@ import {
 } from '../../utils/perpsTradeSheetInteractiveTrace';
 import Keypad from '../../../../Base/Keypad';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsWatchOnlyBanner from '../../components/PerpsWatchOnlyBanner';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   ARBITRUM_USDC,
@@ -198,6 +199,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -346,6 +348,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
+  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
 
   // Check if there's an active transaction
   const activeTransactionMeta = useTransactionMetadataRequest();
@@ -2130,7 +2133,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     hasInvalidTPSL ||
     isAtOICap ||
     shouldBlockBecauseOfFeesLoading ||
-    hasBlockingPayAlerts;
+    hasBlockingPayAlerts ||
+    isWatchOnly;
 
   let rewardAnimationState = RewardAnimationState.Idle;
   if (rewardsState.isLoading) {
@@ -2898,6 +2902,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </Text>
             </View>
           )}
+
+          <PerpsWatchOnlyBanner />
 
           {/* Service Interruption Banner */}
           <PerpsServiceInterruptionBanner

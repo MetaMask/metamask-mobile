@@ -628,6 +628,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockIsWatchOnly = false;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -641,6 +642,12 @@ jest.mock('react-redux', () => ({
     );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
+    }
+    const { selectIsSelectedAccountWatchOnly } = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    if (selector === selectIsSelectedAccountWatchOnly) {
+      return mockIsWatchOnly;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -3376,6 +3383,21 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Place order button disabled state', () => {
+    afterEach(() => {
+      mockIsWatchOnly = false;
+    });
+
+    it('disables place order for a watch-only account', async () => {
+      mockIsWatchOnly = true;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
     it('disables button when order validation is invalid', async () => {
       // Mock invalid order validation
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({

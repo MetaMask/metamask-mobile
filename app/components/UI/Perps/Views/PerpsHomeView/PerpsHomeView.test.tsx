@@ -17,6 +17,7 @@ import {
 } from '../../selectors/featureFlags';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
@@ -1424,6 +1425,81 @@ describe('PerpsHomeView', () => {
             FIXED_BOTTOM_CONTAINER_PADDING,
         }),
       );
+    });
+  });
+
+  describe('watch-only account', () => {
+    const mockUsePerpsHomeActions = jest.mocked(usePerpsHomeActions);
+    const defaultHomeActions = mockUsePerpsHomeActions.getMockImplementation();
+    let originalShowHeaderActionButtons: boolean;
+
+    beforeEach(() => {
+      originalShowHeaderActionButtons =
+        HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+      Object.assign(HOME_SCREEN_CONFIG, { ShowHeaderActionButtons: false });
+      mockUsePerpsHomeActions.mockImplementation((options) => ({
+        ...(defaultHomeActions?.(options) as ReturnType<
+          typeof usePerpsHomeActions
+        >),
+        isWatchOnly: true,
+      }));
+    });
+
+    afterEach(() => {
+      Object.assign(HOME_SCREEN_CONFIG, {
+        ShowHeaderActionButtons: originalShowHeaderActionButtons,
+      });
+      mockUsePerpsHomeActions.mockImplementation(defaultHomeActions);
+    });
+
+    it('disables the withdraw and add funds footer buttons', () => {
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeDisabled();
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('hides the close all positions action', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [
+          {
+            symbol: 'BTC',
+            size: '0.5',
+            entryPrice: '50000',
+            positionValue: '25000',
+            unrealizedPnl: '100',
+            marginUsed: '1000',
+            leverage: { type: 'cross' as const, value: 25 },
+            liquidationPrice: '48000',
+            maxLeverage: 50,
+            returnOnEquity: '10',
+            cumulativeFunding: {
+              allTime: '0',
+              sinceOpen: '0',
+              sinceChange: '0',
+            },
+            roi: '10',
+            takeProfitPrice: undefined,
+            stopLossPrice: undefined,
+            takeProfitCount: 0,
+            stopLossCount: 0,
+            marketPrice: '50200',
+            timestamp: Date.now(),
+          },
+        ],
+      });
+
+      const { getByText, queryByTestId } = render(<PerpsHomeView />);
+
+      expect(getByText('perps.home.positions')).toBeOnTheScreen();
+      expect(queryByTestId('section-header-button')).not.toBeOnTheScreen();
     });
   });
 
