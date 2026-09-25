@@ -4,7 +4,13 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { type LayoutChangeEvent, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -15,8 +21,14 @@ import Animated, {
 import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
+import type { TokenFeedTarget } from '../hooks/tokenFeedQueries';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
-import type { SocialV1FeedPost, SocialV1HotToken } from '../types';
+import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
+import type {
+  SocialV1FeedPost,
+  SocialV1HotToken,
+  SocialV1TokenFeedState,
+} from '../types';
 import {
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
@@ -53,6 +65,11 @@ export interface HotTokensCarouselProps {
   selectedTokenId?: string | null;
   /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
+  /**
+   * Token-feed page for the selected chip that has a chain and contract.
+   * `null` when nothing is selected or the chip cannot call the token route.
+   */
+  onTokenFeedChange?: (state: SocialV1TokenFeedState | null) => void;
 }
 
 const HotTokenChip: React.FC<{
@@ -127,12 +144,80 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isLoading: feedIsLoading = false,
   selectedTokenId = null,
   onTokenPress,
+  onTokenFeedChange,
 }) => {
   const { tokens, isLoading } = useSocialV1HotTokens(
     posts,
     feedIsLoading,
     selectedTokenId,
   );
+  const rankedToken = useMemo(
+    () => tokens.find((token) => token.id === selectedTokenId) ?? null,
+    [selectedTokenId, tokens],
+  );
+  // The rail is ranked from the unfiltered feed. Remember the selected
+  // contract chip so a refetch that drops that asset does not cancel its feed.
+  const heldContractTokenRef = useRef<SocialV1HotToken | null>(null);
+  if (!selectedTokenId) {
+    heldContractTokenRef.current = null;
+  } else if (rankedToken?.chain && rankedToken.contractAddress) {
+    heldContractTokenRef.current = rankedToken;
+  } else if (heldContractTokenRef.current?.id !== selectedTokenId) {
+    heldContractTokenRef.current = null;
+  }
+  const selectedToken =
+    rankedToken ??
+    (heldContractTokenRef.current?.id === selectedTokenId
+      ? heldContractTokenRef.current
+      : null);
+  const railTokens = useMemo(
+    () =>
+      selectedToken && !tokens.some((token) => token.id === selectedToken.id)
+        ? [selectedToken, ...tokens]
+        : tokens,
+    [selectedToken, tokens],
+  );
+  const tokenFeedTarget = useMemo((): TokenFeedTarget | null => {
+    if (!selectedToken?.chain || !selectedToken.contractAddress) {
+      return null;
+    }
+    return {
+      chain: selectedToken.chain,
+      contractAddress: selectedToken.contractAddress,
+    };
+  }, [selectedToken]);
+  const tokenFeed = useSocialV1TokenFeed(tokenFeedTarget);
+  const onTokenFeedChangeRef = useRef(onTokenFeedChange);
+  onTokenFeedChangeRef.current = onTokenFeedChange;
+
+  useEffect(() => {
+    const report = onTokenFeedChangeRef.current;
+    if (!report) {
+      return;
+    }
+    if (!tokenFeedTarget) {
+      report(null);
+      return;
+    }
+    report({
+      posts: tokenFeed.posts,
+      isLoading: tokenFeed.isLoading,
+      isFetchingNextPage: tokenFeed.isFetchingNextPage,
+      hasNextPage: tokenFeed.hasNextPage,
+      loadMore: tokenFeed.loadMore,
+      error: tokenFeed.error,
+      refresh: tokenFeed.refresh,
+    });
+  }, [
+    tokenFeed.error,
+    tokenFeed.hasNextPage,
+    tokenFeed.isFetchingNextPage,
+    tokenFeed.isLoading,
+    tokenFeed.loadMore,
+    tokenFeed.posts,
+    tokenFeed.refresh,
+    tokenFeedTarget,
+  ]);
   const offset = useSharedValue(0);
   const dragStartOffset = useSharedValue(0);
   const paused = useSharedValue(false);
@@ -217,13 +302,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   }));
 
   const loopTokens = useMemo(
-    () => (shouldMarquee ? tokens : []),
-    [shouldMarquee, tokens],
+    () => (shouldMarquee ? railTokens : []),
+    [shouldMarquee, railTokens],
   );
 
   // Returning null instead of an empty wrapper lets the page's gap collapse,
   // rather than leaving a rail-shaped hole above the first post.
-  if (!isLoading && tokens.length === 0) {
+  if (!isLoading && railTokens.length === 0) {
     return null;
   }
 
@@ -240,7 +325,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       <GestureDetector gesture={pan}>
         <Animated.View style={[styles.row, trackStyle]}>
           <HotTokenTrack
-            tokens={tokens}
+            tokens={railTokens}
             onPress={onTokenPress}
             onLayout={handleTrackLayout}
             testID={SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID}
