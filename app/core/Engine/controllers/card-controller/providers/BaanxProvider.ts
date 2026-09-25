@@ -507,7 +507,7 @@ export class BaanxProvider implements ICardProvider {
       if (error instanceof CardApiError && error.statusCode === 400) {
         return;
       }
-      throw mapApiError(error, 'requestAccountClosure');
+      throw toCardProviderError(error, 'requestAccountClosure');
     }
   }
 
