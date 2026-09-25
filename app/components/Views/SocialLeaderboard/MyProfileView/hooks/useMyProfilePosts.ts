@@ -51,6 +51,9 @@ export const useMyProfilePosts = (
     getNextPageParam: getTraderFeedNextPageParam,
     initialPageParam: undefined as string | undefined,
     enabled: Boolean(addressOrId) && isUnlocked,
+    // Avoid focus/reconnect refetch racing enabled:false after auto-lock (see useTopTraders).
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     retry: false,
   });
 

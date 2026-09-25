@@ -8,6 +8,8 @@ import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
+import { mockOpenPerpsFeedItem } from '../SocialV1View/feed/mocks/socialV1Feed.mock';
+import type { SocialV1FeedPost } from '../SocialV1View/feed/types';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -65,6 +67,17 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   canOpenURL: jest.fn(),
   getInitialURL: jest.fn(),
 }));
+
+const mockMyProfilePost = (
+  overrides: Partial<SocialV1FeedPost> = {},
+): SocialV1FeedPost => ({
+  id: 'post-1',
+  authorHandle: 'giga-whale',
+  timestampMs: 1,
+  reactions: [],
+  item: mockOpenPerpsFeedItem({ id: 'post-1' }),
+  ...overrides,
+});
 
 const followingTraders: UseFollowedTradersResult['traders'] = [
   {
@@ -321,15 +334,7 @@ describe('MyProfileView', () => {
   it('requests the next posts page when a scroll settles near the end', () => {
     const loadMore = jest.fn();
     mockUseMyProfilePosts.mockReturnValue({
-      posts: [
-        {
-          id: 'post-1',
-          authorHandle: 'giga-whale',
-          timestampMs: 1,
-          reactions: [],
-          item: { id: 'post-1' },
-        } as UseMyProfilePostsResult['posts'][number],
-      ],
+      posts: [mockMyProfilePost()],
       rows: [],
       isLoading: false,
       isFetchingNextPage: false,
@@ -357,15 +362,7 @@ describe('MyProfileView', () => {
 
   it('shows a footer spinner while the next posts page loads', () => {
     mockUseMyProfilePosts.mockReturnValue({
-      posts: [
-        {
-          id: 'post-1',
-          authorHandle: 'giga-whale',
-          timestampMs: 1,
-          reactions: [],
-          item: { id: 'post-1' },
-        } as UseMyProfilePostsResult['posts'][number],
-      ],
+      posts: [mockMyProfilePost()],
       rows: [],
       isLoading: false,
       isFetchingNextPage: true,
@@ -384,15 +381,7 @@ describe('MyProfileView', () => {
 
   it('renders owner posts under the Posts tab', () => {
     mockUseMyProfilePosts.mockReturnValue({
-      posts: [
-        {
-          id: 'post-1',
-          authorHandle: 'giga-whale',
-          timestampMs: 1,
-          reactions: [],
-          item: { id: 'post-1' },
-        } as UseMyProfilePostsResult['posts'][number],
-      ],
+      posts: [mockMyProfilePost()],
       rows: [],
       isLoading: false,
       isFetchingNextPage: false,
