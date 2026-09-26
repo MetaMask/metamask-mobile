@@ -197,6 +197,7 @@ const createMockOperations = () => ({
 describe('NetworkDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.QUICKNODE_POLYGON_URL;
     mockFormHook.mockReturnValue(createMockFormHook());
     mockValidation.mockReturnValue(createMockValidation());
     mockOperations.mockReturnValue(createMockOperations());
@@ -370,8 +371,39 @@ describe('NetworkDetailsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows failover tag when failover RPC URLs exist and flag is enabled', () => {
+    it('shows failover tag for an Infura endpoint when the chain has a shared config failover', () => {
       jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      process.env.QUICKNODE_POLYGON_URL = 'https://failover.polygon.com';
+
+      mockFormHook.mockReturnValue(
+        createMockFormHook({
+          addMode: false,
+          nickname: 'Polygon',
+          chainId: '0x89',
+          ticker: 'MATIC',
+          rpcUrl: 'https://polygon-mainnet.infura.io/v3/key',
+          rpcName: 'Infura',
+          rpcUrls: [
+            {
+              url: 'https://polygon-mainnet.infura.io/v3/key',
+              name: 'Infura',
+              type: 'infura',
+            },
+          ],
+          blockExplorerUrl: 'https://polygonscan.com',
+          blockExplorerUrls: ['https://polygonscan.com'],
+          editable: true,
+        }),
+      );
+
+      const { getByText } = render(<NetworkDetailsView />);
+
+      expect(getByText(strings('app_settings.failover'))).toBeOnTheScreen();
+    });
+
+    it('does not show failover for a custom endpoint even when the chain has a shared config failover', () => {
+      jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      process.env.QUICKNODE_POLYGON_URL = 'https://failover.polygon.com';
 
       mockFormHook.mockReturnValue(
         createMockFormHook({
@@ -381,7 +413,6 @@ describe('NetworkDetailsView', () => {
           ticker: 'MATIC',
           rpcUrl: 'https://polygon-rpc.com',
           rpcName: 'Polygon RPC',
-          failoverRpcUrls: ['https://failover.polygon.com'],
           rpcUrls: [
             {
               url: 'https://polygon-rpc.com',
@@ -395,9 +426,9 @@ describe('NetworkDetailsView', () => {
         }),
       );
 
-      const { getByText } = render(<NetworkDetailsView />);
+      const { queryByText } = render(<NetworkDetailsView />);
 
-      expect(getByText(strings('app_settings.failover'))).toBeOnTheScreen();
+      expect(queryByText(strings('app_settings.failover'))).toBeNull();
     });
   });
 
@@ -630,27 +661,31 @@ describe('NetworkDetailsView', () => {
   });
 
   describe('failover RPC display in edit mode', () => {
-    it('renders failover RPC URL as read-only field', () => {
+    it('renders failover RPC URL as read-only field for an Infura endpoint', () => {
       jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      process.env.QUICKNODE_POLYGON_URL = 'https://failover.polygon.com';
       const { useRoute } = jest.requireMock('@react-navigation/native');
       useRoute.mockReturnValue({
-        params: { network: 'https://rpc.example.com' },
+        params: { network: 'https://polygon-mainnet.infura.io/v3/key' },
       });
 
       mockFormHook.mockReturnValue(
         createMockFormHook({
           addMode: false,
-          nickname: 'TestNet',
-          chainId: '0x2a',
-          ticker: 'TST',
-          rpcUrl: 'https://rpc.example.com',
-          rpcName: 'RPC',
-          failoverRpcUrls: ['https://failover.example.com'],
+          nickname: 'Polygon',
+          chainId: '0x89',
+          ticker: 'POL',
+          rpcUrl: 'https://polygon-mainnet.infura.io/v3/key',
+          rpcName: 'Infura',
           rpcUrls: [
-            { url: 'https://rpc.example.com', name: 'RPC', type: 'custom' },
+            {
+              url: 'https://polygon-mainnet.infura.io/v3/key',
+              name: 'Infura',
+              type: 'infura',
+            },
           ],
-          blockExplorerUrl: 'https://scan.example.com',
-          blockExplorerUrls: ['https://scan.example.com'],
+          blockExplorerUrl: 'https://polygonscan.com',
+          blockExplorerUrls: ['https://polygonscan.com'],
           editable: true,
         }),
       );
