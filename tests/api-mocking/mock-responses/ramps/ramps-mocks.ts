@@ -35,6 +35,14 @@ import {
 } from './responses/ramps-buy-order-checkout-response.ts';
 import { createBuyOrderResponse } from './responses/ramps-buy-order-status-response.ts';
 import { createDepositOrderResponse } from './responses/ramps-deposit-order-status-response.ts';
+import {
+  isRampCacheHost,
+  isRampTranslateUrl,
+  isTransakGatewayUrl,
+  isTransakNativeOrderUrl,
+  rampUrl,
+  RAMP_TOKEN_ICON_URL,
+} from './ramps-hosts.ts';
 
 /** Registers an array of static GET mocks in parallel. */
 const registerGetMocks = (mockServer: Mockttp, mocks: MockApiEndpoint[]) =>
@@ -62,8 +70,7 @@ export const RAMPS_REGION_MOCKS = async (
   await registerGetMocks(mockServer, [
     ...geolocationResponse,
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-content\.uat-api\.cx\.metamask\.io\/regions\/countries\/[^/]+$/,
+      urlEndpoint: rampUrl('on-ramp-content', '/regions/countries/[^/]+$'),
       responseCode: 200,
       response: { global: true, deposit: true, aggregator: true },
     },
@@ -77,57 +84,70 @@ export const RAMPS_REGION_MOCKS = async (
 export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
   await registerGetMocks(mockServer, [
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/networks\?.*$/,
+      urlEndpoint: rampUrl('on-ramp-cache', String.raw`/regions/networks\?.*$`),
       responseCode: 200,
       response: RAMPS_NETWORKS_RESPONSE,
     },
     // Region config (payment methods, crypto/fiat options, limits)
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/[^/]+\/light\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/regions/[^/]+/light\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_REGION_CONFIG_RESPONSE,
     },
     // Amount conversion
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/currencies\/crypto\/.*\/amount\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/currencies/crypto/.*/amount\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_AMOUNT_RESPONSE,
     },
     // Top tokens V2
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/topTokens\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/v2/regions/[^/]+/topTokens\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_TOP_TOKENS_RESPONSE,
     },
     // Providers V2
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/providers\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/v2/regions/[^/]+/providers\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_PROVIDERS_RESPONSE,
     },
     // Tokens (legacy)
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/[^/]+\/tokens\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/regions/[^/]+/tokens\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_TOP_TOKENS_RESPONSE,
     },
     // Payments V2
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/payments\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/v2/regions/[^/]+/payments\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_PAYMENTS_V2_RESPONSE,
     },
     // Tokens fallback (handles malformed region paths from legacy useRampTokens)
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/.*\/tokens\?.*$/,
+      urlEndpoint: rampUrl(
+        'on-ramp-cache',
+        String.raw`/regions/.*/tokens\?.*$`,
+      ),
       responseCode: 200,
       response: RAMPS_TOP_TOKENS_RESPONSE,
     },
@@ -144,7 +164,7 @@ export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
       const parsedUrl = new URL(url);
 
       return (
-        parsedUrl.hostname === 'on-ramp-cache.uat-api.cx.metamask.io' &&
+        isRampCacheHost(parsedUrl.hostname) &&
         (parsedUrl.pathname === '/v2/regions/countries' ||
           parsedUrl.pathname === '/regions/countries')
       );
@@ -173,14 +193,12 @@ export const RAMPS_QUOTE_MOCKS = async (
   const quoteResponse = createRampsQuoteResponse(providerType);
   await registerGetMocks(mockServer, [
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/providers\/all\/quote\?.*$/,
+      urlEndpoint: rampUrl('on-ramp', String.raw`/providers/all/quote\?.*$`),
       responseCode: 200,
       response: quoteResponse,
     },
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/quotes\?.*$/,
+      urlEndpoint: rampUrl('on-ramp', String.raw`/v2/quotes\?.*$`),
       responseCode: 200,
       response: quoteResponse,
     },
@@ -195,14 +213,26 @@ export const RAMPS_QUOTE_MOCKS = async (
 export const RAMPS_CHECKOUT_MOCKS = async (mockServer: Mockttp) => {
   await registerGetMocks(mockServer, [
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/providers\/[^/]+\/buy(\?.*)?$/,
+      urlEndpoint: rampUrl(
+        'on-ramp',
+        String.raw`/v2/providers/[^/]+/buy(\?.*)?$`,
+      ),
       responseCode: 200,
       response: BUY_ORDER_WIDGET_URL_RESPONSE,
     },
     {
-      urlEndpoint:
-        /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/providers\/[^/]+\/callback(\?.*)?$/,
+      urlEndpoint: rampUrl(
+        'on-ramp',
+        String.raw`/v2/providers/[^/]+/callback(\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: BUY_ORDER_CALLBACK_RESPONSE,
+    },
+    {
+      urlEndpoint: rampUrl(
+        'on-ramp-content',
+        String.raw`/regions/fake-callback(\?.*)?$`,
+      ),
       responseCode: 200,
       response: BUY_ORDER_CALLBACK_RESPONSE,
     },
@@ -210,11 +240,10 @@ export const RAMPS_CHECKOUT_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
- * Token icon mocks (GET + HEAD) for UAT static assets.
+ * Token icon mocks (GET + HEAD) for production and UAT static assets.
  */
 export const RAMPS_TOKEN_ICON_MOCKS = async (mockServer: Mockttp) => {
-  const iconPattern =
-    /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*\.png$/;
+  const iconPattern = RAMP_TOKEN_ICON_URL;
 
   await Promise.all([
     setupMockRequest(mockServer, {
@@ -254,8 +283,10 @@ export const RAMPS_ORDER_STORAGE_MOCKS = async (mockServer: Mockttp) => {
  * is already completed when OrderDetails mounts).
  */
 export const BUY_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
-  const orderUrlPattern =
-    /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/providers\/[^/]+\/orders\/[^/]+(\?.*)?$/;
+  const orderUrlPattern = rampUrl(
+    'on-ramp',
+    String.raw`/v2/providers/[^/]+/orders/[^/]+(\?.*)?$`,
+  );
 
   await mockServer
     .forGet('/proxy')
@@ -282,7 +313,7 @@ export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
       const url = getDecodedProxiedURL(request.url);
       // Matches both the legacy TransakService endpoint (/providers/...) and the
       // v2 RampsService endpoint (/v2/providers/...) used by refreshOrder.
-      return url.includes('providers/transak-native-staging/orders/');
+      return isTransakNativeOrderUrl(url);
     })
     .asPriority(1000)
     .thenCallback(() => {
@@ -304,7 +335,7 @@ export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
  * so the flow takes the bank transfer path (avoiding the unmockable WebView).
  */
 export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
-  // --- Transak API mocks (api-gateway-stg.transak.com) ---
+  // --- Transak API mocks (production and staging gateways) ---
   // All responses wrapped in { data: ... } because TransakService unwraps .data
 
   // POST auth/login — sendUserOtp(email)
@@ -312,7 +343,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forPost('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/auth/login');
+      return isTransakGatewayUrl(url, '/api/v2/auth/login');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -325,7 +356,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forPost('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/auth/verify');
+      return isTransakGatewayUrl(url, '/api/v2/auth/verify');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -338,7 +369,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/lookup/quotes');
+      return isTransakGatewayUrl(url, '/api/v2/lookup/quotes');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -351,7 +382,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/user/');
+      return isTransakGatewayUrl(url, '/api/v2/user/');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -364,7 +395,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/kyc/requirement');
+      return isTransakGatewayUrl(url, '/api/v2/kyc/requirement');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -377,9 +408,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes(
-        'api-gateway-stg.transak.com/api/v2/orders/user-limit',
-      );
+      return isTransakGatewayUrl(url, '/api/v2/orders/user-limit');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -393,7 +422,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return (
-        url.includes('api-gateway-stg.transak.com/api/v2/orders') &&
+        isTransakGatewayUrl(url, '/api/v2/orders') &&
         !url.includes('user-limit') &&
         !url.includes('payment-confirmation') &&
         !url.includes('active-orders')
@@ -412,7 +441,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return (
-        url.includes('api-gateway-stg.transak.com/api/v2/orders/') &&
+        isTransakGatewayUrl(url, '/api/v2/orders/') &&
         !url.includes('user-limit') &&
         !url.includes('active-orders')
       );
@@ -423,14 +452,12 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
       json: { data: { orderId: 'mock-transak-order-123' } },
     }));
 
-  // GET translate — getTranslation() (on-ramp.uat-api.cx.metamask.io)
+  // GET translate — getTranslation() on the production or UAT on-ramp host
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes(
-        'on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/native/translate',
-      );
+      return isRampTranslateUrl(url);
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -445,7 +472,10 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     mockServer,
     {
       requestMethod: 'GET',
-      url: /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/payments\?.*$/,
+      url: rampUrl(
+        'on-ramp-cache',
+        String.raw`/v2/regions/[^/]+/payments\?.*$`,
+      ),
       response: TRANSAK_PAYMENTS_OVERRIDE_RESPONSE,
       responseCode: 200,
     },

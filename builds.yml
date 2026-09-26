@@ -40,7 +40,6 @@ _public_envs: &public_envs # Servers (production)
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
   # Build flags (production defaults)
-  RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
   # Empty by default: the Bridge API base URL is derived from METAMASK_ENVIRONMENT.
   # Set only to point a build at a custom Bridge API deployment.
@@ -66,17 +65,17 @@ _main_dev_env: &main_dev_env
   METAMASK_BUILD_TYPE: 'main'
   MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
   MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
-  REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-  REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
+  REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
+  REWARDS_MONEY_API_URL: 'https://rewards-money.dev-api.cx.metamask.io'
   BAANX_API_URL: 'https://dev.api.baanx.com'
-  CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
+  CARD_API_URL: 'https://card.dev-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
   PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+  MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
   IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
   IDOS_RELAY_URL: 'https://relay.playground.idos.network'
-  RAMPS_ENVIRONMENT: 'development'
   RAMP_INTERNAL_BUILD: 'true'
   RAMP_DEV_BUILD: 'true'
   HAS_TEST_OVERRIDES: 'false'
@@ -84,6 +83,8 @@ _main_dev_env: &main_dev_env
   # TODO: Decouple configuration, profile, and build type
   PROFILE: 'development'
   DEV_OAUTH_CONFIG: 'true'
+  # Chomp has no UAT host and keeps its own URL. Baanx and IDOS stay on the
+  # hosts above; they are not cx environments.
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -369,7 +370,6 @@ builds:
       KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
       IDOS_RELAY_URL: 'https://relay.playground.idos.network'
-      RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'true'
@@ -398,7 +398,6 @@ builds:
       KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
       IDOS_RELAY_URL: 'https://relay.playground.idos.network'
-      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'true'
@@ -424,10 +423,12 @@ builds:
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
-      KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
+      KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
+      MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
       IDOS_RELAY_URL: 'https://relay.playground.idos.network'
-      RAMPS_ENVIRONMENT: 'staging'
+      # Portfolio, digest, social, and price alerts stay on their dev URLs
+      # above: this repo has no UAT host for them. Baanx and IDOS stay pinned.
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
@@ -450,6 +451,9 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # Inherits production service URLs. Pin prod so the exp flavor does not
+      # select the UAT cluster.
+      MM_API_ENV: 'prod'
     secrets:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
@@ -472,6 +476,9 @@ builds:
       OAUTH_BUILD_TYPE: 'main_uat'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
+      # Inherits production service URLs. Pin prod so the exp flavor does not
+      # select the UAT cluster.
+      MM_API_ENV: 'prod'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
@@ -508,14 +515,14 @@ builds:
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
-      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.dev-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
+      CARD_API_URL: 'https://card.dev-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
-      RAMPS_ENVIRONMENT: 'development'
+      MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
@@ -564,7 +571,6 @@ builds:
       KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
       IDOS_RELAY_URL: 'https://relay.playground.idos.network'
-      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'true'
@@ -593,7 +599,6 @@ builds:
       KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
       IDOS_RELAY_URL: 'https://relay.playground.idos.network'
-      RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'true'
@@ -611,14 +616,14 @@ builds:
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
-      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-      REWARDS_MONEY_API_URL: 'https://rewards-money.uat-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.dev-api.cx.metamask.io'
+      REWARDS_MONEY_API_URL: 'https://rewards-money.dev-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
-      CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
+      CARD_API_URL: 'https://card.dev-api.cx.metamask.io'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
-      RAMPS_ENVIRONMENT: 'development'
+      MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'

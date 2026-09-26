@@ -6,7 +6,7 @@ import {
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { getVersion } from 'react-native-device-info';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
-import { authEnv } from '../../../devApiEnv';
+import { authEnv } from '../../../apiEnv';
 
 /**
  * Initialize the authentication controller.

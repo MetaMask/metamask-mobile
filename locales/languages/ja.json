@@ -5143,7 +5143,7 @@
       },
       "identity": {
         "title": "アイデンティティ",
-        "description": "永続認証セッションを消去します。これは、MM_DEV_API_ENVを切り替えた後に使用してください。そうしないと、プロダクションミントされたJWTが、期限切れになるまでdev-APIコンシューマーに渡され続けます。現在のMM_DEV_API_ENV: {{env}}。",
+        "description": "永続認証セッションを消去します。これは、MM_API_ENVを切り替えた後に使用してください。そうしないと、プロダクションミントされたJWTが、期限切れになるまでdev-APIコンシューマーに渡され続けます。現在のMM_API_ENV: {{env}}。",
         "clear_auth_session_button": "永続認証セッションを消去"
       },
       "notifications": {

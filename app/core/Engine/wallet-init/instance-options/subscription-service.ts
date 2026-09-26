@@ -1,20 +1,21 @@
 import { Env } from '@metamask/subscription-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { captureException } from '@sentry/react-native';
-import { devApiEnv, type DevApiEnv } from '../../../devApiEnv';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
 
 type SubscriptionServiceInstanceOptions = NonNullable<
   WalletOptions['instanceOptions']['subscriptionService']
 >;
 
-const SUBSCRIPTION_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
-  dev: Env.DEV,
-  prod: Env.PRD,
+const SUBSCRIPTION_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
+  [ApiEnv.Dev]: Env.DEV,
+  [ApiEnv.Uat]: Env.UAT,
+  [ApiEnv.Prod]: Env.PRD,
 };
 
 /**
  * Mobile supplies fetch, env (aligned with AuthenticationController via
- * `devApiEnv`), and Sentry error capture for the wallet-owned
+ * `getApiEnv`), and Sentry error capture for the wallet-owned
  * SubscriptionService.
  *
  * @returns The mobile SubscriptionService instance options.
@@ -22,7 +23,7 @@ const SUBSCRIPTION_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
 export function getSubscriptionServiceInstanceOptions(): SubscriptionServiceInstanceOptions {
   return {
     fetchFunction: fetch,
-    env: SUBSCRIPTION_ENV_BY_DEV_API_ENV[devApiEnv()],
+    env: SUBSCRIPTION_ENV_BY_API_ENV[getApiEnv()],
     captureException,
   };
 }
