@@ -988,7 +988,7 @@
       "dob_required": "生年月日は必須項目です",
       "dob_invalid": "有効な生年月日を入力してください",
       "ssn_required": "社会保障番号は必須項目です",
-      "unexpected_error": "予期せぬエラーが発生しました。もう一度お試しください。",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "この電話番号はすでに{{email}}により使用されています。続行するには、このメールを使用してログインしてください。",
       "login_with_email": "メールアドレスでログイン"
     },
@@ -1159,11 +1159,47 @@
       "button": "続行",
       "error_title": "本人確認",
       "error_description": "本人確認を開始できませんでした。もう一度お試しください。",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
-      "email_not_set_error": "メールアドレスがありません。前の画面に戻ってメールアドレスを入力してください。"
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "More information needed",
+      "more_info_description": "We need a bit more information to complete your verification. Continue to provide it.",
+      "more_info_button": "Continue verification",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Try again"
+    },
+    "kyc_pending": {
+      "title": "Verification in progress",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Check status"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Try again"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Try again"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Try again"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Options",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Popular"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "フォロー中のトレーダーに動きがあるとアラートを受信します。デバイス設定で通知をオンにしてください。",
@@ -1285,6 +1321,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "ポジション",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1312,11 +1354,15 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Filters",
-        "show_results": "Show results",
+        "title": "Custom filters",
+        "show_results": "Apply",
+        "apply": "Apply",
+        "reset": "Reset",
         "section": {
-          "type": "タイプ",
-          "trader_cohort": "Trader cohort",
+          "type": "Asset",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Traders",
           "timeframe": "時間軸",
           "network": "ネットワーク",
           "market_cap": "時価総額",
@@ -1328,13 +1374,19 @@
           "perps": "パーペチュアル",
           "predictions": "予測"
         },
+        "verification": {
+          "all": "All",
+          "verified": "Verified",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "すべて",
           "following": "フォロー中",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Verified"
         },
         "timeframe": {
           "1h": "1H",
@@ -3343,17 +3395,40 @@
       "predict_balance": "予測用残高",
       "total": "合計",
       "price_details": "価格の詳細",
-      "confirm": "確定",
       "terms": "続行すると、プラットフォーム利用規約に同意したものとみなされます。",
       "learn_more": "詳細",
       "submitting": "注文を送信中",
-      "success_title": "注文が送信されました",
       "done": "完了",
       "close": "閉じる",
       "delete": "削除",
       "expired": "このクォートは期限切れです。更新して新しいクォートを取得してください。",
       "refresh": "更新",
-      "retry": "もう一度お試しください"
+      "retry": "もう一度お試しください",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Review your order",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order filled",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Filled",
+      "average_fill_price": "Avg. fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Try again"
     }
   },
   "predict": {
@@ -4154,6 +4229,7 @@
     "display_nft_media_cta": "NFTメディアの表示をオンにする",
     "display_media_nft_warning": "NFTのメディアとデータを表示した場合、IPアドレスが集中型のサーバーに公開される可能性があります。関連するリスクを理解できている場合のみ、NFTをインポートしてください。",
     "nfts_autodetect_title": "NFTの自動検出",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "NFTの自動検出を有効にする",
     "turn_on_network_check_cta": "ネットワーク情報の確認をオンにする",
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
@@ -4367,17 +4443,18 @@
   },
   "basic_functionality_migration": {
     "title": "設定を更新しました",
-    "social_title": "プライバシーと製品アップデート",
-    "social_body_1": "現在、MetaMaskのソーシャルログインの仕組みを更新しています。MetaMask全体でシームレスな体験を実現するため、ソーシャルログイン識別子 (メールアドレスまたはハンドル名) がユーザープロファイルおよび関連するアカウントアドレスと安全に紐付けられます。この更新の一環として、基本機能およびその他のデフォルトの設定が常に有効となります。",
-    "social_body_2_prefix": "当社がお客様のデータを第三者に販売することは絶対にありません。当社が収集するデータおよび収集理由の詳細については、次のリンク先をご覧ください:",
-    "social_body_2_middle": "および改訂版の",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " and ",
     "social_body_2_suffix": ".",
     "blog_post_link": "ブログ投稿",
     "privacy_notice_link": "プライバシー通知",
-    "toast_description": "基本機能にサードパーティAPIが含まれるようになり、以前の設定に基づいてオンになっています。この設定はいつでも",
-    "toast_description_disabled": "基本機能にサードパーティAPIが含まれるようになり、以前の設定に基づいてオフになっています。この設定はいつでも",
-    "settings_link": "「設定」>「プライバシー」から調整できます。",
-    "accept_and_close": "承認して閉じる"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy. ",
+    "learn_more_link": "Learn more.",
+    "accept_and_close": "Continue"
   },
   "onboarding_interest_questionnaire": {
     "title": "MetaMaskをどのように利用しますか？",
@@ -7176,6 +7253,12 @@
     "order_status_cancelled": "キャンセル済み",
     "webview_no_url_provided": "続行するためのURLが提供されていません",
     "webview_error_no_address_provided": "続行するためのウォレットアドレスが提供されていません",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "設定",
       "use_new_buy_experience": "その他の購入方法",
@@ -8030,7 +8113,7 @@
     "ledger_disconnected": "デバイスの接続が切断されました",
     "ledger_disconnected_error": "デバイスへの接続が失われました。もう一度お試しください。",
     "unknown_error": "予期せぬエラーが発生しました。",
-    "unknown_error_message": "予期せぬエラーが発生しました。もう一度お試しください。",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "エラーが発生しました",
     "how_to_install_eth_app": "Ledgerデバイスにイーサリアムアプリをインストールする方法",
     "ledger_account_count": "MetaMask MobileでLedgerのアカウントを1つ使用しています。",
@@ -8487,7 +8570,6 @@
       "add": "追加",
       "convert_cta": "仮想通貨を変換",
       "no_fee": "手数料なし",
-      "view_all": "すべて表示",
       "view_potential_earnings": "獲得可能な収益を表示"
     },
     "metamask_card": {
@@ -8497,13 +8579,11 @@
       "virtual_card": "バーチャルカード",
       "metal_card": "メタルカード",
       "cashback": "{{percentage}}%のmUSDを還元",
-      "get_now": "入手する",
       "link_title": "カードをリンク",
       "link_subtitle": "残高を使えば、購入額に対し収益が得られます。",
       "link_subtitle_no_apy": "残高を使えば、購入額に対し収益が得られます。",
       "link_bullet_cashback": "{{percentage}}%のmUSDを還元",
       "link_bullet_apy": "最大{{apy}}%APYを獲得",
-      "link_card": "カードをリンク",
       "link_pending_title": "カードのリンク",
       "link_success_title": "カードの使用準備ができました",
       "link_error": "カードのリンク中に問題が発生しました",
@@ -8525,7 +8605,6 @@
       "unlink_card_sheet_another_money_account": "別のMoney Account",
       "unlink_card_sheet_keep_linked": "リンクを維持",
       "unlink_card_sheet_unlink_account": "アカウントのリンクを解除",
-      "manage_card": "管理",
       "verification_pending": "現在、ご本人様確認が行われています。通常は12時間以内に完了します。"
     },
     "what_you_get": {
@@ -9234,6 +9313,8 @@
       "limit": "リミット",
       "recurring": "定期"
     },
+    "generic_error_toast_title": "Something went wrong",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "未決済の注文",
@@ -9301,7 +9382,13 @@
       "edit_cost_tolerance": "コスト許容範囲を編集",
       "try_again": "もう一度お試しください",
       "error_calculation_network_fees": "ネットワーク手数料を計算できませんでした。",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Order created",
+      "order_created_description": "We'll let you know when it's filled.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "受け取る額",
@@ -10394,7 +10481,7 @@
         },
         "unverified": {
           "title": "確認が必要です",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "確認ステータスは利用できません",
@@ -10715,8 +10802,8 @@
       "sign_in_help_got_it": "了解",
       "errors": {
         "invalid_credentials": "ログイン情報が無効です",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "メールアドレスは必須です",
         "password_required": "パスワードは必須です",
         "email_invalid": "無効なメールアドレスです",
@@ -10738,7 +10825,7 @@
     "card_otp_authentication": {
       "title": "電話番号の確認",
       "description_with_phone_number": "{{maskedPhoneNumber}}に送信された確認コードを入力してください",
-      "description_without_phone_number": "確認コードを電話番号宛に送信しました。続行するにはコードを入力してください。",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "確認コード",
       "confirm_button": "選択すると、",
       "back_to_login_button": "ログインに戻る",
@@ -10755,22 +10842,22 @@
       "success_title": "カードが追加されました！",
       "success_message": "MetaMaskカードが{{walletName}}に追加されました。",
       "error_title": "カードを追加できません",
-      "error_wallet_not_available": "{{walletName}}はこのデバイスで使用できません。{{walletName}}が設定されていることを確認してください。",
-      "error_wallet_not_initialized": "{{walletName}}が初期化されていません。ウォレットを設定してもう一度お試しください。",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Set up your wallet and try again.",
       "error_card_already_in_wallet": "このカードはすでに{{walletName}}に追加されています。",
-      "error_card_pending": "お客様のカードは{{walletName}}でセットアップ中です。数分後にもう一度ご確認ください。",
-      "error_card_suspended": "{{walletName}}のカードは利用停止になっています。サポートにお問い合わせください。",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "このカードは、モバイルウォレットプロビジョニングの対象外です。",
-      "error_encryption_failed": "カードデータの暗号化に失敗しました。もう一度お試しください。",
-      "error_invalid_card_data": "カードデータが無効です。カード情報を確認してもう一度お試しください。",
-      "error_card_not_found": "カードが見つかりません。もう一度お試しください。",
+      "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
+      "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "お住いの地域でカードプロバイダーが利用できません。",
-      "error_card_id_mismatch": "カードの検証に失敗しました。もう一度お試しください。",
-      "error_card_not_active": "お客様のカードは有効ではありません。まずはカードを有効にしてください。",
+      "error_card_id_mismatch": "Card verification failed. Try again.",
+      "error_card_not_active": "Your card is not active. Activate your card first.",
       "error_network": "Network error occurred. Check your connection and try again.",
-      "error_timeout": "リクエストがタイムアウトしました。もう一度お試しください。",
-      "error_server": "サーバーエラーが発生しました。後ほどもう一度お試しください。",
-      "error_unknown": "予期せぬエラーが発生しました。もう一度試すか、サポートにお問い合わせください。",
+      "error_timeout": "The request timed out. Try again.",
+      "error_server": "Server error occurred. Try again later.",
+      "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "このプラットフォームは、モバイルウォレットプロビジョニングをサポートしていません。",
       "try_again": "再試行してください",
       "cancel": "キャンセル"
@@ -10817,7 +10904,7 @@
     },
     "version_guard": {
       "title": "アップデートが必要です",
-      "description": "Rewardsの利用には、MetaMaskの新しいバージョンが必要です。続けるにはアップデートしてください。",
+      "description": "A newer version of MetaMask is required to use Rewards. Update to continue.",
       "update_button": "MetaMaskをアップデート"
     },
     "season_error": {
@@ -10861,15 +10948,15 @@
       "error_fetching_description": "接続を確認して、もう一度お試しください。",
       "retry_button": "再試行"
     },
-    "solana_signup_not_supported": "Solanaアカウントでのリワードへのサインインは、まだサポートされていません。代わりにイーサリアムアカウントをご利用ください。",
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.",
     "error_messages": {
       "unknown_error": "不明なエラーが発生しました",
-      "something_went_wrong": "問題が発生しました。しばらくしてからもう一度お試しください。",
-      "account_already_registered": "このアカウントは別のリワードプロファイルにすでに登録されています。続行するにはアカウントを切り替えてください。",
+      "something_went_wrong": "Something went wrong. Try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Switch account to continue.",
       "request_rejected": "リクエストを拒否しました。",
-      "failed_to_claim_reward": "リワードの請求に失敗しました。しばらくしてからもう一度お試しください。",
-      "service_not_available": "現在サービスをご利用いただけません。しばらくしてからもう一度お試しください。",
-      "invalid_referral_code": "紹介コードが無効です。ご確認の上、もう一度お試しください。",
+      "failed_to_claim_reward": "Failed to claim reward. Try again shortly.",
+      "service_not_available": "Service is not available at the moment. Try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "お客様はすでに別のユーザーにより招待されています。",
       "cannot_use_own_referral_code": "ご自身の紹介コードを利用することはできません。",
       "invalid_bonus_code": "無効なボーナスコード",
@@ -10949,7 +11036,7 @@
       "swap_title": "スワップ",
       "perps_title": "パーペチュアル",
       "error_title": "トランザクションの読み込みに失敗しました",
-      "error_description": "トランザクションの読み込み中に問題が発生しました。もう一度お試しください。",
+      "error_description": "Something went wrong while loading your transactions. Try again.",
       "retry_button": "再試行",
       "empty_title": "まだトランザクションがありません。利用実績があると、ここにVIPトランザクションが表示されます。"
     },
@@ -11007,15 +11094,15 @@
       "not_supported_region_title": "未対応の地域です",
       "not_supported_region_description": "現在、お住まいの地域ではリワードをご利用いただけません。対象地域を拡大中ですので、後日再度ご確認ください。",
       "not_supported_hardware_account_title": "サポートされていないアカウントです",
-      "not_supported_hardware_account_description": "ハードウェアウォレットのアカウントは、現時点ではリワードを受け取ることはできません。別のアカウントに切り替えてください。",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
       "not_supported_account_type_title": "サポートされていないアカウントタイプです",
-      "not_supported_account_type_description": "現在、リワードプログラムに登録できるのは、内部のイーサリアムアカウントおよびSolanaアカウントのみです。続行するには、別のアカウントに切り替えてください。",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
       "not_supported_confirm_go_back": "戻る",
       "not_supported_confirm_retry": "再試行",
       "auth_fail_title": "認証に失敗しました",
-      "auth_fail_description": "リワードプログラムに認証できませんでした。接続状況を確認して、もう一度お試しください。",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
       "geo_check_fail_title": "オプトインの資格を確認できません",
-      "geo_check_fail_description": "お住いの地域でリワードプログラムへの登録が許可されているかを確認できません。接続を確認して、もう一度お試しください。",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
       "intro_confirm_geo_loading": "地域を確認中…",
       "step_confirm": "次へ",
       "step_finish": "さあ始めましょう",
@@ -11088,12 +11175,12 @@
         "cancel": "キャンセル",
         "confirm": "選択すると、",
         "error_title": "問題が発生しました",
-        "error_message": "リワードのオプトアウトに失敗しました。もう一度お試しください。",
+        "error_message": "Failed to opt out of Rewards. Try again.",
         "processing": "処理中..."
       },
       "request_received": {
         "title": "リクエストが受け付けられました",
-        "description": "7日ほどで進行状況が完全に消去されます。このリクエストを誤って行った場合は、アプリからサポートにご連絡ください。"
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, contact support through the app."
       }
     },
     "toast_dismiss": "閉じる",
@@ -11110,8 +11197,8 @@
       },
       "account_not_supported": {
         "title": "サポートされていないアカウントです",
-        "description_hardware": "ハードウェアウォレットのアカウントは、現時点では対象外となります。続行するには、別のアカウントに切り替えてください。",
-        "description_general": "現在、非ハードウェアの内部イーサリアムおよびSolanaアカウントのみが対象となります。続行するには、別のアカウントに切り替えてください。",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
         "confirm": "戻る"
       }
     },
@@ -11193,7 +11280,7 @@
       "arriving_soon": "まもなく届きます",
       "check_back_soon": "近日中に再度ご確認ください",
       "redeem_failure_title": "引き換えに失敗しました",
-      "redeem_failure_description": "後ほどもう一度お試しください。",
+      "redeem_failure_description": "Try again later.",
       "reward_details": "報酬の詳細",
       "select_account_description": "このリワードを送る先のアカウントを選択してください。"
     },
@@ -11222,7 +11309,7 @@
       "geo_locked_cta": "資格を確認",
       "geo_loading": "地域を確認中…",
       "remind_me_success_toast": "このキャンペーンが始まる際にお知らせします。",
-      "remind_me_save_error": "リマインダーを保存できませんでした。もう一度お試しください。",
+      "remind_me_save_error": "Could not save your reminder. Try again.",
       "view_details": "詳細を表示",
       "view_details_accessibility": "{{campaignName}}の詳細を表示"
     },
@@ -11235,7 +11322,7 @@
       "opt_in": "オプトイン",
       "opting_in": "オプトインしています...",
       "opted_in": "このキャンペーンにオプトインしました",
-      "opt_in_error": "オプトインに失敗しました。もう一度お試しください。",
+      "opt_in_error": "Failed to opt in. Try again.",
       "join_campaign": "キャンペーンに参加",
       "competition_closed_title": "コンテストの参加受付が終了しました",
       "competition_closed_description": "申し訳ございませんが、このコンテストは参加受付が終了しました。以下でリーダーボードを確認できます。今後のキャンペーンの情報がないかまたご確認ください。",
@@ -11245,9 +11332,9 @@
       "open_position": "今すぐ取引",
       "how_it_works": "報酬獲得の仕組み",
       "error_title": "このキャンペーンを読み込めません",
-      "error_description": "このキャンペーンを読み込めませんでした。もう一度お試しください。",
+      "error_description": "We couldn't load this campaign. Try again.",
       "stats_error_title": "統計を読み込めません",
-      "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "retry": "再試行",
       "last_checked_at": "前回の確認日時",
       "ondo": {
@@ -11258,7 +11345,7 @@
     "campaign_ended_stats": {
       "title": "統計",
       "error_title": "すべての統計を読み込めません",
-      "error_description": "統計の読み込み中に問題が発生しました。後ほどもう一度お試しください。",
+      "error_description": "We had a problem loading your stats. Try again later.",
       "retry": "再試行",
       "total_participants": "参加総数",
       "total_volume": "総取引量",
@@ -11275,7 +11362,7 @@
       "max_tier_subtext": "{{maxThreshold}}+ TVL — すべてのマイルストーンを達成",
       "max_badge": "最大額",
       "error_title": "プライズプールの読み込みに失敗しました",
-      "error_description": "プライズプールの読み込み中にエラーが発生しました。もう一度お試しください。",
+      "error_description": "There was an error loading the prize pool. Try again.",
       "retry": "再試行"
     },
     "ondo_campaign_portfolio": {
@@ -11283,7 +11370,7 @@
       "position_unrealized_pnl": "損益額",
       "updated_at": "最終更新時刻: {{time}}",
       "error_loading": "ポジションの読み込みに失敗しました。",
-      "error_loading_description": "ポジションの読み込み中にエラーが発生しました。もう一度お試しください。",
+      "error_loading_description": "There was an error loading your positions. Try again.",
       "retry": "再試行",
       "loading": "ポジションを読み込み中...",
       "empty": "ポジションがありません",
@@ -11308,7 +11395,7 @@
       "total_participants": "参加総数{{count}}人",
       "updated_at": "最終更新時刻: {{time}}",
       "error_loading": "リーダーボードの読み込みに失敗しました",
-      "error_loading_description": "リーダーボードの読み込み中に問題が発生しました。もう一度お試しください。",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "error_loading_position": "順位の読み込みに失敗しました",
       "retry": "再試行",
       "no_data": "リーダーボードのデータが利用できません",
@@ -11326,7 +11413,7 @@
     "ondo_campaign_stats": {
       "title": "統計",
       "stats_error_title": "すべての統計を読み込めません",
-      "stats_error_description": "統計の読み込み中に問題が発生しました。後ほどもう一度お試しください。",
+      "stats_error_description": "We had a problem loading your stats. Try again later.",
       "retry": "再試行",
       "label_return": "損益率",
       "label_market_value": "市場価値",
@@ -11350,7 +11437,7 @@
       "type_rebalance": "バランスを取り戻す",
       "type_external_outflow": "流出額",
       "error_title": "アクティビティの読み込みに失敗しました",
-      "error_description": "アクティビティの読み込み中に問題が発生しました。もう一度お試しください。",
+      "error_description": "Something went wrong while loading the activity. Try again.",
       "retry_button": "再試行",
       "empty_title": "まだアクティビティがありません",
       "empty_description": "トランザクションが行われると、キャンペーンのアクティビティがここに表示されます。"
@@ -11383,7 +11470,7 @@
       "leaderboard_total_participants": "参加総数{{count}}人",
       "last_updated": "最終更新時刻: {{time}}",
       "leaderboard_error_loading": "リーダーボードの読み込みに失敗しました",
-      "leaderboard_error_loading_description": "リーダーボードの読み込み中に問題が発生しました。もう一度お試しください。",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "リーダーボードの計算が完了していません。少し時間を置いてから再確認してください。",
       "leaderboard_powered_by_prefix": "提供元: ",
       "leaderboard_hypertracker_brand": "HyperTracker",
@@ -11393,7 +11480,7 @@
       "stats_qualify_for_rank_title": "リーダーボードへの進出資格を得る",
       "stats_qualify_for_rank_description": "名目取引量があと{{notionalRemaining}}で条件が満たされます。",
       "stats_error_title": "統計を読み込めません",
-      "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "stats_retry": "再試行"
     },
     "predict_the_pitch_campaign": {
@@ -11412,7 +11499,7 @@
       "positions_open_badge": "{{count}}件オープン",
       "positions_closed_badge": "{{count}}件クローズ済み",
       "positions_error": "予測の読み込みに失敗しました",
-      "positions_error_description": "予測の読み込み中に問題が発生しました。もう一度お試しください。",
+      "positions_error_description": "Something went wrong while loading your predictions. Try again.",
       "positions_retry": "再試行",
       "positions_last_updated": "最終更新時刻: {{time}}",
       "positions_empty": "まだ予測はありません",
@@ -11421,10 +11508,10 @@
       "leaderboard_total_participants": "参加総数{{count}}人",
       "last_updated": "最終更新時刻: {{time}}",
       "leaderboard_error_loading": "リーダーボードの読み込みに失敗しました",
-      "leaderboard_error_loading_description": "リーダーボードの読み込み中に問題が発生しました。もう一度お試しください。",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "リーダーボードの計算が完了していません。少し時間を置いてから再確認してください。",
       "stats_error_title": "統計を読み込めません",
-      "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "label_markets_traded": "取引が行われた市場",
       "stats_retry": "再試行",
       "performance_title": "成績",
@@ -11454,7 +11541,7 @@
       "previous_title": "以前",
       "empty_state": "参加できるキャンペーンがありません",
       "error_title": "キャンペーンを読み込めません",
-      "error_description": "キャンペーンを読み込めませんでした。もう一度お試しください。",
+      "error_description": "We couldn't load any campaigns. Try again.",
       "retry_button": "再試行",
       "refreshing": "更新中..."
     },
@@ -11603,7 +11690,7 @@
     },
     "show_error": {
       "title": "接続エラー",
-      "description": "接続の確立に失敗しました。もう一度お試しください。"
+      "description": "Failed to establish connection. Try again."
     },
     "show_rejection": {
       "title": "承認が拒否されました",
@@ -11637,11 +11724,11 @@
     },
     "show_not_found": {
       "title": "接続が見つかりません",
-      "description": "続行するには、アプリから新しい接続を確立させてください。"
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "問題が発生しました",
-      "description": "予期せぬエラーが発生しました。もう一度お試しください。"
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "プロジェクトの選択",
@@ -11650,7 +11737,7 @@
     },
     "show_method_error": {
       "title": "リクエストに失敗しました",
-      "description": "リクエストを完了できませんでした。もう一度お試しください。"
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11782,7 +11869,7 @@
     },
     "awaiting_app": {
       "title": "{{app}}を開きます",
-      "message": "{{device}}で{{app}}アプリを開いてください",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "現在開いているアプリ: {{app}}"
     },
     "awaiting_confirmation": {
@@ -11795,22 +11882,22 @@
     },
     "errors": {
       "device_locked": "続行するには、ロックを解除してもう一度お試しください",
-      "app_not_open": "デバイスでイーサリアムアプリを開いてください。",
-      "device_disconnected": "{{device}}の接続が解除されました。再接続して、もう一度お試しください。",
-      "device_not_found": "{{device}}が見つかりませんでした。接続状態を確認してください。",
-      "device_not_ready": "デバイスの準備ができていません。確認の上、もう一度お試しください。",
-      "blind_signing": "ブラインド署名が無効になっています。デバイスの設定で有効にしてください。",
-      "connection_closed": "接続が失われました。もう一度お試しください。",
-      "connection_timeout": "接続がタイムアウトしました。もう一度お試しください。",
+      "app_not_open": "Open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Make sure it's connected",
+      "device_not_ready": "Your device is not ready. Check it and try again",
+      "blind_signing": "Blind signing is disabled. Enable it in your device settings",
+      "connection_closed": "The connection was lost. Try again",
+      "connection_timeout": "Connection timed out. Try again",
       "user_cancelled": "デバイス上で操作がキャンセルされました",
-      "pending_confirmation": "デバイス上で未完了の操作があります。操作を完了するか、キャンセルしてください。",
+      "pending_confirmation": "There's a pending action on your device. Complete or cancel it",
       "bluetooth_permission_denied": "デバイスに接続するには、Bluetoothへのアクセス許可が必要です",
       "location_permission_denied": "デバイスを検索するには、位置情報へのアクセス許可が必要です",
       "nearby_permission_denied": "付近のデバイスへのアクセス許可が必要です",
-      "bluetooth_off": "デバイスに接続するには、Bluetoothをオンにしてください",
-      "bluetooth_scan_failed": "デバイスを検索できませんでした。もう一度お試しください。",
-      "bluetooth_connection_failed": "デバイスへの接続に失敗しました。もう一度お試しください",
-      "camera_permission_denied": "QRコードをスキャンするために、カメラへのアクセス許可が必要です。デバイスの設定でアクセス許可を有効にしてください。",
+      "bluetooth_off": "Turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Try again",
+      "bluetooth_connection_failed": "The connection to your device failed. Try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "この操作はサポートされていません。",
       "only_v4_supported": "ご使用の{{device}}は、バージョン4 (V4) タイプのデータしか署名できません。このサイトから、サポートされていない古い署名タイプが要求されました。",
       "unknown_error": "{{device}}がこのアカウント用のシークレットリカバリーフレーズまたはパスフレーズを使ってセットアップされていることを確認してください。"
@@ -12037,7 +12124,10 @@
       "payment_details": "支払いの詳細",
       "total": "合計",
       "paying_with": "支払方法",
+      "money_account": "Money account",
       "renews_on": "更新日",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "管理",
       "invoices": "請求書",
       "contact_support": "サポートへのお問い合わせ",
@@ -12085,6 +12175,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Proに参加",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "プロ",
     "pricing": {
       "loading": "Loading plans...",
