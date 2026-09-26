@@ -31,7 +31,8 @@ interface TradingActivityListViewProps<T extends { id: string }> {
  * commissions and rebates screens.
  *
  * The skeleton fills the measured body under the header. Cached rows stay on
- * screen while a page reloads; the error banner only replaces an empty list.
+ * screen while a page reloads. A failed fetch still shows the error banner:
+ * above the rows when any are cached, and in place of the list when none are.
  * The 32px bottom inset sits on the wrapping container so the list never
  * scrolls into it.
  */
@@ -88,9 +89,14 @@ function TradingActivityListView<T extends { id: string }>({
     );
   }, [isLoadingMore, items]);
 
-  const renderEmpty = useCallback(() => {
-    if (error) {
-      return (
+  const hasRows = Boolean(items && items.length > 0);
+
+  const renderErrorBanner = useCallback(() => {
+    if (!error) {
+      return null;
+    }
+    return (
+      <Box twClassName={hasRows ? 'mb-4' : undefined}>
         <RewardsErrorBanner
           title={strings('rewards.trading_activity_error.error_fetching_title')}
           description={strings(
@@ -101,10 +107,9 @@ function TradingActivityListView<T extends { id: string }>({
             'rewards.trading_activity_error.retry_button',
           )}
         />
-      );
-    }
-    return null;
-  }, [error, retry]);
+      </Box>
+    );
+  }, [error, hasRows, retry]);
 
   return (
     <ErrorBoundary navigation={navigation} view={view}>
@@ -140,8 +145,9 @@ function TradingActivityListView<T extends { id: string }>({
               renderItem={renderListItem}
               onEndReached={onEndReached}
               onEndReachedThreshold={0.4}
+              ListHeaderComponent={hasRows ? renderErrorBanner : null}
               ListFooterComponent={renderFooter}
-              ListEmptyComponent={renderEmpty}
+              ListEmptyComponent={renderErrorBanner}
               contentContainerStyle={tw.style('gap-4')}
               testID={testIDs.LIST}
               refreshControl={
