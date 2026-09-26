@@ -38,6 +38,7 @@ describe('PerformanceActivityRows', () => {
       <PerformanceCommissionRow item={item} localizedText={LOCALIZED_TEXT} />,
     );
 
+    expect(getByText('+$2.50')).toBeOnTheScreen();
     expect(getByText('Copied 4 times')).toBeOnTheScreen();
     expect(getByText('BTC')).toBeOnTheScreen();
     expect(getByText(formatRewardsRelativeDay('2026-09-01'))).toBeOnTheScreen();
@@ -59,6 +60,7 @@ describe('PerformanceActivityRows', () => {
       <PerformanceCommissionRow item={item} localizedText={LOCALIZED_TEXT} />,
     );
 
+    expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(getByText('Copied 1 time')).toBeOnTheScreen();
     expect(getByText('swaps:eth')).toBeOnTheScreen();
   });
@@ -84,6 +86,7 @@ describe('PerformanceActivityRows', () => {
       <PerformanceRebateRow item={item} localizedText={LOCALIZED_TEXT} />,
     );
 
+    expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(getByText('Perps volume')).toBeOnTheScreen();
     expect(
       getByText(

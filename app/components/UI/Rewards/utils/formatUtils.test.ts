@@ -1491,6 +1491,21 @@ describe('formatUtils', () => {
       expect(formatMusdBaseUnits('-1250000', { signed: true })).toBe('$-1.25');
       expect(formatMusdBaseUnits('0', { signed: true })).toBe('$0.00');
     });
+
+    it('pins two decimals when maximumFractionDigits is 2', () => {
+      expect(
+        formatMusdBaseUnits('1000000', {
+          signed: true,
+          maximumFractionDigits: 2,
+        }),
+      ).toBe('+$1.00');
+      expect(
+        formatMusdBaseUnits('2500000', {
+          signed: true,
+          maximumFractionDigits: 2,
+        }),
+      ).toBe('+$2.50');
+    });
   });
 
   describe('formatOrdinalRank', () => {
