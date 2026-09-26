@@ -788,6 +788,9 @@ export const usePerpsProOrderForm = ({
     error: marketDataError,
   } = usePerpsMarketData({
     asset: symbol,
+    // Aggregated markets list the symbol once per provider; the selected
+    // market's restrictions (e.g. isolated-only) decide Cross eligibility.
+    providerId: market.providerId,
     showErrorToast: false,
   });
   const network = usePerpsNetwork();
