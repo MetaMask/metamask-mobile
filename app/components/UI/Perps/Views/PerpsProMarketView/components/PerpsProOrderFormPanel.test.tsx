@@ -838,7 +838,7 @@ describe('PerpsProOrderFormPanel', () => {
       expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
     });
 
-    it.each([
+    it.each<[string, CrossGateCase]>([
       ['when the flag is off', { flag: false }],
       ['with Terminal market data', { terminal: true }],
       ['on HIP-3 markets', { overrides: { marketSource: 'xyz' } }],
