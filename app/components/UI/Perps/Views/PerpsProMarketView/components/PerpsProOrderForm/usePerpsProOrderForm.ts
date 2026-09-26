@@ -880,6 +880,9 @@ export const usePerpsProOrderForm = ({
     isLoading: isPositionStreamLoading,
   } = useHasExistingPosition({
     asset: symbol,
+    // Another provider's same-symbol position must not drive this market's
+    // margin mode, reduce-only or flip checks.
+    providerId: market.providerId,
     loadOnMount: true,
   });
   const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;

@@ -178,6 +178,7 @@ let mockOrderValidationParams:
   | undefined;
 let mockValidateCalculatedMargin = false;
 
+const mockUseHasExistingPosition = jest.fn();
 let mockExistingPosition: {
   symbol?: string;
   providerId?: PerpsProviderType;
@@ -284,10 +285,13 @@ let mockIsPlacing = false;
 jest.mock('../../../../hooks', () => ({
   getPerpsToastLabels: (primary: string, secondary?: string) =>
     mockGetPerpsToastLabels(primary, secondary),
-  useHasExistingPosition: () => ({
-    existingPosition: mockExistingPosition,
-    isLoading: mockPositionStreamLoading,
-  }),
+  useHasExistingPosition: (params: unknown) => {
+    mockUseHasExistingPosition(params);
+    return {
+      existingPosition: mockExistingPosition,
+      isLoading: mockPositionStreamLoading,
+    };
+  },
   usePerpsLiquidationPrice: (params: unknown) =>
     mockUsePerpsLiquidationPrice(params),
   usePerpsMarketData: ({ providerId }: { providerId?: string }) => {
@@ -3910,6 +3914,14 @@ describe('usePerpsProOrderForm', () => {
 
       expect(result.current.marginMode).toBe('cross');
       expect(result.current.isMarginModeLocked).toBe(false);
+    });
+
+    it('looks up the position on the selected market provider', () => {
+      renderWithCrossMargin();
+
+      expect(mockUseHasExistingPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ asset: 'BTC', providerId: 'hyperliquid' }),
+      );
     });
 
     describe('existing cross position', () => {
