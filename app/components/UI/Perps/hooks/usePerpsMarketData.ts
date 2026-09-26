@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { type MarketInfo, wait } from '@metamask/perps-controller';
+import {
+  type MarketInfo,
+  type PerpsProviderType,
+  wait,
+} from '@metamask/perps-controller';
 import { MARKET_DATA_FETCH_RETRY_CONFIG } from '../constants/perpsConfig';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -8,6 +12,11 @@ import { usePerpsTrading } from './usePerpsTrading';
 export interface UsePerpsMarketDataParams {
   /** Asset symbol to fetch market data for */
   asset: string;
+  /**
+   * Provider whose record to use when several providers list the asset.
+   * Untagged records (single-provider mode) still match.
+   */
+  providerId?: PerpsProviderType;
   /** Whether to show error toast notifications (default: false) */
   showErrorToast?: boolean;
 }
@@ -35,6 +44,7 @@ export const usePerpsMarketData = (
   const asset = typeof params === 'string' ? params : params.asset;
   const showErrorToast =
     typeof params === 'string' ? false : (params.showErrorToast ?? false);
+  const providerId = typeof params === 'string' ? undefined : params.providerId;
   const { getMarkets } = usePerpsTrading();
   const [marketData, setMarketData] = useState<MarketInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +94,13 @@ export const usePerpsMarketData = (
           return;
         }
 
-        const assetMarket = markets.find((market) => market.name === asset);
+        const assetMarket = markets.find(
+          (market) =>
+            market.name === asset &&
+            (!providerId ||
+              !market.providerId ||
+              market.providerId === providerId),
+        );
 
         // The market list came back, so its contents are a real verdict on
         // whether this asset can be traded.
@@ -118,7 +134,7 @@ export const usePerpsMarketData = (
         setIsLoading(false);
       }
     }
-  }, [getMarkets, asset]);
+  }, [getMarkets, asset, providerId]);
 
   useEffect(() => {
     isMountedRef.current = true;
