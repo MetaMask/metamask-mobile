@@ -17,11 +17,13 @@ const STATIC_FOX_SIZE = Platform.OS === 'android' ? 98 : 88;
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: { screenH: number; screenW: number };
+  // Window (not physical screen) size — see FoxLoader.tsx for why this
+  // distinction matters on iPad (Split View / Stage Manager / compat mode).
+  vars: { windowH: number; windowW: number };
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
-  const { screenH, screenW } = vars;
+  const { windowH, windowW } = vars;
 
   return StyleSheet.create({
     container: {
@@ -35,8 +37,8 @@ const styleSheet = (params: {
       width: FOX_SIZE,
       height: FOX_SIZE,
       position: 'absolute',
-      top: Math.round((screenH - FOX_SIZE) / 2),
-      left: Math.round((screenW - FOX_SIZE) / 2),
+      top: Math.round((windowH - FOX_SIZE) / 2),
+      left: Math.round((windowW - FOX_SIZE) / 2),
     },
     riveAnimation: {
       width: FOX_SIZE,
