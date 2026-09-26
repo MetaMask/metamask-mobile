@@ -42,29 +42,44 @@ describe('usePredictSlice', () => {
     expect(result.current.valueFiat).toBe(120);
   });
 
-  it.each([
-    {
-      name: 'portfolio loading',
-      portfolio: createPortfolio({ isLoading: true }),
-      enabled: true,
-      expected: 'loading',
-    },
-    {
-      name: 'portfolio error',
-      portfolio: createPortfolio({ error: new Error('failed') }),
-      enabled: true,
-      expected: 'error',
-    },
-  ])('returns zero for $name', ({ portfolio, enabled, expected }) => {
-    mockUseSelector.mockReturnValue(enabled);
-    mockUsePredictPortfolio.mockReturnValue(portfolio);
+  it('returns zero while the portfolio is loading', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({ isLoading: true }),
+    );
 
     const { result } = renderHook(() =>
       usePredictSlice((amount) => amount * 2),
     );
 
-    expect(result.current.status).toBe(expected);
+    expect(result.current.status).toBe('loading');
     expect(result.current.valueFiat).toBe(0);
+  });
+
+  it('keeps the resolved portfolio value when the portfolio request fails', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({ error: new Error('failed'), portfolioValue: 60 }),
+    );
+
+    const { result } = renderHook(() =>
+      usePredictSlice((amount) => amount * 2),
+    );
+
+    expect(result.current.status).toBe('ready');
+    expect(result.current.valueFiat).toBe(120);
+  });
+
+  it('reports a zero balance instead of an error for a geo-blocked portfolio', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({ error: new Error('geo blocked'), portfolioValue: 0 }),
+    );
+
+    const { result } = renderHook(() => usePredictSlice((amount) => amount));
+
+    expect(result.current).toMatchObject({
+      isVisible: true,
+      status: 'ready',
+      valueFiat: 0,
+    });
   });
 
   it('disables portfolio work and hides the slice with the feature off', () => {

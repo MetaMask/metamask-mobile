@@ -1,32 +1,51 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
+import { selectIsMoneyAccountVisible } from '../../../../../UI/Money/selectors/visibility';
 import { getMoneySliceStatus, useMoneySlice } from './useMoneySlice';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountInfo');
+jest.mock('../../../../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(),
+}));
 
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 const READY_INPUT = {
-  isFeatureEnabled: true,
+  isMoneyAccountVisible: true,
   hasMoneyAccount: true,
   isBalanceLoading: false,
   isBalanceFetchError: false,
   hasTokenTotal: true,
 };
 
+function mockMoneyAccountVisible(isVisible: boolean) {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsMoneyAccountVisible) {
+      return isVisible;
+    }
+    return undefined;
+  });
+}
+
 describe('getMoneySliceStatus', () => {
-  it('requires the feature and an existing account', () => {
+  it('requires a visible Money account surface and an existing account', () => {
     expect(
       getMoneySliceStatus({ ...READY_INPUT, hasMoneyAccount: false }),
     ).toBe('ineligible');
     expect(
-      getMoneySliceStatus({ ...READY_INPUT, isFeatureEnabled: false }),
+      getMoneySliceStatus({ ...READY_INPUT, isMoneyAccountVisible: false }),
     ).toBe('ineligible');
   });
 
@@ -44,6 +63,7 @@ describe('getMoneySliceStatus', () => {
 describe('useMoneySlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMoneyAccountVisible(true);
     mockUseMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
@@ -129,21 +149,23 @@ describe('useMoneySlice', () => {
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(result.current.status).toBe('ineligible');
+    expect(result.current.isVisible).toBe(true);
     expect(result.current.apyPercent).toBe(4.1);
     expect(result.current.apyLoading).toBe(false);
   });
 
-  it('suppresses APY when the Money feature is disabled', () => {
+  it('excludes the Money balance when the account is not visible', () => {
+    mockMoneyAccountVisible(false);
     mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: false,
-      hasMoneyAccount: false,
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: true,
     } as ReturnType<typeof useMoneyAccountInfo>);
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.1,
       vaultApyQuery: { isLoading: false },
     } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: undefined,
+      tokenTotal: { toNumber: () => 100 },
       isBalanceLoading: false,
       isBalanceFetchError: false,
     } as ReturnType<typeof useMoneyAccountBalance>);
