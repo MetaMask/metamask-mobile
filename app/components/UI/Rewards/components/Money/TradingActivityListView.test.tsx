@@ -150,13 +150,16 @@ describe('TradingActivityListView', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps rows instead of the banner when a refetch fails over cache', () => {
-    const { getByText, queryByText } = renderView(
-      listState({ error: 'failed' }),
-    );
+  it('shows the error banner above cached rows after a failed refetch', () => {
+    const retry = jest.fn();
+    const { getByText } = renderView(listState({ error: 'failed', retry }));
 
     expect(getByText('First row')).toBeOnTheScreen();
-    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('Retry'));
+
+    expect(retry).toHaveBeenCalledTimes(1);
   });
 
   it('navigates back from the header', () => {
