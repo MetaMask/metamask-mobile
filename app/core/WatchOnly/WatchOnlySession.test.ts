@@ -70,6 +70,40 @@ describe('WatchOnlySession', () => {
       });
     });
 
+    it('serializes overlapping starts so only one watch-only keyring remains', async () => {
+      const SECOND_ADDRESS = '0xabcdef1234567890abcdef1234567890abcdef12';
+      const { state } = Engine.context.KeyringController;
+      mockAddNewKeyring.mockImplementation(
+        async (type: string, { addresses }: { addresses: string[] }) => {
+          await Promise.resolve();
+          state.keyrings = [
+            ...state.keyrings,
+            {
+              type,
+              accounts: addresses,
+              metadata: { id: `watch-only-${addresses[0]}`, name: '' },
+            },
+          ];
+        },
+      );
+      mockRemoveAccount.mockImplementation(async (address: string) => {
+        state.keyrings = state.keyrings.filter(
+          ({ accounts }) => !accounts.includes(address),
+        );
+      });
+
+      await Promise.all([
+        WatchOnlySession.start(VALID_ADDRESS),
+        WatchOnlySession.start(SECOND_ADDRESS),
+      ]);
+
+      const watchOnlyKeyrings = state.keyrings.filter(
+        ({ type }) => type === WatchOnlyKeyring.type,
+      );
+      expect(watchOnlyKeyrings).toHaveLength(1);
+      expect(watchOnlyKeyrings[0].accounts).toStrictEqual([SECOND_ADDRESS]);
+    });
+
     it('selects the newly watched address', async () => {
       await WatchOnlySession.start(VALID_ADDRESS);
 
@@ -98,6 +132,26 @@ describe('WatchOnlySession', () => {
       await WatchOnlySession.stop();
 
       expect(mockRemoveAccount).toHaveBeenCalledWith(VALID_ADDRESS);
+    });
+
+    it('removes watched addresses from every watch-only keyring', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [VALID_ADDRESS],
+          metadata: { id: 'watch-only-1', name: '' },
+        },
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-2', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.stop();
+
+      expect(mockRemoveAccount).toHaveBeenCalledWith(VALID_ADDRESS);
+      expect(mockRemoveAccount).toHaveBeenCalledWith(OTHER_ADDRESS);
     });
 
     it('does not call removeAccount when no watch-only keyring exists', async () => {

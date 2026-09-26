@@ -14,10 +14,25 @@ function assertAvailable(): void {
 }
 
 function getWatchedAddresses(): Hex[] {
-  const keyring = Engine.context.KeyringController.state.keyrings.find(
-    ({ type }) => type === WatchOnlyKeyring.type,
-  );
-  return (keyring?.accounts ?? []) as Hex[];
+  return Engine.context.KeyringController.state.keyrings
+    .filter(({ type }) => type === WatchOnlyKeyring.type)
+    .flatMap(({ accounts }) => accounts) as Hex[];
+}
+
+// Session mutations run one at a time: overlapping start() calls would
+// otherwise each clear the old session and then each add a keyring.
+let pendingMutation: Promise<unknown> = Promise.resolve();
+
+function serialize<Result>(mutation: () => Promise<Result>): Promise<Result> {
+  const run = pendingMutation.then(mutation, mutation);
+  pendingMutation = run.catch(() => undefined);
+  return run;
+}
+
+async function removeWatchedAccounts(): Promise<void> {
+  for (const address of getWatchedAddresses()) {
+    await Engine.context.KeyringController.removeAccount(address);
+  }
 }
 
 /**
@@ -27,10 +42,10 @@ function getWatchedAddresses(): Hex[] {
  */
 async function stop(): Promise<WatchOnlySessionStatus> {
   assertAvailable();
-  for (const address of getWatchedAddresses()) {
-    await Engine.context.KeyringController.removeAccount(address);
-  }
-  return getStatus();
+  return serialize(async () => {
+    await removeWatchedAccounts();
+    return getStatus();
+  });
 }
 
 /**
@@ -43,12 +58,15 @@ async function start(address: string): Promise<WatchOnlySessionStatus> {
   if (!isValidHexAddress(address as Hex)) {
     throw new Error(`Invalid EVM address: ${address}`);
   }
-  await stop();
-  await Engine.context.KeyringController.addNewKeyring(WatchOnlyKeyring.type, {
-    addresses: [address],
+  return serialize(async () => {
+    await removeWatchedAccounts();
+    await Engine.context.KeyringController.addNewKeyring(
+      WatchOnlyKeyring.type,
+      { addresses: [address] },
+    );
+    Engine.setSelectedAddress(address);
+    return getStatus();
   });
-  Engine.setSelectedAddress(address);
-  return getStatus();
 }
 
 function getStatus(): WatchOnlySessionStatus {
