@@ -5,10 +5,11 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '@metamask/money-account-utils';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType, type Hex } from '@metamask/utils';
 import type { RootState } from '../../reducers';
 import {
   selectConversionRateByChainId,
+  selectCurrencyRates,
   selectUSDConversionRateByChainId,
 } from '../../selectors/currencyRateController';
 import { selectMultichainAssetsRates } from '../../selectors/multichain';
@@ -36,6 +37,26 @@ function isNativeAsset(token: TokenAmount): boolean {
   return Boolean(
     token.assetId?.includes('/slip44:') || token.assetId?.includes('/native:'),
   );
+}
+
+function getNonEvmNativeCurrencyRate(
+  token: TokenAmount,
+  currencyRates: ReturnType<typeof selectCurrencyRates>,
+): number | undefined {
+  if (!token.assetId || !isCaipAssetType(token.assetId) || !token.symbol) {
+    return undefined;
+  }
+
+  try {
+    const { chain, assetNamespace } = parseCaipAssetType(token.assetId);
+    if (chain.namespace === 'eip155' || assetNamespace !== 'slip44') {
+      return undefined;
+    }
+
+    return getPositiveRate(currencyRates?.[token.symbol]?.conversionRate);
+  } catch {
+    return undefined;
+  }
 }
 
 function getMusdMarketRateToken(
@@ -108,6 +129,7 @@ export function useConvertToFiat(chainId?: string) {
       : undefined,
   );
   const multichainAssetRates = useSelector(selectMultichainAssetsRates);
+  const currencyRates = useSelector(selectCurrencyRates);
 
   return useCallback(
     (token: TokenAmount | undefined): number | undefined => {
@@ -131,6 +153,14 @@ export function useConvertToFiat(chainId?: string) {
           : undefined;
       if (multichainRate !== undefined) {
         return balanceToFiatNumber(quantity, multichainRate, 1);
+      }
+
+      const nonEvmNativeCurrencyRate = getNonEvmNativeCurrencyRate(
+        token,
+        currencyRates,
+      );
+      if (nonEvmNativeCurrencyRate !== undefined) {
+        return balanceToFiatNumber(quantity, nonEvmNativeCurrencyRate, 1);
       }
 
       if (!hexChainId) {
@@ -161,6 +191,7 @@ export function useConvertToFiat(chainId?: string) {
     [
       contractExchangeRates,
       conversionRate,
+      currencyRates,
       hexChainId,
       multichainAssetRates,
       usdConversionRate,
