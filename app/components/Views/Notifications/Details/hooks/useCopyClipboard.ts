@@ -1,14 +1,9 @@
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
 
 export const CopyClipboardAlertMessage = {
   default: (): string => strings('notifications.copied_to_clipboard'),
@@ -19,8 +14,6 @@ export const CopyClipboardAlertMessage = {
 
 function useCopyClipboard() {
   const dispatch = useDispatch();
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
 
   const handleProtectWalletModalVisible = useCallback(
     () => dispatch(protectWalletModalVisible()),
@@ -31,18 +24,14 @@ function useCopyClipboard() {
     async (value: string, alertText?: string) => {
       if (!value) return;
       await ClipboardManager.setString(value);
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: colors.success.default,
-        labelOptions: [
-          { label: alertText ?? CopyClipboardAlertMessage.default() },
-        ],
+      toast({
+        title: alertText ?? CopyClipboardAlertMessage.default(),
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
       });
       setTimeout(() => handleProtectWalletModalVisible(), 2000);
     },
-    [colors.success.default, toastRef, handleProtectWalletModalVisible],
+    [handleProtectWalletModalVisible],
   );
 
   return copyToClipboard;
