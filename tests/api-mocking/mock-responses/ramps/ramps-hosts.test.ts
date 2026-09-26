@@ -2,6 +2,7 @@ import {
   isRampCacheHost,
   isRampTranslateUrl,
   isTransakGatewayUrl,
+  isTransakNativeOrderUrl,
   rampUrl,
   RAMP_TOKEN_ICON_URL,
 } from './ramps-hosts';
@@ -104,12 +105,32 @@ describe('isRampTranslateUrl', () => {
   it('accepts production and UAT translate URLs', () => {
     expect(
       isRampTranslateUrl(
+        'https://on-ramp.api.cx.metamask.io/providers/transak-native/native/translate?action=deposit',
+      ),
+    ).toBe(true);
+    expect(
+      isRampTranslateUrl(
         'https://on-ramp.api.cx.metamask.io/providers/transak-native-staging/native/translate',
       ),
     ).toBe(true);
     expect(
       isRampTranslateUrl(
         'https://on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/native/translate',
+      ),
+    ).toBe(true);
+  });
+});
+
+describe('isTransakNativeOrderUrl', () => {
+  it('matches production and staging order paths', () => {
+    expect(
+      isTransakNativeOrderUrl(
+        'https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/mock-transak-order-123?action=deposit',
+      ),
+    ).toBe(true);
+    expect(
+      isTransakNativeOrderUrl(
+        'https://on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/orders/mock-transak-order-123',
       ),
     ).toBe(true);
   });

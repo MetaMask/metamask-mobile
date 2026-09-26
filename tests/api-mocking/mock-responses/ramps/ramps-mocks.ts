@@ -39,6 +39,7 @@ import {
   isRampCacheHost,
   isRampTranslateUrl,
   isTransakGatewayUrl,
+  isTransakNativeOrderUrl,
   rampUrl,
   RAMP_TOKEN_ICON_URL,
 } from './ramps-hosts.ts';
@@ -312,7 +313,7 @@ export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
       const url = getDecodedProxiedURL(request.url);
       // Matches both the legacy TransakService endpoint (/providers/...) and the
       // v2 RampsService endpoint (/v2/providers/...) used by refreshOrder.
-      return url.includes('providers/transak-native-staging/orders/');
+      return isTransakNativeOrderUrl(url);
     })
     .asPriority(1000)
     .thenCallback(() => {

@@ -17,9 +17,13 @@ export const isRampCacheHost = (hostname: string): boolean =>
   /^on-ramp-cache\.(?:uat-)?api\.cx\.metamask\.io$/.test(hostname);
 
 export const isRampTranslateUrl = (url: string): boolean =>
-  /on-ramp\.(?:uat-)?api\.cx\.metamask\.io\/providers\/transak-native-staging\/native\/translate/.test(
+  /on-ramp\.(?:uat-)?api\.cx\.metamask\.io\/providers\/transak-native(?:-staging)?\/native\/translate/.test(
     url,
   );
+
+/** Production uses `transak-native`. Staging uses `transak-native-staging`. */
+export const isTransakNativeOrderUrl = (url: string): boolean =>
+  /providers\/transak-native(?:-staging)?\/orders\//.test(url);
 
 /** UAT and production token-icon CDNs used by ramps fixture bodies. */
 export const RAMP_TOKEN_ICON_URL =
