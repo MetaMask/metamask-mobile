@@ -23,6 +23,7 @@ import {
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
   selectPerpsCrossMarginEnabledFlag,
+  selectPerpsTerminalBackendEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -267,6 +268,14 @@ const market = {
   name: 'Bitcoin',
   providerId: 'hyperliquid',
 } as PerpsMarketData;
+
+interface CrossGateCase {
+  flag?: boolean;
+  terminal?: boolean;
+  proMode?: boolean;
+  allowedByMarket?: boolean;
+  overrides?: Partial<PerpsMarketData>;
+}
 
 const renderPanel = (
   props: Partial<React.ComponentProps<typeof PerpsProOrderFormPanel>> = {},
@@ -828,47 +837,25 @@ describe('PerpsProOrderFormPanel', () => {
       expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
     });
 
-    it('keeps Cross unselectable when the flag is off', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, false);
-      renderPanel();
-
-      pickCrossFromMarginSheet();
-
-      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
-    });
-
-    it('keeps Cross unselectable on HIP-3 markets', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-      renderPanel({ market: { ...market, marketSource: 'xyz' } });
-
-      pickCrossFromMarginSheet();
-
-      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
-    });
-
-    it('keeps Cross unselectable on non-Hyperliquid providers', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-      renderPanel({ market: { ...market, providerId: 'lighter' } });
-
-      pickCrossFromMarginSheet();
-
-      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
-    });
-
-    it('keeps Cross unselectable when Pro mode is inactive', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-      mockUseIsPerpsProModeActive.mockReturnValue(false);
-      renderPanel();
-
-      pickCrossFromMarginSheet();
-
-      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
-    });
-
-    it('keeps Cross unselectable on assets restricted to isolated margin', () => {
-      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
-      mockIsCrossAllowedByMarket = false;
-      renderPanel();
+    it.each([
+      ['when the flag is off', { flag: false }],
+      ['with Terminal market data', { terminal: true }],
+      ['on HIP-3 markets', { overrides: { marketSource: 'xyz' } }],
+      [
+        'on non-Hyperliquid providers',
+        { overrides: { providerId: 'lighter' } },
+      ],
+      ['when Pro mode is inactive', { proMode: false }],
+      ['on assets restricted to isolated margin', { allowedByMarket: false }],
+    ])('keeps Cross unselectable %s', (_label, gate: CrossGateCase) => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, gate.flag ?? true);
+      selectorValues.set(
+        selectPerpsTerminalBackendEnabledFlag,
+        !!gate.terminal,
+      );
+      mockUseIsPerpsProModeActive.mockReturnValue(gate.proMode ?? true);
+      mockIsCrossAllowedByMarket = gate.allowedByMarket ?? true;
+      renderPanel({ market: { ...market, ...gate.overrides } });
 
       pickCrossFromMarginSheet();
 

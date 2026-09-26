@@ -11,10 +11,7 @@ import Logger from '../../../../util/Logger';
 interface UseHasExistingPositionParams {
   /** Asset symbol to check for existing position */
   asset: string;
-  /**
-   * Provider whose position to return. Aggregated streams can hold the same
-   * symbol on several providers; untagged positions still match.
-   */
+  /** Provider to match; untagged positions always match */
   providerId?: PerpsProviderType;
   /** Whether to load positions on mount */
   loadOnMount?: boolean;

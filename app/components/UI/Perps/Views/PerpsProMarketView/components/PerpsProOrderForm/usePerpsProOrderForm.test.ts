@@ -3784,6 +3784,14 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('keeps Cross unavailable until market data loads', () => {
+      mockMarketData = null;
+
+      expect(
+        renderWithCrossMargin().result.current.isCrossMarginAvailableForMarket,
+      ).toBe(false);
+    });
+
     it('still shows the unsupported warning for a cross position on an isolated-only asset', async () => {
       mockMarketData = { szDecimals: 3, maxLeverage: 40, onlyIsolated: true };
       mockExistingPosition = { leverage: { type: 'cross', value: 5 } };
