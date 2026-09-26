@@ -119,27 +119,12 @@ describe('useHasExistingPosition', () => {
     };
 
     it.each([
-      ['listed after', [lighterBtc, hyperliquidBtc]],
-      ['listed before', [hyperliquidBtc, lighterBtc]],
-    ])(
-      "returns the selected provider's position when another provider's is %s it",
-      (_order, positions) => {
-        mockUsePerpsLivePositions.mockReturnValue({
-          positions,
-          isInitialLoading: false,
-        });
-
-        const { result } = renderHook(() =>
-          useHasExistingPosition({ asset: 'BTC', providerId: 'hyperliquid' }),
-        );
-
-        expect(result.current.existingPosition).toBe(hyperliquidBtc);
-      },
-    );
-
-    it('returns null when only another provider holds the symbol', () => {
+      ['another provider listed first', [lighterBtc, hyperliquidBtc], true],
+      ['another provider listed last', [hyperliquidBtc, lighterBtc], true],
+      ['only another provider', [lighterBtc], false],
+    ])('matches the selected provider with %s', (_case, positions, found) => {
       mockUsePerpsLivePositions.mockReturnValue({
-        positions: [lighterBtc],
+        positions,
         isInitialLoading: false,
       });
 
@@ -147,7 +132,9 @@ describe('useHasExistingPosition', () => {
         useHasExistingPosition({ asset: 'BTC', providerId: 'hyperliquid' }),
       );
 
-      expect(result.current.existingPosition).toBe(null);
+      expect(result.current.existingPosition).toBe(
+        found ? hyperliquidBtc : null,
+      );
     });
 
     it('still matches an untagged position', () => {
