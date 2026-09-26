@@ -98,7 +98,7 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
-  it('navigates to Money home when the autoramp is ready', async () => {
+  it('navigates to the VBA details screen when the autoramp is ready', async () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -112,9 +112,8 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
+      screen: VbaOnboardingRoutes.DETAILS,
     });
   });
 
