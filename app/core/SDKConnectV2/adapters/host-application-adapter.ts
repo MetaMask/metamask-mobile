@@ -7,44 +7,115 @@ import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
-import {
-  hideNotificationById,
-  showSimpleNotification,
-} from '../../../actions/notification';
+import { showSimpleNotification } from '../../../actions/notification';
 import { strings } from '../../../../locales/i18n';
 import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger from '../services/logger';
+import NavigationService from '../../NavigationService';
+import Routes from '../../../constants/navigation/Routes';
 
 const DEFAULT_CONNECTION_LOADING_AUTODISMISS_MS = 10_000;
 
 /** Longer timeout for multi-step agentic CLI connect (MWP → OTP → dashboard). */
 export const AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS = 15_000;
 
+/**
+ * Routes over which the connection loading sheet must NOT be shown:
+ * - the lock / login screens (it would cover the unlock UI), and
+ * - the account-connect sheet (the approval is already up, so loading is moot).
+ * Mirrors the skip list used by the legacy SDK loading state.
+ */
+const LOADING_SKIP_ROUTES: readonly string[] = [
+  Routes.LOCK_SCREEN,
+  Routes.ONBOARDING.LOGIN,
+  Routes.SHEET.ACCOUNT_CONNECT,
+];
+
 export class HostApplicationAdapter implements IHostApplicationAdapter {
+  /**
+   * Safety auto-dismiss timers per connection id. The loading sheet is normally
+   * dismissed explicitly (when the approval is ready, or on success/failure),
+   * but we keep a timer so it can never linger if a connection stalls without
+   * ever surfacing an approval or error.
+   */
+  private readonly loadingDismissTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
+
+  /**
+   * Shows the shared SDK loading bottom sheet (the same Lottie "connecting"
+   * sheet used by the legacy SDK) while an incoming MetaMask Connect request is
+   * pending — i.e. while the MWP handshake runs and before the approval appears.
+   */
   showConnectionLoading(
     conninfo: ConnectionInfo,
     options?: ShowConnectionLoadingOptions,
   ): void {
+    const navigation = this.getNavigation();
+    if (!navigation) return;
+
+    const currentRoute = navigation.getCurrentRoute?.()?.name;
+    if (currentRoute && LOADING_SKIP_ROUTES.includes(currentRoute)) {
+      return;
+    }
+
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SDK_LOADING,
+    });
+
     const autodismiss =
       options?.autodismissMs ?? DEFAULT_CONNECTION_LOADING_AUTODISMISS_MS;
-
-    store.dispatch(
-      showSimpleNotification({
-        id: conninfo.id,
-        autodismiss,
-        title: strings('sdk_connect_v2.show_loading.title'),
-        description: strings('sdk_connect_v2.show_loading.description', {
-          dappName: conninfo.metadata.dapp.name,
-        }),
-        status: 'pending',
-      }),
+    this.clearLoadingTimer(conninfo.id);
+    this.loadingDismissTimers.set(
+      conninfo.id,
+      setTimeout(() => {
+        this.loadingDismissTimers.delete(conninfo.id);
+        this.dismissLoadingSheet();
+      }, autodismiss),
     );
   }
 
   hideConnectionLoading(conninfo: ConnectionInfo): void {
-    store.dispatch(hideNotificationById(conninfo.id));
+    this.clearLoadingTimer(conninfo.id);
+    this.dismissLoadingSheet();
+  }
+
+  /**
+   * Dismisses the SDK loading sheet if it is the route currently on top.
+   * Mirrors the legacy SDK `hideLoadingState`.
+   */
+  private dismissLoadingSheet(): void {
+    const navigation = this.getNavigation();
+    if (!navigation) return;
+
+    const currentRoute = navigation.getCurrentRoute?.()?.name;
+    if (currentRoute === Routes.SHEET.SDK_LOADING && navigation.canGoBack?.()) {
+      navigation.goBack();
+    }
+  }
+
+  private clearLoadingTimer(id: string): void {
+    const timer = this.loadingDismissTimers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this.loadingDismissTimers.delete(id);
+    }
+  }
+
+  /**
+   * Safely resolves the global navigation reference. Returns undefined if it
+   * isn't ready yet (e.g. an early cold-start deeplink), in which case the
+   * loading sheet is simply skipped rather than throwing.
+   */
+  private getNavigation() {
+    try {
+      return NavigationService.navigation;
+    } catch {
+      return undefined;
+    }
   }
 
   showConnectionError(conninfo?: ConnectionInfo): void {
