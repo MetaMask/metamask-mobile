@@ -2,25 +2,26 @@ import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { KeyringAccountType } from '@metamask/keyring-api';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   Box,
   FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { AccountGroupId } from '@metamask/account-api';
+import { useSelector } from 'react-redux';
 
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import {
+  type AccountAvatarVariant,
+  getAvatarAccountVariant,
+} from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountTypeLabel } from '../account-type-label';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
-import { AccountGroupId } from '@metamask/account-api';
-import { useSelector } from 'react-redux';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../../../reducers';
 
@@ -36,7 +37,7 @@ export interface RecipientType {
 interface RecipientProps {
   recipient: RecipientType;
   isSelected?: boolean;
-  accountAvatarType: AvatarAccountType;
+  accountAvatarType: AccountAvatarVariant;
   onPress?: (recipient: RecipientType) => void;
 }
 
@@ -91,11 +92,10 @@ export function Recipient({
           twClassName="h-12 justify-center"
           testID={`recipient-avatar-${recipient.address}`}
         >
-          <Avatar
-            variant={AvatarVariant.Account}
-            type={accountAvatarType}
-            accountAddress={accountAvatarSeedAddress}
-            size={AvatarSize.Md}
+          <AvatarAccount
+            variant={getAvatarAccountVariant(accountAvatarType)}
+            address={accountAvatarSeedAddress}
+            size={AvatarAccountSize.Md}
           />
         </Box>
         <Box twClassName="ml-4 h-12 justify-center flex-1">

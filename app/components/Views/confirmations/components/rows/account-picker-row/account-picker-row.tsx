@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
+import { useSelector } from 'react-redux';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
@@ -16,16 +18,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import { strings } from '../../../../../../../locales/i18n';
 import stylesheet from './account-picker-row.styles';
 
@@ -62,6 +62,8 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
 }: AccountPickerRowContentProps<T>) {
   const { styles } = useStyles(stylesheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
+  const accountAvatarVariant = getAvatarAccountVariant(accountAvatarType);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -98,10 +100,10 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
           testID={`${testIDs.ACCOUNT_ITEM}-${item.id}`}
         >
           <View style={styles.accountItemLeft}>
-            <Avatar
-              variant={AvatarVariant.Account}
-              accountAddress={item.id || '0x0'}
-              size={AvatarSize.Md}
+            <AvatarAccount
+              address={item.id || '0x0'}
+              variant={accountAvatarVariant}
+              size={AvatarAccountSize.Md}
             />
             <Text variant={TextVariant.BodyMd}>{item.name}</Text>
           </View>
@@ -109,7 +111,14 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
         </TouchableOpacity>
       );
     },
-    [handleSelect, selectedSubAccount?.id, styles, testIDs, formatBalance],
+    [
+      handleSelect,
+      selectedSubAccount?.id,
+      styles,
+      testIDs,
+      formatBalance,
+      accountAvatarVariant,
+    ],
   );
 
   if (subAccounts.length === 0) {
@@ -130,10 +139,10 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
           <View style={styles.valueContainer}>
             {selectedSubAccount ? (
               <>
-                <Avatar
-                  variant={AvatarVariant.Account}
-                  accountAddress={selectedSubAccount.id || '0x0'}
-                  size={AvatarSize.Sm}
+                <AvatarAccount
+                  address={selectedSubAccount.id || '0x0'}
+                  variant={accountAvatarVariant}
+                  size={AvatarAccountSize.Sm}
                 />
                 <Text
                   variant={TextVariant.BodyMd}

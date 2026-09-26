@@ -238,5 +238,8 @@ export const DEFAULT_MOCKS = {
   ],
   DELETE: [],
   PATCH: [],
-  HEAD: [...(STATIC_ASSETS_MOCKS.HEAD || [])],
+  HEAD: [
+    ...(STATIC_ASSETS_MOCKS.HEAD || []),
+    ...(POLYMARKET_API_MOCKS.HEAD || []),
+  ],
 };
