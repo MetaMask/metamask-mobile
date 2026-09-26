@@ -104,7 +104,9 @@ export const RecurringConfirmOrderSheetScreen = () => {
 
   return (
     <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency ?? USD_PRICE_RANGE_CURRENCY}
       delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
       isPriceRangeConversionReady={isPriceRangeConversionReady}
       isSubmitting={isSubmitting}
       onConfirm={handleConfirm}

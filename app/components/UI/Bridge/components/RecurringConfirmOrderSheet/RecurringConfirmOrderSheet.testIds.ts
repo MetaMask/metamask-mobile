@@ -2,6 +2,7 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   SHEET: 'recurring-confirm-order-sheet',
   CLOSE_BUTTON: 'recurring-confirm-order-sheet-close',
   CONFIRM_BUTTON: 'recurring-confirm-order-sheet-confirm',
+  LOCAL_CURRENCY_NOTICE: 'recurring-confirm-local-currency-notice',
   PAYING_ALL_ORDERS: 'recurring-confirm-paying-all-orders',
   PAYING_PER_ORDER: 'recurring-confirm-paying-per-order',
   RECEIVING: 'recurring-confirm-receiving',

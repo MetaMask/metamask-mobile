@@ -6,6 +6,8 @@ import {
   AvatarTokenSize,
   BadgeWrapper,
   BadgeWrapperPosition,
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -24,7 +26,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   selectDestToken,
   selectRecurringPriceRange,
@@ -33,6 +35,7 @@ import {
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
@@ -43,7 +46,10 @@ import type { BridgeToken } from '../../types';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
-import { formatPriceRangeLabel } from '../../utils/priceRange';
+import {
+  formatPriceRangeLabel,
+  USD_PRICE_RANGE_CURRENCY,
+} from '../../utils/priceRange';
 import {
   parsePositiveInteger,
   RECURRING_MAX_DURATION_DAYS,
@@ -187,7 +193,9 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
+  currentCurrency,
   delegationFee,
+  fiatToUsdRate,
   isPriceRangeConversionReady,
   isSubmitting,
   onConfirm,
@@ -264,6 +272,18 @@ const RecurringConfirmOrderSheet = ({
   const priceRangeValue = priceRange
     ? formatPriceRangeLabel(priceRange.min, priceRange.max, priceRange.currency)
     : strings('bridge.recurring.price_range.not_set');
+  const showLocalCurrencyNotice =
+    Boolean(priceRange) &&
+    currentCurrency.toUpperCase() !== USD_PRICE_RANGE_CURRENCY;
+  const usdToCurrentCurrencyRate =
+    fiatToUsdRate !== undefined &&
+    Number.isFinite(fiatToUsdRate) &&
+    fiatToUsdRate > 0
+      ? getIntlNumberFormatter(I18n.locale, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(1 / fiatToUsdRate)
+      : '--';
 
   const expiresAfter = `${RECURRING_MAX_DURATION_DAYS} ${strings('bridge.recurring.unit_plural.day')}`;
 
@@ -301,6 +321,24 @@ const RecurringConfirmOrderSheet = ({
       >
         {strings('bridge.recurring.confirm_title')}
       </BottomSheetHeader>
+      {showLocalCurrencyNotice ? (
+        <Box paddingHorizontal={4} paddingBottom={2}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            description={strings('bridge.recurring.local_currency_notice', {
+              rate: usdToCurrentCurrencyRate,
+              currency: currentCurrency.toUpperCase(),
+            })}
+            descriptionProps={{
+              variant: TextVariant.BodyMd,
+              color: TextColor.TextDefault,
+            }}
+            testID={
+              RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE
+            }
+          />
+        </Box>
+      ) : null}
       <Box paddingBottom={2}>
         <ConfirmOrderRow
           label={strings('bridge.recurring.paying_all_orders')}
