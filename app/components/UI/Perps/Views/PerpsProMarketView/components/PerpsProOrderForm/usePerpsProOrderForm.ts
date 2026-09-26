@@ -886,9 +886,11 @@ export const usePerpsProOrderForm = ({
   });
   const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
-  // The venue also refuses Cross on assets restricted to isolated margin.
+  // The venue also refuses Cross on assets restricted to isolated margin; wait
+  // for restrictions from the current source (a refetch keeps stale data).
   const isCrossMarginAvailableForMarket =
     isCrossMarginAvailable &&
+    !isMarketDataLoading &&
     !!marketData &&
     !marketData.onlyIsolated &&
     !marketData.marginMode;

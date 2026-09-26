@@ -290,6 +290,7 @@ describe('PerpsProOrderFormPanel', () => {
     selectorValues.set(selectPerpsMobileScaleEnabledFlag, true);
     selectorValues.set(selectPerpsMobileChaseEnabledFlag, true);
     selectorValues.set(selectPerpsProvider, 'hyperliquid');
+    selectorValues.set(selectPerpsTerminalBackendEnabledFlag, false);
     mockUseSelector.mockImplementation((selector: unknown) =>
       selectorValues.get(selector),
     );

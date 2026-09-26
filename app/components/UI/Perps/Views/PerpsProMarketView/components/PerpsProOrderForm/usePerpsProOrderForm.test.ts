@@ -3774,13 +3774,21 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
-    it('keeps Cross unavailable until market data loads', () => {
-      mockMarketData = null;
+    it.each([
+      ['has not loaded', null, false],
+      ['is refetching', { szDecimals: 3, maxLeverage: 40 }, true],
+    ])(
+      'keeps Cross unavailable while market data %s',
+      (_label, data, loading) => {
+        mockMarketData = data;
+        mockMarketDataLoading = loading;
 
-      expect(
-        renderWithCrossMargin().result.current.isCrossMarginAvailableForMarket,
-      ).toBe(false);
-    });
+        expect(
+          renderWithCrossMargin().result.current
+            .isCrossMarginAvailableForMarket,
+        ).toBe(false);
+      },
+    );
 
     it('still shows the unsupported warning for a cross position on an isolated-only asset', async () => {
       mockMarketData = { szDecimals: 3, maxLeverage: 40, onlyIsolated: true };
