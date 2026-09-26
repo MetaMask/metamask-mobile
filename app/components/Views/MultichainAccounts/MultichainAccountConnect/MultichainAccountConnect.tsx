@@ -207,6 +207,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       KnownSessionProperties.SolanaAccountChangedNotifications
     ];
 
+  // Requests carrying the `eip1193-compatible` session property come from
+  // EIP-1193 compatibility layers (e.g. `@metamask/connect-evm`) that route
+  // legacy-style dapp connections through the Multichain API. They should get
+  // the same all-networks pre-selection as legacy EIP-1193 requests.
+  const isEip1193CompatibleRequest = Boolean(
+    requestedCaip25CaveatValue.sessionProperties[
+      KnownSessionProperties.Eip1193Compatible
+    ],
+  );
+
   const requestedNamespaces = useMemo(
     () => getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
@@ -321,10 +331,20 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       },
     );
 
-    // If the request is an EIP-1193 request (with no specific chains requested) or a Solana wallet standard request, return the default selected network list
+    // Return the default selected network list if the request is an EIP-1193
+    // request (with no specific chains requested), an EIP-1193 compatible
+    // request (a Multichain API request carrying the `eip1193-compatible`
+    // session property, set by MetaMask Connect's `@metamask/connect-evm`),
+    // or a Solana wallet standard request.
+    // Legacy EIP-1193 requests also carry the `eip1193-compatible` session
+    // property (it is added by `getCaip25PermissionFromLegacyPermissions`), so
+    // the flag only takes the all-networks path for non-legacy requests;
+    // otherwise legacy requests with specific chains would lose their
+    // requested-chains-only pre-selection.
     // Note: Tron Wallet Adapter requests are not handled here since Tron is not yet supported in mobile
     if (
       (requestedCaipChainIds.length === 0 && isEip1193Request) ||
+      (isEip1193CompatibleRequest && !isEip1193Request) ||
       isSolanaWalletStandardRequest
     ) {
       return defaultSelectedNetworkList;
@@ -380,6 +400,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     requestedNamespacesWithoutWallet,
     alreadyConnectedCaipChainIds,
     isSolanaWalletStandardRequest,
+    isEip1193CompatibleRequest,
   ]);
 
   const {
