@@ -988,7 +988,7 @@
       "dob_required": "Tanggal lahir diperlukan",
       "dob_invalid": "Masukkan tanggal lahir yang valid",
       "ssn_required": "Nomor jaminan sosial diperlukan",
-      "unexpected_error": "Terjadi kesalahan tidak terduga. Coba lagi.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "Nomor telepon ini sudah digunakan oleh {{email}}. Masuk menggunakan email ini untuk melanjutkan.",
       "login_with_email": "Masuk dengan email"
     },
@@ -1159,11 +1159,47 @@
       "button": "Lanjutkan",
       "error_title": "Verifikasi identitas",
       "error_description": "Kami tidak dapat memulai verifikasi identitas Anda. Coba lagi.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
-      "email_not_set_error": "Email tidak ada. Kembali dan masukkan email Anda."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "More information needed",
+      "more_info_description": "We need a bit more information to complete your verification. Continue to provide it.",
+      "more_info_button": "Continue verification",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Try again"
+    },
+    "kyc_pending": {
+      "title": "Verification in progress",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Check status"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Try again"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Try again"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Try again"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Options",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Popular"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "Anda akan mendapatkan peringatan saat trader yang Anda ikuti membuat pergerakan. Aktifkan pemberitahuan di pengaturan perangkat Anda.",
@@ -1285,6 +1321,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Posisi",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1312,11 +1354,15 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Filters",
-        "show_results": "Show results",
+        "title": "Custom filters",
+        "show_results": "Apply",
+        "apply": "Apply",
+        "reset": "Reset",
         "section": {
-          "type": "Jenis",
-          "trader_cohort": "Trader cohort",
+          "type": "Asset",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Traders",
           "timeframe": "Jangka waktu",
           "network": "Jaringan",
           "market_cap": "Kap pasar",
@@ -1328,13 +1374,19 @@
           "perps": "Perps",
           "predictions": "Prediksi"
         },
+        "verification": {
+          "all": "All",
+          "verified": "Verified",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "Semua",
           "following": "Mengikuti",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Verified"
         },
         "timeframe": {
           "1h": "1H",
@@ -3343,17 +3395,40 @@
       "predict_balance": "Saldo Predict",
       "total": "Total",
       "price_details": "Detail harga",
-      "confirm": "Konfirmasikan",
       "terms": "Dengan melanjutkan, Anda menyetujui ketentuan platform.",
       "learn_more": "Pelajari selengkapnya",
       "submitting": "Mengirimkan order Anda...",
-      "success_title": "Order dikirim",
       "done": "Selesai",
       "close": "Tutup",
       "delete": "Hapus",
       "expired": "Kuotasi ini sudah kedaluwarsa. Segarkan untuk mendapatkan yang baru.",
       "refresh": "Segarkan",
-      "retry": "Coba lagi"
+      "retry": "Coba lagi",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Review your order",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order filled",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Filled",
+      "average_fill_price": "Avg. fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Try again"
     }
   },
   "predict": {
@@ -4154,6 +4229,7 @@
     "display_nft_media_cta": "Aktifkan Tampilkan media NFT",
     "display_media_nft_warning": "Menampilkan media dan data NFT dapat mengekspos alamat IP ke server terpusat. Impor NFT hanya jika Anda memahami risiko yang terlibat.",
     "nfts_autodetect_title": "Autodeteksi NFT",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "Aktifkan autodeteksi NFT",
     "turn_on_network_check_cta": "Aktifkan pemeriksaan detail jaringan",
     "display_nft_media_cta_new_1": "Untuk melihat NFT, aktifkan Tampilkan media NFT di",
@@ -4367,17 +4443,18 @@
   },
   "basic_functionality_migration": {
     "title": "Kami telah memperbarui pengaturan kami",
-    "social_title": "Pembaruan privasi dan produk",
-    "social_body_1": "Kami memperbarui cara kerja MetaMask untuk login sosial. Untuk menghadirkan pengalaman yang mulus di seluruh ekosistem MetaMask, pengenal login sosial Anda (email atau nama pengguna) kini akan ditautkan secara aman ke profil pengguna dan alamat akun terkait milik Anda. Sebagai bagian dari pembaruan ini, Fungsionalitas Dasar dan pengaturan default lainnya akan selalu diaktifkan.",
-    "social_body_2_prefix": "Kami tidak pernah menjual data Anda kepada pihak ketiga. Baca selengkapnya seputar apa saja yang kami kumpulkan dan alasannya di",
-    "social_body_2_middle": " dan yang diperbarui ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " and ",
     "social_body_2_suffix": ".",
     "blog_post_link": "postingan blog",
     "privacy_notice_link": "Pemberitahuan Privasi",
-    "toast_description": "Fungsionalitas dasar kini mencakup API pihak ketiga. Fitur ini diaktifkan berdasarkan pengaturan Anda sebelumnya. Sesuaikan setiap saat di",
-    "toast_description_disabled": "Fungsionalitas dasar kini mencakup API pihak ketiga. Fitur ini dinonaktifkan berdasarkan pengaturan Anda sebelumnya. Sesuaikan setiap saat di",
-    "settings_link": "Pengaturan > Privasi.",
-    "accept_and_close": "Terima dan tutup"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy. ",
+    "learn_more_link": "Learn more.",
+    "accept_and_close": "Continue"
   },
   "onboarding_interest_questionnaire": {
     "title": "Bagaimana Anda akan menggunakan MetaMask?",
@@ -7176,6 +7253,12 @@
     "order_status_cancelled": "Dibatalkan",
     "webview_no_url_provided": "URL untuk melanjutkan tidak diberikan",
     "webview_error_no_address_provided": "Alamat dompet untuk melanjutkan tidak diberikan",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Pengaturan",
       "use_new_buy_experience": "Cara lain untuk membeli",
@@ -8030,7 +8113,7 @@
     "ledger_disconnected": "Sambungan perangkat terputus",
     "ledger_disconnected_error": "Koneksi ke perangkat Anda telah terputus. Coba lagi.",
     "unknown_error": "Terjadi kesalahan tidak terduga.",
-    "unknown_error_message": "Terjadi kesalahan tidak terduga. Silakan coba lagi.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "Terjadi kesalahan",
     "how_to_install_eth_app": "Cara menginstal aplikasi Ethereum di perangkat Ledger",
     "ledger_account_count": "Anda menggunakan 1 akun dari Ledger dengan MetaMask Mobile.",
@@ -8487,7 +8570,6 @@
       "add": "Tambah",
       "convert_cta": "Konversikan kripto Anda",
       "no_fee": "Tidak ada biaya",
-      "view_all": "Lihat semua",
       "view_potential_earnings": "Lihat potensi penghasilan"
     },
     "metamask_card": {
@@ -8497,13 +8579,11 @@
       "virtual_card": "Kartu virtual",
       "metal_card": "Kartu logam",
       "cashback": "pengembalian {{percentage}}% mUSD",
-      "get_now": "Dapatkan",
       "link_title": "Tautkan kartu",
       "link_subtitle": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
       "link_subtitle_no_apy": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
       "link_bullet_cashback": "Dapatkan pengembalian {{percentage}}% mUSD",
       "link_bullet_apy": "Dapatkan hingga ~{{apy}}% APY",
-      "link_card": "Tautkan kartu",
       "link_pending_title": "Menghubungkan kartu Anda",
       "link_success_title": "Kartu Anda siap digunakan",
       "link_error": "Terjadi kesalahan saat menghubungkan kartu Anda",
@@ -8525,7 +8605,6 @@
       "unlink_card_sheet_another_money_account": "Money Account lain",
       "unlink_card_sheet_keep_linked": "Tetap terhubung",
       "unlink_card_sheet_unlink_account": "Putuskan tautan akun",
-      "manage_card": "Kelola",
       "verification_pending": "Verifikasi identitas Anda sedang ditinjau. Proses ini umumnya memerlukan waktu kurang dari 12 jam."
     },
     "what_you_get": {
@@ -9234,6 +9313,8 @@
       "limit": "Limit",
       "recurring": "Berulang"
     },
+    "generic_error_toast_title": "Something went wrong",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Order terbuka",
@@ -9301,7 +9382,13 @@
       "edit_cost_tolerance": "Edit toleransi biaya",
       "try_again": "Coba lagi",
       "error_calculation_network_fees": "Tidak dapat menghitung biaya jaringan.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Order created",
+      "order_created_description": "We'll let you know when it's filled.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "Anda mendapatkan",
@@ -10394,7 +10481,7 @@
         },
         "unverified": {
           "title": "Verifikasi diperlukan",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Status verifikasi tidak tersedia",
@@ -10715,8 +10802,8 @@
       "sign_in_help_got_it": "Mengerti",
       "errors": {
         "invalid_credentials": "Detail login tidak valid",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "Email diperlukan",
         "password_required": "Kata sandi diperlukan",
         "email_invalid": "Alamat email tidak valid",
@@ -10738,7 +10825,7 @@
     "card_otp_authentication": {
       "title": "Konfirmasikan nomor telepon",
       "description_with_phone_number": "Masukkan kode verifikasi yang dikirim ke\n{{maskedPhoneNumber}}",
-      "description_without_phone_number": "Kami telah mengirimkan kode konfirmasi ke nomor telepon Anda. Masukkan kode untuk melanjutkan.",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Kode konfirmasi",
       "confirm_button": "Konfirmasikan",
       "back_to_login_button": "Kembali ke login",
@@ -10755,22 +10842,22 @@
       "success_title": "Kartu ditambahkan!",
       "success_message": "Kartu MetaMask Anda telah ditambahkan ke {{walletName}}.",
       "error_title": "Tidak dapat menambahkan kartu",
-      "error_wallet_not_available": "{{walletName}} tidak tersedia di perangkat ini. Pastikan Anda telah mengatur {{walletName}}.",
-      "error_wallet_not_initialized": "{{walletName}} belum diinisialisasi. Atur dompet Anda dan coba lagi.",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Set up your wallet and try again.",
       "error_card_already_in_wallet": "Kartu ini sudah ditambahkan ke {{walletName}}.",
-      "error_card_pending": "Kartu Anda sedang diatur di {{walletName}}. Periksa kembali dalam beberapa menit.",
-      "error_card_suspended": "Kartu Anda di {{walletName}} telah diblokir. Hubungi dukungan untuk mendapatkan bantuan.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "Kartu ini tidak memenuhi syarat untuk penyediaan dompet digital.",
-      "error_encryption_failed": "Gagal mengenkripsi data kartu. Coba lagi.",
-      "error_invalid_card_data": "Data kartu tidak valid. Verifikasikan detail kartu Anda dan coba lagi.",
-      "error_card_not_found": "Kartu tidak ditemukan. Coba lagi.",
+      "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
+      "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "Penyedia kartu tidak tersedia untuk wilayah Anda.",
-      "error_card_id_mismatch": "Verifikasi kartu gagal. Coba lagi.",
-      "error_card_not_active": "Kartu Anda belum aktif. Aktifkan kartu terlebih dahulu.",
+      "error_card_id_mismatch": "Card verification failed. Try again.",
+      "error_card_not_active": "Your card is not active. Activate your card first.",
       "error_network": "Network error occurred. Check your connection and try again.",
-      "error_timeout": "Waktu permintaan telah habis. Coba lagi.",
-      "error_server": "Terjadi kesalahan server. Coba lagi nanti.",
-      "error_unknown": "Terjadi kesalahan tak terduga. Coba lagi atau hubungi dukungan.",
+      "error_timeout": "The request timed out. Try again.",
+      "error_server": "Server error occurred. Try again later.",
+      "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "Platform ini tidak mendukung penyediaan dompet seluler.",
       "try_again": "Coba lagi",
       "cancel": "Batalkan"
@@ -10817,7 +10904,7 @@
     },
     "version_guard": {
       "title": "Pembaruan diperlukan",
-      "description": "Versi MetaMask yang lebih baru diperlukan untuk menggunakan Reward. Perbarui untuk melanjutkan.",
+      "description": "A newer version of MetaMask is required to use Rewards. Update to continue.",
       "update_button": "Perbarui MetaMask"
     },
     "season_error": {
@@ -10861,15 +10948,15 @@
       "error_fetching_description": "Periksa koneksi Anda dan coba lagi.",
       "retry_button": "Coba lagi"
     },
-    "solana_signup_not_supported": "Masuk ke Reward dengan akun Solana belum didukung. Gunakan akun Ethereum sebagai gantinya.",
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.",
     "error_messages": {
       "unknown_error": "Terjadi kesalahan tidak dikenal",
-      "something_went_wrong": "Terjadi kesalahan. Coba lagi nanti.",
-      "account_already_registered": "Akun ini sudah terdaftar dengan profil Reward lain. Ganti akun untuk melanjutkan.",
+      "something_went_wrong": "Something went wrong. Try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Switch account to continue.",
       "request_rejected": "Anda menolak permintaan tersebut.",
-      "failed_to_claim_reward": "Gagal mengklaim reward. Coba lagi nanti.",
-      "service_not_available": "Layanan tidak tersedia untuk saat ini. Coba lagi nanti.",
-      "invalid_referral_code": "Kode referensi tidak valid. Periksa dan coba lagi.",
+      "failed_to_claim_reward": "Failed to claim reward. Try again shortly.",
+      "service_not_available": "Service is not available at the moment. Try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "Anda telah dirujuk oleh pengguna lain.",
       "cannot_use_own_referral_code": "Anda tidak dapat menggunakan kode referensi milik Anda sendiri.",
       "invalid_bonus_code": "Kode bonus tidak valid",
@@ -10949,7 +11036,7 @@
       "swap_title": "Swap",
       "perps_title": "Perps",
       "error_title": "Gagal memuat transaksi",
-      "error_description": "Terjadi kesalahan saat memuat transaksi Anda. Coba lagi.",
+      "error_description": "Something went wrong while loading your transactions. Try again.",
       "retry_button": "Coba lagi",
       "empty_title": "Belum ada transaksi. Transaksi VIP Anda akan muncul di sini setelah ada aktivitas."
     },
@@ -11007,15 +11094,15 @@
       "not_supported_region_title": "Wilayah tidak didukung",
       "not_supported_region_description": "Reward belum didukung di wilayah Anda. Kami sedang berupaya memperluas akses, jadi, periksa kembali nanti.",
       "not_supported_hardware_account_title": "Akun tidak didukung",
-      "not_supported_hardware_account_description": "Akun dompet perangkat keras belum memenuhi syarat untuk menerima reward. Beralih ke akun lain untuk melanjutkan.",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
       "not_supported_account_type_title": "Jenis akun tidak didukung",
-      "not_supported_account_type_description": "Saat ini, hanya akun internal Ethereum dan Solana yang dapat didaftarkan dalam program Reward. Beralih ke akun lain untuk melanjutkan.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Kembali",
       "not_supported_confirm_retry": "Coba lagi",
       "auth_fail_title": "Autentikasi gagal",
-      "auth_fail_description": "Tidak dapat mengautentikasi dengan program reward. Periksa koneksi Anda dan coba lagi.",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
       "geo_check_fail_title": "Tidak dapat menentukan kelayakan berpartisipasi",
-      "geo_check_fail_description": "Kami tidak dapat memastikan apakah wilayah Anda mengizinkan pendaftaran program reward. Periksa koneksi Anda dan coba lagi.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
       "intro_confirm_geo_loading": "Memeriksa wilayah...",
       "step_confirm": "Berikutnya",
       "step_finish": "Ayo",
@@ -11088,12 +11175,12 @@
         "cancel": "Batal",
         "confirm": "Konfirmasikan",
         "error_title": "Terjadi kesalahan",
-        "error_message": "Gagal keluar dari Reward. Coba lagi.",
+        "error_message": "Failed to opt out of Rewards. Try again.",
         "processing": "Memproses..."
       },
       "request_received": {
         "title": "Permintaan diterima",
-        "description": "Dalam waktu sekitar 7 hari, progres Anda akan sepenuhnya terhapus. Jika Anda mengajukan permintaan ini secara tidak sengaja, hubungi dukungan melalui aplikasi."
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, contact support through the app."
       }
     },
     "toast_dismiss": "Lewatkan",
@@ -11110,8 +11197,8 @@
       },
       "account_not_supported": {
         "title": "Akun tidak didukung",
-        "description_hardware": "Akun dompet perangkat keras belum memenuhi syarat. Beralih ke akun lain untuk melanjutkan.",
-        "description_general": "Saat ini hanya akun Ethereum dan Solana internal non-perangkat keras yang memenuhi syarat. Beralih ke akun lain untuk melanjutkan.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
         "confirm": "Kembali"
       }
     },
@@ -11193,7 +11280,7 @@
       "arriving_soon": "Segera tiba",
       "check_back_soon": "Periksa kembali secepatnya untuk mengklaimnya",
       "redeem_failure_title": "Penukaran gagal",
-      "redeem_failure_description": "Coba lagi nanti.",
+      "redeem_failure_description": "Try again later.",
       "reward_details": "Detail Reward",
       "select_account_description": "Pilih akun tempat reward ini dikirimkan."
     },
@@ -11222,7 +11309,7 @@
       "geo_locked_cta": "Periksa kelayakan",
       "geo_loading": "Memeriksa wilayah...",
       "remind_me_success_toast": "Kami akan memberi tahu Anda kapan kampanye ini dimulai.",
-      "remind_me_save_error": "Tidak dapat menyimpan pengingat. Coba lagi.",
+      "remind_me_save_error": "Could not save your reminder. Try again.",
       "view_details": "Lihat detail",
       "view_details_accessibility": "Lihat detail untuk {{campaignName}}"
     },
@@ -11235,7 +11322,7 @@
       "opt_in": "Ikut serta",
       "opting_in": "Sedang ikut serta...",
       "opted_in": "Anda telah memilih untuk ikut serta dalam kampanye ini",
-      "opt_in_error": "Gagal ikut serta. Coba lagi.",
+      "opt_in_error": "Failed to opt in. Try again.",
       "join_campaign": "Gabung dalam kampanye ini",
       "competition_closed_title": "Kompetisi sudah tidak dibuka lagi",
       "competition_closed_description": "Maaf, kompetisi ini sudah tidak dibuka lagi. Anda dapat mengikuti papan peringkat di bawah ini dan periksa kembali untuk kampanye mendatang.",
@@ -11245,9 +11332,9 @@
       "open_position": "Berdagang sekarang",
       "how_it_works": "Cara kerjanya",
       "error_title": "Tidak dapat memuat kampanye ini",
-      "error_description": "Kami tidak dapat memuat kampanye ini. Coba lagi.",
+      "error_description": "We couldn't load this campaign. Try again.",
       "stats_error_title": "Tidak dapat memuat statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "retry": "Coba lagi",
       "last_checked_at": "Terakhir diperiksa pada",
       "ondo": {
@@ -11258,7 +11345,7 @@
     "campaign_ended_stats": {
       "title": "Statistik",
       "error_title": "Tidak dapat memuat semua statistik",
-      "error_description": "Terjadi masalah saat memuat statistik. Coba lagi nanti.",
+      "error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Coba lagi",
       "total_participants": "Total peserta",
       "total_volume": "Volume total",
@@ -11275,7 +11362,7 @@
       "max_tier_subtext": "{{maxThreshold}}+ TVL — semua pencapaian tercapai",
       "max_badge": "Maks",
       "error_title": "Gagal memuat pool hadiah",
-      "error_description": "Terjadi kesalahan saat memuat pool hadiah. Coba lagi.",
+      "error_description": "There was an error loading the prize pool. Try again.",
       "retry": "Coba lagi"
     },
     "ondo_campaign_portfolio": {
@@ -11283,7 +11370,7 @@
       "position_unrealized_pnl": "P&L",
       "updated_at": "Terakhir diperbarui: {{time}}",
       "error_loading": "Gagal memuat posisi.",
-      "error_loading_description": "Terjadi kesalahan saat memuat posisi Anda. Coba lagi.",
+      "error_loading_description": "There was an error loading your positions. Try again.",
       "retry": "Coba lagi",
       "loading": "Memuat posisi...",
       "empty": "Anda tidak memiliki posisi",
@@ -11308,7 +11395,7 @@
       "total_participants": "{{count}} peserta",
       "updated_at": "Terakhir diperbarui: {{time}}",
       "error_loading": "Gagal memuat papan peringkat",
-      "error_loading_description": "Terjadi kesalahan saat memuat papan peringkat. Coba lagi.",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "error_loading_position": "Gagal memuat posisi Anda",
       "retry": "Coba lagi",
       "no_data": "Data papan peringkat tidak tersedia",
@@ -11326,7 +11413,7 @@
     "ondo_campaign_stats": {
       "title": "Statistik",
       "stats_error_title": "Tidak dapat memuat semua statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi nanti.",
+      "stats_error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Coba lagi",
       "label_return": "Laba",
       "label_market_value": "Nilai pasar",
@@ -11350,7 +11437,7 @@
       "type_rebalance": "Sesuaikan saldo",
       "type_external_outflow": "Arus keluar",
       "error_title": "Gagal memuat aktivitas",
-      "error_description": "Terjadi kesalahan saat memuat aktivitas. Coba lagi.",
+      "error_description": "Something went wrong while loading the activity. Try again.",
       "retry_button": "Coba lagi",
       "empty_title": "Belum ada aktivitas",
       "empty_description": "Aktivitas kampanye akan muncul di sini setelah Anda melakukan transaksi."
@@ -11383,7 +11470,7 @@
       "leaderboard_total_participants": "{{count}} peserta",
       "last_updated": "Terakhir diperbarui: {{time}}",
       "leaderboard_error_loading": "Gagal memuat papan peringkat",
-      "leaderboard_error_loading_description": "Terjadi kesalahan saat memuat papan peringkat. Coba lagi.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Papan peringkat belum dihitung. Periksa kembali nanti.",
       "leaderboard_powered_by_prefix": "Didukung oleh ",
       "leaderboard_hypertracker_brand": "HyperTracker",
@@ -11393,7 +11480,7 @@
       "stats_qualify_for_rank_title": "Lolos ke papan peringkat",
       "stats_qualify_for_rank_description": "Lakukan perdagangan {{notionalRemaining}} lagi dalam volume notional untuk memenuhi syarat.",
       "stats_error_title": "Tidak dapat memuat statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "stats_retry": "Coba lagi"
     },
     "predict_the_pitch_campaign": {
@@ -11412,7 +11499,7 @@
       "positions_open_badge": "{{count}} dibuka",
       "positions_closed_badge": "{{count}} ditutup",
       "positions_error": "Gagal memuat prediksi",
-      "positions_error_description": "Terjadi kesalahan saat memuat prediksi. Coba lagi.",
+      "positions_error_description": "Something went wrong while loading your predictions. Try again.",
       "positions_retry": "Coba lagi",
       "positions_last_updated": "Terakhir diperbarui: {{time}}",
       "positions_empty": "Belum ada prediksi",
@@ -11421,10 +11508,10 @@
       "leaderboard_total_participants": "{{count}} peserta",
       "last_updated": "Terakhir diperbarui: {{time}}",
       "leaderboard_error_loading": "Gagal memuat papan peringkat",
-      "leaderboard_error_loading_description": "Terjadi kesalahan saat memuat papan peringkat. Coba lagi.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Papan peringkat belum dihitung. Periksa kembali nanti.",
       "stats_error_title": "Tidak dapat memuat statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "label_markets_traded": "Pasar yang diperdagangkan",
       "stats_retry": "Coba lagi",
       "performance_title": "Performa",
@@ -11454,7 +11541,7 @@
       "previous_title": "Sebelumnya",
       "empty_state": "Kampanye tidak tersedia",
       "error_title": "Tidak dapat memuat kampanye",
-      "error_description": "Kami tidak dapat memuat kampanye. Coba lagi.",
+      "error_description": "We couldn't load any campaigns. Try again.",
       "retry_button": "Coba lagi",
       "refreshing": "Menyegarkan..."
     },
@@ -11603,7 +11690,7 @@
     },
     "show_error": {
       "title": "Kesalahan koneksi",
-      "description": "Gagal membuat koneksi. Coba lagi."
+      "description": "Failed to establish connection. Try again."
     },
     "show_rejection": {
       "title": "Persetujuan ditolak",
@@ -11637,11 +11724,11 @@
     },
     "show_not_found": {
       "title": "Koneksi Tidak Ditemukan",
-      "description": "Buat koneksi baru dari aplikasi untuk melanjutkan."
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "Terjadi kesalahan",
-      "description": "Terjadi kesalahan tidak terduga. Coba lagi."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Pilih proyek",
@@ -11650,7 +11737,7 @@
     },
     "show_method_error": {
       "title": "Permintaan gagal",
-      "description": "Permintaan tidak dapat diselesaikan. Coba lagi."
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11782,7 +11869,7 @@
     },
     "awaiting_app": {
       "title": "Buka {{app}}",
-      "message": "Buka aplikasi {{app}} di {{device}} Anda",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "Saat ini dibuka: {{app}}"
     },
     "awaiting_confirmation": {
@@ -11795,22 +11882,22 @@
     },
     "errors": {
       "device_locked": "Buka dan coba lagi untuk melanjutkan",
-      "app_not_open": "Buka aplikasi Ethereum di perangkat Anda",
-      "device_disconnected": "Koneksi {{device}} Anda telah terputus. Hubungkan kembali dan coba lagi",
-      "device_not_found": "{{device}} tidak dapat ditemukan. Pastikan perangkat Anda terhubung",
-      "device_not_ready": "Perangkat Anda belum siap. Periksa dan coba lagi",
-      "blind_signing": "Penandatanganan buta dinonaktifkan. Aktifkan di pengaturan perangkat Anda",
-      "connection_closed": "Koneksi terputus. Coba lagi",
-      "connection_timeout": "Waktu koneksi telah habis. Coba lagi",
+      "app_not_open": "Open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Make sure it's connected",
+      "device_not_ready": "Your device is not ready. Check it and try again",
+      "blind_signing": "Blind signing is disabled. Enable it in your device settings",
+      "connection_closed": "The connection was lost. Try again",
+      "connection_timeout": "Connection timed out. Try again",
       "user_cancelled": "Tindakan dibatalkan di perangkat Anda",
-      "pending_confirmation": "Terdapat tindakan yang tertunda di perangkat Anda. Selesaikan atau batalkan tindakan tersebut",
+      "pending_confirmation": "There's a pending action on your device. Complete or cancel it",
       "bluetooth_permission_denied": "Izin Bluetooth diperlukan untuk terhubung ke perangkat Anda",
       "location_permission_denied": "Izin lokasi diperlukan untuk memindai perangkat",
       "nearby_permission_denied": "Izin perangkat terdekat diperlukan",
-      "bluetooth_off": "Aktifkan Bluetooth untuk terhubung ke perangkat Anda",
-      "bluetooth_scan_failed": "Gagal memindai perangkat. Coba lagi",
-      "bluetooth_connection_failed": "Koneksi ke perangkat Anda gagal. Coba lagi",
-      "camera_permission_denied": "Izin akses kamera diperlukan untuk memindai kode QR. Aktifkan di pengaturan perangkat Anda",
+      "bluetooth_off": "Turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Try again",
+      "bluetooth_connection_failed": "The connection to your device failed. Try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "Operasi ini tidak didukung",
       "only_v4_supported": "{{device}} Anda hanya dapat menandatangani data bertipe versi 4 (V4). Situs ini meminta jenis tanda tangan lama yang tidak didukung",
       "unknown_error": "Pastikan {{device}} Anda telah diatur dengan Frasa Pemulihan Rahasia atau passphrase untuk akun ini"
@@ -12037,7 +12124,10 @@
       "payment_details": "Detail pembayaran",
       "total": "Total",
       "paying_with": "Membayar dengan",
+      "money_account": "Money account",
       "renews_on": "Diperpanjang pada",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "Kelola",
       "invoices": "Faktur",
       "contact_support": "Hubungi dukungan",
@@ -12085,6 +12175,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Gabung Pro",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

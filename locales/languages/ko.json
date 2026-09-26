@@ -988,7 +988,7 @@
       "dob_required": "생년월일은 필수입니다",
       "dob_invalid": "유효한 생년월일을 입력하세요",
       "ssn_required": "사회보장번호는 필수입니다",
-      "unexpected_error": "예기치 못한 오류가 발생했습니다. 다시 시도하세요.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "이 전화번호는 이미 {{email}} 계정에서 사용 중입니다. 계속하려면 해당 이메일로 로그인하세요.",
       "login_with_email": "이메일로 로그인"
     },
@@ -1159,11 +1159,47 @@
       "button": "계속",
       "error_title": "본인 인증",
       "error_description": "본인 인증을 시작하지 못했습니다. 다시 시도해 주세요.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
-      "email_not_set_error": "이메일 주소가 입력되지 않았습니다. 돌아가서 이메일 주소를 입력하세요."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "More information needed",
+      "more_info_description": "We need a bit more information to complete your verification. Continue to provide it.",
+      "more_info_button": "Continue verification",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Try again"
+    },
+    "kyc_pending": {
+      "title": "Verification in progress",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Check status"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Try again"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Try again"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Try again"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Options",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Popular"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "팔로우하는 트레이더가 거래를 하면 알림을 받습니다. 기기 설정에서 알림을 켜세요.",
@@ -1285,6 +1321,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "포지션",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1312,11 +1354,15 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Filters",
-        "show_results": "Show results",
+        "title": "Custom filters",
+        "show_results": "Apply",
+        "apply": "Apply",
+        "reset": "Reset",
         "section": {
-          "type": "유형",
-          "trader_cohort": "Trader cohort",
+          "type": "Asset",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Traders",
           "timeframe": "기간",
           "network": "네트워크",
           "market_cap": "시가총액",
@@ -1328,13 +1374,19 @@
           "perps": "무기한 선물",
           "predictions": "예측"
         },
+        "verification": {
+          "all": "All",
+          "verified": "Verified",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "모두",
           "following": "팔로우 중",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Verified"
         },
         "timeframe": {
           "1h": "1H",
@@ -3343,17 +3395,40 @@
       "predict_balance": "잔액 예측",
       "total": "총액",
       "price_details": "가격 정보",
-      "confirm": "컨펌",
       "terms": "계속 진행하면 플랫폼 약관에 동의하는 것이 됩니다.",
       "learn_more": "더 보기",
       "submitting": "주문 제출 중…",
-      "success_title": "주문 제출됨",
       "done": "완료",
       "close": "닫기",
       "delete": "삭제",
       "expired": "이 견적은 만료되었습니다. 새 견적을 받으려면 새로고침하세요.",
       "refresh": "새로 고침",
-      "retry": "다시 시도"
+      "retry": "다시 시도",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Review your order",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order filled",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Filled",
+      "average_fill_price": "Avg. fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Try again"
     }
   },
   "predict": {
@@ -4154,6 +4229,7 @@
     "display_nft_media_cta": "NFT 미디어 표시 켜기",
     "display_media_nft_warning": "NFT 미디어와 데이터를 표시하면 IP 주소가 중앙 서버에 노출될 수 있습니다. 관련 위험을 이해하고 있는 경우에만 NFT를 가져오세요.",
     "nfts_autodetect_title": "NFT 자동 감지",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "NFT 자동 감지 활성화",
     "turn_on_network_check_cta": "네트워크 세부 정보 확인 켜기",
     "display_nft_media_cta_new_1": "NFT를 보려면, 다음에서 NFT 미디어 표시를 켜세요",
@@ -4367,17 +4443,18 @@
   },
   "basic_functionality_migration": {
     "title": "설정이 업데이트되었습니다",
-    "social_title": "개인정보 보호 및 제품 업데이트",
-    "social_body_1": "MetaMask의 소셜 로그인 작동 방식을 업데이트합니다. MetaMask 전반에서 원활한 이용 환경을 제공하기 위해 이제 소셜 로그인 식별자(이메일 또는 아이디)가 사용자 프로필 및 연결된 계정 주소에 안전하게 링크됩니다. 이번 업데이트에 따라 기본 기능과 기타 기본 설정은 항상 활성화 상태로 유지됩니다.",
-    "social_body_2_prefix": "MetaMask는 사용자의 데이터를 제삼자에게 절대 판매하지 않습니다. 수집하는 데이터와 그 이유에 대한 자세한 내용은 다음에서 확인하세요:",
-    "social_body_2_middle": " 및 업데이트된 ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " and ",
     "social_body_2_suffix": ".",
     "blog_post_link": "블로그 포스트",
     "privacy_notice_link": "개인정보 처리방침",
-    "toast_description": "이제 기본 기능에 타사 API가 포함됩니다. 이전 설정에 따라 활성화되었습니다. 언제든지 다음에서 변경할 수 있습니다:",
-    "toast_description_disabled": "이제 기본 기능에 타사 API가 포함됩니다. 이전 설정에 따라 비활성화되었습니다. 언제든지 다음에서 변경할 수 있습니다:",
-    "settings_link": "설정 > 개인정보 보호.",
-    "accept_and_close": "동의하고 종료하기"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Settings > Privacy. ",
+    "learn_more_link": "Learn more.",
+    "accept_and_close": "Continue"
   },
   "onboarding_interest_questionnaire": {
     "title": "MetaMask를 어떻게 사용하실 건가요?",
@@ -7176,6 +7253,12 @@
     "order_status_cancelled": "취소됨",
     "webview_no_url_provided": "계속하려면 URL이 필요합니다",
     "webview_error_no_address_provided": "계속하려면 지갑 주소가 필요합니다",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Go back",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "설정",
       "use_new_buy_experience": "다른 구매 방법",
@@ -8030,7 +8113,7 @@
     "ledger_disconnected": "기기의 연결이 해제되었습니다",
     "ledger_disconnected_error": "장치와의 연결이 끊어졌습니다. 다시 시도해 주세요.",
     "unknown_error": "예기치 못한 오류가 발생했습니다.",
-    "unknown_error_message": "예기치 못한 오류가 발생했습니다. 다시 시도하세요.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "오류가 발생했습니다",
     "how_to_install_eth_app": "Ledger 기기에 이더리움 앱 설치하는 방법",
     "ledger_account_count": "MetaMask Mobile의 Ledger에서 1개의 계정을 사용 중입니다.",
@@ -8487,7 +8570,6 @@
       "add": "추가",
       "convert_cta": "암호자산 전환",
       "no_fee": "요금 없음",
-      "view_all": "모두 보기",
       "view_potential_earnings": "예상 수익 보기"
     },
     "metamask_card": {
@@ -8497,13 +8579,11 @@
       "virtual_card": "가상 카드",
       "metal_card": "메탈 카드",
       "cashback": "{{percentage}}% mUSD 캐시백",
-      "get_now": "받기",
       "link_title": "카드 연결",
       "link_subtitle": "잔액으로 결제하여 구매 시 보상을 받으세요.",
       "link_subtitle_no_apy": "잔액으로 결제하여 구매 시 보상을 받으세요.",
       "link_bullet_cashback": "{{percentage}}% mUSD 캐시백 적립",
       "link_bullet_apy": "최대 ~{{apy}}% APY 수익 얻기",
-      "link_card": "카드 연결",
       "link_pending_title": "카드 연결 중",
       "link_success_title": "이제 카드를 사용할 수 있습니다",
       "link_error": "카드를 연결하는 동안 오류가 발생했습니다",
@@ -8525,7 +8605,6 @@
       "unlink_card_sheet_another_money_account": "다른 Money Account",
       "unlink_card_sheet_keep_linked": "연결 유지",
       "unlink_card_sheet_unlink_account": "계정 연결 해제",
-      "manage_card": "관리",
       "verification_pending": "신원 인증을 검토 중입니다. 일반적으로 12시간 이내에 완료됩니다."
     },
     "what_you_get": {
@@ -9234,6 +9313,8 @@
       "limit": "한도",
       "recurring": "반복"
     },
+    "generic_error_toast_title": "Something went wrong",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "미체결 주문",
@@ -9301,7 +9382,13 @@
       "edit_cost_tolerance": "비용 허용 범위 수정",
       "try_again": "다시 시도",
       "error_calculation_network_fees": "네트워크 수수료를 계산하지 못했습니다.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Order created",
+      "order_created_description": "We'll let you know when it's filled.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "수령 금액",
@@ -10394,7 +10481,7 @@
         },
         "unverified": {
           "title": "인증 필요",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "인증 상태를 확인할 수 없습니다",
@@ -10715,8 +10802,8 @@
       "sign_in_help_got_it": "컨펌",
       "errors": {
         "invalid_credentials": "잘못된 로그인 정보입니다",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "이메일 주소를 입력해야 합니다",
         "password_required": "비밀번호를 입력해야 합니다",
         "email_invalid": "잘못된 이메일 주소입니다",
@@ -10738,7 +10825,7 @@
     "card_otp_authentication": {
       "title": "휴대폰 번호 확인",
       "description_with_phone_number": "{{maskedPhoneNumber}}(으)로 전송된\n확인 코드를 입력하세요",
-      "description_without_phone_number": "귀하의 전화번호로 확인 코드를 보냈습니다. 코드를 입력하여 계속하세요.",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "확인 코드",
       "confirm_button": "컨펌",
       "back_to_login_button": "로그인으로 돌아가기",
@@ -10755,22 +10842,22 @@
       "success_title": "카드가 추가되었습니다!",
       "success_message": "MetaMask 카드가 {{walletName}}에 추가되었습니다.",
       "error_title": "카드 추가 불가능",
-      "error_wallet_not_available": "이 장치에서는 {{walletName}}을(를) 사용할 수 없습니다. {{walletName}}이(가) 설정되어 있는지 확인해 주세요.",
-      "error_wallet_not_initialized": "{{walletName}}이(가) 초기화되지 않았습니다. 지갑을 설정한 후 다시 시도해 주세요.",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Set up your wallet and try again.",
       "error_card_already_in_wallet": "이 카드는 이미 {{walletName}}에 추가되어 있습니다.",
-      "error_card_pending": "카드가 {{walletName}}에서 설정되고 있습니다. 몇 분 후 다시 확인하세요.",
-      "error_card_suspended": "{{walletName}}의 카드가 정지되었습니다. 고객 지원팀에 연락하여 도움을 받으세요.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "이 카드는 모바일 지갑에 등록할 수 없습니다.",
-      "error_encryption_failed": "카드 데이터를 암호화하지 못했습니다. 다시 시도해 주세요.",
-      "error_invalid_card_data": "카드 데이터가 유효하지 않습니다. 카드 정보를 확인한 후 다시 시도하세요.",
-      "error_card_not_found": "카드를 찾을 수 없습니다. 다시 시도하세요.",
+      "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
+      "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "사용자 지역에서는 카드 제공자를 이용할 수 없습니다.",
-      "error_card_id_mismatch": "카드 인증에 실패했습니다. 다시 시도하세요.",
-      "error_card_not_active": "카드가 활성화되지 않았습니다. 먼저 카드를 활성화하세요.",
+      "error_card_id_mismatch": "Card verification failed. Try again.",
+      "error_card_not_active": "Your card is not active. Activate your card first.",
       "error_network": "Network error occurred. Check your connection and try again.",
-      "error_timeout": "요청 시간이 초과되었습니다. 다시 시도해 주세요.",
-      "error_server": "서버 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
-      "error_unknown": "예기치 못한 오류가 발생했습니다. 다시 시도하거나 고객 지원에 문의해 주세요.",
+      "error_timeout": "The request timed out. Try again.",
+      "error_server": "Server error occurred. Try again later.",
+      "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "이 플랫폼은 모바일 지갑 프로비저닝을 지원하지 않습니다.",
       "try_again": "다시 시도",
       "cancel": "취소"
@@ -10817,7 +10904,7 @@
     },
     "version_guard": {
       "title": "업데이트 필요",
-      "description": "보상을 사용하려면 더 최신 버전의 MetaMask가 필요합니다. 계속하려면 업데이트하세요.",
+      "description": "A newer version of MetaMask is required to use Rewards. Update to continue.",
       "update_button": "MetaMask 업데이트"
     },
     "season_error": {
@@ -10861,15 +10948,15 @@
       "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요.",
       "retry_button": "다시 시도"
     },
-    "solana_signup_not_supported": "솔라나 계정으로 보상에 로그인하는 기능은 아직 지원되지 않습니다. 이더리움 계정을 대신 사용해 주세요.",
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.",
     "error_messages": {
       "unknown_error": "알 수 없는 오류가 발생했습니다",
-      "something_went_wrong": "알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-      "account_already_registered": "이 계정은 이미 다른 보상 프로필에 등록되어 있습니다. 계정을 변경한 후 계속 진행하세요.",
+      "something_went_wrong": "Something went wrong. Try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Switch account to continue.",
       "request_rejected": "요청을 거부하셨습니다.",
-      "failed_to_claim_reward": "보상을 수령할 수 없습니다. 잠시 후 다시 시도해 주세요.",
-      "service_not_available": "현재 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
-      "invalid_referral_code": "잘못된 추천 코드입니다. 확인 후 다시 입력해 주세요.",
+      "failed_to_claim_reward": "Failed to claim reward. Try again shortly.",
+      "service_not_available": "Service is not available at the moment. Try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "이미 다른 사용자의 추천을 받았습니다.",
       "cannot_use_own_referral_code": "본인의 추천 코드는 사용할 수 없습니다.",
       "invalid_bonus_code": "잘못된 보너스 코드",
@@ -10949,7 +11036,7 @@
       "swap_title": "스와프",
       "perps_title": "무기한 선물",
       "error_title": "트랜잭션 불러오기 실패",
-      "error_description": "트랜잭션을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "error_description": "Something went wrong while loading your transactions. Try again.",
       "retry_button": "다시 시도",
       "empty_title": "아직 트랜잭션이 없습니다. 활동이 발생하면 VIP 트랜잭션이 여기에 표시됩니다."
     },
@@ -11007,15 +11094,15 @@
       "not_supported_region_title": "지원되지 않는 지역입니다",
       "not_supported_region_description": "회원님의 지역에서는 보상 프로그램이 아직 지원되지 않습니다. 현재 대상 지역을 확대 중이니, 나중에 다시 확인해 주세요.",
       "not_supported_hardware_account_title": "지원되지 않는 계정입니다",
-      "not_supported_hardware_account_description": "아직은 하드웨어 지갑 계정으로 보상을 받을 수 없습니다. 다른 계정으로 변경하여 계속 진행하세요.",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
       "not_supported_account_type_title": "지원되지 않는 계정 유형입니다",
-      "not_supported_account_type_description": "현재 내부 이더리움 및 솔라나 계정만 보상 프로그램에 등록할 수 있습니다. 계속하려면 다른 계정으로 전환하세요.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
       "not_supported_confirm_go_back": "뒤로 가기",
       "not_supported_confirm_retry": "다시 시도",
       "auth_fail_title": "인증 실패",
-      "auth_fail_description": "보상 프로그램 인증을 할 수 없습니다. 연결 상태를 확인하고 다시 시도하세요.",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
       "geo_check_fail_title": "참여할 자격이 있는지 확인할 수 없습니다",
-      "geo_check_fail_description": "해당 지역에서 보상 프로그램 등록이 허용되는지 확인할 수 없습니다. 연결 상태를 확인하고 다시 시도해 주세요.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
       "intro_confirm_geo_loading": "지역 확인 중...",
       "step_confirm": "다음",
       "step_finish": "시작하기",
@@ -11088,12 +11175,12 @@
         "cancel": "취소",
         "confirm": "컨펌",
         "error_title": "문제가 발생했습니다",
-        "error_message": "보상 프로그램을 탈퇴할 수 없습니다. 다시 시도해 보세요.",
+        "error_message": "Failed to opt out of Rewards. Try again.",
         "processing": "처리 중..."
       },
       "request_received": {
         "title": "요청 수신됨",
-        "description": "약 7일이 지나면 진행 상황은 완전히 삭제됩니다. 실수로 요청했다면 앱을 통해 고객지원팀에 연락하세요."
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, contact support through the app."
       }
     },
     "toast_dismiss": "닫기",
@@ -11110,8 +11197,8 @@
       },
       "account_not_supported": {
         "title": "지원되지 않는 계정입니다",
-        "description_hardware": "하드웨어 지갑 계정은 아직 허용되지 않습니다. 다른 계정으로 변경하여 계속 진행하세요.",
-        "description_general": "현재는 하드웨어 지갑 계정이 아닌 내부 이더리움 및 솔라나 계정만 허용됩니다. 다른 계정으로 변경하여 계속 진행해 주세요.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
         "confirm": "뒤로 가기"
       }
     },
@@ -11193,7 +11280,7 @@
       "arriving_soon": "곧 도착 예정",
       "check_back_soon": "곧 돌아와서 청구하세요",
       "redeem_failure_title": "수령 실패",
-      "redeem_failure_description": "나중에 다시 시도해 주세요.",
+      "redeem_failure_description": "Try again later.",
       "reward_details": "보상 상세 정보",
       "select_account_description": "보상을 받을 계정을 선택하세요."
     },
@@ -11222,7 +11309,7 @@
       "geo_locked_cta": "자격 확인",
       "geo_loading": "지역 확인 중...",
       "remind_me_success_toast": "이 캠페인이 시작되면 알려드립니다.",
-      "remind_me_save_error": "알림을 저장할 수 없습니다. 다시 시도하세요.",
+      "remind_me_save_error": "Could not save your reminder. Try again.",
       "view_details": "세부 정보 보기",
       "view_details_accessibility": "{{campaignName}} 세부정보 보기"
     },
@@ -11235,7 +11322,7 @@
       "opt_in": "참여하기",
       "opting_in": "참여 중...",
       "opted_in": "이 캠페인에 참여했습니다",
-      "opt_in_error": "참여하지 못했습니다. 다시 시도하세요.",
+      "opt_in_error": "Failed to opt in. Try again.",
       "join_campaign": "캠페인 참여",
       "competition_closed_title": "대회 참가 마감",
       "competition_closed_description": "죄송합니다. 이 대회는 더 이상 참가할 수 없습니다. 아래 리더보드를 확인하고 이후 캠페인을 다시 확인해 주세요.",
@@ -11245,9 +11332,9 @@
       "open_position": "거래하기",
       "how_it_works": "작동 방식",
       "error_title": "이 캠페인을 불러올 수 없습니다",
-      "error_description": "이 캠페인을 불러오지 못했습니다. 다시 시도해 주세요.",
+      "error_description": "We couldn't load this campaign. Try again.",
       "stats_error_title": "통계를 불러올 수 없음",
-      "stats_error_description": "통계를 불러오는 중에 문제가 발생했습니다. 다시 시도하세요.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "retry": "다시 시도",
       "last_checked_at": "마지막 확인 시간:",
       "ondo": {
@@ -11258,7 +11345,7 @@
     "campaign_ended_stats": {
       "title": "통계",
       "error_title": "모든 통계를 불러올 수 없음",
-      "error_description": "통계를 불러오는 중에 문제가 발생했습니다. 나중에 다시 시도하세요.",
+      "error_description": "We had a problem loading your stats. Try again later.",
       "retry": "다시 시도",
       "total_participants": "총 참가자 수",
       "total_volume": "총 거래량",
@@ -11275,7 +11362,7 @@
       "max_tier_subtext": "{{maxThreshold}}+ TVL — 모든 단계 달성함",
       "max_badge": "최대",
       "error_title": "총 상금 규모를 불러올 수 없음",
-      "error_description": "총 상금 규모를 불러오는 중에 오류가 발생했습니다. 다시 시도하세요.",
+      "error_description": "There was an error loading the prize pool. Try again.",
       "retry": "다시 시도"
     },
     "ondo_campaign_portfolio": {
@@ -11283,7 +11370,7 @@
       "position_unrealized_pnl": "손익",
       "updated_at": "마지막 업데이트: {{time}}",
       "error_loading": "포지션 불러오기 실패.",
-      "error_loading_description": "포지션을 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.",
+      "error_loading_description": "There was an error loading your positions. Try again.",
       "retry": "다시 시도",
       "loading": "포지션 불러오는 중...",
       "empty": "포지션이 없습니다",
@@ -11308,7 +11395,7 @@
       "total_participants": "참여자 {{count}}명",
       "updated_at": "마지막 업데이트: {{time}}",
       "error_loading": "리더보드 불러오기 실패",
-      "error_loading_description": "리더보드를 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "error_loading_position": "포지션 불러오기 실패",
       "retry": "다시 시도",
       "no_data": "사용 가능한 리더보드 데이터가 없습니다",
@@ -11326,7 +11413,7 @@
     "ondo_campaign_stats": {
       "title": "통계",
       "stats_error_title": "모든 통계를 불러올 수 없음",
-      "stats_error_description": "통계를 불러오는 중에 문제가 발생했습니다. 나중에 다시 시도하세요.",
+      "stats_error_description": "We had a problem loading your stats. Try again later.",
       "retry": "다시 시도",
       "label_return": "수익",
       "label_market_value": "시장 가치",
@@ -11350,7 +11437,7 @@
       "type_rebalance": "리밸런스",
       "type_external_outflow": "유출",
       "error_title": "활동 불러오기 실패",
-      "error_description": "활동을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "error_description": "Something went wrong while loading the activity. Try again.",
       "retry_button": "다시 시도",
       "empty_title": "아직 활동이 없습니다",
       "empty_description": "트랜잭션이 발생하면 캠페인 활동이 여기에 표시됩니다."
@@ -11383,7 +11470,7 @@
       "leaderboard_total_participants": "참여자 {{count}}명",
       "last_updated": "마지막 업데이트: {{time}}",
       "leaderboard_error_loading": "리더보드 불러오기 실패",
-      "leaderboard_error_loading_description": "리더보드를 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "리더보드 집계가 아직 완료되지 않았습니다. 잠시 후에 다시 확인해 주세요.",
       "leaderboard_powered_by_prefix": "제공자 ",
       "leaderboard_hypertracker_brand": "HyperTracker",
@@ -11393,7 +11480,7 @@
       "stats_qualify_for_rank_title": "리더보드 자격 얻기",
       "stats_qualify_for_rank_description": "참가 자격을 획득하려면 명목 거래량 기준으로 {{notionalRemaining}}만큼 더 거래해야 합니다.",
       "stats_error_title": "통계를 불러올 수 없음",
-      "stats_error_description": "통계를 불러오는 중에 문제가 발생했습니다. 다시 시도하세요.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "stats_retry": "다시 시도"
     },
     "predict_the_pitch_campaign": {
@@ -11412,7 +11499,7 @@
       "positions_open_badge": "{{count}}개 진행중",
       "positions_closed_badge": "{{count}}개 종료",
       "positions_error": "예측을 불러오기 실패",
-      "positions_error_description": "예측을 불러오는 중 문제가 발생했습니다. 다시 시도하세요.",
+      "positions_error_description": "Something went wrong while loading your predictions. Try again.",
       "positions_retry": "다시 시도",
       "positions_last_updated": "마지막 업데이트: {{time}}",
       "positions_empty": "아직 예측이 없습니다",
@@ -11421,10 +11508,10 @@
       "leaderboard_total_participants": "참여자 {{count}}명",
       "last_updated": "마지막 업데이트: {{time}}",
       "leaderboard_error_loading": "리더보드 불러오기 실패",
-      "leaderboard_error_loading_description": "리더보드를 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "리더보드 집계가 아직 완료되지 않았습니다. 잠시 후에 다시 확인해 주세요.",
       "stats_error_title": "통계를 불러올 수 없음",
-      "stats_error_description": "통계를 불러오는 중에 문제가 발생했습니다. 다시 시도하세요.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "label_markets_traded": "거래한 시장",
       "stats_retry": "다시 시도",
       "performance_title": "실적",
@@ -11454,7 +11541,7 @@
       "previous_title": "이전",
       "empty_state": "참여 가능한 캠페인이 없습니다",
       "error_title": "캠페인을 불러올 수 없습니다",
-      "error_description": "캠페인을 불러올 수 없습니다. 다시 시도해 주세요.",
+      "error_description": "We couldn't load any campaigns. Try again.",
       "retry_button": "다시 시도",
       "refreshing": "새로 고침 중..."
     },
@@ -11603,7 +11690,7 @@
     },
     "show_error": {
       "title": "연결 오류",
-      "description": "연결하는 데 실패했습니다. 다시 시도하세요."
+      "description": "Failed to establish connection. Try again."
     },
     "show_rejection": {
       "title": "승인 거부",
@@ -11637,11 +11724,11 @@
     },
     "show_not_found": {
       "title": "트랜잭션 찾을 수 없음",
-      "description": "계속하려면 앱에서 새로 연결해 주세요."
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "문제가 발생했습니다",
-      "description": "예기치 못한 오류가 발생했습니다. 다시 시도하세요."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "프로젝트 선택",
@@ -11650,7 +11737,7 @@
     },
     "show_method_error": {
       "title": "요청 실패",
-      "description": "요청을 완료할 수 없습니다. 다시 시도해 주세요."
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11782,7 +11869,7 @@
     },
     "awaiting_app": {
       "title": "{{app}} 열기",
-      "message": "{{device}}에서 {{app}} 앱을 여세요",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "현재 열려 있음: {{app}}"
     },
     "awaiting_confirmation": {
@@ -11795,22 +11882,22 @@
     },
     "errors": {
       "device_locked": "계속하려면 잠금을 해제한 후 다시 시도하세요",
-      "app_not_open": "장치에서 이더리움 앱을 여세요",
-      "device_disconnected": "{{device}}의 연결이 해제되었습니다. 다시 연결한 후 재시도하세요",
-      "device_not_found": "{{device}}을(를) 찾을 수 없습니다. 연결되어 있는지 확인하세요",
-      "device_not_ready": "장치가 준비되어 있지 않습니다. 확인 후 다시 시도하세요",
-      "blind_signing": "블라인드 서명이 비활성화되어 있습니다. 쟝치 설정에서 활성화해 주세요",
-      "connection_closed": "연결이 끊어졌습니다. 다시 시도하세요",
-      "connection_timeout": "연결 시간이 초과되었습니다. 다시 시도하세요",
+      "app_not_open": "Open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Make sure it's connected",
+      "device_not_ready": "Your device is not ready. Check it and try again",
+      "blind_signing": "Blind signing is disabled. Enable it in your device settings",
+      "connection_closed": "The connection was lost. Try again",
+      "connection_timeout": "Connection timed out. Try again",
       "user_cancelled": "장치에서 작업이 취소되었습니다",
-      "pending_confirmation": "장치에 보류 중인 작업이 있습니다. 완료하거나 취소하세요",
+      "pending_confirmation": "There's a pending action on your device. Complete or cancel it",
       "bluetooth_permission_denied": "장치를 연결하려면 블루투스 권한이 필요합니다",
       "location_permission_denied": "장치를 스캔하려면 위치 권한이 필요합니다",
       "nearby_permission_denied": "근처 장치 권한이 필요합니다",
-      "bluetooth_off": "장치에 연결하려면 블루투스를 켜세요",
-      "bluetooth_scan_failed": "장치를 스캔하지 못했습니다. 다시 시도하세요",
-      "bluetooth_connection_failed": "기기 연결에 실패했습니다. 다시 시도하세요",
-      "camera_permission_denied": "QR 코드를 스캔하려면 카메라 권한이 필요합니다. 기기 설정에서 해당 권한을 활성화하세요.",
+      "bluetooth_off": "Turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Try again",
+      "bluetooth_connection_failed": "The connection to your device failed. Try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "지원되지 않는 작업입니다",
       "only_v4_supported": "회원님의 {{device}}은(는) 버전 4(V4) 타입 데이터 서명만 지원합니다. 이 사이트는 지원되지 않는 이전 버전의 서명 방식을 요청했습니다",
       "unknown_error": "이 계정에 대한 비밀복구구문 또는 패스프레이즈로 {{device}}이(가) 설정되어 있는지 확인하세요"
@@ -12037,7 +12124,10 @@
       "payment_details": "결제 세부 정보",
       "total": "총액",
       "paying_with": "결제 수단:",
+      "money_account": "Money account",
       "renews_on": "갱신일",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "관리",
       "invoices": "인보이스",
       "contact_support": "지원팀에 문의",
@@ -12085,6 +12175,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Pro 가입",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "프로",
     "pricing": {
       "loading": "Loading plans...",
