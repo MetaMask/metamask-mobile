@@ -92,7 +92,7 @@ describe('RewardsTradingRebatesView', () => {
     ).toBeOnTheScreen();
     expect(getByText('Trading rebates')).toBeOnTheScreen();
     expect(getByText('Perps volume')).toBeOnTheScreen();
-    expect(getByText('+$1')).toBeOnTheScreen();
+    expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(
       getByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${REBATE.id}`),
     ).toBeOnTheScreen();
