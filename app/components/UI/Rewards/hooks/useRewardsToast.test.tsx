@@ -1,26 +1,14 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { render } from '@testing-library/react-native';
-import { useContext, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
-import { mockTheme } from '../../../../util/theme';
-import useRewardsToast, { RewardsToastOptions } from './useRewardsToast';
-import {
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-jest.mock('react', () => ({
-  ...jest.requireActual('react'),
-  useContext: jest.fn(),
-  useCallback: jest.fn((fn) => fn),
-  useMemo: jest.fn((fn) => fn()),
-}));
+import useRewardsToast, { type RewardsToastOptions } from './useRewardsToast';
 
 jest.mock('../../../../util/haptics');
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
-    if (key === 'rewards.toast_dismiss') return 'Dismiss';
     if (key === 'rewards.notifications_nudge.title') return "Don't miss out";
     if (key === 'rewards.notifications_nudge.description') {
       return 'Enable notifications to stay informed on campaigns';
@@ -48,81 +36,43 @@ jest.mock('../../../../images/rewards/notification.svg', () => {
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    Box: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'rewards-nudge-start-accessory-box' },
-        children,
-      ),
-    // Required by Toast.tsx module init via Toast barrel import.
-    IconColor: {
-      IconDefault: 'IconDefault',
-      OverlayInverse: 'OverlayInverse',
-      IconAlternative: 'IconAlternative',
-      IconMuted: 'IconMuted',
-      PrimaryDefault: 'PrimaryDefault',
-      PrimaryAlternative: 'PrimaryAlternative',
-      SuccessDefault: 'SuccessDefault',
-      ErrorDefault: 'ErrorDefault',
-      ErrorAlternative: 'ErrorAlternative',
-      WarningDefault: 'WarningDefault',
-      InfoDefault: 'InfoDefault',
-    },
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
-describe('useRewardsToast', () => {
-  let mockShowToast: jest.Mock;
-  let mockCloseToast: jest.Mock;
-  let mockToastRef: {
-    current: { showToast: jest.Mock; closeToast: jest.Mock };
-  };
+const mockToast = jest.mocked(toast);
 
+describe('useRewardsToast', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockShowToast = jest.fn();
-    mockCloseToast = jest.fn();
-    mockToastRef = {
-      current: {
-        showToast: mockShowToast,
-        closeToast: mockCloseToast,
-      },
-    };
-
-    (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef });
   });
 
-  describe('showToast function', () => {
-    it('calls toastRef showToast and triggers haptic feedback', async () => {
+  describe('showToast', () => {
+    it('calls toast excluding hapticsType and triggers haptic feedback', () => {
       const { result } = renderHook(() => useRewardsToast());
-
       const testConfig: RewardsToastOptions = {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        hapticsType: NotificationMoment.Success,
-        labelOptions: [{ label: 'Test', isBold: true }],
-        hasNoTimeout: false,
+        ...result.current.RewardsToastOptions.success('Test'),
       };
 
-      await act(async () => {
+      act(() => {
         result.current.showToast(testConfig);
-        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        labelOptions: [{ label: 'Test', isBold: true }],
-        hasNoTimeout: false,
-      });
+      expect(mockToast).toHaveBeenCalledTimes(1);
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          severity: ToastSeverity.Success,
+          title: 'Test',
+        }),
+      );
+      expect(mockToast.mock.calls[0][0]).not.toHaveProperty('hapticsType');
       expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
     });
 
-    it('strips hapticsType from payload passed to toastRef for enableNotificationsNudge', async () => {
+    it('strips hapticsType from payload for enableNotificationsNudge', () => {
       const { result } = renderHook(() => useRewardsToast());
       const nudgeConfig =
         result.current.RewardsToastOptions.enableNotificationsNudge({
@@ -130,285 +80,129 @@ describe('useRewardsToast', () => {
           onPress: jest.fn(),
         });
 
-      await act(async () => {
+      act(() => {
         result.current.showToast(nudgeConfig);
-        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.not.objectContaining({ hapticsType: expect.anything() }),
       );
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: ToastVariants.Plain,
           hasNoTimeout: true,
+          actionButtonLabel: 'Turn on',
         }),
       );
       expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Warning);
     });
   });
 
-  describe('RewardsToastOptions configurations', () => {
-    it('returns success configuration with title only', () => {
+  describe('RewardsToastOptions', () => {
+    it('configures success toast with Success severity', () => {
       const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('Test Title');
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: mockTheme.colors.success.default,
-        backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Success,
-        hasNoTimeout: false,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Test Title', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toBeUndefined();
-      expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-      });
-    });
-
-    it('returns success configuration with title and subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success(
         'Test Title',
         'Test Subtitle',
       );
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: mockTheme.colors.success.default,
-        hapticsType: NotificationMoment.Success,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Test Title', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Test Subtitle',
-      });
+      expect(config.severity).toBe(ToastSeverity.Success);
+      expect(config.hapticsType).toBe(NotificationMoment.Success);
+      expect(config.hasNoTimeout).toBe(false);
+      expect(config.title).toBe('Test Title');
+      expect(config.description).toBe('Test Subtitle');
     });
 
-    it('returns error configuration with title only', () => {
+    it('configures error toast with Danger severity', () => {
       const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.error('Error Title');
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: mockTheme.colors.error.default,
-        backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Error,
-        hasNoTimeout: false,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Error Title', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toBeUndefined();
-      expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-      });
-    });
-
-    it('returns error configuration with title and subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.error(
         'Error Title',
         'Error Subtitle',
       );
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: mockTheme.colors.error.default,
-        hapticsType: NotificationMoment.Error,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Error Title', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Error Subtitle',
-      });
+      expect(config.severity).toBe(ToastSeverity.Danger);
+      expect(config.hapticsType).toBe(NotificationMoment.Error);
+      expect(config.hasNoTimeout).toBe(false);
+      expect(config.title).toBe('Error Title');
+      expect(config.description).toBe('Error Subtitle');
     });
 
-    it('returns entriesClosed configuration with title only', () => {
+    it('configures warning toast as persistent Warning severity', () => {
       const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.entriesClosed('Entries closed');
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Lock,
-        iconColor: mockTheme.colors.icon.default,
-        backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Warning,
-        hasNoTimeout: false,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Entries closed', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toBeUndefined();
-      expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-      });
-    });
-
-    it('returns entriesClosed configuration with title and subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.entriesClosed(
-        'Entries closed',
-        'You missed the opt-in window. Check back for more campaigns in the future.',
+      const config = result.current.RewardsToastOptions.warning(
+        'Request received',
+        'In about 7 days, your progress will be fully erased.',
       );
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Lock,
-        iconColor: mockTheme.colors.icon.default,
-        hapticsType: NotificationMoment.Warning,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Entries closed', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description:
-          'You missed the opt-in window. Check back for more campaigns in the future.',
-      });
+      expect(config.severity).toBe(ToastSeverity.Warning);
+      expect(config.hapticsType).toBe(NotificationMoment.Warning);
+      expect(config.hasNoTimeout).toBe(true);
+      expect(config.title).toBe('Request received');
+      expect(config.description).toBe(
+        'In about 7 days, your progress will be fully erased.',
+      );
     });
 
-    it('returns loading configuration with title only', () => {
+    it('configures loading toast with a spinner and no timeout', () => {
       const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.loading('Loading...');
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: true,
-        hapticsType: NotificationMoment.Warning,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Loading...', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toBeUndefined();
-      expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-      });
-    });
-
-    it('returns loading configuration with title and subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.loading(
         'Loading...',
         'Please wait',
       );
 
-      expect(config.labelOptions).toEqual([
-        { label: 'Loading...', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({ description: 'Please wait' });
-    });
-
-    it('calls closeToast when loading close button is pressed', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.loading('Loading...');
-
-      config.closeButtonOptions?.onPress?.();
-
-      expect(mockCloseToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders startAccessory for loading config', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.loading('Loading...');
-
+      expect(config.hapticsType).toBe(NotificationMoment.Warning);
+      expect(config.hasNoTimeout).toBe(true);
       expect(config.startAccessory).toBeDefined();
+      expect(config.title).toBe('Loading...');
+      expect(config.description).toBe('Please wait');
     });
 
-    it('returns enableNotificationsNudge configuration with Plain variant', () => {
+    it('configures entriesClosed toast with a lock accessory', () => {
+      const { result } = renderHook(() => useRewardsToast());
+
+      const config = result.current.RewardsToastOptions.entriesClosed(
+        'Entries closed',
+        'You missed the opt-in window.',
+      );
+
+      expect(config.hapticsType).toBe(NotificationMoment.Warning);
+      expect(config.hasNoTimeout).toBe(false);
+      expect(config.startAccessory).toBeDefined();
+      expect(config.title).toBe('Entries closed');
+      expect(config.description).toBe('You missed the opt-in window.');
+    });
+
+    it('configures enableNotificationsNudge with action button', () => {
       const { result } = renderHook(() => useRewardsToast());
       const onPress = jest.fn();
+
       const config =
         result.current.RewardsToastOptions.enableNotificationsNudge({
           label: 'Turn on',
           onPress,
         });
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: true,
-        hapticsType: NotificationMoment.Warning,
-        linkButtonOptions: { label: 'Turn on', onPress },
-      });
-      expect(config.labelOptions).toEqual([
-        { label: "Don't miss out", isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Enable notifications to stay informed on campaigns',
-      });
-      expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-      });
-    });
-
-    it('passes linkButtonOptions through to enableNotificationsNudge config', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const onPress = jest.fn();
-      const config =
-        result.current.RewardsToastOptions.enableNotificationsNudge({
-          label: 'Open settings',
-          onPress,
-        });
-
-      expect(config.linkButtonOptions).toEqual({
-        label: 'Open settings',
-        onPress,
-      });
-    });
-
-    it('renders startAccessory containing notification icon placeholder', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.enableNotificationsNudge({
-          label: 'Turn on',
-          onPress: jest.fn(),
-        });
-
+      expect(config.hasNoTimeout).toBe(true);
+      expect(config.hapticsType).toBe(NotificationMoment.Warning);
+      expect(config.title).toBe("Don't miss out");
+      expect(config.description).toBe(
+        'Enable notifications to stay informed on campaigns',
+      );
+      expect(config.actionButtonLabel).toBe('Turn on');
+      expect(config.actionButtonOnPress).toBe(onPress);
       expect(config.startAccessory).toBeDefined();
       const { getByTestId } = render(config.startAccessory as ReactElement);
       expect(getByTestId('rewards-notification-svg')).toBeDefined();
     });
 
-    it('calls closeToast when enableNotificationsNudge close button is pressed', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.enableNotificationsNudge({
-          label: 'Turn on',
-          onPress: jest.fn(),
-        });
-
-      config.closeButtonOptions?.onPress?.();
-
-      expect(mockCloseToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls closeToast when close button is pressed', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('Test Title');
-
-      config.closeButtonOptions?.onPress?.();
-
-      expect(mockCloseToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns outcomeWinner configuration with CTA and close handlers', () => {
+    it('configures outcomeWinner toast with CTA and close handlers', () => {
       const { result } = renderHook(() => useRewardsToast());
       const onCta = jest.fn();
       const onClose = jest.fn();
+
       const config = result.current.RewardsToastOptions.outcomeWinner({
         title: 'Winner title',
         description: 'Winner body',
@@ -417,81 +211,23 @@ describe('useRewardsToast', () => {
         onClosePress: onClose,
       });
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: true,
-        hapticsType: NotificationMoment.Success,
-        descriptionOptions: { description: 'Winner body' },
-        linkButtonOptions: { label: 'Next' },
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Winner title', isBold: true },
-      ]);
+      expect(config.hasNoTimeout).toBe(true);
+      expect(config.hapticsType).toBe(NotificationMoment.Success);
+      expect(config.title).toBe('Winner title');
+      expect(config.description).toBe('Winner body');
+      expect(config.actionButtonLabel).toBe('Next');
       expect(config.startAccessory).toBeDefined();
-      config.linkButtonOptions?.onPress?.();
-      config.closeButtonOptions?.onPress?.();
+      config.actionButtonOnPress?.({} as never);
+      config.onClose?.();
       expect(onCta).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('returns warning configuration with title only', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.warning('Request received');
-
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: mockTheme.colors.warning.default,
-        backgroundColor: 'transparent',
-        hapticsType: NotificationMoment.Warning,
-        hasNoTimeout: true,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Request received', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toBeUndefined();
-      expect(config.closeButtonOptions).toMatchObject({
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-      });
-    });
-
-    it('returns warning configuration with title and subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.warning(
-        'Request received',
-        'In about 7 days, your progress will be fully erased.',
-      );
-
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        hapticsType: NotificationMoment.Warning,
-        hasNoTimeout: true,
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Request received', isBold: true },
-      ]);
-      expect(config.descriptionOptions).toEqual({
-        description: 'In about 7 days, your progress will be fully erased.',
-      });
-    });
-
-    it('calls closeToast when warning close button is pressed', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.warning('Request received');
-
-      config.closeButtonOptions?.onPress?.();
-
-      expect(mockCloseToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns outcomeNonWinner configuration with CTA and close handlers', () => {
+    it('configures outcomeNonWinner toast with Success severity', () => {
       const { result } = renderHook(() => useRewardsToast());
       const onCta = jest.fn();
       const onClose = jest.fn();
+
       const config = result.current.RewardsToastOptions.outcomeNonWinner({
         title: 'Thanks title',
         description: 'Thanks body',
@@ -500,214 +236,26 @@ describe('useRewardsToast', () => {
         onClosePress: onClose,
       });
 
-      expect(config).toMatchObject({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: mockTheme.colors.success.default,
-        backgroundColor: 'transparent',
-        hasNoTimeout: true,
-        hapticsType: NotificationMoment.Warning,
-        descriptionOptions: { description: 'Thanks body' },
-        linkButtonOptions: { label: 'Done' },
-      });
-      expect(config.labelOptions).toEqual([
-        { label: 'Thanks title', isBold: true },
-      ]);
-      config.linkButtonOptions?.onPress?.();
-      config.closeButtonOptions?.onPress?.();
+      expect(config.severity).toBe(ToastSeverity.Success);
+      expect(config.hasNoTimeout).toBe(true);
+      expect(config.hapticsType).toBe(NotificationMoment.Warning);
+      expect(config.title).toBe('Thanks title');
+      expect(config.description).toBe('Thanks body');
+      expect(config.actionButtonLabel).toBe('Done');
+      config.actionButtonOnPress?.({} as never);
+      config.onClose?.();
       expect(onCta).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('edge cases and error handling', () => {
-    it('handles null toastRef gracefully in showToast', async () => {
-      (useContext as jest.Mock).mockReturnValue({ toastRef: null });
+    it('omits description when subtitle is not provided', () => {
       const { result } = renderHook(() => useRewardsToast());
 
-      const testConfig: RewardsToastOptions = {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        hapticsType: NotificationMoment.Success,
-        labelOptions: [{ label: 'Test', isBold: true }],
-        hasNoTimeout: false,
-      };
+      const success = result.current.RewardsToastOptions.success('Title');
+      const error = result.current.RewardsToastOptions.error('Error');
 
-      expect(() => {
-        act(() => {
-          result.current.showToast(testConfig);
-        });
-      }).not.toThrow();
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
-    });
-
-    it('handles undefined toastRef.current gracefully in showToast', async () => {
-      (useContext as jest.Mock).mockReturnValue({
-        toastRef: { current: null },
-      });
-      const { result } = renderHook(() => useRewardsToast());
-
-      const testConfig: RewardsToastOptions = {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        hapticsType: NotificationMoment.Success,
-        labelOptions: [{ label: 'Test', isBold: true }],
-        hasNoTimeout: false,
-      };
-
-      expect(() => {
-        act(() => {
-          result.current.showToast(testConfig);
-        });
-      }).not.toThrow();
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
-    });
-
-    it('handles null toastRef gracefully in close button', () => {
-      (useContext as jest.Mock).mockReturnValue({ toastRef: null });
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('Test Title');
-
-      expect(() => {
-        config.closeButtonOptions?.onPress?.();
-      }).not.toThrow();
-    });
-
-    it('handles empty string title', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('');
-
-      expect(config.labelOptions).toEqual([{ label: '', isBold: true }]);
-    });
-
-    it('handles only whitespace title', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('   ');
-
-      expect(config.labelOptions).toEqual([{ label: '   ', isBold: true }]);
-    });
-  });
-
-  describe('memoization and dependency changes', () => {
-    it('recreates RewardsToastOptions when toastRef changes', () => {
-      const mockToastRef1 = {
-        current: { showToast: jest.fn(), closeToast: jest.fn() },
-      };
-      const mockToastRef2 = {
-        current: { showToast: jest.fn(), closeToast: jest.fn() },
-      };
-
-      (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef1 });
-      const { result, rerender } = renderHook(() => useRewardsToast());
-
-      (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef2 });
-      rerender();
-
-      const newConfig = result.current.RewardsToastOptions.success('Test');
-
-      newConfig.closeButtonOptions?.onPress?.();
-      expect(mockToastRef2.current.closeToast).toHaveBeenCalled();
-      expect(mockToastRef1.current.closeToast).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('default options merging', () => {
-    it('applies default options to success configuration', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('Test Title');
-
-      expect(config.hasNoTimeout).toBe(false);
-    });
-
-    it('applies default options to error configuration', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.error('Error Title');
-
-      expect(config.hasNoTimeout).toBe(false);
-    });
-
-    it('applies default options to entriesClosed configuration', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.entriesClosed('Entries closed');
-
-      expect(config.hasNoTimeout).toBe(false);
-    });
-
-    it('uses persistent toast timeout for enableNotificationsNudge', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config =
-        result.current.RewardsToastOptions.enableNotificationsNudge({
-          label: 'Turn on',
-          onPress: jest.fn(),
-        });
-
-      expect(config.hasNoTimeout).toBe(true);
-    });
-  });
-
-  describe('label and description formatting', () => {
-    it('returns bold label with title only', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success('Test Title');
-
-      expect(config.labelOptions).toHaveLength(1);
-      expect(config.labelOptions[0]).toEqual({
-        label: 'Test Title',
-        isBold: true,
-      });
-    });
-
-    it('returns bold label and descriptionOptions with subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.success(
-        'Test Title',
-        'Test Subtitle',
-      );
-
-      expect(config.labelOptions).toHaveLength(1);
-      expect(config.labelOptions[0]).toEqual({
-        label: 'Test Title',
-        isBold: true,
-      });
-      expect(config.descriptionOptions).toEqual({
-        description: 'Test Subtitle',
-      });
-    });
-
-    it('returns undefined descriptionOptions when no subtitle for error', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.error('Error Title');
-
-      expect(config.labelOptions).toHaveLength(1);
-      expect(config.labelOptions[0]).toEqual({
-        label: 'Error Title',
-        isBold: true,
-      });
-      expect(config.descriptionOptions).toBeUndefined();
-    });
-
-    it('returns descriptionOptions for error with subtitle', () => {
-      const { result } = renderHook(() => useRewardsToast());
-      const config = result.current.RewardsToastOptions.error(
-        'Error Title',
-        'Error Subtitle',
-      );
-
-      expect(config.labelOptions).toHaveLength(1);
-      expect(config.descriptionOptions).toEqual({
-        description: 'Error Subtitle',
-      });
+      expect(success.description).toBeUndefined();
+      expect(error.description).toBeUndefined();
     });
   });
 });
