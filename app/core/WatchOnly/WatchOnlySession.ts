@@ -1,5 +1,6 @@
 import { isValidHexAddress, type Hex } from '@metamask/utils';
 import Engine from '../Engine';
+import { removeAccountsFromPermissions } from '../Permissions';
 import { WatchOnlyKeyring } from './WatchOnlyKeyring';
 
 export interface WatchOnlySessionStatus {
@@ -30,7 +31,14 @@ function serialize<Result>(mutation: () => Promise<Result>): Promise<Result> {
 }
 
 async function removeWatchedAccounts(): Promise<void> {
-  for (const address of getWatchedAddresses()) {
+  const addresses = getWatchedAddresses();
+  if (addresses.length === 0) {
+    return;
+  }
+  // Like Engine.removeAccount: revoke dapp permissions first, so no
+  // connection to a watched address outlives the session.
+  removeAccountsFromPermissions(addresses);
+  for (const address of addresses) {
     await Engine.context.KeyringController.removeAccount(address);
   }
 }

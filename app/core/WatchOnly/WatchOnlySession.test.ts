@@ -1,4 +1,5 @@
 import Engine from '../Engine';
+import { removeAccountsFromPermissions } from '../Permissions';
 import { WatchOnlyKeyring } from './WatchOnlyKeyring';
 import { WatchOnlySession } from './WatchOnlySession';
 
@@ -13,6 +14,10 @@ jest.mock('../Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 
+jest.mock('../Permissions', () => ({
+  removeAccountsFromPermissions: jest.fn(),
+}));
+
 const VALID_ADDRESS = '0x1234567890123456789012345678901234567890';
 const OTHER_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
 
@@ -21,6 +26,8 @@ const mockAddNewKeyring = Engine.context.KeyringController
 const mockRemoveAccount = Engine.context.KeyringController
   .removeAccount as jest.Mock;
 const mockSetSelectedAddress = Engine.setSelectedAddress as jest.Mock;
+const mockRemoveAccountsFromPermissions =
+  removeAccountsFromPermissions as jest.Mock;
 
 describe('WatchOnlySession', () => {
   // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
@@ -68,6 +75,22 @@ describe('WatchOnlySession', () => {
       expect(mockAddNewKeyring).toHaveBeenCalledWith(WatchOnlyKeyring.type, {
         addresses: [VALID_ADDRESS],
       });
+    });
+
+    it('revokes dapp permissions of the previously watched address', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-keyring', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.start(VALID_ADDRESS);
+
+      expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+        OTHER_ADDRESS,
+      ]);
     });
 
     it('serializes overlapping starts so only one watch-only keyring remains', async () => {
@@ -154,10 +177,36 @@ describe('WatchOnlySession', () => {
       expect(mockRemoveAccount).toHaveBeenCalledWith(OTHER_ADDRESS);
     });
 
+    it('revokes dapp permissions of watched addresses before removing them', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [VALID_ADDRESS],
+          metadata: { id: 'watch-only-1', name: '' },
+        },
+        {
+          type: WatchOnlyKeyring.type,
+          accounts: [OTHER_ADDRESS],
+          metadata: { id: 'watch-only-2', name: '' },
+        },
+      ];
+
+      await WatchOnlySession.stop();
+
+      expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+        VALID_ADDRESS,
+        OTHER_ADDRESS,
+      ]);
+      expect(
+        mockRemoveAccountsFromPermissions.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockRemoveAccount.mock.invocationCallOrder[0]);
+    });
+
     it('does not call removeAccount when no watch-only keyring exists', async () => {
       await WatchOnlySession.stop();
 
       expect(mockRemoveAccount).not.toHaveBeenCalled();
+      expect(mockRemoveAccountsFromPermissions).not.toHaveBeenCalled();
     });
   });
 
