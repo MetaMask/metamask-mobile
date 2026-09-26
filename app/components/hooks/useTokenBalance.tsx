@@ -26,20 +26,15 @@ const useTokenBalance = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AssetsContractController }: any = Engine.context;
 
-  const fetchBalance = async (
-    tokenAddress: string,
-    userAddress: string,
-  ): Promise<void> => {
-    AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
+  useEffect(() => {
+    AssetsContractController.getERC20BalanceOf(
+      requestedTokenAddress,
+      userCurrentAddress,
+    )
       .then((balance: BN4) => setTokenBalance(balance))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchBalance(requestedTokenAddress, userCurrentAddress);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedTokenAddress, userCurrentAddress]);
+  }, [AssetsContractController, requestedTokenAddress, userCurrentAddress]);
 
   return [tokenBalance, loading, error];
 };
