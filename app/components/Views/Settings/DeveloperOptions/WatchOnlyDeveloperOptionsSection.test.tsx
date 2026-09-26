@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import WatchOnlyDeveloperOptionsSection from './WatchOnlyDeveloperOptionsSection';
 import { strings } from '../../../../../locales/i18n';
@@ -77,7 +77,7 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
     ).toBeDisabled();
   });
 
-  it('starts a watch-only session with the trimmed address', () => {
+  it('starts a watch-only session with the trimmed address', async () => {
     (WatchOnlySession.start as jest.Mock).mockResolvedValue({
       active: true,
       address: WATCHED_ADDRESS,
@@ -89,9 +89,11 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
       getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT),
       `  ${WATCHED_ADDRESS}  `,
     );
-    fireEvent.press(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
+      );
+    });
 
     expect(WatchOnlySession.start).toHaveBeenCalledWith(WATCHED_ADDRESS);
   });
@@ -109,9 +111,11 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
       getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_ADDRESS_INPUT),
       'bad-address',
     );
-    fireEvent.press(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_START_BUTTON),
+      );
+    });
 
     expect(
       await findByText('Invalid EVM address: bad-address'),
@@ -126,7 +130,7 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
     ).toBeDisabled();
   });
 
-  it('stops the watch-only session when an account is watched', () => {
+  it('stops the watch-only session when an account is watched', async () => {
     mockSelectors({ isWatchOnly: true, address: WATCHED_ADDRESS });
     (WatchOnlySession.stop as jest.Mock).mockResolvedValue({
       active: false,
@@ -135,9 +139,11 @@ describe('WatchOnlyDeveloperOptionsSection', () => {
 
     const { getByTestId } = render(<WatchOnlyDeveloperOptionsSection />);
 
-    fireEvent.press(
-      getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_STOP_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(DeveloperOptionsSelectorsIDs.WATCH_ONLY_STOP_BUTTON),
+      );
+    });
 
     expect(WatchOnlySession.stop).toHaveBeenCalledTimes(1);
   });
