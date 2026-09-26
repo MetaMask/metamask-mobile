@@ -190,6 +190,7 @@ export const PrivateKeyList = () => {
             toast({
               title: strings('multichain_accounts.private_key_list.copied'),
               hasNoTimeout: false,
+              showCloseButton: false,
             });
           },
         }}
