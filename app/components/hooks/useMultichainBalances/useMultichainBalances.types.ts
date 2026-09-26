@@ -1,5 +1,5 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AggregatedPercentageCrossChainsProps } from '../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains.types';
+import { TokensWithBalances } from '../useGetFormattedTokensPerChain';
 
 export interface AggregatedBalance {
   ethFiat: number;
@@ -8,10 +8,17 @@ export interface AggregatedBalance {
   ethFiat1dAgo: number;
 }
 
+export type TokenFiatBalancesCrossChains = {
+  chainId: string;
+  nativeFiatValue: number;
+  tokenFiatBalances: number[];
+  tokensWithBalances: TokensWithBalances[];
+}[];
+
 export interface MultichainBalancesData {
   displayBalance?: string;
   displayCurrency: string;
-  tokenFiatBalancesCrossChains: AggregatedPercentageCrossChainsProps['tokenFiatBalancesCrossChains'];
+  tokenFiatBalancesCrossChains: TokenFiatBalancesCrossChains;
   totalFiatBalance: number | undefined;
   totalNativeTokenBalance: string | undefined;
   nativeTokenUnit: string;
