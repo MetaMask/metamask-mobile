@@ -5,6 +5,8 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   PAYING_ALL_ORDERS: 'recurring-confirm-paying-all-orders',
   PAYING_PER_ORDER: 'recurring-confirm-paying-per-order',
   RECEIVING: 'recurring-confirm-receiving',
+  PRICE_RANGE: 'recurring-confirm-price-range',
+  PRICE_RANGE_TOKEN: 'recurring-confirm-price-range-token',
   EST_RECEIVING_PER_ORDER: 'recurring-confirm-est-receiving-per-order',
   EST_RECEIVING_PER_ORDER_SKELETON:
     'recurring-confirm-est-receiving-per-order-skeleton',
