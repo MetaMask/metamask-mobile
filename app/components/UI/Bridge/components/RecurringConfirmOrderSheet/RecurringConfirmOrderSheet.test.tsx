@@ -135,6 +135,7 @@ function renderSheet({
   return renderWithProvider(
     <RecurringConfirmOrderSheet
       delegationFee={delegationFee}
+      isPriceRangeConversionReady
       isSubmitting={isSubmitting}
       onConfirm={onConfirm}
       onEditSlippagePress={onEditSlippagePress}
@@ -182,6 +183,48 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
+  });
+
+  it('shows the stored currency range with its selected token', () => {
+    const { getByTestId } = renderSheet({
+      state: buildState({
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'day',
+          repeatCount: '10',
+          priceRange: {
+            tokenSide: 'source',
+            currency: 'EUR',
+            min: '900',
+            max: '1100',
+          },
+        },
+      }),
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.price_range.label')}€900.00 - €1,100.00`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Not set when no price range exists', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.price_range.label')}${strings(
+        'bridge.recurring.price_range.not_set',
+      )}`,
+    );
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows estimated dest amounts per order and across all orders', () => {

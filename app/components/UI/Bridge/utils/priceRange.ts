@@ -1,5 +1,7 @@
+import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+import type { RecurringPriceRange as ApiRecurringPriceRange } from '../api/recurringOrders.types';
 import { formatCurrency } from './currencyUtils';
 import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
 
@@ -7,11 +9,11 @@ export const PRICE_RANGE_TOKEN_SIDES = ['source', 'dest'] as const;
 
 export type PriceRangeTokenSide = (typeof PRICE_RANGE_TOKEN_SIDES)[number];
 
-export const PRICE_RANGE_CURRENCY = 'USD' as const;
+export const USD_PRICE_RANGE_CURRENCY = 'USD' as const;
 
 export interface RecurringPriceRange {
   tokenSide: PriceRangeTokenSide;
-  currency: typeof PRICE_RANGE_CURRENCY;
+  currency: string;
   min: string;
   max: string;
 }
@@ -23,6 +25,61 @@ export const PRICE_RANGE_MIN_PERCENTS = [-1, -5, -10, -25, -50] as const;
 export const PRICE_RANGE_MAX_PERCENTS = [1, 5, 10, 25, 50] as const;
 
 export const PRICE_RANGE_MISSING_VALUE = '--';
+
+/**
+ * Converts a locally stored display-currency range to the USD-only API shape.
+ * Empty bounds remain absent so one-sided ranges do not acquire a synthetic
+ * zero value.
+ *
+ * @param priceRange - Range stored in the user's display currency.
+ * @param fiatToUsdRate - USD value of one unit of the display currency.
+ * @returns The USD API range, or undefined when conversion is unavailable.
+ */
+export function convertPriceRangeToUsd(
+  priceRange: RecurringPriceRange | undefined,
+  fiatToUsdRate: number | undefined,
+): ApiRecurringPriceRange | undefined {
+  if (!priceRange) {
+    return undefined;
+  }
+
+  const isAlreadyUsd =
+    priceRange.currency.toUpperCase() === USD_PRICE_RANGE_CURRENCY;
+  const conversionRate = isAlreadyUsd ? 1 : fiatToUsdRate;
+  if (
+    conversionRate === undefined ||
+    !Number.isFinite(conversionRate) ||
+    conversionRate <= 0
+  ) {
+    return undefined;
+  }
+
+  const convertBound = (bound: string): string | undefined => {
+    if (!bound) {
+      return undefined;
+    }
+
+    const value = new BigNumber(bound);
+    if (!value.isFinite() || value.lte(0)) {
+      return undefined;
+    }
+
+    return value.multipliedBy(conversionRate).toFixed();
+  };
+  const min = convertBound(priceRange.min);
+  const max = convertBound(priceRange.max);
+
+  if ((priceRange.min && !min) || (priceRange.max && !max)) {
+    return undefined;
+  }
+
+  return {
+    tokenSide: priceRange.tokenSide,
+    currency: USD_PRICE_RANGE_CURRENCY,
+    min,
+    max,
+  };
+}
 
 export function applyPercentToPrice(price: number, percent: number): string {
   const next = price * (1 + percent / 100);

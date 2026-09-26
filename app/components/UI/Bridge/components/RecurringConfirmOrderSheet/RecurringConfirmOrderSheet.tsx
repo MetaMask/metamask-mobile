@@ -27,6 +27,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectDestToken,
+  selectRecurringPriceRange,
   selectRecurringRepeatCount,
   selectSlippage,
   selectSourceAmount,
@@ -42,6 +43,7 @@ import type { BridgeToken } from '../../types';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
+import { formatPriceRangeLabel } from '../../utils/priceRange';
 import {
   parsePositiveInteger,
   RECURRING_MAX_DURATION_DAYS,
@@ -62,9 +64,11 @@ const NETWORK_BADGE_SIZE = 10;
 function TokenAvatar({
   token,
   size,
+  testID,
 }: {
   token: BridgeToken;
   size: AvatarTokenSize;
+  testID?: string;
 }) {
   const tw = useTailwind();
   const tokenImageSource = getTokenImageSource(
@@ -96,7 +100,12 @@ function TokenAvatar({
         </Box>
       }
     >
-      <AvatarToken name={token.symbol} src={tokenImageSource} size={size} />
+      <AvatarToken
+        name={token.symbol}
+        src={tokenImageSource}
+        size={size}
+        testID={testID}
+      />
     </BadgeWrapper>
   );
 }
@@ -179,6 +188,7 @@ function formatTokenAmountValue(
 
 const RecurringConfirmOrderSheet = ({
   delegationFee,
+  isPriceRangeConversionReady,
   isSubmitting,
   onConfirm,
   onEditSlippagePress,
@@ -189,6 +199,7 @@ const RecurringConfirmOrderSheet = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const priceRange = useSelector(selectRecurringPriceRange);
   const repeatCount = useSelector(selectRecurringRepeatCount);
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
@@ -210,7 +221,10 @@ const RecurringConfirmOrderSheet = ({
   const isDelegationFeeReady =
     delegationFee.status === 'ready' || delegationFee.status === 'not-required';
   const isConfirmDisabled =
-    hasInsufficientBalance || hasInsufficientGas || !isDelegationFeeReady;
+    hasInsufficientBalance ||
+    hasInsufficientGas ||
+    !isDelegationFeeReady ||
+    !isPriceRangeConversionReady;
   const confirmLabel = hasInsufficientBalance
     ? strings('bridge.insufficient_funds')
     : hasInsufficientGas
@@ -242,6 +256,14 @@ const RecurringConfirmOrderSheet = ({
           multiplyAmountByCount(destTokenAmount, repeat) ?? destTokenAmount,
         )
       : '--';
+  const priceRangeToken = priceRange
+    ? priceRange.tokenSide === 'source'
+      ? sourceToken
+      : destToken
+    : undefined;
+  const priceRangeValue = priceRange
+    ? formatPriceRangeLabel(priceRange.min, priceRange.max, priceRange.currency)
+    : strings('bridge.recurring.price_range.not_set');
 
   const expiresAfter = `${RECURRING_MAX_DURATION_DAYS} ${strings('bridge.recurring.unit_plural.day')}`;
 
@@ -307,6 +329,22 @@ const RecurringConfirmOrderSheet = ({
           trailing={
             destToken ? (
               <TokenAvatar token={destToken} size={AvatarTokenSize.Sm} />
+            ) : undefined
+          }
+        />
+        <ConfirmOrderRow
+          label={strings('bridge.recurring.price_range.label')}
+          value={priceRangeValue}
+          testID={RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE}
+          trailing={
+            priceRangeToken ? (
+              <TokenAvatar
+                token={priceRangeToken}
+                size={AvatarTokenSize.Sm}
+                testID={
+                  RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN
+                }
+              />
             ) : undefined
           }
         />

@@ -2,6 +2,7 @@ import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 
 export interface RecurringConfirmOrderSheetProps {
   delegationFee: EIP7702UpgradeFee;
+  isPriceRangeConversionReady: boolean;
   isSubmitting: boolean;
   onConfirm: () => void;
   onEditSlippagePress: () => void;
