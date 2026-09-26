@@ -19,6 +19,7 @@ import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomShe
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsCrossMarginEnabledFlag,
+  selectPerpsTerminalBackendEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -90,10 +91,13 @@ const PerpsProOrderFormPanel = ({
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
-  // Hyperliquid refuses Cross on HIP-3 dexes (non-null market source).
+  // Terminal market data drops the no-Cross asset restriction, so Cross stays
+  // off with it. Hyperliquid refuses Cross on HIP-3 dexes (non-null source).
+  const usesTerminal = useSelector(selectPerpsTerminalBackendEnabledFlag);
   const isCrossMarginAvailable =
     isProModeActive &&
     isCrossMarginFlagEnabled &&
+    !usesTerminal &&
     selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
     !market.marketSource;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;

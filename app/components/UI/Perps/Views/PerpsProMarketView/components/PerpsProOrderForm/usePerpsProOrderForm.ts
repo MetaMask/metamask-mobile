@@ -880,8 +880,7 @@ export const usePerpsProOrderForm = ({
     isLoading: isPositionStreamLoading,
   } = useHasExistingPosition({
     asset: symbol,
-    // Another provider's same-symbol position must not drive this market's
-    // margin mode, reduce-only or flip checks.
+    // Ignore another provider's same-symbol position.
     providerId: market.providerId,
     loadOnMount: true,
   });
@@ -890,8 +889,9 @@ export const usePerpsProOrderForm = ({
   // The venue also refuses Cross on assets restricted to isolated margin.
   const isCrossMarginAvailableForMarket =
     isCrossMarginAvailable &&
-    !marketData?.onlyIsolated &&
-    !marketData?.marginMode;
+    !!marketData &&
+    !marketData.onlyIsolated &&
+    !marketData.marginMode;
   // A pick only applies to the market, Perps account and network it was made
   // in, while Cross stays available; any change falls back to isolated until
   // the trader picks again.
