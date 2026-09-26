@@ -99,12 +99,14 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
+  currentCurrency = 'USD',
   delegationFee = {
     status: 'ready',
     displayFee: '$1.23',
     preciseNativeFeeInHex: '0x1',
     retry: jest.fn(),
   },
+  fiatToUsdRate = 1,
   goBack = jest.fn(),
   isSubmitting = false,
   onConfirm = jest.fn(),
@@ -113,7 +115,9 @@ function renderSheet({
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
+  currentCurrency?: string;
   delegationFee?: EIP7702UpgradeFee;
+  fiatToUsdRate?: number;
   goBack?: () => void;
   isSubmitting?: boolean;
   onConfirm?: () => void;
@@ -134,7 +138,9 @@ function renderSheet({
   });
   return renderWithProvider(
     <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency}
       delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
       isPriceRangeConversionReady
       isSubmitting={isSubmitting}
       onConfirm={onConfirm}
@@ -224,6 +230,76 @@ describe('RecurringConfirmOrderSheet', () => {
     );
     expect(
       queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the local currency notice when EUR is selected for a configured range', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'EUR',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { getByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      fiatToUsdRate: 0.5,
+      state,
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE),
+    ).toHaveTextContent(
+      strings('bridge.recurring.local_currency_notice', {
+        rate: '2.00',
+        currency: 'EUR',
+      }),
+    );
+  });
+
+  it('hides the local currency notice when USD is selected', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'USD',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { queryByTestId } = renderSheet({ state });
+
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the local currency notice when no price range is set', () => {
+    const state = buildState();
+
+    const { queryByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      state,
+    });
+
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE,
+      ),
     ).not.toBeOnTheScreen();
   });
 
