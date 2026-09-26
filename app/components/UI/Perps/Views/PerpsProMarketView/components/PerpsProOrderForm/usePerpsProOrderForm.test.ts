@@ -277,6 +277,11 @@ let mockMarketData: {
   szDecimals: 3,
   maxLeverage: 40,
 };
+// Per-provider records for a symbol listed by several providers.
+let mockMarketDataByProvider: Record<
+  string,
+  NonNullable<typeof mockMarketData>
+> | null = null;
 let mockIsPlacing = false;
 
 jest.mock('../../../../hooks', () => ({
@@ -288,13 +293,15 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsLiquidationPrice: (params: unknown) =>
     mockUsePerpsLiquidationPrice(params),
-  usePerpsMarketData: () => ({
-    marketData: mockMarketData
-      ? { ...mockMarketData, szDecimals: mockSizeDecimals }
-      : mockMarketData,
-    isLoading: mockMarketDataLoading,
-    error: mockMarketDataError,
-  }),
+  usePerpsMarketData: ({ providerId }: { providerId?: string }) => {
+    const data =
+      (providerId && mockMarketDataByProvider?.[providerId]) || mockMarketData;
+    return {
+      marketData: data ? { ...data, szDecimals: mockSizeDecimals } : data,
+      isLoading: mockMarketDataLoading,
+      error: mockMarketDataError,
+    };
+  },
   usePerpsNetwork: () => mockPerpsNetwork,
   usePerpsOrderExecution: (opts: typeof mockExecutionOptions) => {
     mockExecutionOptions = opts;
@@ -634,6 +641,7 @@ describe('usePerpsProOrderForm', () => {
     mockMarketDataLoading = false;
     mockMarketDataError = null;
     mockMarketData = { szDecimals: 3, maxLeverage: 40 };
+    mockMarketDataByProvider = null;
     mockIsPlacing = false;
     mockIsEligible = true;
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
@@ -3739,6 +3747,35 @@ describe('usePerpsProOrderForm', () => {
         expect(result.current.marginMode).toBe('isolated');
         expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty(
           'marginMode',
+        );
+      },
+    );
+
+    it.each([
+      ['offers Cross', 'another provider', 'lighter', true],
+      [
+        'keeps Cross unavailable',
+        'the selected provider',
+        'hyperliquid',
+        false,
+      ],
+    ])(
+      '%s when only %s restricts the same symbol to isolated',
+      (_label, _restricted, restrictedProviderId, expectedAvailable) => {
+        mockMarketDataByProvider = {
+          hyperliquid: { szDecimals: 3, maxLeverage: 40 },
+          lighter: { szDecimals: 3, maxLeverage: 40 },
+          [restrictedProviderId]: {
+            szDecimals: 3,
+            maxLeverage: 40,
+            onlyIsolated: true,
+          },
+        };
+
+        const { result } = renderWithCrossMargin();
+
+        expect(result.current.isCrossMarginAvailableForMarket).toBe(
+          expectedAvailable,
         );
       },
     );
