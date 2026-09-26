@@ -24,3 +24,10 @@ export const isRampTranslateUrl = (url: string): boolean =>
 /** UAT and production token-icon CDNs used by ramps fixture bodies. */
 export const RAMP_TOKEN_ICON_URL =
   /^https:\/\/(?:uat-)?static\.cx\.metamask\.io\/api\/v[12]\/tokenIcons\/.*\.png$/;
+
+/**
+ * Production (`api-gateway.transak.com`) and staging (`api-gateway-stg.transak.com`).
+ * `path` is appended as a literal suffix, for example `/api/v2/auth/login`.
+ */
+export const isTransakGatewayUrl = (url: string, path: string): boolean =>
+  new RegExp(`api-gateway(?:-stg)?\\.transak\\.com${path}`).test(url);

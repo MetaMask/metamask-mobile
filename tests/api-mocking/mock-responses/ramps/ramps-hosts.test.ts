@@ -1,6 +1,7 @@
 import {
   isRampCacheHost,
   isRampTranslateUrl,
+  isTransakGatewayUrl,
   rampUrl,
   RAMP_TOKEN_ICON_URL,
 } from './ramps-hosts';
@@ -111,6 +112,32 @@ describe('isRampTranslateUrl', () => {
         'https://on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/native/translate',
       ),
     ).toBe(true);
+  });
+});
+
+describe('isTransakGatewayUrl', () => {
+  it('matches production and staging login', () => {
+    expect(
+      isTransakGatewayUrl(
+        'https://api-gateway.transak.com/api/v2/auth/login',
+        '/api/v2/auth/login',
+      ),
+    ).toBe(true);
+    expect(
+      isTransakGatewayUrl(
+        'https://api-gateway-stg.transak.com/api/v2/auth/login',
+        '/api/v2/auth/login',
+      ),
+    ).toBe(true);
+  });
+
+  it('does not match a dev gateway', () => {
+    expect(
+      isTransakGatewayUrl(
+        'https://api-gateway-dev.transak.com/api/v2/auth/login',
+        '/api/v2/auth/login',
+      ),
+    ).toBe(false);
   });
 });
 

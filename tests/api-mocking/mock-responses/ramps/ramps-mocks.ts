@@ -38,6 +38,7 @@ import { createDepositOrderResponse } from './responses/ramps-deposit-order-stat
 import {
   isRampCacheHost,
   isRampTranslateUrl,
+  isTransakGatewayUrl,
   rampUrl,
   RAMP_TOKEN_ICON_URL,
 } from './ramps-hosts.ts';
@@ -333,7 +334,7 @@ export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
  * so the flow takes the bank transfer path (avoiding the unmockable WebView).
  */
 export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
-  // --- Transak API mocks (api-gateway-stg.transak.com) ---
+  // --- Transak API mocks (production and staging gateways) ---
   // All responses wrapped in { data: ... } because TransakService unwraps .data
 
   // POST auth/login — sendUserOtp(email)
@@ -341,7 +342,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forPost('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/auth/login');
+      return isTransakGatewayUrl(url, '/api/v2/auth/login');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -354,7 +355,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forPost('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/auth/verify');
+      return isTransakGatewayUrl(url, '/api/v2/auth/verify');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -367,7 +368,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/lookup/quotes');
+      return isTransakGatewayUrl(url, '/api/v2/lookup/quotes');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -380,7 +381,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/user/');
+      return isTransakGatewayUrl(url, '/api/v2/user/');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -393,7 +394,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes('api-gateway-stg.transak.com/api/v2/kyc/requirement');
+      return isTransakGatewayUrl(url, '/api/v2/kyc/requirement');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -406,9 +407,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return url.includes(
-        'api-gateway-stg.transak.com/api/v2/orders/user-limit',
-      );
+      return isTransakGatewayUrl(url, '/api/v2/orders/user-limit');
     })
     .asPriority(999)
     .thenCallback(() => ({
@@ -422,7 +421,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return (
-        url.includes('api-gateway-stg.transak.com/api/v2/orders') &&
+        isTransakGatewayUrl(url, '/api/v2/orders') &&
         !url.includes('user-limit') &&
         !url.includes('payment-confirmation') &&
         !url.includes('active-orders')
@@ -441,7 +440,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return (
-        url.includes('api-gateway-stg.transak.com/api/v2/orders/') &&
+        isTransakGatewayUrl(url, '/api/v2/orders/') &&
         !url.includes('user-limit') &&
         !url.includes('active-orders')
       );
