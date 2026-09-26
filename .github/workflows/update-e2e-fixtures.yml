@@ -202,29 +202,6 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
-      - name: Setup Node for shard selection
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Download frozen qa-stats timings
-        id: download-timings
-        uses: ./.github/actions/download-e2e-artifact
-        continue-on-error: true
-        with:
-          name: e2e-timings-${{ github.run_id }}
-          path: ./
-          runner-provider: ${{ inputs.runner_provider }}
-
-      - name: Fetch qa-stats timings fallback
-        if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
-          OUTPUT_PATH: ./e2e-timings.json
-
       - name: Select specs for fixture validation
         id: select-specs
         run: |

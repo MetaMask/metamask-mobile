@@ -9,17 +9,21 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import { strings } from '../../../../../../../locales/i18n';
 import type {
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
+  PerpsMarginModeBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
+  selectPerpsCrossMarginEnabledFlag,
+  selectPerpsTerminalBackendEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -156,17 +160,27 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   feeProtocolFeeRate: 0.02,
   feeOriginalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
+  marginMode: 'isolated' as 'isolated' | 'cross',
+  isMarginModeLocked: false,
+  onMarginModeSelect: jest.fn(),
 };
 
 // Mutated in place by tests; fully restored in beforeEach via Object.assign so
 // no property mutation leaks across tests. The mock closure below captures this
 // reference, so it must never be reassigned.
 const mockHookResult = { ...DEFAULT_MOCK_HOOK_RESULT };
+// Mirrors the hook contract: Cross is available for the market only when the
+// panel gate passes and the asset is not restricted to isolated margin.
+let mockIsCrossAllowedByMarket = true;
 
 jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
-  usePerpsProOrderForm: (params: unknown) => {
+  usePerpsProOrderForm: (params: { isCrossMarginAvailable?: boolean }) => {
     mockUsePerpsProOrderForm(params);
-    return mockHookResult;
+    return {
+      ...mockHookResult,
+      isCrossMarginAvailableForMarket:
+        Boolean(params.isCrossMarginAvailable) && mockIsCrossAllowedByMarket,
+    };
   },
 }));
 
@@ -255,6 +269,14 @@ const market = {
   providerId: 'hyperliquid',
 } as PerpsMarketData;
 
+interface CrossGateCase {
+  flag?: boolean;
+  terminal?: boolean;
+  proMode?: boolean;
+  allowedByMarket?: boolean;
+  overrides?: Partial<PerpsMarketData>;
+}
+
 const renderPanel = (
   props: Partial<React.ComponentProps<typeof PerpsProOrderFormPanel>> = {},
 ) => render(<PerpsProOrderFormPanel market={market} {...props} />);
@@ -268,6 +290,7 @@ describe('PerpsProOrderFormPanel', () => {
     selectorValues.set(selectPerpsMobileScaleEnabledFlag, true);
     selectorValues.set(selectPerpsMobileChaseEnabledFlag, true);
     selectorValues.set(selectPerpsProvider, 'hyperliquid');
+    selectorValues.set(selectPerpsTerminalBackendEnabledFlag, false);
     mockUseSelector.mockImplementation((selector: unknown) =>
       selectorValues.get(selector),
     );
@@ -287,6 +310,7 @@ describe('PerpsProOrderFormPanel', () => {
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
+    mockIsCrossAllowedByMarket = true;
   });
 
   it('renders the order form panel and presentational form', () => {
@@ -793,5 +817,60 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+
+  describe('cross margin availability', () => {
+    const pickCrossFromMarginSheet = () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+      );
+    };
+
+    it('selects Cross on a Hyperliquid main-DEX market when the flag is on', () => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, true);
+      renderPanel();
+
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).toHaveBeenCalledWith('cross');
+    });
+
+    it.each<[string, CrossGateCase]>([
+      ['when the flag is off', { flag: false }],
+      ['with Terminal market data', { terminal: true }],
+      ['on HIP-3 markets', { overrides: { marketSource: 'xyz' } }],
+      [
+        'on non-Hyperliquid providers',
+        { overrides: { providerId: 'lighter' } },
+      ],
+      ['when Pro mode is inactive', { proMode: false }],
+      ['on assets restricted to isolated margin', { allowedByMarket: false }],
+    ])('keeps Cross unselectable %s', (_label, gate: CrossGateCase) => {
+      selectorValues.set(selectPerpsCrossMarginEnabledFlag, gate.flag ?? true);
+      selectorValues.set(
+        selectPerpsTerminalBackendEnabledFlag,
+        !!gate.terminal,
+      );
+      mockUseIsPerpsProModeActive.mockReturnValue(gate.proMode ?? true);
+      mockIsCrossAllowedByMarket = gate.allowedByMarket ?? true;
+      renderPanel({ market: { ...market, ...gate.overrides } });
+
+      pickCrossFromMarginSheet();
+
+      expect(mockHookResult.onMarginModeSelect).not.toHaveBeenCalled();
+    });
+
+    it('labels the margin control with the active cross margin mode', () => {
+      mockHookResult.marginMode = 'cross';
+
+      renderPanel();
+
+      expect(
+        screen.getByTestId(PerpsProOrderFormSelectorsIDs.MARGIN_MODE_BUTTON),
+      ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    });
   });
 });
