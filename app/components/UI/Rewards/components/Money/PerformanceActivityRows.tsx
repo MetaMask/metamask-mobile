@@ -69,7 +69,10 @@ export const PerformanceCommissionRow: React.FC<{
       </Box>
       <Box alignItems={BoxAlignItems.End}>
         <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-          {formatMusdBaseUnits(item.musd_amount, { signed: true }) ?? '—'}
+          {formatMusdBaseUnits(item.musd_amount, {
+            signed: true,
+            maximumFractionDigits: 2,
+          }) ?? '—'}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {copiedTimesLabel(localizedText, item.copied_times)}
@@ -121,7 +124,10 @@ export const PerformanceRebateRow: React.FC<{
       </Text>
     </Box>
     <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-      {formatMusdBaseUnits(item.musd_amount, { signed: true }) ?? '—'}
+      {formatMusdBaseUnits(item.musd_amount, {
+        signed: true,
+        maximumFractionDigits: 2,
+      }) ?? '—'}
     </Text>
   </Box>
 );

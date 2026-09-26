@@ -408,14 +408,25 @@ export const validateEmail = (email: string): boolean => {
 
 // ── USD formatting ──────────────────────────────────────────────────────
 
+interface FormatUsdOptions {
+  /**
+   * Pins both fraction bounds so every amount on a screen uses the same
+   * number of decimals. Omitted, integers stay bare (`$1`) and other values
+   * use two decimals.
+   */
+  maximumFractionDigits?: number;
+}
+
 /**
  * Formats a numeric string as a USD amount using locale-aware fiat formatting.
  *
  * @example formatUsd('11500.000000') // '$11,500.00'
  * @example formatUsd(12500.5)        // '$12,500.50'
+ * @example formatUsd('1', { maximumFractionDigits: 2 }) // '$1.00'
  */
 export const formatUsd = (
   value: string | number | null | undefined,
+  options?: FormatUsdOptions,
 ): string => {
   const fiatAmount = new BigNumber(value ?? NaN);
 
@@ -423,7 +434,7 @@ export const formatUsd = (
     return '—';
   }
 
-  return formatFiat(fiatAmount, 'USD');
+  return formatFiat(fiatAmount, 'USD', options?.maximumFractionDigits);
 };
 
 /**
@@ -433,12 +444,15 @@ export const formatUsd = (
  * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
  * @example formatSignedUsd(null)           // '—'
  */
-export const formatSignedUsd = (value: string | number | null): string => {
+export const formatSignedUsd = (
+  value: string | number | null,
+  options?: FormatUsdOptions,
+): string => {
   if (value === null) return '—';
   const num = typeof value === 'number' ? value : parseFloat(value);
   if (Number.isNaN(num)) return '—';
   const sign = num > 0 ? '+' : '';
-  return `${sign}${formatUsd(value)}`;
+  return `${sign}${formatUsd(value, options)}`;
 };
 
 /**
@@ -453,11 +467,12 @@ export const formatSignedUsd = (value: string | number | null): string => {
  *
  * @example formatMusdBaseUnits('41750000') // '$41.75'
  * @example formatMusdBaseUnits('41750000', { signed: true }) // '+$41.75'
+ * @example formatMusdBaseUnits('1000000', { maximumFractionDigits: 2 }) // '$1.00'
  * @example formatMusdBaseUnits(null)       // null
  */
 export const formatMusdBaseUnits = (
   baseUnits: string | null | undefined,
-  options?: { signed?: boolean },
+  options?: { signed?: boolean } & FormatUsdOptions,
 ): string | null => {
   if (baseUnits === null || baseUnits === undefined || baseUnits === '') {
     return null;
@@ -470,7 +485,13 @@ export const formatMusdBaseUnits = (
   }
 
   const usd = amount.toString();
-  return options?.signed ? formatSignedUsd(usd) : formatUsd(usd);
+  const fractionOptions =
+    options?.maximumFractionDigits === undefined
+      ? undefined
+      : { maximumFractionDigits: options.maximumFractionDigits };
+  return options?.signed
+    ? formatSignedUsd(usd, fractionOptions)
+    : formatUsd(usd, fractionOptions);
 };
 
 interface FormatCompactValueOptions {
