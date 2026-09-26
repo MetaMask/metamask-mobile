@@ -248,7 +248,7 @@ describe('useCursorPaginatedList', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('hides cache while a first-page load is in flight', async () => {
+  it('keeps cache visible without a loading state while the first page is in flight', async () => {
     let resolveFetch: (value: typeof PAGE_1) => void = () => undefined;
     const fetchPage = jest.fn(
       () =>
@@ -271,9 +271,43 @@ describe('useCursorPaginatedList', () => {
       expect(fetchPage).toHaveBeenCalled();
     });
 
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.items).toEqual(cached);
+    expect(result.current.error).toBeNull();
+
+    await act(async () => {
+      resolveFetch(PAGE_1);
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('reports loading while the first page is in flight and there is no cache', async () => {
+    let resolveFetch: (value: typeof PAGE_1) => void = () => undefined;
+    const fetchPage = jest.fn(
+      () =>
+        new Promise<typeof PAGE_1>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(fetchPage).toHaveBeenCalled();
+    });
+
     expect(result.current.isLoading).toBe(true);
     expect(result.current.items).toBeNull();
-    expect(result.current.error).toBeNull();
 
     await act(async () => {
       resolveFetch(PAGE_1);
@@ -284,7 +318,7 @@ describe('useCursorPaginatedList', () => {
     });
   });
 
-  it('shows cache and suppresses error when first-page fetch fails', async () => {
+  it('keeps cache and reports the error when a first-page fetch fails', async () => {
     const fetchPage = jest.fn().mockRejectedValue(new Error('boom'));
     const cached = [{ id: 'cached' }];
 
@@ -302,7 +336,7 @@ describe('useCursorPaginatedList', () => {
     });
 
     expect(result.current.items).toEqual(cached);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe('boom');
   });
 
   it('keeps current rows visible during pull-to-refresh', async () => {

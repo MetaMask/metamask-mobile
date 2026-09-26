@@ -8,7 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  SectionDivider,
   TitleStandard,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
@@ -29,11 +28,8 @@ import {
 } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
-import BenefitsPreview from '../components/Benefits/BenefitsPreview';
-import RefererHeroCard from '../components/Money/RefererHeroCard';
-import RefereeHeroCard from '../components/Money/RefereeHeroCard';
-import RewardsOptInSection from '../components/Money/RewardsOptInSection';
+import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
+import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
@@ -46,15 +42,15 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
   EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
+  PERFORMANCE_TAB: 'rewards-money-dashboard-performance-tab',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
-  BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
+  PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
 } as const;
 
-type RewardsMoneyTab = 'waysToEarn' | 'earnings';
+type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
-const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings'];
+const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
 
 const hasClaimableEarnings = (claimable?: string): boolean => {
   if (!claimable) {
@@ -118,6 +114,12 @@ const RewardsMoneyDashboard: React.FC = () => {
             twClassName="h-1.5 w-1.5 rounded-full bg-success-default"
           />
         ) : undefined,
+      },
+      {
+        key: 'performance',
+        label: localizedText?.performanceTitle ?? '',
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB,
       },
     ],
     [localizedText, showEarningsDot],
@@ -203,56 +205,24 @@ const RewardsMoneyDashboard: React.FC = () => {
                 <Box
                   testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
                 >
-                  {referralMe?.variant === 'REFERRER' ? (
-                    <RefererHeroCard
-                      profileId={profileId}
-                      referralCode={referralMe.referral_code}
-                      localizedText={referralMe.localized_text}
-                    />
-                  ) : null}
-                  {referralMe?.variant === 'REFEREE' ? (
-                    <RefereeHeroCard
-                      profileId={profileId}
-                      referredBy={referralMe.referred_by}
-                      localizedText={referralMe.localized_text}
-                    />
-                  ) : null}
-                  {referralMe ? (
-                    subscriptionId ? (
-                      <>
-                        <Box
-                          testID={
-                            REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION
-                          }
-                        >
-                          <SectionDivider
-                            marginVertical={0}
-                            twClassName="mt-8 mb-5"
-                          />
-                          <CampaignsPreview />
-                        </Box>
-                        <Box
-                          testID={
-                            REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION
-                          }
-                        >
-                          <SectionDivider
-                            marginVertical={0}
-                            twClassName="mt-8 mb-5"
-                          />
-                          <BenefitsPreview />
-                        </Box>
-                      </>
-                    ) : (
-                      <RewardsOptInSection
-                        localizedText={referralMe.localized_text}
-                      />
-                    )
-                  ) : null}
+                  <WaysToEarnTab
+                    profileId={profileId}
+                    referralMe={referralMe}
+                    isSubscribed={Boolean(subscriptionId)}
+                  />
                 </Box>
-              ) : (
+              ) : null}
+              {activeTab === 'earnings' ? (
                 <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
-              )}
+              ) : null}
+              {activeTab === 'performance' ? (
+                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}>
+                  <PerformanceTab
+                    profileId={profileId}
+                    variant={referralMe.variant}
+                  />
+                </Box>
+              ) : null}
             </Animated.ScrollView>
           </Animated.View>
         </Box>

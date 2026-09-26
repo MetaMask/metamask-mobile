@@ -127,6 +127,8 @@ const Routes = {
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
+  REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
+  REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',

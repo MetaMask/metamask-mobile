@@ -1,9 +1,15 @@
 import type { RootState } from '..';
 import type {
+  CommissionEntryView,
+  LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralVariant,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
-import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
+import type {
+  EarningsSummaryEntry,
+  ReferralFunnelEntry,
+  ReferralMeEntry,
+} from '.';
 
 /**
  * Referral-me entry for one Hydra profile.
@@ -51,4 +57,34 @@ export function selectEarningsSummaryEntry(
     return undefined;
   }
   return state.rewardsMoney.earningsSummary[profileId];
+}
+
+export function selectReferralFunnelEntry(
+  state: RootState,
+  profileId: string | undefined,
+): ReferralFunnelEntry | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.referralFunnel[profileId];
+}
+
+export function selectCommissions(
+  state: RootState,
+  profileId: string | undefined,
+): CommissionEntryView[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.commissions[profileId];
+}
+
+export function selectCashbackLedger(
+  state: RootState,
+  profileId: string | undefined,
+): LedgerEarningEntryDto[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.cashbackLedger[profileId];
 }

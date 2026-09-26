@@ -48,10 +48,12 @@ const nonEmpty = <T>(items: T[] | null | undefined): T[] | null =>
  * Cursor-paginated list with first-page-only external cache sync.
  *
  * Display states are exclusive:
- * - First-page loading (not pull-to-refresh): no rows (skeletons in the view)
+ * - First-page loading with cache: show cached rows with no loading state,
+ * and swap in the fresh page when it lands
+ * - First-page loading without cache: no rows (skeletons in the view)
  * - Pull-to-refresh: keep current rows under RefreshControl
- * - Error with cache/rows: show those rows, suppress error (PTR to recover)
- * - Error with no rows/cache: surface error
+ * - Error with cache/rows: keep those rows and still report the error
+ * - Error with no rows/cache: surface error and no rows
  */
 export const useCursorPaginatedList = <T>({
   enabled,
@@ -232,18 +234,13 @@ export const useCursorPaginatedList = <T>({
   let displayError: string | null;
 
   if (isInitialLoading) {
-    // Skeletons only — never cache/rows beside a first-page load.
-    displayItems = null;
+    // Cached rows stay up while the first page loads, so the screen never
+    // goes cache → skeleton → fresh rows. Skeletons only when there is no cache.
+    displayItems = cachedRows;
     displayError = null;
   } else if (error) {
-    if (fallbackRows) {
-      // Cache/rows win; caller can pull-to-refresh. Keep failure invisible.
-      displayItems = fallbackRows;
-      displayError = null;
-    } else {
-      displayItems = null;
-      displayError = error;
-    }
+    displayItems = fallbackRows;
+    displayError = error;
   } else if (items !== null) {
     displayItems = items;
     displayError = null;
@@ -254,7 +251,7 @@ export const useCursorPaginatedList = <T>({
 
   return {
     items: displayItems,
-    isLoading: isInitialLoading,
+    isLoading: isInitialLoading && displayItems === null,
     isLoadingMore,
     hasMore,
     error: displayError,

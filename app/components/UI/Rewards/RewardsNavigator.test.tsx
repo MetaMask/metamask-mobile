@@ -66,6 +66,26 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/RewardsTradingCommissionsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockRewardsTradingCommissionsView() {
+    return ReactActual.createElement(View, {
+      testID: 'rewards-trading-commissions-view',
+    });
+  };
+});
+
+jest.mock('./Views/RewardsTradingRebatesView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockRewardsTradingRebatesView() {
+    return ReactActual.createElement(View, {
+      testID: 'rewards-trading-rebates-view',
+    });
+  };
+});
+
 jest.mock('./Views/RewardsVipView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
