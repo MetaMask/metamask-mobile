@@ -66,6 +66,18 @@ async function start(address: string): Promise<WatchOnlySessionStatus> {
   if (!isValidHexAddress(address as Hex)) {
     throw new Error(`Invalid EVM address: ${address}`);
   }
+  // Watching an address a real keyring holds would leave two accounts for it;
+  // signing could then reach the real keyring. Keyrings differ in address
+  // casing, so compare case-insensitively.
+  const normalized = address.toLowerCase();
+  const isWalletAccount = Engine.context.KeyringController.state.keyrings.some(
+    ({ type, accounts }) =>
+      type !== WatchOnlyKeyring.type &&
+      accounts.some((account) => account.toLowerCase() === normalized),
+  );
+  if (isWalletAccount) {
+    throw new Error(`Address ${address} already belongs to this wallet`);
+  }
   return serialize(async () => {
     await removeWatchedAccounts();
     await Engine.context.KeyringController.addNewKeyring(

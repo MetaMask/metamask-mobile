@@ -60,6 +60,22 @@ describe('WatchOnlySession', () => {
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
     });
 
+    it('rejects an address held by a wallet keyring, whatever its casing', async () => {
+      Engine.context.KeyringController.state.keyrings = [
+        {
+          type: 'Ledger Hardware',
+          accounts: [VALID_ADDRESS.toUpperCase().replace('0X', '0x')],
+          metadata: { id: 'ledger', name: '' },
+        },
+      ];
+
+      await expect(WatchOnlySession.start(VALID_ADDRESS)).rejects.toThrow(
+        'already belongs to this wallet',
+      );
+      expect(mockRemoveAccount).not.toHaveBeenCalled();
+      expect(mockAddNewKeyring).not.toHaveBeenCalled();
+    });
+
     it('stops any previous session before adding the new keyring', async () => {
       Engine.context.KeyringController.state.keyrings = [
         {
