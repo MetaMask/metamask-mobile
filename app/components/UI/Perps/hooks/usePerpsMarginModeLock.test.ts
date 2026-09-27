@@ -85,7 +85,7 @@ describe('usePerpsMarginModeLock', () => {
     expect(result.current.isPending).toBe(false);
   });
 
-  it('reports the lock as unknown while a refresh is pending', async () => {
+  it('keeps the previous answer unresolved while a refresh is pending', async () => {
     const { result } = renderHook(() =>
       usePerpsMarginModeLock({ symbol: 'BTC', enabled: true }),
     );
@@ -97,7 +97,7 @@ describe('usePerpsMarginModeLock', () => {
       result.current.refresh();
     });
 
-    expect(result.current.lock).toBeNull();
+    expect(result.current.lock).toEqual(LOCKED_CROSS);
     expect(result.current.isResolved).toBe(false);
     expect(result.current.isPending).toBe(true);
     await act(async () => {

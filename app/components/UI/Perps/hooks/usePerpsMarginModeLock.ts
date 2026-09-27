@@ -18,7 +18,11 @@ export interface UsePerpsMarginModeLockParams {
 }
 
 export interface UsePerpsMarginModeLockResult {
-  /** Venue answer for the current market, account and network; null while unknown. */
+  /**
+   * Venue answer for the current market, account and network; null while
+   * unknown. During a refresh it keeps the previous answer for the same
+   * context, so the displayed mode does not flicker.
+   */
   lock: PerpsMarginModeLock | null;
   /**
    * True once the venue answered `locked` or `unlocked` for the current
@@ -33,6 +37,7 @@ export interface UsePerpsMarginModeLockResult {
 }
 
 interface LockReadResult {
+  contextKey: string;
   requestKey: string;
   lock: PerpsMarginModeLock | null;
 }
@@ -40,8 +45,9 @@ interface LockReadResult {
 /**
  * Reads the margin mode the venue has bound to a market through an open
  * position or resting order/TWAP, so the picker offers only a placeable mode.
- * An answer only counts for the market, account, network and refresh it was
- * read for; anything else reads as unknown until the new read resolves.
+ * An answer is resolved only for the market, account, network and refresh it
+ * was read for. A refresh in the same context keeps showing the previous
+ * answer until the new one arrives; any other change reads as unknown.
  *
  * @param params - Market, route, gate, and refresh trigger.
  * @returns The current lock, whether it is known, and a manual refresh.
@@ -58,11 +64,14 @@ export const usePerpsMarginModeLock = ({
   const [readResult, setReadResult] = useState<LockReadResult | null>(null);
   const refresh = useCallback(() => setRefreshCount((count) => count + 1), []);
 
-  const requestKey = JSON.stringify([
+  const contextKey = JSON.stringify([
     symbol,
     providerId ?? null,
     selectedAddress ?? null,
     perpsNetwork,
+  ]);
+  const requestKey = JSON.stringify([
+    contextKey,
     refreshKey ?? null,
     refreshCount,
   ]);
@@ -80,25 +89,29 @@ export const usePerpsMarginModeLock = ({
     Engine.context.PerpsController.getMarginModeLock({ symbol, providerId })
       .then((lock) => {
         if (isCurrent) {
-          setReadResult({ requestKey, lock });
+          setReadResult({ contextKey, requestKey, lock });
         }
       })
       // Defensive: the controller reports failures as `unavailable` instead of
       // throwing, so a rejection is treated the same way (lock unknown).
       .catch(() => {
         if (isCurrent) {
-          setReadResult({ requestKey, lock: null });
+          setReadResult({ contextKey, requestKey, lock: null });
         }
       });
 
     return () => {
       isCurrent = false;
     };
-  }, [enabled, requestKey, symbol, providerId]);
+  }, [enabled, contextKey, requestKey, symbol, providerId]);
 
   const isAnswered = enabled && readResult?.requestKey === requestKey;
-  const lock = isAnswered && readResult ? readResult.lock : null;
-  const isResolved = lock !== null && lock.status !== 'unavailable';
+  const isSameContext = enabled && readResult?.contextKey === contextKey;
+  const lock = isSameContext && readResult ? readResult.lock : null;
+  // Only the answer to the current request resolves the lock; a kept answer
+  // from before a refresh is shown but stays unresolved.
+  const isResolved =
+    isAnswered && lock !== null && lock.status !== 'unavailable';
   const isPending = enabled && !isAnswered;
 
   return { lock, isResolved, isPending, refresh };
