@@ -82,9 +82,6 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
-import VbaEmailAdapter from '../../UI/Ramp/Views/VirtualBankAccount/modules/VbaEmailAdapter';
-import VbaVendorTermsAdapter from '../../UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
-
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -1106,17 +1103,6 @@ const MainNavigator = () => {
       <NativeStack.Screen name={Routes.RAMP.SELL}>
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      {/* Kept until all VBA entry points use the modular onboarding host. */}
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_KYC_EMAIL}
-          component={VbaEmailAdapter}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT}
-          component={VbaVendorTermsAdapter}
-        />
-      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.RAMP.VBA_ONBOARDING}
         component={VbaOnboardingNavigator}

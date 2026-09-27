@@ -912,23 +912,15 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
     });
 
-    it('registers the modular host alongside transitional VBA routes', () => {
+    it('registers one feature-level VBA onboarding route', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
-      const legacyGroup = findGroupContaining(
-        container.root,
-        Routes.RAMP.VBA_KYC_EMAIL,
-      );
 
       const vbaScreen = getScreenProps(container).find(
         ({ name }) => name === Routes.RAMP.VBA_ONBOARDING,
       );
 
-      expect(groupedScreenNames(legacyGroup)).toEqual([
-        Routes.RAMP.VBA_KYC_EMAIL,
-        Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT,
-      ]);
       expect(vbaScreen).toEqual(
         expect.objectContaining({
           name: Routes.RAMP.VBA_ONBOARDING,
