@@ -434,14 +434,17 @@ let mockMarginModeLock: {
   marginMode?: 'isolated' | 'cross';
   reason?: 'position' | 'open_order' | 'provider_unavailable';
 } | null = null;
+// A refresh keeps the previous answer while the new read is pending.
+let mockMarginModeLockRefreshing = false;
 const mockRefreshMarginModeLock = jest.fn();
 jest.mock('../../../../hooks/usePerpsMarginModeLock', () => ({
   usePerpsMarginModeLock: () => ({
     lock: mockMarginModeLock,
     isResolved:
+      !mockMarginModeLockRefreshing &&
       mockMarginModeLock !== null &&
       mockMarginModeLock.status !== 'unavailable',
-    isPending: mockMarginModeLock === null,
+    isPending: mockMarginModeLockRefreshing || mockMarginModeLock === null,
     refresh: mockRefreshMarginModeLock,
   }),
 }));
@@ -685,6 +688,7 @@ describe('usePerpsProOrderForm', () => {
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
     mockExecuteOrder.mockResolvedValue({ success: true });
     mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
+    mockMarginModeLockRefreshing = false;
     mockChaseOrders = [];
     mockGetChaseOrders.mockResolvedValue([]);
   });
@@ -3981,6 +3985,15 @@ describe('usePerpsProOrderForm', () => {
         expect(mockExecuteOrder).toHaveBeenCalledWith(
           expect.objectContaining({ marginMode: 'cross' }),
         );
+      });
+
+      it('keeps showing the venue margin mode while the lock is re-read', () => {
+        mockMarginModeLockRefreshing = true;
+        const { result } = renderWithCrossMargin();
+
+        expect(result.current.marginMode).toBe('cross');
+        expect(result.current.isMarginModeLocked).toBe(true);
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
       });
 
       it('ignores the venue lock when Cross is unavailable', () => {
