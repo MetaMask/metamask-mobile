@@ -87,6 +87,7 @@ import {
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
+import { usePerpsMarginModeLock } from '../../../../hooks/usePerpsMarginModeLock';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -536,6 +537,8 @@ export interface UsePerpsProOrderFormResult {
   marginMode: MarginMode;
   isCrossMarginAvailableForMarket: boolean;
   isMarginModeLocked: boolean;
+  /** Re-read the venue lock before the trader changes the margin mode. */
+  refreshMarginModeLock: () => void;
   onMarginModeSelect: (marginMode: MarginMode) => void;
   // Leverage sheet
   isLeverageVisible: boolean;
@@ -927,19 +930,59 @@ export const usePerpsProOrderForm = ({
       }),
     [marginModeContextKey],
   );
-  // The venue refuses a mode change while a position is open, so an open
-  // position's mode wins over the picker. Undefined keeps the isolated default.
+  const {
+    lock: marginModeLock,
+    isResolved: isMarginModeLockResolved,
+    isPending: isMarginModeLockReadPending,
+    refresh: refreshMarginModeLock,
+  } = usePerpsMarginModeLock({
+    symbol,
+    providerId: market.providerId,
+    enabled: isCrossMarginAvailableForMarket,
+    refreshKey: currentMarketPosition?.leverage?.type,
+  });
+  // Re-read on return to the screen: orders placed or canceled elsewhere may
+  // have changed the venue lock while this form stayed mounted.
+  const wasScreenFocusedRef = useRef(isScreenFocused);
+  useEffect(() => {
+    if (isScreenFocused && !wasScreenFocusedRef.current) {
+      refreshMarginModeLock();
+    }
+    wasScreenFocusedRef.current = isScreenFocused;
+  }, [isScreenFocused, refreshMarginModeLock]);
+  const venueLockedMarginMode =
+    marginModeLock?.status === 'locked' ? marginModeLock.marginMode : undefined;
+  // The venue refuses a mode change while a position, resting order, or TWAP
+  // is open, so that mode wins over the picker. Undefined keeps the isolated
+  // default.
   const resolveOrderMarginMode = useCallback(
     (position?: Position | null): MarginMode | undefined =>
       isCrossMarginAvailableForMarket
-        ? (position?.leverage?.type ?? selectedMarginMode)
+        ? (position?.leverage?.type ??
+          venueLockedMarginMode ??
+          selectedMarginMode)
         : undefined,
-    [isCrossMarginAvailableForMarket, selectedMarginMode],
+    [
+      isCrossMarginAvailableForMarket,
+      venueLockedMarginMode,
+      selectedMarginMode,
+    ],
   );
   const marginMode =
     resolveOrderMarginMode(currentMarketPosition) ?? 'isolated';
+  // Fail closed: until the venue answers for this account and market, keep the
+  // picker on the current mode instead of offering a switch it may refuse.
   const isMarginModeLocked =
-    isCrossMarginAvailableForMarket && !!currentMarketPosition;
+    isCrossMarginAvailableForMarket &&
+    (!!currentMarketPosition ||
+      venueLockedMarginMode !== undefined ||
+      !isMarginModeLockResolved);
+  // Hold submission while the read is in flight: after an account or network
+  // switch the picked mode may conflict with what the venue now binds to the
+  // market. An `unavailable` answer does not hold it; the venue re-checks the
+  // mode at submit.
+  const isMarginModeLockPending =
+    isCrossMarginAvailableForMarket && isMarginModeLockReadPending;
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -1978,6 +2021,8 @@ export const usePerpsProOrderForm = ({
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: (_position, result) => {
+      // A resting order or TWAP now binds the market's margin mode.
+      refreshMarginModeLock();
       if (isScaleOrder) {
         return;
       }
@@ -3588,7 +3633,8 @@ export const usePerpsProOrderForm = ({
     isTriggerOrderUnavailable ||
     twapDurationMissing ||
     twapDurationError ||
-    twapMinimumSizeError;
+    twapMinimumSizeError ||
+    isMarginModeLockPending;
 
   const onDirectionChange = useCallback(
     (direction: PerpsProOrderDirection) =>
@@ -3786,7 +3832,7 @@ export const usePerpsProOrderForm = ({
   ]);
 
   const onPlaceOrderPress = useCallback(async () => {
-    if (isScalePlacementLockedRef.current) {
+    if (isScalePlacementLockedRef.current || isMarginModeLockPending) {
       return;
     }
 
@@ -3880,6 +3926,7 @@ export const usePerpsProOrderForm = ({
     gate,
     isChaseLimitBannerVisible,
     isEligible,
+    isMarginModeLockPending,
     orderForm.type,
     PerpsToastOptions.formValidation.orderForm,
     isScaleOrder,
@@ -4069,6 +4116,7 @@ export const usePerpsProOrderForm = ({
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
+    refreshMarginModeLock,
     onMarginModeSelect,
     // Leverage sheet
     isLeverageVisible,
