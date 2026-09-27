@@ -76,9 +76,18 @@ jest.mock('../../hooks/usePerpsToasts', () => ({
   }),
 }));
 
+let mockIsWatchOnly = false;
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: () => ({ address: '0x1234' }),
+  useSelector: (selector: unknown) => {
+    const { selectIsSelectedAccountWatchOnly } = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    return selector === selectIsSelectedAccountWatchOnly
+      ? mockIsWatchOnly
+      : { address: '0x1234' };
+  },
 }));
 
 jest.mock('../../../../../util/theme', () => {
@@ -179,6 +188,7 @@ describe('PerpsOrderDetailsView', () => {
   };
 
   beforeEach(() => {
+    mockIsWatchOnly = false;
     jest.clearAllMocks();
     mockRouteParams = { order: mockOrder };
     mockCancelOrder.mockResolvedValue({ success: true });
@@ -244,6 +254,16 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByText('perps.order_details.cancel_order'),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the cancel action for a watch-only account', () => {
+    mockIsWatchOnly = true;
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(
+      screen.queryByText('perps.order_details.cancel_order'),
+    ).not.toBeOnTheScreen();
   });
 
   it('hides cancel action for synthetic placeholder orders', () => {

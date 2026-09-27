@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Platform, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -35,6 +36,7 @@ import {
 } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
 import { PerpsOrderDetailsViewSelectorsIDs } from '../../Perps.testIds';
+import { selectIsSelectedAccountWatchOnly } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
   formatPerpsFiat,
@@ -73,7 +75,10 @@ const PerpsOrderDetailsView: React.FC = () => {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isCanceling, setIsCanceling] = useState(false);
-  const canCancel = order ? isSyntheticOrderCancelable(order) : false;
+  const isWatchOnly = useSelector(selectIsSelectedAccountWatchOnly);
+  // Watch-only accounts cannot sign, so the cancel action is not offered.
+  const canCancel =
+    !isWatchOnly && (order ? isSyntheticOrderCancelable(order) : false);
 
   const priceMetrics = useMemo(() => {
     if (!order) {

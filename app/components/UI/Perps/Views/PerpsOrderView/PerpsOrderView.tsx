@@ -2503,6 +2503,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* In the scroll content so it stays visible with the keypad open or
+            at the OI cap, and never overlaps the fixed footer. */}
+        <PerpsWatchOnlyBanner twClassName="mx-4 mb-4" />
+
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
@@ -2902,8 +2906,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </Text>
             </View>
           )}
-
-          <PerpsWatchOnlyBanner />
 
           {/* Service Interruption Banner */}
           <PerpsServiceInterruptionBanner
