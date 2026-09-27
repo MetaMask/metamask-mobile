@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
@@ -42,6 +43,7 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 import {
   PerpsOrderViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
+  PerpsWatchOnlySelectorsIDs,
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -628,6 +630,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockIsWatchOnly = false;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -641,6 +644,20 @@ jest.mock('react-redux', () => ({
     );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
+    }
+    const { selectIsSelectedAccountWatchOnly } = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    if (selector === selectIsSelectedAccountWatchOnly) {
+      return mockIsWatchOnly;
+    }
+    const { selectSelectedAccountGroupEvmInternalAccount } = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+      return mockIsWatchOnly
+        ? { address: '0xc786b3302e681745813f8011e816336bb5baeb75' }
+        : null;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -3376,6 +3393,34 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Place order button disabled state', () => {
+    afterEach(() => {
+      mockIsWatchOnly = false;
+    });
+
+    it('disables place order for a watch-only account', async () => {
+      mockIsWatchOnly = true;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('shows the watch-only banner in the scroll content, not the footer', async () => {
+      mockIsWatchOnly = true;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const scrollView = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.SCROLL_VIEW,
+      );
+      expect(
+        within(scrollView).getByTestId(PerpsWatchOnlySelectorsIDs.BANNER),
+      ).toBeOnTheScreen();
+    });
+
     it('disables button when order validation is invalid', async () => {
       // Mock invalid order validation
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({

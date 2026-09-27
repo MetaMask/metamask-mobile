@@ -370,6 +370,7 @@ export function buildPerpsIntegrationHarness(
       .mockResolvedValue(DEFAULT_USER_ADDRESS),
     isKeyringUnlocked: jest.fn().mockReturnValue(true),
     isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
+    isSelectedWatchOnly: jest.fn().mockReturnValue(false),
   } as unknown as jest.Mocked<HyperLiquidWalletService>;
 
   // Shared by every cached-position read on the mock subscription service so a

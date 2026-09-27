@@ -116,6 +116,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const {
     handleAddFunds,
     handleWithdraw,
+    isWatchOnly,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
@@ -254,7 +255,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
-            <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+            <PerpsEmptyBalance
+              onAddFunds={handleAddFunds}
+              isAddFundsDisabled={isWatchOnly}
+            />
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
@@ -266,6 +270,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     onPress={handleWithdraw}
+                    isDisabled={isWatchOnly}
                     isFullWidth
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON
@@ -279,6 +284,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleAddFunds}
+                    isDisabled={isWatchOnly}
                     isFullWidth
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
@@ -336,6 +342,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     onPress={handleWithdraw}
+                    isDisabled={isWatchOnly}
                     twClassName="flex-1"
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON
@@ -347,6 +354,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleAddFunds}
+                    isDisabled={isWatchOnly}
                     twClassName="flex-1"
                     testID={
                       PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON

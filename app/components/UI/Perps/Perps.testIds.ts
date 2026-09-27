@@ -835,6 +835,11 @@ export const PerpsMarketHeaderSelectorsIDs = {
 // PERPS TESTNET TOGGLE SELECTORS
 // ========================================
 
+export const PerpsWatchOnlySelectorsIDs = {
+  BANNER: 'perps-watch-only-banner',
+  SWITCH_BACK_BUTTON: 'perps-watch-only-switch-back-button',
+};
+
 export const PerpsTestnetToggleSelectorsIDs = {
   ROOT: 'perps-testnet-toggle-root',
   SWITCH: 'perps-testnet-toggle-switch',

@@ -39,6 +39,7 @@ jest.mock('@metamask/perps-controller', () => {
       RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
       SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
       NETWORK_ERROR: 'NETWORK_ERROR',
+      WATCH_ONLY_ACCOUNT: 'WATCH_ONLY_ACCOUNT',
     },
   };
 });
@@ -83,6 +84,12 @@ describe('translatePerpsError', () => {
         'perps.errors.clientNotInitialized',
         {},
       );
+    });
+
+    it('translates WATCH_ONLY_ACCOUNT to the trading-disabled copy', () => {
+      const result = translatePerpsError(PERPS_ERROR_CODES.WATCH_ONLY_ACCOUNT);
+
+      expect(result).toBe('perps.watch_only.trading_disabled');
     });
 
     it('translates PROVIDER_NOT_AVAILABLE error code', () => {
