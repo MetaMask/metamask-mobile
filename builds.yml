@@ -426,9 +426,9 @@ builds:
       KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
       MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
       IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
-      IDOS_RELAY_URL: 'https://relay.playground.idos.network'
+      IDOS_RELAY_URL: 'https://relay.staging.idos.network'
       # Portfolio, digest, social, and price alerts stay on their dev URLs
-      # above: this repo has no UAT host for them. Baanx and IDOS stay pinned.
+      # above: this repo has no UAT host for them. Baanx stays pinned.
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
