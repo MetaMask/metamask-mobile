@@ -2,9 +2,11 @@
  * Integration tests — perps margin-mode lock and placement validation.
  *
  * Real `HyperLiquidProvider` (the patched `@metamask/perps-controller`
- * build) runs; only the venue I/O boundary is mocked via the harness. Covers
- * the lock read (position, resting order, active TWAP, unlocked, failures)
- * and the matching placement validation for explicit `marginMode` orders.
+ * build) runs. The harness mocks the venue I/O boundary and also the generic
+ * `validateOrderParams` helper; the margin-mode lock read and its placement
+ * validation run unmocked inside the provider. Covers the lock read
+ * (position, resting order, active TWAP, unlocked, failures) and the matching
+ * placement validation for explicit `marginMode` orders.
  *
  * Reference: tests/integration/AGENTS.md · MetaMask/skills integration-test
  */
@@ -289,6 +291,53 @@ describe('Perps margin-mode lock — integration', () => {
       expect(harness.mocks.exchangeClient.updateLeverage).toHaveBeenCalledWith(
         expect.objectContaining({ isCross: true, leverage: 5 }),
       );
+    });
+
+    it('places an order whose mode matches the resting-order lock', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      harness.setupTradingReady();
+      harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([
+        { coin: 'BTC' },
+      ]);
+      harness.mocks.infoClient.activeAssetData.mockResolvedValue({
+        leverage: { type: 'cross', value: 5 },
+      });
+
+      const result = await harness.provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50_000,
+        leverage: 5,
+        marginMode: 'cross',
+      });
+
+      expect(result.success).toBe(true);
+      expect(harness.mocks.exchangeClient.updateLeverage).toHaveBeenCalledWith(
+        expect.objectContaining({ isCross: true, leverage: 5 }),
+      );
+    });
+
+    it('keeps the isolated default and skips the lock read when no mode is sent', async () => {
+      const harness = buildPerpsIntegrationHarness();
+      harness.setupTradingReady();
+
+      const result = await harness.provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50_000,
+        leverage: 5,
+      });
+
+      expect(result.success).toBe(true);
+      expect(harness.mocks.exchangeClient.updateLeverage).toHaveBeenCalledWith(
+        expect.objectContaining({ isCross: false, leverage: 5 }),
+      );
+      expect(harness.mocks.infoClient.twapHistory).not.toHaveBeenCalled();
+      expect(harness.mocks.infoClient.activeAssetData).not.toHaveBeenCalled();
     });
   });
 });
