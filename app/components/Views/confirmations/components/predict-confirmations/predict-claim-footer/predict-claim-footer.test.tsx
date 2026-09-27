@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../../core/Engine';
 import { PredictClaimFooter } from './predict-claim-footer';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import { merge, noop } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
@@ -16,10 +17,12 @@ function render({
   onPress,
   onError,
   singlePosition,
+  isDisabled,
 }: {
   onPress?: () => void;
   onError?: (error?: Error) => void;
   singlePosition?: boolean;
+  isDisabled?: boolean;
 } = {}) {
   const state = merge(
     {},
@@ -38,7 +41,11 @@ function render({
   }
 
   return renderWithProvider(
-    <PredictClaimFooter onPress={onPress ?? noop} onError={onError ?? noop} />,
+    <PredictClaimFooter
+      onPress={onPress ?? noop}
+      onError={onError ?? noop}
+      isDisabled={isDisabled}
+    />,
     {
       state,
     },
@@ -87,6 +94,19 @@ describe('PredictClaimFooter', () => {
 
     // Then the onPress handler is called
     expect(onPressMock).toHaveBeenCalled();
+  });
+
+  it('disables the claim button and ignores presses when disabled', () => {
+    const onPressMock = jest.fn();
+    const { getByTestId } = render({ onPress: onPressMock, isDisabled: true });
+
+    const claimButton = getByTestId(
+      PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
+    );
+    fireEvent.press(claimButton);
+
+    expect(claimButton).toBeDisabled();
+    expect(onPressMock).not.toHaveBeenCalled();
   });
 
   it('calls onError when there are no won positions', async () => {

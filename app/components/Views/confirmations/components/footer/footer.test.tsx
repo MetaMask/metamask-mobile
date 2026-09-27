@@ -38,6 +38,20 @@ import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-que
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
+jest.mock(
+  '../predict-confirmations/predict-claim-footer/predict-claim-footer',
+  () => ({
+    PredictClaimFooter: ({ isDisabled }: { isDisabled?: boolean }) => {
+      const { Text } = jest.requireActual('react-native');
+      return (
+        <Text testID="predict-claim-footer-stub">
+          {isDisabled ? 'disabled' : 'enabled'}
+        </Text>
+      );
+    },
+  }),
+);
+
 jest.mock('../../hooks/useConfirmActions', () => ({
   useConfirmActions: () => ({
     onConfirm: mockConfirmSpy,
@@ -249,6 +263,34 @@ describe('Footer', () => {
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+  });
+
+  it('disables the Predict claim footer when a blocking alert is shown', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      hasBlockingAlerts: true,
+    });
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      emptySignatureControllerMock,
+      { securityAlerts: { alerts: {} } },
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [{ type: TransactionType.predictClaim }],
+            },
+          },
+        },
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<Footer />, { state });
+
+    expect(getByTestId('predict-claim-footer-stub')).toHaveTextContent(
+      'disabled',
+    );
   });
 
   it('disables confirm button if isTransactionValueUpdating', () => {

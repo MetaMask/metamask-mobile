@@ -223,7 +223,13 @@ function FooterInternal() {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
-    return <PredictClaimFooter onPress={onConfirm} onError={onReject} />;
+    return (
+      <PredictClaimFooter
+        onPress={onConfirm}
+        onError={onReject}
+        isDisabled={hasBlockingAlerts}
+      />
+    );
   }
 
   return (
