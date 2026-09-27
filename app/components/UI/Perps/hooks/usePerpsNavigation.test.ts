@@ -2,15 +2,28 @@ import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { PerpsMode } from '@metamask/perps-controller';
+import {
+  PerpsMode,
+  type PerpsActiveProviderMode,
+  PERPS_EVENT_VALUE,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsProvider } from './usePerpsProvider';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsMode,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -22,6 +35,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockDepositWithOrder = jest.fn();
+const mockSwitchProvider = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 const mockWithPendingTransactionActiveAbTests = jest.fn(
@@ -32,6 +46,10 @@ jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
 }));
 
+jest.mock('./usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(),
+}));
+
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -39,6 +57,11 @@ jest.mock('./usePerpsToasts', () => ({
 
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
+}));
+
+jest.mock('../utils/perpsTradeSheetInteractiveTrace', () => ({
+  startPerpsTradeSheetInteractiveTrace: jest.fn(),
+  failPerpsTradeSheetInteractiveTrace: jest.fn(),
 }));
 
 jest.mock(
@@ -58,11 +81,15 @@ describe('usePerpsNavigation', () => {
   const mockGoBack = jest.fn();
   const mockDispatch = jest.fn();
   const mockGetState = jest.fn();
+  let mockActiveProvider: PerpsActiveProviderMode | undefined;
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
   const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
     typeof usePerpsTrading
+  >;
+  const mockUsePerpsProvider = usePerpsProvider as jest.MockedFunction<
+    typeof usePerpsProvider
   >;
   const mockUsePerpsToasts = usePerpsToasts as jest.MockedFunction<
     typeof usePerpsToasts
@@ -74,19 +101,30 @@ describe('usePerpsNavigation', () => {
   >;
   beforeEach(() => {
     jest.clearAllMocks();
+    mockActiveProvider = undefined;
     mockCanGoBack.mockReturnValue(true);
     // Default to Pro mode inactive, matching the existing navigateToHome
     // assertions below which expect the Perps Home screen target.
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProModeEnabledFlag) return false;
       if (selector === selectPerpsMode) return PerpsMode.Lite;
+      if (selector === selectPerpsProvider) return mockActiveProvider;
       return undefined;
     });
     mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
+    mockSwitchProvider.mockResolvedValue({
+      success: true,
+      providerId: 'hyperliquid',
+    });
     mockUsePerpsTrading.mockReturnValue({
       depositWithOrder: mockDepositWithOrder,
     } as Partial<ReturnType<typeof usePerpsTrading>> as ReturnType<
       typeof usePerpsTrading
+    >);
+    mockUsePerpsProvider.mockReturnValue({
+      switchProvider: mockSwitchProvider,
+    } as Partial<ReturnType<typeof usePerpsProvider>> as ReturnType<
+      typeof usePerpsProvider
     >);
     mockUsePerpsToasts.mockReturnValue({
       showToast: mockShowToast,
@@ -377,6 +415,194 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('switches to Lighter before routing an explicit order while aggregated', async () => {
+      mockActiveProvider = 'aggregated';
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'ETH',
+        providerId: 'lighter' as const,
+        useBottomSheet: true,
+      };
+
+      result.current.navigateToOrder(params);
+
+      expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
+      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.BALANCE_ORDER,
+          params,
+        );
+      });
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+      expect(startPerpsTradeSheetInteractiveTrace).not.toHaveBeenCalled();
+    });
+
+    it('switches a concrete provider before routing an explicit Lighter order', async () => {
+      mockActiveProvider = 'hyperliquid';
+      mockSwitchProvider.mockResolvedValueOnce({
+        success: true,
+        providerId: 'lighter',
+      });
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'ETH',
+        providerId: 'lighter' as const,
+      };
+
+      result.current.navigateToOrder(params);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.BALANCE_ORDER,
+          params,
+        );
+      });
+      expect(mockSwitchProvider.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not route an explicit Lighter order when provider switching fails', async () => {
+      mockActiveProvider = 'aggregated';
+      mockSwitchProvider.mockResolvedValueOnce({
+        success: false,
+        error: 'Provider switch failed',
+      });
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'ETH',
+        providerId: 'lighter',
+      });
+
+      await waitFor(() => {
+        expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
+        expect(mockShowToast).toHaveBeenCalledWith({});
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+    });
+
+    it('preserves deposit routing for an aggregated order without providerId', async () => {
+      mockActiveProvider = 'aggregated';
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'long' as const, asset: 'ETH' };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          expect.objectContaining(params),
+        );
+      });
+      expect(mockSwitchProvider).not.toHaveBeenCalled();
+    });
+
+    it('uses the default provider without switching while aggregated', async () => {
+      mockActiveProvider = 'aggregated';
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'ETH',
+        providerId: 'hyperliquid',
+      });
+
+      await waitFor(() =>
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1),
+      );
+      expect(mockSwitchProvider).not.toHaveBeenCalled();
+    });
+
+    it('uses the explicit provider over a concrete active provider', async () => {
+      mockActiveProvider = 'lighter';
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'short' as const,
+        asset: 'ETH',
+        providerId: 'hyperliquid' as const,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockSwitchProvider).toHaveBeenCalledWith('hyperliquid');
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          expect.objectContaining(params),
+        );
+      });
+      expect(mockSwitchProvider.mock.invocationCallOrder[0]).toBeLessThan(
+        mockDepositWithOrder.mock.invocationCallOrder[0],
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.BALANCE_ORDER,
+        expect.anything(),
+      );
+    });
+
+    it('does not deposit or navigate when an explicit provider switch fails', async () => {
+      mockActiveProvider = 'lighter';
+      mockSwitchProvider.mockResolvedValueOnce({
+        success: false,
+        error: 'Provider switch failed',
+      });
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'ETH',
+        providerId: 'hyperliquid',
+      });
+
+      await waitFor(() => {
+        expect(mockSwitchProvider).toHaveBeenCalledWith('hyperliquid');
+        expect(mockShowToast).toHaveBeenCalledWith({});
+      });
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not switch when the explicit provider matches the active provider', async () => {
+      mockActiveProvider = 'hyperliquid';
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'ETH',
+        providerId: 'hyperliquid',
+      });
+
+      await waitFor(() =>
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1),
+      );
+      expect(mockSwitchProvider).not.toHaveBeenCalled();
+    });
+
+    it('preserves direct routing for an active Lighter provider without providerId', () => {
+      mockActiveProvider = 'lighter';
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'short' as const, asset: 'ETH' };
+
+      result.current.navigateToOrder(params);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.BALANCE_ORDER,
+        params,
+      );
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+    });
+
     it('opens order confirmation as a headerless bottom sheet for treatment', async () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = {
@@ -397,6 +623,9 @@ describe('usePerpsNavigation', () => {
           },
         );
       });
+      expect(startPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+        PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      );
     });
 
     it('wraps order creation with transaction active A/B tests when provided', async () => {
@@ -449,12 +678,35 @@ describe('usePerpsNavigation', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
+    it('ends the Trade sheet interactive span when bottom-sheet order creation fails', async () => {
+      mockDepositWithOrder.mockRejectedValue(new Error('Deposit failed'));
+
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'BTC',
+        useBottomSheet: true,
+      });
+
+      await waitFor(() => {
+        expect(failPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+          'transaction_creation_failed',
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('does not navigate when depositWithOrder rejects', async () => {
       const depositError = new Error('Deposit failed');
       mockDepositWithOrder.mockRejectedValue(depositError);
 
       const { result } = renderHook(() => usePerpsNavigation());
-      const params = { direction: 'long' as const, asset: 'BTC' };
+      const params = {
+        direction: 'long' as const,
+        asset: 'BTC',
+        useBottomSheet: true,
+      };
 
       result.current.navigateToOrder(params);
 
@@ -464,6 +716,9 @@ describe('usePerpsNavigation', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(failPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+        'transaction_creation_failed',
+      );
     });
 
     it('navigates to tutorial without params', () => {
@@ -484,6 +739,36 @@ describe('usePerpsNavigation', () => {
       result.current.navigateToTutorial(params);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, params);
+    });
+
+    it('opens the adjust margin screen for control', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'add');
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'add',
+        enableHaptics: undefined,
+      });
+    });
+
+    it('opens the adjust margin bottom sheet for treatment', () => {
+      const position = { symbol: 'ETH' } as Position;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToAdjustMargin(position, 'remove', {
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode: 'remove',
+        enableHaptics: true,
+        useBottomSheet: true,
+      });
     });
   });
 

@@ -34,6 +34,31 @@ describe('usePerpsScreenVsBottomSheetAbTest', () => {
     );
   });
 
+  it('resolves the assignment without exposure when tracking is opted out', () => {
+    renderHook(() =>
+      usePerpsScreenVsBottomSheetAbTest({ trackExposure: false }),
+    );
+
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+      SCREEN_VS_BOTTOM_SHEET_VARIANTS,
+      {
+        ...SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
+        trackExposure: false,
+      },
+    );
+  });
+
+  it('tracks exposure when tracking is not opted out', () => {
+    renderHook(() => usePerpsScreenVsBottomSheetAbTest({}));
+
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+      SCREEN_VS_BOTTOM_SHEET_VARIANTS,
+      SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS,
+    );
+  });
+
   it('keeps screen presentation for control', () => {
     const { result } = renderHook(() => usePerpsScreenVsBottomSheetAbTest());
 

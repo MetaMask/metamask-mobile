@@ -325,6 +325,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'card.geoLocation',
     'engine.backgroundState.GeolocationController.location',
     'engine.backgroundState.GeolocationController.lastFetchedAt',
+    'engine.backgroundState.ConfigRegistryController.lastFetched',
 
     // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base

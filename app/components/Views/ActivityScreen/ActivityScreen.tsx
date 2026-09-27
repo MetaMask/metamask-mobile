@@ -259,6 +259,21 @@ const ActivityScreen = () => {
     ? getPerpsSubFilterKinds(perpsFilter)
     : undefined;
 
+  // Perps fills are the only rows that can be collapsed per order, so the control is offered
+  // on the Trades sub-filter and nowhere else.
+  const [aggregateFills, setAggregateFills] = useState(true);
+  const aggregatedToggle = useMemo(
+    () =>
+      showPerpsFilter && perpsFilter === PerpsActivityFilter.Trades
+        ? {
+            isSelected: aggregateFills,
+            onChange: setAggregateFills,
+            testID: ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX,
+          }
+        : null,
+    [showPerpsFilter, perpsFilter, aggregateFills],
+  );
+
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -311,10 +326,11 @@ const ActivityScreen = () => {
         <AssetListControlBar
           typeChip={typeChip}
           secondaryChip={secondaryChip}
+          aggregatedToggle={aggregatedToggle}
         />
       </Box>
     ),
-    [handleTitleLayout, typeChip, secondaryChip],
+    [handleTitleLayout, typeChip, secondaryChip, aggregatedToggle],
   );
 
   return (
@@ -348,6 +364,7 @@ const ActivityScreen = () => {
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
               subFilterKinds={subFilterKinds}
+              aggregateFills={aggregateFills}
               trackScreenViewed
               entryPoint={entryPoint}
             />
@@ -367,6 +384,7 @@ const ActivityScreen = () => {
                 <AssetListControlBar
                   typeChip={typeChip}
                   secondaryChip={secondaryChip}
+                  aggregatedToggle={aggregatedToggle}
                   suppressTestIDs
                 />
               </Box>

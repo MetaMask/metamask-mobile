@@ -5,7 +5,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
 import { parseCaipAssetType } from '@metamask/utils';
@@ -32,7 +32,18 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  resetBridgeTokenInputs,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringPriceRange,
+  setRecurringRepeatCount,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -43,8 +54,12 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { DetailRow } from '../../components/LimitOrderConfirmationModal/DetailRow';
 import type { BridgeToken } from '../../types';
 import { getTokenImageSource } from '../../utils';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { showRecurringOrderCanceledToast } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
-import { RecurringOrderStatus } from '../../api/recurringOrders.types';
+import {
+  RecurringOrderStatus,
+  type RecurringSwap,
+} from '../../api/recurringOrders.types';
 import { useRecurringSwaps } from '../../hooks/useRecurringSwaps';
 import {
   formatRecurringExecutionPrice,
@@ -55,11 +70,15 @@ import {
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
   getUsdToCurrentCurrencyRate,
+  isRecurringSwapEligibleForAddFunds,
 } from '../../utils/recurringOrders';
 import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 import { type RecurringOrderDetailsRouteParams } from './RecurringOrderDetailsView.types';
 import { RecurringSwapRow } from './RecurringSwapRow';
+import { useCancelRecurringOrder } from '../../hooks/useCancelRecurringOrder';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
 
 const LOAD_MORE_SCROLL_THRESHOLD = 100;
 
@@ -121,12 +140,19 @@ function RecurringTokenSummary({
 
 function RecurringOrderDetailsView() {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<RecurringOrderDetailsRouteParams>();
   const [isCancelSheetVisible, setIsCancelSheetVisible] = useState(false);
   const currentCurrency = useSelector(selectCurrentCurrency) ?? 'USD';
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const { setRecurringOrdersTab } = useBridgeSession();
+  const {
+    cancelRecurringOrder,
+    isSubmitting,
+    reset: resetCancelMutation,
+  } = useCancelRecurringOrder();
   const swapsQuery = useRecurringSwaps({ orderId: order.orderId });
 
   const handleBack = useCallback(() => {
@@ -134,19 +160,57 @@ function RecurringOrderDetailsView() {
   }, [navigation]);
 
   const handleOpenCancelSheet = useCallback(() => {
+    resetCancelMutation();
     setIsCancelSheetVisible(true);
-  }, []);
+  }, [resetCancelMutation]);
 
   const handleCloseCancelSheet = useCallback(() => {
+    resetCancelMutation();
     setIsCancelSheetVisible(false);
-  }, []);
+  }, [resetCancelMutation]);
 
-  const handleConfirmCancel = useCallback(() => {
+  const handleCancelSubmit = useCallback(async () => {
+    try {
+      await cancelRecurringOrder(order);
+    } catch (error) {
+      showGenericErrorToast();
+      throw error;
+    }
+  }, [cancelRecurringOrder, order]);
+
+  const handleCancelSuccess = useCallback(() => {
     showRecurringOrderCanceledToast();
-    setIsCancelSheetVisible(false);
-  }, []);
+    setRecurringOrdersTab?.(OrdersTabKey.History);
+    navigation.goBack();
+  }, [navigation, setRecurringOrdersTab]);
 
-  const handleDuplicateOrder = useCallback(() => undefined, []);
+  const handleDuplicateOrder = useCallback(() => {
+    const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
+
+    dispatch(resetBridgeTokenInputs());
+    dispatch(setRecurringPriceRange(undefined));
+    dispatch(setSourceToken(sourceToken));
+    dispatch(setDestToken(destinationToken));
+    dispatch(setIsDestTokenManuallySet(true));
+    dispatch(setRecurringEveryUnit(order.schedule.unit));
+    dispatch(setRecurringEveryValue(String(order.schedule.every)));
+    dispatch(setRecurringRepeatCount(String(order.schedule.repeatCount)));
+    navigation.goBack();
+  }, [dispatch, navigation, order]);
+
+  const handleSwapPress = useCallback(
+    (swap: RecurringSwap) => {
+      navigation.navigate(Routes.BRIDGE.RECURRING_SWAP_DETAILS, {
+        order,
+        swap,
+        showAddFundsCta: isRecurringSwapEligibleForAddFunds(
+          swap,
+          swapsQuery.swaps,
+        ),
+      });
+    },
+    [navigation, order, swapsQuery.swaps],
+  );
 
   const handleScroll = useCallback(
     ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -199,8 +263,6 @@ function RecurringOrderDetailsView() {
   });
   const priceRange = formatRecurringPriceRange({
     priceRange: order.priceRange,
-    currentCurrency,
-    usdToCurrentCurrencyRate,
   });
   const averageExecutionPrice = formatRecurringExecutionPrice({
     priceUsd: order.averageExecutionPriceUsd,
@@ -406,6 +468,7 @@ function RecurringOrderDetailsView() {
                   swap={swap}
                   sourceToken={sourceToken}
                   destinationToken={destinationToken}
+                  onPress={() => handleSwapPress(swap)}
                 />
               ))}
             </Box>
@@ -456,7 +519,9 @@ function RecurringOrderDetailsView() {
       <RecurringOrderCancelSheet
         isVisible={isCancelSheetVisible}
         onClose={handleCloseCancelSheet}
-        onConfirm={handleConfirmCancel}
+        onSubmit={handleCancelSubmit}
+        onSuccess={handleCancelSuccess}
+        isSubmitting={isSubmitting}
       />
     </SafeAreaView>
   );

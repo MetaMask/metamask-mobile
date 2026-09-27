@@ -10,6 +10,7 @@ import {
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
@@ -24,7 +25,11 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const autoUpgradeEIP7702Account = useAutoUpgradeEIP7702Account();
+  const sourceWalletAddress = useSelector(selectSourceWalletAddress);
+  const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
+    address: sourceWalletAddress,
+    chainId: sourceToken?.chainId,
+  });
   const delegationFee = useEIP7702UpgradeFee();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);

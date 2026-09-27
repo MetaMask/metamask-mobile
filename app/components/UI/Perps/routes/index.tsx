@@ -20,20 +20,22 @@ import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
+import PerpsBalanceOrderView from '../Views/PerpsBalanceOrderView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
-import PerpsClosePositionView from '../Views/PerpsClosePositionView';
+import PerpsClosePositionRouter from '../Views/PerpsClosePositionRouter';
 import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
-import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsTPSLRouter from '../Views/PerpsTPSLRouter';
 import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsAdjustMarginBottomSheet from '../components/PerpsAdjustMarginBottomSheet';
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
@@ -46,6 +48,7 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
+import PerpsOutreachDetailsView from '../Views/PerpsOutreachDetailsView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -55,6 +58,7 @@ import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
+import { usePerpsScreenVsBottomSheetAbTest } from '../hooks/usePerpsScreenVsBottomSheetAbTest';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -80,6 +84,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+const getPerpsConversionScreenOptions = (
+  isBottomSheet: boolean,
+  baseOptions: NativeStackNavigationOptions,
+): NativeStackNavigationOptions =>
+  isBottomSheet
+    ? { ...baseOptions, ...transparentModalScreenOptions }
+    : baseOptions;
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
@@ -124,6 +136,50 @@ export const shouldRenderPerpsConfirmationLoader = (
   useBottomSheet: boolean | undefined,
   approvalRequest: unknown,
 ) => Boolean(useBottomSheet && !approvalRequest);
+
+/**
+ * Back from a Lite market replaces the stack with Perps home
+ * (`resetToPerpsHomeTarget`) because the Lite -> Pro switch dropped Home from
+ * history. Native stack replaces screens with a push animation by default, so
+ * Back slid the market page left as if the user moved forward.
+ */
+export const getPerpsHomeScreenOptions = (): NativeStackNavigationOptions => ({
+  title: strings('perps.markets.title'),
+  headerShown: false,
+  animationTypeForReplace: 'pop',
+});
+
+export const getAdjustMarginOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: '',
+      }
+    : {
+        title: strings('perps.adjust_margin.title'),
+        headerShown: false,
+      };
+
+export const getTpslOptions = (
+  useBottomSheet: boolean | undefined,
+): NativeStackNavigationOptions =>
+  useBottomSheet
+    ? {
+        // The sheet draws its own backdrop fade and slide. Leaving the stack
+        // animation on would slide the whole transparent screen, backdrop
+        // included, which is what separates this from the modify modal.
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
+      }
+    : {
+        ...transparentModalScreenOptions,
+        title: strings('perps.tpsl.title'),
+        headerShown: false,
+      };
 
 const PerpsConfirmScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -185,6 +241,23 @@ const PerpsConfirmScreen = () => {
       <Confirm disableSafeArea />
     </NavigationContext.Provider>
   );
+};
+
+export const PerpsAdjustMarginRouter = () => {
+  const { params } =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsAdjustMargin'>>();
+
+  if (params?.useBottomSheet && params.position && params.mode) {
+    return (
+      <PerpsAdjustMarginBottomSheet
+        position={params.position}
+        initialMode={params.mode}
+        enableHaptics={params.enableHaptics}
+      />
+    );
+  }
+
+  return <PerpsAdjustMarginView />;
 };
 
 const PerpsModalStack = () => {
@@ -255,6 +328,13 @@ const PerpsModalStack = () => {
               title: strings('perps.mode.selection_title'),
             }}
           />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.OUTREACH_DETAILS}
+            component={PerpsOutreachDetailsView}
+            options={{
+              title: strings('perps.outreach_details.title'),
+            }}
+          />
           {/* Action Selection Modals */}
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_MODIFY_ACTION}
@@ -316,6 +396,9 @@ const PerpsScreenStack = () => {
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
+  // Shared by every screen-to-bottom-sheet conversion in this navigator.
+  const { useBottomSheet: isPerpsBottomSheet } =
+    usePerpsScreenVsBottomSheetAbTest({ trackExposure: false });
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
@@ -352,10 +435,7 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.PERPS_HOME}
                 component={PerpsHomeView}
-                options={{
-                  title: strings('perps.markets.title'),
-                  headerShown: false,
-                }}
+                options={getPerpsHomeScreenOptions}
               />
 
               <Stack.Screen
@@ -375,6 +455,11 @@ const PerpsScreenStack = () => {
               />
 
               {/* Withdrawal flow screens */}
+              <Stack.Screen
+                name={Routes.PERPS.BALANCE_ORDER}
+                component={PerpsBalanceOrderView}
+                options={{ headerShown: false }}
+              />
               <Stack.Screen
                 name={Routes.PERPS.WITHDRAW}
                 component={PerpsWithdrawView}
@@ -410,11 +495,11 @@ const PerpsScreenStack = () => {
 
               <Stack.Screen
                 name={Routes.PERPS.CLOSE_POSITION}
-                component={PerpsClosePositionView}
-                options={{
+                component={PerpsClosePositionRouter}
+                options={getPerpsConversionScreenOptions(isPerpsBottomSheet, {
                   title: strings('perps.close_position.title'),
                   headerShown: false,
-                }}
+                })}
               />
 
               {/* Debug tools - only available in development builds */}
@@ -432,22 +517,19 @@ const PerpsScreenStack = () => {
               {/* TP/SL View - Regular screen */}
               <Stack.Screen
                 name={Routes.PERPS.TPSL}
-                component={PerpsTPSLView}
-                options={{
-                  ...transparentModalScreenOptions,
-                  title: strings('perps.tpsl.title'),
-                  headerShown: false,
-                }}
+                component={PerpsTPSLRouter}
+                options={({ route }) =>
+                  getTpslOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Adjust Margin View */}
               <Stack.Screen
                 name={Routes.PERPS.ADJUST_MARGIN}
-                component={PerpsAdjustMarginView}
-                options={{
-                  title: strings('perps.adjust_margin.title'),
-                  headerShown: false,
-                }}
+                component={PerpsAdjustMarginRouter}
+                options={({ route }) =>
+                  getAdjustMarginOptions(route.params?.useBottomSheet)
+                }
               />
 
               {/* Order Details View */}

@@ -1,3 +1,4 @@
+import type { Json } from '@metamask/utils';
 import type {
   FetchPortfolioPageParams,
   PredictActivityPage,
@@ -58,3 +59,16 @@ export const portfolioQueries = {
     scope: 'venue',
   }),
 };
+
+/** The invalidation families of the authoritative portfolio reads, in the
+ * Balance, Positions, Activity order, as query-key prefixes. A financial
+ * write invalidates all three by family, so every cached page of each read
+ * refetches; families are params-independent by construction. */
+export const portfolioQueryFamilies = (
+  venueId: PredictVenueId,
+): [string, ...Json[]][] =>
+  [
+    portfolioQueries.getBalance(venueId).family,
+    portfolioQueries.getPositions(venueId, {}).family,
+    portfolioQueries.getActivity(venueId, {}).family,
+  ] as [string, ...Json[]][];

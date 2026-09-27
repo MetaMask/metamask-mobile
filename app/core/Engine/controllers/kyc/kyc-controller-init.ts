@@ -12,6 +12,10 @@ import { sumsubLauncher } from './sumSubLauncher';
  * and the SumSub hand-off. Platform-specific SDK presentation is delegated to
  * the injected {@link sumsubLauncher}.
  *
+ * Money-account wallet registration and autoramp creation after KYC approval
+ * are owned by `RampsController.hydrateVbaOnboarding`. Do not also subscribe
+ * to `KycController:statusChanged` for that activation work.
+ *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
  * @param request.persistedState - Persisted state to hydrate from.

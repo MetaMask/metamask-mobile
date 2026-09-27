@@ -24,6 +24,7 @@ import {
 } from '../utils/crossmintCheckoutAppearance';
 import {
   getCrossmintFailureMessage,
+  getCrossmintUnpurchasableMessage,
   isCrossmintPaymentCompleted,
   isCrossmintPaymentInProgress,
   parseCrossmintCheckoutMessage,
@@ -79,6 +80,14 @@ export interface UseCrossmintWalletPayOverlayResult {
   isPaymentSettling: boolean;
   /** Best-effort handler for the overlay WebView postMessage events. */
   onMessage: (event: WebViewMessageEvent) => void;
+  /**
+   * Crossmint's reason the prepared order cannot be paid (e.g. the token is
+   * not available for purchase right now). Set when their checkout reports
+   * the order unpurchasable before payment; the overlay is torn down and the
+   * caller shows this next to the restored Continue button. Cleared on the
+   * next preparation.
+   */
+  checkoutError: string | null;
 }
 
 /**
@@ -145,6 +154,7 @@ export default function useCrossmintWalletPayOverlay(
 
   const [prepared, setPrepared] = useState<PreparedOverlay | null>(null);
   const [preparationFailed, setPreparationFailed] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutReadyId, setCheckoutReadyId] = useState<number | null>(null);
   const [settlingOrderId, setSettlingOrderId] = useState<string | null>(null);
   const lastPaymentStatusRef = useRef<string | undefined>(undefined);
@@ -180,6 +190,7 @@ export default function useCrossmintWalletPayOverlay(
       preparedKeyRef.current = null;
       setPrepared(null);
       setPreparationFailed(false);
+      setCheckoutError(null);
       return;
     }
 
@@ -204,6 +215,7 @@ export default function useCrossmintWalletPayOverlay(
     // is still being created.
     setPrepared(null);
     setPreparationFailed(false);
+    setCheckoutError(null);
 
     (async () => {
       try {
@@ -316,10 +328,32 @@ export default function useCrossmintWalletPayOverlay(
         return;
       }
 
+      const unpurchasable = getCrossmintUnpurchasableMessage(message);
+      if (unpurchasable) {
+        // A message from a checkout that is no longer active (the amount
+        // changed and the WebView is on its way out) must not fail the
+        // preparation that replaced it.
+        if (!activePreparedRef.current) {
+          return;
+        }
+        // The order never got a quote, so the button Crossmint is about to
+        // render (and report ready) cannot be paid. Drop the overlay and hand
+        // the slot back to Continue with the reason; a new amount re-prepares.
+        Logger.error(new Error(unpurchasable), {
+          message:
+            'useCrossmintWalletPayOverlay Crossmint order is not purchasable',
+        });
+        setSettlingOrderId(null);
+        setPrepared(null);
+        setPreparationFailed(true);
+        setCheckoutError(unpurchasable);
+        return;
+      }
+
       const failure = getCrossmintFailureMessage(message);
       if (failure) {
-        // Their UI surfaces the failure inline and allows a retry, so log and
-        // give them the slot back.
+        // A payment decline: their UI surfaces it inline and allows a retry,
+        // so log and give them the slot back.
         Logger.error(new Error(failure), {
           message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
         });
@@ -400,5 +434,6 @@ export default function useCrossmintWalletPayOverlay(
     isPaymentSettling,
     onCheckoutReady,
     onMessage,
+    checkoutError,
   };
 }

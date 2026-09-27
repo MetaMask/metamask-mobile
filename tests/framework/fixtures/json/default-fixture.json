@@ -161,8 +161,10 @@
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
+          "accountLookupCache": {},
           "redeemWithdrawal": null,
-          "selectedCountry": null
+          "selectedCountry": null,
+          "signInLink": null
         },
         "ClaimsController": {
           "claims": [],
@@ -185,7 +187,7 @@
           },
           "etag": null,
           "lastFetched": null,
-          "version": null
+          "version": "0.0.0"
         },
         "CronJobController": {
           "events": {},
@@ -915,6 +917,7 @@
       "moneyAccountSweepstakesDrawProofs": {},
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
+      "moneyAccountSweepstakesVolumeStats": {},
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
@@ -986,6 +989,7 @@
       "basicFunctionalityMigrationNotification": null,
       "basicFunctionalityMigrationNotificationDismissed": false,
       "isBasicFunctionalityConsolidatedEnabled": false,
+      "hasLinkedSocialLoginProfile": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,

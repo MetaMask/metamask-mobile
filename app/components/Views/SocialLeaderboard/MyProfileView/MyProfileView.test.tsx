@@ -7,6 +7,10 @@ import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  getLocalSocialProfileSnapshot,
+  restoreDefaultLocalSocialProfile,
+} from './hooks/localSocialProfileStore';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -66,6 +70,10 @@ const profile: UseMyProfileResult['profile'] = {
 };
 
 describe('MyProfileView', () => {
+  afterEach(() => {
+    restoreDefaultLocalSocialProfile();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMyProfile.mockReturnValue({
@@ -222,6 +230,44 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the post composer from the empty Posts CTA', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
+  it('resets the local profile and opens onboarding from the debug button', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    );
+
+    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+  });
+
+  it('opens onboarding when the owner has no profile', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.CREATE_PROFILE_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 
   it('omits the Insights header action', () => {

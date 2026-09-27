@@ -15,9 +15,7 @@ import {
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { isDmkEnabled } from '../../Ledger/dmk';
-import { useSelector } from 'react-redux';
-import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import { getLedgerDmkMode } from '../../Ledger/dmk';
 
 interface UseAdapterLifecycleOptions {
   walletType: HardwareWalletType | null;
@@ -25,6 +23,14 @@ interface UseAdapterLifecycleOptions {
   handleDeviceEvent: (payload: DeviceEventPayload) => void;
   handleError: (error: unknown) => void;
   updateConnectionState: (state: HardwareWalletConnectionState) => void;
+  /**
+   * Returns whether a connection flow is currently active. When it returns
+   * `false`, a late `onDisconnect` error (device dropped after the flow
+   * closed) must not surface through `handleError` — that would re-open the
+   * error bottom sheet over the app. Optional for back-compat: when omitted,
+   * behavior is unchanged.
+   */
+  isFlowActive?: () => boolean;
 }
 
 interface UseAdapterLifecycleResult {
@@ -56,17 +62,16 @@ export const useAdapterLifecycle = ({
   handleDeviceEvent,
   handleError,
   updateConnectionState,
+  isFlowActive,
 }: UseAdapterLifecycleOptions): UseAdapterLifecycleResult => {
   const [isTransportAvailable, setIsTransportAvailable] = useState(false);
   const previousTransportAvailableRef = useRef<boolean | null>(null);
   const transportCleanupRef = useRef<(() => void) | null>(null);
 
-  // DMK flag, read live from feature-flag state. Held in a ref so the adapter
-  // callbacks stay stable (no spurious re-creation on flag change); the value
-  // is read fresh at adapter-creation time.
-  const dmkFlags = useSelector(selectRemoteFeatureFlags);
-  const dmkFlagsRef = useRef(dmkFlags);
-  dmkFlagsRef.current = dmkFlags;
+  // Held in a ref so the adapter callbacks stay identity-stable regardless of
+  // the caller-provided function's identity.
+  const isFlowActiveRef = useRef(isFlowActive);
+  isFlowActiveRef.current = isFlowActive;
 
   const onDeviceEvent = useEffectEvent(handleDeviceEvent);
   const onError = useEffectEvent(handleError);
@@ -74,14 +79,18 @@ export const useAdapterLifecycle = ({
 
   const createAdapterWithCallbacks = useCallback(
     (targetType: HardwareWalletType) => {
-      const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+      // Engine-initialized mode; same value the keyring bridge uses.
+      const enableDmk = getLedgerDmkMode();
       return createAdapter(
         targetType,
         {
           onDisconnect: (error) => {
-            if (error) {
+            const flowActive = isFlowActiveRef.current?.() !== false;
+            if (error && flowActive) {
               onError(error);
             } else {
+              // No error, or the flow already closed: a late device drop must
+              // not re-open the error bottom sheet over the app.
               onUpdateConnectionState({
                 status: ConnectionStatus.Disconnected,
               });
@@ -141,7 +150,7 @@ export const useAdapterLifecycle = ({
 
     previousTransportAvailableRef.current = null;
 
-    const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+    const enableDmk = getLedgerDmkMode();
 
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)

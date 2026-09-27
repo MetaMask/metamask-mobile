@@ -87,6 +87,27 @@ jest.mock('@metamask/design-system-react-native', () => {
       Md: 'Md',
       Lg: 'Lg',
     },
+    ButtonIconSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+    IconName: {
+      ArrowLeft: 'ArrowLeft',
+    },
+    ButtonIcon: ({
+      onPress,
+      testID,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return ReactActual.createElement(TouchableOpacity, {
+        testID: testID || 'button-icon',
+        onPress,
+      });
+    },
   };
 });
 
@@ -159,46 +180,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     ButtonWidthTypes,
   };
 });
-
-// Mock ButtonIcon component
-jest.mock(
-  '../../../../../component-library/components/Buttons/ButtonIcon',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { TouchableOpacity } = jest.requireActual('react-native');
-
-    const ButtonIconSizes = {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    };
-
-    const ButtonIcon = ({
-      onPress,
-      testID,
-    }: {
-      onPress?: () => void;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(TouchableOpacity, {
-        testID: testID || 'button-icon',
-        onPress,
-      });
-
-    return {
-      __esModule: true,
-      default: ButtonIcon,
-      ButtonIconSizes,
-    };
-  },
-);
-
-// Mock Icon component
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  IconName: {
-    ArrowLeft: 'ArrowLeft',
-  },
-}));
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({

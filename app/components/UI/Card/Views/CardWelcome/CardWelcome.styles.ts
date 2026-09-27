@@ -47,6 +47,25 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
   const { screenWidth, screenHeight, scaleVertical, scaleHorizontal } =
     createScalingFunctions(dimensions);
 
+  const isSmallScreen =
+    screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES;
+
+  // Outer box for the static PNG (`resizeMode: 'contain'`). Unchanged — the
+  // 1:1 PNG letterboxes correctly inside this rect.
+  const imageWidth = isSmallScreen ? screenWidth * 0.95 : screenWidth * 1.2;
+  const imageHeight = isSmallScreen ? screenHeight * 0.55 : screenHeight * 0.7;
+
+  // Rive uses the same wide/tall box as `image` so Fit.Contain scales the
+  // (taller-than-wide) artboard by height and the cards stay as wide as the
+  // original. A square box letterboxed the sides and looked too narrow.
+  // Shift the box up so its bottom sits behind Set up now (~88% / ~85%),
+  // matching where the PNG's rendered content ended.
+  const imageContainerTopRatio = isSmallScreen ? 0.34 : 0.25;
+  const animationBottomRatio = isSmallScreen ? 0.85 : 0.88;
+  const animationMarginTop =
+    screenHeight * (animationBottomRatio - imageContainerTopRatio) -
+    imageHeight;
+
   return StyleSheet.create({
     pageContainer: {
       flex: 1,
@@ -68,21 +87,16 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       fontFamily: 'MMPoly-Regular',
       fontWeight: '400',
       // make it smaller on smaller screens
-      fontSize:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 45,
-      lineHeight:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 40 : 45, // 100% of font size
+      fontSize: isSmallScreen ? 40 : 45,
+      lineHeight: isSmallScreen ? 40 : 45, // 100% of font size
       letterSpacing: 0,
       textAlign: 'center',
-      paddingTop: scaleVertical(
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 8 : 12,
-      ),
+      paddingTop: scaleVertical(isSmallScreen ? 8 : 12),
       color: theme.colors.accent02.light,
     },
     titleDescription: {
       // make it smaller on smaller screens
-      fontSize:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES ? 14 : 16,
+      fontSize: isSmallScreen ? 14 : 16,
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
       textAlign: 'center',
@@ -95,10 +109,7 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
     imageContainer: {
       position: 'absolute',
       // Push image further down on smaller screens to avoid overlapping with header text
-      top:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
-          ? '34%'
-          : '25%',
+      top: isSmallScreen ? '34%' : '25%',
       left: 0,
       right: 0,
       bottom: 0,
@@ -107,27 +118,29 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       zIndex: 1,
     },
     image: {
-      // Scale image size based on screen height - smaller on small screens
-      width:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
-          ? screenWidth * 0.95
-          : screenWidth * 1.2,
-      height:
-        screenHeight < MIN_SCREEN_HEIGHT_FOR_SMALL_SCREEN_STYLES
-          ? screenHeight * 0.55
-          : screenHeight * 0.7,
+      width: imageWidth,
+      height: imageHeight,
       resizeMode: 'contain',
+    },
+    // Same size as `image` for scale, shifted up so the bottom edge sits
+    // behind Set up now. Paired with Alignment.BottomCenter on RiveView.
+    animation: {
+      width: imageWidth,
+      height: imageHeight,
+      marginTop: animationMarginTop,
     },
     footerContainer: {
       position: 'absolute',
       bottom: 0,
       left: 0,
       right: 0,
-      display: 'flex',
-      rowGap: scaleVertical(8),
       paddingHorizontal: scaleHorizontal(30),
       paddingBottom: scaleVertical(2),
       zIndex: 3,
+    },
+    footerContent: {
+      display: 'flex',
+      rowGap: scaleVertical(8),
     },
   });
 };
