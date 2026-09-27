@@ -157,13 +157,15 @@ describe('Perps margin-mode lock — integration', () => {
 
     it('reports unavailable when the selected account changes mid-read', async () => {
       const harness = buildPerpsIntegrationHarness();
-      harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([
-        { coin: 'BTC' },
-      ]);
-      harness.mocks.wallet.getUserAddressWithDefault
-        .mockResolvedValueOnce('0x1234567890123456789012345678901234567890')
-        .mockResolvedValueOnce('0x1234567890123456789012345678901234567890')
-        .mockResolvedValue(OTHER_USER_ADDRESS);
+      // The account switches while open orders are being fetched.
+      harness.mocks.infoClient.frontendOpenOrders.mockImplementation(
+        async () => {
+          harness.mocks.wallet.getUserAddressWithDefault.mockResolvedValue(
+            OTHER_USER_ADDRESS,
+          );
+          return [{ coin: 'BTC' }];
+        },
+      );
 
       const lock = await harness.provider.getMarginModeLock({ symbol: 'BTC' });
 

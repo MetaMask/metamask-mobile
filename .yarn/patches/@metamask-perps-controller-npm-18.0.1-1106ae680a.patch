@@ -362,13 +362,13 @@ index e917dfd310532d77f70d335c3d0bb98201589db2..15f0c555ea8295ccf064ef011f2711f2
      /**
       * Prepares asset for trading by updating leverage if specified
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..d6fc51c61269a0b21676014b6dc9de1c4e1a533e 100644
+index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..3886d67204eb8ae08014a9ed242d8cd8436ed1c4 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
-@@ -1330,6 +1330,36 @@ export type GetOrderCapabilitiesParams = {
+@@ -1329,6 +1329,36 @@ export type GetOrderCapabilitiesParams = {
+     symbol: string;
      providerId?: PerpsProviderType;
  };
- /** Inputs for a provider-normalized Scale price ladder preview. */
 +/** Market and optional route whose current margin-mode lock is requested. */
 +export type GetMarginModeLockParams = {
 +    /** Provider-specific market identifier, including any routing prefix. */
@@ -399,9 +399,9 @@ index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..d6fc51c61269a0b21676014b6dc9de1c
 +    providerId?: PerpsProviderType;
 +    reason: MarginModeLockUnavailableReason;
 +}>;
+ /** Inputs for a provider-normalized Scale price ladder preview. */
  export type GetScalePriceLadderParams = {
      /** Market symbol, including its provider route when applicable. */
-     symbol: string;
 @@ -1572,6 +1602,12 @@ export type PerpsProvider = {
       * omit this hook; the controller then reports capabilities as unavailable.
       */
