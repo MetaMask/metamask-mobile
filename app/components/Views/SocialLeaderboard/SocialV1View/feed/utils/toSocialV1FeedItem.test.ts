@@ -210,7 +210,6 @@ describe('toSocialV1FeedItem', () => {
       if (result.variant !== 'perpsOpen') return;
       expect(result.entryPriceLabel).toBe('$5,500');
       expect(result.entryPriceLabel).not.toContain(MOCK_MARKER);
-      expect(result.mockedFields).not.toContain('entryPrice');
     });
 
     it('derives an unmarked exit price from the last exit fill', () => {
@@ -263,7 +262,6 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('perpsClosed');
       if (result.variant !== 'perpsClosed') return;
       expect(result.holdTimeLabel).toBe('8h');
-      expect(result.mockedFields).not.toContain('holdTime');
     });
 
     it('derives an unmarked hold time for an open spot position', () => {
@@ -291,7 +289,6 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('spotOpen');
       if (result.variant !== 'spotOpen') return;
       expect(result.holdTimeLabel).toBe('8h');
-      expect(result.mockedFields).not.toContain('holdTime');
     });
 
     // A single closing sell fill puts the row on the closed card, and the side
@@ -350,16 +347,65 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.asset.symbol).toBe('PEPE');
     });
-  });
 
-  describe('mocked fields', () => {
-    it('marks the invented win rate', () => {
-      const row = buildRow(mockPerpFeedItem());
+    it('carries a token name that differs from the ticker', () => {
+      const row = buildRow(mockSpotFeedItem());
 
       const result = toSocialV1FeedItem(row);
 
-      expect(result.author.winRatePercent).toEqual(expect.any(Number));
-      expect(result.mockedFields).toContain('winRate');
+      expect(result.asset.name).toBe('Pepe');
+    });
+
+    it('omits the asset name when it repeats the ticker', () => {
+      const row = buildRow(mockSpotFeedItem({ tokenName: 'PEPE' }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.name).toBeUndefined();
+    });
+
+    it('omits a perp name that is a raw market id', () => {
+      const row = buildRow(
+        mockPerpFeedItem({ tokenSymbol: 'ETH', tokenName: 'xyz:ETH' }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('ETH');
+      expect(result.asset.name).toBeUndefined();
+    });
+
+    it('carries a perp name that is not a market id', () => {
+      const row = buildRow(
+        mockPerpFeedItem({ tokenSymbol: 'xyz:NVDA', tokenName: 'NVIDIA' }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('NVDA');
+      expect(result.asset.name).toBe('NVIDIA');
+    });
+  });
+
+  describe('mocked fields', () => {
+    it('reads the actor win rate as a whole percent and does not mark it', () => {
+      const actor = mockPerpFeedItem().actor;
+      const row = buildRow(
+        mockPerpFeedItem({
+          actor: { ...actor, winRate30d: 0.61 },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.author.winRatePercent).toBe(61);
+      expect(result.author.pnl30d).toBeNull();
+    });
+
+    it('omits the win rate when the actor has none', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result.author.winRatePercent).toBeNull();
     });
 
     it('marks the invented mark price on an open spot position', () => {
@@ -439,58 +485,205 @@ describe('toSocialV1FeedItem', () => {
       expect(result.mockedFields).not.toContain('autoClose');
     });
 
-    it('marks a caption when one is generated', () => {
-      // Sweep ids until the sparse caption rule fires, then assert the marker.
-      const captioned = Array.from({ length: 40 }, (_, index) =>
-        toSocialV1FeedItem(
-          buildRow(mockPerpFeedItem({ positionId: `pos-${index}` })),
-        ),
-      ).find((item) => item.comment !== undefined);
-
-      expect(captioned?.comment).toContain(MOCK_MARKER);
-      expect(captioned?.mockedFields).toContain('comment');
-    });
-
-    it('leaves most rows without a caption', () => {
-      const items = Array.from({ length: 40 }, (_, index) =>
-        toSocialV1FeedItem(
-          buildRow(mockPerpFeedItem({ positionId: `pos-${index}` })),
-        ),
+    it('uses the author comment without marking it', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          authorComment: {
+            uid: 'comment-1',
+            text: 'Thesis unchanged.',
+            timestamp: 1_700_000_000,
+            engagement: {
+              reactions: [],
+              userReaction: null,
+              replyCount: 2,
+            },
+          },
+        }),
       );
 
-      const captioned = items.filter((item) => item.comment !== undefined);
+      const result = toSocialV1FeedItem(row);
 
-      expect(captioned.length).toBeGreaterThan(0);
-      expect(captioned.length).toBeLessThan(items.length / 2);
+      expect(result.comment).toBe('Thesis unchanged.');
+      expect(result.mockedFields).toStrictEqual([]);
+    });
+
+    it('omits the caption when the position has no author comment', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result.comment).toBeUndefined();
+    });
+  });
+
+  describe('stored position stats', () => {
+    it('prefers the stored entry price over an average of the fills', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: true,
+          positionAmount: 5,
+          entryPriceUsd: 9_000,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsOpen');
+      if (result.variant !== 'perpsOpen') return;
+      expect(result.entryPriceLabel).toBe('$9,000');
+    });
+
+    // An open hold grows every second, so the API sends only the anchor and
+    // the clock is ours. `firstTradeAt` comes off the position row, so it
+    // predates any fill the 50-trade cap dropped.
+    it('counts an open hold from firstTradeAt, not the loaded fills', () => {
+      const openedAt = 1_700_000_000;
+      const now = (openedAt + 10 * HOUR_IN_SECONDS) * 1000;
+      const row = buildRow(
+        mockSpotFeedItem({
+          firstTradeAt: openedAt,
+          holdTimeMs: null,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 1000,
+              usdCost: 100_000,
+              // A later top-up: the only fill on the page, and not the open.
+              timestamp: openedAt + 8 * HOUR_IN_SECONDS,
+              transactionHash: '0xa',
+              classification: 'spot',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row, now);
+
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      expect(result.holdTimeLabel).toBe('10h');
+    });
+
+    it('keeps an open hold ticking as time passes', () => {
+      const openedAt = 1_700_000_000;
+      const row = buildRow(
+        mockSpotFeedItem({ firstTradeAt: openedAt, holdTimeMs: null }),
+      );
+
+      const afterOneHour = toSocialV1FeedItem(
+        row,
+        (openedAt + HOUR_IN_SECONDS) * 1000,
+      );
+      const afterFiveHours = toSocialV1FeedItem(
+        row,
+        (openedAt + 5 * HOUR_IN_SECONDS) * 1000,
+      );
+
+      expect(afterOneHour.variant).toBe('spotOpen');
+      if (afterOneHour.variant !== 'spotOpen') return;
+      expect(afterFiveHours.variant).toBe('spotOpen');
+      if (afterFiveHours.variant !== 'spotOpen') return;
+      expect(afterOneHour.holdTimeLabel).toBe('1h');
+      expect(afterFiveHours.holdTimeLabel).toBe('5h');
+    });
+
+    it('uses the reported hold time once the position is closed', () => {
+      const openedAt = 1_700_000_000;
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: false,
+          holdTimeMs: 10 * HOUR_IN_SECONDS * 1000,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: openedAt,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+            {
+              direction: 'sell',
+              intent: 'exit',
+              action: 'closed',
+              tokenAmount: 5,
+              usdCost: 58_000,
+              timestamp: openedAt + 2 * HOUR_IN_SECONDS,
+              transactionHash: '0xb',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsClosed');
+      if (result.variant !== 'perpsClosed') return;
+      expect(result.holdTimeLabel).toBe('10h');
     });
   });
 
   describe('determinism', () => {
-    it('gives the same trader the same win rate across rows', () => {
+    it('keeps the win rate the API sent for that trader', () => {
+      const actor = mockPerpFeedItem().actor;
       const first = toSocialV1FeedItem(
-        buildRow(mockPerpFeedItem({ positionId: 'pos-a' })),
+        buildRow(
+          mockPerpFeedItem({
+            positionId: 'pos-a',
+            actor: { ...actor, winRate30d: 0.61 },
+          }),
+        ),
       );
       const second = toSocialV1FeedItem(
-        buildRow(mockPerpFeedItem({ positionId: 'pos-b' })),
+        buildRow(
+          mockPerpFeedItem({
+            positionId: 'pos-b',
+            actor: { ...actor, winRate30d: 0.61 },
+          }),
+        ),
       );
 
       expect(second.author.winRatePercent).toBe(first.author.winRatePercent);
+      expect(first.author.winRatePercent).toBe(61);
     });
 
-    it('gives different traders different win rates', () => {
+    it('keeps each trader on their own win rate', () => {
       const actor = mockPerpFeedItem().actor;
       const alice = toSocialV1FeedItem(
         buildRow(
-          mockPerpFeedItem({ actor: { ...actor, profileId: 'profile-alice' } }),
+          mockPerpFeedItem({
+            actor: { ...actor, profileId: 'profile-alice', winRate30d: 0.61 },
+          }),
         ),
       );
       const bob = toSocialV1FeedItem(
         buildRow(
-          mockPerpFeedItem({ actor: { ...actor, profileId: 'profile-bob' } }),
+          mockPerpFeedItem({
+            actor: { ...actor, profileId: 'profile-bob', winRate30d: 0.42 },
+          }),
         ),
       );
 
-      expect(alice.author.winRatePercent).not.toBe(bob.author.winRatePercent);
+      expect(alice.author.winRatePercent).toBe(61);
+      expect(bob.author.winRatePercent).toBe(42);
     });
 
     it('gives the same trader and symbol the same auto-close pair', () => {

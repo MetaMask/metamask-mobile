@@ -15,7 +15,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import type { RampsOrder } from '@metamask/ramps-controller';
+import type { BuyWidgetFallback, RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -41,6 +41,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import {
+  useCheckoutPageEvents,
+  type CheckoutErrorCtaMode,
+} from '../../hooks/useCheckoutPageEvents';
+import CheckoutLimitErrorView from './CheckoutLimitErrorView';
+import {
   closeSession,
   failSession,
   getSession,
@@ -59,6 +64,7 @@ import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import { needsLegacyApplePay } from '../../utils/needsLegacyApplePay';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
@@ -98,6 +104,8 @@ interface CheckoutParams {
    * resetting to `RAMPS_ORDER_DETAILS`. Headless consumers drive their own UI.
    */
   headlessSessionId?: string;
+  /** Hosted-widget fallback offered when the embedded checkout page reports a per-user limit. */
+  fallbackBuyWidget?: BuyWidgetFallback;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -186,6 +194,17 @@ const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
+  // 'retry' remounts the WebView; 'go_back' is for errors a remount would
+  // only replay (e.g. a consumed single-use checkout link).
+  const [errorCtaMode, setErrorCtaMode] =
+    useState<CheckoutErrorCtaMode>('retry');
+  const showError = useCallback(
+    (message: string, ctaMode: CheckoutErrorCtaMode = 'retry') => {
+      setErrorCtaMode(ctaMode);
+      setError(message);
+    },
+    [],
+  );
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation<AppNavigationProp>();
@@ -207,6 +226,7 @@ const Checkout = () => {
     onNavigationStateChange,
     cryptocurrency,
     headlessSessionId,
+    fallbackBuyWidget,
   } = params ?? {};
 
   // Resolve the provider's iframe background color for the current theme.
@@ -271,6 +291,32 @@ const Checkout = () => {
   const previousNavStateUrlRef = useRef<string | null>(null);
 
   const hasTrackedScreenViewRef = useRef(false);
+
+  // Callback-URL and embedded-page completions both end on order details.
+  const navigateToOrderDetails = useCallback(
+    (orderParams: {
+      callbackUrl?: string;
+      providerCode?: string;
+      walletAddress?: string;
+      orderId?: string;
+    }) => {
+      dispatch(protectWalletModalVisible());
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+            params: {
+              ...orderParams,
+              showCloseButton: true,
+              ...(cryptocurrency ? { cryptocurrency } : {}),
+            },
+          },
+        ],
+      });
+    },
+    [dispatch, navigation, cryptocurrency],
+  );
 
   useEffect(() => {
     if (!headlessSessionId) {
@@ -536,26 +582,14 @@ const Checkout = () => {
           return;
         }
 
-        dispatch(protectWalletModalVisible());
-
         closeSourceRef.current = 'callback_success';
 
         // Unified buy stack (non-headless): leave the WebView immediately; OrderDetails
         // resolves the order via callback params (same pattern as external-browser return).
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-              params: {
-                callbackUrl: navState.url,
-                providerCode,
-                walletAddress,
-                showCloseButton: true,
-                ...(cryptocurrency ? { cryptocurrency } : {}),
-              },
-            },
-          ],
+        navigateToOrderDetails({
+          callbackUrl: navState.url,
+          providerCode,
+          walletAddress,
         });
       } catch (navError) {
         closeSourceRef.current = 'callback_error';
@@ -565,7 +599,7 @@ const Checkout = () => {
         if (failHeadlessCheckout(navError)) {
           return;
         }
-        setError((navError as Error)?.message);
+        showError((navError as Error)?.message);
       }
     },
     [
@@ -574,7 +608,7 @@ const Checkout = () => {
       providerCode,
       walletAddress,
       navigation,
-      cryptocurrency,
+      navigateToOrderDetails,
       addOrder,
       getOrderFromCallback,
       headlessSessionId,
@@ -590,6 +624,7 @@ const Checkout = () => {
       headlessRampSurface,
       regionCode,
       callbackBaseUrl,
+      showError,
     ],
   );
 
@@ -682,6 +717,112 @@ const Checkout = () => {
     [],
   );
 
+  // Embedded pages report completion over the WebView bridge instead of a
+  // callback URL; shares isRedirectionHandledRef so navigation happens once.
+  const handleEmbeddedCompleted = useCallback(() => {
+    if (isRedirectionHandledRef.current) {
+      return;
+    }
+    isRedirectionHandledRef.current = true;
+    closeSourceRef.current = 'callback_success';
+    if (headlessSessionId) {
+      if (hasTerminatedHeadlessSessionRef.current) {
+        return;
+      }
+      hasTerminatedHeadlessSessionRef.current = true;
+      // The consumer needs the order to continue (MM Pay submits on it), so a
+      // paid checkout must never read as a dismissal.
+      const session = getSession(headlessSessionId);
+      const orderCode = effectiveOrderId
+        ? extractOrderCode(effectiveOrderId)
+        : undefined;
+      if (session && orderCode) {
+        setHeadlessOrderContext(orderCode, {
+          rampSurface: headlessRampSurface,
+          region: regionCode ?? '',
+        });
+        dispatch(protectWalletModalVisible());
+        try {
+          session.callbacks.onOrderCreated(orderCode);
+        } catch (callbackError) {
+          Logger.error(
+            callbackError as Error,
+            'UnifiedCheckout: onOrderCreated callback threw',
+          );
+        }
+        closeSession(headlessSessionId, { reason: 'completed' });
+      } else {
+        Logger.error(
+          new Error('Embedded checkout completed without an order id'),
+          { message: 'UnifiedCheckout: headless embedded completion' },
+        );
+        closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      }
+      dismissActiveHeadlessFlow();
+      return;
+    }
+    if (!effectiveOrderId) {
+      // @ts-expect-error navigation prop mismatch
+      navigation.getParent()?.pop();
+      return;
+    }
+    navigateToOrderDetails({ orderId: effectiveOrderId });
+  }, [
+    headlessSessionId,
+    headlessRampSurface,
+    regionCode,
+    dispatch,
+    dismissActiveHeadlessFlow,
+    navigation,
+    effectiveOrderId,
+    navigateToOrderDetails,
+  ]);
+
+  // A headless caller waits on session callbacks, not an in-app ErrorView,
+  // so page errors fail the session like navError/webviewHttpError do.
+  const handleEmbeddedError = useCallback(
+    (message: string, ctaMode?: CheckoutErrorCtaMode) => {
+      if (failHeadlessCheckout(new Error(message))) {
+        return;
+      }
+      showError(message, ctaMode);
+    },
+    [failHeadlessCheckout, showError],
+  );
+
+  // Leaving for the hosted flow: mark handled so nothing else closes this.
+  const handleFallbackOpened = useCallback(() => {
+    closeSourceRef.current = 'fallback_hosted';
+    isRedirectionHandledRef.current = true;
+  }, []);
+
+  const analyticsBaseProps = useMemo(
+    () =>
+      buildBaseProps({
+        checkoutSessionId,
+        providerName,
+        ...headlessBaseOverrides,
+      }),
+    [checkoutSessionId, providerName, headlessBaseOverrides],
+  );
+
+  const {
+    onMessage: handlePageMessage,
+    limitErrorCode: embeddedLimitErrorCode,
+    isFallbackPending,
+    onFallbackPress: handleFallbackPress,
+  } = useCheckoutPageEvents({
+    providerCode,
+    fallbackBuyWidget,
+    walletAddress,
+    chainId: network,
+    isHeadless: Boolean(headlessSessionId),
+    analyticsBaseProps,
+    onCompleted: handleEmbeddedCompleted,
+    onError: handleEmbeddedError,
+    onFallbackOpened: handleFallbackOpened,
+  });
+
   const fireClosedRef = useRef<() => void>(() => {
     /* no-op until initialized */
   });
@@ -743,36 +884,60 @@ const Checkout = () => {
     />
   );
 
+  const renderStatusSheet = (body: React.ReactNode) => (
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      isFullscreen
+      keyboardAvoidingViewEnabled={false}
+    >
+      {sharedHeader}
+      <ScreenLayout>
+        <ScreenLayout.Body>{body}</ScreenLayout.Body>
+      </ScreenLayout>
+    </BottomSheet>
+  );
+
+  // Remounts the WebView with every per-load tracking ref cleared.
+  const retryCheckout = () => {
+    setKey((prevKey) => prevKey + 1);
+    setError('');
+    setErrorCtaMode('retry');
+    isRedirectionHandledRef.current = false;
+    lastLoadCompleteUrlRef.current = null;
+    loadUrlErrorsRef.current.clear();
+    loadStartTimeRef.current = null;
+    closeSourceRef.current = null;
+    urlHistoryRef.current = { current: null, previous: null };
+    stepIndexRef.current = 0;
+    previousNavStateUrlRef.current = null;
+  };
+
   if (error) {
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        goBack={navigation.goBack}
-        isFullscreen
-        keyboardAvoidingViewEnabled={false}
-      >
-        {sharedHeader}
-        <ScreenLayout>
-          <ScreenLayout.Body>
-            <ErrorView
-              description={error}
-              ctaOnPress={() => {
-                setKey((prevKey) => prevKey + 1);
-                setError('');
-                isRedirectionHandledRef.current = false;
-                lastLoadCompleteUrlRef.current = null;
-                loadUrlErrorsRef.current.clear();
-                loadStartTimeRef.current = null;
-                closeSourceRef.current = null;
-                urlHistoryRef.current = { current: null, previous: null };
-                stepIndexRef.current = 0;
-                previousNavStateUrlRef.current = null;
-              }}
-              location="Provider Webview"
-            />
-          </ScreenLayout.Body>
-        </ScreenLayout>
-      </BottomSheet>
+    const isGoBackError = errorCtaMode === 'go_back';
+    return renderStatusSheet(
+      <ErrorView
+        description={error}
+        ctaLabel={
+          isGoBackError
+            ? strings('fiat_on_ramp_aggregator.checkout_link_expired_cta')
+            : undefined
+        }
+        ctaOnPress={isGoBackError ? () => navigation.goBack() : retryCheckout}
+        location="Provider Webview"
+      />,
+    );
+  }
+
+  // Per-user limit with a hosted-widget fallback: offer the provider
+  // account flow instead of a fixed error.
+  if (embeddedLimitErrorCode && fallbackBuyWidget) {
+    return renderStatusSheet(
+      <CheckoutLimitErrorView
+        providerName={providerName}
+        onContinuePress={handleFallbackPress}
+        isPending={isFallbackPending}
+      />,
     );
   }
 
@@ -830,7 +995,7 @@ const Checkout = () => {
               if (failHeadlessCheckout(new Error(webviewHttpError))) {
                 return;
               }
-              setError(webviewHttpError);
+              showError(webviewHttpError);
             } else {
               Logger.log(
                 `Checkout: HTTP error ${nativeEvent.statusCode} for auxiliary resource: ${errorUrl}`,
@@ -855,6 +1020,7 @@ const Checkout = () => {
               : handleNavigationStateChangeWithDedup
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          onMessage={handlePageMessage}
           testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>

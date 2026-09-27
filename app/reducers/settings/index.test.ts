@@ -5,6 +5,7 @@ import {
   setBasicFunctionality,
   setBasicFunctionalityConsolidatedEnabled,
   setBasicFunctionalityMigrationNotification,
+  setHasLinkedSocialLoginProfile,
   setLockTime,
 } from '../../actions/settings';
 
@@ -16,8 +17,11 @@ const getInitialState = () =>
 const getMigratedState = () =>
   settingsReducer(
     settingsReducer(
-      getInitialState(),
-      setBasicFunctionalityConsolidatedEnabled(true),
+      settingsReducer(
+        getInitialState(),
+        setBasicFunctionalityConsolidatedEnabled(true),
+      ),
+      setHasLinkedSocialLoginProfile(true),
     ),
     setBasicFunctionalityMigrationNotification('toast'),
   );
@@ -31,6 +35,7 @@ describe('settingsReducer', () => {
       // has to be judged on its own preferences rather than inherit this one's
       // cohort membership and notice.
       expect(state.isBasicFunctionalityConsolidatedEnabled).toBe(false);
+      expect(state.hasLinkedSocialLoginProfile).toBe(false);
       expect(state.basicFunctionalityMigrationNotification).toBeNull();
     });
 

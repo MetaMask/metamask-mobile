@@ -9,7 +9,11 @@ import {
   IconName,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { CandlePeriod, TimeDuration } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -23,8 +27,13 @@ import React, {
   useState,
 } from 'react';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { selectPerpsPriceAlertsEnabledFlag } from '../../../selectors/featureFlags';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
@@ -96,6 +105,12 @@ interface PerpsProChartPanelProps {
   currentPrice: number;
   /** Forwards Advanced Chart latest-bar close into `usePerpsSyncedChartPrice`. */
   onLatestPriceChange?: (price: number | undefined) => void;
+  /**
+   * Stable backend market identifier (e.g. 'btc-hyperliquid-mainnet'), sourced
+   * from `PerpsMarketData.id` in the parent. Used as the perp-alerts API key.
+   * Falls back to symbol+provider derivation when absent.
+   */
+  marketId?: string;
   onResolvedStateChange?: (
     symbol: string,
     state: PerpsMarketDetailSectionState,
@@ -122,10 +137,13 @@ const PerpsProChartPanel = ({
   onLatestPriceChange,
   onResolvedStateChange,
   onFreshDelivery,
+  marketId: marketIdProp,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
+  const navigation = useNavigation<AppNavigationProp>();
+  const isPriceAlertsEnabled = useSelector(selectPerpsPriceAlertsEnabledFlag);
   const { visibleCandleCount, onVisibleCandleCountChange } =
     usePerpsVisibleCandleCount(symbol);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
@@ -313,6 +331,34 @@ const PerpsProChartPanel = ({
     setInlineViewportRevision((revision) => revision + 1);
   }, []);
 
+  const handlePriceAlertsPress = useCallback(() => {
+    // Use the stable backend-issued id from the prop (sourced from PerpsMarketData
+    // in the parent); fall back to deriving it from symbol + provider + network.
+    // providerId is 'hyperliquid', not 'hyperliquid-mainnet', so we append '-mainnet'.
+    const marketId =
+      marketIdProp ??
+      `${symbol.toLowerCase()}-${marketData?.providerId ?? 'hyperliquid'}-mainnet`;
+    // Display symbol strips any provider prefix (e.g. "xyz:BTC" → "BTC")
+    const displaySymbol = getPerpsDisplaySymbol(symbol);
+    navigation.navigate(Routes.PERPS.PRICE_ALERTS, {
+      symbol: displaySymbol,
+      ticker: displaySymbol,
+      currentPrice,
+      currentCurrency: 'usd',
+      assetId: symbol,
+      mode: 'perps',
+      marketId,
+      szDecimals: marketData?.szDecimals,
+    });
+  }, [
+    symbol,
+    marketIdProp,
+    marketData?.providerId,
+    marketData?.szDecimals,
+    currentPrice,
+    navigation,
+  ]);
+
   let chartContent: React.ReactNode = (
     <Skeleton
       height={PRO_CHART_HEIGHT}
@@ -377,19 +423,37 @@ const PerpsProChartPanel = ({
         testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
         endAccessory={
-          <ButtonIcon
-            iconName={IconName.Candlestick}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            onPress={() => handleToggleChartExpanded(!isChartExpanded)}
-            testID={PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON}
-            accessibilityLabel={strings(
-              isChartExpanded
-                ? 'perps.market_details.collapse_chart'
-                : 'perps.market_details.expand_chart',
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {isPriceAlertsEnabled && (
+              <ButtonIcon
+                iconName={IconName.Notification}
+                size={ButtonIconSize.Md}
+                variant={ButtonIconVariant.Filled}
+                onPress={handlePriceAlertsPress}
+                accessibilityLabel={strings('perps.price_alerts.open')}
+                testID={
+                  PerpsProMarketViewSelectorsIDs.CHART_PRICE_ALERTS_BUTTON
+                }
+              />
             )}
-            accessibilityState={{ expanded: isChartExpanded }}
-          />
+            <ButtonIcon
+              iconName={IconName.Candlestick}
+              size={ButtonIconSize.Md}
+              variant={ButtonIconVariant.Filled}
+              onPress={() => handleToggleChartExpanded(!isChartExpanded)}
+              testID={PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON}
+              accessibilityLabel={strings(
+                isChartExpanded
+                  ? 'perps.market_details.collapse_chart'
+                  : 'perps.market_details.expand_chart',
+              )}
+              accessibilityState={{ expanded: isChartExpanded }}
+            />
+          </Box>
         }
       />
       {isChartExpanded ? (
