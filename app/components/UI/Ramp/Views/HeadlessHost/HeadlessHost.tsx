@@ -208,12 +208,13 @@ function HeadlessHost() {
   // firing onError (preventing duplicate callbacks when nativeFlowError and
   // the promise rejection race).
   //
-  // `continueWithQuote` is async with no cancellation API; on unmount (or when
-  // deps change after this run has started the promise) we must not call
-  // consumer callbacks or `closeSession` from a late rejection — avoids
-  // spurious `onClose`/`onError` after the consumer already moved on.
+  // `continueWithQuote` is async with no cancellation API. A late rejection
+  // must still fail a live session: once status is `continued`, a deps change
+  // re-runs this effect as a no-op, so no other path would ever report the
+  // error and the consumer would wait forever. Terminated sessions are already
+  // gone from the registry, so the `liveSession` check below drops rejections
+  // the consumer no longer cares about.
   useEffect(() => {
-    let cancelled = false;
     const currentSession = getSession(headlessSessionId);
     if (!currentSession || nativeFlowError) {
       return;
@@ -268,9 +269,6 @@ function HeadlessHost() {
     };
 
     continueWithQuote(quote, ctx).catch((error: Error) => {
-      if (cancelled) {
-        return;
-      }
       const message =
         error?.message ?? strings('deposit.buildQuote.unexpectedError');
       Logger.error(
@@ -290,9 +288,6 @@ function HeadlessHost() {
       // mounted, freezing the app).
       failHeadlessSession(error);
     });
-    return () => {
-      cancelled = true;
-    };
   }, [
     nativeFlowError,
     chainId,
