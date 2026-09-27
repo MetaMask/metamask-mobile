@@ -362,10 +362,10 @@ index e917dfd310532d77f70d335c3d0bb98201589db2..15f0c555ea8295ccf064ef011f2711f2
      /**
       * Prepares asset for trading by updating leverage if specified
 diff --git a/dist/types/index.d.ts b/dist/types/index.d.ts
-index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..b417d459e129bb9d50aef20788ff8678a73a67eb 100644
+index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..d6fc51c61269a0b21676014b6dc9de1c4e1a533e 100644
 --- a/dist/types/index.d.ts
 +++ b/dist/types/index.d.ts
-@@ -1330,6 +1330,34 @@ export type GetOrderCapabilitiesParams = {
+@@ -1330,6 +1330,36 @@ export type GetOrderCapabilitiesParams = {
      providerId?: PerpsProviderType;
  };
  /** Inputs for a provider-normalized Scale price ladder preview. */
@@ -382,7 +382,9 @@ index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..b417d459e129bb9d50aef20788ff8678
 +/**
 + * Margin mode an asset is bound to on the venue. `locked` means an open
 + * position or resting order/TWAP fixes the mode, so orders in the other mode
-+ * are rejected; `unlocked` means either mode is accepted.
++ * are rejected; `unlocked` means nothing currently fixes the mode. It does not
++ * mean the market supports Cross: HIP-3 and isolated-only markets still reject
++ * it at placement.
 + */
 +export type PerpsMarginModeLock = Readonly<{
 +    status: 'locked';
@@ -400,7 +402,7 @@ index 04eec808e9f0a9e5a97c30ff7c311868d2d17010..b417d459e129bb9d50aef20788ff8678
  export type GetScalePriceLadderParams = {
      /** Market symbol, including its provider route when applicable. */
      symbol: string;
-@@ -1572,6 +1600,12 @@ export type PerpsProvider = {
+@@ -1572,6 +1602,12 @@ export type PerpsProvider = {
       * omit this hook; the controller then reports capabilities as unavailable.
       */
      getOrderCapabilities?(params: GetOrderCapabilitiesParams): Promise<PerpsOrderCapabilities>;
