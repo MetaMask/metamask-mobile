@@ -832,7 +832,8 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(caught).toBe(buildError);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDepositFailed).toHaveBeenCalledWith({ intent: undefined });
     expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
   });

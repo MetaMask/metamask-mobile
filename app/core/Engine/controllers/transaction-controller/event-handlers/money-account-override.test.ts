@@ -175,7 +175,7 @@ describe('money-account-override', () => {
           type: TransactionType.batch,
           nestedTransactions: [
             { type: TransactionType.tokenMethodApprove },
-            { type: type },
+            { type },
           ],
         } as never),
       );
