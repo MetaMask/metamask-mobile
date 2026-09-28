@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import RewardsVipBadge from './RewardsVipBadge';
+import { MoneyAccountPlusAccess } from '../../../../../hooks/useMoneyAccountPlusAccess';
 
 const mockUseVipTier = jest.fn();
 jest.mock('../../hooks/useVipTier', () => ({
@@ -19,23 +20,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-const mockUseIsProSubscriber = jest.fn();
-jest.mock('../../../../../hooks/useIsProSubscriber', () => ({
-  useIsProSubscriber: () => mockUseIsProSubscriber(),
-}));
-
-const mockUseProSubscriptionEnabled = jest.fn();
-jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
-  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
 describe('RewardsVipBadge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseIsProSubscriber.mockReturnValue(false);
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: false,
-    });
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Disabled,
+    );
   });
 
   it('renders vip badge when tier is 1', () => {
@@ -46,12 +42,11 @@ describe('RewardsVipBadge', () => {
     expect(getByTestId('rewards-vip-badge')).toHaveTextContent('Mock VIP 1');
   });
 
-  it('renders vip badge instead of member badge when vip, pro enabled, and subscriber are all set', () => {
+  it('renders vip badge instead of member badge when the user is both vip and a pro subscriber', () => {
     mockUseVipTier.mockReturnValue(2);
-    mockUseIsProSubscriber.mockReturnValue(true);
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: true,
-    });
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Subscriber,
+    );
 
     const { getByTestId, queryByTestId } = render(<RewardsVipBadge />);
 
@@ -59,12 +54,11 @@ describe('RewardsVipBadge', () => {
     expect(queryByTestId('rewards-member-badge')).toBeNull();
   });
 
-  it('renders member badge when pro is enabled, the user is a subscriber, and vip tier is null', () => {
+  it('renders member badge when the user is a pro subscriber and vip tier is null', () => {
     mockUseVipTier.mockReturnValue(null);
-    mockUseIsProSubscriber.mockReturnValue(true);
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: true,
-    });
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Subscriber,
+    );
 
     const { getByTestId, queryByTestId } = render(<RewardsVipBadge />);
 
@@ -72,34 +66,13 @@ describe('RewardsVipBadge', () => {
     expect(queryByTestId('rewards-vip-badge')).toBeNull();
   });
 
-  it('renders nothing when the user is a subscriber but the pro subscription flag is disabled', () => {
+  it.each([
+    MoneyAccountPlusAccess.Disabled,
+    MoneyAccountPlusAccess.Eligible,
+    MoneyAccountPlusAccess.Unknown,
+  ])('renders nothing when vip tier is null and pro access is %s', (access) => {
     mockUseVipTier.mockReturnValue(null);
-    mockUseIsProSubscriber.mockReturnValue(true);
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: false,
-    });
-
-    const { queryByTestId } = render(<RewardsVipBadge />);
-
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
-    expect(queryByTestId('rewards-member-badge')).toBeNull();
-  });
-
-  it('renders nothing when pro is enabled but the user is not a subscriber', () => {
-    mockUseVipTier.mockReturnValue(null);
-    mockUseIsProSubscriber.mockReturnValue(false);
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: true,
-    });
-
-    const { queryByTestId } = render(<RewardsVipBadge />);
-
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
-    expect(queryByTestId('rewards-member-badge')).toBeNull();
-  });
-
-  it('renders nothing when vip tier is null and the user is not a pro subscriber', () => {
-    mockUseVipTier.mockReturnValue(null);
+    mockUseMoneyAccountPlusAccess.mockReturnValue(access);
 
     const { queryByTestId } = render(<RewardsVipBadge />);
 

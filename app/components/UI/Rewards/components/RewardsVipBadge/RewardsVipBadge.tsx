@@ -5,8 +5,10 @@ import foxIcon from '../../../../../images/fox.png';
 import { strings } from '../../../../../../locales/i18n';
 import { useVipTier } from '../../hooks/useVipTier';
 import { RewardsDiscountBadge } from '../RewardsDiscountBadge';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../../../hooks/useMoneyAccountPlusAccess';
 import { colors } from '../../../../../styles/common';
 
 const FOX_ICON_SIZE = 14;
@@ -27,8 +29,7 @@ const styles = StyleSheet.create({
 
 const RewardsVipBadge: React.FC = () => {
   const vipTier = useVipTier();
-  const isProSubscriber = useIsProSubscriber();
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const moneyAccountPlusAccess = useMoneyAccountPlusAccess();
 
   if (vipTier) {
     return (
@@ -42,7 +43,7 @@ const RewardsVipBadge: React.FC = () => {
     );
   }
 
-  if (isProSubscriptionEnabled && isProSubscriber) {
+  if (moneyAccountPlusAccess === MoneyAccountPlusAccess.Subscriber) {
     return (
       <RewardsDiscountBadge
         testID="rewards-member-badge"
