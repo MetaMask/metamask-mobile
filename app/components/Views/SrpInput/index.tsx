@@ -1,6 +1,11 @@
 /* eslint-disable react/prop-types */
 
-import React, { useCallback, useRef, useState, type ComponentProps } from 'react';
+import React, {
+  useCallback,
+  useRef,
+  useState,
+  type ComponentProps,
+} from 'react';
 import {
   TextInput,
   type BlurEvent,
