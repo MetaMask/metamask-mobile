@@ -1,5 +1,14 @@
 import { within } from '@testing-library/react-native';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import Engine from '../../../app/core/Engine';
+import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
+import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
 import type {
   PredictGameLive,
@@ -359,6 +368,36 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/**
+ * Composes the real Order workflow service the way the Engine init does,
+ * against whatever `globalThis.fetch` is installed when called: the concrete
+ * trading adapter is bound to the stubbed transport and the bearer-token
+ * provider resolves through the mocked Engine context.
+ */
+export const composePredictNextOrderService = (): PredictOrderService => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const messenger = getPredictOrderServiceMessenger(
+    rootMessenger as unknown as Parameters<
+      typeof getPredictOrderServiceMessenger
+    >[0],
+  );
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictOrderService({
+    messenger,
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+};
+
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
 ) => ({
@@ -419,6 +458,51 @@ export const makePredictNextSettlement = (
     eventTitle: 'Lakers vs Celtics',
     marketQuestion: 'Will the Lakers win?',
   },
+  ...overrides,
+});
+
+/** A canonical sell (Cash Out) Order Preview wire payload for fetch stubs. */
+export const makePredictNextSellPreview = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'sell',
+  requestedContracts: 75,
+  estimatedContracts: 70,
+  averagePrice: '0.4800',
+  limitPrice: '0.4000',
+  fee: '0.34',
+  feeBreakdown: [
+    { source: 'venue', amount: '0.17' },
+    { source: 'metamask', amount: '0.17' },
+  ],
+  estimatedProceeds: '33.60',
+  estimatedNetProceeds: '33.26',
+  expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  ...overrides,
+});
+
+/** A canonical sell Order Receipt wire payload for fetch stubs. */
+export const makePredictNextSellReceipt = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  operationId: 'd4e5f6a7-1111-4222-8333-444455556666',
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'sell',
+  status: 'filled',
+  quotedContracts: 70,
+  venueOrderId: 'venue-order-1',
+  filledContracts: 70,
+  averageFillPrice: '0.4800',
+  fee: '0.34',
+  actualProceeds: '33.60',
+  netProceeds: '33.26',
   ...overrides,
 });
 
