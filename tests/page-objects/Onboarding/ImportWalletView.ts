@@ -67,19 +67,42 @@ class ImportWalletView {
     secretRecoveryPhrase: string,
     onboarding = true,
   ): Promise<void> {
-    await Gestures.replaceText(
+    // Android: replaceText into the TextArea accepts the full phrase in one shot.
+    if (PlatformDetector.isAndroid()) {
+      await Gestures.replaceText(
+        this.seedPhraseInput(0, onboarding),
+        secretRecoveryPhrase,
+        {
+          elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+          timeout: 15_000,
+        },
+      );
+      return;
+    }
+
+    // iOS: enter word-by-word. After the first word+space the UI switches from
+    // TextArea to numbered grid chips (`phrase-input-id_${index}`). Bulk
+    // fill/setValue on the multiline TextArea is unreliable.
+    const srpArray = secretRecoveryPhrase.split(' ');
+    await Gestures.typeTextByCharacters(
       this.seedPhraseInput(0, onboarding),
-      secretRecoveryPhrase,
-      {
-        elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-        timeout: 15_000,
-      },
+      `${srpArray[0]} `,
     );
+    for (const [i, word] of srpArray.entries()) {
+      if (i === 0) {
+        continue;
+      }
+      await Gestures.typeText(this.seedPhraseInput(i, onboarding), `${word} `, {
+        elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+        hideKeyboard: false,
+      });
+    }
+    await this.tapImportScreenTitleToDismissKeyboard(onboarding);
+    await Gestures.hideKeyboard();
   }
 
   async tapContinueButton(onboarding = true): Promise<void> {
     if (onboarding) {
-      // iOS only — Android replaceText path already has no keyboard.
       if (!PlatformDetector.isAndroid()) {
         await Gestures.hideKeyboard();
       }

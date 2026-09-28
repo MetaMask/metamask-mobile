@@ -1,6 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import type { AppiumElement } from '../../framework/AppiumElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportSrpView {
@@ -36,16 +37,44 @@ class ImportSrpView {
   }
 
   async tapImportButton() {
+    if (!PlatformDetector.isAndroid()) {
+      await Gestures.hideKeyboard();
+    }
     await Gestures.waitAndTap(this.importButton, {
       elemDescription: 'Import button',
+      timeout: 15_000,
+      checkForDisplayed: true,
+      checkEnabled: true,
     });
   }
 
   async enterSrp(mnemonic: string): Promise<void> {
-    await Gestures.replaceText(this.seedPhraseInput(0), mnemonic, {
-      elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
-      timeout: 15_000,
-    });
+    if (PlatformDetector.isAndroid()) {
+      await Gestures.replaceText(this.seedPhraseInput(0), mnemonic, {
+        elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
+        timeout: 15_000,
+      });
+      return;
+    }
+
+    // iOS: enter word-by-word. After the first word+space the UI switches from
+    // TextArea to numbered grid chips (`seed-phrase-input_${index}`).
+    const srpArray = mnemonic.split(' ');
+    await Gestures.typeTextByCharacters(
+      this.seedPhraseInput(0),
+      `${srpArray[0]} `,
+    );
+    for (const [i, word] of srpArray.entries()) {
+      if (i === 0) {
+        continue;
+      }
+      const suffix = i === srpArray.length - 1 ? '' : ' ';
+      const isLast = i === srpArray.length - 1;
+      await Gestures.typeText(this.seedPhraseInput(i), `${word}${suffix}`, {
+        elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
+        hideKeyboard: isLast,
+      });
+    }
   }
 }
 
