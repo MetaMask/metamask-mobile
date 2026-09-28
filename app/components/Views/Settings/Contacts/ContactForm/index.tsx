@@ -515,7 +515,10 @@ const ContactForm = ({
         </View>
       )}
       {state.openDeleteSheet ? (
-        <BottomSheet testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}>
+        <BottomSheet
+          testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}
+          onClose={closeDeleteSheet}
+        >
           <BottomSheetHeader onClose={closeDeleteSheet}>
             {`${strings('address_book.delete_contact')}: ${name ?? ''}`}
           </BottomSheetHeader>
