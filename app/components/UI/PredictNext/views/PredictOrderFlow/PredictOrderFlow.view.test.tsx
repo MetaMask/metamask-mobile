@@ -1225,7 +1225,7 @@ describe('PredictOrderFlow', () => {
         commit: () => ({
           body: makePredictNextSellReceipt({
             status: 'partially_filled',
-            filledContracts: 42,
+            filledContracts: '42.00',
             averageFillPrice: '0.4700',
             fee: '0.20',
             actualProceeds: '19.74',

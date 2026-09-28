@@ -61,7 +61,7 @@ const sellReceiptResponse = {
   status: 'filled',
   quotedContracts: 65,
   venueOrderId: 'venue-order-2',
-  filledContracts: 65,
+  filledContracts: '65.00',
   averageFillPrice: '0.4800',
   fee: '0.31',
   actualProceeds: '31.20',

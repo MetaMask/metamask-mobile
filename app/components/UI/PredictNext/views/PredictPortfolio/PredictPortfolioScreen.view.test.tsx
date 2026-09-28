@@ -832,7 +832,7 @@ describe('PredictPortfolioScreen', () => {
     it('leaves the reduced Position visible after a partial Cash Out', async () => {
       const view = await cashOutMax({
         status: 'partially_filled',
-        filledContracts: 42,
+        filledContracts: '42.00',
         averageFillPrice: '0.4700',
         fee: '0.20',
         actualProceeds: '19.74',

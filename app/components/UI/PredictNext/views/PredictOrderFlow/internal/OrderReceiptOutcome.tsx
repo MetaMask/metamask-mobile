@@ -39,101 +39,73 @@ const StatusIcon = ({ iconName, color, background }: StatusIconProps) => (
   </Box>
 );
 
-/** The buy execution values the Venue reported, rendered only when reported. */
-const BuyFillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => {
-  if (receipt.action !== 'buy') {
-    return null;
-  }
-  return (
-    <>
-      {receipt.filledContracts !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_receipt.filled_contracts')}
-          value={formatContracts(receipt.filledContracts)}
-          testID={PredictOrderFlowTestIds.FILLED_CONTRACTS}
-        />
-      )}
-      {receipt.averageFillPrice !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_receipt.average_fill_price')}
-          value={formatCents(receipt.averageFillPrice)}
-          testID={PredictOrderFlowTestIds.AVERAGE_FILL_PRICE}
-        />
-      )}
-      {receipt.actualSpend !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_receipt.actual_spend')}
-          value={formatUsd(receipt.actualSpend)}
-          testID={PredictOrderFlowTestIds.ACTUAL_SPEND}
-          bold
-        />
-      )}
-      {receipt.fee !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_preview.fee')}
-          value={formatUsd(receipt.fee)}
-          testID={PredictOrderFlowTestIds.FEE}
-        />
-      )}
-      {receipt.payoutExposure !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_receipt.payout_exposure')}
-          value={formatUsd(receipt.payoutExposure)}
-          valueColor={TextColor.SuccessDefault}
-          testID={PredictOrderFlowTestIds.PAYOUT_EXPOSURE}
-        />
-      )}
-    </>
-  );
-};
-
-/** The sell execution values the Venue reported, rendered only when
- * reported: what was sold and what it credited, never a profit figure. */
-const SellFillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => {
-  if (receipt.action !== 'sell') {
-    return null;
-  }
-  return (
-    <>
-      {receipt.filledContracts !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_receipt.filled_contracts')}
-          value={String(receipt.filledContracts)}
-          testID={PredictOrderFlowTestIds.FILLED_CONTRACTS}
-        />
-      )}
-      {receipt.averageFillPrice !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_receipt.average_fill_price')}
-          value={formatCents(receipt.averageFillPrice)}
-          testID={PredictOrderFlowTestIds.AVERAGE_FILL_PRICE}
-        />
-      )}
-      {receipt.actualProceeds !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_preview.proceeds')}
-          value={formatUsd(receipt.actualProceeds)}
-          testID={PredictOrderFlowTestIds.PROCEEDS}
-        />
-      )}
-      {receipt.fee !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_preview.fee')}
-          value={formatUsd(receipt.fee)}
-          testID={PredictOrderFlowTestIds.FEE}
-        />
-      )}
-      {receipt.netProceeds !== null && (
-        <OrderDataRow
-          label={strings('predict_next.order_preview.net_proceeds')}
-          value={formatUsd(receipt.netProceeds)}
-          testID={PredictOrderFlowTestIds.NET_PROCEEDS}
-          bold
-        />
-      )}
-    </>
-  );
-};
+/** The execution values the Venue reported, rendered only when reported.
+ * Fill fields are projected as fixed-point decimal strings, identical
+ * across actions; only the spend and proceeds rows are action-specific. */
+const FillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => (
+  <>
+    {receipt.filledContracts !== null && (
+      <OrderDataRow
+        label={strings('predict_next.order_receipt.filled_contracts')}
+        value={formatContracts(receipt.filledContracts)}
+        testID={PredictOrderFlowTestIds.FILLED_CONTRACTS}
+      />
+    )}
+    {receipt.averageFillPrice !== null && (
+      <OrderDataRow
+        label={strings('predict_next.order_receipt.average_fill_price')}
+        value={formatCents(receipt.averageFillPrice)}
+        testID={PredictOrderFlowTestIds.AVERAGE_FILL_PRICE}
+      />
+    )}
+    {receipt.fee !== null && (
+      <OrderDataRow
+        label={strings('predict_next.order_preview.fee')}
+        value={formatUsd(receipt.fee)}
+        testID={PredictOrderFlowTestIds.FEE}
+      />
+    )}
+    {receipt.action === 'buy' ? (
+      <>
+        {receipt.actualSpend !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_receipt.actual_spend')}
+            value={formatUsd(receipt.actualSpend)}
+            testID={PredictOrderFlowTestIds.ACTUAL_SPEND}
+            bold
+          />
+        )}
+        {receipt.payoutExposure !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_receipt.payout_exposure')}
+            value={formatUsd(receipt.payoutExposure)}
+            valueColor={TextColor.SuccessDefault}
+            testID={PredictOrderFlowTestIds.PAYOUT_EXPOSURE}
+          />
+        )}
+      </>
+    ) : (
+      // What was sold and what it credited, never a profit figure.
+      <>
+        {receipt.actualProceeds !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_preview.proceeds')}
+            value={formatUsd(receipt.actualProceeds)}
+            testID={PredictOrderFlowTestIds.PROCEEDS}
+          />
+        )}
+        {receipt.netProceeds !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_preview.net_proceeds')}
+            value={formatUsd(receipt.netProceeds)}
+            testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+            bold
+          />
+        )}
+      </>
+    )}
+  </>
+);
 
 interface OrderReceiptOutcomeProps {
   receipt: PredictOrderReceipt;
@@ -179,9 +151,10 @@ export const OrderReceiptOutcome = ({
     case 'filled':
     case 'partially_filled': {
       const isPartial = receipt.status === 'partially_filled';
-      const filled = isSell
-        ? (receipt.filledContracts ?? 0)
-        : Number(receipt.filledContracts ?? '0');
+      // Fill fields are fixed-point decimal strings for either action;
+      // '7.00' renders as the bare count 7.
+      const filled = Number(receipt.filledContracts ?? '0');
+      const filledLabel = formatContracts(receipt.filledContracts ?? '0');
       const remainder = Math.max(receipt.quotedContracts - filled, 0);
       return (
         <Box
@@ -220,9 +193,7 @@ export const OrderReceiptOutcome = ({
                   ? 'predict_next.order_receipt.sell_partial_description'
                   : 'predict_next.order_receipt.partial_description',
                 {
-                  filled: isSell
-                    ? filled
-                    : formatContracts(receipt.filledContracts ?? '0'),
+                  filled: filledLabel,
                   quoted: receipt.quotedContracts,
                   remainder,
                 },
@@ -238,16 +209,13 @@ export const OrderReceiptOutcome = ({
                 ? 'predict_next.order_receipt.sold_context'
                 : 'predict_next.order_receipt.position_context',
               {
-                contracts: isSell
-                  ? filled
-                  : formatContracts(receipt.filledContracts ?? '0'),
+                contracts: filledLabel,
                 outcome: outcomeLabel,
               },
             )}
           </Text>
           <Box twClassName="w-full gap-2">
-            <BuyFillRows receipt={receipt} />
-            <SellFillRows receipt={receipt} />
+            <FillRows receipt={receipt} />
           </Box>
           <Button
             variant={ButtonVariant.Primary}

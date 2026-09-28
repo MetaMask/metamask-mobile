@@ -750,7 +750,7 @@ describe('KalshiRemoteAdapter', () => {
       status: 'filled',
       quotedContracts: 70,
       venueOrderId: 'venue-order-1',
-      filledContracts: 70,
+      filledContracts: '70.00',
       averageFillPrice: '0.4800',
       fee: '0.31',
       actualProceeds: '31.20',
@@ -767,7 +767,7 @@ describe('KalshiRemoteAdapter', () => {
       expect(result).toMatchObject({
         action: 'sell',
         status: 'filled',
-        filledContracts: 70,
+        filledContracts: '70.00',
         netProceeds: '30.89',
       });
     });

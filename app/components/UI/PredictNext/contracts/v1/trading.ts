@@ -36,12 +36,6 @@ const positiveInteger = refine(
   (value) => Number.isInteger(value) && value > 0,
 );
 
-const nonNegativeInteger = refine(
-  number(),
-  'PredictNonNegativeInteger',
-  (value) => Number.isInteger(value) && value >= 0,
-);
-
 const feeSource = enums(['venue', 'metamask'] as const);
 
 const feeComponentSchema = object({
@@ -125,9 +119,9 @@ const buyReceiptSchema = object({
 const sellReceiptSchema = object({
   ...receiptHeader,
   action: literal('sell'),
-  // Whole contracts: zero is a reported zero-fill outcome, never a count
-  // the user could request.
-  filledContracts: nullable(nonNegativeInteger),
+  // Fill fields are projected as fixed-point decimal strings, identical
+  // across actions; '0.00' is a reported zero-fill outcome.
+  filledContracts: nullable(amount),
   actualProceeds: nullable(amount),
   netProceeds: nullable(amount),
 });

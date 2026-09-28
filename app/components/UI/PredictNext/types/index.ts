@@ -371,11 +371,12 @@ export interface PredictBuyOrderReceipt extends PredictOrderReceiptBase {
 }
 
 /** A sell (Cash Out) Order Receipt: what was sold and what it credited.
- * Buy-only fields are absent, not null. */
+ * Buy-only fields are absent, not null. Fill fields are projected as
+ * fixed-point decimal strings, identical across actions. */
 export interface PredictSellOrderReceipt extends PredictOrderReceiptBase {
   action: 'sell';
-  /** Whole contracts actually filled; null until the Venue reports fills. */
-  filledContracts: number | null;
+  /** Contracts actually filled; null until the Venue reports fills. */
+  filledContracts: PredictAmount | null;
   /** Gross Proceeds of the fills; null for zero fills. */
   actualProceeds: PredictAmount | null;
   /** Proceeds of the fills minus the fee; null for zero fills. */

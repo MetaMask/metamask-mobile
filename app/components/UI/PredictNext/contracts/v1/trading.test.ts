@@ -238,7 +238,7 @@ const validSellReceipt = {
   status: 'filled',
   quotedContracts: 70,
   venueOrderId: 'synthetic-venue-order-1',
-  filledContracts: 70,
+  filledContracts: '70.00',
   averageFillPrice: '0.4800',
   fee: '0.34',
   actualProceeds: '33.60',
@@ -296,7 +296,7 @@ describe('parsePredictOrderReceipt', () => {
       previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
       status: 'filled',
       quotedContracts: 70,
-      filledContracts: 70,
+      filledContracts: '70.00',
       averageFillPrice: '0.4800',
       fee: '0.34',
       actualProceeds: '33.60',
@@ -430,12 +430,29 @@ describe('parsePredictOrderReceipt', () => {
     ).toThrow();
   });
 
-  it('rejects a fractional or negative sell fill count', () => {
+  it('parses a sell fill count projected as a fixed-point decimal string', () => {
+    // Backend evidence: order-commit projects filledContracts as
+    // toFixed(2) strings for both actions.
+    const receipt = parsePredictOrderReceipt({
+      ...validSellReceipt,
+      filledContracts: '7.00',
+    });
+
+    expect(receipt).toMatchObject({ action: 'sell', filledContracts: '7.00' });
+  });
+
+  it('rejects a sell fill count sent as a number', () => {
     expect(() =>
-      parsePredictOrderReceipt({ ...validSellReceipt, filledContracts: 70.5 }),
+      parsePredictOrderReceipt({ ...validSellReceipt, filledContracts: 70 }),
     ).toThrow();
     expect(() =>
-      parsePredictOrderReceipt({ ...validSellReceipt, filledContracts: -1 }),
+      parsePredictOrderReceipt({ ...validSellReceipt, filledContracts: 7.5 }),
+    ).toThrow();
+  });
+
+  it('rejects a negative sell fill count string', () => {
+    expect(() =>
+      parsePredictOrderReceipt({ ...validSellReceipt, filledContracts: '-1' }),
     ).toThrow();
   });
 
@@ -444,14 +461,14 @@ describe('parsePredictOrderReceipt', () => {
       ...validSellReceipt,
       status: 'not_filled',
       venueOrderId: null,
-      filledContracts: 0,
+      filledContracts: '0.00',
       averageFillPrice: null,
       fee: null,
       actualProceeds: '0.00',
       netProceeds: '0.00',
     });
 
-    expect(receipt).toMatchObject({ filledContracts: 0 });
+    expect(receipt).toMatchObject({ filledContracts: '0.00' });
   });
 
   it('rejects malformed amounts', () => {

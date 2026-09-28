@@ -94,7 +94,7 @@ const sellReceipt: PredictOrderReceipt = {
   status: 'filled',
   quotedContracts: 70,
   venueOrderId: 'venue-order-1',
-  filledContracts: 70,
+  filledContracts: '70.00' as PredictAmount,
   averageFillPrice: '0.4800' as PredictDecimal,
   fee: '0.31' as PredictAmount,
   actualProceeds: '31.20' as PredictAmount,
