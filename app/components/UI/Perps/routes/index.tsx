@@ -445,6 +445,9 @@ const PerpsScreenStack = () => {
                   title: strings('perps.home.markets'),
                   headerShown: false,
                   animation: route.params?.animation ?? 'slide_from_right',
+                  ...(route.params?.animationDuration === undefined
+                    ? {}
+                    : { animationDuration: route.params.animationDuration }),
                 })}
                 initialParams={{
                   variant: 'full',
