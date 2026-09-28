@@ -13,7 +13,7 @@ import { ChartType } from './AdvancedChart.types';
 import ChartTypeToggle from './ChartTypeToggle';
 import { TOKEN_OVERVIEW_CHART_INTERVALS } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 
-const PILL_BASE = 'flex-row items-center justify-center rounded-xl px-2 py-1';
+const PILL_BASE = 'flex-row items-center justify-center rounded-full px-2 py-1';
 
 interface IntervalBarProps {
   selectedInterval: string;
@@ -77,7 +77,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
       <ChartTypeToggle
         chartType={chartType}
         onChartTypeSelect={onChartTypeSelect}
-        containerTwClassName="shrink-0 rounded-lg border border-border-muted p-0.5"
+        containerTwClassName="shrink-0 rounded-full border border-border-muted p-0.5"
       />
     </Box>
   );

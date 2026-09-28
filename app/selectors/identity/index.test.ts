@@ -9,6 +9,13 @@ import {
   selectNeedsSocialPairing,
 } from './index';
 import { RootState } from '../../reducers';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
+
+const hdKeyring = (id: string) => ({
+  type: ExtendedKeyringTypes.hd,
+  accounts: [],
+  metadata: { id, name: '' },
+});
 
 describe('Notification Selectors', () => {
   const mockState = {
@@ -17,6 +24,10 @@ describe('Notification Selectors', () => {
         AuthenticationController: {
           isSignedIn: true,
           needsProfilePairing: false,
+        },
+        KeyringController: {
+          isUnlocked: false,
+          keyrings: [],
         },
         UserStorageController: {
           isBackupAndSyncEnabled: true,
@@ -62,7 +73,7 @@ describe('Notification Selectors', () => {
     );
   });
 
-  it('selectCanonicalProfileId returns the canonical id from the first session profile', () => {
+  it('selectCanonicalProfileId returns the canonical id for the primary HD keyring', () => {
     const stateWithSession = {
       engine: {
         backgroundState: {
@@ -79,12 +90,44 @@ describe('Notification Selectors', () => {
               },
             },
           },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [hdKeyring('entropySourceId1')],
+          },
         },
       },
     } as unknown as RootState;
 
     expect(selectCanonicalProfileId(stateWithSession)).toBe(
       'canonicalProfileId',
+    );
+  });
+
+  it('selectCanonicalProfileId returns the primary SRP session when a stale first entry remains', () => {
+    const stateWithStaleFirstEntry = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: true,
+            srpSessionData: {
+              'srp-1-entropy': {
+                profile: { canonicalProfileId: 'canonical-srp-1' },
+              },
+              'srp-2-entropy': {
+                profile: { canonicalProfileId: 'canonical-srp-2' },
+              },
+            },
+          },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [hdKeyring('srp-2-entropy')],
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(selectCanonicalProfileId(stateWithStaleFirstEntry)).toBe(
+      'canonical-srp-2',
     );
   });
 

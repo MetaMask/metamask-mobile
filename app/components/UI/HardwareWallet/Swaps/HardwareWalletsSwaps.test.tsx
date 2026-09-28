@@ -113,6 +113,7 @@ jest.mock('../../../../core/HardwareWallet/helpers', () => ({
   getDeviceIdForAddress: jest.fn().mockResolvedValue('ledger-device-id'),
   // Re-export anything else the component tree might import from helpers
   getHardwareWalletTypeForAddress: jest.fn().mockReturnValue('ledger'),
+  getHardwareWalletTypeName: jest.fn().mockReturnValue('Ledger'),
 }));
 
 jest.mock('../../../../core/Ledger/Ledger', () => ({

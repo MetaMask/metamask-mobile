@@ -47,7 +47,7 @@ describe('EarnHeaderSubtitle', () => {
     expect(getByText('3.5% APR')).toBeOnTheScreen();
   });
 
-  it('falls back to 0.0% when token experience APR is missing', () => {
+  it('falls back to 0% when token experience APR is missing', () => {
     const earnToken = buildEarnToken({
       experience: undefined,
     } as unknown as Partial<EarnTokenDetails>);
@@ -56,7 +56,7 @@ describe('EarnHeaderSubtitle', () => {
       <EarnHeaderSubtitle earnToken={earnToken} />,
     );
 
-    expect(getByText('0.0% APR')).toBeOnTheScreen();
+    expect(getByText('0% APR')).toBeOnTheScreen();
   });
 
   it('uses aprOverride when it parses to a positive number', () => {
@@ -64,9 +64,28 @@ describe('EarnHeaderSubtitle', () => {
       <EarnHeaderSubtitle earnToken={buildEarnToken()} aprOverride="7.89%" />,
     );
 
-    expect(getByText('7.89% APR')).toBeOnTheScreen();
+    expect(getByText('7.9% APR')).toBeOnTheScreen();
     // Should not also render the underlying token APR.
     expect(queryByText('3.5% APR')).toBeNull();
+  });
+
+  it('rounds APR halfway values up to one decimal place', () => {
+    const { getByText } = renderWithProvider(
+      <EarnHeaderSubtitle
+        earnToken={buildEarnToken({
+          experience: {
+            type: EARN_EXPERIENCES.POOLED_STAKING,
+            apr: '4.25',
+            estimatedAnnualRewardsFormatted: '$0.00',
+            estimatedAnnualRewardsFiatNumber: 0,
+            estimatedAnnualRewardsTokenMinimalUnit: '0',
+            estimatedAnnualRewardsTokenFormatted: '0',
+          },
+        })}
+      />,
+    );
+
+    expect(getByText('4.3% APR')).toBeOnTheScreen();
   });
 
   it('ignores aprOverride when it does not parse to a positive number', () => {

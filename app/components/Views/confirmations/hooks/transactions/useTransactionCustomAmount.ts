@@ -9,6 +9,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
+import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -141,13 +142,13 @@ export function useTransactionCustomAmount({
     setPrefetchedQuotePayTokenKey(undefined);
   }, [payToken?.address, payToken?.chainId]);
 
-  const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
-    useUpdateTransactionPayAmount();
+  const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
+  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
   const depositPrefill = useDepositPrefillAmount({ autoSelectFiatPayment });
 
   useEffect(() => {
-    if (!isMoneyAccountDeposit || !isAmountUpdateQuotePipelineEnabled) {
+    if (!isAmountPrefetchEnabled) {
       return;
     }
 
@@ -176,12 +177,7 @@ export function useTransactionCustomAmount({
       setPrefetchedQuoteAmountHuman(prefetchRequest.amountHuman);
       setPrefetchedQuotePayTokenKey(prefetchRequest.payTokenKey);
     }
-  }, [
-    isAmountUpdateQuotePipelineEnabled,
-    isMoneyAccountDeposit,
-    isQuoteLoading,
-    quotesLastUpdated,
-  ]);
+  }, [isAmountPrefetchEnabled, isQuoteLoading, quotesLastUpdated]);
 
   // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
   const { enabledTransactionTypes } = useMMPayFiatConfig();
@@ -228,7 +224,7 @@ export function useTransactionCustomAmount({
   }, [amountHumanDebounced]);
 
   useEffect(() => {
-    if (!isAmountUpdateQuotePipelineEnabled || amountHumanDebounced === '0') {
+    if (!isAmountPrefetchEnabled || amountHumanDebounced === '0') {
       return;
     }
 
@@ -278,7 +274,7 @@ export function useTransactionCustomAmount({
     );
   }, [
     amountHumanDebounced,
-    isAmountUpdateQuotePipelineEnabled,
+    isAmountPrefetchEnabled,
     payTokenKey,
     updateTransactionPayAmount,
   ]);
@@ -504,7 +500,7 @@ export function useTransactionCustomAmount({
   ]);
 
   const hasPrefetchedQuote =
-    isAmountUpdateQuotePipelineEnabled &&
+    isAmountPrefetchEnabled &&
     prefetchedQuoteAmountHuman === amountHuman &&
     prefetchedQuotePayTokenKey === payTokenKey;
 

@@ -133,7 +133,7 @@ exports[`SnapUIAddressInput renders the matched address info in a disabled state
       style={
         {
           "alignItems": "center",
-          "borderRadius": 8,
+          "borderRadius": 9999,
           "flexShrink": 0,
           "height": 32,
           "justifyContent": "center",
@@ -291,7 +291,7 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
         style={
           {
             "alignItems": "center",
-            "borderRadius": 8,
+            "borderRadius": 9999,
             "height": 24,
             "justifyContent": "center",
             "opacity": 1,

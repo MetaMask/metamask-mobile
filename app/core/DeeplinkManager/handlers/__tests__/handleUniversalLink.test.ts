@@ -88,11 +88,9 @@ jest.mock('../../../redux', () => ({
   },
 }));
 jest.mock('react-native-quick-crypto', () => ({
-  webcrypto: {
-    subtle: {
-      importKey: jest.fn(),
-      verify: jest.fn(),
-    },
+  subtle: {
+    importKey: jest.fn(),
+    verify: jest.fn(),
   },
 }));
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -114,8 +112,8 @@ jest.mock('react-native-branch', () => ({
   getLatestReferringParams: jest.fn(),
 }));
 
-const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
-  typeof QuickCrypto.webcrypto.subtle
+const mockSubtle = QuickCrypto.subtle as jest.Mocked<
+  typeof QuickCrypto.subtle
 > & {
   verify: jest.Mock<Promise<boolean>>;
 };
@@ -2014,6 +2012,7 @@ describe('handleUniversalLink', () => {
         AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
       ];
 
       // All in-app sources except the trusted ones (excluding ORIGIN_DEEPLINK which is external)

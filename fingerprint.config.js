@@ -188,6 +188,7 @@ const config = {
     '.github/workflows/remove-rca-needed-label-sheets.yml',
     '.github/workflows/triage-forwarder.yml',
     '.github/workflows/flaky-test-report.yml',
+    '.github/workflows/analyze-app-profiling.yml',
     '.github/workflows/qa-stats.yml',
     '.github/workflows/post-merge-validation.yml',
 

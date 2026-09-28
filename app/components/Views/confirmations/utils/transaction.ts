@@ -2,6 +2,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Interface } from '@ethersproject/abi';
 import {
   hasTransactionType,
+  Result,
   TransactionMeta,
   TransactionParams,
   TransactionStatus,
@@ -85,14 +86,16 @@ export async function addMMOriginatedTransaction(
   txParams: TransactionParams,
   options: {
     networkClientId: string;
+    requireApproval?: boolean;
     type?: TransactionType;
   },
-): Promise<TransactionMeta> {
-  const { transactionMeta } = await addTransaction(txParams, {
+): Promise<Result> {
+  const result = await addTransaction(txParams, {
     ...options,
     origin: ORIGIN_METAMASK,
     isInternal: true,
   });
+  const { transactionMeta } = result;
 
   const id = transactionMeta.id;
   const reqObject = {
@@ -105,7 +108,7 @@ export async function addMMOriginatedTransaction(
 
   ppomUtil.validateRequest(reqObject, { transactionMeta });
 
-  return transactionMeta;
+  return result;
 }
 
 export function get4ByteCode(data: string) {

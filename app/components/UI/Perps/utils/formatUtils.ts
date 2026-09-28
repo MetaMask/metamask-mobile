@@ -384,9 +384,18 @@ export const formatLeverage = (leverage: string | number): string => {
  * @example parseCurrencyString("$1,234.56") => 1234.56
  * @example parseCurrencyString("-$500.00") => -500
  * @example parseCurrencyString("$-123.45") => -123.45
+ * @example parseCurrencyString("1.1e-7") => 1.1e-7
  */
 export const parseCurrencyString = (formattedValue: string): number => {
   if (!formattedValue) return 0;
+
+  // Already a plain numeric string — including exponential notation, which a
+  // balance below 1e-6 serializes to. The de-formatting below reads the
+  // exponent's minus sign as a negative amount, so never let it see one.
+  const numeric = Number(formattedValue);
+  if (Number.isFinite(numeric)) {
+    return numeric;
+  }
 
   // Check for negative values (can be -$123.45 or $-123.45)
   const isNegative = formattedValue.includes('-');

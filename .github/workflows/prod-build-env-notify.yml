@@ -29,7 +29,7 @@ jobs:
       - name: Download build-env artifact from triggering workflow
         continue-on-error: true
         id: download-artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: build-env-main-prod-${{ github.event.workflow_run.name == 'Runway iOS Production' && 'ios' || 'android' }}
           path: build-env-artifacts

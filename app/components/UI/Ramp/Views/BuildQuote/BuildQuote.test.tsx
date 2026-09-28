@@ -5,7 +5,6 @@ import BuildQuote, {
   isBailedOrderStatus,
 } from './BuildQuote';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
-import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from '../../components/WalletPayCheckoutOverlay/WalletPayCheckoutOverlay.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -349,25 +348,35 @@ const buildRampsControllerResult = (overrides = {}) => ({
   ...overrides,
 });
 
-const mockCrossmintWalletPayDefaults = {
-  isEligible: false,
-  checkoutUrl: null as string | null,
-  isPreparing: false,
-  isCheckoutReady: false,
-  onCheckoutReady: jest.fn(),
-  onMessage: jest.fn(),
+const EMBEDDED_CHECKOUT_OVERLAY_TEST_ID = 'mock-embedded-checkout-overlay';
+const mockRenderEmbeddedCheckoutOverlay = jest.fn(
+  ({ interactive }: { interactive: boolean }) => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: EMBEDDED_CHECKOUT_OVERLAY_TEST_ID,
+      accessibilityState: { disabled: !interactive },
+    });
+  },
+);
+const mockEmbeddedCheckoutDefaults: {
+  phase: 'inactive' | 'preparing' | 'ready' | 'settling';
+  renderOverlay: typeof mockRenderEmbeddedCheckoutOverlay | null;
+} = {
+  phase: 'inactive',
+  renderOverlay: null,
 };
-let mockCrossmintWalletPay = { ...mockCrossmintWalletPayDefaults };
+let mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
 
-jest.mock('../../hooks/useCrossmintWalletPayOverlay', () => ({
+jest.mock('../../hooks/useEmbeddedCheckout', () => ({
   __esModule: true,
-  default: () => mockCrossmintWalletPay,
+  default: () => mockEmbeddedCheckout,
 }));
 
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCrossmintWalletPay = { ...mockCrossmintWalletPayDefaults };
+    mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: unknown) => value);
@@ -2184,31 +2193,40 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('Crossmint wallet-pay overlay', () => {
-    it('replaces Continue with the hosted payment button once the overlay is ready', () => {
-      mockCrossmintWalletPay = {
-        ...mockCrossmintWalletPayDefaults,
-        isEligible: true,
-        checkoutUrl: 'https://staging.crossmint.com/embedded-checkout',
-        isCheckoutReady: true,
+  describe('embedded checkout', () => {
+    it('replaces Continue with the embedded checkout once it is ready', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
       };
 
-      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
+      const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
 
-      expect(
-        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY),
-      ).toBeOnTheScreen();
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
       expect(queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON)).toBeNull();
+      expect(queryByText('Powered by MoonPay')).toBeNull();
     });
 
-    it('keeps Continue when the overlay has no checkout URL but still reports ready', () => {
-      mockCrossmintWalletPay = {
-        ...mockCrossmintWalletPayDefaults,
-        isEligible: true,
-        checkoutUrl: null,
-        isCheckoutReady: true,
+    it('lets the embedded checkout take taps only when the quote can continue', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+      };
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockRenderEmbeddedCheckoutOverlay).toHaveBeenCalledWith({
+        interactive: true,
+      });
+    });
+
+    it('shows Continue in a loading state while the checkout is preparing', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: null,
       };
 
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
@@ -2216,28 +2234,45 @@ describe('BuildQuote', () => {
         { state: initialRootState },
       );
 
-      expect(
-        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY),
-      ).toBeNull();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
     });
 
-    it('shows Continue in a loading state while the overlay is preparing', () => {
-      mockCrossmintWalletPay = {
-        ...mockCrossmintWalletPayDefaults,
-        isEligible: true,
-        isPreparing: true,
+    it('mounts the checkout behind a loading Continue while it is preparing with a URL', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
       };
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
       expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('covers the checkout with a processing state while payment settles', () => {
+      mockEmbeddedCheckout = {
+        phase: 'settling',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // The checkout stays mounted for order events, hidden behind our own
+      // state, so the provider's post-authorization repaint is never visible.
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      // The spinner is mocked in Jest, so the loading label is asserted
+      // through the accessibility label the button derives from it.
+      expect(continueButton.props.accessibilityLabel).toBe('Processing');
     });
   });
 });

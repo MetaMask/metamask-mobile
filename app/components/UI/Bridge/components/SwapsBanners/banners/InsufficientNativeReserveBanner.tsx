@@ -14,19 +14,18 @@ import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficien
 import { WARNING_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { useSwapsBannersContext } from '../SwapsBannersContext';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { isArcTokenUSDC } from '../../../../../../enablement/assets/arc';
 
 /**
  * Warns when the entered amount would spend the native balance that has to stay
  * in the account, and offers to lower it to the maximum swappable amount.
  */
 export const InsufficientNativeReserveBanner = () => {
-  const {
-    sourceAmount,
-    sourceToken,
-    walletAddress,
-    latestSourceAtomicBalance,
-    onAdjustSourceAmount,
-  } = useSwapsBannersContext();
+  const { sourceAmount, sourceToken, walletAddress, onAdjustSourceAmount } =
+    useSwapsBannersContext();
+  const { latestSourceBalance } = useBridgeSession();
+  const latestSourceAtomicBalance = latestSourceBalance?.atomicBalance;
   const { activeQuote } = useBridgeQuoteDataContext();
 
   const hasInsufficientBalance = useIsInsufficientBalance({
@@ -43,7 +42,9 @@ export const InsufficientNativeReserveBanner = () => {
     activeQuote,
   });
 
-  if (!insufficientNativeReserveError || hasInsufficientBalance) {
+  const isArcUSDC = sourceToken ? isArcTokenUSDC(sourceToken) : false;
+
+  if (!insufficientNativeReserveError || hasInsufficientBalance || isArcUSDC) {
     return null;
   }
 

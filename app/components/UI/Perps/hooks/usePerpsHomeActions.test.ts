@@ -7,6 +7,7 @@ import { usePerpsHomeActions } from './usePerpsHomeActions';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import {
   PERPS_EVENT_PROPERTY,
@@ -56,6 +57,11 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
 }));
 
 const mockTrack = jest.fn();
@@ -324,6 +330,14 @@ describe('usePerpsHomeActions', () => {
         expect(onError).toHaveBeenCalledWith(depositError, 'deposit');
         expect(result.current.error).toEqual(depositError);
         expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+        expect(Logger.error).toHaveBeenCalledWith(depositError, {
+          tags: {
+            feature: 'perps',
+            component: 'usePerpsHomeActions',
+            action: 'financial_deposit',
+            operation: 'financial_operations',
+          },
+        });
       });
     });
   });
@@ -551,6 +565,14 @@ describe('usePerpsHomeActions', () => {
       await waitFor(() => {
         expect(result.current.error).toEqual(new Error('Withdraw failed'));
         expect(onError).toHaveBeenCalledWith(expect.any(Error), 'withdraw');
+      });
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        tags: {
+          feature: 'perps',
+          component: 'usePerpsHomeActions',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
       });
     });
 

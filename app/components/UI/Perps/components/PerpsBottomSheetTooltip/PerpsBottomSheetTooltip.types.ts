@@ -43,6 +43,8 @@ export interface PerpsBottomSheetTooltipProps {
 export type PerpsTooltipContentKey =
   | 'leverage'
   | 'liquidation_price'
+  | 'cross_liquidation_price'
+  | 'cross_no_liquidation_price'
   | 'liquidation_distance'
   | 'margin'
   | 'fees'
@@ -65,4 +67,5 @@ export type PerpsTooltipContentKey =
   | 'spread'
   | 'pay_with'
   | 'slippage'
-  | 'size_skew';
+  | 'size_skew'
+  | 'twap_runtime';

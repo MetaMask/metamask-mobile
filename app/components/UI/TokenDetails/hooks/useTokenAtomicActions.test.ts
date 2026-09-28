@@ -1,24 +1,18 @@
-import { act, renderHook, waitFor } from '@testing-library/react-native';
-import {
-  CaipAssetType,
-  CaipChainId,
-  Hex,
-  isCaipAssetType,
-} from '@metamask/utils';
+import { act, renderHook } from '@testing-library/react-native';
+import type { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { RpcEndpointType } from '@metamask/network-controller';
 import {
   AccountGroupAssets,
   Asset,
   TokenSecurityData,
 } from '@metamask/assets-controllers';
 import {
-  computeBuySourceToken,
   useHandleOnBuy,
   useHandleOnReceive,
   useHandleOnSend,
   useHandleOnSwap,
 } from './useTokenAtomicActions';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
-import { getCaipAssetIdForToken } from '../../Tokens/util/getCaipAssetIdForToken';
 import { TokenI } from '../../Tokens/types';
 import { SecurityDataType } from '../../Bridge/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -41,41 +35,33 @@ import {
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import { TokenDetailsSource } from '../constants/constants';
+import Engine from '../../../../core/Engine';
 import {
   createMockInternalAccount,
   createMockAccountGroup,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
-// Test Util - for mocking during edge case tests
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MockTestType = any;
-
 const mockStoreState = { mock: 'state' };
 const mockGetState = jest.fn(() => mockStoreState);
 jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
   useStore: () => ({ getState: mockGetState }),
 }));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
-  ...jest.requireActual<
-    typeof import('../../../../selectors/networkController')
-  >('../../../../selectors/networkController'),
+  selectChainId: jest.fn(),
   selectEvmChainId: jest.fn(),
+  selectNetworkConfigurations: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
-  ...jest.requireActual<
-    typeof import('../../../../selectors/accountsController')
-  >('../../../../selectors/accountsController'),
+  selectCanSignTransactions: jest.fn(),
   selectSelectedInternalAccount: jest.fn(),
 }));
 
@@ -182,46 +168,32 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   isAssetFromTrending: jest.fn(() => false),
 }));
 
-jest.mock('../../Bridge/utils/tokenUtils', () => ({
-  ...jest.requireActual('../../Bridge/utils/tokenUtils'),
-  getDefaultDestToken: jest.fn(),
-  getNativeSourceToken: jest.fn(),
-}));
-
 jest.mock('../../Bridge/utils/getSwapDestToken', () => ({
   getSwapDestToken: jest.fn(() => undefined),
-}));
-
-jest.mock('@metamask/utils', () => ({
-  ...jest.requireActual('@metamask/utils'),
-  isCaipAssetType: jest.fn(),
-}));
-
-jest.mock('../../Tokens/util/getCaipAssetIdForToken', () => ({
-  getCaipAssetIdForToken: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger');
 
 jest.mock('../../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      getNetworkConfigurationByChainId: jest.fn(() => ({
-        rpcEndpoints: [{ networkClientId: 'mainnet' }],
-        defaultRpcEndpointIndex: 0,
-      })),
-    },
-    MultichainNetworkController: {
-      setActiveNetwork: jest.fn(),
+  __esModule: true,
+  default: {
+    context: {
+      NetworkController: {
+        getNetworkConfigurationByChainId: jest.fn(),
+      },
+      MultichainNetworkController: {
+        setActiveNetwork: jest.fn(),
+      },
     },
   },
 }));
 
-const mockIsCaipAssetType = jest.mocked(isCaipAssetType);
-const mockGetCaipAssetIdForToken = jest.mocked(getCaipAssetIdForToken);
-const actualGetCaipAssetIdForToken = jest.requireActual(
-  '../../Tokens/util/getCaipAssetIdForToken',
-).getCaipAssetIdForToken as typeof getCaipAssetIdForToken;
+const mockGetNetworkConfigurationByChainId = jest.mocked(
+  Engine.context.NetworkController.getNetworkConfigurationByChainId,
+);
+const mockSetActiveNetwork = jest.mocked(
+  Engine.context.MultichainNetworkController.setActiveNetwork,
+);
 const mockSelectEvmChainId = jest.mocked(selectEvmChainId);
 const mockSelectSelectedInternalAccount = jest.mocked(
   selectSelectedInternalAccount,
@@ -248,6 +220,12 @@ const mockAccount = createMockInternalAccount(
   mockAccountAddress,
   'Account 1',
 );
+const mockScopedAccount = createMockInternalAccount(
+  'account-137',
+  '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+  'Polygon Account',
+);
+mockScopedAccount.scopes = ['eip155:137' as CaipChainId];
 
 const mockAccountGroup = createMockAccountGroup('group-1', 'Test Group', [
   mockAccountAddress,
@@ -273,6 +251,20 @@ const setupSelectorDefaults = () => {
   mockGetDetectedGeolocation.mockReturnValue('US');
   mockGetOrders.mockReturnValue([]);
   mockSelectRampsOrdersForSelectedAccountGroup.mockReturnValue([]);
+  mockGetNetworkConfigurationByChainId.mockReturnValue({
+    blockExplorerUrls: [],
+    chainId: '0x1',
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [
+      {
+        networkClientId: 'mainnet',
+        type: RpcEndpointType.Custom,
+        url: 'https://mainnet.example.com',
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+  });
   mockGetProviderToken.mockResolvedValue({
     success: true,
     token: { accessToken: 'access' },
@@ -298,221 +290,7 @@ beforeEach(() => {
   });
 });
 
-/**
- * `computeBuySourceToken` is the pure ranking helper used by `useHandleOnSwap`
- * to pick a source token when the current token has no balance.
- *
- * Priority order tested:
- * 1. Same-chain token with highest fiat (excluding current token)
- * 2. Native token cross-chain with highest fiat
- * 3. Fallback: any cross-chain token with highest fiat
- * 4. Returns `null` when nothing eligible exists
- */
-describe('useTokenAtomicActions - computeBuySourceToken', () => {
-  const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-  const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-  const POLYGON_USDC_ADDRESS = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
-  const POL_NATIVE_ADDRESS = '0x0000000000000000000000000000000000001010';
-  const ETH_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-  const userAsset = (params: {
-    assetId: string;
-    chainId?: string;
-    symbol?: string;
-    decimals?: number;
-    fiatBalance?: number;
-    isNative?: boolean;
-  }) => ({
-    assetId: params.assetId,
-    chainId: params.chainId ?? '0x1',
-    decimals: params.decimals ?? 18,
-    symbol: params.symbol ?? 'SYM',
-    name: params.symbol ?? 'SYM',
-    image: '',
-    isNative: params.isNative ?? false,
-    ...(params.fiatBalance !== undefined
-      ? { fiat: { balance: params.fiatBalance } }
-      : {}),
-  });
-
-  it('Priority 1: picks the highest-fiat same-chain token excluding the current token', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x1': [
-          userAsset({
-            assetId: WETH_ADDRESS,
-            symbol: 'WETH',
-            fiatBalance: 1000,
-          }),
-          userAsset({
-            assetId: USDC_ADDRESS,
-            symbol: 'USDC',
-            decimals: 6,
-            fiatBalance: 5000,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result?.address).toBe(USDC_ADDRESS);
-  });
-
-  it('Priority 1: excludes the current asset on the same chain', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x1': [
-          userAsset({
-            assetId: defaultToken.address,
-            symbol: defaultToken.symbol,
-            fiatBalance: 9999,
-          }),
-          userAsset({
-            assetId: WETH_ADDRESS,
-            symbol: 'WETH',
-            fiatBalance: 100,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result?.address).toBe(WETH_ADDRESS);
-  });
-
-  it('Priority 2: prefers the native cross-chain token over a higher-fiat non-native', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x89': [
-          userAsset({
-            assetId: POLYGON_USDC_ADDRESS,
-            chainId: '0x89',
-            symbol: 'USDC',
-            decimals: 6,
-            fiatBalance: 5000,
-          }),
-          userAsset({
-            assetId: POL_NATIVE_ADDRESS,
-            chainId: '0x89',
-            symbol: 'POL',
-            fiatBalance: 200,
-            isNative: true,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result?.address).toBe(POL_NATIVE_ADDRESS);
-  });
-
-  it('Priority 2: picks the native token with the highest fiat across chains', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x89': [
-          userAsset({
-            assetId: POL_NATIVE_ADDRESS,
-            chainId: '0x89',
-            symbol: 'POL',
-            fiatBalance: 200,
-            isNative: true,
-          }),
-        ],
-        '0xa': [
-          userAsset({
-            assetId: ETH_NATIVE_ADDRESS,
-            chainId: '0xa',
-            symbol: 'ETH',
-            fiatBalance: 3000,
-            isNative: true,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result?.address).toBe(ETH_NATIVE_ADDRESS);
-  });
-
-  it('falls back to the highest-fiat non-native cross-chain token when no natives are eligible', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x89': [
-          userAsset({
-            assetId: POLYGON_USDC_ADDRESS,
-            chainId: '0x89',
-            symbol: 'USDC',
-            decimals: 6,
-            fiatBalance: 800,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result?.address).toBe(POLYGON_USDC_ADDRESS);
-  });
-
-  it('returns null when only the current token has a positive fiat balance', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x1': [
-          userAsset({
-            assetId: defaultToken.address,
-            symbol: defaultToken.symbol,
-            fiatBalance: 100,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null when no asset has a positive fiat balance', () => {
-    const result = computeBuySourceToken(
-      {
-        '0x1': [
-          userAsset({ assetId: WETH_ADDRESS, symbol: 'WETH' }),
-          userAsset({
-            assetId: USDC_ADDRESS,
-            symbol: 'USDC',
-            decimals: 6,
-            fiatBalance: 0,
-          }),
-        ],
-      },
-      defaultToken.chainId,
-      defaultToken.address,
-    );
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null for an undefined assets map', () => {
-    expect(
-      computeBuySourceToken(
-        undefined,
-        defaultToken.chainId,
-        defaultToken.address,
-      ),
-    ).toBeNull();
-  });
-});
-
 describe('useTokenAtomicActions - useHandleOnBuy', () => {
-  beforeEach(() => {
-    mockIsCaipAssetType.mockReturnValue(false);
-    mockGetCaipAssetIdForToken.mockImplementation(actualGetCaipAssetIdForToken);
-  });
-
   /**
    * Renders the hook and flushes the one-shot `getProviderToken` effect so
    * that `is_authenticated` is resolved before assertions run.
@@ -551,7 +329,6 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
   it('uses the token address directly as the assetId when it is a CAIP asset type', async () => {
     const caipAddress = 'eip155:1/erc20:0xabc';
-    mockIsCaipAssetType.mockReturnValue(true);
     const caipToken = { ...defaultToken, address: caipAddress } as TokenI;
 
     const { result } = await renderOnBuy({ token: caipToken });
@@ -589,9 +366,6 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
   it('prefers explicit caipAssetId on the token when present', async () => {
     const caipAssetId = 'eip155:137/slip44:966' as CaipAssetType;
-    mockIsCaipAssetType.mockImplementation(
-      (value: unknown) => value === caipAssetId,
-    );
     const polToken = {
       ...defaultToken,
       address: '0x0000000000000000000000000000000000001010',
@@ -635,11 +409,12 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy();
 
-    await waitFor(async () => {
+    await act(async () => {
       await result.current();
-      assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
-        is_authenticated: false,
-      });
+    });
+
+    assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
+      is_authenticated: false,
     });
   });
 });
@@ -649,12 +424,14 @@ describe('useTokenAtomicActions - useHandleOnSend', () => {
     mockSendNonEvmAsset.mockResolvedValue(false);
   });
 
-  it('navigates to the send page and tracks analytics', async () => {
+  it('navigates to the send page without switching the selected network', async () => {
     const { result } = renderHook(() =>
       useHandleOnSend({ token: defaultToken }),
     );
 
-    await result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     assertAnalyticsEvent(MetaMetricsEvents.ACTION_BUTTON_CLICKED, {
       action_name: ActionButtonType.SEND,
@@ -666,18 +443,68 @@ describe('useTokenAtomicActions - useHandleOnSend', () => {
       location: 'asset_overview',
       asset: defaultToken,
     });
+    expect(mockNavigateToSendPage).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+    expect(mockSetActiveNetwork).not.toHaveBeenCalled();
   });
 
-  it('skips the network switch when the token chain matches the selected evm chain', async () => {
-    mockSelectEvmChainId.mockReturnValue(defaultToken.chainId as `0x${string}`);
+  it('navigates to the wallet home before switching networks when chains differ', async () => {
+    const token = {
+      ...defaultToken,
+      chainId: '0x89',
+    } as TokenI;
+    mockSelectEvmChainId.mockReturnValue('0x1');
+    mockGetNetworkConfigurationByChainId.mockReturnValue({
+      blockExplorerUrls: [],
+      chainId: '0x89',
+      name: 'Polygon',
+      nativeCurrency: 'POL',
+      rpcEndpoints: [
+        {
+          networkClientId: 'polygon-mainnet',
+          type: RpcEndpointType.Custom,
+          url: 'https://polygon.example.com',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+    });
 
-    const { result } = renderHook(() =>
-      useHandleOnSend({ token: defaultToken }),
+    const { result } = renderHook(() => useHandleOnSend({ token }));
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+    expect(mockGetNetworkConfigurationByChainId).toHaveBeenCalledWith('0x89');
+    expect(mockSetActiveNetwork).toHaveBeenCalledTimes(1);
+    expect(mockSetActiveNetwork).toHaveBeenCalledWith('polygon-mainnet');
+    expect(mockNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+      mockGetNetworkConfigurationByChainId.mock.invocationCallOrder[0],
     );
-
-    await result.current();
-
-    expect(mockNavigateToSendPage).toHaveBeenCalled();
+    expect(
+      mockGetNetworkConfigurationByChainId.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockSetActiveNetwork.mock.invocationCallOrder[0]);
+    expect(mockSetActiveNetwork.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigateToSendPage.mock.invocationCallOrder[0],
+    );
+    expect(mockNavigateToSendPage).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToSendPage).toHaveBeenCalledWith({
+      location: 'asset_overview',
+      asset: token,
+    });
   });
 
   it('returns early when the token is handled by the non-EVM send flow', async () => {
@@ -687,7 +514,9 @@ describe('useTokenAtomicActions - useHandleOnSend', () => {
       useHandleOnSend({ token: defaultToken }),
     );
 
-    await result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockNavigateToSendPage).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -725,6 +554,42 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
         },
       },
     );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the account scoped to the token chain for QR navigation', () => {
+    const getAccountByScope = jest.fn(() => mockScopedAccount);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(getAccountByScope);
+    const token = {
+      ...defaultToken,
+      chainId: '0x89',
+    } as TokenI;
+
+    const { result } = renderHook(() =>
+      useHandleOnReceive({
+        token,
+        networkName: 'Polygon',
+      }),
+    );
+
+    result.current();
+
+    expect(getAccountByScope).toHaveBeenCalledWith('eip155:137');
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: {
+          address: mockScopedAccount.address,
+          networkName: 'Polygon',
+          chainId: '0x89',
+          groupId: 'group-1',
+          location: 'asset-details',
+          account: mockScopedAccount,
+        },
+      },
+    );
   });
 
   it('falls back to "Unknown Network" when networkName is not supplied', () => {
@@ -734,16 +599,65 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
 
     result.current();
 
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+        params: {
+          address: mockAccountAddress,
+          networkName: 'Unknown Network',
+          chainId: '0x1',
+          groupId: 'group-1',
+          location: 'asset-details',
+          account: mockAccount,
+        },
+      },
+    );
+  });
+
+  it('logs an error and does not navigate when the account group is missing', () => {
+    mockSelectSelectedAccountGroup.mockReturnValue(null);
+
+    const { result } = renderHook(() =>
+      useHandleOnReceive({
+        token: defaultToken,
+        networkName: 'Ethereum Mainnet',
+      }),
+    );
+
+    result.current();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.any(Error),
       expect.objectContaining({
-        params: expect.objectContaining({ networkName: 'Unknown Network' }),
+        hasAddress: true,
+        hasAccountGroup: false,
+        hasChainId: true,
       }),
     );
   });
 
+  it('throws before navigation when the token chain is missing', () => {
+    const tokenWithoutChain = {
+      ...defaultToken,
+      chainId: undefined,
+    } as unknown as TokenI;
+
+    const { result } = renderHook(() =>
+      useHandleOnReceive({
+        token: tokenWithoutChain,
+        networkName: 'Ethereum Mainnet',
+      }),
+    );
+
+    expect(() => result.current()).toThrow(TypeError);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('logs an error and does not navigate when the address cannot be resolved', () => {
-    mockSelectSelectedInternalAccount.mockReturnValue(null as MockTestType);
+    mockSelectSelectedInternalAccount.mockReturnValue(undefined);
     mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
 
     const { result } = renderHook(() =>
@@ -807,7 +721,7 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
   it('returns early when goToSwaps is not provided by the navigation hook', () => {
     mockUseSwapBridgeNavigation.mockReturnValueOnce({
-      goToSwaps: undefined as MockTestType,
+      goToSwaps: undefined as never,
       networkModal: null,
     });
 
@@ -924,7 +838,7 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
     const { result } = renderHook(() => useHandleOnSwap(getHookParams()));
 
     result.current();
-    expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
 
     const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
     assertSwapCall(sourceToken, destToken);

@@ -57,6 +57,35 @@ export const formatTwapDuration = (durationMinutes: number): string => {
 };
 
 /**
+ * Render a duration in milliseconds as `HH:MM:SS`, e.g. 3661000 -> `01:01:01`.
+ *
+ * Hours are not wrapped at 24 because a TWAP may run for a full day; a
+ * 24-hour schedule therefore reads `24:00:00` rather than `00:00:00`.
+ * Negative input clamps to zero so a clock skew cannot render a leading `-`.
+ */
+export const formatTwapElapsedClock = (
+  durationMilliseconds: number,
+): string => {
+  const totalSeconds = Math.max(
+    0,
+    Math.floor(
+      durationMilliseconds / PERPS_TWAP_UI_CONFIG.MillisecondsPerSecond,
+    ),
+  );
+  const secondsPerHour =
+    PERPS_TWAP_UI_CONFIG.MinutesPerHour * PERPS_TWAP_UI_CONFIG.SecondsPerMinute;
+  const hours = Math.floor(totalSeconds / secondsPerHour);
+  const minutes = Math.floor(
+    (totalSeconds % secondsPerHour) / PERPS_TWAP_UI_CONFIG.SecondsPerMinute,
+  );
+  const seconds = totalSeconds % PERPS_TWAP_UI_CONFIG.SecondsPerMinute;
+
+  return [hours, minutes, seconds]
+    .map((unit) => String(unit).padStart(2, '0'))
+    .join(':');
+};
+
+/**
  * Render basis points as a percent string, e.g. 2500 -> `25%`.
  * The controller reports TWAP fill and time progress in bps.
  */

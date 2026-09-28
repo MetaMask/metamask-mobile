@@ -52,6 +52,8 @@ export interface PerpsAdvancedChartProps {
   onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
+  /** Fires when the user pinch-zooms; used to persist visible candle count. */
+  onVisibleCandleCountChange?: (count: number) => void;
   /** Fires when the initial chart or its Lightweight fallback has resolved. */
   onResolved?: (seriesKey: string, state: 'content' | 'empty') => void;
   /** Fires after this chart's exact consumer accepts a fresh delivery. */
@@ -222,6 +224,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onSkeletonHidden,
   onResolved,
   onFreshDelivery,
+  onVisibleCandleCountChange,
   surface = 'market_detail',
   fallbackCandleData,
   fallbackDeliveryRevision = 0,
@@ -607,6 +610,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onOhlcDataChange={onCrosshairDataChange}
         showOverlay={false}
         coloredVolume
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
       />
     );
   }
@@ -633,6 +637,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onError={handleError}
       onSkeletonHidden={handleSkeletonHidden}
       onChartLayoutSettled={handleChartLayoutSettled}
+      onVisibleCandleCountChange={onVisibleCandleCountChange}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={positionLineColors.currentPrice}

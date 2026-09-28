@@ -151,6 +151,11 @@ ignores:
   # special-parser doesn't recognize (it only detects the plain string form).
   - 'babel-jest'
 
+  # Imported only by the Hermes profile analyzer under
+  # .github/scripts/qa-automation/performance-tests/, a path depcheck does not
+  # scan because it lives inside a dot-directory.
+  - '@margelo/hermes-profile-transformer'
+
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
 

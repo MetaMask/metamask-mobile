@@ -7,8 +7,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage.js';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
-import PredictBalance from '../../page-objects/Predict/PredictBalance.js';
+import PredictHome from '../../page-objects/Predict/PredictHome.js';
 import PredictPositions from '../../page-objects/Predict/PredictPositions.js';
 import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import {
@@ -42,16 +41,21 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
-          await PredictMarketList.waitForScreenToDisplay({
-            description: 'Predict market list should be visible',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible',
           });
-          await PredictBalance.tapPositions();
+          await PredictHome.tapPositions();
           await PredictPositions.waitForScreenToDisplay();
           await PredictPositions.tapClaimButton();
 
           await postClaimMocks(mockServer);
 
-          await Assertions.expectElementToBeVisible(PredictClaimPage.container);
+          await Assertions.expectElementToBeVisible(
+            PredictClaimPage.container,
+            {
+              description: 'Predict claim page should be visible',
+            },
+          );
 
           await PredictClaimPage.tapClaimConfirmButton();
 
@@ -61,10 +65,10 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
           // covers the header back control until it dismisses.
           await ToastModal.waitForToastToDismiss();
           await PredictPositions.tapBackButton();
-          await PredictMarketList.waitForScreenToDisplay({
-            description: 'Predict market list should be visible after claim',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible after claim',
           });
-          await Assertions.expectTextDisplayed('$48.16');
+          await PredictHome.expectAmountDisplayed('$48.16');
         },
       );
     },

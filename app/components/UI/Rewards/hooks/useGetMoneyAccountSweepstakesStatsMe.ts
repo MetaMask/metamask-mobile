@@ -28,16 +28,28 @@ export const useGetMoneyAccountSweepstakesStatsMe = (
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   const selectStats = useMemo(
-    () => selectMoneyAccountSweepstakesStatsByCampaignId(campaignId),
-    [campaignId],
+    () =>
+      selectMoneyAccountSweepstakesStatsByCampaignId(
+        subscriptionId,
+        campaignId,
+      ),
+    [subscriptionId, campaignId],
   );
   const selectLoading = useMemo(
-    () => selectMoneyAccountSweepstakesStatsLoadingByCampaignId(campaignId),
-    [campaignId],
+    () =>
+      selectMoneyAccountSweepstakesStatsLoadingByCampaignId(
+        subscriptionId,
+        campaignId,
+      ),
+    [subscriptionId, campaignId],
   );
   const selectError = useMemo(
-    () => selectMoneyAccountSweepstakesStatsErrorByCampaignId(campaignId),
-    [campaignId],
+    () =>
+      selectMoneyAccountSweepstakesStatsErrorByCampaignId(
+        subscriptionId,
+        campaignId,
+      ),
+    [subscriptionId, campaignId],
   );
 
   const stats = useSelector(selectStats);
@@ -51,24 +63,46 @@ export const useGetMoneyAccountSweepstakesStatsMe = (
 
     try {
       dispatch(
-        setMoneyAccountSweepstakesStatsLoading({ campaignId, loading: true }),
+        setMoneyAccountSweepstakesStatsLoading({
+          subscriptionId,
+          campaignId,
+          loading: true,
+        }),
       );
       dispatch(
-        setMoneyAccountSweepstakesStatsError({ campaignId, error: false }),
+        setMoneyAccountSweepstakesStatsError({
+          subscriptionId,
+          campaignId,
+          error: false,
+        }),
       );
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getMoneyAccountSweepstakesStatsMe',
         campaignId,
         subscriptionId,
       );
-      dispatch(setMoneyAccountSweepstakesStats({ campaignId, stats: result }));
+      dispatch(
+        setMoneyAccountSweepstakesStats({
+          subscriptionId,
+          campaignId,
+          stats: result,
+        }),
+      );
     } catch {
       dispatch(
-        setMoneyAccountSweepstakesStatsError({ campaignId, error: true }),
+        setMoneyAccountSweepstakesStatsError({
+          subscriptionId,
+          campaignId,
+          error: true,
+        }),
       );
     } finally {
       dispatch(
-        setMoneyAccountSweepstakesStatsLoading({ campaignId, loading: false }),
+        setMoneyAccountSweepstakesStatsLoading({
+          subscriptionId,
+          campaignId,
+          loading: false,
+        }),
       );
     }
   }, [dispatch, campaignId, subscriptionId]);

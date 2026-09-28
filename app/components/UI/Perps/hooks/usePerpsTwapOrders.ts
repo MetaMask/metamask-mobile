@@ -15,6 +15,7 @@ import {
 import {
   getTwapOrderIdentityKey,
   getTwapOrderProviderId,
+  reconcileTwapOrderExecution,
 } from '../utils/twapOrderUtils';
 import { handlePerpsCufTwapOrdersDelivered } from '../utils/perpsCufTrace';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
@@ -45,10 +46,12 @@ const mergeTwapOrder = (
       ? authoritativeOrder
       : retainedOrder;
 
-  return {
+  // Every TWAP row reaching this hook's consumers passes through here, so this
+  // is where the venue's stale execution totals get restated from the fills.
+  return reconcileTwapOrderExecution({
     ...scheduleOrder,
     fills: [...fillsByIdentity.values()],
-  };
+  });
 };
 
 const mergeTwapOrderSnapshot = (

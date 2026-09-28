@@ -66,7 +66,7 @@ export function useTransactionPayBalance({
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
 
-  const moneyAccountBalance = useMoneyAccountBalance();
+  const moneyAccountBalance = useMoneyAccountPayBalance();
   const perpsBalance = usePerpsBalance();
   const predictBalance = usePredictBalance();
   const tokenBalance = useTokenBalance();
@@ -91,7 +91,12 @@ export function useTransactionPayBalance({
   return tokenBalance;
 }
 
-function useMoneyAccountBalance(): TransactionPayBalance {
+/**
+ * Redeemable Money Account balance (mUSD + vmUSD), read synchronously from
+ * Redux. Exported so callers that must not subscribe to the other per-flow
+ * balance sources can resolve just this one.
+ */
+export function useMoneyAccountPayBalance(): TransactionPayBalance {
   const redeemable = useSelector(selectMoneyAccountRedeemable);
   const activeAddress = useSelector(selectPrimaryMoneyAccount)?.address;
   const withdrawableMusdRaw = getUsableMoneyAccountRedeemableRaw(

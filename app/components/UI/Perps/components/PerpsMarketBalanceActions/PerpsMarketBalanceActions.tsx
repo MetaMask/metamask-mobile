@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Animated, LayoutChangeEvent, Modal, View } from 'react-native';
+import { LayoutChangeEvent, Modal, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {

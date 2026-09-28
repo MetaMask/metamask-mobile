@@ -15,20 +15,20 @@ import EarnSearchAssetRow from './EarnSearchAssetRow';
 import { EarnSearchAssetRowTestIds } from './EarnSearchAssetRow.testIds';
 import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon';
 
-const mockEarnSearchAssetRowTestIds = EarnSearchAssetRowTestIds;
+const mockEarnAssetIconAssets: ComponentProps<typeof EarnAssetIcon>['asset'][] =
+  [];
 
-jest.mock('../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon', () => {
-  const { Text: TextComponent } = jest.requireActual('react-native');
+function mockEarnAssetIcon({
+  asset,
+}: ComponentProps<typeof EarnAssetIcon>): null {
+  mockEarnAssetIconAssets.push(asset);
+  return null;
+}
 
-  return {
-    __esModule: true,
-    default: ({ asset }: ComponentProps<typeof EarnAssetIcon>) => (
-      <TextComponent testID={mockEarnSearchAssetRowTestIds.NETWORK_BADGE}>
-        {asset.kind === 'held' ? asset.asset?.chainId : asset.metadata?.chainId}
-      </TextComponent>
-    ),
-  };
-});
+jest.mock('../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon', () => ({
+  __esModule: true,
+  default: mockEarnAssetIcon,
+}));
 
 const readyExperience = (
   rateType: 'APR' | 'APY',
@@ -37,6 +37,7 @@ const readyExperience = (
   id: `earn:${rateType}`,
   type: EARN_EXPERIENCES.STABLECOIN_LENDING,
   role: 'underlying',
+  depositReadiness: { status: 'ready' },
   rate: {
     type: rateType,
     percentage,
@@ -45,16 +46,24 @@ const readyExperience = (
   isFeeSubsidized: false,
 });
 
+const createAssetAddress = (symbol: string) =>
+  `0x${Array.from(symbol)
+    .map((character) => character.codePointAt(0)?.toString(16) ?? '0')
+    .join('')
+    .padEnd(40, '0')
+    .slice(0, 40)}`;
+
 const createHeldSearchAsset = (
   symbol: string,
   balance: string,
   rateType: 'APR' | 'APY' = 'APY',
 ) => {
+  const address = createAssetAddress(symbol);
   const asset = {
     accountType: EthAccountType.Eoa,
     accountId: 'account-id',
-    assetId: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
-    address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
+    assetId: address,
+    address,
     chainId: '0x1',
     decimals: 6,
     image: `${symbol}.png`,
@@ -71,9 +80,18 @@ const createHeldSearchAsset = (
   } as Asset;
 
   return {
-    kind: 'held' as const,
-    assetId: `eip155:1/erc20:${symbol.toLowerCase()}` as EarnAssetId,
-    asset,
+    assetId: `eip155:1/erc20:${address.toLowerCase()}` as EarnAssetId,
+    metadata: {
+      address,
+      chainId: '0x1',
+      decimals: 6,
+      image: `${symbol}.png`,
+      name: `${symbol} Coin`,
+      symbol,
+      logo: `${symbol}.png`,
+      isETH: false,
+    },
+    wallet: { status: 'tracked' as const, asset },
     experiences: [readyExperience(rateType)],
   };
 };
@@ -82,22 +100,34 @@ const createDiscoverySearchAsset = (
   symbol: string,
   rateType: 'APR' | 'APY' = 'APY',
   metadataOverrides: Partial<EarnAssetMetadata> = {},
-) => ({
-  kind: 'discovery' as const,
-  assetId: `eip155:1/erc20:${symbol.toLowerCase()}` as EarnAssetId,
-  metadata: {
-    address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
-    chainId: '0x1',
-    decimals: 6,
-    image: `${symbol}.png`,
-    name: `${symbol} Coin`,
-    symbol,
-    logo: `${symbol}.png`,
-    isETH: false,
-    ...metadataOverrides,
-  },
-  experiences: [readyExperience(rateType)],
-});
+) => {
+  const address = createAssetAddress(symbol);
+
+  return {
+    assetId: `eip155:1/erc20:${address.toLowerCase()}` as EarnAssetId,
+    metadata: {
+      address,
+      chainId: '0x1',
+      decimals: 6,
+      image: `${symbol}.png`,
+      name: `${symbol} Coin`,
+      symbol,
+      logo: `${symbol}.png`,
+      isETH: false,
+      ...metadataOverrides,
+    },
+    wallet: { status: 'untracked' as const },
+    experiences: [
+      {
+        ...readyExperience(rateType),
+        depositReadiness: {
+          status: 'not_ready',
+          reason: 'asset_not_tracked',
+        } as const,
+      },
+    ],
+  };
+};
 
 const createItem = (
   asset:
@@ -110,17 +140,24 @@ const createItem = (
 });
 
 describe('EarnSearchAssetRow', () => {
-  it('renders held asset name, symbol, and Get APY copy', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockEarnAssetIconAssets.length = 0;
+  });
+
+  it('renders held asset name, balance, and Get APY copy', () => {
     const item = createItem(createHeldSearchAsset('USDC', '0.001'));
 
-    const { getByText } = render(
+    const { getByTestId, getByText } = render(
       <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
     );
 
     expect(getByText('USDC Coin')).toBeOnTheScreen();
-    expect(getByText('USDC')).toBeOnTheScreen();
+    expect(getByTestId(EarnSearchAssetRowTestIds.BALANCE)).toHaveTextContent(
+      '$0.00',
+    );
     expect(
-      getByText(strings('earn_module.rate_apy', { percentage: '4.2' })),
+      getByText(strings('earn_module.get_rate_apy', { percentage: '4.2' })),
     ).toBeOnTheScreen();
   });
 
@@ -150,16 +187,16 @@ describe('EarnSearchAssetRow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the network badge through EarnAssetIcon', () => {
+  it('passes normalized metadata to EarnAssetIcon without a wallet balance', () => {
     const item = createItem(createDiscoverySearchAsset('DAI'));
 
-    const { getByTestId } = render(
-      <EarnSearchAssetRow item={item} onPress={jest.fn()} />,
-    );
+    render(<EarnSearchAssetRow item={item} onPress={jest.fn()} />);
 
-    expect(
-      getByTestId(EarnSearchAssetRowTestIds.NETWORK_BADGE),
-    ).toHaveTextContent('0x1');
+    expect(mockEarnAssetIconAssets).toHaveLength(1);
+    const [iconAsset] = mockEarnAssetIconAssets;
+    expect(iconAsset).toBe(item.asset);
+    expect(iconAsset.metadata).toEqual(item.asset.metadata);
+    expect('balance' in iconAsset).toBe(false);
   });
 
   it('passes the asset item to onPress', () => {
@@ -185,6 +222,6 @@ describe('EarnSearchAssetRow', () => {
     expect(getByTestId(EarnSearchAssetRowTestIds.BALANCE)).toHaveTextContent(
       '•'.repeat(9),
     );
-    expect(queryByText('$10.00')).toBeNull();
+    expect(queryByText('$10.00')).not.toBeOnTheScreen();
   });
 });

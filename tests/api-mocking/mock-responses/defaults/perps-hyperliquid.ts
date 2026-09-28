@@ -14,6 +14,17 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       response: [],
     },
     {
+      // Perps Home / Market Details fetch this on mount. Hide the banner so
+      // smoke flows are unchanged, and so withFixtures does not fail cleanup.
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v1\/outreach/,
+      responseCode: 200,
+      response: {
+        show: false,
+        banner: null,
+      },
+    },
+    {
       // Generic E2E fixtures use the deterministic provider mocks below.
       urlEndpoint:
         /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v2\/perpetuals/,

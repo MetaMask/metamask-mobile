@@ -7,10 +7,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  selectBridgeBalanceRefreshKey,
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
-  selectSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
@@ -30,11 +28,7 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import {
   formatPriceRangeBounds,
   isPriceRangeInCurrentCurrency,
@@ -46,18 +40,14 @@ import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { createRecurringMockHistoryTab } from './BridgeRecurringBuyView.mockHistory';
 import { createRecurringMockOpenOrdersTab } from './BridgeRecurringBuyView.mockOpenOrders';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
-interface BridgeRecurringBuyViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeRecurringBuyViewContent = ({
-  latestSourceBalance,
-}: BridgeRecurringBuyViewContentProps) => {
+const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
 
+  const { latestSourceBalance } = useBridgeSession();
   const {
     destToken,
     destTokenAmount,
@@ -73,7 +63,7 @@ const BridgeRecurringBuyViewContent = ({
     sourceAmountInput,
     sourceToken,
     sourceAmount,
-  } = useRecurringBuySwapInputs({ latestSourceBalance });
+  } = useRecurringBuySwapInputs();
 
   const priceRange = useSelector(selectRecurringPriceRange);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -105,20 +95,20 @@ const BridgeRecurringBuyViewContent = ({
     });
   }, [dismissInputAndKeypad, navigation]);
 
-  const handleJobPress = useCallback(
-    (jobId: string) => {
-      navigation.navigate(Routes.BRIDGE.RECURRING_JOB_DETAILS, { jobId });
+  const handleOrderPress = useCallback(
+    (orderId: string) => {
+      navigation.navigate(Routes.BRIDGE.RECURRING_ORDER_DETAILS, { orderId });
     },
     [navigation],
   );
 
   const openOrders = useMemo(
-    () => createRecurringMockOpenOrdersTab(handleJobPress),
-    [handleJobPress],
+    () => createRecurringMockOpenOrdersTab(handleOrderPress),
+    [handleOrderPress],
   );
   const history = useMemo(
-    () => createRecurringMockHistoryTab(handleJobPress),
-    [handleJobPress],
+    () => createRecurringMockHistoryTab(handleOrderPress),
+    [handleOrderPress],
   );
 
   const effectiveRange = isPriceRangeInCurrentCurrency(
@@ -174,7 +164,6 @@ const BridgeRecurringBuyViewContent = ({
             inputRef={inputRef}
             sourceToken={sourceToken}
             sourceAmountInput={sourceAmountInput}
-            latestSourceBalance={latestSourceBalance}
             destToken={destToken}
             destTokenAmount={destTokenAmount}
             isDestAmountLoading={isDestAmountLoading}
@@ -201,10 +190,7 @@ const BridgeRecurringBuyViewContent = ({
           />
 
           <Box onTouchEnd={dismissInputAndKeypad}>
-            <SwapsBanners
-              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-              onAdjustSourceAmount={handleSourcePresetAmountSelect}
-            >
+            <SwapsBanners onAdjustSourceAmount={handleSourcePresetAmountSelect}>
               <HardwareWalletUnsupportedBanner />
               <QuoteErrorBanner />
               <TokenWarningBanner />
@@ -271,26 +257,4 @@ const BridgeRecurringBuyViewContent = ({
   );
 };
 
-const BridgeRecurringBuyView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeRecurringBuyViewContent
-        latestSourceBalance={latestSourceBalance}
-      />
-    </BridgeQuoteDataProvider>
-  );
-};
-
-export default BridgeRecurringBuyView;
+export default BridgeRecurringBuyViewContent;

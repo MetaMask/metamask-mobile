@@ -48,16 +48,13 @@ const tabTarget = (
 ): DeeplinkIntent['target'] => ({
   type: 'home-tab',
   routeName: Routes.TRENDING_VIEW,
-  // The Explore tab hosts its own stack; the nested form targets the feed
-  // screen inside it, which reads `initialTab` to preselect the tab.
+  // The Explore tab renders the feed directly, so these params land on the tab
+  // route itself, where the feed reads `initialTab` to preselect the tab.
   params: {
-    screen: Routes.TRENDING_FEED,
-    params: {
-      initialTab: index,
-      source: DEEPLINK_ENTRY_SOURCE,
-      ...getParams?.(urlParams),
-    } satisfies ExploreFeedRouteParams,
-  },
+    initialTab: index,
+    source: DEEPLINK_ENTRY_SOURCE,
+    ...getParams?.(urlParams),
+  } satisfies ExploreFeedRouteParams,
 });
 
 const getUrlParams = (actionPath: string): URLSearchParams =>

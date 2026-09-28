@@ -108,6 +108,86 @@ function findAppProfilingFiles(dir, profilingFiles = []) {
 }
 
 /**
+ * Recursively find Hermes CPU profile artifacts.
+ * @param {string} dir
+ * @param {string[]} profileFiles
+ * @returns {string[]}
+ */
+function findHermesCpuProfileFiles(dir, profileFiles = []) {
+  if (!fs.existsSync(dir)) {
+    return profileFiles;
+  }
+
+  const entries = fs.readdirSync(dir);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry);
+    if (fs.statSync(fullPath).isDirectory()) {
+      findHermesCpuProfileFiles(fullPath, profileFiles);
+    } else if (
+      entry.endsWith('.cpuprofile') &&
+      fullPath.split(path.sep).includes('hermes-cpuprofiles')
+    ) {
+      profileFiles.push(fullPath);
+    }
+  }
+  return profileFiles;
+}
+
+/**
+ * Copy Hermes `.cpuprofile` files into aggregated-reports so a single
+ * artifact download is enough for per-scenario CPU-profile analysis.
+ * @param {string[]} searchDirs
+ * @param {string} outputDir
+ * @returns {number}
+ */
+function collectHermesCpuProfiles(searchDirs, outputDir) {
+  const profilesOutputDir = path.join(outputDir, 'hermes-cpuprofiles');
+  const usedNames = new Map();
+  let copiedCount = 0;
+
+  if (fs.existsSync(profilesOutputDir)) {
+    fs.rmSync(profilesOutputDir, { recursive: true, force: true });
+  }
+
+  const profileFiles = [];
+  searchDirs.forEach((dir) => {
+    if (fs.existsSync(dir)) {
+      findHermesCpuProfileFiles(dir, profileFiles);
+    }
+  });
+
+  if (profileFiles.length === 0) {
+    console.log('ℹ️ No Hermes CPU profile artifacts found to collect');
+    return 0;
+  }
+
+  fs.mkdirSync(profilesOutputDir, { recursive: true });
+
+  for (const sourcePath of profileFiles) {
+    const fileName = path.basename(sourcePath);
+    const collisionCount = usedNames.get(fileName) ?? 0;
+    usedNames.set(fileName, collisionCount + 1);
+
+    if (collisionCount > 0) {
+      console.warn(
+        `⚠️ Skipping duplicate Hermes profile name instead of changing its scenario identity: ${fileName}`,
+      );
+      continue;
+    }
+
+    const destPath = path.join(profilesOutputDir, fileName);
+    fs.copyFileSync(sourcePath, destPath);
+    copiedCount += 1;
+    console.log(`📦 Collected Hermes CPU profile: ${destPath}`);
+  }
+
+  console.log(
+    `✅ Collected ${copiedCount} Hermes CPU profile(s) into ${profilesOutputDir}`,
+  );
+  return copiedCount;
+}
+
+/**
  * Copy per-scenario app profiling artifacts into the aggregated reports output
  * so the pipeline's aggregated-reports artifact includes one file per scenario.
  * Clears any previously collected profiling files first so re-aggregation does
@@ -1733,6 +1813,7 @@ function aggregateReports() {
     // Always collect profiling sidecars, including after aggregation failure,
     // so per-job app-profiling artifacts still land in aggregated-reports.
     collectAppProfilingArtifacts(searchDirs, outputDir);
+    collectHermesCpuProfiles(searchDirs, outputDir);
   }
 }
 
@@ -1744,7 +1825,9 @@ export {
   aggregateReports,
   findJsonFiles,
   findAppProfilingFiles,
+  findHermesCpuProfileFiles,
   collectAppProfilingArtifacts,
+  collectHermesCpuProfiles,
   extractPlatformScenarioAndDevice,
   processTestReport,
   generateHtmlReport,
