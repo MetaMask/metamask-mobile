@@ -16,6 +16,7 @@ import RewardsVipTransactionsView from './Views/RewardsVipTransactionsView';
 import CampaignsView from './Views/CampaignsView';
 import RewardsTradingCommissionsView from './Views/RewardsTradingCommissionsView';
 import RewardsTradingRebatesView from './Views/RewardsTradingRebatesView';
+import RewardsEarningsHistoryView from './Views/RewardsEarningsHistoryView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
@@ -230,6 +231,10 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_TRADING_REBATES_VIEW}
         component={RewardsTradingRebatesView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_EARNINGS_HISTORY_VIEW}
+        component={RewardsEarningsHistoryView}
       />
       <Stack.Screen
         name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}

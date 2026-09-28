@@ -3,6 +3,7 @@ import {
   RewardsMoneyController,
   getRewardsMoneyControllerDefaultState,
   originTypeScopeKey,
+  summaryScopeKey,
   ledgerScopeKey,
   commissionsScopeKey,
   profileCacheKey,
@@ -184,6 +185,30 @@ describe('originTypeScopeKey', () => {
     expect(
       originTypeScopeKey(['PERPS_FEE_CASHBACK', 'SWAPS_FEE_CASHBACK']),
     ).toBe(originTypeScopeKey(['SWAPS_FEE_CASHBACK', 'PERPS_FEE_CASHBACK']));
+  });
+});
+
+describe('summaryScopeKey', () => {
+  it('keeps the default call on the origin-type key', () => {
+    expect(summaryScopeKey()).toBe('all');
+    expect(summaryScopeKey(undefined, { includeClaimable: true })).toBe('all');
+  });
+
+  it('gives a window its own bucket that cannot overwrite claimable', () => {
+    expect(
+      summaryScopeKey(undefined, {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      }),
+    ).toBe('all|window:2026-09-22..2026-09-28|claimable:0');
+    expect(
+      summaryScopeKey(['SWAPS_FEE_CASHBACK'], {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      }),
+    ).not.toBe(summaryScopeKey(['SWAPS_FEE_CASHBACK']));
   });
 });
 
@@ -543,6 +568,59 @@ describe('RewardsMoneyController', () => {
       );
       expect(controller.state.earningsSummary[key]?.payload).toEqual(
         mockSummary,
+      );
+    });
+
+    it('caches a windowed summary apart from the claimable one', async () => {
+      const windowed = {
+        ...mockSummary,
+        lifetime_total: '1000000',
+        claimable: undefined,
+      };
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getEarningsSummary') {
+          const request = args[1] as { includeClaimable?: boolean } | undefined;
+          return Promise.resolve(
+            request?.includeClaimable === false ? windowed : mockSummary,
+          );
+        }
+        return undefined;
+      });
+
+      await controller.getEarningsSummary();
+      await controller.getEarningsSummary({
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      });
+
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getEarningsSummary',
+        undefined,
+        {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        },
+      );
+      const claimableKey = profileCacheKey(PROFILE_A, summaryScopeKey());
+      const windowKey = profileCacheKey(
+        PROFILE_A,
+        summaryScopeKey(undefined, {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        }),
+      );
+      expect(controller.state.earningsSummary[claimableKey]?.payload).toEqual(
+        mockSummary,
+      );
+      expect(controller.state.earningsSummary[windowKey]?.payload).toEqual(
+        windowed,
       );
     });
 
