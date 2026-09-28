@@ -108,7 +108,11 @@ describe('cancelLimitOrder', () => {
     expect(searchParams.get('accountAddress')).toBe(ACCOUNT_ADDRESS);
     expect(requestOptions).toMatchObject({
       method: 'DELETE',
-      headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+      headers: {
+        'X-Client-Id': 'mobile',
+        Authorization: 'Bearer mock-bearer-token',
+        'Client-Version': expect.any(String),
+      },
     });
     expect(requestOptions.body).toBeUndefined();
   });

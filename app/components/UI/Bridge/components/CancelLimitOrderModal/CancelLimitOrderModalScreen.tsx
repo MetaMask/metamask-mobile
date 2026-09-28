@@ -24,7 +24,9 @@ export const CancelLimitOrderModalScreen = () => {
       { orderId: order.id, accountAddress: order.account },
       {
         onSuccess: (outcome) => {
-          navigation.getParent()?.goBack();
+          if (navigation.isFocused()) {
+            navigation.getParent()?.goBack();
+          }
 
           if (outcome === CancelLimitOrderOutcome.Cancelled) {
             toast({
