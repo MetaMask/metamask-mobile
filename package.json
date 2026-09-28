@@ -192,7 +192,7 @@
     "@metamask/geolocation-controller": "^1.0.0",
     "@metamask/remote-feature-flag-controller": "^6.1.1",
     "@metamask/wallet": "^12.0.3",
-    "@metamask/seedless-onboarding-controller": "10.1.1",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@11.0.0-preview-0a1dd02ad",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",
