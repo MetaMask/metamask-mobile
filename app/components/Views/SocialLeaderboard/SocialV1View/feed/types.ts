@@ -171,6 +171,28 @@ export interface SocialV1HotToken {
   /** Chip title: the asset name when the feed has one, otherwise the ticker. */
   label: string;
   avatar: PositionTokenAvatarData;
+  /**
+   * Chain name for `GET /v1/tokens/:chain/:contractAddress/feed`. Set from
+   * the first loaded row that has a contract. Absent for perp-only chips.
+   */
+  chain?: string;
+  /** Contract address paired with {@link chain}. Absent for perp-only chips. */
+  contractAddress?: string;
+}
+
+/**
+ * Token-feed page the hot-token carousel loads for the selected chip.
+ * `null` means the rail is not driving the feed (no selection, or a chip
+ * with no contract).
+ */
+export interface SocialV1TokenFeedState {
+  posts: SocialV1FeedPost[];
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  loadMore: () => void;
+  error: string | null;
+  refresh: () => Promise<void>;
 }
 
 export interface UseSocialV1HotTokensResult {

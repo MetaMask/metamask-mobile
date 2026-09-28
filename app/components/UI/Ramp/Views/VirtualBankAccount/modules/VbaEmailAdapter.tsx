@@ -13,35 +13,47 @@ import { getVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
 import EmailOtpStub from './EmailOtpStub';
 
+const retryRecordVendorDisclaimers = async (
+  walletAddress: string | null,
+): Promise<void> => {
+  if (!walletAddress) {
+    return;
+  }
+
+  const vendorTermsAcceptance =
+    await getVbaVendorTermsAcceptance(walletAddress);
+  if (!vendorTermsAcceptance?.disclaimerIds.length) {
+    return;
+  }
+
+  await Engine.context.KycController.recordVendorDisclaimers({
+    disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+  });
+};
+
 const VbaEmailAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const advance = useOpenVbaOnboarding('email-complete');
+  const boundEmail = Engine.context.KycController.state.email?.trim() ?? '';
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
   const handleSuccess = useCallback(
     async (email: string): Promise<void> => {
+      const sessionEmail = boundEmail || email.trim();
       try {
         await Engine.context.KycController.startSession({
           vendor: VBA_KYC_VENDOR,
-          email,
+          email: sessionEmail,
         });
 
         const walletAddress = selectSelectedVbaWalletAddress(
           ReduxService.store.getState() as RootState,
         );
-        const vendorTermsAcceptance = walletAddress
-          ? await getVbaVendorTermsAcceptance(walletAddress)
-          : null;
-
-        if (vendorTermsAcceptance?.disclaimerIds.length) {
-          await Engine.context.KycController.recordVendorDisclaimers({
-            disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+        try {
+          await retryRecordVendorDisclaimers(walletAddress);
+        } catch (error) {
+          Logger.error(error as Error, {
+            tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
           });
-        } else if (
-          !(await Engine.context.KycController.hasCompletedVendorDisclaimers())
-        ) {
-          throw new Error(
-            strings('virtual_bank_account.kyc_email.terms_not_loaded_error'),
-          );
         }
 
         await advance();
@@ -57,10 +69,16 @@ const VbaEmailAdapter = () => {
         );
       }
     },
-    [advance],
+    [advance, boundEmail],
   );
 
-  return <EmailOtpStub onBack={handleBack} onSuccess={handleSuccess} />;
+  return (
+    <EmailOtpStub
+      onBack={handleBack}
+      onSuccess={handleSuccess}
+      initialEmail={boundEmail || undefined}
+    />
+  );
 };
 
 export default VbaEmailAdapter;

@@ -37,7 +37,6 @@ interface UsePerpsHomeDataParams {
   trendingLimit?: number;
   activityLimit?: number;
   searchQuery?: string;
-  aggregateFills?: boolean;
 }
 
 interface UsePerpsHomeDataReturn {
@@ -81,7 +80,6 @@ export const usePerpsHomeData = ({
   trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
   activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
-  aggregateFills = true,
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Get connection state to guard REST calls that require an initialized controller
   const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
@@ -157,9 +155,8 @@ export const usePerpsHomeData = ({
 
   // Transform merged fills to PerpsTransaction format for activity display
   const tradesOnly = useMemo(
-    () =>
-      transformFillsToTransactions(mergedFills, { aggregate: aggregateFills }),
-    [mergedFills, aggregateFills],
+    () => transformFillsToTransactions(mergedFills),
+    [mergedFills],
   );
 
   // Fetch markets data for trending section (markets don't need real-time updates)
