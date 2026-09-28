@@ -35,7 +35,7 @@ jest.mock('../../util/Logger', () => ({
 
 describe('LockManagerService', () => {
   let lockManagerService: LockManagerService;
-  let mockAppStateListener: (state: AppStateStatus) => void;
+  let mockAppStateListener: (state: AppStateStatus) => Promise<void>;
 
   beforeEach(() => {
     jest.clearAllMocks();
