@@ -24,6 +24,7 @@ export interface OrdersTabsProps<TOpen, THistory> {
   openOrders: OrdersTabConfig<TOpen>;
   history: OrdersTabConfig<THistory>;
   initialTab?: OrdersTabKey;
+  activeTab?: OrdersTabKey;
   onTabChange?: (tab: OrdersTabKey) => void;
   /**
    * Restricts the orders network picker to these chains.

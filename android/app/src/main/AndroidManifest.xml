@@ -27,7 +27,9 @@
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/>
 
-	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
+	<!-- The Veriff SDK packages below declare minSdkVersion 26; identity verification is
+	     only reachable on devices that meet it, so the app keeps minSdkVersion 24. -->
+	<uses-sdk tools:overrideLibrary="com.tectiv3.aes, com.veriff, com.veriff.sdk.camera.camera2, com.veriff.sdk.camera.core, com.veriff.sdk.camera.lifecycle, com.veriff.sdk.camera.view, com.veriff.sdk.detector, com.veriff.sdk.mlkit, coil.base" />
 
 	<queries>
 		<intent>
@@ -46,6 +48,16 @@
 			<action android:name="android.intent.action.VIEW" />
 			<data android:scheme="gpay" />
 		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.PAY" />
+		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
+		</intent>
+		<intent>
+			<action android:name="org.chromium.intent.action.UPDATE_PAYMENT_DETAILS" />
+		</intent>
+		<package android:name="com.google.android.apps.walletnfcrel" />
 	</queries>
 
 	<application

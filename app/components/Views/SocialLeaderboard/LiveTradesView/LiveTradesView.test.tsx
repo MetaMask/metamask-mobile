@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { getFeedItemTestId } from '../FeedView/FeedView.testIds';
 import LiveTradesView from './LiveTradesView';
@@ -15,23 +15,24 @@ describe('LiveTradesView', () => {
   it('renders a single Live stream toggle above the mock feed list', () => {
     renderWithProvider(<LiveTradesView />);
 
-    expect(
+    const scroll = within(
       screen.getByTestId(LiveTradesViewSelectorsIDs.SCROLL_VIEW),
+    );
+
+    expect(
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText('social_leaderboard.feed.live_stream.live'),
+      scroll.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
     expect(
       screen.queryByText('social_leaderboard.feed.live_stream.paused'),
     ).not.toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
   });
 
