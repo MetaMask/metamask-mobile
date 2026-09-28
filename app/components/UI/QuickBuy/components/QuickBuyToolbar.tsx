@@ -14,6 +14,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
 import { formatCurrency } from '../../Bridge/utils/currencyUtils';
 import { TouchableOpacity } from 'react-native';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
@@ -22,10 +25,10 @@ import { strings } from '../../../../../locales/i18n';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyToolbar: React.FC = () => {
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     features,
     hasSellableBalance,
-    isQuickAmountPreferencesLoaded,
     currentCurrency,
     sourceToken,
     destToken,
@@ -33,11 +36,18 @@ const QuickBuyToolbar: React.FC = () => {
     target,
     tradeMode,
     setTradeMode,
-    setActiveScreen,
   } = useQuickBuyContext();
 
   const showFullToggle = features.tradeModes.length > 1 && hasSellableBalance;
-  const showSettings = features.quickAmountPills;
+  const handleOpenSlippage = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  };
   const headerToken = tradeMode === 'sell' ? sourceToken : destToken;
   const tokenPriceLabel =
     tokenPrice !== undefined
@@ -114,15 +124,12 @@ const QuickBuyToolbar: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        {showSettings ? (
-          <ButtonIcon
-            iconName={DsIconName.Setting}
-            size={ButtonIconSize.Md}
-            isDisabled={!isQuickAmountPreferencesLoaded}
-            onPress={() => setActiveScreen('editQuickAmounts')}
-            testID={QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON}
-          />
-        ) : null}
+        <ButtonIcon
+          iconName={DsIconName.Setting}
+          size={ButtonIconSize.Md}
+          onPress={handleOpenSlippage}
+          testID={QuickBuySheetSelectorsIDs.SETTINGS_BUTTON}
+        />
       </Box>
     </Box>
   );

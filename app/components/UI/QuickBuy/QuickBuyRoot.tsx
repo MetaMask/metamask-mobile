@@ -24,7 +24,6 @@ import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 import { QuickBuyProvider } from './QuickBuyContext';
-import QuickBuyEditQuickAmountsScreen from './QuickBuyEditQuickAmountsScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
@@ -59,8 +58,6 @@ function renderActiveScreen(
   }
 
   switch (activeScreen) {
-    case 'editQuickAmounts':
-      return <QuickBuyEditQuickAmountsScreen />;
     case 'payWith':
       return <QuickBuyTokenSelectScreen />;
     case 'selectNetwork':
@@ -176,9 +173,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // bottom; the scroll-only screens (quote details / select quote / pay with /
   // receive) sit flush to the edge instead of leaving dead space below.
   const hasBottomCta =
-    activeScreen === 'amount' ||
-    activeScreen === 'editQuickAmounts' ||
-    activeScreen === 'priceImpactConfirm';
+    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
 
   return (
     <BottomSheet ref={bottomSheetRef} onClose={onClose} isFullscreen>

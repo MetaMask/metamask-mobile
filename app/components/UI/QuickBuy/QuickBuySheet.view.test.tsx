@@ -11,8 +11,6 @@ import {
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { QUICK_BUY_QUICK_AMOUNT_PREFS_KEY } from './hooks/useQuickBuyQuickAmountPreferences';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   QUICK_BUY_QUOTE_TOTAL_FOR_10_USD,
@@ -35,7 +33,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
   getQuickBuyBuyPillTestId,
-  getQuickBuyEditBuyFieldTestId,
   getQuickBuySellPillTestId,
   QuickBuySheetSelectorsIDs,
 } from './QuickBuySheet.testIds';
@@ -131,9 +128,8 @@ describeForPlatforms('QuickBuySheet', () => {
     mockFetchQuotes();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     clearQuickBuyApiMocks();
-    await StorageWrapper.removeItem(QUICK_BUY_QUICK_AMOUNT_PREFS_KEY);
     jest.clearAllMocks();
   });
 
@@ -319,28 +315,6 @@ describeForPlatforms('QuickBuySheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens edit quick amounts from the toolbar', async () => {
-    const screen = renderQuickBuySheet();
-
-    await waitForSheetReady(screen);
-    await waitFor(
-      () => {
-        expect(
-          screen.getByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON)
-            .props.accessibilityState?.disabled,
-        ).toBe(false);
-      },
-      { timeout: WAIT_MS },
-    );
-    fireEvent.press(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON),
-    );
-
-    expect(
-      await screen.findByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_CONFIRM),
-    ).toBeOnTheScreen();
-  });
-
   it('opens the high price impact screen instead of submitting', async () => {
     mockFetchQuotes((params) => [
       createQuickBuyFetchedQuote(String(params.srcTokenAmount ?? '0'), {
@@ -475,38 +449,6 @@ describeForPlatforms('QuickBuySheet', () => {
       QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON,
     );
     expect(within(payWith).getByText(/USDT/)).toBeOnTheScreen();
-  });
-
-  it('saves an edited buy pill and shows it on the amount screen', async () => {
-    const screen = renderQuickBuySheet();
-
-    await waitForSheetReady(screen);
-    await waitFor(
-      () => {
-        expect(
-          screen.getByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON)
-            .props.accessibilityState?.disabled,
-        ).toBe(false);
-      },
-      { timeout: WAIT_MS },
-    );
-    fireEvent.press(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON),
-    );
-    await screen.findByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_CONFIRM);
-    fireEvent.press(screen.getByTestId(getQuickBuyEditBuyFieldTestId(0)));
-    fireEvent.press(screen.getByTestId(QuickBuySheetSelectorsIDs.KEYPAD_KEY_2));
-    fireEvent.press(screen.getByTestId(QuickBuySheetSelectorsIDs.KEYPAD_KEY_0));
-    fireEvent.press(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_CONFIRM),
-    );
-
-    expect(
-      await screen.findByTestId(getQuickBuyBuyPillTestId(20)),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(getQuickBuyBuyPillTestId(10)),
-    ).not.toBeOnTheScreen();
   });
 
   it('keeps the keypad inert and shows Add funds when the wallet is empty', async () => {
