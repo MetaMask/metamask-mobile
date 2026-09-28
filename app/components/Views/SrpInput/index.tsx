@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, type ComponentProps } from 'react';
 import {
   TextInput,
   type BlurEvent,
@@ -12,6 +12,10 @@ import {
   TextField,
   type TextFieldProps,
 } from '@metamask/design-system-react-native';
+
+type TextFieldInputProps = NonNullable<
+  ComponentProps<typeof TextField>['inputProps']
+>;
 
 /**
  * Text field for a single Secret Recovery Phrase word. It keeps the caret at
@@ -68,6 +72,12 @@ const SrpInput = React.forwardRef<TextInput, TextFieldProps>(
       [],
     );
 
+    const mergedInputProps = {
+      ...inputProps,
+      selection,
+      onSelectionChange: handleSelectionChange,
+    } as TextFieldInputProps;
+
     return (
       <TextField
         {...props}
@@ -75,11 +85,7 @@ const SrpInput = React.forwardRef<TextInput, TextFieldProps>(
         onBlur={onBlurHandler}
         onFocus={onFocusHandler}
         inputRef={assignRef}
-        inputProps={{
-          ...inputProps,
-          selection,
-          onSelectionChange: handleSelectionChange,
-        }}
+        inputProps={mergedInputProps}
       />
     );
   },
