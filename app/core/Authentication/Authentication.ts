@@ -66,8 +66,6 @@ import {
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   applySeedlessUnlockRecovery,
-  asSeedlessPasswordChangeController,
-  hasPasswordChangeLifecycleApi,
   isPasswordSyncInstructionOutdated,
 } from './seedlessPasswordChangeCoordinator';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
@@ -1558,24 +1556,11 @@ class AuthenticationService {
       return false;
     }
     try {
-      const lifecycleController = asSeedlessPasswordChangeController(
-        SeedlessOnboardingController,
-      );
-      if (hasPasswordChangeLifecycleApi(lifecycleController)) {
-        const status = await lifecycleController.resolvePasswordSyncState?.({
+      const status =
+        await SeedlessOnboardingController.resolvePasswordSyncState({
           skipCache,
         });
-        if (status === undefined) {
-          return false;
-        }
-        return isPasswordSyncInstructionOutdated(status);
-      }
-
-      const isSeedlessPasswordOutdated =
-        await lifecycleController.checkIsPasswordOutdated?.({
-          skipCache,
-        });
-      return Boolean(isSeedlessPasswordOutdated);
+      return isPasswordSyncInstructionOutdated(status);
     } catch (error) {
       if (captureSentryError) {
         Logger.error(

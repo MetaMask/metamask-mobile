@@ -95,6 +95,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
+  '@metamask/seedless-onboarding-controller',
   '@metamask/smart-transactions-controller',
   '@metamask/transaction-pay-controller',
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
