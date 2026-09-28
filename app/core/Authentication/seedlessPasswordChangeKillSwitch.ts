@@ -2,7 +2,6 @@ import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
 import {
-  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER_IDS,
   E2E_SEEDLESS_KILL_METAMASK_SCHEME,
   E2E_SEEDLESS_KILL_RAW_SCHEME,
   isSeedlessPasswordChangeKillAfter,
