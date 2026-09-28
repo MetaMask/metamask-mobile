@@ -669,7 +669,7 @@ export const BridgeTokenSelectorContent: React.FC<
       if (isLoading || isWaitingForDebounce) {
         const skeletonItemsCount = 8 - results.length;
         return [
-          ...results,
+          ...validTokens(results),
           ...Array(Math.max(1, skeletonItemsCount)).fill(null),
         ];
       }
@@ -711,7 +711,7 @@ export const BridgeTokenSelectorContent: React.FC<
       if (isLoading) {
         const skeletonItemsCount = 8 - popularTokensWithBalance.length;
         return [
-          ...popularTokensWithBalance,
+          ...validTokens(popularTokensWithBalance),
           ...Array(Math.max(1, skeletonItemsCount)).fill(null),
         ];
       }
