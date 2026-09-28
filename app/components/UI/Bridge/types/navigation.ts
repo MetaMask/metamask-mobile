@@ -23,6 +23,8 @@ import type { BatchSellMinimumReceivedInfoModalParams } from '../components/Batc
 import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
 import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
 import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
+import type { OpenLimitOrderDetailsModalParams } from '../components/OpenLimitOrderDetailsModal/types';
+import type { CancelLimitOrderModalParams } from '../components/CancelLimitOrderModal/types';
 import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import type { RecurringSwapDetailsRouteParams } from '../Views/RecurringSwapDetailsView/RecurringSwapDetailsView.types';
 
@@ -81,6 +83,8 @@ export type BridgeModalsNavigationParamList = {
   SwapsLimitOrderCustomCostToleranceModal: undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
   LimitOrderCostToleranceInfoModal: undefined;
+  OpenLimitOrderDetailsModal: OpenLimitOrderDetailsModalParams;
+  CancelLimitOrderModal: CancelLimitOrderModalParams;
   RecurringIntervalModal: undefined;
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;

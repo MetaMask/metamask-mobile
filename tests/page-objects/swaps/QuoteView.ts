@@ -373,6 +373,12 @@ class QuoteView {
   }
 
   async tapOnBackButton(): Promise<void> {
+    // Deeplink / navigation races can already leave Swap before dismiss runs
+    // (failure screenshots show wallet home while looking for the back control).
+    if (!(await Utilities.isElementVisible(this.sourceTokenArea, 1500))) {
+      return;
+    }
+
     // Prefer the dedicated `bridge-back-button` testID. On Android still retry
     // + verify wallet chrome — post-trade Activity → Quote stacks can leave
     // Swap up after a missed tap, and TabBar Wallet then hangs.
@@ -382,7 +388,8 @@ class QuoteView {
     }
 
     await Gestures.waitAndTap(this.backButton, {
-      elemDescription: 'Back button on Quote View',
+      timeout: 10000,
+      elemDescription: 'Bridge header back on Quote View',
     });
   }
 

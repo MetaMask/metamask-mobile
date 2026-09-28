@@ -2,6 +2,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -253,7 +254,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
-              style={tw.style('flex-1 font-medium')}
+              fontWeight={FontWeight.Medium}
+              style={tw.style('flex-1')}
               numberOfLines={2}
             >
               {getTitle()}

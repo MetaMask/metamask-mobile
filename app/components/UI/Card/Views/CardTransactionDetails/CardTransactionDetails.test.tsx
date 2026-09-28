@@ -306,7 +306,7 @@ describe('CardTransactionDetails', () => {
     expect(queryByText('card.transactions.network_fee')).toBeNull();
   });
 
-  it('navigates to the report screen when report is pressed', () => {
+  it('navigates to the report screen with the transaction id when there is no reference', () => {
     const transaction = createTransaction();
     mockRouteParams = {
       transactionId: transaction.id,
@@ -319,6 +319,23 @@ describe('CardTransactionDetails', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.REPORT_TRANSACTION, {
       transactionId: transaction.id,
+      transaction,
+    });
+  });
+
+  it('navigates to the report screen with the displayed reference when present', () => {
+    const transaction = createTransaction({ reference: '1000000178145' });
+    mockRouteParams = {
+      transactionId: transaction.id,
+      transaction,
+    };
+
+    const { getByTestId } = render(<CardTransactionDetails />);
+
+    fireEvent.press(getByTestId('card-transaction-details-report-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.REPORT_TRANSACTION, {
+      transactionId: '1000000178145',
       transaction,
     });
   });
