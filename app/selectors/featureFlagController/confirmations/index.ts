@@ -2,7 +2,11 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   getRelayFixedSpreadFromConfig,
   RelayFixedSpreadConfig,
@@ -399,3 +403,34 @@ export const selectRelayFixedSpread = createSelector(
       'confirmations_relay_fixed_spread',
     ),
 );
+
+/** Resolves the Core atomic-max gate, including nested transaction overrides. */
+export function selectRelayAtomicMaxEnabled(
+  state: RootState,
+  transaction?: TransactionMeta,
+): boolean {
+  const featureFlags = selectRemoteFeatureFlags(state);
+  const extended = featureFlags?.confirmations_pay_extended as
+    | {
+        payStrategies?: {
+          relay?: {
+            atomicMaxEnabled?: {
+              default?: boolean;
+              transactionTypes?: Partial<Record<TransactionType, boolean>>;
+            };
+          };
+        };
+      }
+    | undefined;
+  const config = extended?.payStrategies?.relay?.atomicMaxEnabled;
+
+  for (const [type, enabled] of Object.entries(
+    config?.transactionTypes ?? {},
+  )) {
+    if (hasTransactionType(transaction, [type as TransactionType])) {
+      return enabled;
+    }
+  }
+
+  return config?.default ?? false;
+}

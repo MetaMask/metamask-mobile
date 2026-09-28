@@ -16,6 +16,7 @@ import {
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import type { GaslessFeeAsset } from '../../utils/getGaslessFeeAsset';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
@@ -270,10 +271,18 @@ const testState = createBridgeTestState({
   },
 });
 
-const QuoteDetailsCardTestScreen = () => (
+const QuoteDetailsCardTestScreen = ({
+  isGaslessSwapRedesignTreatment = false,
+  gaslessFeeAsset,
+}: {
+  isGaslessSwapRedesignTreatment?: boolean;
+  gaslessFeeAsset?: GaslessFeeAsset;
+}) => (
   <QuoteDetailsCard
     location={MetaMetricsSwapsEventSource.MainView}
     hasInsufficientBalance={false}
+    isGaslessSwapRedesignTreatment={isGaslessSwapRedesignTreatment}
+    gaslessFeeAsset={gaslessFeeAsset}
   />
 );
 
@@ -470,6 +479,51 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
     // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('displays the redesigned gasless fee with its fee asset', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const feeAsset = mockQuotes[0].quote.feeData.metabridge[0].asset;
+
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      ...originalImpl(),
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+          feeData: {
+            txFee: [
+              {
+                amount: '1000000',
+                valueInCurrency: '1.23',
+                asset: feeAsset,
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      () => (
+        <QuoteDetailsCardTestScreen
+          isGaslessSwapRedesignTreatment
+          gaslessFeeAsset={feeAsset}
+        />
+      ),
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(getByText('0.01')).toBeOnTheScreen();
+    expect(getByText(feeAsset.symbol)).toBeOnTheScreen();
+    expect(
+      getByText(strings('bridge.network_fee_info_title')),
+    ).toBeOnTheScreen();
+
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
@@ -733,13 +787,6 @@ describe('QuoteDetailsCard', () => {
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
         type: PriceImpactModalType.Info,
-        token: {
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          symbol: 'SOL',
-          decimals: 9,
-          name: 'Solana',
-        },
         location: MetaMetricsSwapsEventSource.MainView,
       },
     });

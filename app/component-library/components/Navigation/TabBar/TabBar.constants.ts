@@ -4,6 +4,7 @@
 import { IconName } from '../../Icons/Icon';
 // Internal dependencies.
 import { IconByTabBarIconKey, TabBarIconKey } from './TabBar.types';
+import { BottomNavName } from '../../../../core/Analytics/events/navigation';
 
 export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Wallet]: IconName.Home,
@@ -32,3 +33,20 @@ export const LABEL_BY_TAB_BAR_ICON_KEY = {
 } as const;
 
 export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top
+
+/** `name` sent on the Navigation Drawer event for each bottom nav item. */
+export const BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY: Record<
+  TabBarIconKey,
+  BottomNavName
+> = {
+  [TabBarIconKey.Wallet]: BottomNavName.Home,
+  [TabBarIconKey.Browser]: BottomNavName.Browser,
+  [TabBarIconKey.Actions]: BottomNavName.Trade,
+  [TabBarIconKey.Trade]: BottomNavName.Trade,
+  [TabBarIconKey.Activity]: BottomNavName.Activity,
+  [TabBarIconKey.Setting]: BottomNavName.Settings,
+  [TabBarIconKey.Rewards]: BottomNavName.Rewards,
+  [TabBarIconKey.Trending]: BottomNavName.Explore,
+  [TabBarIconKey.Money]: BottomNavName.Money,
+  [TabBarIconKey.Social]: BottomNavName.Social,
+};

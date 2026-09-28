@@ -66,7 +66,7 @@ const useEarnHighestRate = () => {
       rates.push(
         ...lendingMarkets.map((market) =>
           createEarnRate({
-            type: 'APY',
+            type: 'APR',
             percentage: parseRatePercent(market.netSupplyRate),
           }),
         ),

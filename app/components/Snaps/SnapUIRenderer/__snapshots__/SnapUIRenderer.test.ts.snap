@@ -179,7 +179,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -194,7 +194,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             },
           ]
         }
-        nativeID="2"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -211,7 +210,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -1343,6 +1342,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   }
                 >
                   <View
+                    accessible={true}
                     style={
                       [
                         {
@@ -1357,6 +1357,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                         undefined,
                       ]
                     }
+                    testID="snaps-ui-image"
                   >
                     <RNSVGSvgView
                       bbHeight="100%"
@@ -1379,7 +1380,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                           },
                         ]
                       }
-                      testID="snaps-ui-image"
                       width="100%"
                       xml="<svg />"
                     >
@@ -1552,7 +1552,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -1567,7 +1567,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             },
           ]
         }
-        nativeID="5"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1584,7 +1583,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -1681,7 +1680,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -1696,7 +1695,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             },
           ]
         }
-        nativeID="6"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1712,7 +1710,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -2009,7 +2007,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -2024,7 +2022,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             },
           ]
         }
-        nativeID="0"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -2041,7 +2038,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -2138,7 +2135,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -2153,7 +2150,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             },
           ]
         }
-        nativeID="1"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -2169,7 +2165,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -2485,6 +2481,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       }
                     >
                       <View
+                        accessible={true}
                         style={
                           [
                             {
@@ -2499,6 +2496,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                             undefined,
                           ]
                         }
+                        testID="snaps-ui-image"
                       >
                         <RNSVGSvgView
                           align="xMidYMid"
@@ -2525,7 +2523,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                               },
                             ]
                           }
-                          testID="snaps-ui-image"
                           vbHeight={32}
                           vbWidth={32}
                           width="100%"
@@ -3016,7 +3013,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -3031,7 +3028,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             },
           ]
         }
-        nativeID="3"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -3048,7 +3044,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -3145,7 +3141,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -3160,7 +3156,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             },
           ]
         }
-        nativeID="4"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -3176,7 +3171,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
-              "borderRadius": 12,
+              "borderRadius": 9999,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",

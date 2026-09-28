@@ -39,8 +39,8 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   getNativeSourceToken,
   getDefaultDestToken,
+  isSameBridgeToken,
 } from '../../utils/tokenUtils';
-import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
@@ -49,6 +49,7 @@ import {
   ARC_USDC_BRIDGE_TOKEN,
 } from '../../../../../enablement/assets/arc';
 import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
+import type { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 /**
  * Allows to manually set the default Swap token when clicking on the Swap CTA from
@@ -78,6 +79,7 @@ export interface BridgeRouteParams {
   destToken?: BridgeToken;
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
+  initialTab?: BridgeTabKey;
   scrollToTopOnNav?: boolean;
   autoFocusSourceAmountInput?: boolean;
   /**
@@ -310,7 +312,7 @@ export const useSwapBridgeNavigation = ({
       let isExplicitDestTokenSelection = false;
       if (
         validDestTokenBase &&
-        !areAddressesEqual(sourceToken.address, validDestTokenBase.address)
+        !isSameBridgeToken(sourceToken, validDestTokenBase)
       ) {
         destTokenToSet = validDestTokenBase;
         isExplicitDestTokenSelection = true;
@@ -318,14 +320,12 @@ export const useSwapBridgeNavigation = ({
         const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
         if (
           defaultDestToken &&
-          !areAddressesEqual(sourceToken.address, defaultDestToken.address)
+          !isSameBridgeToken(sourceToken, defaultDestToken)
         ) {
           destTokenToSet = defaultDestToken;
         } else {
           const nativeDestToken = getNativeSourceToken(sourceToken.chainId);
-          if (
-            !areAddressesEqual(sourceToken.address, nativeDestToken.address)
-          ) {
+          if (!isSameBridgeToken(sourceToken, nativeDestToken)) {
             destTokenToSet = nativeDestToken;
           }
         }

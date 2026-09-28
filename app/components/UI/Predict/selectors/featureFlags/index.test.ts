@@ -14,6 +14,7 @@ import {
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictHomeCategoriesConfig,
   selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
@@ -33,6 +34,7 @@ import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag'
 import {
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -1506,6 +1508,40 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
+  describe('selectPredictHomeCategoriesConfig', () => {
+    it('returns bundled categories when flag is missing', () => {
+      expect(selectPredictHomeCategoriesConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('returns remote categories when flag is valid', () => {
+      const remoteCategories = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        categories: [
+          { id: 'tech', tagSlug: 'tech', label: 'Tech', enabled: true },
+        ],
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeCategories: remoteCategories,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictHomeCategoriesConfig(state)).toEqual(
+        remoteCategories,
+      );
+    });
+  });
+
   describe('selectPredictSportsFeedConfig', () => {
     it('returns bundled sports config when flag is missing', () => {
       expect(selectPredictSportsFeedConfig(mockedEmptyFlagsState)).toEqual(
@@ -1999,6 +2035,13 @@ describe('Predict Feature Flag Selectors', () => {
       title: '  Wimbledon  ',
       deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
       priorityOrder: [' 10684 ', '10684', ' ', '10683'],
+      prioritySlots: [
+        { seriesId: ' 10684 ', index: 1 },
+        { seriesId: '10684', index: 2 },
+        { seriesId: ' ', index: 3 },
+        { seriesId: '10683', index: 1 },
+        { seriesId: '10192', index: 3 },
+      ],
       contentSource: {
         composition: 'query-results',
         queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
@@ -2024,6 +2067,10 @@ describe('Predict Feature Flag Selectors', () => {
         title: 'Wimbledon',
         deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
         priorityOrder: ['10684', '10683'],
+        prioritySlots: [
+          { seriesId: '10684', index: 1 },
+          { seriesId: '10192', index: 3 },
+        ],
         contentSource: {
           composition: 'query-results',
           queryParams: 'tag_slug=tennis&order=volume24hr',
@@ -2087,12 +2134,37 @@ describe('Predict Feature Flag Selectors', () => {
         minimumVersion: '1.0.0',
         mode: 'live',
         priorityOrder: ['10684', '10683'],
+        prioritySlots: [],
+      });
+    });
+
+    it('applies prioritySlots in live mode without priorityOrder', () => {
+      const result = selectPredictFeedCarouselConfig(
+        createState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          mode: 'live',
+          prioritySlots: [
+            { seriesId: ' 10684 ', index: 1 },
+            { seriesId: '10684', index: 2 },
+            { seriesId: ' ', index: 3 },
+            { seriesId: '10192', index: 1 },
+          ],
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+        mode: 'live',
+        prioritySlots: [{ seriesId: '10684', index: 1 }],
       });
     });
 
     it.each([
       { ...validFlag, enabled: false },
-      { ...validFlag, mode: 'live', priorityOrder: [] },
+      { ...validFlag, mode: 'live', priorityOrder: [], prioritySlots: [] },
       { ...validFlag, deeplink: 'https://example.com/predict' },
       { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
       {
@@ -2114,6 +2186,7 @@ describe('Predict Feature Flag Selectors', () => {
         },
       },
       { ...validFlag, priorityOrder: ['10684', 2] },
+      { ...validFlag, prioritySlots: [{ seriesId: '10684', index: -1 }] },
       { ...validFlag, minimumVersion: 'not-semver' },
       { ...validFlag, minimumVersion: '99.0.0' },
     ])('returns live mode for unavailable or malformed config %#', (flag) => {

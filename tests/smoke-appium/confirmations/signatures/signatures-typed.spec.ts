@@ -3,19 +3,18 @@ import Assertions from '../../../framework/Assertions.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes.js';
-import WebView from '../../../framework/WebView.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../../flows/browser.flow.js';
+import { tapTestDappButtonAndWaitForConfirm } from '../../../flows/confirmations.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
   buildPermissions,
   AnvilPort,
   getDappUrlForFixture,
-  getDappUrl,
 } from '../../../framework/fixtures/FixtureUtils.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
 import { TestDappSelectorsWebIDs } from '../../../selectors/Browser/TestDapp.selectors.js';
@@ -28,10 +27,7 @@ import { AnvilManager } from '../../../seeder/anvil-manager.js';
 const SIGNATURE_LIST = [
   {
     specName: 'Typed V1 Sign',
-    testDappBtn: () =>
-      WebView.tapById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA, {
-        pageUrl: getDappUrl(0),
-      }),
+    buttonId: TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
@@ -39,10 +35,7 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'Typed V3 Sign',
-    testDappBtn: () =>
-      WebView.tapById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3, {
-        pageUrl: getDappUrl(0),
-      }),
+    buttonId: TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
@@ -50,10 +43,7 @@ const SIGNATURE_LIST = [
   },
   {
     specName: 'Typed V4 Sign',
-    testDappBtn: () =>
-      WebView.tapById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4, {
-        pageUrl: getDappUrl(0),
-      }),
+    buttonId: TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
@@ -87,7 +77,7 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
   for (const {
     specName,
-    testDappBtn,
+    buttonId,
     requestType,
     additionAssertions,
   } of SIGNATURE_LIST) {
@@ -125,13 +115,18 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
             await navigateToBrowserView();
             await waitForTestDappToLoad();
 
-            // cancel request
-            await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType());
+            // cancel request — use the robust helper so the provider-ready
+            // gate fires before the tap on both Android and iOS (avoids the
+            // window.ethereum-not-yet-injected race that causes silent tap
+            // failures and makes expectElementToBeVisible time out).
+            await tapTestDappButtonAndWaitForConfirm(buttonId, specName);
             await FooterActions.tapCancelButton();
             await Assertions.expectElementToNotBeVisible(requestType());
 
-            await testDappBtn();
+            // Use the robust tap helper for the confirm path: on Android it
+            // retries the tap until the footer confirm button appears (handles
+            // WebView not being interactive immediately after modal dismiss).
+            await tapTestDappButtonAndWaitForConfirm(buttonId, specName);
             await Assertions.expectElementToBeVisible(requestType());
 
             // check different sections are visible

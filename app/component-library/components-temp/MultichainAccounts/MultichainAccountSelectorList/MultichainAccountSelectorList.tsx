@@ -19,7 +19,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../hooks';
-import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
@@ -86,13 +86,17 @@ const MultichainAccountSelectorList = ({
   chainId,
   hideAccountCellMenu = false,
   hideSearch = false,
+  onSearchFocus,
+  onSearchSettled,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
-  const accountSectionsFromSelector = useSelector(selectAccountGroupsByWallet);
+  const accountSectionsFromSelector = useSelector(
+    selectVisibleAccountGroupsByWallet,
+  );
   const accountSections = accountSectionsProp || accountSectionsFromSelector;
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
@@ -189,6 +193,12 @@ const MultichainAccountSelectorList = ({
     () => debouncedSearchText.trim(),
     [debouncedSearchText],
   );
+
+  useEffect(() => {
+    if (trimmedSearchText) {
+      onSearchSettled?.(trimmedSearchText);
+    }
+  }, [trimmedSearchText, onSearchSettled]);
 
   const shouldShowExternalAccount = useMemo(
     () =>
@@ -452,6 +462,7 @@ const MultichainAccountSelectorList = ({
           <TextFieldSearch
             value={searchText}
             onChangeText={setSearchText}
+            onFocus={onSearchFocus}
             onPressClearButton={() => setSearchText('')}
             placeholder={strings('accounts.search_your_accounts')}
             inputProps={{

@@ -15,7 +15,13 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  HeaderStandard,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
@@ -40,6 +46,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import {
+  SearchInteractedSource,
+  SearchInteractionType,
+  buildSearchInteractedProperties,
+} from '../../../core/Analytics/events/navigation';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import {
   TraceName,
   TraceOperation,
@@ -116,6 +128,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
+  }, [navigation]);
+
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -182,6 +200,30 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigation.navigate(Routes.SHEET.ADD_WALLET);
   }, [navigation]);
 
+  const trackSearchInteracted = useCallback(
+    (interactionType: SearchInteractionType) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SEARCH_INTERACTED)
+          .addProperties(
+            buildSearchInteractedProperties(
+              SearchInteractedSource.AccountList,
+              interactionType,
+            ),
+          )
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+  const handleSearchFocus = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Focused),
+    [trackSearchInteracted],
+  );
+  const handleSearchSettled = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Searched),
+    [trackSearchInteracted],
+  );
+
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
@@ -196,6 +238,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
+            onSearchFocus={handleSearchFocus}
+            onSearchSettled={handleSearchSettled}
           />
         ) : null}
         {!disableAddAccountButton && (
@@ -214,6 +258,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
+      handleSearchFocus,
+      handleSearchSettled,
     ],
   );
 
@@ -250,6 +296,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
+            endAccessory={
+              <ButtonIcon
+                iconName={IconName.Setting}
+                size={ButtonIconSize.Md}
+                onPress={handleManageAccountsPress}
+                testID={
+                  AccountListBottomSheetSelectorsIDs.MANAGE_ACCOUNTS_BUTTON
+                }
+                accessibilityLabel={strings(
+                  'multichain_accounts.manage_accounts.title',
+                )}
+                accessibilityRole="button"
+              />
+            }
           />
           {renderAccountSelector()}
         </Box>

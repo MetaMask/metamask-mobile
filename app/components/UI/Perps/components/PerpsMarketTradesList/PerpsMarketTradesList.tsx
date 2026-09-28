@@ -37,6 +37,7 @@ import {
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { PerpsMarketTradesListSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsMarketTradesListProps {
@@ -115,11 +116,12 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction }) => {
-      const { item } = props;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
 
       return (
         <TouchableOpacity
+          testID={PerpsMarketTradesListSelectorsIDs.ROW(index)}
           style={styles.tradeItem}
           onPress={() => handleTradePress(item)}
           activeOpacity={0.7}
@@ -183,6 +185,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
     return (
       <FlatList
+        testID={PerpsMarketTradesListSelectorsIDs.LIST}
         data={trades}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.id || index}`}

@@ -13,7 +13,7 @@ export function ActivityDetailsTransactionId({ hash }: { hash?: string }) {
   }
 
   return (
-    <Box twClassName="flex-row items-center gap-1 rounded-lg bg-muted py-1 pl-3 pr-1">
+    <Box twClassName="flex-row items-center gap-1 rounded-lg bg-muted pl-2 pr-1">
       <Text variant={TextVariant.BodyMd}>{renderShortAddress(hash)}</Text>
       <CopyButton
         copyText={hash}

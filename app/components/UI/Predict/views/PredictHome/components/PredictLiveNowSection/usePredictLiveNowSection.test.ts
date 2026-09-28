@@ -119,6 +119,7 @@ const setCustomConfig = (
     mode: 'custom',
     title: 'Wimbledon',
     priorityOrder,
+    prioritySlots: [],
     contentSource: {
       composition,
       queryParams,
@@ -418,6 +419,53 @@ describe('usePredictLiveNowSection', () => {
     const { result } = renderHook(() => usePredictLiveNowSection());
 
     expect(ids(result.current.items)).toEqual(['ETH5M', 'L2', 'L3', 'BTC5M']);
+  });
+
+  it('places a matching series at the configured slot on the interleaved rail', () => {
+    setUpDownEnabled(true);
+    feedCarouselConfig = {
+      ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+      prioritySlots: [{ seriesId: BTC_UP_OR_DOWN_5M_SERIES.id, index: 1 }],
+    };
+    syncSelectors();
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+        createLiveMarket('L4'),
+        createLiveMarket('L5'),
+        createLiveMarket('L6'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'BTC5M',
+        BTC_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'ETH5M',
+        ETH_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket(
+        'BTC15M',
+        BTC_UP_OR_DOWN_15M_SERIES.id,
+      ),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual([
+      'L1',
+      'BTC5M',
+      'L2',
+      'L3',
+      'L4',
+      'ETH5M',
+      'L5',
+      'L6',
+      'BTC15M',
+    ]);
   });
 
   it('reports loading while the live list loads even if crypto already resolved', () => {

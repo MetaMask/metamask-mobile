@@ -1,6 +1,15 @@
+import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
-import { truncateNumber } from './number';
 import type { EarnRate } from '../types/earnAssets';
+
+/**
+ * Formats an Earn rate percentage to one decimal place using HALF_UP rounding.
+ *
+ * @param value - Rate percentage to format.
+ * @returns Formatted percentage without unnecessary trailing zeros.
+ */
+export const formatEarnRatePercentage = (value: string | number): string =>
+  new BigNumber(value).decimalPlaces(1, BigNumber.ROUND_HALF_UP).toString();
 
 export const parseRatePercent = (
   value: string | number | null | undefined,
@@ -62,5 +71,5 @@ export const getEarnRateCopy = ({
   rateType: EarnRate['type'];
 }): string =>
   strings(`earn_module.rate_${rateType === 'APR' ? 'apr' : 'apy'}`, {
-    percentage: truncateNumber(percentage),
+    percentage: formatEarnRatePercentage(percentage),
   });

@@ -175,13 +175,41 @@ jest.mock('react-native-quick-crypto', () => ({
   randomUUID: jest.fn(() => createMockUuid()),
 }));
 
-// Create a persistent mock function that survives Jest teardown
-const mockBatchedUpdates = jest.fn((fn) => {
+// Mock react-native-quick-base64. v3's `index.ts` calls
+// `TurboModuleRegistry.getEnforcing('QuickBase64')` at import time, which
+// throws in Jest since no native binary is registered. This module is a
+// transitive dependency of `Engine` (via the OAuth login handlers used for
+// seedless onboarding), so it must be mocked globally rather than per-file.
+jest.mock('react-native-quick-base64', () => {
+  // eslint-disable-next-line import-x/no-nodejs-modules
+  const { Buffer: NodeBuffer } = require('buffer');
+  return {
+    byteLength: (b64) => NodeBuffer.from(b64, 'base64').length,
+    toByteArray: (b64) => new Uint8Array(NodeBuffer.from(b64, 'base64')),
+    fromByteArray: (uint8) => NodeBuffer.from(uint8).toString('base64'),
+    btoa: (str) => NodeBuffer.from(str, 'binary').toString('base64'),
+    atob: (b64) => NodeBuffer.from(b64, 'base64').toString('binary'),
+    shim: jest.fn(),
+    getNative: () => ({
+      base64FromArrayBuffer: global.base64FromArrayBuffer,
+      base64ToArrayBuffer: global.base64ToArrayBuffer,
+    }),
+    trimBase64Padding: (str) => str.replace(/[.=]{1,2}$/, ''),
+  };
+});
+
+// Create a persistent mock function that survives Jest teardown.
+// Deliberately a plain function, NOT jest.fn(): RN 0.86 made
+// `unstable_batchedUpdates` writable so this shim is now actually installed,
+// and a jest.fn implementation would be stripped by `jest.resetAllMocks()`
+// in test files (e.g. EngineService.test.ts), turning every batched
+// dispatch into a silent no-op.
+const mockBatchedUpdates = (fn) => {
   if (typeof fn === 'function') {
     return fn();
   }
   return fn;
-});
+};
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
@@ -199,17 +227,17 @@ jest.mock('react-native', () => {
     style: true,
   };
 
-  // Mock unstable_batchedUpdates directly in the react-native module
-  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
-
   return originalModule;
 });
 
-// Mock unstable_batchedUpdates more reliably
+// Must be patched post-require, and unconditionally. `jest.mock` factories are
+// hoisted above `mockBatchedUpdates`, so assigning it from inside the factory
+// stores `undefined`. Up to RN 0.85 that write silently failed because
+// `unstable_batchedUpdates` was a getter-only export; RN 0.86 exposes it as a
+// writable method, so the stale write clobbered it and react-redux's `batch`
+// became undefined.
 const ReactNative = require('react-native');
-if (ReactNative.unstable_batchedUpdates) {
-  ReactNative.unstable_batchedUpdates = mockBatchedUpdates;
-}
+ReactNative.unstable_batchedUpdates = mockBatchedUpdates;
 
 // Shim: BackHandler.removeEventListener was removed in RN 0.75+.
 // Libraries like @metamask/design-system-react-native still call it.
@@ -220,13 +248,6 @@ if (!ReactNative.BackHandler.removeEventListener) {
 
 // Also mock it globally as a fallback
 global.unstable_batchedUpdates = mockBatchedUpdates;
-
-// Mock the specific module path that might be causing issues
-jest.mock('react-native/index.js', () => {
-  const originalModule = jest.requireActual('react-native');
-  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
-  return originalModule;
-});
 
 /*
  * NOTE: react-native-webview requires a jest mock starting on v12.
@@ -746,6 +767,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
@@ -1146,7 +1168,10 @@ jest.mock('@sentry/react-native', () => ({
   // Capture methods
   captureException: jest.fn(),
   captureMessage: jest.fn(),
-  captureUserFeedback: jest.fn(),
+  captureFeedback: jest.fn(),
+
+  dedupeIntegration: jest.fn(() => ({ name: 'Dedupe' })),
+  extraErrorDataIntegration: jest.fn(() => ({ name: 'ExtraErrorData' })),
 
   // Breadcrumb and context methods
   addBreadcrumb: jest.fn(),

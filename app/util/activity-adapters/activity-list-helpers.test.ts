@@ -7,6 +7,7 @@ import {
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
+  getLastEvmItemIndex,
   groupActivityListItems,
   preferLocalOrApiActivityItem,
   shouldShowPlusSign,
@@ -196,13 +197,6 @@ describe('activity list helpers', () => {
           to: '0xeoa',
           token: { direction: 'in', symbol: 'mUSD' },
         },
-        raw: {
-          type: 'localTransaction',
-          data: {
-            initialTransaction: transaction,
-            primaryTransaction: transaction,
-          },
-        } as never,
       });
       const api = makeItem({
         type: 'receive',
@@ -236,7 +230,12 @@ describe('activity list helpers', () => {
     it('prefers a local unlimited approval over an API copy with no cap amount', () => {
       const local = makeItem({
         type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+        data: {
+          token: {
+            amount: String(1e15),
+            direction: 'out',
+          },
+        },
       });
       const api = makeItem({
         type: 'increaseSpendingCap',
@@ -380,9 +379,9 @@ describe('activity list helpers', () => {
     const item = makeItem({
       data: {
         token: {
-          amount: '115792089237316195423570985.639935',
+          amount:
+            '115792089237316195423570985008687907853269984665640564039457584007913129639935',
           direction: 'out',
-          isUnlimitedApproval: true,
           symbol: 'USDT',
         },
       },
@@ -410,29 +409,11 @@ describe('activity list helpers', () => {
   });
 
   it('generates stable keys for grouped activity rows', () => {
-    const localTransactionItem = makeItem({
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'local-tx-id' },
-          initialTransaction: { id: 'initial-tx-id' },
-        },
-      },
-    } as Partial<ActivityListItem>);
-    const keyringTransactionItem = makeItem({
-      hash: 'keyring-hash',
-      raw: {
-        type: 'keyringTransaction',
-        data: { id: 'keyring-tx-id' },
-      },
-    } as Partial<ActivityListItem>);
-    const apiTransactionItem = makeItem({
+    const hashedItem = makeItem({
       hash: '0xapi',
-      raw: {
-        type: 'apiEvmTransaction',
-        data: {},
-      },
-    } as Partial<ActivityListItem>);
+      timestamp: 10,
+      type: 'send',
+    });
     const fallbackItem = makeItem({
       hash: undefined,
       timestamp: 123,
@@ -446,26 +427,11 @@ describe('activity list helpers', () => {
       getGroupedActivityListItemKey({ type: 'date-header', date: 456 }, 0),
     ).toBe('date-header-456');
     expect(
-      getGroupedActivityListItemKey(
-        { type: 'item', item: localTransactionItem },
-        0,
-      ),
-    ).toBe('local-transaction-eip155:1-local-tx-id');
-    expect(
-      getGroupedActivityListItemKey(
-        { type: 'item', item: keyringTransactionItem },
-        0,
-      ),
-    ).toBe('keyring-transaction-eip155:1-keyring-tx-id');
-    expect(
-      getGroupedActivityListItemKey(
-        { type: 'item', item: apiTransactionItem },
-        0,
-      ),
-    ).toBe('api-evm-transaction-eip155:1-0xapi');
+      getGroupedActivityListItemKey({ type: 'item', item: hashedItem }, 0),
+    ).toBe('eip155:1:10:send:0xapi');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: fallbackItem }, 7),
-    ).toBe('eip155:1-contractInteraction-123-7');
+    ).toBe('eip155:1:123:contractInteraction:7');
   });
 
   it('uses chain id and row index in fallback keys', () => {
@@ -484,13 +450,13 @@ describe('activity list helpers', () => {
 
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: firstItem }, 0),
-    ).toBe('eip155:1-contractInteraction-123-0');
+    ).toBe('eip155:1:123:contractInteraction:0');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: firstItem }, 1),
-    ).toBe('eip155:1-contractInteraction-123-1');
+    ).toBe('eip155:1:123:contractInteraction:1');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: secondItem }, 0),
-    ).toBe('eip155:137-contractInteraction-123-0');
+    ).toBe('eip155:137:123:contractInteraction:0');
   });
 });
 

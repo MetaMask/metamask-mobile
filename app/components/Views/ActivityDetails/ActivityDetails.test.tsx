@@ -1,14 +1,15 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import { usePerpsDetailsItem } from '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem';
+import { usePredictDetailsItem } from '#app/components/Views/ActivityDetails/templates/PredictDetails/usePredictDetailsItem';
+import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import ActivityDetails from './ActivityDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
 import { useParams } from '../../../util/navigation/navUtils';
-// eslint-disable-next-line import-x/no-restricted-paths -- test asserts the activity-list store hand-off
-import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
 // eslint-disable-next-line import-x/no-restricted-paths -- test controls the shared speed-up/cancel actions hook
 import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
 
@@ -47,17 +48,44 @@ jest.mock('./templates/TemplateLoader', () => {
   };
 });
 
-jest.mock('../ActivityList/preloadedActivityItemStore', () => ({
-  getPreloadedActivityItem: jest.fn(),
-  stashPreloadedActivityItem: jest.fn(),
-}));
-
 // Speed-up / cancel pull in the hardware-wallet + navigation chain; the screen
 // test controls the hook per-test. Behaviour is covered in the hook + banner
 // tests.
 jest.mock('../ActivityList/useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
 }));
+
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock(
+  '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem',
+  () => ({
+    usePerpsDetailsItem: jest.fn(() => ({
+      item: undefined,
+      transaction: undefined,
+      isLoading: false,
+    })),
+  }),
+);
+
+jest.mock(
+  '#app/components/Views/ActivityDetails/templates/PredictDetails/usePredictDetailsItem',
+  () => ({
+    usePredictDetailsItem: jest.fn(() => ({
+      item: undefined,
+      activity: undefined,
+      isLoading: false,
+    })),
+  }),
+);
 
 // Expose the modal's onConfirm so a test can simulate the user confirming a
 // speed-up/cancel on this screen.
@@ -75,8 +103,9 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
 
 const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
-const getPreloadedActivityItemMock = jest.mocked(getPreloadedActivityItem);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
+const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
+const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
 
 const buildTxActions = (
   overrides: Partial<ReturnType<typeof useUnifiedTxActions>> = {},
@@ -119,10 +148,27 @@ describe('ActivityDetails screen', () => {
       txIdentifier: '0xhash',
     });
     useUnifiedTxActionsMock.mockReturnValue(buildTxActions());
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
+    usePerpsDetailsItemMock.mockReturnValue({
+      item: undefined,
+      transaction: undefined,
+      isLoading: false,
+    });
+    usePredictDetailsItemMock.mockReturnValue({
+      item: undefined,
+      activity: undefined,
+      isLoading: false,
+    });
   });
 
   it('renders the template when the transaction resolves', () => {
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ActivityDetails />,
@@ -134,7 +180,10 @@ describe('ActivityDetails screen', () => {
   });
 
   it('renders a not-found message when the transaction cannot be resolved', () => {
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ActivityDetails />,
@@ -150,7 +199,10 @@ describe('ActivityDetails screen', () => {
     useUnifiedTxActionsMock.mockReturnValue(
       buildTxActions({ existingTx: pendingTx, speedUpIsOpen: true }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
@@ -158,19 +210,28 @@ describe('ActivityDetails screen', () => {
     fireEvent.press(getByTestId('mock-speedup-cancel-confirm'));
 
     // Replacement commits: the original tx is dropped and no longer resolves.
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('does not auto-dismiss when the item disappears without a speed-up/cancel (pending→confirmed flip)', () => {
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { rerender } = renderWithProvider(<ActivityDetails />);
 
     // No confirm; the item vanishes on the id→hash flip.
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -180,14 +241,20 @@ describe('ActivityDetails screen', () => {
     useUnifiedTxActionsMock.mockReturnValue(
       buildTxActions({ existingTx: pendingTx, speedUpIsOpen: true }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
     fireEvent.press(getByTestId('mock-speedup-cancel-confirm'));
 
     // Action failed: tx not replaced, item still resolves.
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -201,12 +268,18 @@ describe('ActivityDetails screen', () => {
         isQRHardwareAccount: true,
       }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
     fireEvent.press(getByTestId('mock-speedup-cancel-confirm'));
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -216,7 +289,10 @@ describe('ActivityDetails screen', () => {
     useUnifiedTxActionsMock.mockReturnValue(
       buildTxActions({ existingTx: pendingTx, speedUpIsOpen: true }),
     );
-    useActivityDetailsItemMock.mockReturnValue(sendItem);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: sendItem,
+      isFetching: false,
+    });
 
     const { getByTestId, rerender } = renderWithProvider(<ActivityDetails />);
 
@@ -225,37 +301,45 @@ describe('ActivityDetails screen', () => {
     // The screen is backgrounded (another screen pushed on top) when the
     // replacement commits — goBack must not pop whatever is now on top.
     mockIsFocused.mockReturnValue(false);
-    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: false,
+    });
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('captures the preloaded row once and reuses it across re-renders', () => {
-    const perpsItem = {
-      ...sendItem,
-      type: 'perpsOpenLong',
-    } as ActivityListItem;
-    getPreloadedActivityItemMock.mockReturnValue(perpsItem);
-    useParamsMock.mockReturnValue({
-      chainId: 'eip155:1',
-      txIdentifier: '0xhash',
-      preloadKey: 'k1',
+  it('does not flash not-found while rematch is still loading', () => {
+    useActivityDetailsItemMock.mockReturnValue({
+      item: undefined,
+      isFetching: true,
     });
-    // Echo the preloaded arg back so a blanked capture would surface as
-    // "not found" instead of the template.
-    useActivityDetailsItemMock.mockImplementation(
-      (_id, _chain, preloaded) => preloaded,
+
+    const { queryByTestId } = renderWithProvider(<ActivityDetails />);
+
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
+    expect(queryByTestId('mock-template-loader')).toBeNull();
+  });
+
+  it('skips evm by-hash rematch when a perps withdraw already resolved', () => {
+    const perpsWithdrawItem = {
+      ...sendItem,
+      type: 'perpsWithdraw',
+      chainId: 'eip155:42161',
+    } as ActivityListItem;
+    usePerpsDetailsItemMock.mockReturnValue({
+      item: perpsWithdrawItem,
+      transaction: undefined,
+      isLoading: false,
+    });
+
+    renderWithProvider(<ActivityDetails />);
+
+    expect(useActivityDetailsItemMock).toHaveBeenCalledWith(
+      '0xhash',
+      'eip155:1',
+      { fetchByHash: false },
     );
-
-    const { rerender, getByTestId } = renderWithProvider(<ActivityDetails />);
-    rerender(<ActivityDetails />);
-
-    // Store is read once (on mount, keyed by preloadKey), then held in the ref —
-    // a later eviction can't blank the still-mounted screen.
-    expect(getPreloadedActivityItemMock).toHaveBeenCalledTimes(1);
-    expect(getPreloadedActivityItemMock).toHaveBeenCalledWith('k1');
-    expect(useActivityDetailsItemMock.mock.calls.at(-1)?.[2]).toBe(perpsItem);
-    expect(getByTestId('mock-template-loader')).toBeOnTheScreen();
   });
 });

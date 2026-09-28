@@ -37,7 +37,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Skip Smart E2E Selection
 
-- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection (level 2) so that the full E2E test suite (`ALL` tags) runs on **both Android and iOS** for an eligible PR. It does **not** override global skip rules: ignorable-only PRs (e.g. docs-only), `skip-e2e`, and `pr-not-ready-for-e2e` still skip E2E entirely. On PRs into `main` or `release/*`, it also requests iOS when path filters would otherwise suppress it. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection so that the full E2E test suite (`ALL` tags) runs for an eligible PR for the required platforms (Android or iOS or both). This label does **not** override global skip rules: ignorable-only PRs (e.g. docs-only), `skip-e2e`, and `pr-not-ready-for-e2e` still skip E2E entirely. Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
 ### Force Performance Tests
 
@@ -45,7 +45,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Force Appium iOS Smoke Tests
 
-- **run-appium-ios-tests**: Opts into the iOS native build and Appium iOS smoke tests on a PR targeting `main` or `release/*` when path filters would otherwise skip iOS (e.g. Android-only PRs). Uses the same Smart E2E Selection tags as Appium Android. On PRs into `main` or `release/*`, path filters alone never build iOS, so add this label whenever your change could plausibly be iOS-specific (see [E2E decision tree](./E2E_DECISION_TREE.md#ios-e2e-is-request-only-on-prs-targeting-main-or-release)). Does not bypass ignorable-only, `skip-e2e`, or `pr-not-ready-for-e2e` gates, and it is ignored for synchronization PRs targeting `stable`. Pushes to `main` and `release/*` run the full `ALL` tag set on path-filtered platforms. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-appium-ios-tests**: Add this label to a PR to request iOS E2E tests. Does not bypass ignorable-only, `skip-e2e`, or `pr-not-ready-for-e2e` gates. Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
 ### Block merge if any is present
 

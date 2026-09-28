@@ -1,6 +1,8 @@
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 
 jest.mock('react-redux', () => ({
@@ -28,6 +30,22 @@ describe('PerpsProUnrealizedPnl', () => {
     expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
     expect(screen.getByText('+$150.50 (+12.3%)')).toBeOnTheScreen();
     expect(screen.getByText('Close all')).toBeOnTheScreen();
+  });
+
+  it('renders the close-all control as a tertiary button', () => {
+    render(
+      <PerpsProUnrealizedPnl
+        unrealizedPnl="150.5"
+        returnOnEquity="12.3"
+        positionCount={2}
+      />,
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({
+        testID: PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL,
+      }).props.variant,
+    ).toBe(ButtonVariant.Tertiary);
   });
 
   it('hides PnL value when privacy mode is enabled', () => {

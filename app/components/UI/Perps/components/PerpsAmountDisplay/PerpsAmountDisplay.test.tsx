@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { View } from 'react-native';
+import {
+  render,
+  fireEvent,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPositionSize } from '../../utils/formatUtils';
@@ -138,6 +144,147 @@ describe('PerpsAmountDisplay', () => {
 
       // Assert
       expect(onPressMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes an accessible button label when interactive', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          onPress={jest.fn()}
+          accessibilityLabel="Order amount, 1000"
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Order amount, 1000' }),
+      ).toBeOnTheScreen();
+    });
+
+    it('switches between fiat and asset values in the trade sheet', () => {
+      const TradeSheetAmount = () => {
+        const [showTokenAmount, setShowTokenAmount] = React.useState(false);
+
+        return (
+          <PerpsAmountDisplay
+            amount="1000"
+            tokenAmount="0.5"
+            tokenSymbol="ETH"
+            variant="tradeSheet"
+            showTokenAmount={showTokenAmount}
+            onDisplayToggle={() => setShowTokenAmount((value) => !value)}
+            displayToggleAccessibilityLabel={
+              showTokenAmount ? 'Show fiat value' : 'Show asset value'
+            }
+          />
+        );
+      };
+
+      render(<TradeSheetAmount />);
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$1,000');
+
+      fireEvent.press(screen.getByLabelText('Show asset value'));
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('0.5');
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+      ).toHaveTextContent('ETH');
+      expect(screen.getByLabelText('Show fiat value')).toBeOnTheScreen();
+    });
+
+    it('omits the unit label when the trade sheet shows the fiat value', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$1,000');
+      expect(
+        screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+      ).toBeNull();
+    });
+
+    it('places the cursor between the token amount and its unit in the trade sheet', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+          showTokenAmount
+          isActive
+        />,
+      );
+
+      const row = screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW);
+      const childTestIDs = row.children.map((child) =>
+        typeof child === 'string' ? child : child.props.testID,
+      );
+
+      expect(childTestIDs).toStrictEqual([
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+        'cursor',
+        PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL,
+      ]);
+    });
+
+    it('uses the MMDS swap icon for the toggle unless a glyph is injected', () => {
+      const onDisplayToggle = jest.fn();
+
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+          onDisplayToggle={onDisplayToggle}
+          displayToggleAccessibilityLabel="Show asset value"
+          displayToggleTestID="amount-toggle"
+        />,
+      );
+      fireEvent.press(screen.getByTestId('amount-toggle'));
+
+      expect(onDisplayToggle).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Show asset value')).toBeOnTheScreen();
+      expect(screen.queryByTestId('custom-toggle-glyph')).toBeNull();
+    });
+
+    it('wraps an injected glyph in the toggle button', () => {
+      const onDisplayToggle = jest.fn();
+
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+          onDisplayToggle={onDisplayToggle}
+          displayToggleAccessibilityLabel="Show asset value"
+          displayToggleTestID="amount-toggle"
+          displayToggleIcon={<View testID="custom-toggle-glyph" />}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('amount-toggle'));
+
+      expect(onDisplayToggle).toHaveBeenCalledTimes(1);
+      expect(
+        within(screen.getByTestId('amount-toggle')).getByTestId(
+          'custom-toggle-glyph',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: 'Show asset value' }),
+      ).toBeOnTheScreen();
     });
 
     it('handles press gracefully when onPress is not provided', () => {

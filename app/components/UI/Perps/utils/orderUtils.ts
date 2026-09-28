@@ -36,13 +36,14 @@ const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 export const getValidPerpsPrice = (
   price: string | number | null | undefined,
 ): number | null => {
-  const parsed = typeof price === 'number' ? price : parseFloat(price ?? '');
+  const parsed =
+    typeof price === 'number' ? price : Number.parseFloat(price ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.
- * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
+ * Use this instead of inline `Number.parseFloat(order.triggerPrice ?? '')` + validity checks.
  */
 export const getValidTriggerPrice = (order: Order): number | null =>
   getValidPerpsPrice(order.triggerPrice);
@@ -52,6 +53,46 @@ export const getValidTriggerPrice = (order: Order): number | null =>
  */
 export const getValidOrderPrice = (order: Order): number | null =>
   getValidPerpsPrice(order.price);
+
+/**
+ * Mark price is HyperLiquid's reference for the oracle price band. Falls back
+ * to the mid price when the mark price is missing or does not parse to a finite
+ * positive number, so a NaN reference cannot silently skip the band check in
+ * {@link isPriceOutsideDeviationBand}.
+ */
+export const resolveOracleReferencePrice = (
+  markPrice: string | undefined,
+  currentPrice: number,
+): number => {
+  const parsedMarkPrice = markPrice ? Number.parseFloat(markPrice) : Number.NaN;
+  return Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+    ? parsedMarkPrice
+    : currentPrice;
+};
+
+/**
+ * Applies a percentage offset to the current limit price, falling back to the
+ * market price when no limit price is set yet. Returns '' when there is no
+ * usable base price.
+ */
+export const calculateLimitPriceForPercentage = (
+  limitPrice: string,
+  currentPrice: number,
+  percentage: number,
+): string => {
+  const parsedLimitPrice = limitPrice
+    ? Number.parseFloat(limitPrice.replace(/[$,]/g, ''))
+    : 0;
+  const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
+
+  if (!basePrice || basePrice === 0) {
+    return '';
+  }
+
+  return BigNumber(basePrice)
+    .multipliedBy(1 + percentage / 100)
+    .toString();
+};
 
 /**
  * Whether an order price is outside HyperLiquid's allowed band relative to a
@@ -473,13 +514,17 @@ export const isLimitOrderEditable = (order: Order): boolean => {
     return false;
   }
 
-  const filledSize = parseFloat(order.filledSize ?? '0');
+  const filledSize = Number.parseFloat(order.filledSize ?? '0');
   if (Number.isFinite(filledSize) && filledSize > 0) {
     return false;
   }
 
-  const originalSize = parseFloat(order.originalSize ?? order.size ?? '0');
-  const remainingSize = parseFloat(order.remainingSize ?? order.size ?? '0');
+  const originalSize = Number.parseFloat(
+    order.originalSize ?? order.size ?? '0',
+  );
+  const remainingSize = Number.parseFloat(
+    order.remainingSize ?? order.size ?? '0',
+  );
   if (
     Number.isFinite(originalSize) &&
     Number.isFinite(remainingSize) &&
@@ -630,7 +675,7 @@ export const getOrderDirection = (
   }
 
   // Existing position → infer direction based on position size
-  if (positionSize && parseFloat(positionSize) > 0) {
+  if (positionSize && Number.parseFloat(positionSize) > 0) {
     return 'long';
   }
 
@@ -641,10 +686,10 @@ export const willFlipPosition = (
   currentPosition: Position,
   orderParams: OrderParams,
 ): boolean => {
-  const currentPositionSize = parseFloat(currentPosition.size);
+  const currentPositionSize = Number.parseFloat(currentPosition.size);
   const positionDirection = currentPositionSize > 0 ? 'long' : 'short';
   const orderDirection = orderParams.isBuy ? 'long' : 'short';
-  const orderSize = parseFloat(orderParams.size);
+  const orderSize = Number.parseFloat(orderParams.size);
 
   if (orderParams.reduceOnly === true) {
     return false;

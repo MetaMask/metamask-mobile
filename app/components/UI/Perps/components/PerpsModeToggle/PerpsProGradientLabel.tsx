@@ -8,10 +8,10 @@ import LinearGradient from 'react-native-linear-gradient';
  * Vertical top→bottom matches the Lite/Pro segmented control (node 10198:20239).
  */
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-export const PERPS_PRO_GRADIENT = ['#eac2ff', '#d075ff'] as const;
+export const PERPS_PRO_GRADIENT = ['#e1a9ff', '#c66ef5'] as const;
 /** Solid fallback / mask color — `accent/02/normal`. */
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-export const PERPS_PRO_ACCENT_COLOR = '#d075ff';
+export const PERPS_PRO_ACCENT_COLOR = '#c66ef5';
 
 /**
  * Body/Sm/Medium sizing so the gradient label matches FilterButton / ButtonBase

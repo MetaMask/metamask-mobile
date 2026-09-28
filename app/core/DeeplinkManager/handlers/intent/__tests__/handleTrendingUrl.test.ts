@@ -121,11 +121,8 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-        screen: Routes.TRENDING_FEED,
-        params: {
-          initialTab: expectedIndex,
-          source: 'deeplink',
-        },
+        initialTab: expectedIndex,
+        source: 'deeplink',
       });
     },
   );
@@ -366,11 +363,8 @@ describe('handleTrendingUrl - trending tokens chain filter (chainId=...)', () =>
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-      params: {
-        initialTab: EXPLORE_TAB_INDEX.CRYPTO,
-        source: 'deeplink',
-      },
+      initialTab: EXPLORE_TAB_INDEX.CRYPTO,
+      source: 'deeplink',
     });
   });
 

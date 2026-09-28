@@ -6,7 +6,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
@@ -19,11 +18,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTheme: () => 'light',
   Theme: { Light: 'light', Dark: 'dark' },
 }));
-
-jest.mock(
-  '../../../images/add_wallet_to_device.png',
-  () => 'add_wallet_to_device_image',
-);
 
 jest.mock('../../../core/Engine', () => ({
   context: {},
@@ -52,27 +46,6 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ActualReact = jest.requireActual('react');
-    const { Pressable } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: jest.fn(
-        ({ onBack }: { onBack?: () => void; includesTopInset?: boolean }) =>
-          ActualReact.createElement(Pressable, {
-            testID: 'button-icon',
-            onPress: onBack,
-            accessibilityRole: 'button',
-          }),
-      ),
-    };
-  },
-);
-
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockHandleScannedQrPayload = jest.fn();
@@ -114,13 +87,10 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('initial render', () => {
-    it('applies top safe-area inset to the header so the back button is tappable on iOS', () => {
-      renderComponent();
+    it('renders the back button', () => {
+      const { getByTestId } = renderComponent();
 
-      expect(HeaderCompactStandard).toHaveBeenCalledWith(
-        expect.objectContaining({ includesTopInset: true }),
-        undefined,
-      );
+      expect(getByTestId('button-icon')).toBeOnTheScreen();
     });
 
     it('renders the page heading', () => {
@@ -325,14 +295,24 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        value: 'word1 word2 word3',
-        type: QrSyncSecretTypes.MNEMONIC,
-        isPrimary: true,
-      },
-    ];
+    const pendingSecretImports = {
+      version: 1 as const,
+      wallets: [
+        {
+          id: 'wallet:test' as `wallet:${string}`,
+          type: 'mnemonic' as const,
+          value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+          metadata: { name: 'Wallet 1' },
+          groups: [
+            {
+              id: 'wallet:test/0' as `wallet:${string}/${string}`,
+              groupIndex: 0,
+              metadata: { name: 'Account 1', pinned: false, hidden: false },
+            },
+          ],
+        },
+      ],
+    };
 
     it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({

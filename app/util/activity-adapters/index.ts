@@ -12,12 +12,11 @@ export type {
   TokenAmount,
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
-export {
-  isNftTransferType,
-  isUnlimitedApprovalAmount,
-} from './adapters/helpers';
+export { isNftTransferType, isSpendingCapUnlimited } from './adapters/helpers';
 export {
   enrichLocalActivity,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
 export {
@@ -25,7 +24,10 @@ export {
   classifyPooledStakingActivity,
 } from './adapters/staking-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
-export { mapPerpsTransaction } from './adapters/perps-transaction';
+export {
+  getPerpsActivityMappingIds,
+  mapPerpsTransaction,
+} from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
 export { mapRampsOrder } from './adapters/ramps-order';
 export {

@@ -6,6 +6,8 @@ import {
   AvatarTokenSize,
   BadgeWrapper,
   BadgeWrapperPosition,
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -15,6 +17,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
   Text,
   TextColor,
@@ -23,14 +26,16 @@ import {
 } from '@metamask/design-system-react-native';
 import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   selectDestToken,
+  selectRecurringPriceRange,
   selectRecurringRepeatCount,
   selectSlippage,
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
@@ -42,6 +47,10 @@ import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
 import {
+  formatPriceRangeLabel,
+  USD_PRICE_RANGE_CURRENCY,
+} from '../../utils/priceRange';
+import {
   parsePositiveInteger,
   RECURRING_MAX_DURATION_DAYS,
 } from '../../utils/recurringSchedule';
@@ -51,6 +60,7 @@ import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -60,9 +70,11 @@ const NETWORK_BADGE_SIZE = 10;
 function TokenAvatar({
   token,
   size,
+  testID,
 }: {
   token: BridgeToken;
   size: AvatarTokenSize;
+  testID?: string;
 }) {
   const tw = useTailwind();
   const tokenImageSource = getTokenImageSource(
@@ -94,7 +106,12 @@ function TokenAvatar({
         </Box>
       }
     >
-      <AvatarToken name={token.symbol} src={tokenImageSource} size={size} />
+      <AvatarToken
+        name={token.symbol}
+        src={tokenImageSource}
+        size={size}
+        testID={testID}
+      />
     </BadgeWrapper>
   );
 }
@@ -104,6 +121,7 @@ function ConfirmOrderRow({
   value,
   testID,
   trailing,
+  labelAccessory,
   isLoading,
   skeletonTestID,
 }: {
@@ -111,6 +129,7 @@ function ConfirmOrderRow({
   value: string;
   testID: string;
   trailing?: ReactNode;
+  labelAccessory?: ReactNode;
   isLoading?: boolean;
   skeletonTestID?: string;
 }) {
@@ -124,9 +143,17 @@ function ConfirmOrderRow({
       paddingVertical={2}
       testID={testID}
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="shrink"
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -166,26 +193,46 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
-  latestSourceBalance,
+  currentCurrency,
+  delegationFee,
+  fiatToUsdRate,
+  isPriceRangeConversionReady,
+  isSubmitting,
+  onConfirm,
   onEditSlippagePress,
+  onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const priceRange = useSelector(selectRecurringPriceRange);
   const repeatCount = useSelector(selectRecurringRepeatCount);
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
+  const { latestSourceBalance } = useBridgeSession();
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
-  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasSufficientGas = useHasSufficientGas({
+    additionalGasFeeInHex:
+      delegationFee.status === 'ready'
+        ? delegationFee.preciseNativeFeeInHex
+        : undefined,
+    quote: activeQuote,
+  });
   const hasInsufficientGas = !hasSufficientGas;
-  const isConfirmDisabled = hasInsufficientBalance || hasInsufficientGas;
+  const isDelegationFeeReady =
+    delegationFee.status === 'ready' || delegationFee.status === 'not-required';
+  const isConfirmDisabled =
+    hasInsufficientBalance ||
+    hasInsufficientGas ||
+    !isDelegationFeeReady ||
+    !isPriceRangeConversionReady;
   const confirmLabel = hasInsufficientBalance
     ? strings('bridge.insufficient_funds')
     : hasInsufficientGas
@@ -216,6 +263,26 @@ const RecurringConfirmOrderSheet = ({
       ? formatMinimumReceived(
           multiplyAmountByCount(destTokenAmount, repeat) ?? destTokenAmount,
         )
+      : '--';
+  const priceRangeToken = priceRange
+    ? priceRange.tokenSide === 'source'
+      ? sourceToken
+      : destToken
+    : undefined;
+  const priceRangeValue = priceRange
+    ? formatPriceRangeLabel(priceRange.min, priceRange.max, priceRange.currency)
+    : strings('bridge.recurring.price_range.not_set');
+  const showLocalCurrencyNotice =
+    Boolean(priceRange) &&
+    currentCurrency.toUpperCase() !== USD_PRICE_RANGE_CURRENCY;
+  const usdToCurrentCurrencyRate =
+    fiatToUsdRate !== undefined &&
+    Number.isFinite(fiatToUsdRate) &&
+    fiatToUsdRate > 0
+      ? getIntlNumberFormatter(I18n.locale, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(1 / fiatToUsdRate)
       : '--';
 
   const expiresAfter = `${RECURRING_MAX_DURATION_DAYS} ${strings('bridge.recurring.unit_plural.day')}`;
@@ -254,6 +321,24 @@ const RecurringConfirmOrderSheet = ({
       >
         {strings('bridge.recurring.confirm_title')}
       </BottomSheetHeader>
+      {showLocalCurrencyNotice ? (
+        <Box paddingHorizontal={4} paddingBottom={2}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            description={strings('bridge.recurring.local_currency_notice', {
+              rate: usdToCurrentCurrencyRate,
+              currency: currentCurrency.toUpperCase(),
+            })}
+            descriptionProps={{
+              variant: TextVariant.BodyMd,
+              color: TextColor.TextDefault,
+            }}
+            testID={
+              RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE
+            }
+          />
+        </Box>
+      ) : null}
       <Box paddingBottom={2}>
         <ConfirmOrderRow
           label={strings('bridge.recurring.paying_all_orders')}
@@ -282,6 +367,22 @@ const RecurringConfirmOrderSheet = ({
           trailing={
             destToken ? (
               <TokenAvatar token={destToken} size={AvatarTokenSize.Sm} />
+            ) : undefined
+          }
+        />
+        <ConfirmOrderRow
+          label={strings('bridge.recurring.price_range.label')}
+          value={priceRangeValue}
+          testID={RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE}
+          trailing={
+            priceRangeToken ? (
+              <TokenAvatar
+                token={priceRangeToken}
+                size={AvatarTokenSize.Sm}
+                testID={
+                  RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN
+                }
+              />
             ) : undefined
           }
         />
@@ -345,12 +446,57 @@ const RecurringConfirmOrderSheet = ({
             ) : undefined
           }
         />
+        {delegationFee.status !== 'not-required' ? (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <ConfirmOrderRow
+              label={strings('bridge.recurring.delegation_fee_one_time')}
+              value={
+                delegationFee.status === 'ready'
+                  ? delegationFee.displayFee
+                  : '--'
+              }
+              testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
+              isLoading={delegationFee.status === 'loading'}
+              skeletonTestID={
+                RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON
+              }
+              labelAccessory={
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Sm}
+                  onPress={onDelegationFeeInfoPress}
+                  testID={
+                    RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO
+                  }
+                  accessibilityLabel={strings(
+                    'bridge.recurring.delegation_fee_info_title',
+                  )}
+                />
+              }
+              trailing={
+                delegationFee.status === 'ready' && nativeToken ? (
+                  <AvatarToken
+                    name={nativeToken.symbol}
+                    src={nativeTokenImageSource}
+                    size={AvatarTokenSize.Xs}
+                    testID={
+                      RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN
+                    }
+                  />
+                ) : undefined
+              }
+            />
+          </>
+        ) : null}
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
           children: confirmLabel,
-          onPress: closeSheet,
-          isDisabled: isConfirmDisabled,
+          onPress: onConfirm,
+          isDisabled: isConfirmDisabled || isSubmitting,
+          isLoading: isSubmitting,
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />

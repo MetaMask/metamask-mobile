@@ -173,17 +173,29 @@ export const navigateToPerpsOrderEntry = async (
  */
 export const openPerpsWithdrawPayConfirmation = async (): Promise<void> => {
   await WalletView.scrollAndTapPerpsSection();
+  await dismissPerpsOnboardingTutorialIfPresent();
+  await PerpsHomeView.tapExploreCryptoIfVisible();
   await PerpsHomeView.waitForWithdrawButton();
 
   await Utilities.executeWithRetry(
     async () => {
-      await PerpsHomeView.tapWithdrawButton();
+      // Idempotent guard: a previous tap may already have opened the
+      // confirmation while it was still settling — re-tapping would dismiss it.
+      if (
+        await Utilities.isElementVisible(
+          TransactionPayConfirmation.keyboardContainer,
+          1500,
+        )
+      ) {
+        return;
+      }
+      await PerpsHomeView.tapVisibleWithdrawButton();
       await Assertions.expectElementToBeVisible(
         TransactionPayConfirmation.keyboardContainer,
         {
           description:
             'MetaMask Pay withdraw confirmation reached after tapping Withdraw',
-          timeout: 5000,
+          timeout: 15000,
         },
       );
     },

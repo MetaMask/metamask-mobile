@@ -70,6 +70,14 @@ export const captureMessage = (_message: string) => {
   console.log('[E2E Sentry Mock] captureMessage', _message);
 };
 
+export const captureFeedback = (_feedback: unknown) => {
+  // eslint-disable-next-line no-console
+  console.log('[E2E Sentry Mock] captureFeedback', _feedback);
+};
+
+export const dedupeIntegration = () => ({ name: 'Dedupe' });
+export const extraErrorDataIntegration = () => ({ name: 'ExtraErrorData' });
+
 // `lastEventId` is consumed by `ErrorBoundary.componentDidCatch` to attach the
 // last reported Sentry event ID to a feedback submission. Without this export
 // the ErrorBoundary itself throws `TypeError: undefined is not a function`

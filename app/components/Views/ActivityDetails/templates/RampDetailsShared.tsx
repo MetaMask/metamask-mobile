@@ -131,8 +131,7 @@ export function RampStatusWithProviderLink({
 
 /**
  * Full-width centered status description (Aggregator Stage / OrderContent copy).
- * Placed below the metadata section (after Transaction ID) with equal spacing
- * to the following SectionDivider (`marginVertical={3}` → 12px).
+ * Placed below the metadata section (after Transaction ID).
  */
 export function RampStatusDescription({
   description,
@@ -142,7 +141,7 @@ export function RampStatusDescription({
   }
 
   return (
-    <Box twClassName="w-full mt-3" testID="ramp-status-description">
+    <Box twClassName="w-full" testID="ramp-status-description">
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}

@@ -45,9 +45,9 @@ import type {
   PredictThePitchPrizePoolDto,
   MoneyAccountSweepstakesStatsMeDto,
   MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
   MoneyAccountSweepstakesDrawProofDto,
   MoneyAccountSweepstakesOutcomeDto,
-  FirstPredictOnUsDto,
   VipDashboardDto,
   VipEquityMultiplierDto,
   VipRefereeMeDto,
@@ -244,11 +244,6 @@ export interface RewardsDataServiceGetClientVersionRequirementsAction {
   handler: RewardsDataService['getClientVersionRequirements'];
 }
 
-export interface RewardsDataServiceGetFirstPredictOnUsAction {
-  type: `${typeof SERVICE_NAME}:getFirstPredictOnUs`;
-  handler: RewardsDataService['getFirstPredictOnUs'];
-}
-
 export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
   type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboard`;
   handler: RewardsDataService['getOndoCampaignLeaderboard'];
@@ -341,6 +336,11 @@ export interface RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction {
 export interface RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction {
   type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesPrizePool`;
   handler: RewardsDataService['getMoneyAccountSweepstakesPrizePool'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesVolumeStats'];
 }
 
 export interface RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction {
@@ -464,7 +464,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -484,6 +483,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
@@ -706,6 +706,10 @@ export class RewardsDataService {
       this.getMoneyAccountSweepstakesPrizePool.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`,
+      this.getMoneyAccountSweepstakesVolumeStats.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`,
       this.getMoneyAccountSweepstakesDrawProof.bind(this),
     );
@@ -773,10 +777,6 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getClientVersionRequirements`,
       this.getClientVersionRequirements.bind(this),
     );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getFirstPredictOnUs`,
-      this.getFirstPredictOnUs.bind(this),
-    );
   }
 
   /**
@@ -840,26 +840,6 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as ClientVersionRequirementDto;
-  }
-
-  /**
-   * Fetch the visible first predict on us content from the public API.
-   * @returns The first predict on us DTO, or null when no visible entry exists.
-   */
-  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
-    const response = await this.makeRequest('/public/first-predict-on-us', {
-      method: 'GET',
-    });
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Get first predict on us failed: ${response.status}`);
-    }
-
-    return (await response.json()) as FirstPredictOnUsDto;
   }
 
   /**
@@ -2331,6 +2311,23 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as MoneyAccountSweepstakesPrizePoolDto;
+  }
+
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/stats/volume`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes volume stats failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesVolumeStatsDto;
   }
 
   async getMoneyAccountSweepstakesDrawProof(

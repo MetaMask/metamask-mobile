@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet } from 'react-native';
-import METAMASK_WORDMARK from '../../../../../../images/branding/metamask-name.png';
+import { StyleSheet } from 'react-native';
 import {
   Box,
   Button,
@@ -22,6 +21,7 @@ import type {
   PredictTeam,
   PredictVenueId,
 } from '../../../types';
+import { appendLiveQuoteTrail, useLiveQuoteTrail } from './liveQuoteTrail';
 import {
   PREDICT_MARKET_CHART_HEIGHT,
   PredictMarketChart,
@@ -30,25 +30,25 @@ import {
 } from './PredictMarketChart';
 import { PredictMarketHistoryTestIds } from './PredictMarketHistory.testIds';
 
+// `LIVE` spans minutes, so it is the only range wide enough for the live quote
+// trail to read as a line rather than a moving endpoint.
 const HISTORY_RANGES: readonly PredictMarketHistoryRange[] = [
+  'LIVE',
   '1D',
   '1W',
   '1M',
   'ALL',
 ];
 
+const getRangeLabel = (range: PredictMarketHistoryRange) =>
+  range === 'LIVE' ? strings('predict.history.range_live') : range;
+
 const styles = StyleSheet.create({
   rangeRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 24,
     marginTop: 12,
     width: '100%',
-  },
-  wordmark: {
-    height: 24,
-    resizeMode: 'contain',
-    width: 49,
   },
   rangeGroup: {
     flex: 1,
@@ -99,7 +99,6 @@ const MarketHistoryContent = ({
   isError,
   onRetry,
 }: MarketHistoryContentProps) => {
-  const { colors } = useTheme();
   const chartStateStyle = { height: PREDICT_MARKET_CHART_HEIGHT };
   const chartSeries: PredictMarketChartSeries[] = series
     .filter((entry) => entry.points.length >= 2)
@@ -179,11 +178,6 @@ const MarketHistoryContent = ({
       {renderChartState()}
 
       <Box style={styles.rangeRow}>
-        <Image
-          accessibilityIgnoresInvertColors
-          source={METAMASK_WORDMARK}
-          style={[styles.wordmark, { tintColor: colors.text.muted }]}
-        />
         <FilterButtonGroup
           value={range}
           onChange={(value) =>
@@ -203,7 +197,7 @@ const MarketHistoryContent = ({
               style={styles.rangeFilter}
               testID={PredictMarketHistoryTestIds.range(option)}
             >
-              {option}
+              {getRangeLabel(option)}
             </FilterButton>
           ))}
         </FilterButtonGroup>
@@ -226,6 +220,8 @@ export const PredictMarketHistory = ({
   const historyQuery = useMarketHistory(venueId, market.id, range);
   const yesOutcome = market.outcomes.find((outcome) => outcome.side === 'yes');
   const noOutcome = market.outcomes.find((outcome) => outcome.side === 'no');
+  const yesTrail = useLiveQuoteTrail(market, yesOutcome, range === 'LIVE');
+  const noTrail = useLiveQuoteTrail(market, noOutcome, range === 'LIVE');
   const points = historyQuery.data?.points ?? [];
   const series: MarketHistorySeries[] = [
     ...(yesOutcome
@@ -234,7 +230,10 @@ export const PredictMarketHistory = ({
             id: yesOutcome.id,
             label: yesOutcome.label || strings('predict.market_details.yes'),
             color: colors.primary.default,
-            points: toChartPoints(points, 'yesPrice'),
+            points: appendLiveQuoteTrail(
+              toChartPoints(points, 'yesPrice'),
+              yesTrail,
+            ),
           },
         ]
       : []),
@@ -247,7 +246,10 @@ export const PredictMarketHistory = ({
                 ? noOutcome.label
                 : strings('predict.market_details.no'),
             color: colors.error.default,
-            points: toChartPoints(points, 'noPrice'),
+            points: appendLiveQuoteTrail(
+              toChartPoints(points, 'noPrice'),
+              noTrail,
+            ),
           },
         ]
       : []),
@@ -285,6 +287,16 @@ export const PredictGameMarketHistory = ({
   const [range, setRange] = useState<PredictMarketHistoryRange>('ALL');
   const homeHistory = useMarketHistory(venueId, home.market.id, range);
   const awayHistory = useMarketHistory(venueId, away.market.id, range);
+  const homeTrail = useLiveQuoteTrail(
+    home.market,
+    home.outcome,
+    range === 'LIVE',
+  );
+  const awayTrail = useLiveQuoteTrail(
+    away.market,
+    away.outcome,
+    range === 'LIVE',
+  );
   const hasCompleteData = Boolean(homeHistory.data && awayHistory.data);
   // Each line plots the last-traded probability of the Outcome that
   // carries that Team's Game Selection.
@@ -293,18 +305,24 @@ export const PredictGameMarketHistory = ({
       id: home.outcome.id,
       label: getCompactTeamLabel(home.team),
       color: home.team.primaryColor ?? colors.success.default,
-      points: toChartPoints(
-        homeHistory.data?.points ?? [],
-        home.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+      points: appendLiveQuoteTrail(
+        toChartPoints(
+          homeHistory.data?.points ?? [],
+          home.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+        ),
+        homeTrail,
       ),
     },
     {
       id: away.outcome.id,
       label: getCompactTeamLabel(away.team),
       color: away.team.primaryColor ?? colors.info.default,
-      points: toChartPoints(
-        awayHistory.data?.points ?? [],
-        away.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+      points: appendLiveQuoteTrail(
+        toChartPoints(
+          awayHistory.data?.points ?? [],
+          away.outcome.side === 'no' ? 'noPrice' : 'yesPrice',
+        ),
+        awayTrail,
       ),
     },
   ];

@@ -28,6 +28,11 @@ enum CardScreens {
   ORDER_COMPLETED = 'ORDER_COMPLETED',
   SET_PIN = 'SET_PIN',
   CONFIRM_PIN = 'CONFIRM_PIN',
+  CONTACT_DETAILS = 'CONTACT_DETAILS',
+  CASHBACK = 'CASHBACK',
+  CREDIT_REDEEM = 'CREDIT_REDEEM',
+  MIGRATION_UPDATE_SHEET = 'MIGRATION_UPDATE_SHEET',
+  DIGITAL_WALLET_INSTRUCTIONS_SHEET = 'DIGITAL_WALLET_INSTRUCTIONS_SHEET',
 }
 
 enum CardActions {
@@ -70,6 +75,8 @@ enum CardActions {
   SET_PIN_BUTTON = 'SET_PIN_BUTTON',
   SET_PIN_CONTINUE = 'SET_PIN_CONTINUE',
   CONFIRM_PIN_SUBMIT = 'CONFIRM_PIN_SUBMIT',
+  CONTACT_DETAILS_BUTTON = 'CONTACT_DETAILS_BUTTON',
+  CONTACT_DETAILS_SAVE_BUTTON = 'CONTACT_DETAILS_SAVE_BUTTON',
   CASHBACK_BUTTON = 'CASHBACK_BUTTON',
   CREDIT_BUTTON = 'CREDIT_BUTTON',
   MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON = 'MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON',
@@ -82,6 +89,9 @@ enum CardActions {
   MONEY_LINK_CARD_SHEET_CONFIRM_BUTTON = 'MONEY_LINK_CARD_SHEET_CONFIRM_BUTTON',
   MONEY_LINK_CARD_SHEET_CLOSE_BUTTON = 'MONEY_LINK_CARD_SHEET_CLOSE_BUTTON',
   UNLINK_MONEY_ACCOUNT_BUTTON = 'UNLINK_MONEY_ACCOUNT_BUTTON',
+  REVOKE_ALLOWANCE_BUTTON = 'REVOKE_ALLOWANCE_BUTTON',
+  REVOKE_ALLOWANCE_CONFIRM = 'REVOKE_ALLOWANCE_CONFIRM',
+  SET_SPENDING_ALLOWANCE_BUTTON = 'SET_SPENDING_ALLOWANCE_BUTTON',
   SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON = 'SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON',
   FUNDING_APPROVAL_CONFIRM = 'FUNDING_APPROVAL_CONFIRM',
   FUNDING_APPROVAL_RETRY = 'FUNDING_APPROVAL_RETRY',
@@ -94,6 +104,10 @@ enum CardActions {
   IMMERSVE_RESUME_ONBOARDING = 'IMMERSVE_RESUME_ONBOARDING',
   IMMERSVE_PROVISIONING_RESUME = 'IMMERSVE_PROVISIONING_RESUME',
   IMMERSVE_ONBOARDING_ROUTED = 'IMMERSVE_ONBOARDING_ROUTED',
+  MIGRATION_SHEET_GET_STARTED_BUTTON = 'MIGRATION_SHEET_GET_STARTED_BUTTON',
+  MIGRATION_SHEET_REMIND_ME_LATER_BUTTON = 'MIGRATION_SHEET_REMIND_ME_LATER_BUTTON',
+  MIGRATION_SHEET_CLOSE_BUTTON = 'MIGRATION_SHEET_CLOSE_BUTTON',
+  MIGRATION_ATTENTION_SET_UP_CARD_BUTTON = 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
 }
 
 enum CardDeeplinkActions {
@@ -107,6 +121,7 @@ enum CardEntryPoint {
   MONEY_HOME_METAMASK_CARD = 'MONEY_HOME_METAMASK_CARD',
   CARD_HOME_MONEY_ACCOUNT_CARD = 'CARD_HOME_MONEY_ACCOUNT_CARD',
   CARD_HOME_UNLINK_MONEY_ACCOUNT = 'CARD_HOME_UNLINK_MONEY_ACCOUNT',
+  CARD_HOME_REVOKE_ALLOWANCE = 'CARD_HOME_REVOKE_ALLOWANCE',
   MONEY_LINK_CARD_SHEET = 'MONEY_LINK_CARD_SHEET',
   SPENDING_LIMIT_SPEND_AND_EARN_PROMO = 'SPENDING_LIMIT_SPEND_AND_EARN_PROMO',
   CASHBACK = 'CASHBACK',
@@ -117,7 +132,38 @@ enum CardEntryPoint {
 
 enum CardFlow {
   MONEY_ACCOUNT_LINKAGE = 'money_account_linkage',
+  MIGRATION = 'migration',
 }
+
+type CardUkMigrationAnalyticsPhase = 'grace_window' | 'post_cutoff';
+
+type CardBadgeReason = 'card_migration';
+
+/**
+ * Maps mobile UK migration schedule phase to Segment `migration_phase`.
+ * `off` (and unknown) omit the property.
+ */
+const mapUkMigrationPhaseToAnalytics = (
+  phase: string | null | undefined,
+): CardUkMigrationAnalyticsPhase | undefined => {
+  if (phase === 'soft') {
+    return 'grace_window';
+  }
+  if (phase === 'forced') {
+    return 'post_cutoff';
+  }
+  return undefined;
+};
+
+/**
+ * Builds Segment `badge_reasons` when the Card UK migration entry badge
+ * (Accounts menu Update label / wallet attention for card migration) is shown.
+ * Omits the property when the badge is not visible.
+ */
+const buildCardMigrationBadgeReasons = (
+  updateBadgeVisible: boolean,
+): CardBadgeReason[] | undefined =>
+  updateBadgeVisible ? ['card_migration'] : undefined;
 
 enum CardLinkingFailureReason {
   PRECONDITION_FAILED = 'PRECONDITION_FAILED',
@@ -163,7 +209,9 @@ export {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  buildCardMigrationBadgeReasons,
   deriveCardState,
+  mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 };
-export type { CardState };
+export type { CardState, CardUkMigrationAnalyticsPhase, CardBadgeReason };

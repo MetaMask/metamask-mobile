@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
@@ -11,35 +12,75 @@ import {
   ButtonVariant,
   ButtonSize,
   FontWeight,
+  BannerAlert,
+  BannerAlertSeverity,
+  Checkbox,
 } from '@metamask/design-system-react-native';
+import { isProduction } from '../../../../../util/environment';
 import {
   BENEFITS,
+  BENEFIT_DETAILS,
   DEFAULT_PLAN,
   PLANS,
   type BenefitDetailItem,
   type PlanId,
-  BENEFIT_DETAILS,
 } from './Benefits.constants';
 import { BenefitsTestIds } from './Benefits.testIds';
 import { BenefitRow } from '../../../shared/pro';
 import BenefitDetails from './components/BenefitDetails';
 import PlanSelectorCard from './components/PlanSelectorCard';
+import PlanSelectorCardSkeleton from './components/PlanSelectorCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
+import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import {
+  getBenefitsPriceLine,
+  getPlanSelectorCardCopy,
+  resolveSelectedPlanId,
+} from './utils/getMoneyAccountPlusPricingCopy';
+import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
+import {
+  getSelectedPlusPlan,
+  type SelectedPlusPlan,
+} from './utils/getSelectedPlusPlan';
 
 interface BenefitsProps {
-  onSuccess: () => void;
+  onSuccess: (plan: SelectedPlusPlan) => void;
+  onPlanChange?: (planId: PlanId) => void;
   initialPlan?: PlanId;
 }
 
-const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
+const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
+  const tw = useTailwind();
+  const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
 
+  const [enableTestClocks, setEnableTestClocks] = useState(false);
   const [isBenefitDetailSheetOpen, setIsBenefitDetailSheetOpen] =
     useState(false);
   const [selectedBenfitDetail, setSelectedBenfitDetail] =
     useState<BenefitDetailItem | null>(null);
+
+  const resolvedPlan = resolveSelectedPlanId(selectedPlan, plusPricing);
+  const priceLine = getBenefitsPriceLine(plusPricing);
+  const isPricingReady = plusPricing.status === PLUS_PRICING_STATUS.ready;
+
+  const visiblePlans = useMemo(
+    () =>
+      PLANS.flatMap((plan) => {
+        const copy = getPlanSelectorCardCopy(plan.id, plusPricing);
+        if (copy === undefined) {
+          return [];
+        }
+        return [{ plan, copy }];
+      }),
+    [plusPricing],
+  );
+
+  const canSelectPlans =
+    !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
+  const isCtaDisabled = !canSelectPlans;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -51,6 +92,27 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
   const handleBenefitDetailSheetClose = useCallback(() => {
     setIsBenefitDetailSheetOpen(false);
   }, []);
+
+  const handleCtaPress = useCallback(() => {
+    if (isCtaDisabled) {
+      return;
+    }
+
+    const checkoutPlan = getSelectedPlusPlan(resolvedPlan, plusPricing);
+    if (checkoutPlan === undefined) {
+      return;
+    }
+
+    onSuccess(checkoutPlan);
+  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan]);
+
+  const handlePlanPress = useCallback(
+    (planId: PlanId) => {
+      setSelectedPlan(planId);
+      onPlanChange?.(planId);
+    },
+    [onPlanChange],
+  );
 
   return (
     <Box
@@ -66,20 +128,22 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
         >
           {strings('pro_subscription.title')}
         </Text>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 flex-wrap"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            testID={BenefitsTestIds.PRICE_LINE}
+        {priceLine ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 flex-wrap"
           >
-            {strings('pro_subscription.description')}
-          </Text>
-        </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID={BenefitsTestIds.PRICE_LINE}
+            >
+              {priceLine}
+            </Text>
+          </Box>
+        ) : null}
       </Box>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -90,7 +154,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
               key={item.id}
               item={item}
               onPress={() => handleBenefitPress(item.id)}
-              selectedPlan={selectedPlan}
+              selectedPlan={resolvedPlan}
             />
           ))}
         </Box>
@@ -98,20 +162,114 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
 
       {/* Plan selector */}
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
-        {PLANS.map((plan) => (
-          <PlanSelectorCard
-            key={plan.id}
-            plan={plan}
-            isSelected={selectedPlan === plan.id}
-            onPress={setSelectedPlan}
+        {isLoading ? (
+          <Box
+            twClassName="flex flex-col gap-y-4"
+            testID={BenefitsTestIds.PRICING_LOADING}
+            accessibilityLabel={strings('pro_subscription.pricing.loading')}
+          >
+            {PLANS.map((plan) => (
+              <PlanSelectorCardSkeleton key={plan.id} />
+            ))}
+          </Box>
+        ) : null}
+
+        {hasError ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_ERROR}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Danger}
+              description={strings('pro_subscription.pricing.error')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {!isLoading &&
+        !hasError &&
+        plusPricing.status === PLUS_PRICING_STATUS.unavailable ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_UNAVAILABLE}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('pro_subscription.pricing.unavailable')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {!isLoading &&
+        !hasError &&
+        plusPricing.status === PLUS_PRICING_STATUS.malformed ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_MALFORMED}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Danger}
+              description={strings('pro_subscription.pricing.malformed')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {canSelectPlans
+          ? visiblePlans.map(({ plan, copy }) => (
+              <PlanSelectorCard
+                key={plan.id}
+                plan={plan}
+                copy={copy}
+                isSelected={resolvedPlan === plan.id}
+                onPress={handlePlanPress}
+              />
+            ))
+          : null}
+
+        {!isProduction() ? (
+          <Checkbox
+            label={strings('pro_subscription.enable_stripe_test_clocks')}
+            labelProps={{ style: tw.style('flex-1') }}
+            isSelected={enableTestClocks}
+            onChange={setEnableTestClocks}
+            testID={BenefitsTestIds.TEST_CLOCKS_CHECKBOX}
+            twClassName="items-start"
           />
-        ))}
+        ) : null}
 
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={onSuccess}
+          onPress={handleCtaPress}
           testID={BenefitsTestIds.CTA_BUTTON}
+          isDisabled={isCtaDisabled}
           isFullWidth
         >
           {strings('pro_subscription.join_pro')}
@@ -122,7 +280,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
         <BenefitDetails
           onClose={handleBenefitDetailSheetClose}
           details={selectedBenfitDetail}
-          selectedPlan={selectedPlan}
+          selectedPlan={resolvedPlan}
         />
       )}
     </Box>

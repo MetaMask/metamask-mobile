@@ -38,6 +38,7 @@ import {
   Fit,
   RiveErrorType,
   RiveView,
+  useRive,
   useRiveFile,
   useRiveNumber,
   useRiveString,
@@ -48,7 +49,9 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
+  Modal,
   PixelRatio,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -62,9 +65,10 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import Logger from '../../../../../util/Logger';
-import moneyOnboardingFlowV26Animation from '../../../../../animations/money_onboarding_flow_v26.riv';
+import moneyOnboardingRoundedButtons from '../../../../../animations/money_onboarding_rounded_buttons.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -95,11 +99,14 @@ const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
 
 /** Transition speed passed to the Rive artboard. */
 const RIVE_TRANSITION_SPEED = 300;
+
+const TEXT_OVERLAY_DISPLAY_FALLBACK_DELAY_MS = 2500;
+
 const OVERLAY_FADE_DURATION_MS = 600;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
-const HEADER_TOP_OFFSET = 60;
-const FOOTER_BOTTOM_OFFSET = 100;
+const HEADER_TOP_OFFSET = 75;
+const FOOTER_BOTTOM_OFFSET = 90;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
@@ -126,6 +133,14 @@ interface OnboardingTextContent {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    // Matches the Rive X button hit area; large enough to be reliably tappable
+    height: 80,
+    width: 80,
   },
   riveHidden: {
     opacity: 0,
@@ -160,12 +175,12 @@ const FALLBACK_APY = 4;
 
 const MoneyOnboardingTextOverlay = ({
   content,
-  isVisible,
   opacity,
+  isVisible,
 }: {
   content?: OnboardingTextContent;
-  isVisible: boolean;
   opacity: SharedValue<number>;
+  isVisible: boolean;
 }) => {
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
@@ -180,10 +195,14 @@ const MoneyOnboardingTextOverlay = ({
 
   const animatedStyle = useAnimatedStyle(
     () => ({
-      opacity: isVisible ? opacity.value : 0,
+      opacity: opacity.value,
     }),
-    [isVisible],
+    [],
   );
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Animated.View
@@ -266,7 +285,9 @@ const MoneyOnboardingView = () => {
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 
-  const { riveFile } = useRiveFile(moneyOnboardingFlowV26Animation);
+  const [isRiveReady, setIsRiveReady] = useState(false);
+  const { riveViewRef, setHybridRef } = useRive();
+  const { riveFile } = useRiveFile(moneyOnboardingRoundedButtons);
   // VM instance is created off the file (async) and bound via `dataBind`
   // (replaces the legacy `AutoBind(true)` mode).
   const { instance } = useViewModelInstance(riveFile, {
@@ -277,8 +298,6 @@ const MoneyOnboardingView = () => {
   const currentStepRef = useRef(0);
   const hasObservedCurrentStepRef = useRef(false);
   const hasCompletedOnboardingRef = useRef(false);
-  const [isRiveLaidOut, setIsRiveLaidOut] = useState(false);
-  const [isRiveVisible, setIsRiveVisible] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(1);
 
@@ -364,6 +383,22 @@ const MoneyOnboardingView = () => {
     setApyAmountDigit(apyDigitCount(riveApyValue));
   }, [instance, riveApyValue, setApyValue, setApyAmountDigit]);
 
+  // The native view reports ready once the artboard, state machine and data
+  // binding are configured.
+  useEffect(() => {
+    if (riveViewRef) setIsRiveReady(true);
+  }, [riveViewRef]);
+
+  // Fallback for when the Rive file is not loaded in time.
+  useEffect(() => {
+    if (!riveFile) return;
+    const timeoutId = setTimeout(
+      () => setIsRiveReady(true),
+      TEXT_OVERLAY_DISPLAY_FALLBACK_DELAY_MS,
+    );
+    return () => clearTimeout(timeoutId);
+  }, [riveFile]);
+
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(
       Routes.HOME_TABS,
@@ -389,6 +424,15 @@ const MoneyOnboardingView = () => {
     try {
       await initiateDeposit({
         preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
+          ? {
+              autoSelectFiatPayment:
+                postOnboardingRedirect.autoSelectFiatPayment,
+            }
+          : {}),
+        ...(postOnboardingRedirect.intent
+          ? { intent: postOnboardingRedirect.intent }
+          : {}),
         replaceConfirmation: true,
         onDepositSetupFailure: navigateToMoneyHome,
       });
@@ -427,6 +471,10 @@ const MoneyOnboardingView = () => {
       trackOnboardingEvent,
     ],
   );
+
+  const handleModalRequestClose = useCallback(() => {
+    handleClose(currentStepRef.current);
+  }, [handleClose]);
 
   const handleStepViewed = useCallback(
     (stepIndex: number) => {
@@ -560,6 +608,7 @@ const MoneyOnboardingView = () => {
       handleClose(currentStepRef.current);
     },
   });
+
   useRiveTrigger(ONBOARDING_COMPLETED_TRIGGER, instance, {
     onTrigger: handleOnboardingCompleted,
   });
@@ -579,45 +628,49 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToMoneyHome],
   );
 
-  const handleRiveLayout = useCallback(() => {
-    setIsRiveLaidOut(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isRiveLaidOut) {
-      return;
-    }
-
-    const animationFrameId = requestAnimationFrame(() => {
-      setIsRiveVisible(true);
-    });
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isRiveLaidOut]);
-
   return (
-    <View style={styles.root}>
-      {riveFile && instance && (
-        <RiveView
-          file={riveFile}
-          artboardName={RIVE_ARTBOARD_NAME}
-          stateMachineName={RIVE_STATE_MACHINE_NAME}
-          dataBind={instance}
-          autoPlay
-          fit={isRiveLaidOut ? Fit.Layout : Fit.Cover}
-          layoutScaleFactor={PixelRatio.get()}
-          onError={handleError}
-          onLayout={handleRiveLayout}
-          style={[StyleSheet.absoluteFill, !isRiveVisible && styles.riveHidden]}
-          testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
-        />
-      )}
-      <MoneyOnboardingTextOverlay
-        content={stepContent[overlayStep]}
-        isVisible={isRiveVisible}
-        opacity={overlayOpacity}
-      />
-    </View>
+    <Modal
+      testID={MoneyOnboardingViewTestIds.MODAL}
+      statusBarTranslucent
+      navigationBarTranslucent
+      hardwareAccelerated
+      animationType="fade"
+      onRequestClose={handleModalRequestClose}
+      transparent
+    >
+      <ModalSafeAreaProvider>
+        <View style={styles.root}>
+          {riveFile && instance && (
+            <RiveView
+              file={riveFile}
+              hybridRef={setHybridRef}
+              artboardName={RIVE_ARTBOARD_NAME}
+              stateMachineName={RIVE_STATE_MACHINE_NAME}
+              dataBind={instance}
+              autoPlay
+              fit={Fit.Layout}
+              layoutScaleFactor={PixelRatio.get()}
+              onError={handleError}
+              style={[
+                StyleSheet.absoluteFill,
+                !isRiveReady && styles.riveHidden,
+              ]}
+              testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
+            />
+          )}
+          <MoneyOnboardingTextOverlay
+            content={stepContent[overlayStep]}
+            opacity={overlayOpacity}
+            isVisible={isRiveReady}
+          />
+          <Pressable
+            onPress={handleModalRequestClose}
+            style={styles.closeButton}
+            testID={MoneyOnboardingViewTestIds.CLOSE_BUTTON}
+          />
+        </View>
+      </ModalSafeAreaProvider>
+    </Modal>
   );
 };
 
@@ -652,6 +705,15 @@ const MoneyOnboardingViewE2E = () => {
     try {
       await initiateDeposit({
         preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        ...(postOnboardingRedirect.autoSelectFiatPayment !== undefined
+          ? {
+              autoSelectFiatPayment:
+                postOnboardingRedirect.autoSelectFiatPayment,
+            }
+          : {}),
+        ...(postOnboardingRedirect.intent
+          ? { intent: postOnboardingRedirect.intent }
+          : {}),
         replaceConfirmation: true,
         onDepositSetupFailure: navigateToMoneyHome,
       });

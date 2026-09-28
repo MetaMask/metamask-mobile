@@ -61,7 +61,8 @@ export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {
-      success: (amount: string) => PerpsToastOptions;
+      /** @param amountAdded - Amount credited to the Perps account, not the resulting balance. */
+      success: (amountAdded: string) => PerpsToastOptions;
       inProgress: (
         processingTimeInSeconds: number | undefined,
         transactionId: string,
@@ -172,6 +173,7 @@ export interface PerpsToastOptionsConfig {
   positionManagement: {
     closePosition: {
       positionAlreadyClosed: PerpsToastOptions;
+      closeAlreadyInProgress: PerpsToastOptions;
       marketClose: {
         full: {
           closeFullPositionInProgress: (
@@ -219,6 +221,7 @@ export interface PerpsToastOptionsConfig {
       };
     };
     tpsl: {
+      updateTPSLInProgress: PerpsToastOptions;
       updateTPSLSuccess: PerpsToastOptions;
       updateTPSLError: (error?: string) => PerpsToastOptions;
     };
@@ -426,12 +429,13 @@ const usePerpsToasts = (): {
     () => ({
       accountManagement: {
         deposit: {
-          success: (amount: string) => {
+          success: (amountAdded: string) => {
+            const numericAmountAdded = Number.parseFloat(amountAdded);
             let subtext = strings('perps.deposit.funds_are_ready_to_trade');
 
-            if (amount && amount !== '0') {
-              subtext = strings('perps.deposit.success_message', {
-                amount: formatPerpsFiat(amount),
+            if (Number.isFinite(numericAmountAdded) && numericAmountAdded > 0) {
+              subtext = strings('perps.deposit.success_amount_added', {
+                amount: formatPerpsFiat(amountAdded),
               });
             }
 
@@ -932,6 +936,13 @@ const usePerpsToasts = (): {
               strings('perps.close_position.already_closed_subtitle'),
             ),
           },
+          closeAlreadyInProgress: {
+            ...perpsBaseToastOptions.info,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.close_position.already_in_progress'),
+              strings('perps.close_position.already_in_progress_subtitle'),
+            ),
+          },
           marketClose: {
             full: {
               closeFullPositionInProgress: (
@@ -1147,6 +1158,12 @@ const usePerpsToasts = (): {
           },
         },
         tpsl: {
+          updateTPSLInProgress: {
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_in_progress'),
+            ),
+          },
           updateTPSLSuccess: {
             ...perpsBaseToastOptions.success,
             labelOptions: getPerpsToastLabels(

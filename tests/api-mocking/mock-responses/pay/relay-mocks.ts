@@ -133,18 +133,12 @@ export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
           url?.includes('intents.uat-api.cx.metamask.io/relay/quote'),
       );
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: quote,
-    }));
+    .thenCallback(() => ({ statusCode: 200, json: quote }));
 
   await mockServer
     .forPost(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/quote/)
     .asPriority(1001)
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: quote,
-    }));
+    .thenCallback(() => ({ statusCode: 200, json: quote }));
 }
 
 /**
@@ -176,4 +170,27 @@ export async function mockRelayStatusSuccess(mockServer: Mockttp) {
       statusCode: 200,
       json: RELAY_STATUS_MOCK,
     }));
+}
+
+/**
+ * Mocks the Relay /authorize endpoint used by the HyperLiquid 2-step
+ * withdrawal flow (EIP-712 nonce-mapping signature POST). The response body
+ * is only logged by the submitter, so an empty JSON object suffices.
+ */
+export async function mockRelayAuthorize(mockServer: Mockttp) {
+  const handler = () => ({ statusCode: 200, json: {} });
+
+  await mockServer
+    .forPost('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('api.relay.link/authorize'));
+    })
+    .thenCallback(handler);
+
+  await mockServer
+    .forPost(/api\.relay\.link\/authorize/)
+    .asPriority(1001)
+    .thenCallback(handler);
 }

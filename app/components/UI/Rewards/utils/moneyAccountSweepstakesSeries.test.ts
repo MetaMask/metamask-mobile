@@ -28,17 +28,6 @@ const buildCampaign = (
     ...overrides,
   }) as CampaignDto;
 
-const withTour = (campaign: CampaignDto): CampaignDto =>
-  ({
-    ...campaign,
-    details: {
-      ...(campaign.details ?? {}),
-      howItWorks: {
-        tour: [{ title: 'Step 1', description: 'Description 1' }],
-      },
-    },
-  }) as CampaignDto;
-
 describe('moneyAccountSweepstakesSeries', () => {
   const week1 = buildCampaign({
     id: 'week-1',
@@ -124,12 +113,9 @@ describe('moneyAccountSweepstakesSeries', () => {
   describe('resolveMoneyAccountSweepstakesEntryRoute', () => {
     it('returns dashboard when there are no sweepstakes campaigns', () => {
       const series = getMoneyAccountSweepstakesSeries([]);
-      expect(
-        resolveMoneyAccountSweepstakesEntryRoute({
-          series,
-          optedInAny: false,
-        }),
-      ).toEqual({ kind: 'dashboard' });
+      expect(resolveMoneyAccountSweepstakesEntryRoute({ series })).toEqual({
+        kind: 'dashboard',
+      });
     });
 
     it('returns dashboard when the series is upcoming', () => {
@@ -137,12 +123,9 @@ describe('moneyAccountSweepstakesSeries', () => {
         [week1, week2, week3],
         new Date('2026-06-30T12:00:00.000Z'),
       );
-      expect(
-        resolveMoneyAccountSweepstakesEntryRoute({
-          series,
-          optedInAny: false,
-        }),
-      ).toEqual({ kind: 'dashboard' });
+      expect(resolveMoneyAccountSweepstakesEntryRoute({ series })).toEqual({
+        kind: 'dashboard',
+      });
     });
 
     it('returns details for the last campaign when the series is previous', () => {
@@ -150,51 +133,21 @@ describe('moneyAccountSweepstakesSeries', () => {
         [week1, week2, week3],
         new Date('2026-07-23T12:00:00.000Z'),
       );
-      expect(
-        resolveMoneyAccountSweepstakesEntryRoute({
-          series,
-          optedInAny: false,
-        }),
-      ).toEqual({ kind: 'details', campaignId: 'week-3' });
+      expect(resolveMoneyAccountSweepstakesEntryRoute({ series })).toEqual({
+        kind: 'details',
+        campaignId: 'week-3',
+      });
     });
 
-    it('returns tour for the active campaign when eligible', () => {
-      const series = getMoneyAccountSweepstakesSeries(
-        [week1, withTour(week2), week3],
-        new Date('2026-07-10T12:00:00.000Z'),
-      );
-      expect(
-        resolveMoneyAccountSweepstakesEntryRoute({
-          series,
-          optedInAny: false,
-        }),
-      ).toEqual({ kind: 'tour', campaignId: 'week-2' });
-    });
-
-    it('returns details for the active campaign when already opted in', () => {
-      const series = getMoneyAccountSweepstakesSeries(
-        [week1, withTour(week2), week3],
-        new Date('2026-07-10T12:00:00.000Z'),
-      );
-      expect(
-        resolveMoneyAccountSweepstakesEntryRoute({
-          series,
-          optedInAny: true,
-        }),
-      ).toEqual({ kind: 'details', campaignId: 'week-2' });
-    });
-
-    it('returns details for the active campaign when there is no tour', () => {
+    it('returns details for the active campaign without routing to the tour', () => {
       const series = getMoneyAccountSweepstakesSeries(
         [week1, week2, week3],
         new Date('2026-07-10T12:00:00.000Z'),
       );
-      expect(
-        resolveMoneyAccountSweepstakesEntryRoute({
-          series,
-          optedInAny: false,
-        }),
-      ).toEqual({ kind: 'details', campaignId: 'week-2' });
+      expect(resolveMoneyAccountSweepstakesEntryRoute({ series })).toEqual({
+        kind: 'details',
+        campaignId: 'week-2',
+      });
     });
   });
 });

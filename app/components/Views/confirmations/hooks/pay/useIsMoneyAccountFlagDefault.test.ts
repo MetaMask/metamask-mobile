@@ -29,7 +29,9 @@ jest.mock('../transactions/useTransactionMetadataRequest', () => ({
 
 const MONEY_ACCOUNT_FLAG = {
   defaultPaySelectedSection: {
+    perpsDepositAndOrder: 'money-account',
     perpsWithdraw: 'money-account',
+    predictDepositAndOrder: 'money-account',
     predictWithdraw: 'money-account',
   },
 };
@@ -64,7 +66,12 @@ describe('useIsMoneyAccountFlagDefault', () => {
     expect(result.current).toBe(false);
   });
 
-  it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+  it.each([
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictDepositAndOrder,
+    TransactionType.predictWithdraw,
+  ])(
     'returns true for %s when flag maps type to "money-account" and money account exists',
     (type) => {
       (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
@@ -138,7 +145,6 @@ describe('useIsMoneyAccountFlagDefault', () => {
     TransactionType.swap,
     TransactionType.bridge,
     TransactionType.moneyAccountDeposit,
-    TransactionType.predictDepositAndOrder,
   ])(
     'returns false for non-perps/predict type %s even when flag is enabled',
     (type) => {

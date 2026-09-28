@@ -105,20 +105,11 @@ export type SettingsStackParamList = {
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
   EnterPasswordSimple: undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   SnapsSettingsList: undefined;
-};
-
-/**
- * Param list for screens inside `ExploreHome` (`TrendingView` tab).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type TrendingViewStackParamList = {
-  TrendingFeed: ExploreFeedRouteParams | undefined;
 };
 
 /**
@@ -213,7 +204,7 @@ export type RewardsHomeParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
-  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
+  TrendingView: ExploreFeedRouteParams | undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>

@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import {
+  buildImmersveApproveWrite,
   encodeSmartContractWrite,
   immersveNetworkToCaipChainId,
   immersveNetworkToFundingToken,
@@ -59,6 +60,34 @@ describe('immersveNetworkToFundingToken', () => {
   it('throws for an unknown or missing network', () => {
     expect(() => immersveNetworkToFundingToken('polygon')).toThrow();
     expect(() => immersveNetworkToFundingToken(undefined)).toThrow();
+  });
+});
+
+describe('buildImmersveApproveWrite', () => {
+  const tokenAddress = BASE_USDC_TOKEN_ADDRESS;
+  const spenderAddress = '0x2222222222222222222222222222222222222222';
+
+  it('builds an approve write that round-trips through encodeSmartContractWrite', () => {
+    const write = buildImmersveApproveWrite({
+      tokenAddress,
+      spenderAddress,
+      amountBaseUnits: '0',
+    });
+
+    expect(write).toStrictEqual({
+      abi: expect.any(Array),
+      contractAddress: tokenAddress,
+      method: 'approve',
+      params: {
+        _spender: spenderAddress,
+        _value: '0',
+      },
+    });
+
+    const expected = new ethers.utils.Interface(
+      write.abi as ethers.utils.Fragment[],
+    ).encodeFunctionData('approve', [spenderAddress, '0']);
+    expect(encodeSmartContractWrite(write)).toBe(expected);
   });
 });
 

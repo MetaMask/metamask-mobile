@@ -165,6 +165,7 @@ export default {
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
     ORIGIN_PUSH_NOTIFICATION: 'push-notification',
     ORIGIN_BRAZE: 'braze',
+    ORIGIN_PERPS_OUTREACH: 'perps-outreach',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -256,6 +257,14 @@ export default {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
+  },
+  // Rewards Money: GH Actions use builds.yml (env set per build). Fallback
+  // mapping for local when env not set. Point at a local backend with
+  // REWARDS_MONEY_API_URL.
+  REWARDS_MONEY_API_URL: {
+    DEV: 'https://rewards-money.dev-api.cx.metamask.io',
+    UAT: 'https://rewards-money.uat-api.cx.metamask.io',
+    PRD: 'https://rewards-money.api.cx.metamask.io',
   },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',

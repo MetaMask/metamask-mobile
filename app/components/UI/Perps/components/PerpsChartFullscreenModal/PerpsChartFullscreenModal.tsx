@@ -8,14 +8,12 @@ import React, {
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStyles } from '../../../../../component-library/hooks';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import TradingViewChart, {
   type TradingViewChartRef,
   type TPSLLines,
@@ -48,6 +46,8 @@ export interface PerpsChartFullscreenModalProps {
   visibleCandleCount?: number;
   onClose: () => void;
   onIntervalChange: (interval: CandlePeriod) => void;
+  /** Persist pinch-zoom candle count from the fullscreen chart. */
+  onVisibleCandleCountChange?: (count: number) => void;
   /** When true, renders PerpsAdvancedChart instead of TradingViewChart. */
   isAdvancedChartEnabled?: boolean;
   /** Market symbol — required when isAdvancedChartEnabled is true. */
@@ -68,6 +68,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   visibleCandleCount,
   onClose,
   onIntervalChange,
+  onVisibleCandleCountChange,
   isAdvancedChartEnabled,
   symbol,
   positionSize,
@@ -257,8 +258,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             />
             <ButtonIcon
               iconName={IconName.Close}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
+              size={ButtonIconSize.Md}
               onPress={handleClose}
               accessibilityLabel="Close"
               testID="perps-chart-fullscreen-close-button"
@@ -329,6 +329,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 onCrosshairDataChange={setOhlcData}
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 fallbackCandleData={candleData ?? null}
                 fallbackFetchMoreHistory={fallbackFetchMoreHistory}
               />
@@ -347,6 +348,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 showOverlay={false}
                 coloredVolume
                 onOhlcDataChange={setOhlcData}
+                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 testID="fullscreen-chart"
               />
             )}

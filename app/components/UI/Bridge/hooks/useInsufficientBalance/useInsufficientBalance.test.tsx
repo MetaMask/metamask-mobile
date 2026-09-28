@@ -45,7 +45,7 @@ const createMockStore = (
     ),
   );
   const rootReducer = (state = initialState) => state;
-  return createStore(rootReducer, initialState);
+  return createStore(rootReducer as never);
 };
 
 // Helper to wrap hook with provider

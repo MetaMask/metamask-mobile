@@ -39,6 +39,11 @@ const BASE_ASSETS_FLAGS = [
     ],
   },
   {
+    // `assetsUnifyState.useUnlockCleanup` is still read directly by the
+    // patched `@metamask/assets-controller` package (see
+    // `.yarn/patches/@metamask-assets-controller-*.patch`), independent of
+    // the app-side `assetsUnifyState` selector which has been removed.
+    // Keep this mock so `useUnlockCleanup`-gated E2E tests keep working.
     assetsUnifyState: {
       versions: {
         '8.3.0': {
@@ -826,9 +831,6 @@ const BASE_MONEY_ACCOUNT_FLAGS = [
     moneyAccountWithdrawalSlippageTolerance: {
       slippageBps: 0,
     },
-  },
-  {
-    moneyActivityMockDataEnabled: false,
   },
   {
     moneyEnableActivityDetails: {

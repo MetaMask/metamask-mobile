@@ -43,6 +43,7 @@ import {
 } from './MultichainAccountSelectorList.constants';
 import {
   createMockAccountGroup,
+  createMockHiddenAccountGroup,
   createMockWallet,
   createMockEntropyWallet,
   createMockState,
@@ -197,6 +198,34 @@ describe('MultichainAccountSelectorList', () => {
     expect(getByText('Wallet 2')).toBeTruthy();
   });
 
+  it('excludes hidden account groups from the default selector list', () => {
+    const visibleAccount = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Visible Account',
+    );
+    const hiddenAccount = createMockHiddenAccountGroup(
+      'keyring:wallet1/group2',
+      'Hidden Account',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+      visibleAccount,
+      hiddenAccount,
+    ]);
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      visibleAccount,
+      hiddenAccount,
+    ]);
+
+    const { getByText, queryByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
+
+    expect(getByText('Visible Account')).toBeTruthy();
+    expect(queryByText('Hidden Account')).toBeNull();
+  });
+
   it('renders the search field by default', () => {
     const account1 = createMockAccountGroup(
       'keyring:wallet1/group1',
@@ -214,6 +243,59 @@ describe('MultichainAccountSelectorList', () => {
     expect(
       queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
     ).toBeOnTheScreen();
+  });
+
+  it('reports when the search field takes focus', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+    const onSearchFocus = jest.fn();
+
+    const { getByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { onSearchFocus },
+    );
+    fireEvent(
+      getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+      'focus',
+    );
+
+    expect(onSearchFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a settled query once the debounce lands, not on every keystroke', async () => {
+    jest.useFakeTimers();
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+    const onSearchSettled = jest.fn();
+
+    const { getByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { onSearchSettled },
+    );
+    const input = getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID);
+    fireEvent.changeText(input, 'Ac');
+    fireEvent.changeText(input, 'Acc ');
+    expect(onSearchSettled).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(onSearchSettled).toHaveBeenCalledTimes(1);
+    expect(onSearchSettled).toHaveBeenCalledWith('Acc');
+    jest.useRealTimers();
   });
 
   it('hides the search field when hideSearch is set, keeping the accounts', () => {

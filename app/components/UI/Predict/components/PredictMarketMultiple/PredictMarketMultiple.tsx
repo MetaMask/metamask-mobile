@@ -3,6 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -51,7 +52,6 @@ interface PredictMarketMultipleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -64,7 +64,6 @@ interface PredictMarketMultipleProps {
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
-  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
@@ -139,11 +138,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     outcome: PredictOutcome,
     outcomeToken: PredictOutcomeToken,
   ) => {
-    const handledExternally =
-      onBuyButtonPress?.({ market, outcome, outcomeToken }) === true;
-    if (handledExternally) {
-      return;
-    }
+    onBuyButtonPress?.({ market, outcome, outcomeToken });
 
     executeGuardedAction(
       () => {
@@ -174,10 +169,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        if (cardPressDisabled) {
-          return;
-        }
-
         onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
@@ -222,10 +213,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   isCarousel ? TextVariant.BodyMd : TextVariant.HeadingSm
                 }
                 color={TextColor.TextDefault}
+                fontWeight={FontWeight.Medium}
                 style={tw.style(
-                  isCarousel
-                    ? 'font-medium leading-[20px]'
-                    : 'font-medium leading-[24px]',
+                  isCarousel ? 'leading-[20px]' : 'leading-[24px]',
                 )}
                 numberOfLines={isCarousel ? 2 : undefined}
               >
@@ -246,9 +236,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Medium}
                     numberOfLines={1}
                     style={tw.style(
-                      'font-medium',
                       isCarousel ? 'leading-[16px]' : 'leading-[18px]',
                     )}
                   >
@@ -260,7 +250,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="font-medium"
+                    fontWeight={FontWeight.Medium}
                   >
                     {getOutcomePercentage(
                       outcome.tokens.map((token) => token.price),
@@ -280,7 +270,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         variant={
                           isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }
-                        style={tw.style('font-medium')}
+                        fontWeight={FontWeight.Medium}
                         color={TextColor.SuccessDefault}
                         numberOfLines={1}
                         ellipsizeMode="clip"
@@ -300,7 +290,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                         variant={
                           isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }
-                        style={tw.style('font-medium')}
+                        fontWeight={FontWeight.Medium}
                         color={TextColor.ErrorDefault}
                         numberOfLines={1}
                         ellipsizeMode="clip"
@@ -326,6 +316,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
             numberOfLines={1}
             style={tw.style('flex-shrink min-w-0')}
           >
@@ -345,6 +336,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
               numberOfLines={1}
               style={tw.style('flex-shrink min-w-0')}
             >
@@ -365,6 +357,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
                   numberOfLines={1}
                   style={tw.style('flex-shrink min-w-0')}
                 >

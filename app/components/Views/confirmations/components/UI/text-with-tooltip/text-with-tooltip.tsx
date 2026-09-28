@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
-import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
-
-import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
+import React, { useCallback, useRef, useState } from 'react';
 import {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Modal,
+  StyleProp,
+  TextStyle,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import { useStyles } from '../../../../../../component-library/hooks';
-import BottomModal from '../bottom-modal';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
+  Box,
+  Text,
+  TextProps,
+} from '@metamask/design-system-react-native';
 import styleSheet from './text-with-tooltip.styles';
-import { Text, TextProps } from '@metamask/design-system-react-native';
 interface TextWithTooltipProps {
   ellipsizeMode?: TextProps['ellipsizeMode'];
   label: string;
@@ -31,7 +37,16 @@ const TextWithTooltip = ({
   tooltipTestId,
 }: TextWithTooltipProps) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setTooltipVisible(false);
+  }, []);
 
   return (
     <View>
@@ -45,24 +60,33 @@ const TextWithTooltip = ({
         </Text>
       </TouchableOpacity>
       {isTooltipVisible && (
-        <BottomModal onClose={() => setTooltipVisible(false)}>
-          <View style={styles.container}>
-            <View style={styles.tooltipHeader}>
-              <ButtonIcon
-                style={styles.backIcon}
-                iconColor={IconColor.Default}
-                size={ButtonIconSizes.Sm}
-                onPress={() => setTooltipVisible(false)}
-                iconName={IconName.ArrowLeft}
-                testID={tooltipTestId ?? 'tooltipTestId'}
-              />
-              <Text style={styles.text}>{label}</Text>
-            </View>
-            <View style={styles.tooltipContext}>
-              <Text style={styles.text}>{tooltip}</Text>
-            </View>
-          </View>
-        </BottomModal>
+        <Modal
+          visible
+          animationType="none"
+          transparent
+          presentationStyle="overFullScreen"
+          onRequestClose={handleRequestClose}
+        >
+          <BottomSheet
+            ref={bottomSheetRef}
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
+          >
+            <BottomSheetHeader
+              onClose={handleRequestClose}
+              closeButtonProps={{
+                testID: tooltipTestId ?? 'tooltipTestId',
+              }}
+            >
+              {label}
+            </BottomSheetHeader>
+            <Box twClassName="flex flex-col">
+              <View style={styles.tooltipContext}>
+                <Text style={styles.text}>{tooltip}</Text>
+              </View>
+            </Box>
+          </BottomSheet>
+        </Modal>
       )}
     </View>
   );

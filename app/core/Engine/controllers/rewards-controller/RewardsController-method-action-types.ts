@@ -780,16 +780,6 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 };
 
 /**
- * Fetch the visible first predict on us content from the public API.
- * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
- */
-export type RewardsControllerGetFirstPredictOnUsAction = {
-  type: `RewardsController:getFirstPredictOnUs`;
-  handler: RewardsController['getFirstPredictOnUs'];
-};
-
-/**
  * Invalidate referral details cache for a subscription
  * @param subscriptionId - The subscription ID to invalidate cache for
  */
@@ -861,6 +851,17 @@ export type RewardsControllerGetMoneyAccountSweepstakesStatsMeAction = {
 export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
   type: `RewardsController:getMoneyAccountSweepstakesPrizePool`;
   handler: RewardsController['getMoneyAccountSweepstakesPrizePool'];
+};
+
+/**
+ * Fetch the Money Account Sweepstakes aggregate volume stats.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The volume stats DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsController['getMoneyAccountSweepstakesVolumeStats'];
 };
 
 /**
@@ -1023,7 +1024,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
-  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
@@ -1033,6 +1033,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPrizePoolAction
   | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
   | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction

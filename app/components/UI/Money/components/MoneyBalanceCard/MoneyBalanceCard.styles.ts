@@ -3,9 +3,10 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     container: {
-      height: 82,
+      minHeight: 82,
       borderRadius: 12,
       paddingHorizontal: 16,
+      paddingVertical: 16,
       marginHorizontal: 16,
     },
   });

@@ -2,9 +2,12 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   SHEET: 'recurring-confirm-order-sheet',
   CLOSE_BUTTON: 'recurring-confirm-order-sheet-close',
   CONFIRM_BUTTON: 'recurring-confirm-order-sheet-confirm',
+  LOCAL_CURRENCY_NOTICE: 'recurring-confirm-local-currency-notice',
   PAYING_ALL_ORDERS: 'recurring-confirm-paying-all-orders',
   PAYING_PER_ORDER: 'recurring-confirm-paying-per-order',
   RECEIVING: 'recurring-confirm-receiving',
+  PRICE_RANGE: 'recurring-confirm-price-range',
+  PRICE_RANGE_TOKEN: 'recurring-confirm-price-range-token',
   EST_RECEIVING_PER_ORDER: 'recurring-confirm-est-receiving-per-order',
   EST_RECEIVING_PER_ORDER_SKELETON:
     'recurring-confirm-est-receiving-per-order-skeleton',
@@ -16,5 +19,9 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   SLIPPAGE_EDIT: 'recurring-confirm-slippage-edit',
   NETWORK_FEE: 'recurring-confirm-network-fee',
   NETWORK_FEE_SKELETON: 'recurring-confirm-network-fee-skeleton',
+  DELEGATION_FEE: 'recurring-confirm-delegation-fee',
+  DELEGATION_FEE_SKELETON: 'recurring-confirm-delegation-fee-skeleton',
+  DELEGATION_FEE_INFO: 'recurring-confirm-delegation-fee-info',
+  DELEGATION_FEE_TOKEN: 'recurring-confirm-delegation-fee-token',
   FEE_DISCLAIMER: 'recurring-confirm-fee-disclaimer',
 } as const;
