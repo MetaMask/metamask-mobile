@@ -45,6 +45,8 @@ import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
@@ -114,9 +116,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         | 'both'
         | 'buy'
         | 'swap'
-        | 'swap_earn'
-        | 'earn_buy'
-        | 'earn'
+        | 'money_swap'
+        | 'money'
         | 'buy_sell'
         | undefined;
     }) => {
@@ -196,15 +197,7 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (
-    shown:
-      | 'both'
-      | 'buy'
-      | 'swap'
-      | 'swap_earn'
-      | 'earn_buy'
-      | 'earn'
-      | 'buy_sell'
-      | null,
+    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | 'buy_sell' | null,
   ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
@@ -239,6 +232,10 @@ const TokenDetails: React.FC<{
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
+  const { variant: moneyFooterCtaVariant } = useABTest(
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+  );
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -419,8 +416,9 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyAssetOverviewCtas.isFooterCtaLoading ||
-    moneyAssetOverviewCtas.isFooterCtaVisible;
+    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
+    (moneyAssetOverviewCtas.isFooterCtaLoading ||
+      moneyAssetOverviewCtas.isFooterCtaVisible);
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -524,7 +522,7 @@ const TokenDetails: React.FC<{
     [caip19AssetId, isNativeToken, hasBalanceValue],
   );
 
-  const moneyEarnCta = useMemo(
+  const moneyDepositCta = useMemo(
     () =>
       isMoneyFooterCtaActive
         ? {
@@ -678,7 +676,7 @@ const TokenDetails: React.FC<{
         networkName={networkName}
         currentTokenBalance={balance}
         hasTokenBalance={hasBalanceValue}
-        moneyEarnCta={moneyEarnCta}
+        moneyDepositCta={moneyDepositCta}
         onStickyButtonsResolved={onStickyButtonsResolved}
         sourcePage="TokenDetailsView"
         useAmbientColor={useAmbientColor}
@@ -733,9 +731,8 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     | 'both'
     | 'buy'
     | 'swap'
-    | 'swap_earn'
-    | 'earn_buy'
-    | 'earn'
+    | 'money_swap'
+    | 'money'
     | 'buy_sell'
     | null
     | undefined

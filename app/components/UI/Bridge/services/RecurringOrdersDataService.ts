@@ -9,6 +9,7 @@ import type { Json } from '@metamask/utils';
 import {
   getRecurringOrders as fetchRecurringOrders,
   getRecurringSwaps as fetchRecurringSwaps,
+  cancelRecurringOrder as cancelRecurringOrderRequest,
 } from '../api/recurringOrders';
 import type {
   GetRecurringOrdersResponse,
@@ -40,9 +41,15 @@ export interface RecurringOrdersDataServiceGetRecurringSwapsAction {
   ) => Promise<GetRecurringSwapsResponse>;
 }
 
+export interface RecurringOrdersDataServiceCancelRecurringOrderAction {
+  type: 'RecurringOrdersDataService:cancelRecurringOrder';
+  handler: (orderId: string) => Promise<void>;
+}
+
 export type RecurringOrdersDataServiceActions =
   | RecurringOrdersDataServiceGetRecurringOrdersAction
   | RecurringOrdersDataServiceGetRecurringSwapsAction
+  | RecurringOrdersDataServiceCancelRecurringOrderAction
   | DataServiceInvalidateQueriesAction<
       typeof RECURRING_ORDERS_DATA_SERVICE_NAME
     >;
@@ -80,6 +87,10 @@ export class RecurringOrdersDataService extends BaseDataService<
     messenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringSwaps',
       this.getRecurringSwaps.bind(this),
+    );
+    messenger.registerActionHandler(
+      'RecurringOrdersDataService:cancelRecurringOrder',
+      this.cancelRecurringOrder.bind(this),
     );
   }
 
@@ -129,5 +140,9 @@ export class RecurringOrdersDataService extends BaseDataService<
       },
       cursor,
     );
+  }
+
+  async cancelRecurringOrder(orderId: string): Promise<void> {
+    await cancelRecurringOrderRequest(orderId);
   }
 }

@@ -16,23 +16,40 @@ import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsVi
 interface RecurringOrderCancelSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onSubmit: () => Promise<void>;
+  onSuccess: () => void;
+  isSubmitting: boolean;
 }
 
 export function RecurringOrderCancelSheet({
   isVisible,
   onClose,
-  onConfirm,
+  onSubmit,
+  onSuccess,
+  isSubmitting,
 }: RecurringOrderCancelSheetProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    if (isSubmitting) {
+      return;
+    }
 
-  const handleConfirm = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(onConfirm);
-  }, [onConfirm]);
+    sheetRef.current?.onCloseBottomSheet();
+  }, [isSubmitting]);
+
+  const handleConfirm = useCallback(async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    try {
+      await onSubmit();
+      sheetRef.current?.onCloseBottomSheet(onSuccess);
+    } catch {
+      // Keep the sheet open so the user can retry.
+    }
+  }, [isSubmitting, onSubmit, onSuccess]);
 
   if (!isVisible) {
     return null;
@@ -42,6 +59,7 @@ export function RecurringOrderCancelSheet({
     <BottomSheet
       ref={sheetRef}
       onClose={onClose}
+      isInteractable={!isSubmitting}
       testID={RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET}
     >
       <BottomSheetHeader
@@ -67,6 +85,8 @@ export function RecurringOrderCancelSheet({
           children: strings('bridge.recurring.confirm'),
           onPress: handleConfirm,
           size: ButtonSize.Lg,
+          isLoading: isSubmitting,
+          isDisabled: isSubmitting,
           isFullWidth: true,
           testID:
             RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,

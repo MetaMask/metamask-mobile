@@ -9,10 +9,10 @@ import type {
   PredictLiveDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictLiveDataService';
 import type {
-  PredictOrderPreviewServiceActions,
-  PredictOrderPreviewServiceEvents,
-  PredictOrderPreviewServiceMessenger,
-} from '../../../components/UI/PredictNext/services/PredictOrderPreviewService';
+  PredictOrderServiceActions,
+  PredictOrderServiceEvents,
+  PredictOrderServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictOrderService';
 import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
@@ -41,7 +41,7 @@ import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
-  predictOrderPreviewServiceInit,
+  predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
 
@@ -111,17 +111,16 @@ describe('Predict service initialization', () => {
     controller.destroy();
   });
 
-  it('registers authenticated Order Preview actions on the Engine root messenger', async () => {
+  it('registers authenticated Order actions on the Engine root messenger', async () => {
     const rootMessenger = new Messenger<
       MockAnyNamespace,
-      PredictOrderPreviewServiceActions,
-      PredictOrderPreviewServiceEvents
+      PredictOrderServiceActions,
+      PredictOrderServiceEvents
     >({ namespace: MOCK_ANY_NAMESPACE });
-    const controllerMessenger: PredictOrderPreviewServiceMessenger =
-      new Messenger({
-        namespace: 'PredictOrderPreviewService',
-        parent: rootMessenger,
-      });
+    const controllerMessenger: PredictOrderServiceMessenger = new Messenger({
+      namespace: 'PredictOrderService',
+      parent: rootMessenger,
+    });
     const call = jest.fn().mockResolvedValue('test-bearer-token');
     const request = {
       ...buildMessengerClientInitRequestMock(
@@ -130,10 +129,10 @@ describe('Predict service initialization', () => {
       controllerMessenger,
       initMessenger: { call } as never,
     };
-    const { controller } = predictOrderPreviewServiceInit(request);
+    const { controller } = predictOrderServiceInit(request);
 
     const result = rootMessenger.call(
-      'PredictOrderPreviewService:requestQuote',
+      'PredictOrderService:requestQuote',
       'kalshi' as never,
       { marketId: 'KXTEST-26-A', side: 'yes', amount: '20' } as never,
     );

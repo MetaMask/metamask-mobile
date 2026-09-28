@@ -55,6 +55,10 @@ import {
   clearRecurringOrdersDataServiceMock,
   setupRecurringOrdersDataServiceMock,
 } from '../../../../../../tests/component-view/api-mocking/recurringOrders';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/limitOrders';
 import { merge } from 'lodash';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -112,6 +116,7 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock();
     // testSetup.js mocks Date.now to always return 123, which breaks lodash debounce
     // (timeSinceLastCall = 123 - 123 = 0 never reaches the wait threshold).
     // Restore it to a real implementation so debounce-based tests work correctly.
@@ -120,6 +125,7 @@ describeForPlatforms('BridgeView', () => {
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    clearLimitOrdersDataServiceMock();
     jest.restoreAllMocks();
   });
 

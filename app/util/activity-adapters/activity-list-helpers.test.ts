@@ -197,13 +197,6 @@ describe('activity list helpers', () => {
           to: '0xeoa',
           token: { direction: 'in', symbol: 'mUSD' },
         },
-        raw: {
-          type: 'localTransaction',
-          data: {
-            initialTransaction: transaction,
-            primaryTransaction: transaction,
-          },
-        } as never,
       });
       const api = makeItem({
         type: 'receive',
@@ -237,7 +230,12 @@ describe('activity list helpers', () => {
     it('prefers a local unlimited approval over an API copy with no cap amount', () => {
       const local = makeItem({
         type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+        data: {
+          token: {
+            amount: String(1e15),
+            direction: 'out',
+          },
+        },
       });
       const api = makeItem({
         type: 'increaseSpendingCap',
@@ -381,9 +379,9 @@ describe('activity list helpers', () => {
     const item = makeItem({
       data: {
         token: {
-          amount: '115792089237316195423570985.639935',
+          amount:
+            '115792089237316195423570985008687907853269984665640564039457584007913129639935',
           direction: 'out',
-          isUnlimitedApproval: true,
           symbol: 'USDT',
         },
       },

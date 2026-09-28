@@ -85,6 +85,12 @@ e2e_test_or_ignorable:
 e2e_spec_files:
   - '**/*.spec.{ts,js}'
 
+# Smart E2E contract tests only run when the mode/action changes. The analyzer
+# pin lives in the action, so analyzer version bumps are included here too.
+smart_e2e_contracts:
+  - '.ai-pr-analyzer/modes/smart-e2e/**'
+  - '.github/actions/smart-e2e-selection/**'
+
 e2e_relevant_workflows:
   - '.github/workflows/ci.yml'
   - '.github/workflows/get-requirements.yml'

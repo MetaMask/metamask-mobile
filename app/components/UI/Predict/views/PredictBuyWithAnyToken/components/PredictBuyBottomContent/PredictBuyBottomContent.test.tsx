@@ -48,7 +48,10 @@ describe('PredictBuyBottomContent', () => {
         <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
-      expect(screen.getByText(/Disclaimer text/)).toBeOnTheScreen();
+      const disclaimer = screen.getByText(/Disclaimer text/);
+
+      expect(disclaimer).toBeOnTheScreen();
+      expect(disclaimer).toHaveStyle({ textAlign: 'center' });
     });
 
     it('renders learn more link', () => {
