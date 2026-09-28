@@ -58,9 +58,10 @@ export interface OpenLimitOrderDetailsModalProps {
   triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
    * Fired when the cancel order button is pressed. The host opens the cancel
-   * order sheet from here.
+   * order sheet from here. Without it, the button is not shown, e.g. for an
+   * order the API reports as not cancellable.
    */
-  onCancelOrder: () => void;
+  onCancelOrder?: () => void;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */

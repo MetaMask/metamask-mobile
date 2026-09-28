@@ -1,3 +1,4 @@
+import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
@@ -11,11 +12,7 @@ import {
 import type { BridgeToken } from '../types';
 import { formatTokenBalance } from '.';
 import { formatCurrency } from './currencyUtils';
-import {
-  formatPriceRangeLabel,
-  PRICE_RANGE_CURRENCY,
-  PRICE_RANGE_MISSING_VALUE,
-} from './priceRange';
+import { formatPriceRangeLabel, PRICE_RANGE_MISSING_VALUE } from './priceRange';
 import { convertApiTokenToBridgeToken } from './tokenUtils';
 
 export function getRecurringOrderTokens(order: RecurringOrder): {
@@ -124,17 +121,39 @@ export function getUsdToCurrentCurrencyRate({
 
 export function formatRecurringPriceRange({
   priceRange,
+  currentCurrency,
+  usdToCurrentCurrencyRate,
 }: {
   priceRange?: RecurringPriceRange;
+  currentCurrency: string;
+  usdToCurrentCurrencyRate?: number;
 }): string {
-  if (!priceRange) {
+  if (
+    !priceRange ||
+    usdToCurrentCurrencyRate === undefined ||
+    !Number.isFinite(usdToCurrentCurrencyRate) ||
+    usdToCurrentCurrencyRate <= 0
+  ) {
     return PRICE_RANGE_MISSING_VALUE;
   }
 
+  const convertBound = (bound: string | undefined): string => {
+    if (!bound) {
+      return '';
+    }
+
+    const value = new BigNumber(bound);
+    if (!value.isFinite() || value.lte(0)) {
+      return '';
+    }
+
+    return value.multipliedBy(usdToCurrentCurrencyRate).toFixed();
+  };
+
   return formatPriceRangeLabel(
-    priceRange.min ?? '',
-    priceRange.max ?? '',
-    PRICE_RANGE_CURRENCY,
+    convertBound(priceRange.min),
+    convertBound(priceRange.max),
+    currentCurrency,
   );
 }
 
