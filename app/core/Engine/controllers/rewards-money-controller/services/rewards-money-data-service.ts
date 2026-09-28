@@ -8,6 +8,7 @@ import type {
   EarningOriginType,
   EarningsLedgerPageDto,
   EarningsSummaryDto,
+  EarningsSummaryQuery,
   OwnReferralCodesDto,
   ReferralFunnelDto,
   ReferralMeDto,
@@ -386,8 +387,9 @@ export class RewardsMoneyDataService {
 
   async getEarningsSummary(
     originTypes?: EarningOriginType[],
+    request?: EarningsSummaryQuery,
   ): Promise<EarningsSummaryDto> {
-    const query = buildOriginTypeQuery(originTypes);
+    const query = buildEarningsSummaryQuery(originTypes, request);
     const response = await this.#makeRequest(`/earnings/summary${query}`, {
       method: 'GET',
     });
@@ -581,4 +583,29 @@ export function buildOriginTypeQuery(
     params.append('earning_origin_type', originType);
   }
   return `?${params.toString()}`;
+}
+
+/**
+ * Summary query. Omits `include_claimable` unless it is false, so the default
+ * call stays the URL the heroes already send and the server keeps its default.
+ */
+export function buildEarningsSummaryQuery(
+  originTypes?: EarningOriginType[],
+  request?: EarningsSummaryQuery,
+): string {
+  const params = new URLSearchParams();
+  for (const originType of originTypes ?? []) {
+    params.append('earning_origin_type', originType);
+  }
+  if (request?.from) {
+    params.append('from', request.from);
+  }
+  if (request?.to) {
+    params.append('to', request.to);
+  }
+  if (request?.includeClaimable === false) {
+    params.append('include_claimable', 'false');
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
 }

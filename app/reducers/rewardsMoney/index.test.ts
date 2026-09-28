@@ -8,6 +8,7 @@ import rewardsMoneyReducer, {
   resetRewardsMoneyState,
   setCashbackLedger,
   setCommissions,
+  setEarningsHistory,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
@@ -82,6 +83,7 @@ describe('rewardsMoneyReducer', () => {
       referralFunnel: {},
       commissions: {},
       cashbackLedger: {},
+      earningsHistory: {},
     });
   });
 
@@ -92,6 +94,7 @@ describe('rewardsMoneyReducer', () => {
       referralFunnel: {},
       commissions: {},
       cashbackLedger: {},
+      earningsHistory: {},
     });
   });
 
@@ -268,6 +271,7 @@ describe('rewardsMoneyReducer', () => {
         referralFunnel: {},
         commissions: {},
         cashbackLedger: {},
+        earningsHistory: {},
       });
     });
   });
@@ -335,6 +339,44 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.cashbackLedger[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches unified earnings history by profile', () => {
+      const items = [
+        {
+          type: 'earning' as const,
+          id: 'earn-1',
+          earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+          musd_amount: '1000000',
+          fee_amount_usd: '1',
+          entry_count: 1,
+          transaction_hash: null,
+          chain_id: null,
+          ledger_timestamp: '2026-09-01T00:00:00.000Z',
+          claim_status: 'unclaimed',
+          claim_expires_at: null,
+          swaps_source: null,
+          perps_source: null,
+        },
+        {
+          type: 'claim' as const,
+          id: 'claim-1',
+          route: 'REFERRAL_TRADE_FEE_CASHBACK',
+          gross_amount: '1000000',
+          net_amount: '1000000',
+          withholding_rate_bps: 0,
+          status: 'SETTLED',
+          ledger_timestamp: '2026-09-02T00:00:00.000Z',
+          settled_at: '2026-09-02T00:00:00.000Z',
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setEarningsHistory({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.earningsHistory[PROFILE_A]).toEqual(items);
     });
   });
 });

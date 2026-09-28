@@ -3,6 +3,7 @@ import type {
   CommissionEntryView,
   EarningsSummaryDto,
   LedgerEarningEntryDto,
+  LedgerEntryDto,
   ReferralFunnelDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -27,6 +28,11 @@ export interface RewardsMoneyState {
   commissions: Record<string, CommissionEntryView[]>;
   /** First page of self-earned cashback ledger rows, keyed by Hydra profile id. */
   cashbackLedger: Record<string, LedgerEarningEntryDto[]>;
+  /**
+   * First page of the unified earnings ledger (accruals and settled claims),
+   * keyed by Hydra profile id.
+   */
+  earningsHistory: Record<string, LedgerEntryDto[]>;
 }
 
 export const initialState: RewardsMoneyState = {
@@ -35,6 +41,7 @@ export const initialState: RewardsMoneyState = {
   referralFunnel: {},
   commissions: {},
   cashbackLedger: {},
+  earningsHistory: {},
 };
 
 function getOrCreateEntry<TData>(
@@ -171,6 +178,15 @@ const rewardsMoneySlice = createSlice({
     ) => {
       state.cashbackLedger[action.payload.profileId] = action.payload.items;
     },
+    setEarningsHistory: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        items: LedgerEntryDto[];
+      }>,
+    ) => {
+      state.earningsHistory[action.payload.profileId] = action.payload.items;
+    },
     resetRewardsMoneyState: () => initialState,
   },
 });
@@ -187,6 +203,7 @@ export const {
   setReferralFunnel,
   setCommissions,
   setCashbackLedger,
+  setEarningsHistory,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 
