@@ -23,6 +23,7 @@ import {
 } from './screens/Benefits/Benefits.constants';
 import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
+import { PRO_DEMO_MODE, setProDemoSubscriber } from '../shared/pro/proDemo';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
@@ -69,6 +70,11 @@ const ProSubscription = () => {
   const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
     setCheckoutPlan(plan);
     setCurrentScreen('success');
+    // DEMO ONLY: treat the CTA as a completed checkout so the Money header
+    // reads `Pro` and routes to Pro Hub for the rest of the session.
+    if (PRO_DEMO_MODE) {
+      setProDemoSubscriber(true);
+    }
   }, []);
 
   const handleSubscriptionOnSuccess = useCallback(() => {

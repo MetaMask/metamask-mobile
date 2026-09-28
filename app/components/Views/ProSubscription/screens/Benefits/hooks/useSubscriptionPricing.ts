@@ -12,6 +12,10 @@ import {
   PLUS_PRICING_STATUS,
   type MoneyAccountPlusPricingView,
 } from '../utils/mapMoneyAccountPlusPricing';
+import {
+  PRO_DEMO_MODE,
+  PRO_DEMO_PRICING,
+} from '../../../../shared/pro/proDemo';
 
 export interface UseSubscriptionPricingResult {
   plusPricing: MoneyAccountPlusPricingView;
@@ -58,7 +62,8 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
     refetch,
   } = useQuery<PricingResponse>({
     queryKey: SUBSCRIPTION_PRICING_QUERY_KEY,
-    enabled: isUnlocked,
+    // DEMO ONLY: skip the pricing API entirely so the CTA is never blocked.
+    enabled: isUnlocked && !PRO_DEMO_MODE,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -73,7 +78,15 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
     Logger.error(loggedError, PRICING_ERROR_LOG_OPTIONS);
   }, [error]);
 
-  const plusPricing = useMemo(() => mapMoneyAccountPlusPricing(data), [data]);
+  const plusPricing = useMemo(() => {
+    const mapped = mapMoneyAccountPlusPricing(data);
+    // DEMO ONLY: fall back to canned pricing whenever the real response is
+    // missing or unusable so both plan cards always render.
+    if (PRO_DEMO_MODE && mapped.status !== PLUS_PRICING_STATUS.ready) {
+      return mapMoneyAccountPlusPricing(PRO_DEMO_PRICING);
+    }
+    return mapped;
+  }, [data]);
 
   // isLoading only covers the first fetch, so a retry after a failed or empty
   // result would leave the error banner on screen with no in-flight state.
@@ -86,6 +99,10 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   const retry = useCallback(() => {
     refetch().catch(() => undefined);
   }, [refetch]);
+
+  if (PRO_DEMO_MODE) {
+    return { plusPricing, isLoading: false, hasError: false, retry };
+  }
 
   return {
     plusPricing,

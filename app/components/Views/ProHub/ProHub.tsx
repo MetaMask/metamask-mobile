@@ -32,10 +32,12 @@ import {
   MEMBERSHIP_BANNER_STATES,
   MOCK_MEMBERSHIP_BANNER_KIND,
   MOCK_PRO_HUB_STATS,
-  type MembershipBannerState,
+  type MembershipBannerKind,
 } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
+import ProDemoBannerSwitcher from './components/ProDemoBannerSwitcher';
+import { PRO_DEMO_MODE } from '../shared/pro/proDemo';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -89,9 +91,9 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const [membershipBannerState] = useState<MembershipBannerState>(
-    MEMBERSHIP_BANNER_STATES[MOCK_MEMBERSHIP_BANNER_KIND],
-  );
+  const [membershipBannerKind, setMembershipBannerKind] =
+    useState<MembershipBannerKind>(MOCK_MEMBERSHIP_BANNER_KIND);
+  const membershipBannerState = MEMBERSHIP_BANNER_STATES[membershipBannerKind];
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -143,6 +145,12 @@ const ProHub = () => {
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="w-full mb-4 gap-y-4">
+          {PRO_DEMO_MODE ? (
+            <ProDemoBannerSwitcher
+              selectedKind={membershipBannerKind}
+              onSelect={setMembershipBannerKind}
+            />
+          ) : null}
           <MembershipBanner
             testID={ProHubTestIds.MEMBERSHIP_BANNER}
             state={membershipBannerState}
