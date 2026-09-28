@@ -50,7 +50,19 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const tw = useTailwind();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
+  const optionsTarget = useMemo(
+    () => ({
+      postId: post.id,
+      authorId: post.item.author.id,
+      authorHandle: post.authorHandle,
+    }),
+    [post.authorHandle, post.id, post.item.author.id],
+  );
+  const {
+    open: openOptions,
+    sheet: optionsSheet,
+    isHidden,
+  } = useSocialEntryOptions(optionsTarget);
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -84,6 +96,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({ post }) => {
   const author = post.item.author;
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
   const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <Box

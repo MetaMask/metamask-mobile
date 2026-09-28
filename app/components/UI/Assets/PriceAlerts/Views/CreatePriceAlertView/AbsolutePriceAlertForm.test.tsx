@@ -663,4 +663,29 @@ describe('AbsolutePriceAlertForm', () => {
       );
     });
   });
+
+  it('pre-fills BTC with integer keypad precision when szDecimals is 5', () => {
+    const screen = renderForm({
+      currentPrice: 83714,
+      szDecimals: 5,
+      displayTicker: 'BTC',
+      marketId: 'btc-hyperliquid-mainnet',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$83,714');
+  });
+
+  it('allows 6 keypad decimal places when szDecimals is 0', () => {
+    const screen = renderForm({
+      currentPrice: 0.008764,
+      szDecimals: 0,
+      displayTicker: 'kPEPE',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$0.008764');
+  });
 });

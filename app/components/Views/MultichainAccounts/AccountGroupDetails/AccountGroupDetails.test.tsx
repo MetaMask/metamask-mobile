@@ -1,6 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { BackHandler, NativeEventSubscription } from 'react-native';
+import {
+  BackHandler,
+  HardwareBackPressEvent,
+  NativeEventSubscription,
+} from 'react-native';
 import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
@@ -194,7 +198,9 @@ describe('AccountGroupDetails', () => {
       .mockImplementation(
         (
           event: 'hardwareBackPress',
-          _handler: () => boolean | null | undefined,
+          _handler: (
+            event: HardwareBackPressEvent,
+          ) => boolean | null | undefined,
         ): NativeEventSubscription => {
           expect(event).toBe('hardwareBackPress');
           return { remove: removeMock } as unknown as NativeEventSubscription;

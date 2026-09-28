@@ -1,21 +1,9 @@
 import { removeEvmToken } from './removeEvmToken';
-import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { TokenI } from '../types';
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      ignoreTokens: jest.fn(),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(() => 'mockNetworkClientId'),
-    },
-  },
-}));
 
 jest.mock('../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
@@ -55,14 +43,8 @@ describe('removeEvmToken', () => {
     jest.clearAllMocks();
   });
 
-  it('should remove token and track event', async () => {
+  it('should show a notification and track event', async () => {
     await removeEvmToken(mockProps);
-
-    // Check if token is ignored
-    expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
-      [mockToken.address],
-      'mockNetworkClientId',
-    );
 
     // Check if notification is shown
     expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
@@ -76,10 +58,12 @@ describe('removeEvmToken', () => {
     expect(mockProps.trackEvent).toHaveBeenCalledWith('mockEvent');
   });
 
-  it('should log an error if removing the token fails', async () => {
+  it('should log an error if showing the notification fails', async () => {
     (
-      Engine.context.TokensController.ignoreTokens as jest.Mock
-    ).mockRejectedValue(new Error('Failed to ignore token'));
+      NotificationManager.showSimpleNotification as jest.Mock
+    ).mockImplementation(() => {
+      throw new Error('Failed to show notification');
+    });
 
     await removeEvmToken(mockProps);
 
