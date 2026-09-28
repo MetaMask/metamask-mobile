@@ -347,6 +347,44 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.asset.symbol).toBe('PEPE');
     });
+
+    it('carries a token name that differs from the ticker', () => {
+      const row = buildRow(mockSpotFeedItem());
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.name).toBe('Pepe');
+    });
+
+    it('omits the asset name when it repeats the ticker', () => {
+      const row = buildRow(mockSpotFeedItem({ tokenName: 'PEPE' }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.name).toBeUndefined();
+    });
+
+    it('omits a perp name that is a raw market id', () => {
+      const row = buildRow(
+        mockPerpFeedItem({ tokenSymbol: 'ETH', tokenName: 'xyz:ETH' }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('ETH');
+      expect(result.asset.name).toBeUndefined();
+    });
+
+    it('carries a perp name that is not a market id', () => {
+      const row = buildRow(
+        mockPerpFeedItem({ tokenSymbol: 'xyz:NVDA', tokenName: 'NVIDIA' }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.asset.symbol).toBe('NVDA');
+      expect(result.asset.name).toBe('NVIDIA');
+    });
   });
 
   describe('mocked fields', () => {

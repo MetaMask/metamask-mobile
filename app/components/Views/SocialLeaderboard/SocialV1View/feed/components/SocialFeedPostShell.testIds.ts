@@ -8,4 +8,6 @@ export const SocialFeedPostShellSelectorsIDs = {
   VERIFIED_BADGE: 'social-v1-feed-post-verified',
   COHORT: 'social-v1-feed-post-cohort',
   TRADER_STAT: 'social-v1-feed-post-trader-stat',
+  MORE: 'social-v1-feed-post-more',
+  TIMESTAMP: 'social-v1-feed-post-timestamp',
 } as const;

@@ -1,6 +1,12 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { BackHandler, Pressable, StyleSheet, Text } from 'react-native';
+import {
+  BackHandler,
+  Pressable,
+  StyleSheet,
+  Text,
+  type HardwareBackPressEvent,
+} from 'react-native';
 import PerpsTradeBottomSheet, {
   PerpsTradeSheetTitleBanner,
   type PerpsTradeSheetScreen,
@@ -9,7 +15,9 @@ import PerpsTradeBottomSheet, {
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 let openCallback: (() => void) | undefined;
-let hardwareBackHandler: (() => boolean | null | undefined) | undefined;
+let hardwareBackHandler:
+  | ((event: HardwareBackPressEvent) => boolean | null | undefined)
+  | undefined;
 const mockCloseBottomSheet = jest.fn();
 let mockDeferSheetClose = false;
 const tradeSheetConfig = {
@@ -176,7 +184,7 @@ describe('PerpsTradeBottomSheet', () => {
     act(() => openCallback?.());
     fireEvent.press(screen.getByTestId('open-leverage'));
     act(() => {
-      expect(hardwareBackHandler?.()).toBe(true);
+      expect(hardwareBackHandler?.({} as HardwareBackPressEvent)).toBe(true);
     });
 
     expect(screen.getByText('Trade')).toBeOnTheScreen();

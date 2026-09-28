@@ -5,9 +5,12 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -15,6 +18,8 @@ import {
 import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useSocialEntryOptions } from '../../components/SocialEntryOptionsBottomSheet';
+import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
@@ -64,6 +69,8 @@ export interface FeedItemRowProps {
    * feed payload is unchanged. Defaults to `Date.now()`.
    */
   now?: number;
+  /** When true, shows the overflow menu that currently only offers Report. */
+  showOptionsMenu?: boolean;
 }
 
 /**
@@ -79,7 +86,9 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   showTradeButton = true,
   usePositionCardChrome = false,
   now,
+  showOptionsMenu = false,
 }) => {
+  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
@@ -169,6 +178,17 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
             {strings('social_leaderboard.feed.trade')}
           </Button>
         ) : null}
+        {showOptionsMenu ? (
+          <ButtonIcon
+            iconName={IconName.MoreHorizontal}
+            size={ButtonIconSize.Md}
+            onPress={openOptions}
+            accessibilityLabel={strings(
+              'social_leaderboard.entry_options.title',
+            )}
+            testID={getSocialEntryOptionsTriggerTestId(item.id)}
+          />
+        ) : null}
       </Box>
 
       <Pressable
@@ -256,6 +276,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           ) : null}
         </Box>
       </Pressable>
+      {showOptionsMenu ? optionsSheet : null}
     </Box>
   );
 };
