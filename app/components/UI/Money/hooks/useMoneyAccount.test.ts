@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { providerErrors } from '@metamask/rpc-errors';
+import { TransactionType } from '@metamask/transaction-controller';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { useSelector } from 'react-redux';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -36,6 +37,7 @@ import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmatio
 
 jest.mock('react-redux');
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 jest.mock('../../../../util/errorHandling/isUserRejectedError', () => ({
@@ -67,6 +69,7 @@ jest.mock('../../../../core/NavigationService/NavigationService', () => ({
   default: {
     navigation: {
       getCurrentRoute: jest.fn(),
+      goBack: jest.fn(),
     },
   },
 }));
@@ -191,6 +194,8 @@ const mockDepositFailed = jest.fn();
 const mockWithdrawFailed = jest.fn();
 const MOCK_DEPOSIT_FAILED_TOAST = { type: 'deposit-failed' };
 const MOCK_WITHDRAW_FAILED_TOAST = { type: 'withdraw-failed' };
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  TransactionType.membershipSubscription;
 
 // 'key' in options is used instead of destructuring defaults so that
 // an explicit { vaultConfig: undefined } is treated as "use undefined",
@@ -356,11 +361,15 @@ describe('useMoneyAccountDeposit', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.AdvancedCustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      preferredPaymentToken: undefined,
+      amount: undefined,
       autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
       replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
     expect(
       getNavigateToConfirmation().mock.invocationCallOrder[0],
@@ -379,6 +388,31 @@ describe('useMoneyAccountDeposit', () => {
     );
   });
 
+  it('forwards explicit amount and uses prefill loader without balance prefill enabled', async () => {
+    mockDepositPrefillEnabled(false);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ amount: '5' });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: '5',
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.PrefillCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+    expect(mockBuildDepositBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: BigInt(0) }),
+    );
+  });
+
   it('passes launchedFrom to navigateToConfirmation so it can pick the landing screen', async () => {
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
@@ -388,8 +422,32 @@ describe('useMoneyAccountDeposit', () => {
       });
     });
 
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: 'rewards',
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('keeps a zero initial amount on the editable amount loader', async () => {
+    mockDepositPrefillEnabled(true);
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ amount: '0' });
+    });
+
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
-      expect.objectContaining({ launchedFrom: 'rewards' }),
+      expect.objectContaining({
+        amount: '0',
+        loader: ConfirmationLoader.AdvancedCustomAmount,
+      }),
     );
   });
 
@@ -401,11 +459,15 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.AdvancedCustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      preferredPaymentToken: undefined,
+      amount: undefined,
       autoSelectFiatPayment: true,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
       replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
   });
 
@@ -433,11 +495,15 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.PrefillCustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      preferredPaymentToken,
+      amount: undefined,
       autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.PrefillCustomAmount,
+      preferredPaymentToken,
       replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
@@ -453,12 +519,43 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
-      expect.objectContaining({
-        loader: ConfirmationLoader.PrefillCustomAmount,
-      }),
-    );
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.PrefillCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
   });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])(
+    'forwards %s through the explicit transactionType option',
+    async (transactionType) => {
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await act(async () => {
+        await result.current.initiateDeposit({
+          transactionType,
+        });
+      });
+
+      expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactions: [
+            expect.objectContaining({ type: 'tokenMethodApprove' }),
+            expect.objectContaining({ type: transactionType }),
+          ],
+        }),
+      );
+    },
+  );
 
   it('uses AdvancedCustomAmount loader when deposit prefill is disabled', async () => {
     mockDepositPrefillEnabled(false);
@@ -469,11 +566,17 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
-      expect.objectContaining({
-        loader: ConfirmationLoader.AdvancedCustomAmount,
-      }),
-    );
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
   });
 
   it('uses AdvancedCustomAmount loader for card intent even when prefill is enabled', async () => {
@@ -488,11 +591,17 @@ describe('useMoneyAccountDeposit', () => {
       });
     });
 
-    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
-      expect.objectContaining({
-        loader: ConfirmationLoader.AdvancedCustomAmount,
-      }),
-    );
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: true,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
   });
 
   it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
@@ -530,6 +639,52 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
+  });
+
+  it.each(['build', 'add'] as const)(
+    'targets the root modal on %s failure without going back in the caller stack',
+    async (failureStage) => {
+      const error = new Error('deposit setup failed');
+      if (failureStage === 'build') {
+        mockBuildDepositBatch.mockRejectedValueOnce(error);
+      } else {
+        mockAddTransactionBatch.mockRejectedValueOnce(error);
+      }
+      mockGetCurrentRoute.mockReturnValue({
+        key: 'confirmation-modal',
+        name: Routes.CONFIRMATION_REQUEST_MODAL,
+      });
+      const { result } = renderHook(() => useMoneyAccountDeposit());
+
+      await act(async () => {
+        await expect(
+          result.current.initiateDeposit({ forceBottomSheet: true }),
+        ).rejects.toBe(error);
+      });
+
+      expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+    },
+  );
+
+  it('does not dismiss another route when forced-sheet setup fails', async () => {
+    const error = new Error('deposit setup failed');
+    mockBuildDepositBatch.mockRejectedValueOnce(error);
+    mockGetCurrentRoute.mockReturnValue({
+      key: 'settings',
+      name: Routes.SETTINGS_VIEW,
+    });
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await expect(
+        result.current.initiateDeposit({ forceBottomSheet: true }),
+      ).rejects.toBe(error);
+    });
+
+    expect(NavigationService.navigation.goBack).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {
@@ -622,11 +777,65 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit({ replaceConfirmation: true });
     });
 
-    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
-      expect.objectContaining({
-        replace: true,
-      }),
-    );
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: undefined,
+      forceBottomSheet: undefined,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: true,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('forwards forced bottom sheet options to confirmation navigation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        forceBottomSheet: true,
+        bottomSheetHeightPercentage: 84,
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      amount: undefined,
+      autoSelectFiatPayment: undefined,
+      bottomSheetHeightPercentage: 84,
+      forceBottomSheet: true,
+      launchedFrom: undefined,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      preferredPaymentToken: undefined,
+      replace: undefined,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+  });
+
+  it('backs out forced bottom sheet when deposit setup fails on the modal route', async () => {
+    const buildError = new Error('deposit batch build failed');
+    mockBuildDepositBatch.mockRejectedValue(buildError);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.CONFIRMATION_REQUEST_MODAL,
+    } as never);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({ forceBottomSheet: true });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(NavigationService.navigation.goBack).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDepositFailed).toHaveBeenCalledWith({ intent: undefined });
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
   });
 
   it('always sets skipInitialGasEstimate to true regardless of chain', async () => {

@@ -597,6 +597,7 @@
     "drafts": []
   },
   "AuthenticationController": {
+    "enrolledCredentials": [],
     "isSignedIn": false,
     "needsProfilePairing": true,
     "needsSocialPairing": true
@@ -808,6 +809,7 @@
     "providerDisclaimersAccepted": {
       "sumsub": null
     },
+    "providerFlowStatus": "not_started",
     "idosDisclaimersAccepted": null,
     "credentialReusabilityConsentGiven": null
   },

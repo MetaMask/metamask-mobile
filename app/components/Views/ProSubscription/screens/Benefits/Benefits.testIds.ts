@@ -8,6 +8,7 @@ export const BenefitsTestIds = {
   PLAN_CARD: (planId: string) => `benefits-plan-card-${planId}`,
   PLAN_CARD_SKELETON: 'benefits-plan-card-skeleton',
   CTA_BUTTON: 'benefits-cta-button',
+  TEST_CLOCKS_CHECKBOX: 'benefits-test-clocks-checkbox',
   BENEFIT_DETAILS_CONTAINER: 'benefits-details-container',
   PRICING_LOADING: 'benefits-pricing-loading',
   PRICING_ERROR: 'benefits-pricing-error',

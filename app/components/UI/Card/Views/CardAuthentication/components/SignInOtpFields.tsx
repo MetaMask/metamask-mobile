@@ -1,10 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  Platform,
-  TextInput,
-  TouchableOpacity,
-  TextInputProps,
-} from 'react-native';
+import { Platform, TextInput, TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -16,7 +11,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { CardAuthenticationSelectors } from '../CardAuthentication.testIds';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+// Annotated with the two values used rather than TextInputProps['autoComplete'],
+// which is wider than the autoComplete union TextField accepts.
+const autoComplete = Platform.select<'sms-otp' | 'one-time-code'>({
   android: 'sms-otp',
   default: 'one-time-code',
 });

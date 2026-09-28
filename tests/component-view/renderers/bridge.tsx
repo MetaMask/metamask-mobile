@@ -35,6 +35,12 @@ const BridgeSessionTree = ({ children }: { children: React.ReactNode }) => (
   </BridgeSessionProvider>
 );
 
+const RecurringOrderDetailsWithSession = () => (
+  <BridgeSessionTree>
+    <RecurringOrderDetailsView />
+  </BridgeSessionTree>
+);
+
 export const withBridgeSession = (Component: React.ComponentType) =>
   function BridgeViewWithSession() {
     return (
@@ -225,8 +231,7 @@ export function renderRecurringOrderDetailsView({
     [
       {
         name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
-        Component:
-          RecurringOrderDetailsView as unknown as React.ComponentType<object>,
+        Component: RecurringOrderDetailsWithSession,
       },
       {
         name: Routes.BRIDGE.RECURRING_SWAP_DETAILS,
