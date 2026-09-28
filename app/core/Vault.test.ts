@@ -187,8 +187,6 @@ jest.mock('./Engine', () => ({
       changePassword: jest.fn(),
       storeKeyringEncryptionKey: jest.fn(),
       loadKeyringEncryptionKey: jest.fn().mockResolvedValue('enc-key'),
-      submitGlobalPassword: jest.fn(),
-      checkIsPasswordOutdated: jest.fn(),
       markPasswordChangeKeySyncPending: jest.fn(),
       completePasswordChange: jest.fn(),
     },

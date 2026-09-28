@@ -840,19 +840,6 @@ class AuthenticationService {
               false,
             );
             fallbackToPassword = true;
-          } else if (
-            await this.checkIsSeedlessPasswordOutdated({
-              skipCache: true,
-              captureSentryError: true,
-            })
-          ) {
-            await this.syncPasswordAndUnlockWallet(passwordToUse);
-            // try to enable biometric/passcode as default
-            authPreference = await this.componentAuthenticationType(
-              true,
-              false,
-            );
-            fallbackToPassword = true;
           }
 
           // Unlock keyrings.
@@ -1442,103 +1429,6 @@ class AuthenticationService {
    *
    * @param {string} globalPassword - latest global seedless password
    */
-  syncPasswordAndUnlockWallet = async (
-    globalPassword: string,
-  ): Promise<void> => {
-    const { SeedlessOnboardingController, KeyringController } = Engine.context;
-
-    const { success: isKeyringPasswordValid } =
-      await KeyringController.verifyPassword(globalPassword)
-        .then(() => ({ success: true, error: null }))
-        .catch((err) => ({ success: false, error: err }));
-
-    // recover the current keyring encryption key
-    // here e could be invalid password or outdated password error, which can result in following cases:
-    // 1. Seedless controller password verification succeeded.
-    // 2. Seedless controller failed but Keyring controller password verification succeeded.
-    // 3. Both keyring and seedless controller password verification failed.
-    const { success, error: seedlessSyncError } =
-      await SeedlessOnboardingController.submitGlobalPassword({
-        globalPassword,
-        maxKeyChainLength: 20,
-      })
-        .then(() => ({ success: true, error: null }))
-        .catch((err) => ({ success: false, error: err }));
-
-    if (!success) {
-      const errorMessage = (seedlessSyncError as Error).message;
-      Logger.log(
-        seedlessSyncError,
-        `error while submitting global password: ${errorMessage}`,
-      );
-
-      if (
-        errorMessage ===
-        SeedlessOnboardingControllerErrorMessage.MaxKeyChainLengthExceeded
-      ) {
-        // we are unable to recover the old pwd enc key as user is on a very old device.
-        // create a new vault and encrypt the new vault with the latest global password.
-        // also show a info popup to user.
-
-        // rehydrate with social accounts if max keychain length exceeded
-        try {
-          await SeedlessOnboardingController.refreshAuthTokens();
-        } catch (refreshError) {
-          Logger.error(
-            refreshError as Error,
-            'Failed to refresh auth tokens during MaxKeyChainLength recovery, attempting rehydration anyway',
-          );
-        }
-        await this.rehydrateSeedPhrase(globalPassword);
-        // skip the rest of the flow ( change password and sync keyring encryption key)
-        ReduxService.store.dispatch(setIsConnectionRemoved(true));
-        return;
-      } else if (
-        errorMessage ===
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-      ) {
-        // Case 2: Keyring controller password verification succeeds and seedless controller failed.
-        if (isKeyringPasswordValid) {
-          throw new SeedlessOnboardingControllerError(
-            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
-          );
-        } else {
-          throw seedlessSyncError;
-        }
-      } else {
-        // Case 3: Both keyring and seedless controller password verification failed.
-        Logger.error(
-          seedlessSyncError as Error,
-          'Error in syncPasswordAndUnlockWallet',
-        );
-        throw seedlessSyncError;
-      }
-    }
-
-    // password synced successfully
-    const keyringEncryptionKey =
-      await SeedlessOnboardingController.loadKeyringEncryptionKey();
-
-    // use encryption key to unlock the keyringController vault
-    await KeyringController.submitEncryptionKey(keyringEncryptionKey);
-
-    try {
-      // update vault password to global password
-      await SeedlessOnboardingController.syncLatestGlobalPassword({
-        globalPassword,
-      });
-      await KeyringController.changePassword(globalPassword);
-      await this.syncKeyringEncryptionKey();
-    } catch (err) {
-      // lock app again on error after submitPassword succeeded
-      await this.lockApp({ locked: true, reset: false });
-      throw err;
-    }
-
-    // Reset biometrics since the password that is stored should not be valid.
-    await this.resetPassword();
-  };
-
   /**
    * Checks if the seedless password is outdated.
    *
