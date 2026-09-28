@@ -6,9 +6,16 @@ import Matchers from '../../../framework/Matchers.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
 import { sleep } from '../../../framework/Utilities.js';
 import {
+  executeMobileDeepLink,
   getDriver,
   withImplicitWait,
 } from '../../../framework/AppiumUtilities.js';
+import type { CurrentDeviceDetails } from '../../../framework/fixtures/playwright/index.js';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
+  SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID,
+  type SeedlessPasswordChangeKillAfter,
+} from '../../../../app/core/Authentication/seedlessPasswordChangeKillSwitch';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
@@ -415,6 +422,36 @@ export const unlockApp = async (
 export const loginWithFixturePassword = async (): Promise<void> => {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
 };
+
+export const armSeedlessPasswordChangeKillAfter = async (
+  hop: SeedlessPasswordChangeKillAfter,
+): Promise<void> => {
+  await executeMobileDeepLink(
+    `metamask://e2e/seedless-password-change/kill-after?hop=${hop}`,
+  );
+};
+
+export const waitForSeedlessPasswordChangeKillReady =
+  async (): Promise<void> => {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID),
+      {
+        description:
+          'Change password should halt after the armed hop so Appium can terminate',
+        timeout: resolveE2EWaitTimeoutMs(60_000),
+      },
+    );
+  };
+
+export const terminateAndRelaunchApp = async (
+  currentDeviceDetails: CurrentDeviceDetails,
+): Promise<void> => {
+  await Gestures.terminateApp(currentDeviceDetails);
+  await Gestures.activateApp(currentDeviceDetails);
+};
+
+export { SEEDLESS_PASSWORD_CHANGE_KILL_AFTER };
+export type { SeedlessPasswordChangeKillAfter };
 
 /**
  * Resets the wallet from the login screen.

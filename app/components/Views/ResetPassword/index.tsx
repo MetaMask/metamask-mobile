@@ -57,6 +57,11 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { useTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID,
+  isSeedlessPasswordChangeKillHalt,
+  subscribeSeedlessPasswordChangeKillReady,
+} from '../../../core/Authentication/seedlessPasswordChangeKillSwitch';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -136,6 +141,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [killReadyHop, setKillReadyHop] = useState<string | undefined>();
   const [view, setView] = useState(ViewState.ConfirmCurrent);
   const [originalPassword, setOriginalPassword] = useState<string | null>(null);
   const [ready, setReady] = useState(true);
@@ -179,6 +185,11 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     }
     setReady(true);
   }, []);
+
+  useEffect(
+    () => subscribeSeedlessPasswordChangeKillReady(setKillReadyHop),
+    [],
+  );
 
   useEffect(() => {
     const initAuth = async () => {
@@ -344,6 +355,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       });
     } catch (err) {
       const castError = err as Error;
+      if (isSeedlessPasswordChangeKillHalt(castError)) {
+        return;
+      }
       if (castError.toString() === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
           strings('choose_password.security_alert_title'),
@@ -515,6 +529,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       alignItems={BoxAlignItems.Center}
       paddingHorizontal={10}
       twClassName="flex-1 pb-[30px]"
+      testID={
+        killReadyHop
+          ? SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID
+          : 'reset-password-changing-password'
+      }
+      accessibilityLabel={killReadyHop}
     >
       <Box
         twClassName={`mt-[30px] mb-[30px] ${

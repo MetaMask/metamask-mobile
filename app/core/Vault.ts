@@ -4,6 +4,13 @@ import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { completeSeedlessPasswordChangeKeySync } from './Authentication/seedlessPasswordChangeCoordinator';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
+  haltIfSeedlessPasswordChangeKillAfter,
+  registerSeedlessPasswordChangeKillDeepLinkHandler,
+} from './Authentication/seedlessPasswordChangeKillSwitch';
+
+registerSeedlessPasswordChangeKillDeepLinkHandler();
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -85,11 +92,17 @@ export const recreateVaultsWithNewPassword = async (
 
   if (isSeedlessFlow) {
     await recreateSeedlessVaultWithNewPassword(newPassword, password);
+    await haltIfSeedlessPasswordChangeKillAfter(
+      SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.SeedlessChangePassword,
+    );
   }
 
   await KeyringController.changePassword(newPassword);
 
   if (isSeedlessFlow) {
+    await haltIfSeedlessPasswordChangeKillAfter(
+      SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.KeyringChange,
+    );
     await completeSeedlessPasswordChangeKeySync();
   }
   Engine.setSelectedAddress(selectedAddress);
