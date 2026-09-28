@@ -1,8 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import type { AppiumElement } from '../../framework/AppiumElement';
-import { PlatformDetector } from '../../framework/PlatformLocator';
-import { resolve } from '../../framework/Selector';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportSrpView {
@@ -22,24 +20,13 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
-  private getAppiumIosSeedPhraseXPath(index: number): string {
-    if (index === 0) {
-      return '//XCUIElementTypeOther[@name="textfield"]';
-    }
-
-    return `//XCUIElementTypeOther[@name="textfield" and @label="${index + 1}."]`;
-  }
-
   seedPhraseInput(index: number): Promise<AppiumElement> {
     const testID =
       index === 0
         ? ImportSRPIDs.SEED_PHRASE_INPUT_ID
         : `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`;
 
-    return resolve({
-      androidAppiumTestID: testID,
-      iosAppiumXPath: this.getAppiumIosSeedPhraseXPath(index),
-    });
+    return Matchers.getElementByID(testID);
   }
 
   async tapTitle() {
@@ -55,24 +42,10 @@ class ImportSrpView {
   }
 
   async enterSrp(mnemonic: string): Promise<void> {
-    const srpArray = mnemonic.split(' ');
-
-    if (PlatformDetector.isAndroid()) {
-      await Gestures.replaceText(this.seedPhraseInput(0), mnemonic, {
-        elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
-      });
-      return;
-    }
-
-    for (const [i, word] of srpArray.entries()) {
-      const suffix = i === srpArray.length - 1 ? '' : ' ';
-      const isLast = i === srpArray.length - 1;
-      await Gestures.typeText(this.seedPhraseInput(i), `${word}${suffix}`, {
-        elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
-        hideKeyboard: isLast,
-        checkForDisplayed: true,
-      });
-    }
+    await Gestures.replaceText(this.seedPhraseInput(0), mnemonic, {
+      elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
+      timeout: 15_000,
+    });
   }
 }
 

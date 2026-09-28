@@ -27,39 +27,14 @@ class ImportWalletView {
     );
   }
 
-  getAppiumIosSeedPhraseXPath(index: number, onboarding = true): string {
-    if (onboarding) {
-      if (index === 0) {
-        return '//XCUIElementTypeOther[@name="textfield"]';
-      }
-
-      return `//XCUIElementTypeOther[@name="textfield" and @label="${index + 1}."]`;
-    }
-
-    if (index === 0) {
-      return "//*[@name='textfield' or @label='textfield']";
-    }
-
-    return `//*[@label="${index + 1}."]`;
-  }
-
   seedPhraseInput(index: number, onboarding = true): Promise<AppiumElement> {
-    // Onboarding ImportFromSecretRecoveryPhrase uses phrase-input-id;
-    // post-onboarding ImportNewSecretRecoveryPhrase uses seed-phrase-input.
-    const androidSeedPhraseInputPrefix = onboarding
+    // Onboarding uses phrase-input-id; post-onboarding uses seed-phrase-input.
+    const seedPhraseInputPrefix = onboarding
       ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
       : ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_FIELD;
 
-    if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByID(
-        index === 0
-          ? androidSeedPhraseInputPrefix
-          : `${androidSeedPhraseInputPrefix}_${index}`,
-      );
-    }
-
-    return Matchers.getElementByNativeXPath(
-      this.getAppiumIosSeedPhraseXPath(index, onboarding),
+    return Matchers.getElementByID(
+      index === 0 ? seedPhraseInputPrefix : `${seedPhraseInputPrefix}_${index}`,
     );
   }
 
@@ -92,30 +67,14 @@ class ImportWalletView {
     secretRecoveryPhrase: string,
     onboarding = true,
   ): Promise<void> {
-    const srpArray = secretRecoveryPhrase.split(' ');
-
-    // Android: replaceText does not leave the soft keyboard open;
-    // hideKeyboard() throws on Android when none is visible (unlike iOS).
-    if (PlatformDetector.isAndroid()) {
-      await Gestures.replaceText(
-        this.seedPhraseInput(0, onboarding),
-        secretRecoveryPhrase,
-        {
-          elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-          timeout: 15_000,
-        },
-      );
-      return;
-    }
-
-    for (const [i, word] of srpArray.entries()) {
-      await Gestures.typeText(this.seedPhraseInput(i, onboarding), `${word} `, {
+    await Gestures.replaceText(
+      this.seedPhraseInput(0, onboarding),
+      secretRecoveryPhrase,
+      {
         elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-        hideKeyboard: false,
-      });
-    }
-    await this.tapImportScreenTitleToDismissKeyboard(onboarding);
-    await Gestures.hideKeyboard();
+        timeout: 15_000,
+      },
+    );
   }
 
   async tapContinueButton(onboarding = true): Promise<void> {
