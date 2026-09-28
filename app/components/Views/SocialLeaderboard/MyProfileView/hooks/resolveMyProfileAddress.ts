@@ -1,13 +1,20 @@
 /**
- * Wallet used to read social-api trader endpoints for the owner profile.
+ * Identifier for owner `GET /traders/:addressOrId` (profile + commented feed).
  *
- * TODO: replace with the authenticated social `profileId` once GET /users/me
- * (or equivalent) exists. Until then the API is keyed by wallet address.
+ * Prefer the auth session `profileId` (OIDC `sub`, same as
+ * `AuthenticationController.getSessionProfile`). Send it unprefixed — social-api
+ * maps it to Clicker's `ext:{profileId}`. Fall back to the linked onboarding
+ * wallet, then the selected account, when no session exists yet.
  */
 export const resolveMyProfileAddress = (
+  sessionProfileId: string | null | undefined,
   linkedAccountAddress: string | null | undefined,
   selectedAddress: string | null | undefined,
 ): string | undefined => {
+  const sessionId = sessionProfileId?.trim();
+  if (sessionId) {
+    return sessionId;
+  }
   const linked = linkedAccountAddress?.trim();
   if (linked) {
     return linked;
