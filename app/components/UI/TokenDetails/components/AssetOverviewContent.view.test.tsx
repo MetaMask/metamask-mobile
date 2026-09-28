@@ -28,9 +28,25 @@ import {
   initialStateMarketInsightsView,
 } from '../../../../../tests/component-view/presets/marketInsightsView';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
+import {
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../../../../../tests/component-view/render';
+import {
+  clearRecurringOrdersDataServiceMock,
+  setupRecurringOrdersDataServiceMock,
+} from '../../../../../tests/component-view/api-mocking/recurringOrders';
 import Routes from '../../../../constants/navigation/Routes';
 import MarketInsightsView from '../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { AccessRestrictedProvider } from '../../Compliance';
+import { HardwareWalletProvider } from '../../../../core/HardwareWallet/HardwareWalletProvider';
+import { TokenDetails } from '../Views/TokenDetails';
+import {
+  MOCK_RECURRING_OPEN_ORDER,
+  MOCK_RECURRING_OPEN_ORDER_3,
+} from '../../Bridge/api/recurringOrders.mock';
+import { RecurringOrderDetailsViewSelectorsIDs } from '../../Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
+import Engine from '../../../../core/Engine';
 
 const ETH_NATIVE = '0x0000000000000000000000000000000000000000';
 
@@ -148,6 +164,39 @@ function buildTokenDetailsMarketInsightsState(
   );
 }
 
+function buildTokenDetailsOrdersState(isRecurringBuyEnabled: boolean) {
+  return merge({}, buildTokenDetailsMarketInsightsState(false), {
+    engine: {
+      backgroundState: {
+        NftController: {
+          allNfts: {},
+          allNftContracts: {},
+          ignoredNfts: [],
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            ...remoteFeatureFlagMarketInsightsEnabled(false),
+            swapsRecurringBuy: {
+              enabled: isRecurringBuyEnabled,
+              enabledChainIds: ['eip155:1'],
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+function TokenDetailsOrdersHarness() {
+  return (
+    <HardwareWalletProvider>
+      <AccessRestrictedProvider>
+        <TokenDetails />
+      </AccessRestrictedProvider>
+    </HardwareWalletProvider>
+  );
+}
+
 describeForPlatforms(
   'AssetOverviewContent (Market Insights entry card)',
   () => {
@@ -237,3 +286,91 @@ describeForPlatforms(
     });
   },
 );
+
+describeForPlatforms('Token Details Orders section', () => {
+  beforeEach(() => {
+    setupRecurringOrdersDataServiceMock();
+    jest.mocked(Engine.controllerMessenger.call).mockClear();
+  });
+
+  afterEach(() => {
+    clearRecurringOrdersDataServiceMock();
+  });
+
+  function renderTokenDetails(isRecurringBuyEnabled = true) {
+    return renderScreenWithRoutes(
+      TokenDetailsOrdersHarness,
+      { name: 'TokenDetailsOrders' },
+      [{ name: Routes.BRIDGE.ROOT }],
+      { state: buildTokenDetailsOrdersState(isRecurringBuyEnabled) },
+      { ...ethMainnetToken },
+    );
+  }
+
+  it('shows the newest matching order fields and opens its details', async () => {
+    renderTokenDetails();
+
+    const row = await screen.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+        MOCK_RECURRING_OPEN_ORDER_3.orderId,
+      ),
+      {},
+      { timeout: 15000 },
+    );
+
+    expect(screen.getByText('ETH → USDC')).toBeOnTheScreen();
+    expect(screen.getByText('1 day × 5 orders')).toBeOnTheScreen();
+    expect(screen.getByText('+9 USDC')).toBeOnTheScreen();
+    expect(screen.getByText('60% filled')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+          MOCK_RECURRING_OPEN_ORDER.orderId,
+        ),
+      ),
+    ).toBeNull();
+
+    fireEvent.press(row);
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.BRIDGE.ROOT)),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not request or show orders when recurring buy is disabled', async () => {
+    renderTokenDetails(false);
+
+    expect(
+      await screen.findByTestId(TokenOverviewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      expect.anything(),
+    );
+    expect(
+      screen.queryByTestId(TokenOverviewSelectorsIDs.ORDERS_SECTION),
+    ).toBeNull();
+  });
+
+  it('hides the section when no order matches the asset', async () => {
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({
+      recurringOrdersByAsset: async () => [],
+    });
+    jest.mocked(Engine.controllerMessenger.call).mockClear();
+
+    renderTokenDetails();
+
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'RecurringOrdersDataService:getRecurringOrdersByAsset',
+        expect.objectContaining({
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+    expect(
+      screen.queryByTestId(TokenOverviewSelectorsIDs.ORDERS_SECTION),
+    ).toBeNull();
+  });
+});
