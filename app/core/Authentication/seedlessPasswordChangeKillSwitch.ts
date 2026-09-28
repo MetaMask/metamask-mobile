@@ -1,33 +1,23 @@
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER_IDS,
+  E2E_SEEDLESS_KILL_METAMASK_SCHEME,
+  E2E_SEEDLESS_KILL_RAW_SCHEME,
+  isSeedlessPasswordChangeKillAfter,
+  type SeedlessPasswordChangeKillAfter,
+} from './seedlessPasswordChangeKillSwitch.constants';
 
-export const SEEDLESS_PASSWORD_CHANGE_KILL_AFTER = {
-  SeedlessChangePassword: 'after_seedless_change_password',
-  KeyringChange: 'after_keyring_change',
-  KeySyncPending: 'after_key_sync_pending',
-} as const;
-
-export type SeedlessPasswordChangeKillAfter =
-  (typeof SEEDLESS_PASSWORD_CHANGE_KILL_AFTER)[keyof typeof SEEDLESS_PASSWORD_CHANGE_KILL_AFTER];
-
-export const SEEDLESS_PASSWORD_CHANGE_KILL_AFTER_IDS = Object.values(
+export {
   SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
-);
-
-export const isSeedlessPasswordChangeKillAfter = (
-  value: string,
-): value is SeedlessPasswordChangeKillAfter =>
-  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER_IDS.includes(
-    value as SeedlessPasswordChangeKillAfter,
-  );
-
-export const SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID =
-  'seedless-password-change-kill-ready';
-
-export const E2E_SEEDLESS_KILL_METAMASK_SCHEME =
-  'metamask://e2e/seedless-password-change/';
-export const E2E_SEEDLESS_KILL_RAW_SCHEME = 'e2e://seedless-password-change/';
+  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER_IDS,
+  SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID,
+  E2E_SEEDLESS_KILL_METAMASK_SCHEME,
+  E2E_SEEDLESS_KILL_RAW_SCHEME,
+  isSeedlessPasswordChangeKillAfter,
+} from './seedlessPasswordChangeKillSwitch.constants';
+export type { SeedlessPasswordChangeKillAfter } from './seedlessPasswordChangeKillSwitch.constants';
 
 export class SeedlessPasswordChangeKillHaltError extends Error {
   hop: SeedlessPasswordChangeKillAfter;

@@ -15,7 +15,7 @@ import {
   SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
   SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID,
   type SeedlessPasswordChangeKillAfter,
-} from '../../../../app/core/Authentication/seedlessPasswordChangeKillSwitch';
+} from '../../../../app/core/Authentication/seedlessPasswordChangeKillSwitch.constants';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';

@@ -13,15 +13,15 @@ import { PasswordSyncInstruction } from '@metamask/seedless-onboarding-controlle
 import {
   SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
   type SeedlessPasswordChangeKillAfter,
-} from '../../../app/core/Authentication/seedlessPasswordChangeKillSwitch';
+} from '../../../app/core/Authentication/seedlessPasswordChangeKillSwitch.constants';
 
 export {
   SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
   SEEDLESS_PASSWORD_CHANGE_KILL_AFTER_IDS,
   SEEDLESS_PASSWORD_CHANGE_KILL_READY_TEST_ID,
   isSeedlessPasswordChangeKillAfter,
-} from '../../../app/core/Authentication/seedlessPasswordChangeKillSwitch';
-export type { SeedlessPasswordChangeKillAfter } from '../../../app/core/Authentication/seedlessPasswordChangeKillSwitch';
+} from '../../../app/core/Authentication/seedlessPasswordChangeKillSwitch.constants';
+export type { SeedlessPasswordChangeKillAfter } from '../../../app/core/Authentication/seedlessPasswordChangeKillSwitch.constants';
 
 export interface SeedlessPasswordChangeKillSpec {
   id: SeedlessPasswordChangeKillAfter;
