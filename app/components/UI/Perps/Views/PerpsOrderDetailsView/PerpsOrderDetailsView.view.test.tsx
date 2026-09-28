@@ -5,6 +5,8 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -134,6 +136,48 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       screen.getByTestId(PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('on Android with a 48dp navigation bar', () => {
+    const defaultSafeAreaInsets = jest
+      .mocked(useSafeAreaInsets)
+      .getMockImplementation();
+    let replacedPlatformOS: jest.ReplaceProperty<typeof Platform.OS>;
+
+    beforeEach(() => {
+      replacedPlatformOS = jest.replaceProperty(Platform, 'OS', 'android');
+      jest.mocked(useSafeAreaInsets).mockReturnValue({
+        top: 0,
+        right: 0,
+        bottom: 48,
+        left: 0,
+      });
+    });
+
+    afterEach(() => {
+      replacedPlatformOS.restore();
+      if (defaultSafeAreaInsets) {
+        jest
+          .mocked(useSafeAreaInsets)
+          .mockImplementation(defaultSafeAreaInsets);
+      }
+    });
+
+    it('pads the footer and scroll content by the bottom inset', async () => {
+      renderPerpsOrderDetailsView();
+
+      const footer = await screen.findByTestId(
+        PerpsOrderDetailsViewSelectorsIDs.FOOTER,
+      );
+      const scrollView = screen.getByTestId(
+        PerpsOrderDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      expect(StyleSheet.flatten(footer.props.style).paddingBottom).toBe(72);
+      expect(
+        StyleSheet.flatten(scrollView.props.contentContainerStyle)
+          .paddingBottom,
+      ).toBe(148);
+    });
   });
 
   it('shows error state when no order is provided', async () => {

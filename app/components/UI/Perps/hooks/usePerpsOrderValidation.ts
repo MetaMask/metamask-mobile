@@ -19,6 +19,7 @@ import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import {
   getOrderFormFieldIssues,
+  isAdvisoryOrderFormFieldIssue,
   canonicalizeOrderPrice,
   type OrderFormFieldIssue,
 } from '../utils/triggerOrderValidation';
@@ -382,7 +383,9 @@ const buildValidationOutcome = ({
     isValid:
       protocolValid &&
       requestLocalErrors.length === 0 &&
-      requestFieldIssues.length === 0,
+      !requestFieldIssues.some(
+        (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+      ),
   };
 
   return {
@@ -508,7 +511,9 @@ export function usePerpsOrderValidation(
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
-  const isLocallyValid = localErrors.length === 0 && fieldIssues.length === 0;
+  const isLocallyValid =
+    localErrors.length === 0 &&
+    !fieldIssues.some((issue) => !isAdvisoryOrderFormFieldIssue(issue));
 
   const combinedErrors = useMemo(
     () =>

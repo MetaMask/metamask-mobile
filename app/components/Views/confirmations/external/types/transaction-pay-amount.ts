@@ -10,6 +10,7 @@ import {
   updateMoneyAccountWithdrawTokenAmount,
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
@@ -33,9 +34,7 @@ export async function getTransactionPayAmountCalls(
   amountHuman: string,
   accountOverride?: Hex,
 ): Promise<UpdateTransactionPayAmountCall[] | undefined> {
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
-  ) {
+  if (hasTransactionType(transactionMeta, MONEY_ACCOUNT_DEPOSIT_TYPES)) {
     try {
       return await updateMoneyAccountDepositTokenAmount(
         transactionMeta,

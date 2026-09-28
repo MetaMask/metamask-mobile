@@ -10,6 +10,7 @@ const initialState = {
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
   isBasicFunctionalityConsolidatedEnabled: false,
+  hasLinkedSocialLoginProfile: false,
   basicFunctionalityMigrationNotification: null,
   basicFunctionalityMigrationNotificationDismissed: false,
   deepLinkModalDisabled: false,
@@ -76,6 +77,11 @@ const settingsReducer = (state = initialState, action) => {
         isBasicFunctionalityConsolidatedEnabled:
           action.isBasicFunctionalityConsolidatedEnabled,
       };
+    case 'SET_HAS_LINKED_SOCIAL_LOGIN_PROFILE':
+      return {
+        ...state,
+        hasLinkedSocialLoginProfile: action.hasLinkedSocialLoginProfile,
+      };
     case 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION':
       return {
         ...state,
@@ -97,6 +103,7 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         isBasicFunctionalityConsolidatedEnabled:
           initialState.isBasicFunctionalityConsolidatedEnabled,
+        hasLinkedSocialLoginProfile: initialState.hasLinkedSocialLoginProfile,
         basicFunctionalityMigrationNotification:
           initialState.basicFunctionalityMigrationNotification,
         basicFunctionalityMigrationNotificationDismissed:

@@ -11,9 +11,9 @@ import {
   type PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import {
-  PredictOrderPreviewService,
-  type PredictOrderPreviewServiceMessenger,
-} from '../../../components/UI/PredictNext/services/PredictOrderPreviewService';
+  PredictOrderService,
+  type PredictOrderServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictOrderService';
 import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
@@ -21,7 +21,7 @@ import {
 import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
-import type { PredictOrderPreviewServiceInitMessenger } from '../messengers/predict-order-preview-service-messenger';
+import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
 
@@ -90,16 +90,16 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
   };
 };
 
-export const predictOrderPreviewServiceInit: MessengerClientInitFunction<
-  PredictOrderPreviewService,
-  PredictOrderPreviewServiceMessenger,
-  PredictOrderPreviewServiceInitMessenger
+export const predictOrderServiceInit: MessengerClientInitFunction<
+  PredictOrderService,
+  PredictOrderServiceMessenger,
+  PredictOrderServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   // Trading-capable composition lives here, at the Engine composition root —
   // product modules never import concrete adapters (see venue-adapters.md).
-  // Preview requests are single-flight workflow calls that must bypass the
-  // shared query cache, so they get their own client instead of the
-  // Engine-registered data services' cached reads.
+  // Quote and Commit requests are single-flight workflow calls that must
+  // bypass the shared query cache, so they get their own client instead of
+  // the Engine-registered data services' cached reads.
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
       baseUrl: process.env.MM_PREDICT_API_URL,
@@ -109,7 +109,7 @@ export const predictOrderPreviewServiceInit: MessengerClientInitFunction<
     }),
   );
   return {
-    controller: new PredictOrderPreviewService({
+    controller: new PredictOrderService({
       messenger: controllerMessenger,
       trading: adapter.trading,
       venueId: adapter.venueId,
