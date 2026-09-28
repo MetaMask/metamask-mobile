@@ -72,6 +72,9 @@ on:
         required: false
       MM_SENTRY_DSN:
         required: false
+      # Claude key for opt-in AI locator recovery on performance taps/scrolls.
+      VISUAL_TEST_API_KEY:
+        required: false
 
 jobs:
   run-tests:
@@ -211,6 +214,9 @@ jobs:
             echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
             echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
+            # AI locator recovery for broken Page Object taps / wallet-home scrolls.
+            echo "AI_LOCATOR_RECOVERY_ENABLED=true"
+            echo "ANTHROPIC_API_KEY=${{ secrets.VISUAL_TEST_API_KEY }}"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests

@@ -2,6 +2,7 @@ import type { Browser } from 'webdriverio';
 import type { AppiumElement } from '../AppiumElement.ts';
 import Matchers from '../Matchers.ts';
 import {
+  findWithSelfHealingLocator,
   tapWithSelfHealingLocator,
   type LocatorRecoveryProvider,
 } from './SelfHealingLocator.ts';
@@ -115,5 +116,66 @@ describe('tapWithSelfHealingLocator', () => {
         driver: appiumDriver,
       }),
     ).rejects.toBe(error);
+  });
+});
+
+describe('findWithSelfHealingLocator', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns the primary element without recovery', async () => {
+    const primary = createElement(jest.fn());
+    const recovery = {
+      recover: jest.fn(),
+    } as unknown as LocatorRecoveryProvider;
+
+    const result = await findWithSelfHealingLocator({
+      intent: 'scroll to Predictions section',
+      primary: async () => primary,
+      driver: appiumDriver,
+      recovery,
+    });
+
+    expect(result).toEqual({ element: primary, source: 'primary' });
+    expect(recovery.recover).not.toHaveBeenCalled();
+  });
+
+  it('scrolls a recovered locator into view via recoverAction', async () => {
+    const recovered = createElement(jest.fn());
+    const ready = createElement(jest.fn());
+    jest.mocked(Matchers.getElementByID).mockResolvedValue(recovered);
+    const recoverAction = jest.fn().mockResolvedValue(ready);
+    const onRecovered = jest.fn();
+
+    const recovery: LocatorRecoveryProvider = {
+      recover: jest.fn().mockResolvedValue({
+        strategy: 'testID',
+        value: 'homepage-section-title-predictions',
+      }),
+    };
+
+    const result = await findWithSelfHealingLocator({
+      intent: 'scroll wallet home to and tap Predictions section',
+      primary: async () => {
+        throw new Error('Predictions section was not visible');
+      },
+      driver: appiumDriver,
+      recovery,
+      recoverAction,
+      onRecovered,
+    });
+
+    expect(result).toEqual({ element: ready, source: 'recovered' });
+    expect(recoverAction).toHaveBeenCalledWith(recovered);
+    expect(onRecovered).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intent: 'scroll wallet home to and tap Predictions section',
+        locator: {
+          strategy: 'testID',
+          value: 'homepage-section-title-predictions',
+        },
+      }),
+    );
   });
 });

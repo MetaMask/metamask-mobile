@@ -79,7 +79,9 @@ Return only valid JSON with this exact shape:
 Rules:
 - Prefer testID, then label, then visible text.
 - Use nativeXPath only when the accessibility tree has no stable identifier.
-- Return one enabled control that performs the requested intent.
+- Return one enabled control that matches the requested intent (tap target or
+  section header to scroll into view).
+- The control may be off-screen; still return its locator so the test can scroll.
 - Never return coordinates, CSS selectors, or a locator for a different action.`;
 }
 

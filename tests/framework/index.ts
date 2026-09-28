@@ -52,10 +52,12 @@ export { default as AppiumAssertions } from './AppiumAssertions.ts';
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export {
+  findWithSelfHealingLocator,
   tapWithSelfHealingLocator,
   type LocatorRecoveryContext,
   type LocatorRecoveryProvider,
   type RecoveredLocator,
+  type SelfHealingFindOptions,
   type SelfHealingTapOptions,
 } from './ai-locator/SelfHealingLocator.ts';
 export { createClaudeLocatorRecoveryProvider } from './ai-locator/ClaudeLocatorRecoveryProvider.ts';

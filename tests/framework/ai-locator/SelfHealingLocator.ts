@@ -18,6 +18,35 @@ export interface LocatorRecoveryProvider {
   recover(context: LocatorRecoveryContext): Promise<RecoveredLocator | null>;
 }
 
+export interface SelfHealingRecoveryResult {
+  intent: string;
+  locator: RecoveredLocator;
+  durationMs: number;
+}
+
+export interface SelfHealingFindOptions {
+  /** Human-readable action used by the recovery provider. */
+  intent: string;
+  /**
+   * Deterministic path that resolves the control (find / scroll into view).
+   * Always attempted first.
+   */
+  primary: () => Promise<AppiumElement>;
+  driver: Browser;
+  /** AI/MCP adapter. Recovery is disabled when this is omitted. */
+  recovery?: LocatorRecoveryProvider;
+  /**
+   * After recovery returns a locator, make that element usable (e.g. scroll
+   * it into view) and return the ready element.
+   */
+  recoverAction?: (element: AppiumElement) => Promise<AppiumElement>;
+  /**
+   * Receives recovery metadata for test attachments or reporting.
+   * This callback is intentionally outside the timed performance step.
+   */
+  onRecovered?: (result: SelfHealingRecoveryResult) => Promise<void> | void;
+}
+
 export interface SelfHealingTapOptions {
   /** Human-readable action used by the recovery provider. */
   intent: string;
@@ -32,28 +61,22 @@ export interface SelfHealingTapOptions {
    * Receives recovery metadata for test attachments or reporting.
    * This callback is intentionally outside the timed performance step.
    */
-  onRecovered?: (result: {
-    intent: string;
-    locator: RecoveredLocator;
-    durationMs: number;
-  }) => Promise<void> | void;
+  onRecovered?: (result: SelfHealingRecoveryResult) => Promise<void> | void;
 }
 
 /**
- * Taps a deterministic locator and optionally asks an AI/MCP adapter to
- * recover after the deterministic locator fails.
+ * Resolves a deterministic control and optionally asks an AI/MCP adapter to
+ * recover after the primary path fails.
  *
- * The recovery provider is opt-in and is called only after the primary
- * locator fails. Call this before starting a performance timer so model and
- * screenshot latency cannot affect the measured user-visible interval.
+ * Used for both taps and scroll-into-view flows. Call before starting a
+ * performance timer so model/screenshot latency cannot affect the metric.
  */
-export async function tapWithSelfHealingLocator(
-  options: SelfHealingTapOptions,
-): Promise<'primary' | 'recovered'> {
+export async function findWithSelfHealingLocator(
+  options: SelfHealingFindOptions,
+): Promise<{ element: AppiumElement; source: 'primary' | 'recovered' }> {
   try {
     const primaryElement = await options.primary();
-    await (options.tap ?? defaultTap)(primaryElement);
-    return 'primary';
+    return { element: primaryElement, source: 'primary' };
   } catch (primaryError) {
     if (!options.recovery) {
       throw primaryError;
@@ -71,18 +94,43 @@ export async function tapWithSelfHealingLocator(
     }
 
     const recoveredElement = await getElementForLocator(recoveredLocator);
-    await (options.tap ?? defaultTap)(recoveredElement);
+    const readyElement = options.recoverAction
+      ? await options.recoverAction(recoveredElement)
+      : recoveredElement;
+
     await options.onRecovered?.({
       intent: options.intent,
       locator: recoveredLocator,
       durationMs: Date.now() - startedAt,
     });
 
-    return 'recovered';
+    return { element: readyElement, source: 'recovered' };
   }
 }
 
-async function getElementForLocator(
+/**
+ * Taps a deterministic locator and optionally asks an AI/MCP adapter to
+ * recover after the deterministic locator fails.
+ *
+ * The recovery provider is opt-in and is called only after the primary
+ * locator fails. Call this before starting a performance timer so model and
+ * screenshot latency cannot affect the measured user-visible interval.
+ */
+export async function tapWithSelfHealingLocator(
+  options: SelfHealingTapOptions,
+): Promise<'primary' | 'recovered'> {
+  const { element, source } = await findWithSelfHealingLocator({
+    intent: options.intent,
+    primary: options.primary,
+    driver: options.driver,
+    recovery: options.recovery,
+    onRecovered: options.onRecovered,
+  });
+  await (options.tap ?? defaultTap)(element);
+  return source;
+}
+
+export async function getElementForLocator(
   locator: RecoveredLocator,
 ): Promise<AppiumElement> {
   switch (locator.strategy) {

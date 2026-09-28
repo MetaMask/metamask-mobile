@@ -166,42 +166,22 @@ export class WalletHomeSections {
     }
   }
 
-  async scrollAndTapPredictionsSection(
-    direction: 'up' | 'down' = 'down',
-    options: {
-      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
-    } = {},
-  ): Promise<void> {
-    if (
-      await WalletHomeScroll.tapIfAlreadyVisible(
+  async scrollAndTapPredictionsSection(): Promise<void> {
+    try {
+      await WalletHomeScroll.scrollAndTapSection(
         this.predictionsSectionHeader,
         'Predictions section',
-      )
-    ) {
-      return;
+        'down',
+        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
+      );
+    } catch {
+      await WalletHomeScroll.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        'up',
+        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
+      );
     }
-
-    const fallbackDirection = direction === 'down' ? 'up' : 'down';
-
-    await WalletHomeScroll.tryScrollDirections(
-      (scrollDirection) =>
-        WalletHomeScroll.scrollAndTapSection(
-          this.predictionsSectionHeader,
-          'Predictions section',
-          scrollDirection,
-          {
-            overshootSwipe: options.overshootSwipe ?? {
-              direction:
-                scrollDirection === 'down'
-                  ? ('up' as const)
-                  : ('down' as const),
-              percentage: 0.15,
-            },
-            timeout: 60_000,
-          },
-        ),
-      [direction, fallbackDirection],
-    );
   }
 
   async scrollPredictionsSectionIntoView(

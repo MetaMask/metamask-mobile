@@ -6,10 +6,12 @@ deterministic locator.
 ```ts
 import WalletView from '../../page-objects/wallet/WalletView';
 
-// The performance fixture configures recovery for every Page Object tap.
+// The performance fixture configures recovery for every Page Object tap and
+// wallet-home scroll-and-tap section helper.
 await WalletView.tapWalletSendButton();
+await WalletView.scrollAndTapPredictionsSection();
 
-// Start the performance timer only after the tap above.
+// Start the performance timer only after the interaction above.
 await timer.measure(() => destination.isVisible());
 ```
 
@@ -28,11 +30,15 @@ screenshot only when the tree is insufficient. It must never return
 coordinates.
 
 The performance fixture configures the provider for the duration of each
-performance scenario. `Gestures` is the shared Page Object boundary, so all
-existing Page Object taps get the same behavior without changing individual
-scenarios. If no provider is configured, the primary error is rethrown
-unchanged. This keeps normal CI runs deterministic and makes AI recovery an
-explicit POC opt-in.
+performance scenario. Shared Page Object boundaries that use recovery:
+
+- `Gestures.waitAndTap` — every Page Object tap
+- `WalletHomeScroll.scrollAndTapSection` — homepage section scroll + tap
+  (Perps, Predictions, Tokens, …)
+
+If no provider is configured, the primary error is rethrown unchanged. This
+keeps normal CI runs deterministic and makes AI recovery an explicit POC
+opt-in (`AI_LOCATOR_RECOVERY_ENABLED=true`).
 
 Recovery happens before the timed interval and its duration is reported through
 `onRecovered`. This prevents LLM, MCP, screenshot, and retry latency from being
