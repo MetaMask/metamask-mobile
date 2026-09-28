@@ -1,5 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -24,6 +26,7 @@ export const OpenLimitOrderDetailsModal = ({
   triggerPrice,
   triggerToken,
   triggerComparison,
+  usdTriggerPrice,
   expiry,
   onCancelOrder,
   onClose,
@@ -58,6 +61,21 @@ export const OpenLimitOrderDetailsModal = ({
           dest: destToken?.symbol ?? '',
         })}
       </BottomSheetHeader>
+      {usdTriggerPrice && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Info}
+            description={strings('bridge.limit.usd_price_notice', {
+              usdPrice: usdTriggerPrice,
+            })}
+            testID={OpenLimitOrderDetailsModalSelectorsIDs.USD_PRICE_NOTICE}
+          />
+        </Box>
+      )}
       <Box paddingBottom={2}>
         <DetailRow
           label={strings('bridge.limit.status')}

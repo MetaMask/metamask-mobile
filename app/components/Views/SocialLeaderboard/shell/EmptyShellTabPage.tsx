@@ -56,6 +56,7 @@ import type {
   SocialV1FeedPost,
   SocialV1FeedTab,
   SocialV1HotToken,
+  SocialV1TokenFeedState,
 } from '../SocialV1View/feed/types';
 
 /** Insert the Popular traders rail after this many Trending posts. */
@@ -152,35 +153,97 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const [selectedHotTokenId, setSelectedHotTokenId] = useState<string | null>(
     null,
   );
+  const [tokenFeed, setTokenFeed] = useState<SocialV1TokenFeedState | null>(
+    null,
+  );
+  const handleTokenFeedChange = useCallback(
+    (next: SocialV1TokenFeedState | null) => {
+      setTokenFeed((current) => {
+        if (current === next || (!current && !next)) {
+          return current;
+        }
+        if (
+          current &&
+          next &&
+          current.posts === next.posts &&
+          current.isLoading === next.isLoading &&
+          current.isFetchingNextPage === next.isFetchingNextPage &&
+          current.hasNextPage === next.hasNextPage &&
+          current.error === next.error &&
+          current.loadMore === next.loadMore &&
+          current.refresh === next.refresh
+        ) {
+          return current;
+        }
+        return next;
+      });
+    },
+    [],
+  );
   const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
 
-  const selectedStillPresent =
+  const selectedInPosts =
     selectedHotTokenId != null &&
     visiblePosts.some(
       (post) => getSocialV1HotTokenId(post.item) === selectedHotTokenId,
     );
-  const activeHotTokenId = selectedStillPresent ? selectedHotTokenId : null;
+  // A contract chip's token feed does not depend on the unfiltered posts.
+  // Keep it, and the chip selection, until the user deselects. Perp-only
+  // chips have no token feed, so they still drop when the asset leaves.
+  const contractFeedSelected = selectedHotTokenId != null && tokenFeed != null;
+  const activeHotTokenId =
+    contractFeedSelected || selectedInPosts ? selectedHotTokenId : null;
 
   useEffect(() => {
-    if (selectedHotTokenId && !selectedStillPresent) {
+    if (selectedHotTokenId && !selectedInPosts && !tokenFeed) {
       setSelectedHotTokenId(null);
     }
-  }, [selectedHotTokenId, selectedStillPresent]);
+  }, [selectedHotTokenId, selectedInPosts, tokenFeed]);
+
+  // A selected chip with a contract replaces the client-side filter with
+  // `SocialService:fetchTokenFeed`. Perp-only chips have no contract, so they
+  // keep filtering the posts already on screen.
+  const activeTokenFeed = contractFeedSelected ? tokenFeed : null;
 
   const filteredPosts = useMemo(() => {
     if (!activeHotTokenId) {
       return visiblePosts;
     }
+    if (activeTokenFeed) {
+      return activeTokenFeed.posts.filter(
+        (post) =>
+          !isEntryHidden({
+            postId: post.id,
+            authorId: post.item.author.id,
+            authorHandle: post.authorHandle,
+          }),
+      );
+    }
     return visiblePosts.filter(
       (post) => getSocialV1HotTokenId(post.item) === activeHotTokenId,
     );
-  }, [activeHotTokenId, visiblePosts]);
+  }, [activeHotTokenId, activeTokenFeed, isEntryHidden, visiblePosts]);
 
   const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
     setSelectedHotTokenId((current) =>
       current === token.id ? null : token.id,
     );
+    // Hold an empty token-feed page immediately so a contract chip does not
+    // flash the client-side filter before the carousel's request resolves.
+    if (token.chain && token.contractAddress) {
+      setTokenFeed({
+        posts: [],
+        isLoading: true,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore: () => undefined,
+        error: null,
+        refresh: async () => undefined,
+      });
+    } else {
+      setTokenFeed(null);
+    }
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, []);
 
@@ -195,7 +258,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
       );
-      await Promise.all([refresh(), minDuration]);
+      const refreshVisible = activeTokenFeed
+        ? activeTokenFeed.refresh()
+        : refresh();
+      await Promise.all([refreshVisible, minDuration]);
     } catch (err) {
       Logger.error(
         err as Error,
@@ -210,7 +276,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [refresh]);
+  }, [activeTokenFeed, refresh]);
 
   /**
    * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
@@ -221,7 +287,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
    */
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (!hasNextPage) {
+      const pageHasNext = activeTokenFeed
+        ? activeTokenFeed.hasNextPage
+        : hasNextPage;
+      if (!pageHasNext) {
         return;
       }
       const { contentOffset, contentSize, layoutMeasurement } =
@@ -229,10 +298,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       const distanceFromEnd =
         contentSize.height - (contentOffset.y + layoutMeasurement.height);
       if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
-        loadMore();
+        if (activeTokenFeed) {
+          activeTokenFeed.loadMore();
+        } else {
+          loadMore();
+        }
       }
     },
-    [hasNextPage, loadMore],
+    [activeTokenFeed, hasNextPage, loadMore],
   );
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
@@ -327,7 +400,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [seenPostIds],
   );
 
-  const showInitialFeedSkeletons = isLoading && posts.length === 0;
+  const showInitialFeedSkeletons = activeTokenFeed
+    ? activeTokenFeed.isLoading && activeTokenFeed.posts.length === 0
+    : isLoading && posts.length === 0;
+  const visibleError = activeTokenFeed ? activeTokenFeed.error : error;
+  const visibleFeedEmpty = activeTokenFeed
+    ? activeTokenFeed.posts.length === 0
+    : posts.length === 0;
+  const retryVisibleFeed = activeTokenFeed ? activeTokenFeed.refresh : refresh;
+  const showNextPageSpinner = activeTokenFeed
+    ? activeTokenFeed.isFetchingNextPage
+    : isFetchingNextPage;
 
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
@@ -375,6 +458,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 isLoading={isLoading}
                 selectedTokenId={activeHotTokenId}
                 onTokenPress={handleHotTokenPress}
+                onTokenFeedChange={handleTokenFeedChange}
               />
             ) : null}
             {pendingPost ? (
@@ -427,7 +511,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 </Fragment>
               ))
             )}
-            {isFetchingNextPage ? (
+            {showNextPageSpinner ? (
               <Box
                 alignItems={BoxAlignItems.Center}
                 twClassName="px-4"
@@ -436,7 +520,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <ActivityIndicator size="small" />
               </Box>
             ) : null}
-            {error && posts.length === 0 ? (
+            {visibleError && visibleFeedEmpty ? (
               <Box
                 alignItems={BoxAlignItems.Center}
                 twClassName="px-4 py-16 gap-3"
@@ -452,7 +536,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Sm}
-                  onPress={refresh}
+                  onPress={retryVisibleFeed}
                   testID={SOCIAL_V1_FEED_RETRY_TEST_ID}
                 >
                   {strings('social_leaderboard.feed.error.retry')}
