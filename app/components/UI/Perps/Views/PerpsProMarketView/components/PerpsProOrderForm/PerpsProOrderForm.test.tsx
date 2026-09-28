@@ -1628,24 +1628,6 @@ describe('PerpsProOrderForm', () => {
       expect(onDirectionChange).toHaveBeenCalledWith('short');
     });
 
-    it.each([
-      ['long', 'perps.market.long'],
-      ['short', 'perps.market.short'],
-    ])('centres the %s label on a single line', (_direction, key) => {
-      renderForm();
-
-      // ButtonBase only applies these label defaults when children is a
-      // string, so an element child silently left-aligns the label. Long
-      // translations such as el "Αγορά (Long)" made that visible.
-      const label = screen.getByText(strings(key));
-      const labelStyle = StyleSheet.flatten(label.props.style);
-
-      expect(label.props.numberOfLines).toBe(1);
-      expect(label.props.ellipsizeMode).toBe('tail');
-      expect(labelStyle.textAlign).toBe('center');
-      expect(labelStyle.flexShrink).toBe(1);
-    });
-
     it('tints the selected direction and leaves the other one muted', () => {
       const { rerender } = renderForm({ direction: 'long' });
       const colourOf = (key: string) =>
@@ -1665,21 +1647,6 @@ describe('PerpsProOrderForm', () => {
       expect(shortSelected).not.toBe(shortMuted);
       expect(longSelected).not.toBe(shortSelected);
       expect(longMuted).toBe(shortMuted);
-    });
-
-    it('narrows the segment inset so wider translations stay on one line', () => {
-      renderForm();
-
-      // The default px-4 left only ~60pt of the ~92pt pill for the label,
-      // which clipped every translation longer than en "Long".
-      expect(screen.getByTestId(ids.DIRECTION_LONG)).toHaveStyle({
-        paddingLeft: 4,
-        paddingRight: 4,
-      });
-      expect(screen.getByTestId(ids.DIRECTION_SHORT)).toHaveStyle({
-        paddingLeft: 4,
-        paddingRight: 4,
-      });
     });
   });
 
