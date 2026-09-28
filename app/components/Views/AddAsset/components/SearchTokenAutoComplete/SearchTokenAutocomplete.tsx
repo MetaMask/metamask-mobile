@@ -57,6 +57,7 @@ import useAssetVisibility, {
 } from '../../../../UI/TokenDetails/components/useAssetVisibility';
 import { filterExcludedImportAssets } from '../../../../../enablement/assets/networks-customization';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { Caip19AssetId } from '@metamask/assets-controller';
 
 interface Props {
   /**
@@ -222,7 +223,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       if (!assetIdBelongsToChain(assetId, caipChainId)) {
         return;
       }
-      if (assetPreferences[assetId]?.hidden === true) {
+      if (assetPreferences[assetId as Caip19AssetId]?.hidden === true) {
         return;
       }
       const addressKey = addressKeyFromAssetId(assetId, isNonEvm);

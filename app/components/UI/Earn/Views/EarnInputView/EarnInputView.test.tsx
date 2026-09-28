@@ -4,6 +4,7 @@ import {
   PooledStakingContract,
 } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'bignumber.js';
 import BN4 from 'bnjs4';
@@ -346,7 +347,7 @@ const mockInitialState: DeepPartial<RootState> = {
             lastUpdated: 1717334400000,
           },
         },
-      },
+      } as unknown as AssetsControllerState,
     },
   },
 };
