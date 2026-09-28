@@ -15,9 +15,8 @@ import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
   MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
 } from '../../../../hooks/useMoneyAccountPlusAccess';
-import { SUBSCRIPTIONS_QUERY_KEY } from '../../../hooks/useSubscriptions';
 import {
   BENEFITS_QUERY_KEY,
   MoneyAccountPlusBenefitsStatus,
@@ -34,7 +33,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../hooks/useMoneyAccountPlusAccess', () => ({
   ...jest.requireActual('../../../../hooks/useMoneyAccountPlusAccess'),
-  useMoneyAccountPlusAccess: jest.fn(),
+  useMoneyAccountPlusAccessState: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/identity', () => ({
@@ -47,7 +46,19 @@ jest.mock('../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
 }));
 
-const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
+const mockUseMoneyAccountPlusAccessState = jest.mocked(
+  useMoneyAccountPlusAccessState,
+);
+
+const mockAccess = (
+  access: MoneyAccountPlusAccess,
+  isSubscriptionsSettled = true,
+) => {
+  mockUseMoneyAccountPlusAccessState.mockReturnValue({
+    access,
+    isSubscriptionsSettled,
+  });
+};
 const mockSelectIsSignedIn = jest.mocked(selectIsSignedIn);
 const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockGetBenefits = jest.mocked(
@@ -141,32 +152,10 @@ const applyAuthFromState = (state: RootState) => {
   );
 };
 
-/** Seeds the subscriptions query the mocked access hook would have started. */
-const seedSubscriptionsQuery = (
-  queryClient: QueryClient,
-  subscriptions: 'settled' | 'fetching',
-) => {
-  if (subscriptions === 'settled') {
-    queryClient.setQueryData(SUBSCRIPTIONS_QUERY_KEY, []);
-    return;
-  }
-
-  queryClient
-    .fetchQuery({
-      queryKey: SUBSCRIPTIONS_QUERY_KEY,
-      queryFn: () => new Promise<never>(() => undefined),
-    })
-    .catch(() => undefined);
-};
-
-const renderBenefits = (
-  state: RootState,
-  subscriptions: 'settled' | 'fetching' = 'settled',
-) => {
+const renderBenefits = (state: RootState) => {
   applyAuthFromState(state);
 
   const queryClient = createQueryClient();
-  seedSubscriptionsQuery(queryClient, subscriptions);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={configureStore(state)}>
@@ -180,9 +169,7 @@ const renderBenefits = (
 describe('useMoneyAccountPlusBenefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Subscriber,
-    );
+    mockAccess(MoneyAccountPlusAccess.Subscriber);
     mockSelectIsSignedIn.mockReturnValue(true);
     mockSelectIsUnlocked.mockReturnValue(true);
     mockGetBenefits.mockResolvedValue({
@@ -197,9 +184,7 @@ describe('useMoneyAccountPlusBenefits', () => {
   });
 
   it('does not fetch benefits for a non-subscriber', async () => {
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Eligible,
-    );
+    mockAccess(MoneyAccountPlusAccess.Eligible);
 
     const { result } = renderBenefits(
       createState({ hasPlusSubscription: false }),
@@ -210,9 +195,7 @@ describe('useMoneyAccountPlusBenefits', () => {
   });
 
   it('does not fetch benefits while Plus access is unknown', () => {
-    mockUseMoneyAccountPlusAccess.mockReturnValue(
-      MoneyAccountPlusAccess.Unknown,
-    );
+    mockAccess(MoneyAccountPlusAccess.Unknown, false);
 
     const { result } = renderBenefits(
       createState({ hasPlusSubscription: false }),
@@ -261,7 +244,9 @@ describe('useMoneyAccountPlusBenefits', () => {
   });
 
   it('reports loading while the subscriptions refresh is in flight', () => {
-    const { result } = renderBenefits(createState(), 'fetching');
+    mockAccess(MoneyAccountPlusAccess.Subscriber, false);
+
+    const { result } = renderBenefits(createState());
 
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
@@ -356,7 +341,6 @@ describe('useMoneyAccountPlusBenefits', () => {
 
   it('clears the query when the session ends so the next subscriber re-fetches', async () => {
     const queryClient = createQueryClient(Infinity);
-    queryClient.setQueryData(SUBSCRIPTIONS_QUERY_KEY, []);
     const state = createState();
     applyAuthFromState(state);
 

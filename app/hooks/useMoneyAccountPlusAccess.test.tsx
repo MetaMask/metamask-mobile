@@ -9,6 +9,7 @@ import {
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
 } from './useMoneyAccountPlusAccess';
 
 jest.mock('react-redux', () => ({
@@ -119,4 +120,39 @@ describe('useMoneyAccountPlusAccess', () => {
     expect(result.current).toBe(MoneyAccountPlusAccess.Eligible);
     expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
   });
+});
+
+describe('useMoneyAccountPlusAccessState', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+      variantName: 'treatment',
+      isActive: true,
+    });
+    mockSubscriptionState({ isSubscriber: true });
+  });
+
+  it.each([
+    ['never fetched', { isFetched: false, isFetching: false }, false],
+    ['first fetch in flight', { isFetched: false, isFetching: true }, false],
+    ['stale remount refetch', { isFetched: true, isFetching: true }, false],
+    ['settled', { isFetched: true, isFetching: false }, true],
+  ])(
+    'reports subscriptions settled = %s when %s',
+    (_label, queryState, expected) => {
+      mockUseSubscriptions.mockReturnValue({
+        isLoading: false,
+        isError: false,
+        ...queryState,
+      } as ReturnType<typeof useSubscriptions>);
+
+      const { result } = renderHook(() => useMoneyAccountPlusAccessState());
+
+      expect(result.current).toEqual({
+        access: MoneyAccountPlusAccess.Subscriber,
+        isSubscriptionsSettled: expected,
+      });
+    },
+  );
 });

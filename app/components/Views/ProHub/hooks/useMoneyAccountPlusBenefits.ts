@@ -7,7 +7,6 @@ import {
   mapPlusBenefitsToTradeAllowances,
 } from '../components/MemberPricingOnTrades/mapPlusBenefitsToTradeAllowances';
 import type { TradeAllowanceItem } from '../ProHub.constants';
-import useSubscriptions from '../../../hooks/useSubscriptions';
 import Engine from '../../../../core/Engine';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
@@ -18,7 +17,7 @@ import {
 } from '../../../../selectors/subscriptionController';
 import {
   MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
 } from '../../../../hooks/useMoneyAccountPlusAccess';
 
 export const BENEFITS_QUERY_KEY = [
@@ -55,7 +54,7 @@ export interface MoneyAccountPlusBenefits {
  * @returns Mapped trade-allowance rows and the shared reset date.
  */
 export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
-  const access = useMoneyAccountPlusAccess();
+  const { access, isSubscriptionsSettled } = useMoneyAccountPlusAccessState();
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
   const isActiveSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
@@ -67,15 +66,10 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const canFetch = isActiveSubscriber && isSignedIn && isUnlocked;
   const hasCache = benefits !== undefined;
 
-  // Observe only; useMoneyAccountPlusAccess owns the fetch and poll.
-  const { isFetched: subscriptionsFetched, isFetching: subscriptionsFetching } =
-    useSubscriptions({ enabled: false });
-  const subscriptionsSettled = subscriptionsFetched && !subscriptionsFetching;
-
   const { isPending, isFetching, isError, refetch } = useQuery({
     queryKey: BENEFITS_QUERY_KEY,
     queryFn: () => Engine.context.SubscriptionController.getBenefits(),
-    enabled: canFetch && subscriptionsSettled && !hasCache,
+    enabled: canFetch && isSubscriptionsSettled && !hasCache,
     retry: false,
     // Off so queryFn cannot run before enabled:false commits after auto-lock.
     refetchOnWindowFocus: false,
