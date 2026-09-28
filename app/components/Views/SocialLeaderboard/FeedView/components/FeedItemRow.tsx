@@ -69,7 +69,7 @@ export interface FeedItemRowProps {
    * feed payload is unchanged. Defaults to `Date.now()`.
    */
   now?: number;
-  /** When true, shows the overflow menu that currently only offers Report. */
+  /** When true, shows the overflow moderation menu. */
   showOptionsMenu?: boolean;
 }
 
@@ -88,7 +88,15 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   now,
   showOptionsMenu = false,
 }) => {
-  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
+  const {
+    open: openOptions,
+    sheet: optionsSheet,
+    isHidden,
+  } = useSocialEntryOptions({
+    postId: item.id,
+    authorId: item.traderId,
+    authorHandle: item.username,
+  });
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
@@ -120,6 +128,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const tradeCardTwClassName = usePositionCardChrome
     ? 'bg-background-alternative rounded-2xl p-3 border border-muted'
     : 'bg-muted rounded-2xl p-3';
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>

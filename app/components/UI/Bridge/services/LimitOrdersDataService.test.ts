@@ -8,7 +8,7 @@ import {
   MOCK_LIMIT_FILLED_ORDER,
   MOCK_LIMIT_OPEN_ORDER,
 } from '../api/limitOrders/getLimitOrders/mock';
-import { LimitOrderStatus } from '../api/limitOrders/getLimitOrders/types';
+import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
 import type { LimitOrdersQueryParams } from '../queries/limitOrders';
 import {
   LimitOrdersDataService,
@@ -24,7 +24,7 @@ jest.mock('../api/limitOrders/getLimitOrders', () => ({
 const mockGetLimitOrders = jest.mocked(getLimitOrders);
 const PARAMS: LimitOrdersQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
-  status: [LimitOrderStatus.Open],
+  states: [LimitOrderState.Open],
   chainId: 'eip155:1',
   limit: 20,
 };

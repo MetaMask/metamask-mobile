@@ -19,6 +19,7 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../Analytics';
 import { parseTimeToOpenSeconds } from '../legacy/handleAssetUrl';
 import { TokenDetailsSource } from '../../../../components/UI/TokenDetails/constants/constants';
+import { PriceAlertAnalytics } from '../../../../components/UI/Assets/PriceAlerts/constants';
 
 interface HandlePerpsUrlParams {
   perpsPath: string;
@@ -301,6 +302,7 @@ const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
             asset_id: rawSymbol,
             token_symbol: displaySymbol.toUpperCase(),
             alert_type: urlParams.get('alert_type'),
+            alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
             price_at_trigger: Number.parseFloat(
               urlParams.get('price_at_trigger') as string,
             ),

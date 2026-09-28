@@ -32,7 +32,7 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         backgroundColor,
-        borderRadius: 12,
+        borderRadius: 16,
         paddingHorizontal: 4,
         paddingVertical: 12,
         justifyContent: 'center',

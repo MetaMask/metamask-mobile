@@ -7,41 +7,15 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import type { AccountsApiActivity } from '../types/moneyActivity';
+import type {
+  MoneyActivityTitleKey,
+  MoneyActivityTransactionMeta,
+} from '../constants/moneyActivity';
 
-export type MoneyActivityFilterType = 'deposit' | 'transfer';
+/** Money account chain used by activity list unit fixtures. */
+export const FIXTURE_CHAIN_ID = CHAIN_IDS.MONAD as Hex;
 
-export enum MoneyActivityFilter {
-  All = 'all',
-  Deposits = 'deposits',
-  Transfers = 'transfers',
-  Purchases = 'purchases',
-}
-
-/**
- * When set on mock or enriched {@link TransactionMeta}, overrides the default title from {@link TransactionType}.
- */
-export type MoneyActivityTitleKey =
-  | 'deposited'
-  | 'received'
-  | 'card_transaction'
-  | 'converted'
-  | 'sent';
-
-/**
- * {@link TransactionMeta} plus optional Money activity presentation fields.
- */
-export type MoneyActivityTransactionMeta = TransactionMeta & {
-  moneySubtitle?: string;
-  moneyActivityTitleKey?: MoneyActivityTitleKey;
-};
-
-// mUSD activity is gated to the Money Account chain (Monad). Using Monad here
-// lets the mUSD amount resolve through the normal `transferInformation` path so
-// mock rows render real "+/-X.XX mUSD" amounts.
-export const MOCK_CHAIN_ID = CHAIN_IDS.MONAD as Hex;
-
-export const MOCK_NETWORK_CLIENT_ID = 'monad';
+export const FIXTURE_NETWORK_CLIENT_ID = 'monad';
 
 const defaultTxParams = {
   from: '0x0000000000000000000000000000000000000001',
@@ -51,7 +25,7 @@ const defaultTxParams = {
 
 function makeMoneyTx(config: {
   id: string;
-  /** Unix time in seconds (matches historical mock JSON). */
+  /** Unix time in seconds. */
   timestampSec: number;
   type: TransactionType;
   amount: string;
@@ -73,8 +47,8 @@ function makeMoneyTx(config: {
 
   return {
     id,
-    chainId: MOCK_CHAIN_ID,
-    networkClientId: MOCK_NETWORK_CLIENT_ID,
+    chainId: FIXTURE_CHAIN_ID,
+    networkClientId: FIXTURE_NETWORK_CLIENT_ID,
     status,
     time: timestampSec * 1000,
     txParams: defaultTxParams,
@@ -90,8 +64,11 @@ function makeMoneyTx(config: {
   };
 }
 
-const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
-  // --- Pending (in-flight): present-tense label + spinner ---
+/**
+ * Sample Money activity transactions for unit tests. Stable ids are asserted
+ * via testIDs such as `activity-mock-tx-money-tx-converted`.
+ */
+const MONEY_ACTIVITY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
   makeMoneyTx({
     id: 'money-tx-depositing',
     timestampSec: 1747094400,
@@ -119,8 +96,6 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
     moneySubtitle: 'mUSD → USDC',
     moneyActivityTitleKey: 'sent',
   }),
-
-  // --- Failed: red "<action> failed" label, subtitle preserved, zero amount ---
   makeMoneyTx({
     id: 'money-tx-deposit-failed',
     timestampSec: 1747090800,
@@ -148,8 +123,6 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
     moneySubtitle: 'mUSD → USDC',
     moneyActivityTitleKey: 'sent',
   }),
-
-  // --- Confirmed ---
   makeMoneyTx({
     id: 'money-tx-converted',
     timestampSec: 1747008000,
@@ -166,7 +139,6 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
     moneySubtitle: 'Transak',
     moneyActivityTitleKey: 'deposited',
   }),
-  // Apple Pay funded deposit; renders an "Apple Pay" subtitle in the list.
   makeMoneyTx({
     id: 'money-tx-deposited-apple-pay',
     timestampSec: 1747004100,
@@ -201,61 +173,4 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
   }),
 ];
 
-export default MOCK_MONEY_TRANSACTIONS;
-
-/**
- * Mock Accounts-API activity for QA: a card spend, a cashback reward and a
- * refund — all card activity, so all under Purchases regardless of direction.
- * These come from the Accounts API,
- * a separate source from on-chain txns, so they aren't part of
- * MOCK_MONEY_TRANSACTIONS — MoneyActivityView merges them in when mock data is
- * enabled.
- */
-export const MOCK_API_ACTIVITY: AccountsApiActivity[] = [
-  {
-    kind: 'card',
-    hash: '0xca5d000000000000000000000000000000000000000000000000000000000001',
-    time: 1747005600 * 1000,
-    chainId: MOCK_CHAIN_ID,
-    token: {
-      address: MUSD_TOKEN_ADDRESS,
-      symbol: MUSD_TOKEN.symbol,
-      decimals: MUSD_TOKEN.decimals,
-    },
-    amount: '10000000', // 10.00 mUSD → "-10.00 mUSD"
-    paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
-  },
-  {
-    kind: 'cashback',
-    hash: '0xca5b000000000000000000000000000000000000000000000000000000000001',
-    time: 1747002000 * 1000,
-    chainId: MOCK_CHAIN_ID,
-    token: {
-      address: MUSD_TOKEN_ADDRESS,
-      symbol: MUSD_TOKEN.symbol,
-      decimals: MUSD_TOKEN.decimals,
-    },
-    amount: '300000', // 0.30 mUSD → "+0.30 mUSD"
-    receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
-  },
-  {
-    kind: 'refund',
-    hash: '0xca5f000000000000000000000000000000000000000000000000000000000001',
-    time: 1746813600 * 1000,
-    chainId: MOCK_CHAIN_ID,
-    token: {
-      address: MUSD_TOKEN_ADDRESS,
-      symbol: MUSD_TOKEN.symbol,
-      decimals: MUSD_TOKEN.decimals,
-    },
-    amount: '10000000', // 10.00 mUSD → "+10.00 mUSD"
-    receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
-  },
-];
-
-export {
-  getMoneyActivityDateKeyUtc,
-  isMoneyActivityDeposit,
-  isMoneyActivityTransfer,
-  isMoneyActivityTransaction,
-} from './moneyActivityFilters';
+export default MONEY_ACTIVITY_TRANSACTIONS;

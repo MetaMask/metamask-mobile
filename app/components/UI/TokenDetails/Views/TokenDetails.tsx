@@ -4,7 +4,11 @@ import {
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import {
+  isCaipAssetType,
+  parseCaipAssetType,
+  type CaipAssetType,
+} from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -76,8 +80,11 @@ import {
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
+import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -257,6 +264,31 @@ const TokenDetails: React.FC<{
         : null,
     [caip19AssetId],
   );
+
+  const walletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const recurringBuyFeatureFlags = useSelector(
+    selectBridgeRecurringBuyFeatureFlags,
+  );
+  const isRecurringOrderLookupEnabled = useMemo(() => {
+    if (!recurringBuyFeatureFlags?.enabled || !caip19AssetId) {
+      return false;
+    }
+
+    try {
+      const { chainId } = parseCaipAssetType(caip19AssetId);
+      return recurringBuyFeatureFlags.enabledChainIds?.includes(chainId);
+    } catch {
+      return false;
+    }
+  }, [caip19AssetId, recurringBuyFeatureFlags]);
+  const { order: latestOpenRecurringOrder } =
+    useLatestOpenRecurringOrderForAsset({
+      walletAddress,
+      assetId: caip19AssetId,
+      enabled: isRecurringOrderLookupEnabled,
+    });
 
   const handleShare = useCallback(() => {
     if (!shareUrl) {
@@ -591,6 +623,7 @@ const TokenDetails: React.FC<{
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
+        recurringOrder={latestOpenRecurringOrder}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}

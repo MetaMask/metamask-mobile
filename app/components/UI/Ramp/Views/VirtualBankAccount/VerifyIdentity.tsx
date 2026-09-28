@@ -34,7 +34,6 @@ import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
-import { useKycStartSession } from './hooks/useKycStartSession';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -120,11 +119,14 @@ const AccordionRow = ({
   );
 };
 
-const VbaVerifyIdentity = () => {
+interface VbaVerifyIdentityProps {
+  onSuccess: () => void | Promise<void>;
+}
+
+const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
-  const { isStarting, startSession } = useKycStartSession();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
   const chevronRotation = useSharedValue(0);
@@ -137,10 +139,6 @@ const VbaVerifyIdentity = () => {
   }));
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
-
-  const handleContinue = useCallback(() => {
-    startSession();
-  }, [startSession]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -340,9 +338,8 @@ const VbaVerifyIdentity = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isLoading={isStarting}
-          isDisabled={!canContinue || isStarting}
-          onPress={handleContinue}
+          isDisabled={!canContinue}
+          onPress={onSuccess}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
           {strings('virtual_bank_account.verify_identity.button')}
