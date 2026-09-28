@@ -5551,6 +5551,7 @@
     "convert": "Convert",
     "bridge": "Bridge",
     "earn": "Earn",
+    "orders": "Orders",
     "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
