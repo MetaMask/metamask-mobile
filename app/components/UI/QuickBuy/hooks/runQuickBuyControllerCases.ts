@@ -2656,11 +2656,7 @@ export const runQuickBuyControllerCases = ({
 
         const { result } = renderHook(createTarget(), jest.fn());
 
-        const symbols = result.current.sellDestTokenOptions.map(
-          (t) => t.symbol,
-        );
-        expect(symbols).not.toContain('USDC');
-        expect(symbols).toEqual(['ETH']);
+        expect(result.current.selectedReceiveToken?.symbol).toBe('ETH');
       });
 
       it('does not auto-select while setup is still loading', () => {
@@ -4437,40 +4433,6 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.formattedRate).toBe('1 ETH = 2,000.0 TARGET');
       });
 
-      it('adds a non-gasless network fee to totalAmountFiat', () => {
-        setupQuoteSourceMock({
-          ...quotedDisplayState(),
-          activeQuote: createActiveQuote({
-            quote: {
-              gasIncluded: false,
-              feeData: {
-                network: [{ valueInCurrency: '1.25' }],
-              },
-            },
-          }),
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-
-        expect(result.current.totalAmountFiat).toBe('$21.25');
-      });
-
-      it('adds the gasless network fee to totalAmountFiat', () => {
-        setupQuoteSourceMock(quotedDisplayState());
-
-        const { result } = renderHook(createTarget(), jest.fn());
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-
-        expect(result.current.totalAmountFiat).toBe('$21.50');
-      });
-
       it('exposes the receive value and gas deduction label for a gasless quote', () => {
         setupQuoteSourceMock(quotedDisplayState());
         jest.mocked(useDisplayCurrencyValue).mockReturnValue('$20.00');
@@ -4493,28 +4455,6 @@ export const runQuickBuyControllerCases = ({
 
         expect(result.current.estimatedReceiveFiat).toBeUndefined();
         expect(result.current.gasFeeDeductionLabel).toBeUndefined();
-      });
-
-      it('omits the gasless network fee from totalAmountFiat when the fee is not numeric', () => {
-        setupQuoteSourceMock({
-          ...quotedDisplayState(),
-          activeQuote: createActiveQuote({
-            quote: {
-              gasIncluded: true,
-              feeData: {
-                txFee: [{ valueInCurrency: 'abc' }],
-              },
-            },
-          }),
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-
-        expect(result.current.totalAmountFiat).toBe('$0.00');
       });
 
       it('returns no formatted rate when the quote source amount is zero', () => {

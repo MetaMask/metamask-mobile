@@ -20,6 +20,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
   const {
     tradeMode,
     positionTokenFromSetup,
+    payWithChainIds,
     selectedSourceToken,
     handleSelectSourceToken,
     selectedReceiveToken,
@@ -70,6 +71,7 @@ const QuickBuyTokenSelectScreen: React.FC = () => {
         selectedToken={isSell ? selectedReceiveToken : selectedSourceToken}
         onTokenPress={handleSelect}
         balanceOnly={!isSell}
+        enabledChainIds={isSell ? undefined : payWithChainIds}
         excludeToken={positionTokenFromSetup}
         onOpenNetworkList={() => setActiveScreen('selectNetwork')}
         hostManagesNetworkFilter

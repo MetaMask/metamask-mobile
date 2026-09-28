@@ -23,9 +23,12 @@ import { useQuickBuyContext } from './useQuickBuyContext';
  */
 const QuickBuyNetworkListScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { setActiveScreen } = useQuickBuyContext();
+  const { setActiveScreen, tradeMode, payWithChainIds } = useQuickBuyContext();
   const chainRanking = useSelector((state: RootState) =>
-    selectAllowedChainRanking(state),
+    selectAllowedChainRanking(
+      state,
+      tradeMode === 'sell' ? undefined : payWithChainIds,
+    ),
   );
   const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
 

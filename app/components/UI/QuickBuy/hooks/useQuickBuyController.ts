@@ -2,9 +2,8 @@ import {
   isNonEvmChainId,
   formatChainIdToCaip,
   getNativeAssetForChainId,
-  sumAmounts,
 } from '@metamask/bridge-controller';
-import type { Hex } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import {
   useCallback,
   useContext,
@@ -145,6 +144,8 @@ export interface UseQuickBuyControllerResult {
   sourceToken: BridgeToken | undefined;
   sourceChainId: Hex | undefined;
   sourceTokenOptions: BridgeToken[];
+  /** Networks the user holds a Pay with token on; scopes the Buy picker. */
+  payWithChainIds: CaipChainId[];
   selectedSourceToken: BridgeToken | undefined;
   isSourcePickerOpen: boolean;
   setIsSourcePickerOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -152,7 +153,6 @@ export interface UseQuickBuyControllerResult {
     React.SetStateAction<BridgeToken | undefined>
   >;
   // sell dest token (Sell mode "Receive with")
-  sellDestTokenOptions: BridgeToken[];
   positionTokenFromSetup: BridgeToken | undefined;
   selectedReceiveToken: BridgeToken | undefined;
   handleSelectReceiveToken: (token: BridgeToken) => void;
@@ -200,7 +200,6 @@ export interface UseQuickBuyControllerResult {
   formattedMinimumReceivedFiat: string | undefined;
   formattedPriceImpact: string;
   formattedRate: string | undefined;
-  totalAmountFiat: string;
   // quote state
   isQuoteLoading: boolean;
   /**
@@ -406,6 +405,13 @@ export function useQuickBuyController(
         : heldTokenOptions,
     [heldTokenOptions, destLookupKey],
   );
+  const payWithChainIds = useMemo(() => {
+    const chainIds = new Set<CaipChainId>();
+    for (const { chainId } of sourceTokenOptions) {
+      if (chainId) chainIds.add(formatChainIdToCaip(chainId));
+    }
+    return [...chainIds];
+  }, [sourceTokenOptions]);
 
   // True when the user holds nothing tradable to pay with on any bridge-enabled
   // chain (TSA-984). In this state `sourceToken` never resolves — the
@@ -880,20 +886,6 @@ export function useQuickBuyController(
 
   const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
-  const networkFeeFiat = useMemo(() => {
-    if (!activeQuote) return null;
-    if (isGaslessQuote(activeQuote.quote)) {
-      const v = sumAmounts(activeQuote.quote.feeData.txFee)?.valueInCurrency;
-      return v != null && isNumberValue(v) ? parseFloat(v) : null;
-    }
-    const total = sumAmounts(
-      activeQuote.quote.feeData?.network,
-      activeQuote.quote.feeData?.relayer,
-    )?.valueInCurrency;
-    if (total != null && isNumberValue(total)) return parseFloat(total);
-    return null;
-  }, [activeQuote]);
-
   const formattedSlippage = useMemo(() => {
     if (slippage == null) return 'Auto';
     return `${slippage}%`;
@@ -958,18 +950,6 @@ export function useQuickBuyController(
       ),
     [activeQuote, bridgeFeatureFlags],
   );
-
-  const totalAmountFiat = useMemo(() => {
-    const inputNum = parseFloat(fiatAmount);
-    const zero = formatCurrency(0, currentCurrency);
-    if (!fiatAmount || isNaN(inputNum)) return zero;
-    // Both the entered amount and the quote's network fee (`valueInCurrency`)
-    // are already in the user's display currency.
-    if (activeQuote && networkFeeFiat !== null) {
-      return formatCurrency(inputNum + networkFeeFiat, currentCurrency);
-    }
-    return zero;
-  }, [fiatAmount, activeQuote, networkFeeFiat, currentCurrency]);
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceTokenAmount,
@@ -1845,7 +1825,9 @@ export function useQuickBuyController(
   const isConfirmLoading = isSubmittingTx;
 
   let buttonError: QuickBuyButtonError | null = null;
-  if (!isPresetAddFundsMode && !hasNoPayWithFunds) {
+  // An over-balance Sell keeps its "Sell" label; it is only disabled.
+  const isOverBalanceSell = tradeMode === 'sell' && hasInsufficientBalance;
+  if (!isPresetAddFundsMode && !hasNoPayWithFunds && !isOverBalanceSell) {
     if (hasInsufficientBalance || isNetworkFeeUnavailable) {
       buttonError = 'insufficient_balance';
     } else if (hasInsufficientGas) {
@@ -1896,11 +1878,11 @@ export function useQuickBuyController(
     sourceToken,
     sourceChainId,
     sourceTokenOptions,
+    payWithChainIds,
     selectedSourceToken,
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
-    sellDestTokenOptions,
     positionTokenFromSetup,
     selectedReceiveToken,
     currentCurrency,
@@ -1932,7 +1914,6 @@ export function useQuickBuyController(
     formattedMinimumReceivedFiat,
     formattedPriceImpact,
     formattedRate,
-    totalAmountFiat,
     isQuoteLoading,
     isBlockingQuoteLoad,
     isSubmittingTx,
