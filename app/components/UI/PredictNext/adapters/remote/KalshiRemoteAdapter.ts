@@ -14,7 +14,10 @@ import {
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID } from '../../types';
+import {
+  KALSHI_VENUE_ID,
+  type FetchOrderPreviewParams,
+} from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -100,9 +103,26 @@ export class KalshiRemoteAdapter {
     this.trading = {
       previewOrder: async (params, options) => {
         try {
+          // Version tolerance (ADR-0001): the deployed backend's strict
+          // request schema rejects unknown keys, so a buy keeps the exact
+          // PRED-1194 body without `action`; only a sell carries the
+          // discriminator.
+          const wireParams: FetchOrderPreviewParams =
+            params.action === 'buy'
+              ? {
+                  marketId: params.marketId,
+                  side: params.side,
+                  amount: params.amount,
+                }
+              : {
+                  marketId: params.marketId,
+                  side: params.side,
+                  action: 'sell',
+                  contracts: params.contracts,
+                };
           const value = await client.fetchOrderPreview(
             this.venueId,
-            params,
+            wireParams,
             options,
           );
           const result = parsePredictOrderPreview(value);

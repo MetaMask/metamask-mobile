@@ -16,7 +16,6 @@ const previewResponse = {
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
-  action: 'buy',
   requestedAmount: '20.00',
   orderAmount: '20.00',
   estimatedContracts: 43,
@@ -131,7 +130,6 @@ describe('PredictNext Order Preview request', () => {
         body: JSON.stringify({
           marketId: 'KXTEST-26-A',
           side: 'yes',
-          action: 'buy',
           amount: '20.00',
         }),
       }),

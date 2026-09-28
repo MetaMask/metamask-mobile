@@ -62,7 +62,6 @@ const makeReceipt = (overrides: Record<string, unknown> = {}) => ({
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
-  action: 'buy',
   status: 'filled',
   requestedMaxSpend: '20.00',
   quotedContracts: 43,
@@ -198,7 +197,6 @@ const makePreview = (overrides: Record<string, unknown> = {}) => ({
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
-  action: 'buy',
   requestedAmount: '20.00',
   orderAmount: '20.00',
   estimatedContracts: 43,
@@ -360,7 +358,6 @@ describe('PredictOrderFlow', () => {
     expect(calls[0]?.body).toEqual({
       marketId: 'KXTEST-26-A',
       side: 'yes',
-      action: 'buy',
       amount: '20',
     });
   });
@@ -465,7 +462,6 @@ describe('PredictOrderFlow', () => {
     expect(previewCalls()[0]?.body).toEqual({
       marketId: 'KXTEST-26-A',
       side: 'yes',
-      action: 'buy',
       amount: '5',
     });
   });
@@ -504,7 +500,6 @@ describe('PredictOrderFlow', () => {
     expect(previewCalls()[0]?.body).toEqual({
       marketId: 'KXTEST-26-A',
       side: 'yes',
-      action: 'buy',
       amount: '15',
     });
   });

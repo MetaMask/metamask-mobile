@@ -1,4 +1,5 @@
 import {
+  type AnyStruct,
   array,
   enums,
   literal,
@@ -172,10 +173,42 @@ const assertFieldsAbsent = (
 };
 
 /**
- * Parses a server Order Preview response, branching on the Order Action.
- * All quoted values are backend-owned; anything the backend does not send
- * fails validation, and a variant carrying the other action's fields fails
- * validation rather than being masked away.
+ * Branches a raw Order response on its Order Action. Version tolerance
+ * (ADR-0001): a backend predating the action contract sends the buy-only
+ * shape with `action` absent, so absence means buy — normalized to
+ * `action: 'buy'` on the parsed value. An explicit `action: 'sell'` parses
+ * the sell variant, and any other action fails. The absent-not-null rule is
+ * unchanged: a variant carrying the other action's fields fails validation
+ * rather than being masked away.
+ */
+const parseOrderActionVariant = <TPreview>(
+  value: Record<string, unknown>,
+  buySchema: AnyStruct,
+  sellSchema: AnyStruct,
+  buyOnlyFields: readonly string[],
+  sellOnlyFields: readonly string[],
+  kind: string,
+): TPreview => {
+  if (Object.hasOwn(value, 'action') && value.action !== 'buy') {
+    if (value.action === 'sell') {
+      assertFieldsAbsent(value, buyOnlyFields);
+      return mask(value, sellSchema) as unknown as TPreview;
+    }
+    throw new Error(`${kind} must carry a buy or sell action.`);
+  }
+  assertFieldsAbsent(value, sellOnlyFields);
+  return mask(
+    Object.hasOwn(value, 'action') ? value : { ...value, action: 'buy' },
+    buySchema,
+  ) as unknown as TPreview;
+};
+
+/**
+ * Parses a server Order Preview response, branching on the Order Action per
+ * the shared version-tolerant rules. All quoted values are backend-owned;
+ * anything the backend does not send fails validation, and a variant
+ * carrying the other action's fields fails validation rather than being
+ * masked away.
  */
 export const parsePredictOrderPreview = (
   value: unknown,
@@ -184,18 +217,16 @@ export const parsePredictOrderPreview = (
     if (!isRecord(value)) {
       throw new Error('Order Preview must be an object.');
     }
-    if (value.action === 'buy') {
-      assertFieldsAbsent(value, SELL_ONLY_PREVIEW_FIELDS);
-      return mask(value, buyPreviewSchema) as unknown as PredictBuyOrderPreview;
-    }
-    if (value.action === 'sell') {
-      assertFieldsAbsent(value, BUY_ONLY_PREVIEW_FIELDS);
-      return mask(
-        value,
-        sellPreviewSchema,
-      ) as unknown as PredictSellOrderPreview;
-    }
-    throw new Error('Order Preview must carry a buy or sell action.');
+    return parseOrderActionVariant<
+      PredictBuyOrderPreview | PredictSellOrderPreview
+    >(
+      value,
+      buyPreviewSchema,
+      sellPreviewSchema,
+      BUY_ONLY_PREVIEW_FIELDS,
+      SELL_ONLY_PREVIEW_FIELDS,
+      'Order Preview',
+    );
   } catch {
     throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
   }
@@ -203,12 +234,12 @@ export const parsePredictOrderPreview = (
 
 /**
  * Parses a server Order Receipt response for a committed Order, branching on
- * the Order Action. One Order produces exactly one receipt; in-progress and
- * reconciliation-required statuses observe by committing the same Preview
- * again. Nullable fill fields arrive as explicit nulls until the Venue
- * reports them, anything the backend does not send fails validation, and a
- * variant carrying the other action's fields fails validation rather than
- * being masked away.
+ * the Order Action per the shared version-tolerant rules. One Order produces
+ * exactly one receipt; in-progress and reconciliation-required statuses
+ * observe by committing the same Preview again. Nullable fill fields arrive
+ * as explicit nulls until the Venue reports them, anything the backend does
+ * not send fails validation, and a variant carrying the other action's
+ * fields fails validation rather than being masked away.
  */
 export const parsePredictOrderReceipt = (
   value: unknown,
@@ -217,18 +248,16 @@ export const parsePredictOrderReceipt = (
     if (!isRecord(value)) {
       throw new Error('Order Receipt must be an object.');
     }
-    if (value.action === 'buy') {
-      assertFieldsAbsent(value, SELL_ONLY_RECEIPT_FIELDS);
-      return mask(value, buyReceiptSchema) as unknown as PredictBuyOrderReceipt;
-    }
-    if (value.action === 'sell') {
-      assertFieldsAbsent(value, BUY_ONLY_RECEIPT_FIELDS);
-      return mask(
-        value,
-        sellReceiptSchema,
-      ) as unknown as PredictSellOrderReceipt;
-    }
-    throw new Error('Order Receipt must carry a buy or sell action.');
+    return parseOrderActionVariant<
+      PredictBuyOrderReceipt | PredictSellOrderReceipt
+    >(
+      value,
+      buyReceiptSchema,
+      sellReceiptSchema,
+      BUY_ONLY_RECEIPT_FIELDS,
+      SELL_ONLY_RECEIPT_FIELDS,
+      'Order Receipt',
+    );
   } catch {
     throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
   }

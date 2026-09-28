@@ -70,10 +70,28 @@ describe('parsePredictOrderPreview', () => {
     });
   });
 
-  it('rejects a missing action', () => {
+  it('defaults an absent action to the buy variant and normalizes it', () => {
     const { action: _action, ...withoutAction } = validPreview;
 
-    expect(() => parsePredictOrderPreview(withoutAction)).toThrow();
+    const preview = parsePredictOrderPreview(withoutAction);
+
+    expect(preview).toMatchObject({
+      action: 'buy',
+      marketId: 'KXTEST-26-A',
+      estimatedContracts: 10,
+      totalDebit: '4.20',
+    });
+  });
+
+  it('rejects a buy response with an absent action carrying sell-only fields', () => {
+    const { action: _action, ...withoutAction } = validPreview;
+
+    expect(() =>
+      parsePredictOrderPreview({
+        ...withoutAction,
+        estimatedProceeds: '33.60',
+      }),
+    ).toThrow();
   });
 
   it('rejects an unknown action', () => {
@@ -231,6 +249,27 @@ describe('parsePredictOrderReceipt', () => {
       fee: '0.20',
       payoutExposure: '10.00',
     });
+  });
+
+  it('defaults an absent action to the buy variant and normalizes it', () => {
+    const { action: _action, ...withoutAction } = validReceipt;
+
+    const receipt = parsePredictOrderReceipt(withoutAction);
+
+    expect(receipt).toMatchObject({
+      action: 'buy',
+      status: 'filled',
+      requestedMaxSpend: '4.00',
+      payoutExposure: '10.00',
+    });
+  });
+
+  it('rejects a receipt with an absent action carrying sell-only fields', () => {
+    const { action: _action, ...withoutAction } = validReceipt;
+
+    expect(() =>
+      parsePredictOrderReceipt({ ...withoutAction, netProceeds: '33.26' }),
+    ).toThrow();
   });
 
   it('accepts a complete filled sell Order Receipt', () => {

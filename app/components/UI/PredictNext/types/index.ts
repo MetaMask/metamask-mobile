@@ -226,12 +226,15 @@ export type PredictOrderPreviewParams =
       contracts: PredictAmount;
     };
 
-/** Wire-shape twin of PredictOrderPreviewParams for the API transport. */
+/** Wire-shape twin of PredictOrderPreviewParams for the API transport.
+ * Version tolerance (ADR-0001): a buy keeps the exact PRED-1194 body — a
+ * strict deployed schema rejects unknown keys, so it carries no `action` —
+ * while a sell carries the `action: 'sell'` discriminator it needs. The
+ * adapter maps the canonical union to this shape. */
 export type FetchOrderPreviewParams =
   | {
       marketId: string;
       side: PredictOutcomeSide;
-      action: 'buy';
       amount: string;
     }
   | {

@@ -521,7 +521,6 @@ describe('KalshiRemoteAdapter', () => {
       venueId: 'kalshi',
       marketId: 'market-1',
       side: 'yes',
-      action: 'buy',
       requestedAmount: '20.00',
       orderAmount: '20.00',
       estimatedContracts: 43,
@@ -624,6 +623,30 @@ describe('KalshiRemoteAdapter', () => {
       expect(result).toMatchObject({ requestedAmount: '20.00' });
     });
 
+    it('sends the legacy buy wire shape without an action key', async () => {
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+
+      await adapter.trading.previewOrder(previewParams);
+
+      expect(client.fetchOrderPreview).toHaveBeenCalledWith(
+        adapter.venueId,
+        // Version tolerance: no `action` key reaches the wire for a buy.
+        { marketId, side: 'yes', amount: '20' },
+        undefined,
+      );
+    });
+
+    it('parses a buy Preview that carries an explicit action (new backend)', async () => {
+      client.fetchOrderPreview.mockResolvedValue({
+        ...previewPayload,
+        action: 'buy',
+      });
+
+      await expect(
+        adapter.trading.previewOrder(previewParams),
+      ).resolves.toMatchObject({ action: 'buy', requestedAmount: '20.00' });
+    });
+
     it('accepts an amount echo that differs only in trailing zeros', async () => {
       client.fetchOrderPreview.mockResolvedValue({
         ...previewPayload,
@@ -706,7 +729,6 @@ describe('KalshiRemoteAdapter', () => {
       venueId: 'kalshi',
       marketId,
       side: 'yes',
-      action: 'buy',
       status: 'submitted',
       requestedMaxSpend: '20.00',
       quotedContracts: 43,
