@@ -5885,7 +5885,6 @@ describe('PredictController', () => {
           disableHook: true,
           disableSequential: true,
           overwriteUpgrade: true,
-          skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
         const event = (analytics.trackEvent as jest.Mock).mock.calls

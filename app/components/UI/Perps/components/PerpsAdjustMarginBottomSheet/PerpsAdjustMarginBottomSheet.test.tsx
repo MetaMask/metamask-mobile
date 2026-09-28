@@ -1,8 +1,14 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { SegmentedControl } from '@metamask/design-system-react-native';
+import {
+  HeaderSubpage,
+  SegmentedControl,
+} from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
-import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsAdjustMarginBottomSheetSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
 
 const mockGoBack = jest.fn();
@@ -89,10 +95,30 @@ jest.mock('../PerpsAmountDisplay', () => {
     );
 });
 
-// Subscribes to the live price stream, which needs PerpsStreamProvider.
-jest.mock('../LivePriceDisplay/LivePriceHeader', () => 'LivePriceHeader');
-
-jest.mock('../PerpsBottomSheetTooltip', () => 'PerpsBottomSheetTooltip');
+jest.mock('../PerpsTradeBottomSheet/PerpsTradeNestedScreens', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable } = jest.requireActual('react-native');
+  const { PerpsTradeSheetSelectorsIDs: selectors } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return {
+    PerpsInlineInfoScreen: ({
+      contentKey,
+      onBack,
+    }: {
+      contentKey: string;
+      onBack: () => void;
+    }) =>
+      ReactActual.createElement(
+        Pressable,
+        {
+          testID: selectors.INFO_SCREEN,
+          onPress: onBack,
+        },
+        contentKey,
+      ),
+  };
+});
 
 jest.mock('../../../../Base/Keypad', () => {
   const ReactActual = jest.requireActual('react');
@@ -192,6 +218,45 @@ describe('PerpsAdjustMarginBottomSheet', () => {
         PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
       ),
     ).toHaveTextContent('perps.adjust_margin.add_margin_sheet');
+  });
+
+  it('does not show the live price in the header', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.UNSAFE_getByType(HeaderSubpage).props.description,
+    ).toBeUndefined();
+  });
+
+  it('opens liquidation info inside the current sheet', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_PRICE_INFO,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+    ).toHaveTextContent('liquidation_price');
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.MODE_TOGGLE,
+      ),
+    ).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+    );
+
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.MODE_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('labels the amount input for screen readers', () => {

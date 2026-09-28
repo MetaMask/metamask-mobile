@@ -1219,8 +1219,12 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
   LIQUIDATION_PRICE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-price-value',
+  LIQUIDATION_PRICE_INFO:
+    'perps-adjust-margin-bottom-sheet-liquidation-price-info',
   LIQUIDATION_DISTANCE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
+  LIQUIDATION_DISTANCE_INFO:
+    'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
 } as const;
 
 // ========================================
@@ -1339,6 +1343,8 @@ export const PerpsWebSocketHealthToastSelectorsIDs = {
 
 export const PerpsOrderDetailsViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-order-details-cancel-button',
+  SCROLL_VIEW: 'perps-order-details-scroll-view',
+  FOOTER: 'perps-order-details-footer',
 } as const;
 
 // ========================================

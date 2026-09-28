@@ -64,6 +64,16 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
   },
 }));
 
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
+
 const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   asset: 'SOL',
   oiCapSymbol: 'SOL',
@@ -417,6 +427,12 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
     ).toHaveStyle({ height: typography.sBodyXS.lineHeight });
+  });
+
+  it('shows the VIP badge beside the fee for discounted users', () => {
+    render(<PerpsTradeScreen {...defaultProps} feeDiscountPercentage={15} />);
+
+    expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
   });
 
   it('shows the limit price row for a limit order', () => {

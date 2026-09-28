@@ -81,10 +81,7 @@ import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
-import CreateVirtualBankAccount from '../../UI/Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount';
-import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
-import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
-
+import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -1106,21 +1103,11 @@ const MainNavigator = () => {
       <NativeStack.Screen name={Routes.RAMP.SELL}>
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      {/* Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak. */}
-      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_KYC_EMAIL}
-          component={KycEmail}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.CREATE_VIRTUAL_BANK_ACCOUNT}
-          component={CreateVirtualBankAccount}
-        />
-        <NativeStack.Screen
-          name={Routes.RAMP.VBA_VERIFY_IDENTITY}
-          component={VbaVerifyIdentity}
-        />
-      </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_ONBOARDING}
+        component={VbaOnboardingNavigator}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
