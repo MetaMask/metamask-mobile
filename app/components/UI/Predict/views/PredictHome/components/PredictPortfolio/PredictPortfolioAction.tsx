@@ -68,6 +68,8 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         }
         position={BadgeWrapperPosition.TopRight}
         positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        positionXOffset={8}
+        twClassName="self-center"
       >
         <Icon
           name={iconName}
@@ -75,16 +77,16 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
           color={IconColor.IconAlternative}
         />
       </BadgeWrapper>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          twClassName="mt-0.5 w-full text-center shrink"
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {label}
-        </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        twClassName="mt-0.5 w-full text-center shrink"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {label}
+      </Text>
     </ButtonAnimated>
   );
 };
