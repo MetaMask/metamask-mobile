@@ -233,6 +233,11 @@ const styles = StyleSheet.create({
     zIndex: 999,
     elevation: 999,
   },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 1000,
+    elevation: 1000,
+  },
 });
 
 const Onboarding = () => {
@@ -1611,37 +1616,43 @@ const Onboarding = () => {
           onPressImport={onPressImport}
           onPressCreate={onPressCreate}
         />
-        {loading ? (
-          <OnboardingFoxLoader />
-        ) : (
-          <>
-            <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
-              <ScrollView
-                style={tw.style('flex-1')}
-                contentContainerStyle={tw.style('flex-1')}
-              >
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  twClassName="flex-1 py-4"
-                >
-                  {renderContent()}
-                </Box>
-              </ScrollView>
+        <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('flex-1')}
+          >
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="flex-1 py-4"
+            >
+              {renderContent()}
+            </Box>
+          </ScrollView>
 
-              <FadeOutOverlay />
+          <FadeOutOverlay />
 
-              {handleSimpleNotification()}
-            </SafeAreaView>
+          {handleSimpleNotification()}
+        </SafeAreaView>
 
-            {!hasTestOverrides && (
-              <FoxAnimation
-                hasFooter={false}
-                trigger={startFoxAnimation}
-                fullBleedBottom
-              />
-            )}
-          </>
+        {!hasTestOverrides && (
+          <FoxAnimation
+            hasFooter={false}
+            trigger={startFoxAnimation}
+            fullBleedBottom
+          />
+        )}
+
+        {/*
+          The loader overlays the landing content instead of replacing it so
+          FadeOutOverlay, the onboarding animations and the toast keep their
+          mounted state (and do not replay) when loading is unset after a
+          failed or cancelled OAuth attempt.
+        */}
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <OnboardingFoxLoader />
+          </View>
         )}
       </View>
     </ErrorBoundary>

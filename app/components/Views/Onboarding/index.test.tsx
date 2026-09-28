@@ -78,6 +78,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
+import { UserActionType } from '../../../actions/user';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
@@ -521,10 +523,57 @@ describe('Onboarding', () => {
       });
       expect(
         queryByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(queryByTestId('fox-animation-mock')).not.toBeOnTheScreen();
+      ).toBeOnTheScreen();
     } finally {
       mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('keeps the landing content mounted when loading is unset after a failed social login', async () => {
+    mockSkipLoadingUnset = true;
+    const fadeOutOverlayMountSpy = jest.spyOn(
+      FadeOutOverlay.prototype,
+      'componentDidMount',
+    );
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: '',
+      },
+    };
+
+    try {
+      const { getByTestId, queryByTestId, store } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
+      });
+      expect(fadeOutOverlayMountSpy).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        store.dispatch({ type: UserActionType.LOADING_UNSET });
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId('fox-rive-loader-animation'),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(fadeOutOverlayMountSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      fadeOutOverlayMountSpy.mockRestore();
       mockSkipLoadingUnset = false;
     }
   });
