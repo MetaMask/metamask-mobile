@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { mapApiTransaction } from '@metamask/client-utils';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
@@ -248,9 +249,13 @@ export function useActivityDetailsItem(
       (fetchedApiItem?.hash?.toLowerCase() === txIdentifier.toLowerCase()
         ? fetchedApiItem
         : undefined);
+    const localConfirmedApiPending =
+      localTransactionMeta?.status === TransactionStatus.confirmed &&
+      !apiItem &&
+      isSingleTxFetching;
     const nonEvmItem = getPreferredItem(nonEvmByHash, txIdentifier);
 
-    if (localItem) {
+    if (localItem && !localConfirmedApiPending) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
     }
 
@@ -267,6 +272,7 @@ export function useActivityDetailsItem(
     rampByIdentifier,
     localTransactionMeta,
     fetchedApiItem,
+    isSingleTxFetching,
   ]);
 
   const isFetching = useMemo(() => {

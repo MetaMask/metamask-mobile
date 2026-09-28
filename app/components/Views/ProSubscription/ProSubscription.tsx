@@ -17,6 +17,8 @@ import {
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
+import { ensureError } from '../../../util/errorUtils';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
@@ -100,7 +102,13 @@ const ProSubscription = () => {
     // Pro Hub would otherwise treat empty state as non-subscriber and bounce.
     try {
       await Engine.context.SubscriptionController.getSubscriptions();
-    } catch {
+    } catch (error) {
+      Logger.error(ensureError(error, 'ProSubscription.refreshSubscriptions'), {
+        tags: {
+          feature: 'money_account_plus',
+          operation: 'refresh_subscriptions_after_checkout',
+        },
+      });
       return;
     }
     navigation.replace(Routes.PRO_HUB.ROOT);

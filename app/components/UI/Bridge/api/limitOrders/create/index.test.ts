@@ -1,4 +1,13 @@
-import { createLimitOrder, type CreateLimitOrderParams } from '.';
+import React, { type PropsWithChildren } from 'react';
+import { act, renderHook } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { limitOrdersQueries } from '../../../queries/limitOrders';
+import { LimitOrderState } from '../getLimitOrders/types';
+import {
+  createLimitOrder,
+  useCreateLimitOrder,
+  type CreateLimitOrderParams,
+} from '.';
 
 const mockGetBearerToken = jest.fn();
 jest.mock('../../../../../../core/Engine', () => ({
@@ -125,7 +134,7 @@ describe('createLimitOrder', () => {
     expect(result).toStrictEqual(VALID_RESPONSE);
     expect(globalFetchSpy).toHaveBeenCalledTimes(1);
     const [url, requestOptions] = globalFetchSpy.mock.calls[0];
-    expect(url).toContain('/v2/limit-orders');
+    expect(url).toContain('/v2/orders/limit');
     expect(requestOptions).toMatchObject({
       method: 'POST',
       headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
@@ -177,6 +186,74 @@ describe('createLimitOrder', () => {
 
     await expect(createLimitOrder(ORDER_PARAMS)).rejects.toThrow(
       /Invalid create limit order response/u,
+    );
+  });
+});
+
+describe('useCreateLimitOrder', () => {
+  const WALLET_ADDRESS = '0x4751fd55e5b9723f427cf1a298f785ec2adcf123';
+  const OPEN_ORDERS_KEY = limitOrdersQueries.getLimitOrders({
+    walletAddress: WALLET_ADDRESS,
+    states: [LimitOrderState.Open],
+    chainId: 'eip155:56',
+    limit: 20,
+  }).queryKey;
+  const HISTORY_KEY = limitOrdersQueries.getLimitOrders({
+    walletAddress: WALLET_ADDRESS,
+    states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
+    limit: 20,
+  }).queryKey;
+
+  let globalFetchSpy: jest.SpyInstance;
+  let queryClient: QueryClient;
+
+  const wrapper = ({ children }: PropsWithChildren) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetBearerToken.mockResolvedValue('mock-bearer-token');
+    globalFetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => VALID_RESPONSE,
+    } as Response);
+    queryClient = new QueryClient();
+    queryClient.setQueryData(OPEN_ORDERS_KEY, { pages: [], pageParams: [] });
+    queryClient.setQueryData(HISTORY_KEY, { pages: [], pageParams: [] });
+  });
+
+  afterEach(() => {
+    globalFetchSpy.mockRestore();
+    queryClient.clear();
+  });
+
+  it('invalidates the open orders once the order is created', async () => {
+    const { result } = renderHook(() => useCreateLimitOrder(), { wrapper });
+
+    await act(async () => {
+      await result.current(ORDER_PARAMS);
+    });
+
+    expect(queryClient.getQueryState(OPEN_ORDERS_KEY)?.isInvalidated).toBe(
+      true,
+    );
+    expect(queryClient.getQueryState(HISTORY_KEY)?.isInvalidated).toBe(false);
+  });
+
+  it('leaves the open orders alone when the order is not created', async () => {
+    globalFetchSpy.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({}),
+    } as Response);
+    const { result } = renderHook(() => useCreateLimitOrder(), { wrapper });
+
+    await act(async () => {
+      await expect(result.current(ORDER_PARAMS)).rejects.toThrow(/status 400/u);
+    });
+
+    expect(queryClient.getQueryState(OPEN_ORDERS_KEY)?.isInvalidated).toBe(
+      false,
     );
   });
 });

@@ -180,6 +180,44 @@ describe('BrazePlugin', () => {
       expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
       expect(result).toBe(event);
     });
+
+    it('does not forward an event whose name is on the blocklist', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      const event = makeTrackEvent('App Opened', { source: 'cold_start' });
+
+      const result = plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
+      expect(result).toBe(event);
+    });
+
+    it('forwards events that are not on the blocklist', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      const event = makeTrackEvent('Swap Completed');
+
+      plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
+        'Swap Completed',
+        undefined,
+      );
+    });
+
+    it('forwards every event when the blocklist is cleared', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      plugin.setBlockedEvents([]);
+      const event = makeTrackEvent('App Opened');
+
+      plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
+        'App Opened',
+        undefined,
+      );
+    });
   });
 
   describe('identify', () => {

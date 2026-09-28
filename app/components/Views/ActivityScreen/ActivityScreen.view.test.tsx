@@ -65,6 +65,8 @@ import {
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { PERPS_AGGREGATE_FILLS } from '../../../constants/storage';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
@@ -78,6 +80,7 @@ const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
 const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
+const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
 
 const monToBaseBridgeState = (
   transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
@@ -486,6 +489,55 @@ describeForPlatforms('ActivityScreen', () => {
         queryByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
       ).toBeNull();
     });
+  });
+
+  it('saves the Aggregated choice when switching Perps Trades to individual fills', async () => {
+    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    try {
+      const { getByTestId, queryByTestId, findByTestId } =
+        renderActivityScreenView();
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+      fireEvent.press(
+        await findByTestId(optionTestId(ActivityTypeFilter.Perps)),
+      );
+      expect(
+        await findByTestId(AGGREGATED_CHECKBOX_CHECK_ICON),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId(AGGREGATED_CHECKBOX_CHECK_ICON)).toBeNull();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith(PERPS_AGGREGATE_FILLS, 'false');
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
+  it('restores a saved individual-fills choice on Perps Trades', async () => {
+    const getItemSyncSpy = jest
+      .spyOn(StorageWrapper, 'getItemSync')
+      .mockImplementation((key: string) =>
+        key === PERPS_AGGREGATE_FILLS ? 'false' : null,
+      );
+    try {
+      const { getByTestId, queryByTestId, findByTestId } =
+        renderActivityScreenView();
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+      fireEvent.press(
+        await findByTestId(optionTestId(ActivityTypeFilter.Perps)),
+      );
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(AGGREGATED_CHECKBOX_CHECK_ICON)).toBeNull();
+    } finally {
+      getItemSyncSpy.mockRestore();
+    }
   });
 
   it('navigates back to home tabs when opened as the root activity route', async () => {

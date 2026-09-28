@@ -50,21 +50,24 @@ export const PerpsTradeLeverageScreen: React.FC<
 };
 
 /** Explainers that the Trade sheet shows inline instead of in a new sheet. */
-export type PerpsTradeInfoContentKey = 'margin' | 'liquidation_price';
+export type PerpsInlineInfoContentKey =
+  | 'margin'
+  | 'liquidation_price'
+  | 'liquidation_distance';
 
-interface PerpsTradeInfoScreenProps {
-  contentKey: PerpsTradeInfoContentKey;
+interface PerpsInlineInfoScreenProps {
+  contentKey: PerpsInlineInfoContentKey;
+  onBack: () => void;
 }
 
 /**
- * Short read-only explainer (title, one paragraph, "Got it") rendered as a
- * nested Trade sheet screen, so tapping an info icon never stacks a second
- * bottom sheet on top of the Trade sheet.
+ * Short read-only explainer shared by bottom-sheet flows so tapping an info
+ * icon replaces the current sheet content instead of stacking another modal.
  */
-export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = ({
+export const PerpsInlineInfoScreen: React.FC<PerpsInlineInfoScreenProps> = ({
   contentKey,
+  onBack,
 }) => {
-  const { goBack } = usePerpsTradeSheet();
   const { track } = usePerpsEventTracking();
 
   // Same interaction event the standalone tooltip sheet reports, so the A/B
@@ -78,8 +81,8 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = ({
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
     });
-    goBack();
-  }, [goBack, track]);
+    onBack();
+  }, [onBack, track]);
 
   const gotItButtonProps = useMemo(
     () => ({
@@ -95,7 +98,7 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = ({
     <Box accessible={false} testID={PerpsTradeSheetSelectorsIDs.INFO_SCREEN}>
       <HeaderStandard
         title={strings(`perps.tooltips.${contentKey}.title`)}
-        onBack={goBack}
+        onBack={onBack}
         backButtonProps={{
           testID: PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON,
           accessibilityLabel: strings('navigation.back'),
@@ -109,4 +112,16 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = ({
       <BottomSheetFooter primaryButtonProps={gotItButtonProps} />
     </Box>
   );
+};
+
+interface PerpsTradeInfoScreenProps {
+  contentKey: PerpsInlineInfoContentKey;
+}
+
+export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = (
+  props,
+) => {
+  const { goBack } = usePerpsTradeSheet();
+
+  return <PerpsInlineInfoScreen {...props} onBack={goBack} />;
 };

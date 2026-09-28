@@ -34,7 +34,7 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { AUTO_FILL_MAX_PAGES } from '../../hooks/useMoneyActivityItems';
 import { strings } from '../../../../../../locales/i18n';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
@@ -286,14 +286,6 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
-}));
-
-// The query reaches into Engine.context.SubscriptionController, which the Engine
-// mock above does not provide; the view only needs the hook to be called.
-const mockUseSubscriptions = jest.fn();
-jest.mock('../../../../hooks/useSubscriptions', () => ({
-  __esModule: true,
-  default: (...args: unknown[]) => mockUseSubscriptions(...args),
 }));
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
@@ -687,7 +679,9 @@ describe('MoneyHomeView', () => {
     // Activity list renders when there are at least 10 transactions; pad the
     // Six rows keep the Activity section header interactive.
     const paddedTransactions = Array.from({ length: 10 }, (_, index) => ({
-      ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+      ...MONEY_ACTIVITY_TRANSACTIONS[
+        index % MONEY_ACTIVITY_TRANSACTIONS.length
+      ],
       id: `padded-${index}`,
     }));
     mockUseMoneyAccountTransactions.mockReturnValue({
@@ -696,7 +690,6 @@ describe('MoneyHomeView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
 
     mockRefetchBalance.mockReset();
@@ -900,7 +893,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
       renderWithProvider(<MoneyHomeView />);
@@ -1183,7 +1175,6 @@ describe('MoneyHomeView', () => {
           transfers: [],
           submittedTransactions: [],
           moneyAddress: '0x0000000000000000000000000000000000000001',
-          mockDataEnabled: false,
         });
       });
 
@@ -1229,7 +1220,6 @@ describe('MoneyHomeView', () => {
           transfers: [],
           submittedTransactions: [],
           moneyAddress: '0x0000000000000000000000000000000000000001',
-          mockDataEnabled: false,
         });
       });
 
@@ -1296,7 +1286,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1579,7 +1568,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     });
 
@@ -1982,7 +1970,6 @@ describe('MoneyHomeView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
 
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -2219,14 +2206,15 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: Array.from({ length: 3 }, (_, index) => ({
-          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+          ...MONEY_ACTIVITY_TRANSACTIONS[
+            index % MONEY_ACTIVITY_TRANSACTIONS.length
+          ],
           id: `funded-${index}`,
         })),
         deposits: [],
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     });
 
@@ -2245,27 +2233,6 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(`money-activity-api-${CARD_TX.hash}`),
       ).toBeOnTheScreen();
-    });
-
-    it('does not render Accounts-API rows in mock-data mode', () => {
-      mockUseMoneyAccountTransactions.mockReturnValue({
-        allTransactions: Array.from({ length: 3 }, (_, index) => ({
-          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
-          id: `mock-mode-${index}`,
-        })),
-        deposits: [],
-        transfers: [],
-        submittedTransactions: [],
-        moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: true,
-      });
-      mockUseMoneyAccountApiActivity.mockReturnValue(
-        apiActivityResult({ activity: [CARD_TX] }),
-      );
-
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(queryByTestId(`money-activity-api-${CARD_TX.hash}`)).toBeNull();
     });
 
     it('renders a static Activity header with five or fewer transactions', () => {
@@ -2377,14 +2344,15 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: Array.from({ length: 3 }, (_, index) => ({
-          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+          ...MONEY_ACTIVITY_TRANSACTIONS[
+            index % MONEY_ACTIVITY_TRANSACTIONS.length
+          ],
           id: `card-unlinked-${index}`,
         })),
         deposits: [],
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
       mockSelectIsCardholder.mockReturnValue(true);
       // Money Account ↔ card requirements met (incl. VEDA allowlisted) so the
@@ -2547,7 +2515,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     });
 
@@ -2642,7 +2609,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
       mockUseMoneyAccountApiActivity.mockReturnValue(
         apiActivityResult({
@@ -2753,7 +2719,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     });
 
@@ -2790,14 +2755,15 @@ describe('MoneyHomeView', () => {
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: Array.from({ length: 3 }, (_, index) => ({
-          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+          ...MONEY_ACTIVITY_TRANSACTIONS[
+            index % MONEY_ACTIVITY_TRANSACTIONS.length
+          ],
           id: `spent-to-zero-${index}`,
         })),
         deposits: [],
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     });
 
@@ -2937,28 +2903,6 @@ describe('MoneyHomeView', () => {
       mockUsePlusAccess.mockReturnValue({
         isPlusSubscriber: false,
         isPlusAccessUnknown: false,
-      });
-    });
-
-    it('starts fetching subscriptions while the Pro flow is enabled', () => {
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockUseSubscriptions).toHaveBeenCalledWith({
-        enabled: true,
-      });
-    });
-
-    it('leaves subscriptions unfetched while the Pro flow is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
-      });
-
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockUseSubscriptions).toHaveBeenCalledWith({
-        enabled: false,
       });
     });
 
@@ -3255,7 +3199,6 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
