@@ -31,8 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      release-tag: ${{ steps.check.outputs.release-tag }}
-      release-url: ${{ steps.check.outputs.release-url }}
+      release-tag: ${{ steps.shared-contract.outputs.release-tag }}
+      release-url: ${{ steps.shared-contract.outputs.release-url }}
     steps:
       - name: Checkout Mobile
         uses: actions/checkout@v6
