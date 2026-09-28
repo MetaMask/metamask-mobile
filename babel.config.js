@@ -99,7 +99,28 @@ module.exports = {
     // `"use strict"` directive into every such module, which breaks code that
     // relies on sloppy-mode semantics. Pinning this to `false` reproduces the
     // pre-Expo-transformer pipeline and prevents the forced strict mode.
-    ['babel-preset-expo', { disableImportExportTransform: false }],
+    //
+    // `unstable_transformProfile` must be pinned: babel-preset-expo picks its
+    // engine preset from the Babel caller's `engine` flag, which only
+    // `@expo/metro-config` sets (from `customTransformOptions.engine`). We
+    // bundle through the React Native CLI, which never sets it, so the preset
+    // silently falls back to the legacy `hermes-v0` profile. That profile runs
+    // `@babel/plugin-transform-named-capturing-groups-regex`, rewriting every
+    // named-group regex into the `@babel/runtime` `_wrapRegExp` helper. The
+    // helper installs its `exec` override via plain assignment onto a prototype
+    // inheriting from `RegExp.prototype`, which LavaMoat's lockdown has already
+    // frozen — so the assignment silently no-ops in sloppy mode and `.groups`
+    // is never populated. Matches then succeed with `match.groups === undefined`
+    // (e.g. `parseCaipChainId('eip155:8453')` throwing "Invalid CAIP chain ID").
+    // Current Hermes supports named capture groups natively, so `hermes-stable`
+    // leaves these regexes alone.
+    [
+      'babel-preset-expo',
+      {
+        disableImportExportTransform: false,
+        unstable_transformProfile: 'hermes-stable',
+      },
+    ],
   ],
   plugins: [
     ...reactCompilerBabelConfig,

@@ -671,7 +671,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   );
 
   if (presentation === 'screen') {
-    return <Box twClassName="flex-1">{content}</Box>;
+    // Sizes to its own content: the Trade sheet renders this screen without
+    // locking it to the Trade screen height, so stretching to fill would
+    // collapse it to nothing.
+    return <Box accessible={false}>{content}</Box>;
   }
 
   return (

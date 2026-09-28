@@ -8,7 +8,12 @@ import {
 const mockTransakService = jest.fn().mockImplementation((opts) => opts);
 
 jest.mock('@metamask/ramps-controller', () => ({
-  TransakService: (...args: unknown[]) => mockTransakService(...args),
+  // Declared as a function (not an arrow) so `new TransakService()` works, and
+  // it forwards to `mockTransakService` rather than referencing it directly
+  // because the factory runs before that `const` is initialised.
+  TransakService: function TransakService(...args: unknown[]) {
+    return mockTransakService(...args);
+  },
   TransakServiceMessenger: jest.fn(),
   TransakEnvironment: {
     Production: 'PRODUCTION',

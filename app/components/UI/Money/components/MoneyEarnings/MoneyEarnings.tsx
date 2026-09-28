@@ -13,7 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import DottedUnderline from '../../../../../component-library/components-temp/DottedUnderline';
+import DottedUnderline from '../../../DottedUnderline';
 import { useTheme } from '../../../../../util/theme';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
