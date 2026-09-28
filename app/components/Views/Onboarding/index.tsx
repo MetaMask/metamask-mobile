@@ -1605,6 +1605,12 @@ const Onboarding = () => {
         style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
+        <FastOnboarding
+          onPressContinueWithGoogle={onPressContinueWithGoogle}
+          onPressContinueWithApple={onPressContinueWithApple}
+          onPressImport={onPressImport}
+          onPressCreate={onPressCreate}
+        />
         {loading ? (
           <OnboardingFoxLoader />
         ) : (
@@ -1624,13 +1630,6 @@ const Onboarding = () => {
               </ScrollView>
 
               <FadeOutOverlay />
-
-              <FastOnboarding
-                onPressContinueWithGoogle={onPressContinueWithGoogle}
-                onPressContinueWithApple={onPressContinueWithApple}
-                onPressImport={onPressImport}
-                onPressCreate={onPressCreate}
-              />
 
               {handleSimpleNotification()}
             </SafeAreaView>
