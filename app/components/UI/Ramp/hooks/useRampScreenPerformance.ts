@@ -121,9 +121,13 @@ export function useRampScreenPerformance({
       if (nextState !== 'active') {
         return;
       }
-      if (hasReachedContentRef.current) {
-        settleRampsBuyForegroundOnSpan(TraceName.RampScreenLoad);
-      } else if (mountedRef.current && enabledRef.current) {
+      // Already-loaded screens stay quiet. Settling here would flip
+      // background_resume to warm before a still-loading sibling can start.
+      if (
+        !hasReachedContentRef.current &&
+        mountedRef.current &&
+        enabledRef.current
+      ) {
         startScreenTrace();
         if (contentReadyRef.current) {
           endActiveTrace(true);

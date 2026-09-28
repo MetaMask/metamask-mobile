@@ -6,7 +6,10 @@ import {
   RAMP_V2_SCREEN_ID,
 } from '../constants/rampScreenPerformance';
 import { getRampsBuyCufParentContext } from '../utils/rampsBuyCufTrace';
-import { resetRampsBuyLifecycleContextForTests } from '../utils/rampsBuyLifecycleContext';
+import {
+  getRampsBuyLifecycleContext,
+  resetRampsBuyLifecycleContextForTests,
+} from '../utils/rampsBuyLifecycleContext';
 import { useRampScreenPerformance } from './useRampScreenPerformance';
 
 jest.mock('uuid', () => ({
@@ -36,13 +39,19 @@ const mockGetParentContext = jest.mocked(getRampsBuyCufParentContext);
 
 describe('useRampScreenPerformance', () => {
   let appState: AppStateStatus;
-  let appStateListener: (state: AppStateStatus) => void;
+  let appStateListeners: ((state: AppStateStatus) => void)[];
   const removeListener = jest.fn();
+
+  const emitAppState = (state: AppStateStatus) => {
+    appState = state;
+    appStateListeners.forEach((listener) => listener(state));
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     resetRampsBuyLifecycleContextForTests();
     appState = 'active';
+    appStateListeners = [];
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
       get: () => appState,
@@ -50,7 +59,7 @@ describe('useRampScreenPerformance', () => {
     jest
       .spyOn(AppState, 'addEventListener')
       .mockImplementation((_, listener) => {
-        appStateListener = listener;
+        appStateListeners.push(listener);
         return { remove: removeListener };
       });
   });
@@ -110,8 +119,7 @@ describe('useRampScreenPerformance', () => {
     );
 
     act(() => {
-      appState = 'inactive';
-      appStateListener('inactive');
+      emitAppState('inactive');
     });
     expect(mockEndTrace).not.toHaveBeenCalled();
     rerender({ contentReady: true });
@@ -134,8 +142,7 @@ describe('useRampScreenPerformance', () => {
     );
 
     act(() => {
-      appState = 'background';
-      appStateListener('background');
+      emitAppState('background');
     });
     expect(mockEndTrace).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -148,8 +155,7 @@ describe('useRampScreenPerformance', () => {
 
     rerender({ contentReady: true });
     act(() => {
-      appState = 'active';
-      appStateListener('active');
+      emitAppState('active');
     });
 
     expect(mockTrace).toHaveBeenCalledTimes(2);
@@ -176,16 +182,55 @@ describe('useRampScreenPerformance', () => {
     rerender({ contentReady: false });
 
     act(() => {
-      appState = 'background';
-      appStateListener('background');
+      emitAppState('background');
     });
     act(() => {
-      appState = 'active';
-      appStateListener('active');
+      emitAppState('active');
     });
 
     expect(mockTrace).toHaveBeenCalledTimes(1);
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps background_resume until a restarted screen settles', () => {
+    const settled = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+    settled.rerender({ contentReady: true });
+
+    const loading = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+
+    act(() => {
+      emitAppState('background');
+    });
+    act(() => {
+      emitAppState('active');
+    });
+
+    expect(getRampsBuyLifecycleContext()).toBe('background_resume');
+    expect(mockTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          lifecycle_context: 'background_resume',
+          screen_id: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+        }),
+      }),
+    );
+
+    loading.rerender({ contentReady: true });
+    expect(getRampsBuyLifecycleContext()).toBe('warm');
   });
 
   it('cancels an unfinished span on unmount', () => {
@@ -236,7 +281,9 @@ describe('useRampScreenPerformance', () => {
       }),
     );
     expect(mockTrace).not.toHaveBeenCalled();
-    act(() => appStateListener((appState = 'active')));
+    act(() => {
+      emitAppState('active');
+    });
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         parentContext: undefined,
