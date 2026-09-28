@@ -237,6 +237,7 @@
           "providerDisclaimersAccepted": {
             "sumsub": null
           },
+          "providerFlowStatus": "not_started",
           "sessionStatus": null,
           "vendor": null,
           "vendorDisclaimersAccepted": {
