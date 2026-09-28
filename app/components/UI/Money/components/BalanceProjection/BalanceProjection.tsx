@@ -32,11 +32,17 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
+  /**
+   * True while the caller's amount is still resolving. Projecting an
+   * unresolved amount would flash a `$0` APY line before the real value.
+   */
+  isAmountLoading?: boolean;
   projectedYears: number;
 }
 
 export function BalanceProjection({
   amountFiat,
+  isAmountLoading = false,
   projectedYears,
 }: BalanceProjectionProps) {
   const navigation = useNavigation<AppNavigationProp>();
@@ -85,12 +91,8 @@ export function BalanceProjection({
     });
   }, [navigation, trackTooltipClicked]);
 
-  if (vaultApyQuery.isLoading) {
-    return (
-      <View testID="balance-projection-skeleton">
-        <Skeleton height={20} width={160} />
-      </View>
-    );
+  if (isAmountLoading || vaultApyQuery.isLoading) {
+    return <BalanceProjectionSkeleton />;
   }
 
   if (
@@ -154,5 +156,16 @@ export function BalanceProjection({
         />
       </Box>
     </View>
+  );
+}
+
+export function BalanceProjectionSkeleton() {
+  return (
+    <Box
+      testID="balance-projection-skeleton"
+      twClassName="min-h-6 justify-center"
+    >
+      <Skeleton height={20} width={160} />
+    </Box>
   );
 }

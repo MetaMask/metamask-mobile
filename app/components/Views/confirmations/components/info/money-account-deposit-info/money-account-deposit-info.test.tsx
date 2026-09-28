@@ -108,6 +108,7 @@ describe('MoneyAccountDepositInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.supportAccountSelection).toBe(true);
+    expect(lastCall.deferInitialization).toBe(true);
   });
 
   it('passes autoSelectFiatPayment and hideAccountSelector from route params', () => {

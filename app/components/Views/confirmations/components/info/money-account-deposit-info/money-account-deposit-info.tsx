@@ -49,6 +49,7 @@ export function MoneyAccountDepositInfo() {
     <CustomAmountInfo
       autoSelectFiatPayment={autoFiat}
       currency={MONEY_ACCOUNT_CURRENCY}
+      deferInitialization
       hideAccountSelector={autoFiat}
       supportAccountSelection
       preferredToken={preferredPaymentToken}

@@ -7,13 +7,18 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
-import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
+import {
+  BalanceProjection,
+  BalanceProjectionSkeleton,
+} from '../../../../../UI/Money/components/BalanceProjection';
+import { useConfirmationInitialization } from '../../../context/confirmation-initialization-context';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
@@ -74,7 +79,12 @@ import {
 } from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
+import { useAfterFirstLayout } from '../../../hooks/ui/useAfterFirstLayout';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
@@ -86,6 +96,8 @@ export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
   children?: ReactNode;
   currency?: string;
+  /** Mount payment/amount initialization after the confirmation shell lays out. */
+  deferInitialization?: boolean;
   disablePay?: boolean;
   hasMax?: boolean;
   hideAccountSelector?: boolean;
@@ -110,6 +122,10 @@ export interface CustomAmountInfoProps {
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
+  CustomAmountInfoWrapper,
+);
+
+const CustomAmountInfoInternal: React.FC<CustomAmountInfoProps> = memo(
   ({
     autoSelectFiatPayment,
     children,
@@ -132,8 +148,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isAddMusdIntent =
       isMoneyAccountDeposit &&
       getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
-
-    useClearConfirmationOnBackSwipe();
 
     // Pre-warm the Transak partner API key so the fiat fee estimate's native
     // buy-quote lookup succeeds on first load, showing the real native fee
@@ -434,6 +448,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
+    const isAmountLoading =
+      !hasAccountNoFunds &&
+      stage !== CustomAmountStage.AmountInput &&
+      (isPrefillPending || isDepositPrefillLoading);
+
     // Keep payment details fixed while the amount update prepares the request.
     // Once quote loading takes over, reopening a picker is safe and keeps the
     // loading screen responsive.
@@ -446,11 +465,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={hasAlert}
-            isLoading={
-              !hasAccountNoFunds &&
-              stage !== CustomAmountStage.AmountInput &&
-              (isPrefillPending || isDepositPrefillLoading)
-            }
+            isLoading={isAmountLoading}
             // Always pressable: tapping the amount is the escape hatch from a
             // prefill or quote that never resolves.
             onPress={handleAmountPress}
@@ -464,7 +479,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disablePay !== true &&
             !hasAlert &&
             (isMoneyAccountDeposit ? (
-              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+              <BalanceProjection
+                amountFiat={amountFiat}
+                isAmountLoading={isAmountLoading}
+                projectedYears={1}
+              />
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
@@ -553,6 +572,104 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     );
   },
 );
+
+function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
+  // Rejection must work while the deferred amount/selection hooks are absent.
+  useClearConfirmationOnBackSwipe();
+
+  if (props.deferInitialization) {
+    return <DeferredCustomAmountInfo {...props} />;
+  }
+
+  return <CustomAmountInfoInternal {...props} />;
+}
+
+function DeferredCustomAmountInfo(props: CustomAmountInfoProps) {
+  const initialization = useConfirmationInitialization();
+  const transaction = useTransactionMetadataRequest();
+
+  if (initialization) {
+    return <CustomAmountInitializedContent {...props} {...initialization} />;
+  }
+
+  // Standalone usage without the shared provider still gets a local gate.
+  return <DeferredCustomAmountContent key={transaction?.id} {...props} />;
+}
+
+function DeferredCustomAmountContent(props: CustomAmountInfoProps) {
+  const initialization = useAfterFirstLayout();
+
+  return <CustomAmountInitializedContent {...props} {...initialization} />;
+}
+
+function CustomAmountInitializedContent({
+  isReady,
+  onLayout,
+  ...props
+}: CustomAmountInfoProps & ReturnType<typeof useAfterFirstLayout>) {
+  if (isReady) {
+    return <CustomAmountInfoInternal {...props} />;
+  }
+
+  // This is pending initialization, not disabled prefill. The live stage and
+  // input hooks mount with their real settings, so no temporary keyboard/$0
+  // state or early user input can be overwritten by delayed selection.
+  return <CustomAmountInitializationShell {...props} onLayout={onLayout} />;
+}
+
+function CustomAmountInitializationShell({
+  disablePay,
+  footerText,
+  hideAccountSelector,
+  hidePayTokenAmount,
+  onLayout,
+  supportAccountSelection,
+}: CustomAmountInfoProps & { onLayout: () => void }) {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View
+      onLayout={onLayout}
+      style={styles.container}
+      testID="custom-amount-initialization-shell"
+    >
+      <View style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        {!hidePayTokenAmount && <BalanceProjectionSkeleton />}
+      </View>
+      <View style={styles.shellBottomBlock}>
+        <View>
+          {supportAccountSelection && !hideAccountSelector && (
+            <PayAccountSelector />
+          )}
+          {!disablePay && (
+            <PayWithRowSkeleton label={strings('confirm.label.pay_with')} />
+          )}
+          <CustomAmountTotals stage={CustomAmountStage.Loading} />
+        </View>
+        {footerText && (
+          <Text
+            color={TextColor.TextAlternative}
+            style={styles.footerText}
+            variant={TextVariant.BodySm}
+          >
+            {footerText}
+          </Text>
+        )}
+        <Button
+          isDisabled
+          isFullWidth
+          size={ButtonSize.Lg}
+          style={styles.disabledButton}
+          testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
+          variant={ButtonVariant.Primary}
+        >
+          {strings('confirm.deposit_edit_amount_done')}
+        </Button>
+      </View>
+    </View>
+  );
+}
 
 export function CustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});

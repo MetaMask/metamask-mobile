@@ -19,9 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { AlertsContextProvider } from '../../context/alert-system-context';
+import { ConfirmationInitializationProvider } from '../../context/confirmation-initialization-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
@@ -54,6 +53,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
 import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
+import { ConfirmationAlerts } from './confirmation-alerts';
 
 const DEFAULT_BOTTOM_SHEET_HEIGHT = 60;
 
@@ -142,34 +142,45 @@ const ConfirmWrapped = ({
   styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
-  const isScrollDisabled = useDisableScroll();
+  const transaction = useTransactionMetadataRequest();
+  const isScrollDisabled = hasTransactionType(
+    transaction,
+    TRANSACTION_TYPES_DISABLE_SCROLL,
+  );
 
   return (
     <ConfirmationContextProvider>
-      <ConfirmationAssetPollingProvider>
-        <ConfirmationAlerts>
-          <QRHardwareContextProvider>
-            <Title />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollViewContent}
-              nestedScrollEnabled
-              scrollEnabled={!isScrollDisabled}
-            >
-              <TouchableWithoutFeedback>
-                <>
-                  <AlertBanner
-                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                  />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-            <MmPayDebugFloatingButton />
-          </QRHardwareContextProvider>
-        </ConfirmationAlerts>
-      </ConfirmationAssetPollingProvider>
+      <ConfirmationInitializationProvider
+        enabled={hasTransactionType(transaction, [
+          TransactionType.moneyAccountDeposit,
+        ])}
+        transactionId={transaction?.id}
+      >
+        <ConfirmationAssetPollingProvider>
+          <ConfirmationAlerts>
+            <QRHardwareContextProvider>
+              <Title />
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+                nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
+              >
+                <TouchableWithoutFeedback>
+                  <>
+                    <AlertBanner
+                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                    />
+                    <Info route={route} />
+                  </>
+                </TouchableWithoutFeedback>
+              </ScrollView>
+              <Footer />
+              <MmPayDebugFloatingButton />
+            </QRHardwareContextProvider>
+          </ConfirmationAlerts>
+        </ConfirmationAssetPollingProvider>
+      </ConfirmationInitializationProvider>
     </ConfirmationContextProvider>
   );
 };
@@ -319,14 +330,6 @@ function ConfirmInternal({
   );
 }
 
-function ConfirmationAlerts({ children }: { children: ReactNode }) {
-  const alerts = useConfirmationAlerts();
-
-  return (
-    <AlertsContextProvider alerts={alerts}>{children}</AlertsContextProvider>
-  );
-}
-
 function Loader({
   sheetContentMinHeight,
 }: { sheetContentMinHeight?: number } = {}) {
@@ -453,9 +456,4 @@ function InfoLoader({
       {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
     </SafeAreaView>
   );
-}
-
-function useDisableScroll() {
-  const transaction = useTransactionMetadataRequest();
-  return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
 }

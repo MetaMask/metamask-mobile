@@ -8,7 +8,7 @@ import {
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
-import { act } from 'react';
+import { act, useLayoutEffect } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
@@ -135,13 +135,23 @@ function getMoneyAccountState(balanceRaw?: string) {
 }
 
 function runHook({
+  onCommit,
   transactionMeta,
   stateOverrides,
 }: {
+  onCommit?: (amount: ReturnType<typeof useTransactionCustomAmount>) => void;
   transactionMeta?: Partial<TransactionMeta>;
   stateOverrides?: Record<string, unknown>;
 } = {}) {
-  return renderHookWithProvider(useTransactionCustomAmount, {
+  function useObservedCustomAmount() {
+    const amount = useTransactionCustomAmount();
+    useLayoutEffect(() => {
+      onCommit?.(amount);
+    });
+    return amount;
+  }
+
+  return renderHookWithProvider(useObservedCustomAmount, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -2104,6 +2114,44 @@ describe('useTransactionCustomAmount', () => {
           mm_pay_amount_input_prefill_presented: true,
         },
       });
+    });
+
+    it('keeps loading through every commit until a late balance is applied', async () => {
+      jest.mocked(isRouteToken).mockReturnValue(true);
+      const payToken = {
+        address: TOKEN_ADDRESS_MOCK,
+        balanceUsd: '0',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken;
+      useTransactionPayTokenMock.mockReturnValue({ payToken } as ReturnType<
+        typeof useTransactionPayToken
+      >);
+      let visibleAmounts: string[] = [];
+      const { result, rerender } = runHook({
+        onCommit: ({ amountFiat, depositPrefillStatus }) => {
+          if (depositPrefillStatus !== DepositPrefillStatus.Loading) {
+            visibleAmounts.push(amountFiat);
+          }
+        },
+        transactionMeta: depositTransactionMeta,
+      });
+
+      // Discard the zero-balance phase. It reports `Skipped` with $0, which is
+      // the correct "no prefill possible" state rather than a flash.
+      visibleAmounts = [];
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: { ...payToken, balanceUsd: '500' },
+      } as ReturnType<typeof useTransactionPayToken>);
+      await act(async () => {
+        rerender({});
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+      expect(result.current.depositPrefillStatus).toBe(
+        DepositPrefillStatus.Prefilled,
+      );
+      expect(visibleAmounts.length).toBeGreaterThan(0);
+      expect(visibleAmounts.every((amount) => amount === '500')).toBe(true);
     });
 
     it('prefills non-stablecoin with 50% of balance via percentage path', async () => {

@@ -55,6 +55,8 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { ConfirmationInitializationProvider } from '../../../context/confirmation-initialization-context';
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -136,6 +138,7 @@ jest.mock('../../PayAccountSelector', () => {
 });
 jest.mock('../../../../../UI/Money/components/BalanceProjection', () => ({
   BalanceProjection: () => null,
+  BalanceProjectionSkeleton: () => null,
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
@@ -460,6 +463,137 @@ describe('CustomAmountInfo', () => {
     useAccountNoFundsAlertMock.mockReturnValue([]);
 
     setControllerTransactions([]);
+  });
+
+  describe('deferred initialization', () => {
+    let frames: FrameRequestCallback[];
+
+    beforeEach(() => {
+      frames = [];
+      jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback);
+          return frames.length;
+        });
+      jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('shows account and local placeholders without mounting payment, amount or submit hooks', () => {
+      const { getByTestId, getByText, queryByText } = render({
+        deferInitialization: true,
+        supportAccountSelection: true,
+      });
+
+      expect(
+        getByTestId('custom-amount-initialization-shell'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+      expect(getByText(strings('confirm.label.pay_with'))).toBeOnTheScreen();
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+      expect(queryByText('123.45')).not.toBeOnTheScreen();
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+      expect(useConfirmActionsMock).not.toHaveBeenCalled();
+      expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('mounts the live amount and automatic selection only after the frame yield', () => {
+      const { getByTestId, getByText, queryByTestId } = render({
+        deferInitialization: true,
+      });
+      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
+
+      act(() => frames[0](16));
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+
+      act(() => frames[1](32));
+
+      expect(
+        queryByTestId('custom-amount-initialization-shell'),
+      ).not.toBeOnTheScreen();
+      expect(getByText('123.45')).toBeOnTheScreen();
+      expect(useTransactionCustomAmountMock).toHaveBeenCalled();
+      expect(useAutomaticTransactionPayToken).toHaveBeenCalled();
+    });
+
+    it('does not start initialization after dismissal during the frame yield', () => {
+      const { getByTestId, unmount } = render({ deferInitialization: true });
+      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
+      act(() => frames[0](16));
+
+      unmount();
+      act(() => frames[1](32));
+
+      expect(cancelAnimationFrame).toHaveBeenCalledWith(2);
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('uses the shared initialization gate without scheduling another frame yield', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <ConfirmationInitializationProvider enabled transactionId="shared">
+          {createCustomAmountInfo({ deferInitialization: true })}
+        </ConfirmationInitializationProvider>,
+        {
+          state: merge(
+            {},
+            simpleSendTransactionControllerMock,
+            transactionApprovalControllerMock,
+            otherControllersMock,
+          ),
+        },
+      );
+
+      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
+      act(() => frames[0](16));
+
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+
+      act(() => frames[1](32));
+
+      expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
+      expect(
+        queryByTestId('custom-amount-initialization-shell'),
+      ).not.toBeOnTheScreen();
+      expect(useAutomaticTransactionPayToken).toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).toHaveBeenCalled();
+    });
+
+    it('restarts with placeholders when a different transaction replaces a ready one', () => {
+      const { getByTestId, rerender } = render({ deferInitialization: true });
+      fireEvent(getByTestId('custom-amount-initialization-shell'), 'layout');
+      act(() => frames[0](16));
+      act(() => frames[1](32));
+      useTransactionCustomAmountMock.mockClear();
+      jest.mocked(useAutomaticTransactionPayToken).mockClear();
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'next-transaction',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      // The metadata hook is mocked, so trigger a parent render in place of
+      // the Redux subscription notification that would happen on device.
+      rerender(
+        createCustomAmountInfo({ currency: 'usd', deferInitialization: true }),
+      );
+
+      expect(
+        getByTestId('custom-amount-initialization-shell'),
+      ).toBeOnTheScreen();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+    });
   });
 
   it('renders amount', () => {

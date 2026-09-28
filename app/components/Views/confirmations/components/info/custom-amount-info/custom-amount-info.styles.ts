@@ -31,6 +31,13 @@ const styleSheet = (params: { theme: Theme }) => {
       opacity: 0.5,
     },
 
+    // Mirrors the `gap` prop the live bottom block passes to `Box`, so the
+    // initialization shell lays out at the same height.
+    shellBottomBlock: {
+      gap: BOTTOM_BLOCK_GAP,
+      paddingBottom: BOTTOM_BLOCK_PADDING,
+    },
+
     footerText: {
       alignSelf: 'center',
     },

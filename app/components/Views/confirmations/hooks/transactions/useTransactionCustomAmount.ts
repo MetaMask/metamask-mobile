@@ -430,6 +430,7 @@ export function useTransactionCustomAmount({
 
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;
+  const [isDepositPrefillApplied, setIsDepositPrefillApplied] = useState(false);
   const prevHasPrefilled = useRef(isDepositPrefilled);
   useEffect(() => {
     // Skip if the user has manually typed on the keypad — a transient
@@ -437,6 +438,7 @@ export function useTransactionCustomAmount({
     // their input. The ref resets when the pay token genuinely changes.
     if (userHasEditedRef.current) {
       prevHasPrefilled.current = isDepositPrefilled;
+      setIsDepositPrefillApplied(true);
       return;
     }
     // Apply when committed, or on the token-switch frame where the next
@@ -471,10 +473,16 @@ export function useTransactionCustomAmount({
           [MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY]: true,
         },
       });
-    } else if (prevHasPrefilled.current) {
-      setAmountFiat('0');
-      if (isMaxAmount) {
-        setIsMax(false);
+      // Publish readiness alongside the amount state. The upstream token-key
+      // commit can arrive a render before this effect applies the prefill.
+      setIsDepositPrefillApplied(true);
+    } else {
+      setIsDepositPrefillApplied(false);
+      if (prevHasPrefilled.current) {
+        setAmountFiat('0');
+        if (isMaxAmount) {
+          setIsMax(false);
+        }
       }
     }
     prevHasPrefilled.current = isDepositPrefilled;
@@ -552,7 +560,14 @@ export function useTransactionCustomAmount({
     // Exposed so callers can tell a keypad the user is typing on apart from
     // one opened for them. Resets when the pay token changes.
     hasUserEditedAmountRef: userHasEditedRef,
-    depositPrefillStatus: depositPrefill.status,
+    // Hold `Prefilled` back until the apply effect has written the amount,
+    // otherwise consumers render $0 for the frame in between. `Skipped` and
+    // `Disabled` are passed through so the loader cannot hang when no
+    // prefill will ever arrive.
+    depositPrefillStatus:
+      isDepositPrefilled && !isDepositPrefillApplied
+        ? DepositPrefillStatus.Loading
+        : depositPrefill.status,
     isInputChanged,
     isPrefillPending,
     updatePendingAmount,
