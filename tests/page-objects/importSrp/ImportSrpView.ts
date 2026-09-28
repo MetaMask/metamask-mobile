@@ -60,10 +60,13 @@ class ImportSrpView {
     // iOS: enter word-by-word. After the first word+space the UI switches from
     // TextArea to numbered grid chips (`seed-phrase-input_${index}`).
     const srpArray = mnemonic.split(' ');
-    await Gestures.typeTextByCharacters(
-      this.seedPhraseInput(0),
-      `${srpArray[0]} `,
-    );
+    const firstInput = await this.seedPhraseInput(0);
+    await firstInput.waitForDisplayed({
+      timeout: 15_000,
+      timeoutMsg:
+        'Import SRP Secret Recovery Phrase Input Box was not displayed within 15000ms',
+    });
+    await Gestures.typeTextByCharacters(firstInput, `${srpArray[0]} `);
     for (const [i, word] of srpArray.entries()) {
       if (i === 0) {
         continue;
