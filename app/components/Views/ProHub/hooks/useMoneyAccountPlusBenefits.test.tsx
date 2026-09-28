@@ -205,7 +205,7 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
   });
 
-  it('keeps cached rows without fetching for an entitled past_due subscriber', async () => {
+  it('hides the section without fetching for an entitled past_due subscriber with a persisted snapshot', () => {
     const { result } = renderBenefits(
       createState({
         benefits: BENEFITS,
@@ -214,12 +214,12 @@ describe('useMoneyAccountPlusBenefits', () => {
     );
 
     expect(mockGetBenefits).not.toHaveBeenCalled();
-    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
-    expect(result.current.items).toHaveLength(3);
-    expect(result.current.resetsOn).toBe('Sep 15, 2026');
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
+    expect(result.current.items).toEqual([]);
+    expect(result.current.resetsOn).toBeUndefined();
   });
 
-  it('reports empty without fetching when an entitled past_due subscriber has no cache', () => {
+  it('hides the section without fetching when an entitled past_due subscriber has no snapshot', () => {
     const { result } = renderBenefits(
       createState({
         subscriptionStatus: SUBSCRIPTION_STATUSES.pastDue,
@@ -229,6 +229,20 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
     expect(result.current.items).toEqual([]);
+  });
+
+  it('hides the section for an entitled past_due subscriber even before subscriptions settle', () => {
+    mockAccess(MoneyAccountPlusAccess.Subscriber, false);
+
+    const { result } = renderBenefits(
+      createState({
+        benefits: BENEFITS,
+        subscriptionStatus: SUBSCRIPTION_STATUSES.pastDue,
+      }),
+    );
+
+    expect(mockGetBenefits).not.toHaveBeenCalled();
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Empty);
   });
 
   it('does not fetch benefits when the user is signed out', () => {

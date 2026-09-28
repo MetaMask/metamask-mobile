@@ -43,13 +43,12 @@ export interface MoneyAccountPlusBenefits {
 }
 
 /**
- * Maps current-period Plus benefit usage for the Member pricing section.
+ * Maps current-period Plus benefit usage for Member pricing.
  *
- * The subscriptions refresh already calls `getBenefits()` for active
- * subscribers and swallows its errors. This hook calls `getBenefits()` only
- * when that refresh settled without a snapshot, so a failure can show retry
- * instead of an empty section. Inactive statuses such as `past_due` never
- * fetch and keep cached meters.
+ * getSubscriptions() already fetches benefits for active subscribers and
+ * clears state.benefits for any other status (past_due, etc). This hook only
+ * fetches when that refresh left no snapshot. Non-active subscribers get
+ * Empty so we don't render a snapshot core is about to delete.
  *
  * @returns Mapped trade-allowance rows and the shared reset date.
  */
@@ -99,6 +98,16 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   if (!isHubSubscriber) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
+      items: [],
+      resetsOn: undefined,
+      retry,
+    };
+  }
+
+  // past_due etc: core wipes benefits on the subscriptions refresh
+  if (!isActiveSubscriber) {
+    return {
+      status: MoneyAccountPlusBenefitsStatus.Empty,
       items: [],
       resetsOn: undefined,
       retry,
