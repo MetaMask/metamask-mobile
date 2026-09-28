@@ -240,17 +240,17 @@ describeForPlatforms('Contacts component views', () => {
 
     const { findByTestId, getByTestId, getByText, queryByTestId } =
       renderContactForm({
-      stateOptions: {
-        addressBook: syncedContactAddressBook,
-      },
-      routeParams: {
-        mode: 'edit',
-        address: SYNCED_CONTACT.address,
-        name: SYNCED_CONTACT.name,
-        chainId: SYNCED_CONTACT.chainId,
-        onDelete: onDeleteCallback,
-      },
-    });
+        stateOptions: {
+          addressBook: syncedContactAddressBook,
+        },
+        routeParams: {
+          mode: 'edit',
+          address: SYNCED_CONTACT.address,
+          name: SYNCED_CONTACT.name,
+          chainId: SYNCED_CONTACT.chainId,
+          onDelete: onDeleteCallback,
+        },
+      });
 
     // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
     fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
