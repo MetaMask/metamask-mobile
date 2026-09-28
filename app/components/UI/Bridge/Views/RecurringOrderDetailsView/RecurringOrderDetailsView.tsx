@@ -5,7 +5,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatChainIdToHex } from '@metamask/bridge-controller';
 import { parseCaipAssetType } from '@metamask/utils';
@@ -34,6 +34,16 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  resetBridgeTokenInputs,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringPriceRange,
+  setRecurringRepeatCount,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -130,6 +140,7 @@ function RecurringTokenSummary({
 
 function RecurringOrderDetailsView() {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<RecurringOrderDetailsRouteParams>();
   const [isCancelSheetVisible, setIsCancelSheetVisible] = useState(false);
@@ -173,7 +184,19 @@ function RecurringOrderDetailsView() {
     navigation.goBack();
   }, [navigation, setRecurringOrdersTab]);
 
-  const handleDuplicateOrder = useCallback(() => undefined, []);
+  const handleDuplicateOrder = useCallback(() => {
+    const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
+
+    dispatch(resetBridgeTokenInputs());
+    dispatch(setRecurringPriceRange(undefined));
+    dispatch(setSourceToken(sourceToken));
+    dispatch(setDestToken(destinationToken));
+    dispatch(setIsDestTokenManuallySet(true));
+    dispatch(setRecurringEveryUnit(order.schedule.unit));
+    dispatch(setRecurringEveryValue(String(order.schedule.every)));
+    dispatch(setRecurringRepeatCount(String(order.schedule.repeatCount)));
+    navigation.goBack();
+  }, [dispatch, navigation, order]);
 
   const handleSwapPress = useCallback(
     (swap: RecurringSwap) => {
