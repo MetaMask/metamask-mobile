@@ -1,10 +1,13 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { ScrollView, useWindowDimensions } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   IconName,
   MainActionButton,
   SectionHeader,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import I18n, {
@@ -64,6 +67,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   testID = PREDICT_CATEGORIES_SECTION_TEST_IDS.SECTION,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const tw = useTailwind();
   const { width: windowWidth } = useWindowDimensions();
   const categoriesConfig = useSelector(selectPredictHomeCategoriesConfig);
   const locale = useSyncExternalStore(
@@ -114,17 +118,26 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
         twClassName="px-0 pt-0 mb-1"
       />
 
-      <Box twClassName="flex-row gap-3">
-        {PREDICT_HOME_CATEGORIES.map((category) => (
-          <MainActionButton
-            key={category.id}
-            testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
-            onPress={() => handlePress(category)}
-            accessibilityLabel={strings(category.titleKey)}
-            iconName={category.iconName as IconName}
-            label={strings(category.titleKey)}
-            twClassName="flex-1"
-          />
+      <ScrollView
+        testID={PREDICT_CATEGORIES_SECTION_TEST_IDS.CAROUSEL}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={tw.style('-mx-4')}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+      >
+        {categories.map((category) => (
+          <Box key={`${category.id}-${locale}`} style={{ width: tileWidth }}>
+            <MainActionButton
+              testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
+              onPress={() => handlePress(category)}
+              accessibilityLabel={resolvePredictHomeCategoryDisplayTitle(
+                category,
+              )}
+              iconName={category.iconName as IconName}
+              label={resolvePredictHomeCategoryDisplayTitle(category)}
+              twClassName="w-full"
+            />
+          </Box>
         ))}
       </ScrollView>
     </Box>
