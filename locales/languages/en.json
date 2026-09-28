@@ -3366,6 +3366,7 @@
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
       "active_positions": "Active positions",
+      "cash_out": "Cash Out",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
       "empty": {

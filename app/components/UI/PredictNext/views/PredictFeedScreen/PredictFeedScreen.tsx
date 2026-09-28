@@ -89,6 +89,7 @@ const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => {
       onPress={() => onOpenEvent(event)}
       onOrder={(cardEvent, market, outcome) =>
         openOrderFlow({
+          action: 'buy',
           venueId: cardEvent.venueId,
           marketId: market.id,
           side: outcome.side,
