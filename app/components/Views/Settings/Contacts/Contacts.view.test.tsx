@@ -238,7 +238,8 @@ describeForPlatforms('Contacts component views', () => {
     );
     const onDeleteCallback = jest.fn();
 
-    const { findByTestId, getByTestId, getByText } = renderContactForm({
+    const { findByTestId, getByTestId, getByText, queryByTestId } =
+      renderContactForm({
       stateOptions: {
         addressBook: syncedContactAddressBook,
       },
@@ -258,6 +259,12 @@ describeForPlatforms('Contacts component views', () => {
       AddContactViewSelectorsIDs.DELETE_BUTTON,
     );
     expect(deleteButton).toBeOnTheScreen();
+
+    // The sheet mounts only after Delete. Mounting it with the form opens it
+    // immediately, because the design-system sheet animates in on mount.
+    expect(
+      queryByTestId(AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET),
+    ).toBeNull();
 
     fireEvent.press(deleteButton);
 

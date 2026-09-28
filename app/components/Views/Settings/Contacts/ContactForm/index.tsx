@@ -10,7 +10,6 @@ import {
   ButtonVariant,
   Label,
   HeaderStandard,
-  type BottomSheetRef as DesignSystemBottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
@@ -86,6 +85,7 @@ interface ContactFormState {
   memo: string | null;
   editable: boolean;
   openNetworkSelector: boolean;
+  openDeleteSheet: boolean;
 }
 
 interface ContactFormStateProps {
@@ -144,6 +144,7 @@ const createInitialState = ({
     memo: null,
     editable: true,
     openNetworkSelector: false,
+    openDeleteSheet: false,
   };
 
   if (mode !== EDIT) {
@@ -204,7 +205,6 @@ const ContactForm = ({
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
   const sheetRef = useRef<NetworkBottomSheetRef>(null);
-  const deleteSheetRef = useRef<DesignSystemBottomSheetRef>(null);
   const contactAddressToRemove = useRef<string | null>(null);
 
   const updateState = (updates: Partial<ContactFormState>) => {
@@ -242,11 +242,11 @@ const ContactForm = ({
 
   const onDelete = () => {
     contactAddressToRemove.current = state.address;
-    deleteSheetRef.current?.onOpenBottomSheet();
+    updateState({ openDeleteSheet: true });
   };
 
   const closeDeleteSheet = () => {
-    deleteSheetRef.current?.onCloseBottomSheet();
+    updateState({ openDeleteSheet: false });
   };
 
   const onChangeName = (name: string) => {
@@ -349,7 +349,8 @@ const ContactForm = ({
   };
 
   const confirmDelete = () => {
-    deleteSheetRef.current?.onCloseBottomSheet(deleteContact);
+    updateState({ openDeleteSheet: false });
+    deleteContact();
   };
 
   const onScan = () => {
@@ -513,29 +514,28 @@ const ContactForm = ({
           )}
         </View>
       )}
-      <BottomSheet
-        ref={deleteSheetRef}
-        testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}
-      >
-        <BottomSheetHeader onClose={closeDeleteSheet}>
-          {`${strings('address_book.delete_contact')}: ${name ?? ''}`}
-        </BottomSheetHeader>
-        <BottomSheetFooter
-          secondaryButtonProps={{
-            children: strings('address_book.cancel'),
-            onPress: closeDeleteSheet,
-            size: ButtonSize.Lg,
-            testID: AddContactViewSelectorsIDs.DELETE_CANCEL_BUTTON,
-          }}
-          primaryButtonProps={{
-            children: strings('address_book.delete'),
-            isDanger: true,
-            onPress: confirmDelete,
-            size: ButtonSize.Lg,
-            testID: AddContactViewSelectorsIDs.DELETE_CONFIRM_BUTTON,
-          }}
-        />
-      </BottomSheet>
+      {state.openDeleteSheet ? (
+        <BottomSheet testID={AddContactViewSelectorsIDs.DELETE_CONFIRM_SHEET}>
+          <BottomSheetHeader onClose={closeDeleteSheet}>
+            {`${strings('address_book.delete_contact')}: ${name ?? ''}`}
+          </BottomSheetHeader>
+          <BottomSheetFooter
+            secondaryButtonProps={{
+              children: strings('address_book.cancel'),
+              onPress: closeDeleteSheet,
+              size: ButtonSize.Lg,
+              testID: AddContactViewSelectorsIDs.DELETE_CANCEL_BUTTON,
+            }}
+            primaryButtonProps={{
+              children: strings('address_book.delete'),
+              isDanger: true,
+              onPress: confirmDelete,
+              size: ButtonSize.Lg,
+              testID: AddContactViewSelectorsIDs.DELETE_CONFIRM_BUTTON,
+            }}
+          />
+        </BottomSheet>
+      ) : null}
       {state.openNetworkSelector ? (
         <NetworkListBottomSheet
           selectedNetwork={state.contactChainId || null}
