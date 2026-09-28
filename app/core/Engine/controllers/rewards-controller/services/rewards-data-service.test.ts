@@ -5993,6 +5993,8 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-456';
     const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
     const mockToken = 'test-bearer-token';
+    const mockTimestamp = 1758700000000;
+    const mockSignature = '0xsignature';
 
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
@@ -6001,7 +6003,7 @@ describe('RewardsDataService', () => {
       });
     });
 
-    it('POSTs the money account address and returns bound on 201', async () => {
+    it('POSTs the address, timestamp and signature to the signed endpoint and returns bound on 201', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 201,
@@ -6010,13 +6012,19 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://uat.rewards.test/wr/money-account/binding',
+        'https://uat.rewards.test/wr/money-account/binding/signed',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ moneyAccountAddress: mockAddress }),
+          body: JSON.stringify({
+            moneyAccountAddress: mockAddress,
+            timestamp: mockTimestamp,
+            signature: mockSignature,
+          }),
           headers: expect.objectContaining({
             'rewards-access-token': mockToken,
           }),
@@ -6034,6 +6042,8 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(result).toBe('bound');
@@ -6048,6 +6058,8 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(result).toBe('conflict');
@@ -6060,8 +6072,42 @@ describe('RewardsDataService', () => {
       } as unknown as Response);
 
       await expect(
-        service.registerMoneyAccountBinding(mockSubscriptionId, mockAddress),
+        service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        ),
       ).rejects.toThrow('Register Money Account binding failed: 500');
+    });
+
+    it('throws InvalidTimestampError with serverTime in milliseconds', async () => {
+      const serverTime = 1758700800000;
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          statusCode: 400,
+          error: 'Bad Request',
+          code: 'TIMESTAMP_OUT_OF_WINDOW',
+          serverTime,
+        }),
+      } as unknown as Response);
+
+      try {
+        await service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        );
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(serverTime);
+      }
     });
   });
 });
