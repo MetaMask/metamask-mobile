@@ -40,6 +40,7 @@ export const usePredictPrices = (
 
   const isMountedRef = useRef(true);
   const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchGenerationRef = useRef(0);
 
   useEffect(
     () => () => {
@@ -68,6 +69,8 @@ export const usePredictPrices = (
   const queriesKey = useMemo(() => JSON.stringify(queries), [queries]);
 
   const fetchPrices = useCallback(async () => {
+    const generation = ++fetchGenerationRef.current;
+
     if (!enabled) {
       return;
     }
@@ -100,7 +103,7 @@ export const usePredictPrices = (
         queries,
       });
 
-      if (isMountedRef.current) {
+      if (isMountedRef.current && generation === fetchGenerationRef.current) {
         setPrices(fetchedPrices);
         setError(null);
       }
@@ -126,17 +129,19 @@ export const usePredictPrices = (
         },
       });
 
-      if (isMountedRef.current) {
+      if (isMountedRef.current && generation === fetchGenerationRef.current) {
         setError(errorMessage);
       }
     } finally {
-      if (isMountedRef.current) {
-        setIsFetching(false);
-        if (pollingInterval && enabled) {
-          pollingTimeoutRef.current = setTimeout(() => {
-            fetchPrices();
-          }, pollingInterval);
-        }
+      if (!isMountedRef.current || generation !== fetchGenerationRef.current) {
+        return;
+      }
+
+      setIsFetching(false);
+      if (pollingInterval && enabled) {
+        pollingTimeoutRef.current = setTimeout(() => {
+          fetchPrices();
+        }, pollingInterval);
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
