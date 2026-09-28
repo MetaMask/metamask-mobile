@@ -274,6 +274,7 @@ app/core/Engine/messengers/predict-live-data-service-messenger*         @MetaMas
 app/core/Engine/messengers/predict-market-data-service-messenger*       @MetaMask/predict
 app/core/Engine/messengers/predict-portfolio-service-messenger*         @MetaMask/predict
 app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts            @MetaMask/predict
+app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts @MetaMask/predict
 **/Predict/**                                                           @MetaMask/predict
 **/predict/**                                                           @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/                     @MetaMask/predict

@@ -49,6 +49,7 @@ import {
   ARC_USDC_BRIDGE_TOKEN,
 } from '../../../../../enablement/assets/arc';
 import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
+import type { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 /**
  * Allows to manually set the default Swap token when clicking on the Swap CTA from
@@ -78,6 +79,7 @@ export interface BridgeRouteParams {
   destToken?: BridgeToken;
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
+  initialTab?: BridgeTabKey;
   scrollToTopOnNav?: boolean;
   autoFocusSourceAmountInput?: boolean;
   /**

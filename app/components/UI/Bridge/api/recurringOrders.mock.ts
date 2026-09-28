@@ -12,7 +12,8 @@ const ETHEREUM_ETH = {
   symbol: 'ETH',
   name: 'Ethereum',
   decimals: 18,
-  iconUrl: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x0.png',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
 } satisfies BridgeAssetV2;
 
 const ETHEREUM_USDC = {
