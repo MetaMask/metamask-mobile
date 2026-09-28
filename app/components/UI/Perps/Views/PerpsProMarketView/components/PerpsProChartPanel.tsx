@@ -348,8 +348,16 @@ const PerpsProChartPanel = ({
       assetId: symbol,
       mode: 'perps',
       marketId,
+      szDecimals: marketData?.szDecimals,
     });
-  }, [symbol, marketIdProp, marketData?.providerId, currentPrice, navigation]);
+  }, [
+    symbol,
+    marketIdProp,
+    marketData?.providerId,
+    marketData?.szDecimals,
+    currentPrice,
+    navigation,
+  ]);
 
   let chartContent: React.ReactNode = (
     <Skeleton

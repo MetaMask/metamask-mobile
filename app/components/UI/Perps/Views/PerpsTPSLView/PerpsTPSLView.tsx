@@ -30,10 +30,9 @@ import {
   type BottomSheetRef,
   ButtonsAlignment,
   Button,
-  ButtonBase,
-  ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -113,7 +112,7 @@ export function waitForDismissal(dismiss: (afterDismiss: () => void) => void) {
   });
 }
 
-/** ButtonBase resolves `textClassName` per press state, so it takes a function. */
+/** Button tertiary text color must resolve per press state. */
 const getClearTextClassName = () => 'text-primary-default';
 
 const SHEET_PRICE_PLACEHOLDER = '0.00';
@@ -142,10 +141,20 @@ const sheetPriceValueTextProps = {
 } as const;
 
 /**
- * Compact +/− control for %RoE fields. ButtonBase defaults to `self-start`,
- * which pins the chip to the top of TextField's 48px row; force center so it
- * lines up with the $ prefix, input text, and % suffix.
+ * Compact +/− control for %RoE fields. Force center so it lines up with the
+ * $ prefix, input text, and % suffix.
  */
+const getRoeSignIconColor = (
+  sign: '+' | '-',
+  isNeutral: boolean,
+): IconColor => {
+  if (isNeutral) {
+    return IconColor.IconDefault;
+  }
+
+  return sign === '+' ? IconColor.SuccessDefault : IconColor.ErrorDefault;
+};
+
 const RoeSignBadge: React.FC<{
   sign: '+' | '-';
   onPress: () => void;
@@ -160,40 +169,23 @@ const RoeSignBadge: React.FC<{
   accessibilityLabel,
   isDisabled,
   isNeutral = false,
-}) => {
-  if (isNeutral) {
-    return (
-      <ButtonIcon
-        size={ButtonIconSize.Sm}
-        iconName={sign === '+' ? IconName.Add : IconName.Minus}
-        iconProps={{ size: IconSize.Sm, color: IconColor.IconDefault }}
-        isDisabled={isDisabled}
-        onPress={onPress}
-        testID={testID}
-        accessibilityLabel={accessibilityLabel}
-        twClassName="shrink-0 self-center rounded-full bg-muted"
-      />
-    );
-  }
-
-  return (
-    <ButtonBase
-      size={ButtonBaseSize.Sm}
-      isDisabled={isDisabled}
-      onPress={onPress}
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
-      textProps={{
-        variant: TextVariant.BodyMd,
-        color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-      }}
-    >
-      {sign}
-    </ButtonBase>
-  );
-};
+}) => (
+  <ButtonIcon
+    size={ButtonIconSize.Sm}
+    variant={ButtonIconVariant.Filled}
+    iconName={sign === '+' ? IconName.Add : IconName.Minus}
+    iconProps={{
+      size: IconSize.Sm,
+      color: getRoeSignIconColor(sign, isNeutral),
+    }}
+    isDisabled={isDisabled}
+    onPress={onPress}
+    testID={testID}
+    accessibilityLabel={accessibilityLabel}
+    accessibilityValue={{ text: sign }}
+    twClassName="shrink-0 self-center"
+  />
+);
 
 /**
  * Reserves HelpText vertical space so TP/SL sections do not jump when
