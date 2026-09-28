@@ -1,6 +1,7 @@
 import Logger from '../../../../../util/Logger';
 import type { PredictLiveDataTopic } from '../../contracts/v1/liveData';
 import { getEventCardLiveMarketIds } from '../../events/cards';
+import { isRetryablePredictError } from '../servicePolicy';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -20,6 +21,23 @@ export const PREDICT_LIVE_GAME_WINDOW_MS = 60 * 60 * 1000;
  * the next watch instead.
  */
 const MAX_TIMEOUT_MS = 0x7fffffff;
+
+/**
+ * Backoff for a resolution that failed with a retryable read error while the
+ * Event is still watched. The first retry waits the base delay; each further
+ * failure doubles it up to the max. Retries continue at the max rather than
+ * stopping: surfaces only send id diffs, so giving up would leave a mounted
+ * screen without live prices until its ids change.
+ */
+export const PREDICT_LIVE_RESOLVE_RETRY_BASE_MS = 1000;
+export const PREDICT_LIVE_RESOLVE_RETRY_MAX_MS = 30_000;
+
+/**
+ * Gap between resolve retries scheduled in one burst. A Feed page resolves one
+ * Event per card; spacing them keeps a rate limit from being retried as a
+ * single stampede.
+ */
+export const PREDICT_LIVE_RESOLVE_RETRY_GAP_MS = 200;
 
 type TimerId = ReturnType<typeof setTimeout>;
 
@@ -110,6 +128,14 @@ interface EventSubscriptionEntry {
    * window; fires when it enters and upgrades the Event to a `game` watcher.
    */
   gameWindowTimer?: TimerId;
+  /**
+   * Armed after a retryable resolution failure while this Event still has
+   * watchers. Fires the next `getEvent`; cleared when the Event is released
+   * or a new resolution starts.
+   */
+  resolveRetryTimer?: TimerId;
+  /** Consecutive retryable resolution failures; drives the backoff. */
+  resolveFailures: number;
 }
 
 const totalWatchers = (entry: EventSubscriptionEntry): number =>
@@ -151,8 +177,10 @@ export interface LiveEventSubscriptionsOptions {
  * never see Market ids, so Home and Feed showing the same Event share one
  * upstream subscription per Market.
  *
- * A watch released before its resolution settles subscribes nothing; a failed
- * resolution is retried on the next `watch` for that Event.
+ * A watch released before its resolution settles subscribes nothing. A
+ * retryable failure is retried with backoff while the Event stays watched,
+ * because surfaces only send id diffs and a still-visible Event never calls
+ * `watch` again. Any other failure waits for the next `watch`.
  *
  * Game gating is decided at resolution, with one exception: a scheduled Game
  * still outside {@link PREDICT_LIVE_GAME_WINDOW_MS} arms a timer for the
@@ -166,6 +194,8 @@ export class LiveEventSubscriptions {
   readonly #unsubscribe: LiveEventSubscriptionsOptions['unsubscribe'];
   readonly #replay: LiveEventSubscriptionsOptions['replay'];
   readonly #now: () => number;
+  /** Earliest `now()` at which another failed Event may retry. */
+  #retryNotBefore = 0;
 
   constructor({
     resolveEvent,
@@ -188,7 +218,11 @@ export class LiveEventSubscriptions {
     eventIds.forEach((eventId) => {
       let entry = this.#entries.get(eventId);
       if (!entry) {
-        entry = { watchers: { all: 0, card: 0 }, resolving: false };
+        entry = {
+          watchers: { all: 0, card: 0 },
+          resolving: false,
+          resolveFailures: 0,
+        };
         this.#entries.set(eventId, entry);
       }
       entry.watchers[scope] += 1;
@@ -228,6 +262,7 @@ export class LiveEventSubscriptions {
       }
       this.#entries.delete(eventId);
       this.#clearGameWindowTimer(entry);
+      this.#clearResolveRetry(entry);
       this.#release(eventId, entry.resolved);
     });
   }
@@ -242,11 +277,13 @@ export class LiveEventSubscriptions {
     this.#entries.clear();
     entries.forEach(([eventId, entry]) => {
       this.#clearGameWindowTimer(entry);
+      this.#clearResolveRetry(entry);
       this.#release(eventId, entry.resolved);
     });
   }
 
   #resolve(eventId: PredictEntityId, entry: EventSubscriptionEntry): void {
+    this.#clearResolveRetry(entry);
     entry.resolving = true;
     this.#resolveEvent(eventId).then(
       (event) => {
@@ -256,6 +293,7 @@ export class LiveEventSubscriptions {
           this.#clearGameWindowTimer(entry);
           return;
         }
+        entry.resolveFailures = 0;
         const watchGame = shouldWatchGame(event, this.#now());
         const resolved: ResolvedEventSubscription = {
           event,
@@ -277,8 +315,57 @@ export class LiveEventSubscriptions {
           eventId,
           error instanceof Error ? error.message : error,
         );
+        // The hook will not send this id again while it stays visible, so a
+        // retryable failure has to retry itself. Released, or replaced by a
+        // later watch cycle, while resolving.
+        if (this.#entries.get(eventId) !== entry) {
+          return;
+        }
+        if (!isRetryablePredictError(error)) {
+          return;
+        }
+        this.#scheduleResolveRetry(eventId, entry);
       },
     );
+  }
+
+  /**
+   * Schedules another resolution for an Event that is still watched. Events
+   * that fail in one burst take successive slots {@link PREDICT_LIVE_RESOLVE_RETRY_GAP_MS}
+   * apart so their retries do not land on the same tick.
+   */
+  #scheduleResolveRetry(
+    eventId: PredictEntityId,
+    entry: EventSubscriptionEntry,
+  ): void {
+    this.#clearResolveRetry(entry);
+    entry.resolveFailures += 1;
+    const backoff = Math.min(
+      PREDICT_LIVE_RESOLVE_RETRY_MAX_MS,
+      PREDICT_LIVE_RESOLVE_RETRY_BASE_MS * 2 ** (entry.resolveFailures - 1),
+    );
+    const now = this.#now();
+    const at = Math.max(now + backoff, this.#retryNotBefore);
+    this.#retryNotBefore = at + PREDICT_LIVE_RESOLVE_RETRY_GAP_MS;
+    entry.resolveRetryTimer = setTimeout(() => {
+      entry.resolveRetryTimer = undefined;
+      if (
+        this.#entries.get(eventId) !== entry ||
+        entry.resolved ||
+        entry.resolving ||
+        totalWatchers(entry) === 0
+      ) {
+        return;
+      }
+      this.#resolve(eventId, entry);
+    }, at - now);
+  }
+
+  #clearResolveRetry(entry: EventSubscriptionEntry): void {
+    if (entry.resolveRetryTimer !== undefined) {
+      clearTimeout(entry.resolveRetryTimer);
+      entry.resolveRetryTimer = undefined;
+    }
   }
 
   /**

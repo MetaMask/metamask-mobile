@@ -30,7 +30,7 @@ Surfaces never see Market ids. Which Markets an Event needs for a given scope is
 2. subscribes the Markets its scope needs on the `market` topic, in the Event's own `markets` order: every `markets[].id` for `all`, or `getEventCardLiveMarketIds` (winner lines of a Game card, the first three Markets of a standard card) for `card`;
 3. when [live-game gating](#live-game-gating) applies, subscribes the Event id on the `game` topic.
 
-Further watchers only widen the Market set: a `card` Feed row under an `all` Event Screen holds every Market, and when the Event Screen pops the hidden lines are released while the card's Markets stay. The last watcher releases everything. A watch released before its resolution settles subscribes nothing; a failed resolution is retried on the next watch for that Event. A watcher that joins an already-resolved Event is replayed the last known values for the Markets its scope prices and for the Game, because the Venue only snapshots on first subscribe.
+Further watchers only widen the Market set: a `card` Feed row under an `all` Event Screen holds every Market, and when the Event Screen pops the hidden lines are released while the card's Markets stay. The last watcher releases everything. A watch released before its resolution settles subscribes nothing. A retryable resolution failure (network, rate limit, venue unavailable) is retried with backoff for as long as the Event stays watched: surfaces only send the id diff, so a card that stays on screen never calls `watch` again, and an Event Screen would otherwise stay dark until the user leaves. Events that fail in one burst take slots 200ms apart so a Feed page does not retry as one stampede; the delay doubles up to 30 seconds and then keeps going rather than giving up. Any other failure is retried on the next `watch`. A watcher that joins an already-resolved Event is replayed the last known values for the Markets its scope prices and for the Game, because the Venue only snapshots on first subscribe.
 
 Because Home and Feed watch the same Event id, and because the client additionally ref-counts per Market id, an Event visible on both surfaces holds exactly one upstream subscription per Market, and a Game detail read that appends sibling Markets shares them with the sibling Event.
 
@@ -77,7 +77,7 @@ The transport logs when it truncates or refuses a subscribe so the condition is 
 
 ## Testing
 
-- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, gating, the game-window timer, replay, market-scope widening and narrowing.
+- `services/internal/LiveEventSubscriptions.test.ts` — ref counting, resolution races, retryable-resolution backoff, gating, the game-window timer, replay, market-scope widening and narrowing.
 - `services/PredictLiveDataService.test.ts` — messenger actions, per-Venue guard, value caching and replay.
 - `services/PredictLiveDataService.integration.test.ts` — the acceptance journeys over the shared `tests/integration/harnesses/predict-next.ts` harness with a fake gateway socket: Feed scroll in/out, one upstream subscription for Home + Feed, zero subscriptions after Event Screen unmount, deterministic cap degradation, background/foreground.
 - `views/PredictHome/internal/useVisibleSections.test.ts` and the `*.view.test.tsx` files — the per-surface visibility adapters.

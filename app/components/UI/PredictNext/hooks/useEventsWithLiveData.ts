@@ -127,9 +127,11 @@ const unwatchEvents = (
  * Holds live-data watches for exactly the given Event ids: newly listed ids
  * are watched, ids that drop off the list are released, and unmounting
  * releases whatever is still held. Only the diff travels to the service, so a
- * card that stays on screen across re-renders never resubscribes. A change of
- * `marketScope` re-issues every watch under the new scope, since the service
- * ref-counts per scope.
+ * card that stays on screen across re-renders never resubscribes. A retryable
+ * resolution failure is retried by the service while these ids stay listed;
+ * this effect does not call `watch` again for them. A change of `marketScope`
+ * re-issues every watch under the new scope, since the service ref-counts
+ * per scope.
  */
 const useLiveEventWatches = (
   venueId: PredictVenueId,
