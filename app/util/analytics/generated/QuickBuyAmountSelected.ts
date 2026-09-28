@@ -27,7 +27,7 @@ interface EventVersion<Properties> {
   ): void;
 }
 
-const createEventVersion = <Properties,>(
+const createEventVersion = <Properties>(
   transport: AnalyticsEventTransport,
   eventName: string,
   version: number,

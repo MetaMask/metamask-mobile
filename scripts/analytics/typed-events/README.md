@@ -57,7 +57,9 @@ the ignored `temp/analytics-contract-comparison/` directory.
 
 The reviewed Quick Buy facade is tracked publicly under
 `app/util/analytics/generated/`. CI regenerates it and compares the result to
-the tracked files.
+the tracked files. The `.test-d.ts` file checks compile-time contracts; the
+generated `.test.ts` file covers runtime event-name and version-context
+forwarding.
 
 The command fails if release verification, Quick Buy v1/v2 generation, or the
 generated TypeScript checks fail.

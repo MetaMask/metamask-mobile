@@ -67,6 +67,7 @@ const main = async (): Promise<void> => {
     await format(generated.source, {
       parser: 'typescript',
       singleQuote: true,
+      filepath: sourcePath,
     }),
   );
   writeFileSync(
@@ -74,6 +75,7 @@ const main = async (): Promise<void> => {
     await format(generated.typeTests, {
       parser: 'typescript',
       singleQuote: true,
+      filepath: typeTestsPath,
     }),
   );
 

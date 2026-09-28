@@ -286,6 +286,7 @@ const writeGeneratedFiles = async (
     await format(generated.source, {
       parser: 'typescript',
       singleQuote: true,
+      filepath: join(outputDirectory, 'QuickBuyAmountSelected.ts'),
     }),
   );
   writeFileSync(
@@ -293,6 +294,7 @@ const writeGeneratedFiles = async (
     await format(generated.typeTests, {
       parser: 'typescript',
       singleQuote: true,
+      filepath: join(outputDirectory, 'QuickBuyAmountSelected.test-d.ts'),
     }),
   );
 };
