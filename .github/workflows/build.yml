@@ -251,7 +251,7 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
         (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
       }}
     environment: ${{ needs.prepare.outputs.github_environment }}
@@ -417,7 +417,7 @@ jobs:
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
         run: |
-          sudo xcodes select 26.3
+          sudo xcodes select 26.6
           xcodebuild -version
 
       # TapAndPay SDK Setup (Android only)

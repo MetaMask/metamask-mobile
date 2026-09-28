@@ -276,6 +276,22 @@ describe('Feature Flag Registry', () => {
       }
     });
 
+    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+      expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+      expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.13.0',
+        },
+      });
+    });
+
     it('keeps Immersve onboarding and Intercom support default-off', () => {
       expect(
         getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,

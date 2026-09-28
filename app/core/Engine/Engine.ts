@@ -34,6 +34,8 @@ import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { setHasLinkedSocialLoginProfile } from '../../actions/settings';
+import { registerLinkedSocialLoginProfileSync } from '../../util/basicFunctionality/linkedSocialLoginProfile';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -135,10 +137,11 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
-  predictOrderPreviewServiceInit,
+  predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
+import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -395,8 +398,9 @@ export class Engine {
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
-        PredictOrderPreviewService: predictOrderPreviewServiceInit,
+        PredictOrderService: predictOrderServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
+        LimitOrdersDataService: limitOrdersDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         RewardsMoneyController: rewardsMoneyControllerInit,
@@ -477,6 +481,9 @@ export class Engine {
       messengerClientsByName.NetworkConnectionBannerController;
     const subscriptionController = this.#wallet.getInstance(
       'SubscriptionController',
+    );
+    const subscriptionDelegationService = this.#wallet.getInstance(
+      'SubscriptionDelegationService',
     );
     const subscriptionService = this.#wallet.getInstance('SubscriptionService');
     const shieldController = this.#wallet.getInstance('ShieldController');
@@ -641,6 +648,7 @@ export class Engine {
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SubscriptionController: subscriptionController,
+      SubscriptionDelegationService: subscriptionDelegationService,
       SubscriptionService: subscriptionService,
       ShieldController: shieldController,
       ClaimsController: claimsController,
@@ -701,10 +709,10 @@ export class Engine {
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
-      PredictOrderPreviewService:
-        messengerClientsByName.PredictOrderPreviewService,
+      PredictOrderService: messengerClientsByName.PredictOrderService,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
+      LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
       RewardsController: rewardsController,
       RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
@@ -1027,6 +1035,16 @@ export class Engine {
           .catch((error) => Logger.log('Feature flags update failed: ', error));
       },
     );
+
+    // Only persist the signal here. Consolidation itself stays with
+    // useBasicFunctionalityConsolidation, which already waits for an unlocked
+    // wallet past onboarding, so a sign-in mid-onboarding cannot migrate a new
+    // wallet as an existing one.
+    registerLinkedSocialLoginProfileSync(this.controllerMessenger, () => {
+      if (store.getState().settings?.hasLinkedSocialLoginProfile !== true) {
+        store.dispatch(setHasLinkedSocialLoginProfile(true));
+      }
+    });
 
     Engine.instance = this;
   }

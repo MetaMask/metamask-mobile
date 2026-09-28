@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { View } from 'react-native';
+import {
+  render,
+  fireEvent,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPositionSize } from '../../utils/formatUtils';
@@ -185,6 +191,55 @@ describe('PerpsAmountDisplay', () => {
         screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
       ).toHaveTextContent('0.5 ETH');
       expect(screen.getByLabelText('Show fiat value')).toBeOnTheScreen();
+    });
+
+    it('uses the MMDS swap icon for the toggle unless a glyph is injected', () => {
+      const onDisplayToggle = jest.fn();
+
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+          onDisplayToggle={onDisplayToggle}
+          displayToggleAccessibilityLabel="Show asset value"
+          displayToggleTestID="amount-toggle"
+        />,
+      );
+      fireEvent.press(screen.getByTestId('amount-toggle'));
+
+      expect(onDisplayToggle).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText('Show asset value')).toBeOnTheScreen();
+      expect(screen.queryByTestId('custom-toggle-glyph')).toBeNull();
+    });
+
+    it('wraps an injected glyph in the toggle button', () => {
+      const onDisplayToggle = jest.fn();
+
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          variant="tradeSheet"
+          onDisplayToggle={onDisplayToggle}
+          displayToggleAccessibilityLabel="Show asset value"
+          displayToggleTestID="amount-toggle"
+          displayToggleIcon={<View testID="custom-toggle-glyph" />}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('amount-toggle'));
+
+      expect(onDisplayToggle).toHaveBeenCalledTimes(1);
+      expect(
+        within(screen.getByTestId('amount-toggle')).getByTestId(
+          'custom-toggle-glyph',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: 'Show asset value' }),
+      ).toBeOnTheScreen();
     });
 
     it('handles press gracefully when onPress is not provided', () => {

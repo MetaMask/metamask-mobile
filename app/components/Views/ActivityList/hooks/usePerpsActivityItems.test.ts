@@ -211,7 +211,6 @@ describe('usePerpsActivityItems', () => {
         chainId: 'eip155:42161',
         status: 'success',
         timestamp: 300,
-        raw: { type: 'perpsTransaction', data: openLongTx },
         hash: 'trade-open-long',
         data: {
           token: {
