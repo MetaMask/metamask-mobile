@@ -155,6 +155,8 @@ jest.mock('@metamask/perps-controller', () => ({
       CHASE_BACKGROUNDED: 'chase_backgrounded',
     },
   },
+  getPerpsDisplaySymbol: jest.requireActual('@metamask/perps-controller')
+    .getPerpsDisplaySymbol,
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -433,6 +435,43 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty('data');
     expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty(
       'pressActionId',
+    );
+  });
+
+  it('strips the dex prefix from the symbol in a HIP-3 max-distance notification', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockMaxDistanceHandler?.({
+        handle: 'chase-hip3',
+        symbol: 'xyz:XYZ100',
+        side: 'buy' as const,
+        restingOrderId: 'resting-hip3',
+        restingPrice: '28691',
+        maxDistanceBps: 100,
+        timestamp: 1_711_756_800_000,
+        providerId: 'hyperliquid' as const,
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: 'Your XYZ100 Chase order reached its max distance and is now resting as a limit order.',
+      }),
+    );
+    expect(mockDisplayNotification.mock.calls[0][0].body).not.toContain('xyz:');
+
+    // Analytics keeps the fully-qualified symbol so HIP-3 markets stay
+    // distinguishable in segmentation.
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ asset: 'xyz:XYZ100' }),
     );
   });
 

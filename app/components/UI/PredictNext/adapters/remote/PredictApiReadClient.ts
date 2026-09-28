@@ -1,5 +1,6 @@
 import type {
   FetchFeedParams,
+  FetchOrderCommitParams,
   FetchOrderPreviewParams,
   FetchPortfolioPageParams,
   FetchSearchParams,
@@ -54,6 +55,11 @@ export interface PredictApiReadTransport {
   fetchOrderPreview(
     venueId: PredictVenueId,
     params: FetchOrderPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
 }
@@ -201,6 +207,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   /**
+   * Commits an approved Order Preview. The body carries the Preview
+   * reference only; the backend derives every executable detail from the
+   * stored Preview and derives identity from the bearer token.
+   */
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'commit'],
+      params,
+      options,
+    );
+  }
+
+  /**
    * Every predict-api route requires a bearer token, so one is resolved for
    * each request rather than per endpoint.
    */
@@ -259,7 +282,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #postAuthenticated(
     segments: readonly string[],
-    body: FetchOrderPreviewParams,
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
@@ -268,7 +291,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #post(
     segments: readonly string[],
-    body: FetchOrderPreviewParams,
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
     bearerToken: string,
     options?: PredictReadOptions,
   ): Promise<unknown> {

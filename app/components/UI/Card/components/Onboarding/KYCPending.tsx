@@ -5,10 +5,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -17,13 +13,15 @@ import { selectCardActiveProviderId } from '../../../../../selectors/cardControl
 import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Text,
   TextVariant,
   Button,
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { colors as importedColors } from '../../../../../styles/common';
 import { useSelector } from 'react-redux';
 
 // Threshold for small screen adjustments
@@ -79,8 +77,8 @@ const KYCPending = () => {
         <Box twClassName="px-4 py-2 items-start">
           <ButtonIcon
             iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Md}
-            iconColor={importedColors.white}
+            size={ButtonIconSize.Md}
+            iconProps={{ twClassName: 'text-white' }}
             onPress={navigateToHome}
             testID="kyc-pending-back-button"
           />
@@ -117,6 +115,7 @@ const KYCPending = () => {
               height: imageDimensions.height,
             }}
             testID="kyc-pending-image"
+            accessible={false}
           />
         </Box>
 

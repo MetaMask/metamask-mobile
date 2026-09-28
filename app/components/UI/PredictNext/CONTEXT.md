@@ -122,9 +122,17 @@ _Avoid_: Order total, total cost, spend
 The estimated charge for executing an Order, added on top of the Order amount to produce the Total Debit. A Fee is composed of backend-owned components (today venue and MetaMask components) and is reported by the backend; the client never calculates it.
 _Avoid_: Kalshi fee as the total Fee, gas
 
+**Commit**:
+The user-approved submission of one Order Preview for execution. Commit sends only the Preview's opaque reference; the quoted Market, Outcome, spend, quantity, and price cannot change at commit time. Repeated commits for one operation converge on one Order Receipt.
+_Avoid_: New order request, order-details echo, re-quote at submit time
+
 **Order Receipt**:
-The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable.
+The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable. Receipt statuses are `pending`, `submitted`, `filled`, `partially_filled`, `not_filled`, `rejected`, and `reconciliation_required`; `pending` and `submitted` are in-progress statuses the backend reports while the operation is still being worked, observed by committing the same Order Preview again.
 _Avoid_: Order Result, raw venue response
+
+**Reconciliation**:
+The resolution of an ambiguous Order submission by looking up the stable Venue operation reference or the resulting Venue Order. Reconciliation determines the outcome; it never places a second Order.
+_Avoid_: Retry, resubmit, duplicate order
 
 **Fill**:
 Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.

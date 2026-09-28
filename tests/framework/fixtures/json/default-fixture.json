@@ -149,12 +149,13 @@
           "pendingApprovals": {}
         },
         "CardController": {
+          "accountLookupCache": {},
           "activeProviderId": "baanx",
           "cardHomeData": null,
           "cardHomeDataAddress": null,
+          "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
-          "cardHomeDataError": null,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -162,7 +163,8 @@
           "providerData": {},
           "providerUserId": null,
           "redeemWithdrawal": null,
-          "selectedCountry": null
+          "selectedCountry": null,
+          "signInLink": null
         },
         "ClaimsController": {
           "claims": [],
@@ -185,7 +187,7 @@
           },
           "etag": null,
           "lastFetched": null,
-          "version": null
+          "version": "0.0.0"
         },
         "CronJobController": {
           "events": {},
@@ -235,6 +237,7 @@
           "providerDisclaimersAccepted": {
             "sumsub": null
           },
+          "providerFlowStatus": "not_started",
           "sessionStatus": null,
           "vendor": null,
           "vendorDisclaimersAccepted": {
@@ -915,6 +918,7 @@
       "moneyAccountSweepstakesDrawProofs": {},
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
+      "moneyAccountSweepstakesVolumeStats": {},
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
@@ -985,11 +989,12 @@
       "basicFunctionalityEnabled": true,
       "basicFunctionalityMigrationNotification": null,
       "basicFunctionalityMigrationNotificationDismissed": false,
-      "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,
+      "hasLinkedSocialLoginProfile": false,
       "hideZeroBalanceTokens": false,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "lockTime": 30000,
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"
