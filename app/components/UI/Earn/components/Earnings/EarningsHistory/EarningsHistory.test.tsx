@@ -25,20 +25,39 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        currencyRates: {
-          ETH: {
-            conversionRate: 3363.79,
+      AssetsController: {
+        selectedCurrency: 'usd' as const,
+        assetsBalance: {},
+        customAssets: {},
+        assetPreferences: {},
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native' as const,
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+          },
+          'eip155:1/erc20:0xUSDC000000000000000000000000000000000000': {
+            type: 'erc20' as const,
+            decimals: 6,
+            symbol: 'USDC',
+            name: 'USD Coin',
           },
         },
-      },
-      TokenRatesController: {
-        marketData: {
-          '0x1': {
-            '0xUSDC000000000000000000000000000000000000': {
-              price: 0.0002990514020561363,
-            },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible' as const,
+            price: 3363.79,
+            usdPrice: 3363.79,
+            lastUpdated: Date.now(),
+          },
+          // 1.0059461157224108 USD per USDC == 0.0002990514020561363 ETH per
+          // USDC at the ETH/USD rate above; matches the previous
+          // TokenRatesController marketData fixture (native-denominated).
+          'eip155:1/erc20:0xUSDC000000000000000000000000000000000000': {
+            assetPriceType: 'fungible' as const,
+            price: 1.0059461157224108,
+            lastUpdated: Date.now(),
           },
         },
       },
@@ -228,19 +247,26 @@ describe('EarningsHistory', () => {
             ...mockInitialState.engine,
             backgroundState: {
               ...mockInitialState.engine.backgroundState,
-              CurrencyRateController: {
-                ...mockInitialState.engine.backgroundState
-                  .CurrencyRateController,
-                currentCurrency: 'xlm',
-                currencyRates: {
-                  ETH: {
-                    conversionRate: 7683.22,
-                  },
-                },
-              },
               AssetsController: {
                 ...mockInitialState.engine.backgroundState.AssetsController,
-                selectedCurrency: 'xlm',
+                selectedCurrency: 'xlm' as const,
+                // assetsPrice is denominated in the currently selected
+                // fiat currency, so both entries are re-priced in XLM here
+                // (the underlying ETH-denominated token price is unchanged:
+                // 0.0002990514020561363 ETH per USDC * 7683.22 XLM/ETH).
+                assetsPrice: {
+                  'eip155:1/slip44:60': {
+                    assetPriceType: 'fungible',
+                    price: 7683.22,
+                    usdPrice: 7683.22,
+                    lastUpdated: Date.now(),
+                  },
+                  'eip155:1/erc20:0xUSDC000000000000000000000000000000000000': {
+                    assetPriceType: 'fungible',
+                    price: 2.2976777133057475,
+                    lastUpdated: Date.now(),
+                  },
+                },
               },
             },
           },

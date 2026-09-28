@@ -49,11 +49,16 @@ export function useIsGaslessLoading() {
   const hasNoNativeTokenAvailable =
     excludeNativeTokenForFee || hasInsufficientBalance;
 
+  const isGasFeeTokensPending = gasFeeTokens === undefined;
+  const isGasFeeTokensEmpty =
+    gasFeeTokens !== undefined && gasFeeTokens.length === 0;
+
   const isGaslessLoading = Boolean(
     isSimulationEnabled &&
       hasNoNativeTokenAvailable &&
       (isGaslessSupportedPending || isGaslessSupportedFinished) &&
-      (!gasFeeTokens ||
+      (isGasFeeTokensPending ||
+        (!excludeNativeTokenForFee && isGasFeeTokensEmpty) ||
         (excludeNativeTokenForFee &&
           hasWrongSelectedGasFeeToken({ gasFeeTokens, selectedGasFeeToken }))),
   );

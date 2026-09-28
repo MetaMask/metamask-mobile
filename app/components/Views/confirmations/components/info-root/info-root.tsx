@@ -28,12 +28,12 @@ import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
 import { MusdClaimInfo } from '../info/musd-claim-info';
-import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
 import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
 import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -117,13 +117,6 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
-  ) {
-    return <MusdConversionInfoRoot />;
-  }
-
-  if (
-    transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
   ) {
     return <PredictDepositInfo />;
@@ -131,9 +124,7 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [
-      TransactionType.moneyAccountDeposit,
-    ])
+    hasTransactionType(transactionMetadata, MONEY_ACCOUNT_DEPOSIT_TYPES)
   ) {
     return <MoneyAccountDepositInfo />;
   }

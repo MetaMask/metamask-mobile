@@ -1,7 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
@@ -23,11 +25,13 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { MembershipTestIds } from './Membership.testIds';
+import type { RootState } from '../../../../../reducers';
 import {
-  MOCK_MEMBERSHIP_STATS,
-  MOCK_PAYMENT_DETAILS,
-} from './Membership.constants';
+  selectMoneyAccountPlusPricing,
+  selectSubscriptionByProduct,
+} from '../../../../../selectors/subscriptionController';
+import { MembershipTestIds } from './Membership.testIds';
+import { getMembershipDetails } from './Membership.utils';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -184,11 +188,20 @@ const STAT_SHEET_CONTENT: Record<
   },
 };
 
+const selectMoneyAccountPlusSubscription = (state: RootState) =>
+  selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+
 const Membership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { top } = useSafeAreaInsets();
   const [activeSheet, setActiveSheet] = useState<ActiveStatSheet>(null);
+  const subscription = useSelector(selectMoneyAccountPlusSubscription);
+  const plusPricing = useSelector(selectMoneyAccountPlusPricing);
+  const membershipDetails = useMemo(
+    () => getMembershipDetails(subscription, plusPricing),
+    [plusPricing, subscription],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -202,8 +215,8 @@ const Membership = () => {
     setActiveSheet('earned');
   }, []);
 
-  const handleSavedPress = useCallback(() => {
-    setActiveSheet('saved');
+  const handleInvoices = useCallback(() => {
+    // TODO: navigate to invoices
   }, []);
 
   const handleContactSupport = useCallback(() => {
@@ -250,22 +263,15 @@ const Membership = () => {
         <Box twClassName="gap-y-6" testID={MembershipTestIds.STATS_SECTION}>
           <InfoRow
             label={strings('pro_hub.membership.plan')}
-            value={MOCK_MEMBERSHIP_STATS.plan}
+            value={membershipDetails.plan}
             testID={MembershipTestIds.PLAN_ROW}
           />
           <InfoRow
             label={strings('pro_hub.membership.earned_this_month')}
-            value={MOCK_MEMBERSHIP_STATS.earnedThisMonth}
+            value={membershipDetails.earnedThisMonth}
             hasInfo
             onPress={handleEarnedPress}
             testID={MembershipTestIds.EARNED_ROW}
-          />
-          <InfoRow
-            label={strings('pro_hub.membership.saved_this_month')}
-            value={MOCK_MEMBERSHIP_STATS.savedThisMonth}
-            hasInfo
-            onPress={handleSavedPress}
-            testID={MembershipTestIds.SAVED_ROW}
           />
         </Box>
 
@@ -301,26 +307,30 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-1 flex-wrap"
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  twClassName="line-through"
-                >
-                  {MOCK_PAYMENT_DETAILS.totalOriginal}
-                </Text>
+                {membershipDetails.totalOriginal ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    twClassName="line-through"
+                  >
+                    {membershipDetails.totalOriginal}
+                  </Text>
+                ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Bold}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PAYMENT_DETAILS.totalDiscounted}
+                  {membershipDetails.total}
                 </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {`(${MOCK_PAYMENT_DETAILS.savingsNote})`}
-                </Text>
+                {membershipDetails.savingsNote ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {`(${membershipDetails.savingsNote})`}
+                  </Text>
+                ) : null}
               </Box>
             </Box>
 
@@ -354,7 +364,7 @@ const Membership = () => {
                   fontWeight={FontWeight.Bold}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PAYMENT_DETAILS.payingWith}
+                  {membershipDetails.payingWith}
                 </Text>
               </Box>
             </Box>
@@ -362,7 +372,7 @@ const Membership = () => {
             {/* Renews on */}
             <InfoRow
               label={strings('pro_hub.membership.renews_on')}
-              value={MOCK_PAYMENT_DETAILS.renewsOn}
+              value={membershipDetails.renewsOn}
               testID={MembershipTestIds.RENEWS_ON_ROW}
             />
           </Box>
@@ -382,6 +392,11 @@ const Membership = () => {
           >
             {strings('pro_hub.membership.manage')}
           </Text>
+          <ManageRow
+            label={strings('pro_hub.membership.invoices')}
+            onPress={handleInvoices}
+            testID={MembershipTestIds.INVOICES_ROW}
+          />
           <ManageRow
             label={strings('pro_hub.membership.contact_support')}
             onPress={handleContactSupport}

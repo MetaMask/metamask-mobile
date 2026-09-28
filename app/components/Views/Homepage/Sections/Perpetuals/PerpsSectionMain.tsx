@@ -35,6 +35,7 @@ import {
   formatPnl,
   formatPercentage,
 } from '../../../../UI/Perps/utils/formatUtils';
+import { calculatePositionAggregateTotals } from '../../../../UI/Perps/utils/pnlCalculations';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
@@ -60,7 +61,11 @@ import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
-import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
+import {
+  HOMEPAGE_ACCOUNT_THROTTLE_MS,
+  HOMEPAGE_THROTTLE_MS,
+  MAX_ITEMS,
+} from './constants';
 import {
   finishPerpsLoadingSession,
   resolvePerpsMarketSource,
@@ -123,12 +128,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
         throttleMs: HOMEPAGE_THROTTLE_MS,
+        // Recompute value and PnL from live mark prices, matching PerpsPositionsView
+        // and PerpsProPositionsPanel, so the row moves between socket pushes.
+        useLivePnl: true,
       });
 
-    const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
-      usePerpsLiveAccount({
-        throttleMs: HOMEPAGE_THROTTLE_MS,
-      });
+    // Only the initial-load flag is consumed here; the account value itself is not
+    // rendered, so this channel does not need the positions cadence.
+    const { isInitialLoading: perpsAccountLoading } = usePerpsLiveAccount({
+      throttleMs: HOMEPAGE_ACCOUNT_THROTTLE_MS,
+    });
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
       hideTpSl: true,
@@ -248,18 +257,24 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
 
+    // Aggregated over every live-enriched position, not just the MAX_ITEMS the rows
+    // below display, so this stays the account-wide total it has always been. It
+    // reads the same live source as those rows: taking the account snapshot instead
+    // would leave this row frozen between server pushes while the rows tick on every
+    // price update (see PerpsProPositionsPanel, which derives its summary from its
+    // positions array for the same reason).
     const homepageUnrealizedPnl = useMemo(() => {
       if (!showHomepageUnrealizedPnl) {
         return null;
       }
-      const unrealizedPnl = perpsAccount?.unrealizedPnl ?? '0';
-      const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
-      const pnlNum = parseFloat(unrealizedPnl);
+      const totals = calculatePositionAggregateTotals(positions);
+      const roe = parseFloat(totals.returnOnEquity);
+      const pnlNum = parseFloat(totals.unrealizedPnl);
       const valueText = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const tone: HomepageUnrealizedPnlTone =
         pnlNum > 0 ? 'positive' : pnlNum < 0 ? 'negative' : 'neutral';
       return { valueText, tone };
-    }, [perpsAccount, showHomepageUnrealizedPnl]);
+    }, [positions, showHomepageUnrealizedPnl]);
 
     useImperativeHandle(
       ref,
@@ -512,7 +527,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
           {showHomepageUnrealizedPnl && (
             <HomepageSectionUnrealizedPnlRow
-              isLoading={perpsAccountLoading}
               valueText={homepageUnrealizedPnl?.valueText}
               tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
               label={strings('perps.unrealized_pnl')}

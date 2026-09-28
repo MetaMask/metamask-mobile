@@ -1,6 +1,7 @@
 import { act, waitFor } from '@testing-library/react-native';
 import {
   RequestStatus,
+  FeatureId,
   getNativeAssetForChainId,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
@@ -10,6 +11,7 @@ import { BigNumber } from 'ethers';
 import { merge } from 'lodash';
 
 import AppConstants from '../../../../../core/AppConstants';
+import { trace } from '../../../../../util/trace';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 import type { BridgeState } from '../../../../../core/redux/slices/bridge';
@@ -21,6 +23,8 @@ import * as quoteUtils from '../../utils/quoteUtils';
 import { useBridgeQuoteData } from '.';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import useInsufficientBalance from '../useInsufficientBalance';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { MIGRATED_FEATURE_IDS } from '../../Views/BridgeView/BridgeView.constants';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeSlice.selectBridgeQuotes
@@ -53,6 +57,30 @@ interface QuoteDataState {
 const createBridgeTestState = (
   overrides: QuoteDataState = {},
 ): QuoteDataState => overrides;
+
+// Unit fallback: Blockaid races and quote-data edges are hook-internal.
+// CV cannot drive overlapping validateBridgeTx or debounce flush without
+// mocking the same seams.
+const createSolanaSwapTokens = () => ({
+  sourceToken: {
+    symbol: 'SOL',
+    chainId: SolScope.Mainnet,
+    address: '11111111111111111111111111111112',
+    decimals: 9,
+  },
+  destToken: {
+    symbol: 'USDC',
+    chainId: SolScope.Mainnet,
+    address:
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    decimals: 6,
+  },
+});
+
+const createQuoteWithRequestId = (requestId: string) => ({
+  ...mockQuoteWithMetadata,
+  quote: { ...mockQuoteWithMetadata.quote, requestId },
+});
 
 const applyQuoteDataState = ({
   bridgeReducerOverrides = {},
@@ -103,34 +131,45 @@ const applyQuoteDataState = ({
   return { selectSourceAmountSpy };
 };
 
-const mockUseIsInsufficientBalance =
-  useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
-
-const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
-  typeof useValidateBridgeTx
->;
+const mockUseIsInsufficientBalance = jest.mocked(useInsufficientBalance);
+const mockUseValidateBridgeTx = jest.mocked(useValidateBridgeTx);
 const mockValidateBridgeTx = jest.fn();
+const mockTrace = jest.mocked(trace);
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 
 export const runQuoteDataCases = ({
   name,
   mockDispatch,
   renderHook,
+  featureId,
 }: {
   name: string;
   mockDispatch: jest.Mock;
-  renderHook: (options?: { latestSourceAtomicBalance?: BigNumber }) => {
+  renderHook: (options?: {
+    latestSourceAtomicBalance?: BigNumber;
+    featureId: FeatureId;
+    isActive?: boolean;
+  }) => {
     result: { current: ReturnType<typeof useBridgeQuoteData> };
     rerender: (props?: unknown) => void;
     unmount: () => void;
   };
+  featureId: FeatureId;
 }) => {
   const renderUseBridgeQuoteData = (
     overrides: QuoteDataState = {},
-    hookOptions?: { latestSourceAtomicBalance?: BigNumber },
+    hookOptions?: {
+      latestSourceAtomicBalance?: BigNumber;
+      isActive?: boolean;
+      featureId?: FeatureId;
+    },
   ) => {
     const { selectSourceAmountSpy } = applyQuoteDataState(overrides);
     return {
-      ...renderHook(hookOptions),
+      ...renderHook({
+        ...hookOptions,
+        featureId: hookOptions?.featureId ?? featureId,
+      }),
       selectSourceAmountSpy,
     };
   };
@@ -163,7 +202,7 @@ export const runQuoteDataCases = ({
         }));
       selectBridgeQuotes = jest
         .spyOn(bridgeSlice, 'selectBridgeQuotes')
-        .mockImplementation(jest.fn());
+        .mockImplementation(jest.fn().mockReturnValue({}));
       isQuoteExpired = jest
         .spyOn(quoteUtils, 'isQuoteExpired')
         .mockReturnValue(false);
@@ -176,6 +215,7 @@ export const runQuoteDataCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
+      mockUseSwapsFeatureId.mockReturnValue(featureId);
     });
 
     afterEach(() => {
@@ -248,6 +288,55 @@ export const runQuoteDataCases = ({
           debouncedUpdateQuoteParams: expect.any(Function),
         }),
       });
+    });
+
+    it('does not start a quote fetch trace when resolving quote data', () => {
+      renderUseBridgeQuoteData();
+
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('returns quote data when invoked with no arguments', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+      applyQuoteDataState();
+
+      // This file is the unit fallback for the deprecated hook itself.
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      const { result } = renderUseBridgeQuoteData();
+
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    });
+
+    it('does not validate quotes when the hook is inactive', async () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+
+      const inactiveFeatureId =
+        MIGRATED_FEATURE_IDS.find((id) => id !== featureId) ??
+        FeatureId.UNIFIED_SWAP_BRIDGE;
+
+      mockUseSwapsFeatureId.mockReturnValue(inactiveFeatureId);
+
+      const { result } = renderUseBridgeQuoteData(
+        { bridgeReducerOverrides: createSolanaSwapTokens() },
+        { isActive: false, featureId: inactiveFeatureId },
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockValidateBridgeTx).not.toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(result.current).toBeNull();
+        return;
+      }
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
     });
 
     it.each([
@@ -960,6 +1049,163 @@ export const runQuoteDataCases = ({
       expect(result.current.formattedQuoteData?.slippage).toBe('Auto');
     });
 
+    it('formats slippage as a percent when slippage is set', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: { slippage: '2' },
+        }),
+      );
+
+      expect(result.current.formattedQuoteData?.slippage).toBe('2%');
+    });
+
+    it('omits formatted priceImpact when quote priceData is missing', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            priceData: undefined,
+          },
+        },
+      }));
+
+      const { result } = renderUseBridgeQuoteData(createBridgeTestState({}));
+
+      expect(result.current.formattedQuoteData?.priceImpact).toBeUndefined();
+    });
+
+    it('returns no best quote when selectBridgeQuotes is undefined', () => {
+      selectBridgeQuotes.mockReturnValue(undefined);
+
+      const { result } = renderUseBridgeQuoteData(createBridgeTestState({}));
+
+      expect(result.current.bestQuote).toBeUndefined();
+      expect(result.current.validQuotes).toEqual([]);
+    });
+
+    it('returns empty validQuotes when sortedQuotes is omitted', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: undefined,
+      }));
+
+      const { result } = renderUseBridgeQuoteData(createBridgeTestState({}));
+
+      expect(result.current.validQuotes).toEqual([]);
+    });
+
+    it('returns willRefresh from shouldRefreshQuote when insufficient balance is undefined', () => {
+      mockUseIsInsufficientBalance.mockReturnValue(
+        undefined as unknown as boolean,
+      );
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+
+      const { result } = renderUseBridgeQuoteData(createBridgeTestState({}));
+
+      expect(result.current.willRefresh).toBe(false);
+    });
+
+    it('returns empty validQuotes when expired quotes are still loading', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+      isQuoteExpired.mockReturnValue(true);
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.LOADING,
+          },
+        }),
+      );
+
+      expect(result.current.validQuotes).toEqual([]);
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.needsNewQuote).toBe(true);
+    });
+
+    it('returns needsNewQuote false when an expired quote is submitting', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+      isQuoteExpired.mockReturnValue(true);
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: { isSubmittingTx: true },
+        }),
+      );
+
+      expect(result.current.needsNewQuote).toBe(false);
+    });
+
+    it('returns needsNewQuote false when an expired quote is refreshing while loading', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+      isQuoteExpired.mockReturnValue(true);
+      shouldRefreshQuote.mockReturnValue(true);
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.LOADING,
+          },
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.willRefresh).toBe(true);
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+      expect(result.current.needsNewQuote).toBe(false);
+    });
+
+    it('returns undefined destTokenAmount when destToken is missing', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: { destToken: undefined },
+        }),
+      );
+
+      expect(result.current.destTokenAmount).toBeUndefined();
+      expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(false);
+    });
+
+    it('returns undefined destTokenAmount when sourceToken is missing', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: { sourceToken: undefined },
+        }),
+      );
+
+      expect(result.current.destTokenAmount).toBeUndefined();
+      expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(false);
+    });
+
     it('passes latestSourceAtomicBalance to useIsInsufficientBalance', () => {
       selectBridgeQuotes.mockImplementation(() => ({
         ...defaultSelectBridgeQuotesResults,
@@ -986,6 +1232,32 @@ export const runQuoteDataCases = ({
       });
 
       expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    });
+
+    it('passes undefined latestAtomicBalance when latestSourceAtomicBalance is omitted', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+      mockUseIsInsufficientBalance.mockReturnValue(false);
+
+      renderUseBridgeQuoteData(createBridgeTestState({}));
+
+      // Combined provider fetches when the override is omitted and shares
+      // that value with quote data. Covered in runQuoteRequestCases.
+      if (isCombinedQuoteHook) {
+        return;
+      }
+
+      expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+        amount: '1000000000000000000',
+        token: expect.objectContaining({
+          address: expect.any(String),
+          decimals: expect.any(Number),
+          symbol: expect.any(String),
+        }),
+        latestAtomicBalance: undefined,
+      });
     });
 
     // Validation logic coverage
@@ -1031,6 +1303,39 @@ export const runQuoteDataCases = ({
         quoteResponse: mockQuote,
         signal: expect.any(AbortSignal),
       });
+    });
+
+    it('skips Solana validation when the active quote requestId was already validated', async () => {
+      const mockQuote = { ...mockQuoteWithMetadata };
+      let recommendedQuote = mockQuote;
+
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote,
+      }));
+      mockValidateBridgeTx.mockResolvedValue({
+        status: 'SUCCESS',
+      });
+
+      const { rerender, selectSourceAmountSpy } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: createSolanaSwapTokens(),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+      });
+
+      recommendedQuote = { ...mockQuote };
+      selectSourceAmountSpy.mockReturnValue('2');
+      rerender({});
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
     });
 
     it('sets blockaidError from error_details when Solana-to-EVM validateBridgeTx returns ERROR', async () => {
@@ -1122,6 +1427,32 @@ export const runQuoteDataCases = ({
 
       await waitFor(() => {
         expect(result.current.blockaidError).toBe('Fallback validation error');
+      });
+    });
+
+    it('sets blockaidError from validation.error when validation has no reason', async () => {
+      const mockQuote = { ...mockQuoteWithMetadata };
+
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuote,
+      }));
+      mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
+        result: {
+          validation: {},
+        },
+        error: 'generic validation error',
+      });
+
+      const { result } = renderUseBridgeQuoteData(
+        createBridgeTestState({
+          bridgeReducerOverrides: createSolanaSwapTokens(),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.blockaidError).toBe('generic validation error');
       });
     });
 
@@ -1751,6 +2082,114 @@ export const runQuoteDataCases = ({
         } finally {
           global.AbortController = originalAbortController;
         }
+      });
+
+      it('keeps the current blockaidError when a stale Solana validation throws', async () => {
+        const mockQuote1 = createQuoteWithRequestId('quote1');
+        const mockQuote2 = createQuoteWithRequestId('quote2');
+        let recommendedQuote = mockQuote1;
+        const originalAbortController = global.AbortController;
+        let rejectFirstValidation: ((reason: unknown) => void) | undefined;
+
+        selectBridgeQuotes.mockImplementation(() => ({
+          ...defaultSelectBridgeQuotesResults,
+          recommendedQuote,
+        }));
+        global.AbortController = jest.fn().mockImplementation(() => ({
+          signal: {},
+          abort: jest.fn(),
+        })) as typeof AbortController;
+        mockValidateBridgeTx
+          .mockImplementationOnce(
+            () =>
+              new Promise((_, reject) => {
+                rejectFirstValidation = reject;
+              }),
+          )
+          .mockResolvedValue({
+            status: 'ERROR',
+            result: {
+              validation: {
+                reason: 'current quote failed',
+              },
+            },
+            error_details: {
+              message: 'current quote was blocked',
+            },
+          });
+
+        try {
+          const { result, rerender, selectSourceAmountSpy } =
+            renderUseBridgeQuoteData(
+              createBridgeTestState({
+                bridgeReducerOverrides: createSolanaSwapTokens(),
+              }),
+            );
+
+          await waitFor(() => {
+            expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+          });
+
+          recommendedQuote = mockQuote2;
+          selectSourceAmountSpy.mockReturnValue('2');
+          rerender({});
+
+          await waitFor(() => {
+            expect(result.current.blockaidError).toBe(
+              'The current quote was blocked.',
+            );
+          });
+
+          await act(async () => {
+            rejectFirstValidation?.(new Error('stale validation failed'));
+          });
+
+          expect(result.current.blockaidError).toBe(
+            'The current quote was blocked.',
+          );
+        } finally {
+          global.AbortController = originalAbortController;
+        }
+      });
+
+      it('clears blockaidError when a Solana validation throws after the pair leaves Solana', async () => {
+        const mockQuote = createQuoteWithRequestId('quote1');
+        let rejectValidation: ((reason: unknown) => void) | undefined;
+
+        selectBridgeQuotes.mockImplementation(() => ({
+          ...defaultSelectBridgeQuotesResults,
+          recommendedQuote: mockQuote,
+        }));
+        mockValidateBridgeTx.mockImplementation(
+          () =>
+            new Promise((_, reject) => {
+              rejectValidation = reject;
+            }),
+        );
+
+        const { result, rerender, selectSourceAmountSpy } =
+          renderUseBridgeQuoteData(
+            createBridgeTestState({
+              bridgeReducerOverrides: createSolanaSwapTokens(),
+            }),
+          );
+
+        await waitFor(() => {
+          expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+        });
+
+        jest.spyOn(bridgeSlice, 'selectIsSolanaSwap').mockReturnValue(false);
+        jest
+          .spyOn(bridgeSlice, 'selectIsSolanaToNonSolana')
+          .mockReturnValue(false);
+        selectSourceAmountSpy.mockReturnValue('2');
+        rerender({});
+
+        await act(async () => {
+          rejectValidation?.(new Error('validation failed after pair change'));
+        });
+
+        expect(result.current.blockaidError).toBe(null);
       });
     });
 

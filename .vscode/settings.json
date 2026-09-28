@@ -1,12 +1,6 @@
 {
-  "yaml.schemas": {
-    "file:///Users/bruno/.vscode/extensions/gizmos.docs-yaml-0.1.5/schemas/toc.schema.json": "/toc\\.yml/i"
-  },
-
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "javascript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifier": "relative",
-
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.preferences.importModuleSpecifier": "relative",
   // Tailwind CSS configuration
   "tailwindCSS.includeLanguages": {
     "javascript": "javascript",
@@ -26,5 +20,9 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.inlayHints.enabled": "on"
+  "editor.inlayHints.enabled": "on",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "metamask",
+    "projectKey": "MetaMask_metamask-mobile"
+  }
 }

@@ -11,7 +11,6 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActio
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 
@@ -154,14 +153,7 @@ jest.mock('../../../../selectors/assets/assets-list', () => {
 
 jest.mock('../../../../core/Engine', () => ({
   resetState: jest.fn(),
-  context: {
-    TokensController: {
-      ignoreTokens: jest.fn(),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
-    },
-  },
+  context: {},
 }));
 
 jest.mock('../../../../core/NotificationManager', () => ({
@@ -184,10 +176,11 @@ jest.mock('../hooks/useAssetActivation', () => ({
   }),
 }));
 
+const mockHandleHideToken = jest.fn();
 jest.mock('./useAssetVisibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    handleHideToken: jest.fn(),
+    handleHideToken: mockHandleHideToken,
   })),
 }));
 
@@ -468,7 +461,7 @@ describe('MoreTokenActionsMenu', () => {
       expect(onReceive).toHaveBeenCalled();
     });
 
-    it('navigates to Webview when View on block explorer is pressed and InAppBrowser is not available', async () => {
+    it('leaves Token Details then navigates to Webview when InAppBrowser is unavailable', async () => {
       mockInAppBrowserIsAvailable.mockResolvedValue(false);
       updateRouteParams({
         hasPerpsMarket: false,
@@ -483,15 +476,17 @@ describe('MoreTokenActionsMenu', () => {
 
       await userEvent.press(getByTestId('more-actions-view-explorer'));
 
-      await Promise.resolve();
-
-      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://etherscan.io/token/0x123',
-          title: 'Etherscan',
-        },
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: 'https://etherscan.io/token/0x123',
+            title: 'Etherscan',
+          },
+        });
       });
+
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
       expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Function),
@@ -502,7 +497,7 @@ describe('MoreTokenActionsMenu', () => {
       );
     });
 
-    it('opens InAppBrowser when View on block explorer is pressed and InAppBrowser is available', async () => {
+    it('leaves Token Details then opens InAppBrowser when available', async () => {
       mockInAppBrowserIsAvailable.mockResolvedValue(true);
       mockInAppBrowserOpen.mockResolvedValue(undefined);
       updateRouteParams({
@@ -518,11 +513,13 @@ describe('MoreTokenActionsMenu', () => {
 
       await userEvent.press(getByTestId('more-actions-view-explorer'));
 
-      await Promise.resolve();
+      await waitFor(() => {
+        expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
+          'https://etherscan.io/token/0x123',
+        );
+      });
 
-      expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
-        'https://etherscan.io/token/0x123',
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
     });
 
     it('uses block explorer base URL for native currency when View on block explorer is pressed', async () => {
@@ -572,11 +569,6 @@ describe('MoreTokenActionsMenu', () => {
         isBuyable: false,
         isNativeCurrency: false,
       });
-      (
-        Engine.context.NetworkController
-          .findNetworkClientIdByChainId as jest.Mock
-      ).mockReturnValue('mainnet');
-
       const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
         state: mockInitialState,
       });
@@ -605,13 +597,7 @@ describe('MoreTokenActionsMenu', () => {
       onConfirm?.();
 
       expect(mockNavigate).toHaveBeenCalledWith('WalletView');
-      expect(
-        Engine.context.NetworkController.findNetworkClientIdByChainId,
-      ).toHaveBeenCalledWith('0x1');
-      expect(Engine.context.TokensController.ignoreTokens).toHaveBeenCalledWith(
-        ['0x123'],
-        'mainnet',
-      );
+      expect(mockHandleHideToken).toHaveBeenCalled();
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'simple_notification',
@@ -663,9 +649,7 @@ describe('MoreTokenActionsMenu', () => {
     });
 
     it('logs error when hide token fails', async () => {
-      (
-        Engine.context.TokensController.ignoreTokens as jest.Mock
-      ).mockImplementation(() => {
+      mockHandleHideToken.mockImplementationOnce(() => {
         throw new Error('Controller error');
       });
       updateRouteParams({
@@ -739,9 +723,9 @@ describe('MoreTokenActionsMenu', () => {
       await userEvent.press(getByTestId('more-actions-deactivate-asset'));
 
       await waitFor(() => {
-        expect(mockDeactivateAsset).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       });
+      expect(mockDeactivateAsset).toHaveBeenCalled();
       expect(NotificationManager.showSimpleNotification).not.toHaveBeenCalled();
     });
 

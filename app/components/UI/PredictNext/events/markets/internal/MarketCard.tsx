@@ -20,9 +20,16 @@ interface RootProps extends ChildrenProps {
 }
 
 const Root = ({ children, testID }: RootProps) => (
-  <Box testID={testID} twClassName="gap-[14px] rounded-2xl bg-section p-4">
+  <Box
+    testID={testID}
+    twClassName="gap-[14px] overflow-hidden rounded-2xl bg-section p-4"
+  >
     {children}
   </Box>
+);
+
+const Footer = ({ children }: ChildrenProps) => (
+  <Box twClassName="-mx-4 -mb-4">{children}</Box>
 );
 
 const Header = ({ children }: ChildrenProps) => (
@@ -95,18 +102,20 @@ const Actions = ({ children }: ChildrenProps) => (
   <Box twClassName="flex-row gap-[10px]">{children}</Box>
 );
 
-const noOp = (): void => undefined;
-
 const OutcomeButton = ({
   label,
   price,
   side,
   testID,
+  onPress,
+  isDisabled = false,
 }: {
   label: string;
   price?: string;
   side: 'yes' | 'no';
   testID?: string;
+  onPress?: () => void;
+  isDisabled?: boolean;
 }) => {
   const displayLabel = price ? `${label} · ${price}` : label;
 
@@ -116,10 +125,11 @@ const OutcomeButton = ({
       accessibilityLabel={
         price ? `${label}, ${price}` : `${label}, price unavailable`
       }
-      accessibilityState={{ disabled: false }}
+      accessibilityState={{ disabled: isDisabled }}
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      onPress={noOp}
+      onPress={isDisabled ? undefined : onPress}
+      isDisabled={isDisabled}
       twClassName="h-12 min-w-0 flex-1 rounded-xl bg-muted px-2"
     >
       <Text
@@ -138,6 +148,7 @@ const OutcomeButton = ({
 
 export const MarketCard = {
   Root,
+  Footer,
   Header,
   Summary,
   Title,

@@ -426,6 +426,55 @@ describe('PerpsCancelAllOrdersView', () => {
     });
   });
 
+  it('cancels the listed orders by id when a caller supplies them unfiltered', async () => {
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockResolvedValue({
+      success: true,
+      successCount: 2,
+      failureCount: 0,
+      results: [],
+    });
+
+    const SuppliedCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return (
+        <PerpsCancelAllOrdersView
+          sheetRef={sheetRef}
+          onClose={jest.fn()}
+          orders={orders}
+        />
+      );
+    };
+
+    renderPerpsView(
+      SuppliedCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    await screen.findByTestId(
+      PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+    );
+
+    await act(async () => {
+      await fireEvent.press(
+        screen.getByTestId(
+          PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+        ),
+      );
+    });
+
+    // The Pro panel supplies TP/SL orders that provider-side cancelAll skips,
+    // so the listed orders must be cancelled by id even with no active filter.
+    await waitFor(() => {
+      expect(cancelOrders).toHaveBeenCalledWith({
+        orderIds: orders.map((order) => order.orderId),
+      });
+    });
+    expect(cancelOrders).not.toHaveBeenCalledWith({ cancelAll: true });
+  });
+
   it('keeps the confirm label fixed while the body carries the count', async () => {
     const FilteredCancelAll = () => {
       const sheetRef = useRef<BottomSheetRef | null>(null);

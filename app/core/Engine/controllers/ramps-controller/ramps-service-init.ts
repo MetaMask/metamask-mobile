@@ -5,6 +5,7 @@ import {
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
+import { getBaseSemVerVersion } from '../../../../util/version';
 
 /**
  * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
@@ -50,6 +51,20 @@ export function getRampsContext(): string {
 }
 
 /**
+ * MetaMask client identity sent on every on-ramp request, used by the API
+ * for version-gated feature flags.
+ */
+export function getRampsClientIdentity(): {
+  clientProduct: 'metamask-mobile';
+  clientVersion: string;
+} {
+  return {
+    clientProduct: 'metamask-mobile',
+    clientVersion: getBaseSemVerVersion(),
+  };
+}
+
+/**
  * Initialize the on-ramp service.
  *
  * @param request - The request object.
@@ -65,6 +80,7 @@ export const rampsServiceInit: MessengerClientInitFunction<
     environment: getRampsEnvironment(),
     context: getRampsContext(),
     fetch,
+    ...getRampsClientIdentity(),
   });
 
   return {

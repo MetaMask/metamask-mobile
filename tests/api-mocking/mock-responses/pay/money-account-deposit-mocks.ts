@@ -53,7 +53,11 @@ export async function mockMoneyAccountApis(mockServer: Mockttp) {
     }));
 }
 
-export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(mockServer: Mockttp) {
+export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(
+  mockServer: Mockttp,
+  sourceToken: 'usdc' | 'eth' = 'usdc',
+  recipient?: string,
+) {
   await mockMoneyAccountBalance(mockServer);
   await mockTokenApiMetadata(mockServer);
   await mockMainnetTokenApi(mockServer);
@@ -69,24 +73,31 @@ export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(mockServer: Mockttp) {
   await mockAccountsApiActiveNetworks(mockServer);
   await mockMoneyAccountApis(mockServer);
 
+  const isEthSource = sourceToken === 'eth';
   const quote = buildRelayQuoteMock({
     srcChainId: 1,
-    srcToken: {
-      address: USDC_MAINNET,
-      symbol: 'USDC',
-      decimals: 6,
-    },
+    srcToken: isEthSource
+      ? {
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          decimals: 18,
+        }
+      : {
+          address: USDC_MAINNET,
+          symbol: 'USDC',
+          decimals: 6,
+        },
     dstChainId: 143,
     dstToken: {
       address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
       symbol: 'mUSD',
       decimals: 6,
     },
-    amountIn: '50000000',
+    amountIn: isEthSource ? '16666666666666666' : '50000000',
     amountOut: '50000000',
     amountUsd: '50.00',
     timeEstimate: 15,
-    recipient: DEFAULT_FIXTURE_ACCOUNT,
+    recipient,
   });
 
   await mockRelayQuoteWith(mockServer, quote);
@@ -207,7 +218,22 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
       cumulativeGasUsed: '0x94670',
       gasUsed: '0x94670',
       contractAddress: null,
-      logs: [],
+      // Non-atomic Max deposits resolve the settled amount from the mUSD
+      // Transfer log in this receipt (getTransferredAmountFromTxHash). The
+      // recipient is the deterministic e2e Money Account address.
+      logs: [
+        {
+          address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+          topics: [
+            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '0x00000000000000000000000088e4c776e4598b098022c253159d5804d45ceca8',
+          ],
+          data: '0x0000000000000000000000000000000000000000000000000000000002faf080',
+          blockNumber: '0x1234568',
+          transactionHash: requestedHash,
+        },
+      ],
       status: '0x1',
       logsBloom:
         '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
@@ -421,6 +447,8 @@ async function mockMainnetSentinel(mockServer: Mockttp) {
 }
 
 async function mockMonadSentinel(mockServer: Mockttp) {
+  const relayUuid = 'mocked-monad-uuid-1234';
+
   const simulateResult = (body: Record<string, unknown>) => {
     const params = body.params as Record<string, unknown>[];
     const transactions = (params?.[0]?.transactions as Record<
@@ -470,12 +498,22 @@ async function mockMonadSentinel(mockServer: Mockttp) {
       if (body?.method === 'infura_simulateTransactions') {
         return simulateResult(body);
       }
+      if (body?.method === 'eth_sendRelayTransaction') {
+        return {
+          statusCode: 200,
+          json: {
+            jsonrpc: '2.0',
+            id: body.id ?? 1,
+            result: { uuid: relayUuid },
+          },
+        };
+      }
       return { statusCode: 200, json: { status: 'ok' } };
     });
 
   await mockServer
     .forPost('/proxy')
-    .asPriority(1001)
+    .asPriority(1002)
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
@@ -487,8 +525,48 @@ async function mockMonadSentinel(mockServer: Mockttp) {
       if (body?.method === 'infura_simulateTransactions') {
         return simulateResult(body);
       }
+      if (body?.method === 'eth_sendRelayTransaction') {
+        return {
+          statusCode: 200,
+          json: {
+            jsonrpc: '2.0',
+            id: body.id ?? 1,
+            result: { uuid: relayUuid },
+          },
+        };
+      }
       return { statusCode: 200, json: { status: 'ok' } };
     });
+
+  const statusHandler = () => ({
+    statusCode: 200,
+    json: {
+      transactions: [
+        {
+          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          status: 'VALIDATED',
+        },
+      ],
+    },
+  });
+
+  await mockServer
+    .forGet(
+      `https://tx-sentinel-monad-mainnet.api.cx.metamask.io/smart-transactions/${relayUuid}`,
+    )
+    .asPriority(1001)
+    .thenCallback(statusHandler);
+
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url') || '';
+      return url.includes(
+        `tx-sentinel-monad-mainnet.api.cx.metamask.io/smart-transactions/${relayUuid}`,
+      );
+    })
+    .thenCallback(statusHandler);
 }
 
 async function mockSentinelNetworks(mockServer: Mockttp) {

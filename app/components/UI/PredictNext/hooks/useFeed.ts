@@ -14,5 +14,6 @@ export const useFeed = (
 ) =>
   useInfiniteQuery<GetFeedResult>({
     queryKey: marketDataQueries.getFeed(venueId, feedId, params).queryKey,
+    initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
   });

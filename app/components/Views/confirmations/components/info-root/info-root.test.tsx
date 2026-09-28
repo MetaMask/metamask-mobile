@@ -56,6 +56,11 @@ jest.mock('../info/custom-amount-info', () => ({
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
+// The withdraw info components call `useDefaultPaySelectedSection`, which
+// otherwise reaches the Money Account balance query and its QueryClient.
+jest.mock('../../hooks/pay/usePayMoneyAccountAvailable', () => ({
+  usePayMoneyAccountAvailable: () => ({ isAvailable: true, isPending: false }),
+}));
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
@@ -148,6 +153,8 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 describe('Info', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   const mockUseNetworkEnablement = jest.fn();
   const perpsWithdrawConfirmation = {
     chainId: '0xa4b1',
@@ -245,7 +252,10 @@ describe('Info', () => {
     expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
   });
 
-  it('renders CustomAmountInfo for money account deposit confirmations', () => {
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])('renders CustomAmountInfo for %s confirmations', (transactionType) => {
     const moneyAccountDepositConfirmation = {
       chainId: '0x89',
       id: 'money-account-deposit-confirmation-id',
@@ -256,7 +266,7 @@ describe('Info', () => {
         to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         value: '0x0',
       },
-      type: TransactionType.moneyAccountDeposit,
+      type: transactionType,
     } as unknown as TransactionMeta;
 
     const { getByTestId } = renderWithProvider(<Info />, {

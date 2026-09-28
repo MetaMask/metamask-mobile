@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
+import { BigNumber } from 'bignumber.js';
+import { sumAmounts } from '@metamask/bridge-controller';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,6 +20,8 @@ import {
   IconName,
   IconSize,
   IconColor,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
@@ -56,6 +60,8 @@ import KeyValueRowLabel from '../../../../../component-library/components-temp/K
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import AppConstants from '../../../../../core/AppConstants';
 import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
+import formatFiat from '../../../../../util/formatFiat';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 if (
   Platform.OS === 'android' &&
@@ -67,6 +73,8 @@ if (
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
+  isGaslessSwapRedesignTreatment = false,
+  gaslessFeeAsset,
 }) => {
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const tw = useTailwind();
@@ -82,6 +90,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
+  const currency = useSelector(selectCurrentCurrency);
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -135,13 +144,27 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
         type: PriceImpactModalType.Info,
-        token: sourceToken,
         location,
       },
     });
   };
 
   const isGasless = isGaslessQuote(activeQuote?.quote);
+
+  const relayerFee = activeQuote?.quote?.feeData?.relayer;
+  const formattedRelayerFee = useMemo(() => {
+    if (!relayerFee?.length) {
+      return '-';
+    }
+
+    const fee = sumAmounts(relayerFee);
+    const valueInCurrency = fee?.valueInCurrency;
+    if (valueInCurrency == null) {
+      return '-';
+    }
+
+    return formatFiat(new BigNumber(valueInCurrency), currency);
+  }, [currency, relayerFee]);
 
   const formattedMinToTokenAmount = formatMinimumReceived(
     activeQuote?.quote.dest?.minAmountNormalized || '0',
@@ -206,7 +229,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             >
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
                 style={tw`text-right`}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -255,6 +278,61 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               ),
             }}
           />
+        ) : isGasless && isGaslessSwapRedesignTreatment ? (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.network_fee')),
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_gasless'),
+                iconName: IconNameLegacy.Info,
+              },
+            }}
+            value={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {formattedQuoteData?.networkFee}
+                  </Text>
+                  {gaslessFeeAsset ? (
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      twClassName="rounded-md bg-muted px-1.5"
+                    >
+                      <AvatarToken
+                        name={gaslessFeeAsset.symbol}
+                        src={
+                          gaslessFeeAsset.iconUrl
+                            ? { uri: gaslessFeeAsset.iconUrl }
+                            : undefined
+                        }
+                        size={AvatarTokenSize.Xs}
+                      />
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                      >
+                        {gaslessFeeAsset.symbol}
+                      </Text>
+                    </Box>
+                  ) : null}
+                </Box>
+              ),
+            }}
+          />
         ) : isGasless ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -274,15 +352,12 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             >
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
                 style={styles.strikethroughText}
               >
                 {formattedQuoteData.networkFee}
               </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('bridge.included')}
               </Text>
             </Box>
@@ -305,7 +380,26 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               label: {
                 text: formattedQuoteData.networkFee,
                 variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Default,
+              },
+            }}
+          />
+        )}
+
+        {Boolean(relayerFee?.length) && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.relayer_fee')),
+                variant: TextVariantLegacy.BodyMD,
                 color: TextColorLegacy.Alternative,
+              },
+            }}
+            value={{
+              label: {
+                text: formattedRelayerFee,
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Default,
               },
             }}
           />
@@ -334,7 +428,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
+                  color={TextColor.TextDefault}
                 >
                   {formattedQuoteData.slippage}
                 </Text>
@@ -366,7 +460,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
+                color: TextColorLegacy.Default,
               },
             }}
           />

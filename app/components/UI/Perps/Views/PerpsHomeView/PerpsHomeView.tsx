@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -47,6 +46,7 @@ import {
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  useBottomSafeAreaInset,
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
@@ -73,9 +73,17 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsNetwork,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
-import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
+import {
+  buildDefaultProMarket,
+  withHomeDroppedFromHistory,
+} from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -88,10 +96,6 @@ import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import {
-  selectPerpsNetwork,
-  selectPerpsWatchlistMarkets,
-} from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
@@ -112,11 +116,16 @@ import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
+import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -128,6 +137,7 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
@@ -139,7 +149,7 @@ import {
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
@@ -164,6 +174,7 @@ const PerpsHomeView = () => {
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
@@ -184,17 +195,17 @@ const PerpsHomeView = () => {
           routes: [
             {
               name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
+              params: withHomeDroppedFromHistory({
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-              },
+              }),
             },
           ],
         });
       }
       return true;
     },
-    [navigation, setPerpsMode],
+    [lastViewedMarketSymbol, navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
@@ -213,7 +224,12 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening();
+  const whatsHappeningFeed = useWhatsHappening({
+    telemetryContext: {
+      source: WhatsHappeningSource.Perps,
+      stage: 'carousel',
+    },
+  });
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({
@@ -290,6 +306,10 @@ const PerpsHomeView = () => {
     setTitleSectionHeight,
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
+
+  // The banner sits above the header, so whichever of the two is at the top of
+  // the screen owns the status-bar inset.
+  const { campaign: outreachCampaign } = usePerpsOutreachCampaign();
 
   const perpsScreenTitle = strings('perps.title');
 
@@ -849,6 +869,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION}
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
             marketType="crypto"
@@ -1007,9 +1028,9 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
-  // Calculate actual footer dimensions
-  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
-  const footerHeight = 80 + insets.bottom;
+  // Calculate actual footer dimensions: the base footer geometry plus the
+  // system navigation-bar inset added to its bottom padding at runtime.
+  const footerHeight = FIXED_BOTTOM_CONTAINER_BASE_HEIGHT + bottomSafeAreaInset;
 
   const showsFixedFooter =
     !isBalanceEmpty &&
@@ -1020,15 +1041,22 @@ const PerpsHomeView = () => {
   const bottomSpacerStyle = useMemo(
     () => ({
       // Reserve space for the fixed footer only when it is rendered.
-      height: showsFixedFooter ? footerHeight + 16 : 16,
+      height: showsFixedFooter
+        ? footerHeight + FIXED_BOTTOM_CONTAINER_PADDING
+        : FIXED_BOTTOM_CONTAINER_PADDING,
     }),
     [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
   const fixedFooterStyle = useMemo(
-    () => [styles.fixedFooter, { paddingBottom: 16 + insets.bottom }],
-    [styles.fixedFooter, insets.bottom],
+    () => [
+      styles.fixedFooter,
+      {
+        paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+      },
+    ],
+    [styles.fixedFooter, bottomSafeAreaInset],
   );
 
   const scrollContentContainerStyle = useMemo(
@@ -1036,9 +1064,11 @@ const PerpsHomeView = () => {
       styles.scrollViewContent,
       showsFixedFooter
         ? { paddingBottom: 0 }
-        : { paddingBottom: 16 + insets.bottom },
+        : {
+            paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+          },
     ],
-    [styles.scrollViewContent, showsFixedFooter, insets.bottom],
+    [styles.scrollViewContent, showsFixedFooter, bottomSafeAreaInset],
   );
 
   const titleEndAccessory = useMemo(() => {
@@ -1072,9 +1102,12 @@ const PerpsHomeView = () => {
 
   return (
     <View style={styles.container}>
+      {/* Perps Outreach Banner */}
+      <PerpsOutreachBanner includesTopInset location="perps_home" />
+
       {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
       <HeaderStandardAnimated
-        includesTopInset
+        includesTopInset={!outreachCampaign}
         // h-16 (64px) matches the Figma header when the Lite pill is shown
         // (HeaderBase defaults to 56px).
         twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
@@ -1091,7 +1124,7 @@ const PerpsHomeView = () => {
             accessible={false}
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={1}
+            gap={2}
           >
             <ButtonIcon
               iconName={IconName.Search}
@@ -1194,7 +1227,10 @@ const PerpsHomeView = () => {
         <PerpsHomeSectionList sections={homeSections} />
 
         {/* Bottom spacing for tab bar */}
-        <View style={bottomSpacerStyle} />
+        <View
+          style={bottomSpacerStyle}
+          testID={PerpsHomeViewSelectorsIDs.BOTTOM_SPACER}
+        />
       </Reanimated.ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
@@ -1215,7 +1251,10 @@ const PerpsHomeView = () => {
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
       {showsFixedFooter && (
-        <View style={fixedFooterStyle}>
+        <View
+          style={fixedFooterStyle}
+          testID={PerpsHomeViewSelectorsIDs.FIXED_FOOTER}
+        >
           <View style={styles.footerButtonsContainer} accessible={false}>
             <Button
               variant={ButtonVariant.Secondary}

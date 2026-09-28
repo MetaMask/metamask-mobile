@@ -5,7 +5,7 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { NoQuoteAlert } from '../../components/alerts/no-quote-alert';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useIsTransactionPayLoading,
@@ -136,7 +136,7 @@ export function useNoPayTokenQuotesAlert() {
 
   return useMemo(() => {
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

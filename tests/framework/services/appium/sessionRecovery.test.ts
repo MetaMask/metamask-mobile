@@ -1,8 +1,10 @@
 import {
   consumeSharedSessionRecreate,
   isDeviceHealthError,
+  recreateSharedSessionNow,
   requestSharedSessionRecreate,
   resetSharedSessionRecreateState,
+  setSharedSessionRecreateHandler,
 } from './sessionRecovery.ts';
 
 describe('isDeviceHealthError', () => {
@@ -21,10 +23,50 @@ describe('isDeviceHealthError', () => {
     ).toBe(true);
   });
 
+  it('returns true for UiAutomator2 instrumentation crashes', () => {
+    expect(
+      isDeviceHealthError(
+        new Error(
+          "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isDeviceHealthError(
+        new Error('instrumentation process cannot be initialized'),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for shared-adb transport faults (socket hang up / protocol fault)', () => {
+    expect(
+      isDeviceHealthError(
+        new Error(
+          'Could not proxy command to the remote server. Original error: socket hang up when running "element"',
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isDeviceHealthError(
+        new Error('adb: error: protocol fault (could not read status)'),
+      ),
+    ).toBe(true);
+    expect(isDeviceHealthError(new Error('adb: error: device offline'))).toBe(
+      true,
+    );
+  });
+
   it('returns false for ordinary assertion failures', () => {
     expect(
       isDeviceHealthError(
         new Error('Timed out: expected "Connected", got "Not connected"'),
+      ),
+    ).toBe(false);
+    expect(
+      isDeviceHealthError(
+        new Error(
+          'App did not reach login or wallet home within 60000ms. This may indicate rehydration issues or state corruption.',
+        ),
       ),
     ).toBe(false);
   });
@@ -40,5 +82,35 @@ describe('shared session recreate requests', () => {
 
     expect(consumeSharedSessionRecreate()).toBe(true);
     expect(consumeSharedSessionRecreate()).toBe(false);
+  });
+
+  it('recreateSharedSessionNow invokes the handler and clears the recreate flag', async () => {
+    const newDrv = { sessionId: 'recreated' } as WebdriverIO.Browser;
+    const handler = jest.fn().mockResolvedValue(newDrv);
+    setSharedSessionRecreateHandler(handler);
+    requestSharedSessionRecreate();
+
+    await expect(recreateSharedSessionNow()).resolves.toBe(newDrv);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(consumeSharedSessionRecreate()).toBe(false);
+  });
+
+  it('leaves a recreate request when the in-process handler throws', async () => {
+    const handler = jest
+      .fn()
+      .mockRejectedValue(new Error('setTimeout rejected during startup'));
+    setSharedSessionRecreateHandler(handler);
+
+    await expect(recreateSharedSessionNow()).rejects.toThrow(
+      'setTimeout rejected during startup',
+    );
+
+    expect(consumeSharedSessionRecreate()).toBe(true);
+  });
+
+  it('recreateSharedSessionNow returns undefined without a handler', async () => {
+    requestSharedSessionRecreate();
+    await expect(recreateSharedSessionNow()).resolves.toBeUndefined();
+    expect(consumeSharedSessionRecreate()).toBe(true);
   });
 });

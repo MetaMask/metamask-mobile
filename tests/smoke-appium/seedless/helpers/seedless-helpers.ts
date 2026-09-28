@@ -379,7 +379,7 @@ const confirmLockAlert = async (): Promise<void> => {
 };
 
 /**
- * Locks the app from Settings.
+ * Locks the app from wallet home (Account Menu → Lock).
  */
 export const lockApp = async (): Promise<void> => {
   await TabBarComponent.tapAccountsMenu();
@@ -418,6 +418,10 @@ export const loginWithFixturePassword = async (): Promise<void> => {
 
 /**
  * Resets the wallet from the login screen.
+ *
+ * After confirm, wait via {@link waitForOnboardingScreenPlaywright} — on iOS
+ * `onboarding-screen` can exist in the hierarchy while `isDisplayed` stays
+ * false (child CTAs / title are the reliable readiness signal).
  */
 export const resetWallet = async (): Promise<void> => {
   await Assertions.expectElementToBeVisible(LoginView.container, {
@@ -435,8 +439,5 @@ export const resetWallet = async (): Promise<void> => {
 
   await ForgotPasswordModal.tapYesResetWalletButton();
 
-  await Assertions.expectElementToBeVisible(OnboardingView.container, {
-    description: 'Onboarding screen should be visible after wallet reset',
-    timeout: 30000,
-  });
+  await waitForOnboardingScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
 };

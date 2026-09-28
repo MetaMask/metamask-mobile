@@ -14,7 +14,12 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
+import { endTrace, TraceName } from '../../../util/trace';
 import { useWhatsHappening } from '../../UI/WhatsHappening/hooks';
+import {
+  getWhatsHappeningTraceEndData,
+  getWhatsHappeningTraceId,
+} from '../../UI/WhatsHappening/utils/whatsHappeningPerformance';
 import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
 import {
   SKELETON_CARD_COUNT,
@@ -72,6 +77,7 @@ const WhatsHappeningDetailView = () => {
 
   const { items, isLoading, error, refresh } = useWhatsHappening({
     outdatedItemId,
+    telemetryContext: { source, stage: 'expanded' },
   });
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -243,6 +249,18 @@ const WhatsHappeningDetailView = () => {
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
+
+  useEffect(() => {
+    if (cardHeight <= 0 || items.length === 0) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.WhatsHappeningViewLoad,
+      id: getWhatsHappeningTraceId(source, 'expanded'),
+      data: getWhatsHappeningTraceEndData('success'),
+    });
+  }, [cardHeight, items.length, source]);
 
   return (
     // The top edge is deliberately off: a native SafeAreaView top padding is

@@ -13,32 +13,37 @@ import { BigNumber } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number';
 
 interface Props {
+  additionalGasFeeInHex?: Hex;
   quote?: QuoteResponse | null;
 }
 
 /**
  * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficient
  */
-export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
+export const useHasSufficientGas = ({
+  additionalGasFeeInHex,
+  quote,
+}: Props): boolean | null => {
   const gasIncluded = quote?.quote.gasIncluded;
   const gasSponsored = quote?.quote?.gasSponsored;
   const gasIncluded7702 = quote?.quote.gasIncluded7702;
   const isGasless = gasIncluded7702 || gasIncluded;
+  const shouldCheckQuoteGas = !isGasless && !gasSponsored;
+  const shouldCheckAdditionalGas = Boolean(additionalGasFeeInHex);
 
   const sourceChainId = quote?.chainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
-  if (sourceChainId && !isGasless && !gasSponsored) {
+  if (sourceChainId && (shouldCheckQuoteGas || shouldCheckAdditionalGas)) {
     if (isNonEvmChainId(sourceChainId)) {
       hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
     } else {
       hexOrCaipChainId = formatChainIdToHex(sourceChainId);
     }
   }
-  const sourceChainNativeAsset =
-    hexOrCaipChainId && !isGasless && !gasSponsored
-      ? getNativeSourceToken(hexOrCaipChainId)
-      : undefined;
+  const sourceChainNativeAsset = hexOrCaipChainId
+    ? getNativeSourceToken(hexOrCaipChainId)
+    : undefined;
 
   const gasTokenBalance = useLatestBalance({
     address: sourceChainNativeAsset?.address,
@@ -46,7 +51,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  if (isGasless || gasSponsored) {
+  if (!shouldCheckQuoteGas && !shouldCheckAdditionalGas) {
     return true;
   }
 
@@ -59,15 +64,24 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
       ? new BigNumber(gasAmount).toFixed()
       : null;
 
-  const atomicGasFee =
-    effectiveGasFee && !isGasless
+  const atomicQuoteGasFee =
+    effectiveGasFee && shouldCheckQuoteGas
       ? ethers.utils.parseUnits(
           effectiveGasFee,
           sourceChainNativeAsset?.decimals,
         )
       : null;
 
-  return gasTokenBalance?.atomicBalance && atomicGasFee
-    ? gasTokenBalance.atomicBalance.gte(atomicGasFee)
-    : null;
+  if (
+    !gasTokenBalance?.atomicBalance ||
+    (shouldCheckQuoteGas && !atomicQuoteGasFee)
+  ) {
+    return null;
+  }
+
+  const totalAtomicGasFee = (atomicQuoteGasFee ?? ethers.constants.Zero).add(
+    additionalGasFeeInHex ?? ethers.constants.Zero,
+  );
+
+  return gasTokenBalance.atomicBalance.gte(totalAtomicGasFee);
 };

@@ -25,7 +25,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../core/Analytics', () => ({
-  MetaMetricsEvents: { CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED' },
+  MetaMetricsEvents: {
+    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
+    CARD_VIEWED: 'CARD_VIEWED',
+  },
 }));
 
 jest.mock('../../util/metrics', () => ({
@@ -64,6 +67,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.credit_screen.withdraw_to_money_account': 'Move to Money account',
       'card.credit_screen.withdraw_unavailable': 'Redemption unavailable',
       'card.card_spending_limit.money_account_label': 'Money account',
+      'card.credit_screen.funding_required.title': 'Set up Linea funding',
+      'card.credit_screen.funding_required.description':
+        'You need at least one approved funding source on Linea before redeeming credit.',
+      'card.credit_screen.funding_required.confirm_button_label':
+        'Set up funding',
     };
     return translations[key] ?? key;
   },
@@ -162,7 +170,7 @@ jest.mock('../../../../../selectors/accountsController', () => ({
 }));
 
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import CreditRedeem from './CreditRedeem';
@@ -189,6 +197,42 @@ describe('CreditRedeem', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
     mockHookReturn = createMockHookReturn();
     mockDestination = defaultDestination();
+  });
+
+  describe('funnel analytics', () => {
+    const viewedCalls = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([name]) => name === 'CARD_VIEWED',
+      );
+
+    it('reports the view against the credit screen and money account destination', () => {
+      render();
+
+      expect(viewedCalls()).toHaveLength(1);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: 'CREDIT_REDEEM',
+        destination: 'money_account',
+        is_withdrawable: true,
+        needs_setup: false,
+        has_insufficient_balance: false,
+        has_loading_error: false,
+      });
+    });
+
+    it('tracks the refund info tooltip press', () => {
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CreditRedeemSelectors.REFUND_INFO_BUTTON),
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'CREDIT_BUTTON',
+        type: 'refund_info',
+      });
+    });
   });
 
   it('renders the "Card refunds" title and "Refund balance" label', () => {
@@ -241,7 +285,7 @@ describe('CreditRedeem', () => {
     );
   });
 
-  it('submits the full credit balance for dust-sized claims', () => {
+  it('submits the full credit balance for dust-sized claims', async () => {
     mockHookReturn.wallet = {
       id: 'w1',
       balance: '0.0007',
@@ -260,6 +304,75 @@ describe('CreditRedeem', () => {
 
     fireEvent.press(screen.getByTestId(CreditRedeemSelectors.WITHDRAW_BUTTON));
 
-    expect(mockHookReturn.withdraw).toHaveBeenCalledWith('0.0007');
+    await waitFor(() => {
+      expect(mockHookReturn.withdraw).toHaveBeenCalledWith('0.0007');
+    });
+  });
+
+  describe('destination "To" row', () => {
+    it('renders the To row while the estimation is loading', () => {
+      mockHookReturn.isEstimating = true;
+      mockDestination = {
+        ...defaultDestination(),
+        isResolved: true,
+        receivingAddress: undefined,
+        isMoneyAccountDestination: false,
+        hasApprovedDestination: false,
+      };
+
+      render();
+
+      expect(
+        screen.getByTestId(CreditRedeemSelectors.TO_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the To row when no receiving address resolves', () => {
+      mockDestination = {
+        ...defaultDestination(),
+        isResolved: true,
+        receivingAddress: undefined,
+        isMoneyAccountDestination: false,
+        hasApprovedDestination: false,
+      };
+
+      render();
+
+      expect(
+        screen.queryByTestId(CreditRedeemSelectors.TO_ROW),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('prompts linking a funding source when no receiving address resolves', () => {
+      mockDestination = {
+        ...defaultDestination(),
+        isResolved: true,
+        receivingAddress: undefined,
+        isMoneyAccountDestination: false,
+        hasApprovedDestination: false,
+      };
+
+      render();
+
+      expect(
+        screen.getByTestId(CreditRedeemSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Money Account chip in the To row for a Monad destination', () => {
+      mockDestination = {
+        ...defaultDestination(),
+        isMoneyAccountDestination: true,
+        hasApprovedDestination: true,
+        receivingAddress: '0x85d1f62222222222222222222222222222222222',
+      };
+
+      render();
+
+      expect(screen.getByText('Money account')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CreditRedeemSelectors.TO_ROW),
+      ).toBeOnTheScreen();
+    });
   });
 });

@@ -36,6 +36,10 @@ import {
   createPerpsDeeplinkIntent,
 } from './intent/handlePerpsUrl';
 import {
+  handlePerpsOutreachUrl,
+  createPerpsOutreachDeeplinkIntent,
+} from './intent/handlePerpsOutreachUrl';
+import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
 } from './intent/handleRewardsUrl';
@@ -59,6 +63,12 @@ import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
+import {
+  getDeeplinkProcessedTraceContext,
+  markDeeplinkInterstitialShown,
+  markDeeplinkInterstitialContinued,
+} from '../../Performance/DeeplinkPerformance';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../constants/shield';
 import {
@@ -103,6 +113,7 @@ const SUPPORTED_ACTIONS = {
   PERPS: ACTIONS.PERPS,
   PERPS_MARKETS: ACTIONS.PERPS_MARKETS,
   PERPS_ASSET: ACTIONS.PERPS_ASSET,
+  PERPS_OUTREACH: ACTIONS.PERPS_OUTREACH,
   REWARDS: ACTIONS.REWARDS,
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
@@ -144,6 +155,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.PERPS_OUTREACH,
   SUPPORTED_ACTIONS.REWARDS,
   SUPPORTED_ACTIONS.PREDICT,
   SUPPORTED_ACTIONS.BUY,
@@ -170,6 +182,7 @@ const trustedInAppSources = [
   AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
   AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+  AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
 ] as string[];
 
 /**
@@ -273,6 +286,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       createPerpsDeeplinkIntent({
         perpsPath: getPerpsAssetPath(actionBasedRampPath),
       }),
+  },
+  [SUPPORTED_ACTIONS.PERPS_OUTREACH]: {
+    execute: () => handlePerpsOutreachUrl(),
+    resolve: () => createPerpsOutreachDeeplinkIntent(),
   },
   [SUPPORTED_ACTIONS.SWAP]: {
     execute: ({ actionBasedRampPath }) =>
@@ -409,7 +426,17 @@ async function handleUniversalLink({
   }
   if (hasSignature(validatedUrl) && isSupportedDomain) {
     try {
-      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      const processedTraceContext = getDeeplinkProcessedTraceContext();
+      const signatureResult = processedTraceContext
+        ? await trace(
+            {
+              name: TraceName.DeeplinkSignatureVerify,
+              op: TraceOperation.DeeplinkPerformance,
+              parentContext: processedTraceContext,
+            },
+            () => verifyDeeplinkSignature(validatedUrl),
+          )
+        : await verifyDeeplinkSignature(validatedUrl);
       switch (signatureResult) {
         case VALID:
           DevLogger.log(
@@ -611,16 +638,30 @@ async function handleUniversalLink({
           },
         } as DeepLinkModalParams;
 
+        // Modal is always shown for invalid/unsupported links; pause the Processed span
+        // so modal dwell time is excluded from app-work measurement (same as public/private).
+        markDeeplinkInterstitialShown();
         // Pass modal params for display
         handleDeepLinkModalDisplay(modalParams);
         return;
       }
 
-      // For public/private links, pass pageTitle and onContinue
+      // PUBLIC links always show the modal; PRIVATE links show it unless the
+      // interstitial is disabled. When it will be shown, stop the Deeplink
+      // Processed span here — time on the modal is not app work.
+      if (
+        linkInstanceType === DeepLinkModalLinkType.PUBLIC ||
+        !interstitialDisabled
+      ) {
+        markDeeplinkInterstitialShown();
+      }
+
+      // For public/private links, pass pageTitle and onContinue.
       const modalParams: DeepLinkModalParams = {
         linkType: linkInstanceType,
         pageTitle,
         onContinue: () => {
+          markDeeplinkInterstitialContinued();
           // Determine if modal was actually shown or auto-accepted due to disabled setting
           // PUBLIC links always show modal (security requirement), so if we reach onContinue,
           // the modal was shown regardless of interstitialDisabled setting

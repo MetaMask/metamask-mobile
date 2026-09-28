@@ -553,6 +553,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$50'));
       fireEvent.press(screen.getByText('Done'));
       fireEvent.press(screen.getAllByText('Total')[0]);
 
@@ -1303,6 +1304,18 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       expect(screen.getByText('Learn more.')).toBeOnTheScreen();
+    });
+
+    it('centers the disclaimer when it wraps', () => {
+      mockBalance = 10;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(
+        screen.getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toHaveStyle({ textAlign: 'center' });
     });
   });
 

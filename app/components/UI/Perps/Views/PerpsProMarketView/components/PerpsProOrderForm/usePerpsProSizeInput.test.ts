@@ -174,6 +174,48 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.denomination.unit).toBe('usd');
   });
 
+  it('keeps the asset draft through canonical echoes and empty commits', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '90000' }) },
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    expect(result.current.sizeInput.value).toBe('1');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+
+    act(() => {
+      result.current.sizeInput.onChange('0.001');
+    });
+
+    expect(mockSetAmount).toHaveBeenLastCalledWith('90');
+
+    rerender(createParams({ usdAmount: '90' }));
+
+    expect(result.current.sizeInput.value).toBe('0.001');
+
+    act(() => {
+      result.current.sizeInput.onChange('');
+    });
+
+    expect(mockSetAmount).toHaveBeenLastCalledWith('0');
+
+    rerender(createParams({ usdAmount: '0' }));
+
+    expect(result.current.sizeInput.value).toBe('');
+    expect(result.current.effectiveUsdAmount).toBe('0');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.sizeInput.canToggleDenomination).toBe(true);
+  });
+
   it('projects USD to asset with size-decimal round down', () => {
     const params = createParams({ usdAmount: '100', effectivePrice: 30000 });
     const { result } = renderHook(() => usePerpsProSizeInput(params));
@@ -653,6 +695,62 @@ describe('usePerpsProSizeInput', () => {
     });
 
     expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
+  it('preserves maximum-slider intent when an external clamp reaches the new maximum', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ preserveMaxIntent: true }) },
+    );
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    rerender(
+      createParams({
+        usdAmount: '900',
+        maxPossibleAmount: 900,
+        preserveMaxIntent: true,
+      }),
+    );
+
+    expect(result.current.isAtMaxAmount).toBe(true);
+    expect(result.current.effectiveUsdAmount).toBe('900');
+  });
+
+  it('clears maximum intent for non-Chase external clamps', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams() },
+    );
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    rerender(createParams({ usdAmount: '900', maxPossibleAmount: 900 }));
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
+  it('clears maximum-slider intent when the available maximum reaches zero', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams() },
+    );
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    rerender(createParams({ usdAmount: '0', maxPossibleAmount: 0 }));
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(result.current.effectiveUsdAmount).toBe('0');
   });
 
   it('clears maximum-slider intent when an interrupted drag previews a smaller amount', () => {

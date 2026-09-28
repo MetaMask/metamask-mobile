@@ -13,7 +13,24 @@ const newPlugins = baseConfig.plugins.filter((plugin) => {
 });
 
 const newOverrides = [
-  ...baseConfig.overrides,
+  ...baseConfig.overrides.map((override) => {
+    if (
+      !override.test(
+        '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+      )
+    ) {
+      return override;
+    }
+    // Keep the 10 MB native signer asset out of each Jest VM and its coverage
+    // data. Jest maps the import to a stub; HTML behavior has separate tests.
+    return {
+      ...override,
+      plugins: override.plugins.filter((plugin) => {
+        const name = Array.isArray(plugin) ? plugin[0] : plugin;
+        return name !== 'babel-plugin-inline-import';
+      }),
+    };
+  }),
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
@@ -23,6 +40,8 @@ const newOverrides = [
       'app/lib/Money/feature-flags.ts',
       'app/lib/Money/feature-flags.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
+      'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
+      'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/util/test/utils.js',
@@ -38,6 +57,8 @@ const newOverrides = [
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.test.ts',
+      'app/core/Engine/controllers/kyc/kyc-service-init.ts',
+      'app/core/Engine/controllers/kyc/kyc-service-init.test.ts',
       'app/core/Engine/controllers/ramps-controller/transak-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/transak-service-init.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts',
@@ -52,6 +73,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/moneyAccount/index.test.ts',
       'app/selectors/featureFlagController/card/index.ts',
       'app/selectors/featureFlagController/card/index.test.ts',
+      'app/selectors/featureFlagController/card/read.ts',
+      'app/selectors/featureFlagController/card/read.test.ts',
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.ts',
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',
@@ -64,14 +87,20 @@ const newOverrides = [
       'app/hooks/useProSubscriptionEnabled.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/core/OAuthService/OAuthLoginHandlers/oauthBuildType.ts',
+      'app/core/OAuthService/OAuthLoginHandlers/oauthBuildType.test.ts',
       'app/util/sentry/utils.ts',
       'app/util/sentry/utils.test.ts',
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
       'app/core/devApiEnv.ts',
+      'app/core/coreBackendApiUrls.ts',
+      'app/core/coreBackendApiUrls.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
+      'app/core/Engine/controllers/rewards-money-controller/utils/rewards-money-api-url.ts',
+      'app/core/Engine/controllers/rewards-money-controller/utils/rewards-money-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.test.ts',
       'app/components/UI/Card/util/mapCardApiUrl.ts',
@@ -82,6 +111,8 @@ const newOverrides = [
       'app/components/UI/Perps/adapters/mobileInfrastructure.test.ts',
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.ts',
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
+      'app/components/UI/Predict/controllers/PredictController.ts',
+      'app/components/UI/Predict/controllers/PredictController.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
       'tests/framework/playwrightLogger.ts',

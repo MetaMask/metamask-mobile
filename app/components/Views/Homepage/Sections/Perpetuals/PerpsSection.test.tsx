@@ -410,6 +410,13 @@ describe('PerpsSection', () => {
       orders: [],
       isInitialLoading: false,
     });
+    usePerpsLiveAccount.mockReturnValue({
+      account: {
+        unrealizedPnl: '95.39',
+        returnOnEquity: '9.4',
+      },
+      isInitialLoading: false,
+    });
     usePerpsMarkets.mockReturnValue({
       markets: [],
       isLoading: false,
@@ -603,10 +610,27 @@ describe('PerpsSection', () => {
       positions: [makePosition()],
       isInitialLoading: false,
     });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      screen.getByTestId('homepage-perps-unrealized-pnl'),
+    ).toBeOnTheScreen();
+  });
+
+  it('derives the aggregate unrealized P&L row from live positions, not the account snapshot', () => {
+    // Position aggregate: +$9.40 / +9.4%. Account snapshot deliberately differs on
+    // both halves so the assertion fails if the row reads the account again.
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
     usePerpsLiveAccount.mockReturnValue({
       account: {
         unrealizedPnl: '95.39',
-        returnOnEquity: '9.4',
+        returnOnEquity: '42.0',
       },
       isInitialLoading: false,
     });
@@ -616,8 +640,29 @@ describe('PerpsSection', () => {
     );
 
     expect(
-      screen.getByTestId('homepage-perps-unrealized-pnl'),
-    ).toBeOnTheScreen();
+      screen.getByTestId('homepage-perps-unrealized-pnl-value'),
+    ).toHaveTextContent('+$9.40 (+9.4%)');
+  });
+
+  it('renders the aggregate unrealized P&L while the account channel is still loading', () => {
+    // Positions and account are independent stream channels. The row's value comes
+    // from positions, so a lagging account channel must not skeleton over it.
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    usePerpsLiveAccount.mockReturnValue({
+      account: undefined,
+      isInitialLoading: true,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      screen.getByTestId('homepage-perps-unrealized-pnl-value'),
+    ).toHaveTextContent('+$9.40 (+9.4%)');
   });
 
   it('does not show unrealized P&L row when user has only open orders', () => {
@@ -912,12 +957,19 @@ describe('PerpsSection', () => {
     expect(screen.queryByTestId('skeleton-placeholder')).not.toBeOnTheScreen();
   });
 
-  it('throttles positions but delivers orders immediately', () => {
+  it('subscribes to positions at the perps-screen live cadence and delivers orders immediately', () => {
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
     expect(usePerpsLivePositions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        throttleMs: 1000,
+        useLivePnl: true,
+      }),
+    );
+    // The account value is not rendered, so its channel stays on the slower cadence.
+    expect(usePerpsLiveAccount).toHaveBeenCalledWith(
       expect.objectContaining({
         throttleMs: 5000,
       }),

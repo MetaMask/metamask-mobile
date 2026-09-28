@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -7,6 +7,9 @@ import {
   BoxJustifyContent,
   ButtonBase,
   ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
   IconName,
   IconSize,
   Input,
@@ -21,12 +24,12 @@ import {
   selectRecurringEveryValue,
   selectRecurringRepeatCount,
   selectRecurringScheduleValidation,
-  setRecurringEveryUnit,
 } from '../../../../../core/redux/slices/bridge';
-import RecurringIntervalSheet from '../RecurringIntervalSheet';
 import {
   RecurringScheduleErrorCode,
-  type RecurringIntervalUnit,
+  RECURRING_EVERY_MAX_BY_UNIT,
+  getMaxRepeatCount,
+  parsePositiveInteger,
 } from '../../utils/recurringSchedule';
 import { RecurringScheduleFieldsSelectorsIDs } from './RecurringScheduleFields.testIds';
 
@@ -34,10 +37,15 @@ interface RecurringScheduleFieldsProps {
   onEveryPress: () => void;
   onRepeatPress: () => void;
   onDismissKeypad: () => void;
+  onUnitPress: () => void;
+  onRepeatInfoPress: () => void;
 }
 
 function RecurringNumberCard({
   label,
+  labelAccessory,
+  errorMessage,
+  errorTestID,
   value,
   testID,
   inputTestID,
@@ -46,6 +54,9 @@ function RecurringNumberCard({
   hasError,
 }: {
   label: string;
+  labelAccessory?: React.ReactNode;
+  errorMessage?: string;
+  errorTestID?: string;
   value: string;
   testID: string;
   inputTestID: string;
@@ -62,9 +73,25 @@ function RecurringNumberCard({
       padding={3}
       twClassName="min-w-px flex-1 rounded-2xl bg-muted"
     >
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+        {errorMessage ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            testID={errorTestID}
+          >
+            {errorMessage}
+          </Text>
+        ) : null}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -97,42 +124,39 @@ const RecurringScheduleFields = ({
   onEveryPress,
   onRepeatPress,
   onDismissKeypad,
+  onUnitPress,
+  onRepeatInfoPress,
 }: RecurringScheduleFieldsProps) => {
-  const dispatch = useDispatch();
-  const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const repeatCount = useSelector(selectRecurringRepeatCount);
   const { errors: scheduleErrors } = useSelector(
     selectRecurringScheduleValidation,
   );
-  const hasEveryError = scheduleErrors.some(
-    (error) =>
-      error === RecurringScheduleErrorCode.EveryInvalid ||
-      error === RecurringScheduleErrorCode.EveryExceedsUnitMax ||
-      error === RecurringScheduleErrorCode.DurationExceedsMax,
+  const hasEveryUnitMax = scheduleErrors.includes(
+    RecurringScheduleErrorCode.EveryExceedsUnitMax,
   );
-  const hasRepeatError = scheduleErrors.some(
-    (error) =>
-      error === RecurringScheduleErrorCode.RepeatInvalid ||
-      error === RecurringScheduleErrorCode.DurationExceedsMax,
+  const hasDurationMax = scheduleErrors.includes(
+    RecurringScheduleErrorCode.DurationExceedsMax,
   );
-
-  const handleUnitPress = useCallback(() => {
-    onDismissKeypad();
-    setIsIntervalSheetVisible(true);
-  }, [onDismissKeypad]);
-
-  const handleIntervalSheetClosed = useCallback(() => {
-    setIsIntervalSheetVisible(false);
-  }, []);
-
-  const handleIntervalConfirm = useCallback(
-    (unit: RecurringIntervalUnit) => {
-      dispatch(setRecurringEveryUnit(unit));
-    },
-    [dispatch],
-  );
+  const hasEveryError =
+    scheduleErrors.includes(RecurringScheduleErrorCode.EveryInvalid) ||
+    hasEveryUnitMax;
+  const hasRepeatError =
+    scheduleErrors.includes(RecurringScheduleErrorCode.RepeatInvalid) ||
+    hasDurationMax;
+  const every = parsePositiveInteger(everyValue);
+  const everyErrorMessage = hasEveryUnitMax
+    ? strings('bridge.recurring.max_is', {
+        max: RECURRING_EVERY_MAX_BY_UNIT[everyUnit],
+      })
+    : undefined;
+  const repeatErrorMessage =
+    hasDurationMax && every !== undefined
+      ? strings('bridge.recurring.max_is', {
+          max: getMaxRepeatCount(every, everyUnit),
+        })
+      : undefined;
 
   return (
     <Box
@@ -143,6 +167,8 @@ const RecurringScheduleFields = ({
       <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={2}>
         <RecurringNumberCard
           label={strings('bridge.recurring.every')}
+          errorMessage={everyErrorMessage}
+          errorTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR}
           value={everyValue}
           testID={RecurringScheduleFieldsSelectorsIDs.EVERY_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT}
@@ -153,7 +179,7 @@ const RecurringScheduleFields = ({
               size={ButtonBaseSize.Sm}
               endIconName={IconName.ArrowDown}
               endIconProps={{ size: IconSize.Sm }}
-              onPress={handleUnitPress}
+              onPress={onUnitPress}
               testID={RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON}
               accessibilityLabel={strings(
                 `bridge.recurring.unit_option.${everyUnit}`,
@@ -165,6 +191,18 @@ const RecurringScheduleFields = ({
         />
         <RecurringNumberCard
           label={strings('bridge.recurring.repeat')}
+          labelAccessory={
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconAlternative }}
+              size={ButtonIconSize.Sm}
+              onPress={onRepeatInfoPress}
+              testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
+              accessibilityLabel={strings('bridge.recurring.repeat_info_title')}
+            />
+          }
+          errorMessage={repeatErrorMessage}
+          errorTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR}
           value={repeatCount}
           testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}
@@ -181,12 +219,6 @@ const RecurringScheduleFields = ({
           }
         />
       </Box>
-      <RecurringIntervalSheet
-        isVisible={isIntervalSheetVisible}
-        currentUnit={everyUnit}
-        onClose={handleIntervalSheetClosed}
-        onConfirm={handleIntervalConfirm}
-      />
     </Box>
   );
 };

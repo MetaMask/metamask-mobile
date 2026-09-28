@@ -45,6 +45,13 @@ export const POLYMARKET_API_MOCKS = {
       responseCode: 200,
       response: { events: [] },
     },
+    // gamma-api: related tags for PredictHome Popular Today / feed chips
+    {
+      urlEndpoint:
+        /^https:\/\/gamma-api\.polymarket\.com\/tags\/slug\/[^/]+\/related-tags\/tags(\?.*)?$/,
+      responseCode: 200,
+      response: [],
+    },
     {
       urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/events\/\d+(\?.*)?$/,
       responseCode: 200,

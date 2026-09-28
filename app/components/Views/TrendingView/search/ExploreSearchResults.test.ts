@@ -18,12 +18,13 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('LOCAL_SEARCH_FEEDS', () => {
-  it('includes perps and sites', () => {
+  it('includes perps, sites, and Earn', () => {
     expect(LOCAL_SEARCH_FEEDS.has('perps')).toBe(true);
     expect(LOCAL_SEARCH_FEEDS.has('sites')).toBe(true);
+    expect(LOCAL_SEARCH_FEEDS.has('earn')).toBe(true);
   });
 
-  it('does not include tokens, stocks, or predictions (they use server total)', () => {
+  it('does not include feeds that use server totals', () => {
     expect(LOCAL_SEARCH_FEEDS.has('tokens')).toBe(false);
     expect(LOCAL_SEARCH_FEEDS.has('stocks')).toBe(false);
     expect(LOCAL_SEARCH_FEEDS.has('predictions')).toBe(false);
@@ -67,6 +68,7 @@ describe('getViewMoreLabel', () => {
     it.each([
       ['perps', 5, 'eth', 'View 2 more'],
       ['sites', 4, 'meta', 'View 1 more'],
+      ['earn', 5, 'usdc', 'View 2 more'],
     ] as [SearchFeedId, number, string, string][])(
       '%s: %d items → "%s"',
       (feedId, totalItems, query, expected) => {

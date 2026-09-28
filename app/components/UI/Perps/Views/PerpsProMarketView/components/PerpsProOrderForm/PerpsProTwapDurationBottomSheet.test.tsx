@@ -49,6 +49,7 @@ const createTwap = (
   onHoursChange: jest.fn(),
   onMinutesChange: jest.fn(),
   onRandomizeChange: jest.fn(),
+  onRuntimeInfoPress: jest.fn(),
   ...overrides,
 });
 

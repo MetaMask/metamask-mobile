@@ -15,7 +15,7 @@ describe('getViewMoreLabel', () => {
     });
   });
 
-  describe('local-search feeds (perps, sites)', () => {
+  describe('local-search feeds (perps, sites, earn)', () => {
     it('returns "view_x_more" when items exceed MAX_ITEMS_PER_SECTION', () => {
       const extra = 5;
       const visibleCount = MAX_ITEMS_PER_SECTION + extra;
@@ -34,6 +34,12 @@ describe('getViewMoreLabel', () => {
       expect(
         getViewMoreLabel('sites', MAX_ITEMS_PER_SECTION - 1, 'eth'),
       ).toBeNull();
+    });
+
+    it('returns "view_x_more" for Earn results beyond the cap', () => {
+      expect(getViewMoreLabel('earn', MAX_ITEMS_PER_SECTION + 2, 'eth')).toBe(
+        `trending.view_x_more:{"count":2}`,
+      );
     });
   });
 
@@ -80,7 +86,14 @@ describe('getViewMoreLabel', () => {
     // ExploreSearchResults now returns null directly when section.isLoading is true
     // without calling getViewMoreLabel. These tests verify that if it were called with
     // 0 items and no serverTotal, it would correctly return null (nothing to show).
-    it.each(['perps', 'stocks', 'sites', 'tokens', 'predictions'] as const)(
+    it.each([
+      'perps',
+      'stocks',
+      'sites',
+      'tokens',
+      'predictions',
+      'earn',
+    ] as const)(
       '%s: returns null with 0 items and no serverTotal',
       (feedId) => {
         expect(getViewMoreLabel(feedId, 0, 'eth', undefined)).toBeNull();

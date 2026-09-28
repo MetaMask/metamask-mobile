@@ -15,6 +15,7 @@ import type { BridgeToken } from '../Bridge/types';
 import QuickBuyPayWithChainFilter from './components/QuickBuyPayWithChainFilter';
 import QuickBuyPayWithRow from './components/QuickBuyPayWithRow';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { getTokenKey } from './tokenKey';
 
 export interface QuickBuyTokenSelectListProps {
@@ -113,8 +114,8 @@ const QuickBuyTokenSelectList: React.FC<QuickBuyTokenSelectListProps> = ({
     <>
       <BottomSheetHeader
         onBack={onBack}
-        backButtonProps={{ testID: 'quick-buy-pay-with-back' }}
-        testID="quick-buy-pay-with-header"
+        backButtonProps={{ testID: QuickBuySheetSelectorsIDs.PAY_WITH_BACK }}
+        testID={QuickBuySheetSelectorsIDs.PAY_WITH_HEADER}
       >
         <Text variant={TextVariant.HeadingSm}>{title}</Text>
       </BottomSheetHeader>

@@ -206,6 +206,24 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
     });
 
+    it('parses legacy BLE "Failed to open transport" as BluetoothConnectionFailed', () => {
+      const error = new Error('Failed to open transport');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
+    });
+
+    it('parses DMK "No cached DiscoveredDevice" as DeviceDisconnected', () => {
+      const error = new Error(
+        'No cached DiscoveredDevice for deviceId: ABC-123',
+      );
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
     it('parses LockedDeviceError', () => {
       const error = new Error('Device is locked');
       error.name = 'LockedDeviceError';
@@ -373,6 +391,22 @@ describe('parseErrorByType', () => {
       const result = parseErrorByType(error, walletType);
 
       expect(result.code).toBe(ErrorCode.ConnectionTimeout);
+    });
+
+    it('parses "Device unresponsive" timeout message', () => {
+      const error = new Error('Device unresponsive');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
+    });
+
+    it('parses "Device unresponsive during verification" timeout message', () => {
+      const error = new Error('Device unresponsive during verification');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
     });
 
     it('parses scan timeout message containing "unlocked" as ConnectionTimeout, not AuthenticationDeviceLocked', () => {

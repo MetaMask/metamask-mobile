@@ -1,4 +1,5 @@
 import { act } from '@testing-library/react-native';
+import { type ViewStyle } from 'react-native';
 import {
   renderHookWithProvider,
   type ProviderValues,
@@ -13,6 +14,10 @@ import { CARD_ARRIVAL_PENDING_TIMEOUT_MS } from '../../../util/cardArrival';
 import { useCardArrivalAnimation } from './useCardArrivalAnimation';
 
 type FadeCallback = (finished?: boolean) => void;
+
+// Reanimated 4.5 types useAnimatedStyle's return as an opaque handle, but the
+// Jest mock returns the resolved plain style object, so tests read through it.
+const asStyle = (style: unknown) => style as ViewStyle;
 
 const mockFadeCallbacks: FadeCallback[] = [];
 
@@ -156,7 +161,7 @@ describe('useCardArrivalAnimation', () => {
         const { result } = renderArrivalHook({ cardType });
 
         expect(result.current.usesRiveCard).toBe(false);
-        expect(result.current.cardStyle.opacity).toBe(1);
+        expect(asStyle(result.current.cardStyle).opacity).toBe(1);
         expect(mockDispatch).not.toHaveBeenCalled();
       },
     );
@@ -208,7 +213,7 @@ describe('useCardArrivalAnimation', () => {
     it('withholds the card until the card type arrives', () => {
       const { result } = renderArrivalHook({ cardType: undefined });
 
-      expect(result.current.cardStyle.opacity).toBe(0);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(0);
       expect(result.current.usesRiveCard).toBe(false);
     });
 
@@ -217,7 +222,7 @@ describe('useCardArrivalAnimation', () => {
 
       const { result } = renderArrivalHook({ cardType: CardType.VIRTUAL });
 
-      expect(result.current.cardStyle.opacity).toBe(0);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(0);
     });
 
     it('shows the card anyway once the wait times out', () => {
@@ -225,13 +230,13 @@ describe('useCardArrivalAnimation', () => {
 
       const { result } = renderArrivalHook({ cardType: undefined });
 
-      expect(result.current.cardStyle.opacity).toBe(0);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(0);
 
       act(() => {
         jest.advanceTimersByTime(CARD_ARRIVAL_PENDING_TIMEOUT_MS);
       });
 
-      expect(result.current.cardStyle.opacity).toBe(1);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(1);
       expect(result.current.usesRiveCard).toBe(false);
     });
 
@@ -243,7 +248,7 @@ describe('useCardArrivalAnimation', () => {
         fromCardOnboarding: false,
       });
 
-      expect(result.current.cardStyle.opacity).toBe(1);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(1);
     });
 
     // Re-hiding a card the user has already seen reads as a glitch, so the
@@ -269,12 +274,12 @@ describe('useCardArrivalAnimation', () => {
       act(() => {
         jest.advanceTimersByTime(CARD_ARRIVAL_PENDING_TIMEOUT_MS);
       });
-      expect(result.current.cardStyle.opacity).toBe(1);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(1);
 
       params.cardType = CardType.VIRTUAL;
       act(() => rerender({} as never));
 
-      expect(result.current.cardStyle.opacity).toBe(1);
+      expect(asStyle(result.current.cardStyle).opacity).toBe(1);
       expect(result.current.usesRiveCard).toBe(false);
     });
   });

@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lighter: fees, capabilities and integration status</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+        line-height: 1.55;
+      }
+      body {
+        max-width: 1160px;
+        margin: auto;
+        padding: 32px 20px 64px;
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+      }
+      h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        max-width: 850px;
+      }
+      h2 {
+        margin-top: 2.5rem;
+      }
+      a {
+        color: light-dark(#174ea6, #9fc5ff);
+      }
+      .note {
+        border-left: 4px solid #bd7900;
+        padding: 12px 18px;
+        background: light-dark(#fff5db, #342a17);
+      }
+      .meta {
+        color: light-dark(#525963, #bac1ca);
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.93rem;
+      }
+      caption {
+        text-align: left;
+        padding: 12px 0;
+      }
+      th,
+      td {
+        border: 1px solid light-dark(#ccd2db, #535b66);
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      thead {
+        background: light-dark(#edf2f8, #242d3a);
+      }
+      tbody th {
+        min-width: 145px;
+      }
+      code {
+        overflow-wrap: anywhere;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      @media print {
+        body {
+          max-width: none;
+          padding: 0;
+        }
+        .table-wrap {
+          overflow: visible;
+        }
+        tr {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <p class="meta">MetaMask Perps · Status checked September 19, 2026</p>
+      <h1>Lighter: fees, capabilities and integration status</h1>
+      <p>
+        Reviewer companion for
+        <a href="https://github.com/MetaMask/metamask-mobile/pull/34865"
+          >Mobile #34865</a
+        >. This compares the MetaMask integrations, not everything each venue
+        offers.
+      </p>
+      <nav aria-label="Contents">
+        <a href="#fees">Fee capture</a><a href="#matrix">Capability matrix</a
+        ><a href="#status">Delivery status</a
+        ><a href="#evidence">Validation evidence</a
+        ><a href="#sources">Source references</a>
+      </nav>
+    </header>
+
+    <section id="fees">
+      <h2>How MetaMask can earn with low user fees</h2>
+      <p class="note">
+        <strong
+          >Lighter supports fee capture natively. MetaMask has not wired it into
+          this integration yet.</strong
+        >
+        Lighter calls it <em>Partner Attribution</em>: the user approves
+        MetaMask, each order identifies MetaMask's Lighter account and fee, and
+        Lighter credits MetaMask in USDC when perpetual trades generate
+        integrator fees. Our current provider instead quotes
+        <code>metamaskFeeRate: 0</code> and supports Standard accounts only.
+        <a href="#official-sources">[L1, L2]</a>
+        <a href="#core-sources">[C1]</a>
+      </p>
+
+      <h3>The PM explanation</h3>
+      <ol>
+        <li>
+          <strong>Get permission.</strong> The user approves MetaMask as an
+          integrator, with a maximum fee and optional expiry. Different L1
+          owners normally require L1 approval and L2 confirmation. Approval can
+          be revoked.
+        </li>
+        <li>
+          <strong>Tag the order.</strong> The signed order carries
+          <code>integrator_account_index</code>,
+          <code>integrator_maker_fee</code> and
+          <code>integrator_taker_fee</code>. This is Lighter's equivalent of a
+          builder code. The protocol does not infer MetaMask from the wallet
+          brand or API key.
+        </li>
+        <li>
+          <strong>Collect on trades.</strong> The protocol credits perpetual
+          integrator fees in USDC to the specified integrator account. This is
+          an additional user-paid fee, not an automatic share of Lighter's
+          existing fee. Treasury withdrawal and reconciliation still need
+          implementation and proof.
+        </li>
+      </ol>
+      <p>
+        The published perpetual integrator ceiling is <strong>10 bps</strong>,
+        with <strong>0.01 bp</strong> increments. That is a limit, not a
+        recommended price. Confirm live limits with
+        <code>systemConfig</code> before approving or charging fees. One basis
+        point is 0.01%. The SDK's integer fee value divided by 1,000,000 is the
+        fee fraction: <code>100 = 1 bp</code>, <code>1000 = 10 bps</code>.
+        <a href="#official-sources">[L1, L2, L5]</a>
+      </p>
+
+      <h3>Low-fee option to evaluate: Plus + a small MetaMask fee</h3>
+      <p>
+        Lighter lists Plus maker and taker fees at
+        <strong>0.5 bp / 0.005%</strong>. A hypothetical
+        <strong>1 bp / 0.01%</strong> MetaMask integrator fee would make the
+        combined trading charge <strong>1.5 bps / 0.015%</strong> per filled
+        notional. This is a pricing proposal for discussion, not an approved
+        MetaMask rate or a tested quote. <a href="#official-sources">[L3]</a>
+      </p>
+      <div class="table-wrap">
+        <table>
+          <caption>
+            Illustration: $1,000 filled notional, Plus fee 0.5 bp, hypothetical
+            MetaMask fee 1 bp
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Recipient</th>
+              <th scope="col">Rate</th>
+              <th scope="col">One $1,000 fill</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Lighter</th>
+              <td>0.005%</td>
+              <td>$0.05</td>
+            </tr>
+            <tr>
+              <th scope="row">MetaMask</th>
+              <td>0.01%</td>
+              <td>$0.10</td>
+            </tr>
+            <tr>
+              <th scope="row">Total trading fee</th>
+              <td>0.015%</td>
+              <td>$0.15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        An opening fill and a closing fill of $1,000 each would total $0.30
+        under those assumptions. Fees apply to
+        <strong>traded notional, not posted margin</strong>. Spreads, slippage,
+        funding, liquidation and transfer/withdrawal costs are separate. “Low
+        fee” must not be presented as “free,” and a small notional rate can
+        still be material at high leverage.
+      </p>
+      <p>
+        Maker and taker integrator fees are configured independently, allowing a
+        different maker price to be evaluated. Do not default to the maximum fee
+        merely because the protocol permits it.
+      </p>
+
+      <h3>Could MetaMask earn without adding a user surcharge?</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>
+            Different business models; none establishes permanent, guaranteed
+            zero-cost revenue capture
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">Who funds MetaMask revenue?</th>
+              <th scope="col">User experience and limits</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Native integrator fee</th>
+              <td>The trader pays the approved additional fee.</td>
+              <td>
+                Predictable configurable collection, subject to protocol
+                eligibility. Not zero-fee trading.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Referral share</th>
+              <td>
+                Lighter distributes 10–30% of eligible gross fees from referred
+                users, depending on the referrer's tier.
+              </td>
+              <td>
+                No extra MetaMask surcharge, but the user still pays eligible
+                venue fees. Rewards/tier upgrades are discretionary. Ordinary
+                zero-fee Standard trades provide no positive fee base. Plus
+                referral eligibility is not explicitly established by the
+                program text.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Referral trial rebates</th>
+              <td>
+                The program describes both referrer kickbacks and user fee
+                rebates.
+              </td>
+              <td>
+                Eligible new referees can activate a one-week Premium trial;
+                fees are paid first and rebated weekly, capped at the first $10M
+                of trial volume. This can be zero net trading fees temporarily,
+                not zero fees at execution. Confirm concurrent kickback
+                eligibility before forecasting revenue.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Negotiated subsidy / revenue share</th>
+              <td>Would require Lighter or another agreed budget to pay.</td>
+              <td>
+                No MetaMask-specific agreement verified. A MetaMask-funded
+                rebate reduces its own net revenue; it does not create free
+                protocol income.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Referral payouts are documented as weekly L2 transfers with a $1
+        minimum. Trades carrying
+        <strong>nonzero integrator fees are excluded</strong> from referral
+        kickbacks and rebates: do not count both revenues on the same trade. The
+        commercial program says referral attribution is fixed at signup and
+        cannot be added later; API wording elsewhere disagrees. Confirm
+        onboarding eligibility before promising revenue from existing MetaMask
+        users. <a href="#official-sources">[L4, L6]</a>
+      </p>
+
+      <h3>Important eligibility change and documentation conflicts</h3>
+      <p class="note">
+        The official Partner Attribution notice says that from
+        <strong>September 14, 2026</strong>, Standard-account partner trades and
+        new integrator approvals are rejected. Plan nonzero integrator fees
+        around <strong>Plus or Premium</strong>, with explicit user consent to
+        the tier's venue fees. Our Standard-only integration cannot simply add
+        an order tag and start collecting. <a href="#official-sources">[L1]</a>
+      </p>
+      <ul>
+        <li>
+          The API guide still says “Both standard and premium accounts are
+          accepted” in Definitions, but its Requirements mandate Plus/Premium
+          for nonzero fees. The newer notice is broader. Treat Standard zero-fee
+          attribution as unresolved, not supported revenue capture.
+        </li>
+        <li>
+          The API guide allows L2-only approval for zero fees, whereas the
+          overview describes signature requirements by L1 ownership without that
+          exception. Confirm the zero-fee case; it does not establish nonzero
+          revenue.
+        </li>
+        <li>
+          Referral API descriptions suggest attribution can change later,
+          conflicting with the commercial program's signup-only rule. The
+          program also labels July 28, 2026 a Monday, although that date is a
+          Tuesday. Confirm the exact eligibility cutoff and rule with Lighter
+          before using it in forecasts.
+        </li>
+        <li>
+          These are verified documentation claims as of September 15, not live
+          fee-credit tests. No account tier, approval or order was changed for
+          this research.
+        </li>
+      </ul>
+
+      <h3>What must be built and proven</h3>
+      <ol>
+        <li>
+          Select a business model and user-facing price. Confirm applicable
+          Lighter Core network/tier rules and commercial eligibility; do not
+          assume Robinhood Chain has identical terms.
+        </li>
+        <li>
+          Support eligible non-Standard account fees safely in Core, replacing
+          the current refusal only after fee units, quotes and history are
+          covered by tests. Add explicit tier selection/consent rather than
+          silently upgrading users.
+        </li>
+        <li>
+          For native fees: configure MetaMask's receiving account per network,
+          add integrator approval/revocation/expiry and signed order fields
+          through the WASM bridge, and show venue + MetaMask + total fees before
+          submission. Verify the pinned signer supports these operations;
+          generic signing support is insufficient proof.
+        </li>
+        <li>
+          Reconcile partial/full fills against both the user's charges and the
+          integrator's credited USDC, then verify treasury withdrawal. Cover
+          cancellation, failed orders and approval limits. Mainnet financial
+          testing requires separate authorization.
+        </li>
+      </ol>
+      <p>
+        <strong>Hyperliquid comparison:</strong> its existing integration
+        already sends an approved <code>builder: { b, f }</code> payload. The
+        configured standard maximum is 10 bps, with discounts/subscription
+        exceptions; native TWAP has no builder field. Lighter has a comparable
+        protocol mechanism, but uses an account index, its own fee units and
+        different eligibility rules. This document does not compare all-in
+        prices for every market or certify Hyperliquid settlement.
+        <a href="#core-sources">[C2, C3]</a>
+      </p>
+    </section>
+
+    <section id="matrix">
+      <h2>Capability matrix versus Hyperliquid</h2>
+      <p>
+        <strong>Implemented</strong> means present in inspected source, not
+        necessarily enabled in every build. <strong>Validated</strong> refers
+        only to the dated Lighter evidence below.
+        <strong>Unavailable</strong> means this integration explicitly refuses
+        or does not advertise the capability. <strong>Not validated</strong> is
+        not a claim that the venue cannot do it.
+      </p>
+      <p>
+        Hyperliquid is the source-based comparison baseline; its flows were not
+        re-proved in this Lighter run. The historical Core references below use
+        #10187 at <code>2617b5880</code>. Core #10187 has since merged, and the
+        Mobile PR now consumes the published
+        <code>@metamask/perps-controller@17.2.0</code>. Advanced capability
+        declarations are not a promise of end-to-end validation in Mobile.
+        <a href="#core-sources">[C1–C4]</a>
+      </p>
+      <div class="table-wrap">
+        <table>
+          <caption>
+            Integration support and the actual scope of Lighter proof
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Capability</th>
+              <th scope="col">Hyperliquid integration</th>
+              <th scope="col">Lighter integration</th>
+              <th scope="col">Lighter validation / limit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Markets, prices, candles, order book</th>
+              <td>Implemented.</td>
+              <td>
+                Implemented; WebSocket subscriptions and price polling fallback.
+              </td>
+              <td>
+                Loaded testnet UI; earlier changing mainnet prices/candles
+                observed read-only. Not every stream re-proved.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Provider/network selector</th>
+              <td>Selectable in development UI.</td>
+              <td>
+                Selectable in development UI; mainnet/testnet. Not a production
+                rollout control.
+              </td>
+              <td>
+                Earlier UI switches passed. Non-dev hiding has static test
+                coverage. <a href="#mobile-sources">[M1]</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Lite / Pro navigation</th>
+              <td>Existing routes.</td>
+              <td>
+                Both modes; funded Lite order screen reuses the order form
+                without changing mode.
+              </td>
+              <td>
+                Lite entry, Back and restored Lite controls validated; Pro limit
+                flow validated. <a href="#mobile-sources">[M1]</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Market and limit orders</th>
+              <td>Implemented.</td>
+              <td>
+                Implemented for supported Standard accounts and authorized
+                signer.
+              </td>
+              <td>
+                Testnet BTC long market/open/close and Pro limit/cancel
+                validated. Short entry exists; no separate short cycle claimed.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Post-only</th>
+              <td>ALO order handling implemented.</td>
+              <td>Unavailable: placement and validation reject ALO.</td>
+              <td>No post-only proof; excluded from basic acceptance.</td>
+            </tr>
+            <tr>
+              <th scope="row">Positions and open orders</th>
+              <td>Implemented reads/subscriptions.</td>
+              <td>Implemented reads/subscriptions.</td>
+              <td>
+                Visible position, resting order and independent empty final
+                state validated.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Close / reduce position</th>
+              <td>Implemented.</td>
+              <td>Close path implemented, including size-based reduction.</td>
+              <td>
+                Full UI close validated. Partial reduction not revalidated.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Cancel / edit resting order</th>
+              <td>Both implemented.</td>
+              <td>
+                Cancel implemented. Edit explicitly refused because the
+                documented ModifyOrder path accepted but did not apply changes;
+                cancel and re-place is the stated alternative.
+              </td>
+              <td>
+                Individual cancel validated. Cancel/re-place is not atomic and
+                was not separately validated as an edit workflow.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Leverage / margin mode</th>
+              <td>
+                Leverage and explicit cross/isolated handling, subject to market
+                and position/order guards.
+              </td>
+              <td>
+                Leverage handling implemented. Explicit order
+                <code>marginMode</code> is rejected; do not advertise selectable
+                cross/isolated parity.
+              </td>
+              <td>2x order cycle validated; no margin-mode switching proof.</td>
+            </tr>
+            <tr>
+              <th scope="row">Add/remove margin</th>
+              <td>Implemented with eligibility checks.</td>
+              <td>
+                <code>updateMargin</code> implemented;
+                <code>previewPositionModify</code> returns unsupported.
+              </td>
+              <td>No UI parity or device proof claimed.</td>
+            </tr>
+            <tr>
+              <th scope="row">TP/SL at placement</th>
+              <td>Implemented.</td>
+              <td>
+                Unavailable: rejects attached TP/SL; directs callers to
+                post-entry update.
+              </td>
+              <td>Excluded from this initial acceptance.</td>
+            </tr>
+            <tr>
+              <th scope="row">Existing-position TP/SL</th>
+              <td>Implemented.</td>
+              <td>
+                <code>updatePositionTPSL</code> implemented for full-position
+                protection; partial TP/SL sizes refused.
+              </td>
+              <td>Not revalidated; advanced protection deferred.</td>
+            </tr>
+            <tr>
+              <th scope="row">TWAP / scale / chase</th>
+              <td>
+                Declared by the inspected provider's strategy capability
+                contract, subject to market readiness and client gates.
+              </td>
+              <td>
+                No <code>getOrderCapabilities</code> implementation; controller
+                returns <code>not_implemented</code>. Basic placement accepts
+                only market/limit.
+              </td>
+              <td>
+                Not part of initial integration acceptance. Do not infer support
+                from signing helpers.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Deposit</th>
+              <td>Deposit routes and shared funding integration exist.</td>
+              <td>
+                Unavailable through shared deposit routes:
+                <code>getDepositRoutes()</code> returns an empty array. Lighter
+                requires approval plus bridge-proxy deposit, not the shared
+                ERC-20 transfer builder.
+              </td>
+              <td>
+                Existing funded testnet account used. Funded Lite order entry is
+                not a deposit implementation.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Withdrawal</th>
+              <td>Implemented route/execution.</td>
+              <td>
+                Signed withdrawal implemented; mainnet route advertised, testnet
+                route withheld because devnet L1 is unreachable per source.
+              </td>
+              <td>No withdrawal or mainnet financial proof.</td>
+            </tr>
+            <tr>
+              <th scope="row">Trade/order history</th>
+              <td>Implemented.</td>
+              <td>
+                Implemented, with opening-PnL and timestamp corrections in Core
+                #10187.
+              </td>
+              <td>
+                Revalidated on September 21 with published 17.2.0: exact new
+                opening, closing and canceled-order records appear under Today.
+                A dependency patch uses Lighter's explicit filled amount so an
+                unfilled cancellation is not reported as fully filled.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">MetaMask fee capture</th>
+              <td>
+                Builder approval/payload path, with strategy and waiver
+                exceptions.
+              </td>
+              <td>
+                Protocol supports Partner Attribution. Not yet wired into
+                MetaMask; current quote is zero and eligible Plus/Premium
+                support is missing. See the fee proposal above.
+              </td>
+              <td>No revenue collection or settlement proof.</td>
+            </tr>
+            <tr>
+              <th scope="row">Account tiers / signer</th>
+              <td>Account-bound signing and builder authorization paths.</td>
+              <td>
+                Standard-only gate; embedded Go/WASM signer with
+                SecureKeychain-backed key.
+              </td>
+              <td>
+                Pinned official testnet artifact, not a reproducible local
+                build. Mainnet signing remains unvalidated.
+                <a href="#mobile-sources">[M2]</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="status">
+      <h2>Current delivery status</h2>
+      <ul>
+        <li>
+          <a href="https://github.com/MetaMask/metamask-mobile/pull/34865"
+            >Mobile #34865</a
+          >
+          is open and feature-gated. Source inspected at
+          <code>1876414683</code>. It includes the hidden signer WebView, strict
+          request/result validation, SecureKeychain-backed venue keys,
+          external-navigation blocking, Android new-window containment, funded
+          Lite order entry and provider-aware aggregated routing.
+        </li>
+        <li>
+          <a href="https://github.com/MetaMask/core/pull/10187">Core #10187</a>
+          merged on September 16. Mobile consumes the resulting published
+          <code>@metamask/perps-controller@17.2.0</code>.
+        </li>
+        <li>
+          The dependency migration is complete: <code>package.json</code> and
+          <code>yarn.lock</code> resolve published 17.2.0 with a narrow Yarn
+          patch for Lighter filled-size normalization. Remove that patch when
+          the correction is available upstream. No <code>.yalc</code> package or
+          <code>yalc.lock</code> is part of the PR.
+        </li>
+        <li>
+          The September 19 CI snapshot is not green. TypeScript, lint, format,
+          unit, integration, security, bundle-size and Android smoke checks
+          pass. Component-view shards and the intentional PR max-lines policy
+          remain red; the branch is labeled <code>size-XL</code> and requires
+          the normal review/policy approvals.
+        </li>
+        <li>
+          An automated Bugbot finding about Android new-window navigation was
+          addressed with explicit navigation filtering and
+          <code>setSupportMultipleWindows={false}</code>. Automated review is
+          not an independent security certification.
+        </li>
+      </ul>
+      <p class="note">
+        Before rollout: resolve CI, size and review gates; agree the signer
+        trust model; validate mainnet financial compatibility; and decide
+        whether zero MetaMask fee is acceptable for the initial release. Fee
+        monetization is separate unfinished work, not an already-proven
+        capability.
+      </p>
+    </section>
+
+    <section id="evidence">
+      <h2>Retained validation evidence</h2>
+      <p>
+        September 21 revalidation on commit <code>9f31932280</code>, iOS
+        <code>mm-1</code>, Runway <code>35154767219</code>, and published
+        controller 17.2.0 passed 32 Lite market/open/close steps, 28 Pro
+        limit/cancel steps, and 19 history steps. Every operation used Lighter
+        testnet account 59. Raw Lighter API records independently matched the
+        client receipts to filled or canceled venue order IDs; final assertions
+        found no BTC position or open order. These financial runs preceded the
+        filled-size dependency patch. Current screenshots and full run packages
+        are retained under
+        <code>artifacts/trading-revalidation-9f31932280/</code> in the original
+        recipe task.
+      </p>
+      <p>
+        These are September 11 iOS mm-1 development-build proofs, not September
+        15 replays. They used the existing authorized funded testnet fixture. No
+        mainnet trades or new funding. Android and advanced orders/TP-SL were
+        excluded. No wallet screenshots or secrets are embedded in this
+        document.
+      </p>
+      <ul>
+        <li>
+          <code>final-ui-cycle-01</code>: 29 nodes passed. Lite UI market entry,
+          submitted position, Back, full UI close and no task-owned residue.
+        </li>
+        <li>
+          <code>lighter-pro-limit-cycle-run-01</code>: 27 nodes passed. Pro UI
+          limit placement and individual cancellation; separately retained venue
+          evidence maps the client receipt.
+        </li>
+        <li>
+          <code>history-selected-perps-screen-01</code>: inspected screenshot of
+          opening/closing trades. <code>history-date-proof-run-01</code>: 8
+          nodes passed, exact canceled-order identity, correct date and no BTC
+          residue, using the earlier compatible local controller build.
+        </li>
+        <li>
+          The financial cycles preceded the history-only Core patch. History
+          validation did not repeat trading. Failed injected Activity filter
+          selections were rejected as proof; native selection established the
+          settled screen used for the final history assertion.
+        </li>
+        <li>
+          Original runs, graphs, traces, summaries and manifests remain in local
+          <code>tmp/lighter-rebase-20260910-ercHNq/</code>; selected package is
+          <code
+            >temp/tasks/fix/34865-0904-123534/closeout-evidence/pr-package/</code
+          >. These are local evidence locators, not public download links. PR
+          description records the validation summary. Public wallet-media upload
+          awaits separate consent.
+        </li>
+        <li>
+          Current migration checks include focused signer, provider, navigation,
+          order-execution and controller-integration suites, component-view
+          coverage for funded and aggregated Lighter orders, and passing CI
+          TypeScript, lint, format, unit and integration jobs. A post-upgrade
+          iOS provider-selector recipe passed 36/36 nodes. The earlier funded
+          trading cycles remain the financial evidence.
+        </li>
+      </ul>
+    </section>
+
+    <section id="sources">
+      <h2>Source references and reading scope</h2>
+      <h3 id="official-sources">Official protocol and program documentation</h3>
+      <p>
+        Read directly on September 15, 2026. These pages can change; conflicting
+        language is recorded above rather than silently reconciled.
+      </p>
+      <ul>
+        <li>
+          <a href="https://docs.lighter.xyz/integrations/partner-attribution"
+            >L1 · Partner Attribution overview</a
+          >: September 14 restriction, fee ceilings and consent.
+        </li>
+        <li>
+          <a href="https://apidocs.lighter.xyz/docs/partner-integration"
+            >L2 · Partner integration API guide</a
+          >: approval, recipient account, USDC credits, integer units and order
+          fields. Page metadata updated September 11, 2026.
+        </li>
+        <li>
+          <a href="https://docs.lighter.xyz/trading/trading-fees"
+            >L3 · Trading fees</a
+          >
+          and
+          <a href="https://apidocs.lighter.xyz/docs/account-types"
+            >API account types</a
+          >: both list Plus at 0.5 bp / 0.005% maker/taker. Other
+          tier/rate-limit details differ; do not infer parity beyond the cited
+          fee.
+        </li>
+        <li>
+          <a href="https://docs.lighter.xyz/referral-program"
+            >L4 · Referral program</a
+          >: kickbacks, trial rebates, weekly payouts, exclusions and
+          discretionary conditions.
+        </li>
+        <li>
+          <a
+            href="https://github.com/elliottech/lighter-python/blob/main/examples/integrator/create_modify_order.py"
+            >L5 · Official SDK order example</a
+          >
+          and
+          <a
+            href="https://github.com/elliottech/lighter-python/blob/main/examples/integrator/approve.py"
+            >approval example</a
+          >: confirms the integrator fields, not deployed MetaMask support.
+        </li>
+        <li>
+          <a href="https://apidocs.lighter.xyz/reference/referral_use"
+            >L6 · Referral API description</a
+          >: conflicting attribution-change wording; commercial eligibility
+          needs confirmation.
+        </li>
+      </ul>
+      <p id="core-sources">
+        Core snapshot: <code>2617b5880a1420c4f802f439d768834601db819f</code>.
+        Links pin the inspected revision; later changes require a new audit.
+      </p>
+      <ul>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/providers/LighterProvider.ts"
+            >C1 · LighterProvider</a
+          >: account tier guard, place/cancel/edit/close, TP/SL, margin, fee
+          quote, subscriptions and asset routes.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/providers/HyperLiquidProvider.ts"
+            >C2 · HyperLiquidProvider</a
+          >: builder approval, builder payload, strategy exceptions and fee
+          calculation.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/constants/hyperLiquidConfig.ts"
+            >C3 · Hyperliquid configuration</a
+          >: builder fee units, maximum and strategy declaration. Defaults are
+          not proof of the recipient configured in a deployed app.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/PerpsController.ts"
+            >C4 · PerpsController</a
+          >: unavailable capability result when a provider lacks the optional
+          strategy API.
+        </li>
+      </ul>
+      <p id="mobile-sources">
+        Mobile snapshot: <code>18764146836007e1a789dbd7fc164f5d93c05403</code>.
+      </p>
+      <ul>
+        <li>
+          <a
+            href="https://github.com/MetaMask/metamask-mobile/tree/18764146836007e1a789dbd7fc164f5d93c05403/app/components/UI/Perps"
+            >M1 · Mobile Perps integration</a
+          >: PerpsBalanceOrderView, usePerpsNavigation, PerpsOrderRedirect and
+          lighterFeatureFlags.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/metamask-mobile/blob/18764146836007e1a789dbd7fc164f5d93c05403/app/components/UI/Perps/Lighter/wasm-provenance.md"
+            >M2 · Signer provenance and containment</a
+          >: artifact origin/hash, non-reproducibility, response redaction and
+          navigation/new-window boundaries. Presence of these controls is not a
+          new device security certification.
+        </li>
+      </ul>
+      <p class="meta">
+        Open this self-contained HTML file locally in a browser. GitHub's file
+        page displays source; it does not host this page as an interactive site.
+        No scripts, external styles, fonts, analytics or remote images are
+        loaded.
+      </p>
+    </section>
+  </body>
+</html>

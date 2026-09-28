@@ -51,6 +51,8 @@ export interface UseTokenPriceResult {
   chartNavigationButtons: TimePeriod[];
   currentCurrency: string;
   hasInsufficientCoverage: boolean;
+  historicalPricesApiMs: number | undefined;
+  exchangeRateApiMs: number | undefined;
 }
 
 export interface UseTokenPriceParams {
@@ -94,6 +96,7 @@ export const useTokenPrice = ({
     data: prices = [],
     isLoading,
     hasInsufficientCoverage,
+    apiDurationMs: historicalPricesApiMs,
   } = useTokenHistoricalPrices({
     asset: token,
     address: token.address as Hex,
@@ -117,6 +120,7 @@ export const useTokenPrice = ({
   const [fetchedMarketData, setFetchedMarketData] = useState<
     MarketDataDetails | undefined
   >();
+  const [exchangeRateApiMs, setExchangeRateApiMs] = useState<number>();
   const fetchIdRef = useRef(0);
 
   // Stable token key to prevent unnecessary re-fetches
@@ -129,6 +133,7 @@ export const useTokenPrice = ({
   useEffect(() => {
     setFetchedRate(undefined);
     setFetchedMarketData(undefined);
+    setExchangeRateApiMs(undefined);
 
     if (marketDataRate !== undefined || !itemAddress) {
       // Token data already available in Redux or no address - mark fetch as "not needed"
@@ -148,6 +153,7 @@ export const useTokenPrice = ({
     }
 
     const id = ++fetchIdRef.current;
+    const fetchStart = Date.now();
 
     const fetchData = async () => {
       try {
@@ -159,6 +165,7 @@ export const useTokenPrice = ({
         })) as MarketDataDetails | undefined;
 
         if (id !== fetchIdRef.current) return;
+        setExchangeRateApiMs(Date.now() - fetchStart);
 
         if (!data?.price) {
           setFetchedRate(undefined);
@@ -177,6 +184,7 @@ export const useTokenPrice = ({
         }
       } catch {
         if (id !== fetchIdRef.current) return;
+        setExchangeRateApiMs(Date.now() - fetchStart);
         setFetchedRate(undefined);
         // Set empty object to indicate "fetch attempted but failed"
         // This prevents infinite loading when API request fails
@@ -262,6 +270,8 @@ export const useTokenPrice = ({
     chartNavigationButtons,
     currentCurrency,
     hasInsufficientCoverage,
+    historicalPricesApiMs,
+    exchangeRateApiMs,
   };
 };
 

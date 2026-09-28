@@ -35,17 +35,17 @@ export default TitleSubpageMeta;
 
 export const Default = {
   args: {
-    title: 'Token Name',
+    title: 'Token name',
     bottomLabel: '$1,234.56',
   },
 };
 
 export const TitleOnly = {
-  render: () => <TitleSubpage title="Token Name" />,
+  render: () => <TitleSubpage title="Token name" />,
 };
 
 export const WithBottomLabel = {
-  render: () => <TitleSubpage title="Token Name" bottomLabel="$1,234.56" />,
+  render: () => <TitleSubpage title="Token name" bottomLabel="$1,234.56" />,
 };
 
 export const WithStartAccessory = {
@@ -63,7 +63,7 @@ export const WithStartAccessory = {
 export const WithTitleAccessory = {
   render: () => (
     <TitleSubpage
-      title="Token Name"
+      title="Token name"
       titleAccessory={
         <Box twClassName="ml-2">
           <Icon
@@ -81,7 +81,7 @@ export const WithTitleAccessory = {
 export const WithBottomAccessory = {
   render: () => (
     <TitleSubpage
-      title="Token Name"
+      title="Token name"
       bottomAccessory={
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -115,6 +115,6 @@ export const FullExample = {
 
 export const NoStartAccessory = {
   render: () => (
-    <TitleSubpage title="Token Name" bottomLabel="+$123.45 (1.2%)" />
+    <TitleSubpage title="Token name" bottomLabel="+$123.45 (1.2%)" />
   ),
 };

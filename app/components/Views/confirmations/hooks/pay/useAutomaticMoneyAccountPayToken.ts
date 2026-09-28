@@ -15,16 +15,18 @@ import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { getTransactionType } from '../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { usePayMoneyAccountAvailable } from './usePayMoneyAccountAvailable';
 
 const log = createProjectLogger('transaction-pay');
 
 const MONEY_ACCOUNT_FALLBACK_DEPOSIT_TYPES: TransactionType[] = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
 ];
 
 /**
@@ -66,6 +68,8 @@ export function useAutomaticMoneyAccountPayToken({
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const transactionType = getTransactionType(transactionMeta);
 
+  // Whether the Money Account is an eligible fallback here at all. Account
+  // existence and balance are answered by `usePayMoneyAccountAvailable`.
   const canUseMoneyAccountPay =
     !autoSelectFiatPayment &&
     !isHardwareWallet &&
@@ -73,17 +77,11 @@ export function useAutomaticMoneyAccountPayToken({
     paymentOverride !== PaymentOverride.MoneyAccount &&
     !hasTokenBalance &&
     hasTransactionType(transactionMeta, MONEY_ACCOUNT_FALLBACK_DEPOSIT_TYPES) &&
-    Boolean(
-      transactionType && enableMoneyAccountTransactions[transactionType],
-    ) &&
-    Boolean(moneyAccount);
+    Boolean(transactionType && enableMoneyAccountTransactions[transactionType]);
 
-  const { isBalanceLoading, withdrawableFiatRaw } = useMoneyAccountBalance({
+  const { isAvailable: shouldSelect, isPending } = usePayMoneyAccountAvailable({
     enabled: canUseMoneyAccountPay,
   });
-  const moneyAccountBalance = Number(withdrawableFiatRaw ?? 0);
-  const isPending = canUseMoneyAccountPay && isBalanceLoading;
-  const shouldSelect = canUseMoneyAccountPay && moneyAccountBalance > 0;
 
   useEffect(() => {
     if (
@@ -104,15 +102,12 @@ export function useAutomaticMoneyAccountPayToken({
       transactionMeta,
     );
     isUpdated.current = transactionId;
-    log('Automatically selected money account (no token balance)', {
-      moneyAccountBalance,
-    });
+    log('Automatically selected money account (no token balance)');
   }, [
     disable,
     hasFiatPaymentSelected,
     isPending,
     moneyAccount?.address,
-    moneyAccountBalance,
     payTokenSelected,
     shouldSelect,
     transactionId,

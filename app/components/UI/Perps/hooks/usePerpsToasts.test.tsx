@@ -2,7 +2,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
-import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
+import usePerpsToasts, {
+  getPerpsToastLabels,
+  PerpsToastOptions,
+} from './usePerpsToasts';
 import {
   ButtonIconVariant,
   ToastVariants,
@@ -60,17 +63,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
   },
 }));
 
-let mockTransactionsRedesignEnabled = false;
 let mockDepositMeta: { chainId: string } | undefined;
-
-jest.mock(
-  '../../../../selectors/featureFlagController/activityRedesign',
-  () => ({
-    selectIsTransactionsRedesignEnabled: jest.fn(
-      () => mockTransactionsRedesignEnabled,
-    ),
-  }),
-);
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactionMetadataById: jest.fn(() => mockDepositMeta),
@@ -90,6 +83,18 @@ jest.mock('../utils/translatePerpsError', () => ({
   }) => error || fallbackMessage,
 }));
 
+describe('getPerpsToastLabels', () => {
+  it('separates the emphasized title from the secondary copy', () => {
+    const labels = getPerpsToastLabels('Scale orders placed', '3 orders');
+
+    expect(labels).toEqual([
+      { label: 'Scale orders placed', isBold: true },
+      { label: '\n', isBold: false },
+      { label: '3 orders', isBold: false },
+    ]);
+  });
+});
+
 describe('usePerpsToasts', () => {
   let mockShowToast: jest.Mock;
   let mockCloseToast: jest.Mock;
@@ -103,7 +108,6 @@ describe('usePerpsToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockTransactionsRedesignEnabled = false;
     mockDepositMeta = undefined;
     mockShowToast = jest.fn();
     mockCloseToast = jest.fn();
@@ -177,13 +181,17 @@ describe('usePerpsToasts', () => {
 
   describe('PerpsToastOptions configurations', () => {
     describe('accountManagement.deposit', () => {
-      it('returns success configuration with formatted amount', () => {
+      it('returns success configuration reporting the amount added', () => {
+        // Arrange
         const { result } = renderHook(() => usePerpsToasts());
+
+        // Act
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.success(
-            '100 USDC',
+            '100',
           );
 
+        // Assert
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Confirmation,
@@ -193,9 +201,46 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toEqual([
           { label: 'Your Perps account was funded', isBold: true },
           { label: '\n', isBold: false },
-          { label: '$100 available to trade', isBold: false },
+          { label: '$100 was added to Perps', isBold: false },
         ]);
       });
+
+      it('reports sub-dollar amounts added without rounding them away', () => {
+        // Arrange
+        const { result } = renderHook(() => usePerpsToasts());
+
+        // Act
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.success(
+            '0.97',
+          );
+
+        // Assert
+        expect(config.labelOptions?.[2]).toEqual({
+          label: '$0.97 was added to Perps',
+          isBold: false,
+        });
+      });
+
+      it.each(['', '0', 'not-a-number'])(
+        'falls back to the generic success subtext when the amount added is %p',
+        (amountAdded) => {
+          // Arrange
+          const { result } = renderHook(() => usePerpsToasts());
+
+          // Act
+          const config =
+            result.current.PerpsToastOptions.accountManagement.deposit.success(
+              amountAdded,
+            );
+
+          // Assert
+          expect(config.labelOptions?.[2]).toEqual({
+            label: 'Funds are ready to trade',
+            isBold: false,
+          });
+        },
+      );
 
       it('returns in progress configuration with processing time', () => {
         const { result } = renderHook(() => usePerpsToasts());
@@ -219,7 +264,6 @@ describe('usePerpsToasts', () => {
       });
 
       it('tracks to the redesigned details screen when the redesign is enabled', () => {
-        mockTransactionsRedesignEnabled = true;
         mockDepositMeta = { chainId: '0xa4b1' };
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -242,8 +286,8 @@ describe('usePerpsToasts', () => {
         );
       });
 
-      it('tracks to the legacy details screen when the redesign is disabled', () => {
-        mockDepositMeta = { chainId: '0xa4b1' };
+      it('tracks to the legacy details screen when the deposit metadata has no chainId', () => {
+        mockDepositMeta = undefined;
         const { result } = renderHook(() => usePerpsToasts());
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
@@ -571,6 +615,40 @@ describe('usePerpsToasts', () => {
       });
     });
 
+    describe('orderManagement.chase', () => {
+      it('identifies Chase while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.submitted(
+            'long',
+            '0.5',
+            'ETH',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Chase order submitted',
+          isBold: true,
+        });
+      });
+
+      it('identifies a running Chase after confirmation', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.confirmed(
+            'short',
+            '1',
+            'BTC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Chase started',
+          isBold: true,
+        });
+      });
+    });
+
     describe('orderManagement.twap', () => {
       it('describes the TWAP window while placement is submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());
@@ -719,6 +797,20 @@ describe('usePerpsToasts', () => {
           variant: ToastVariants.Icon,
           iconName: IconName.Confirmation,
           hapticsType: NotificationMoment.Success,
+        });
+      });
+
+      it('returns TWAP-specific cancellation success copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            false,
+            'TWAP',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Twap order cancelled',
+          isBold: true,
         });
       });
 
@@ -911,6 +1003,31 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.closePosition', () => {
+      it('returns position already closed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+          iconColor: IconColor.Default,
+          hapticsType: NotificationMoment.Warning,
+        });
+        expect(config.labelOptions).toEqual([
+          {
+            label: strings('perps.close_position.already_closed'),
+            isBold: true,
+          },
+          { label: '\n', isBold: false },
+          {
+            label: strings('perps.close_position.already_closed_subtitle'),
+            isBold: false,
+          },
+        ]);
+      });
+
       it('returns close full position in progress configuration with details', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -1235,6 +1352,23 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.tpsl', () => {
+      it('returns update TPSL in progress configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl
+            .updateTPSLInProgress;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationMoment.Warning,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Updating TP/SL', isBold: true },
+        ]);
+      });
+
       it('returns update TPSL success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -1289,7 +1423,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);
@@ -1313,7 +1447,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);
@@ -1461,6 +1595,21 @@ describe('usePerpsToasts', () => {
         });
         expect(config.labelOptions).toEqual([
           { label: 'Failed to add market to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns remove error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.removeError;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to remove market from watchlist', isBold: true },
         ]);
       });
 

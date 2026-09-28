@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
@@ -102,12 +103,18 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     } as never);
     selectMetaMaskPayFlagsMock.mockReturnValue({
       enableMoneyAccountTransactions: enabled
-        ? { perpsDeposit: true, predictDeposit: true }
+        ? {
+            perpsDeposit: true,
+            perpsDepositAndOrder: true,
+            predictDeposit: true,
+            predictDepositAndOrder: true,
+          }
         : {},
     } as never);
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading,
       withdrawableFiatRaw: isBalanceLoading ? undefined : balance,
+      withdrawableMusd: isBalanceLoading ? undefined : new BigNumber(balance),
     } as never);
   }
 
@@ -124,6 +131,7 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading: false,
       withdrawableFiatRaw: undefined,
+      withdrawableMusd: undefined,
     } as never);
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -134,7 +142,9 @@ describe('useAutomaticMoneyAccountPayToken', () => {
 
   it.each([
     ['perpsDeposit', TransactionType.perpsDeposit],
+    ['perpsDepositAndOrder', TransactionType.perpsDepositAndOrder],
     ['predictDeposit', TransactionType.predictDeposit],
+    ['predictDepositAndOrder', TransactionType.predictDepositAndOrder],
   ])(
     'selects money account for %s when it has a balance and the EOA has no tokens',
     (_label, type) => {
@@ -197,6 +207,7 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading: false,
       withdrawableFiatRaw: '7.61',
+      withdrawableMusd: new BigNumber('7.61'),
     } as never);
 
     rerender(undefined);

@@ -2,7 +2,11 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { CaipChainId } from '@metamask/utils';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  FeatureId,
+  getClientHeaders,
+} from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
@@ -13,6 +17,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -68,6 +73,7 @@ export const useSearchTokens = ({
   chainIds,
   includeAssets,
 }: UseSearchTokensParams): UseSearchTokensResult => {
+  const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
@@ -80,6 +86,7 @@ export const useSearchTokens = ({
   // Use refs to store the latest values without causing re-renders or callback recreation
   const chainIdsRef = useRef(chainIds);
   const includeAssetsRef = useRef(includeAssets);
+  const featureIdRef = useRef(featureId);
 
   // Update refs when values change
   useEffect(() => {
@@ -89,6 +96,10 @@ export const useSearchTokens = ({
   useEffect(() => {
     includeAssetsRef.current = includeAssets;
   }, [includeAssets]);
+
+  useEffect(() => {
+    featureIdRef.current = featureId;
+  }, [featureId]);
 
   useEffect(() => {
     Engine.context.AuthenticationController.getBearerToken()
@@ -138,9 +149,11 @@ export const useSearchTokens = ({
           query: string;
           after?: string;
           includeAssets?: IncludeAsset[];
+          featureId: FeatureId;
         } = {
           chainIds: chainIdsRef.current,
           query: query.trim(),
+          featureId: featureIdRef.current,
         };
 
         if (cursor) {

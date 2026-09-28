@@ -6,7 +6,10 @@ import {
   type InfiniteData,
   type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
-import type { FeedResponse } from '@metamask/social-controllers';
+import type {
+  FeedItem as CoreFeedItem,
+  FeedResponse,
+} from '@metamask/social-controllers';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   formatSocialQueryErrorMessage,
@@ -43,11 +46,27 @@ export interface UseTraderFeedOptions {
   enabled?: boolean;
 }
 
+/**
+ * A mapped feed item paired with the raw API row it came from.
+ *
+ * `FeedItem` deliberately drops the fill history, so consumers that need to
+ * derive figures it does not carry -- an average entry from `costBasis`, an
+ * exit from the closing fill, a hold time from the first and last timestamps --
+ * would otherwise have to re-fetch the position. Pairing them here keeps that
+ * derivation on the page the feed already loaded.
+ */
+export interface TraderFeedRow {
+  item: FeedItem;
+  core: CoreFeedItem;
+}
+
 export interface UseTraderFeedResult {
   /** Feed items grouped by calendar day, newest first. */
   sections: FeedSection[];
   /** Flat list of items (ungrouped), newest first. */
   items: FeedItem[];
+  /** `items`, each paired with its raw API row. Same order and filtering. */
+  rows: TraderFeedRow[];
   /** True when the unfiltered loaded page set has at least one item. */
   hasLoadedItems: boolean;
   /** True during the initial fetch (never for a disabled or background query). */
@@ -62,9 +81,20 @@ export interface UseTraderFeedResult {
   error: string | null;
   /** Reset to the first page and refetch the newest activity. */
   refresh: () => Promise<void>;
+  /**
+   * Instant the loaded snapshot was fetched, or `undefined` before the first
+   * success. Advances on every successful fetch — including a refetch whose
+   * payload is deeply equal to the cached one, which React Query would
+   * otherwise hide behind structural sharing.
+   */
+  dataUpdatedAt: number | undefined;
 }
 
-const EMPTY_ITEMS: FeedItem[] = [];
+const EMPTY_ROWS: TraderFeedRow[] = [];
+
+/** Newest event first. Stable for equal timestamps (preserves API order). */
+const byTimestampDesc = (a: TraderFeedRow, b: TraderFeedRow): number =>
+  b.item.timestamp - a.item.timestamp;
 
 /** Maps the UI type filter to the `FeedItem.type` discriminant. */
 const matchesTypeFilter = (
@@ -80,7 +110,11 @@ const matchesTypeFilter = (
   return item.type === 'perps';
 };
 
-/** Groups feed items into day sections, newest day first. */
+/**
+ * Groups a newest-first list into day sections. Consecutive items that share
+ * a local calendar day share a header — which holds only after a global
+ * timestamp sort of every loaded item.
+ */
 const groupByDay = (items: FeedItem[]): FeedSection[] => {
   const sections: FeedSection[] = [];
 
@@ -123,30 +157,41 @@ export const useTraderFeed = (
     queryFn: ({ pageParam }: { pageParam?: string }) =>
       fetchTraderFeedPage(scope, pageParam),
     getNextPageParam: getTraderFeedNextPageParam,
+    initialPageParam: undefined as string | undefined,
     enabled: enabled && isUnlocked,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<FeedResponse, Error>);
+  });
 
   const pages = query.data?.pages ?? undefined;
 
-  const loadedItems = useMemo(() => {
+  const loadedRows = useMemo(() => {
     if (!pages || pages.length === 0) {
-      return EMPTY_ITEMS;
+      return EMPTY_ROWS;
     }
+    // The feed splices notable positions in out of chronological order, while
+    // the `olderThan` cursor is only the last item's timestamp — so a later
+    // page can hold events newer than those spliced-in rows. Sort the whole
+    // loaded set to keep one header per day.
     return pages
       .flatMap((page) => page.items ?? [])
-      .map(mapFeedItem)
-      .filter((item): item is FeedItem => item !== null);
+      .map((core) => {
+        const item = mapFeedItem(core);
+        return item ? { item, core } : null;
+      })
+      .filter((row): row is TraderFeedRow => row !== null)
+      .sort(byTimestampDesc);
   }, [pages]);
 
-  const hasLoadedItems = loadedItems.length > 0;
+  const hasLoadedItems = loadedRows.length > 0;
 
-  const items = useMemo(() => {
+  const rows = useMemo(() => {
     if (typeFilter === 'all') {
-      return loadedItems;
+      return loadedRows;
     }
-    return loadedItems.filter((item) => matchesTypeFilter(item, typeFilter));
-  }, [loadedItems, typeFilter]);
+    return loadedRows.filter((row) => matchesTypeFilter(row.item, typeFilter));
+  }, [loadedRows, typeFilter]);
+
+  const items = useMemo(() => rows.map((row) => row.item), [rows]);
 
   const sections = useMemo(() => groupByDay(items), [items]);
 
@@ -172,9 +217,6 @@ export const useTraderFeed = (
     // Reset to the newest activity from the top. Refetch only the first page
     // (the stale list stays visible meanwhile, so no skeleton flash), then drop
     // any older pages that were loaded via pagination.
-    await refetch({
-      refetchPage: (_page: FeedResponse, index: number) => index === 0,
-    } as Parameters<typeof refetch>[0]);
     queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
       old
         ? {
@@ -183,11 +225,13 @@ export const useTraderFeed = (
           }
         : old,
     );
+    await refetch();
   }, [queryClient, queryKey, refetch]);
 
   return {
     sections,
     items,
+    rows,
     hasLoadedItems,
     // `isInitialLoading` (not `isLoading`) so a disabled query never reports
     // loading and a background refetch doesn't flash the skeleton.
@@ -197,5 +241,8 @@ export const useTraderFeed = (
     loadMore,
     error: formatSocialQueryErrorMessage(error),
     refresh,
+    // React Query reports `0` until the first success; normalise to `undefined`
+    // so consumers fall back to their own render-time clock.
+    dataUpdatedAt: query.dataUpdatedAt || undefined,
   };
 };

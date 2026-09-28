@@ -12,13 +12,12 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
-  Tag as DSTag,
+  Tag,
   TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -92,10 +91,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                       .join(' ')
                   : item.label}
               </Text>
-              <Tag
-                label={strings('money.add_money_sheet.coming_soon')}
-                style={styles.comingSoonTag}
-              />
+              <Tag>{strings('money.add_money_sheet.coming_soon')}</Tag>
             </View>
           ) : (
             <View style={styles.rowLabelContainer}>
@@ -148,7 +144,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                     {item.label}
                   </Text>
                   {item.newBadge ? (
-                    <DSTag
+                    <Tag
                       severity={TagSeverity.Info}
                       startIconName={IconName.Sparkle}
                       // Optically center the tag against the label — mathematical
@@ -156,7 +152,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                       twClassName="mt-[1.25px]"
                     >
                       {strings('money.add_money_sheet.new_badge')}
-                    </DSTag>
+                    </Tag>
                   ) : null}
                 </Box>
               )}

@@ -1,3 +1,5 @@
+import { FeatureId } from '@metamask/bridge-controller';
+
 /**
  * Tabs rendered by the Bridge view. Values are used as stable keys, matched
  * against `TabsBar`'s filtered tab list by key rather than by index, since
@@ -9,3 +11,17 @@ export enum BridgeTabKey {
   Limit = 'limit',
   Recurring = 'recurring',
 }
+
+export const TAB_TO_FEATURE_ID = {
+  [BridgeTabKey.Market]: FeatureId.UNIFIED_SWAP_BRIDGE,
+  [BridgeTabKey.Limit]: FeatureId.LIMIT_ORDER,
+  [BridgeTabKey.Recurring]: FeatureId.RECURRING_BUY,
+};
+
+export const DEBOUNCE_WAIT = 300;
+
+/**
+ * Feature IDs that have been migrated to use the SwapQuotesProvider
+ * To migrate a feature ID, add it to this list and replace the useBridgeQuoteRequest hook with useSwapQuotes.
+ */
+export const MIGRATED_FEATURE_IDS: FeatureId[] = [];

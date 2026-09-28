@@ -35,6 +35,10 @@ import {
   CardFlow,
   CardLinkingFailureReason,
 } from '../util/metrics';
+import {
+  BOTTOM_SHEET_NAMES,
+  SCREEN_NAMES,
+} from '../../Money/constants/moneyEventLocations';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -883,6 +887,54 @@ describe('useMoneyAccountCardLinkage', () => {
     });
   });
 
+  describe('getLinkFlowRedirectTarget', () => {
+    it('returns the link sheet for an authenticated verified card ready to link', () => {
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBe(BOTTOM_SHEET_NAMES.CARD_LINK_SHEET);
+    });
+
+    it.each([
+      {
+        name: 'authentication',
+        selectors: { isCardAuthenticated: false, isCardholder: true },
+      },
+      {
+        name: 'onboarding',
+        selectors: { isCardAuthenticated: false, isCardholder: false },
+      },
+    ])('returns Card Home for the $name branch', ({ selectors }) => {
+      applySelectorMocks(buildSelectors(selectors));
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBe(SCREEN_NAMES.CARD_HOME);
+    });
+
+    it('returns no target while linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBeUndefined();
+    });
+
+    it('returns no target for an authenticated card that is not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBeUndefined();
+    });
+  });
+
   describe('resume effect (pendingMoneyAccountCardLink)', () => {
     it('clears the pending flag without opening the sheet when authenticated but not VERIFIED', () => {
       applySelectorMocks(
@@ -1327,39 +1379,6 @@ describe('useMoneyAccountCardLinkage', () => {
         labelOptions: [{ label: 'Something went wrong linking your card' }],
         hasNoTimeout: false,
       });
-    });
-
-    it('shows the different-card conflict toast when the controller rejects with MoneyAccountLinkedToDifferentCard', async () => {
-      const { CardProviderError: MockedCardProviderError } = jest.requireMock(
-        '../../../../core/Engine/controllers/card-controller/provider-types',
-      );
-      mockLinkMoneyAccountCard.mockRejectedValueOnce(
-        new MockedCardProviderError(
-          'money_account_linked_to_different_card',
-          'Money Account is already linked to a different card account',
-        ),
-      );
-
-      const { result } = renderLinkageHook();
-
-      let returned: boolean | undefined;
-      await act(async () => {
-        returned = await result.current.confirmLinkInBackground();
-      });
-
-      expect(returned).toBe(false);
-      expect(result.current.status).toBe('error');
-      expect(mockShowToast).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          labelOptions: [
-            {
-              label:
-                'This wallet is already linked to a different MetaMask Card',
-            },
-          ],
-          hasNoTimeout: false,
-        }),
-      );
     });
 
     it('sets status=cancelled and shows NO error toast on UserCancelledError', async () => {

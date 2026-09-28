@@ -28,6 +28,7 @@ import type {
   PredictReadOptions,
   PredictVenueId,
 } from '../types';
+import { isRetryablePredictError } from './servicePolicy';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_MARKET_DATA_SERVICE_NAME =
@@ -89,16 +90,6 @@ export type PredictMarketDataServiceMessenger = Messenger<
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents
 >;
-
-const RETRYABLE_CODES = new Set([
-  PredictErrorCode.NETWORK_ERROR,
-  PredictErrorCode.RATE_LIMITED,
-  PredictErrorCode.VENUE_UNAVAILABLE,
-]);
-
-/** Returns whether a Predict error is safe to retry. */
-export const isRetryablePredictError = (error: unknown): boolean =>
-  error instanceof PredictError && RETRYABLE_CODES.has(error.code);
 
 export interface PredictMarketDataServiceOptions {
   messenger: PredictMarketDataServiceMessenger;
@@ -207,6 +198,7 @@ export class PredictMarketDataService extends BaseDataService<
           {
             queryKey: descriptor.queryKey,
             staleTime: descriptor.staleTime,
+            initialPageParam: cursor as string | null,
             queryFn: async ({ pageParam, signal }) => {
               const page = await this.#marketData.fetchFeed(
                 feedId,
@@ -218,7 +210,7 @@ export class PredictMarketDataService extends BaseDataService<
                 nextCursor: page.nextCursor || undefined,
               } as Json & GetFeedResult;
             },
-            getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+            getNextPageParam: (lastPage) => lastPage.nextCursor || null,
           },
           cursor,
         ),

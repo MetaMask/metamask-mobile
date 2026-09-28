@@ -35,6 +35,7 @@ import {
   SCREEN_DEPTH,
   type ScreenDirection,
 } from './transitions';
+import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
@@ -201,7 +202,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           setActiveScreen={navigateToScreen}
         >
           <Box
-            testID="quick-buy-content-container"
+            testID={QuickBuySheetSelectorsIDs.CONTENT_CONTAINER}
             onLayout={handleContentLayout}
             style={
               shouldLockHeight && lockedHeight !== null

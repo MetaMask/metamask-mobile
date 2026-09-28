@@ -1,17 +1,24 @@
-import React, { type ReactNode } from 'react';
+import React, { useCallback, type ReactNode } from 'react';
 import { ImageBackground } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
+  IconColor,
+  IconName,
   Skeleton,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 import type {
   CampaignDto,
   MoneyAccountSweepstakesLocalizedTextDto,
@@ -32,6 +39,9 @@ export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS = {
   MONEY_ACCOUNT_BALANCE_ROW:
     'money-account-sweepstakes-money-account-balance-row',
   LAST_CHECKED_ROW: 'money-account-sweepstakes-last-checked-row',
+  PENDING_INGEST_LABEL: 'money-account-sweepstakes-pending-ingest-label',
+  PENDING_INGEST_INFO_BUTTON:
+    'money-account-sweepstakes-pending-ingest-info-button',
 } as const;
 
 interface MoneyAccountSweepstakesCampaignOverviewProps {
@@ -42,6 +52,11 @@ interface MoneyAccountSweepstakesCampaignOverviewProps {
   isStatsLoading?: boolean;
   hasStatsError?: boolean;
   onRetryStats?: () => void;
+  /**
+   * Whether the deposit figures predate a Money Account transaction the user
+   * has already had confirmed, in which case they are labelled as catching up.
+   */
+  isIngestLagging?: boolean;
   children?: ReactNode;
 }
 
@@ -55,12 +70,23 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
   isStatsLoading = false,
   hasStatsError = false,
   onRetryStats,
+  isIngestLagging = false,
   children,
 }) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
   const backgroundImageUrl = campaign.image?.lightModeUrl;
   const { totalFiatFormatted, lastKnownTotalFiatFormatted, isBalanceLoading } =
     useMoneyAccountBalance();
+
+  // Headed with what the sheet is about rather than the inline label, which
+  // only reads as a status marker next to the figure.
+  const handlePendingIngestInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+      title: localizedText.eligibleBalanceTitle,
+      description: localizedText.eligibleBalancePendingDescription,
+    });
+  }, [navigation, localizedText]);
 
   if (isParticipating) {
     const showStatsLoading = isStatsLoading && !stats;
@@ -200,89 +226,128 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               </Box>
             )}
           </Box>
-          <Text variant={TextVariant.DisplayLg} fontWeight={FontWeight.Bold}>
-            {balanceDisplay}
-          </Text>
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
-            <Text
-              variant={TextVariant.BodyLg}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {entriesDisplay}
-            </Text>
-            <Text
-              variant={TextVariant.BodyLg}
-              color={TextColor.TextAlternative}
-            >
-              · {localizedText.thisWeekLabel}
-            </Text>
-          </Box>
-          {qualificationMessage && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={
-                isQualified
-                  ? TextColor.SuccessDefault
-                  : isPaused
-                    ? TextColor.WarningDefault
-                    : TextColor.TextAlternative
-              }
-            >
-              {qualificationMessage}
-            </Text>
-          )}
-          <Box twClassName="border-t border-border-muted" />
           <Box
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            testID={
-              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
-            }
+            twClassName="gap-2"
           >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.balanceTitle}
+            <Text variant={TextVariant.DisplayLg} fontWeight={FontWeight.Bold}>
+              {balanceDisplay}
             </Text>
-            {showMoneyAccountBalanceSkeleton ? (
-              <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
-            ) : (
+            {isIngestLagging && (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="gap-1"
+              >
+                <Box twClassName="rounded-md bg-info-muted px-2 py-1">
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.InfoDefault}
+                    testID={
+                      MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_LABEL
+                    }
+                  >
+                    {localizedText.eligibleBalancePendingTitle}
+                  </Text>
+                </Box>
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Xs}
+                  onPress={handlePendingIngestInfoPress}
+                  accessibilityLabel={localizedText.eligibleBalancePendingTitle}
+                  testID={
+                    MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_INFO_BUTTON
+                  }
+                />
+              </Box>
+            )}
+          </Box>
+          <Box twClassName="gap-1">
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyLg}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {moneyAccountBalanceDisplay}
+                {entriesDisplay}
+              </Text>
+              <Text
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
+              >
+                · {localizedText.thisWeekLabel}
+              </Text>
+            </Box>
+            {qualificationMessage && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={
+                  isQualified
+                    ? TextColor.SuccessDefault
+                    : isPaused
+                      ? TextColor.WarningDefault
+                      : TextColor.TextAlternative
+                }
+              >
+                {qualificationMessage}
               </Text>
             )}
           </Box>
-          {lastCheckedAt !== null && (
+          <Box twClassName="my-1 border-t border-border-muted" />
+          <Box twClassName="gap-1">
             <Box
               alignItems={BoxAlignItems.Center}
               flexDirection={BoxFlexDirection.Row}
               justifyContent={BoxJustifyContent.Between}
               testID={
-                MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW
+                MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
               }
             >
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {strings('rewards.campaign_details.last_checked_at')}
+                {localizedText.balanceTitle}
               </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {lastCheckedAt}
-              </Text>
+              {showMoneyAccountBalanceSkeleton ? (
+                <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
+              ) : (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {moneyAccountBalanceDisplay}
+                </Text>
+              )}
             </Box>
-          )}
+            {lastCheckedAt !== null && (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                flexDirection={BoxFlexDirection.Row}
+                justifyContent={BoxJustifyContent.Between}
+                testID={
+                  MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW
+                }
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('rewards.campaign_details.last_checked_at')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {lastCheckedAt}
+                </Text>
+              </Box>
+            )}
+          </Box>
           {children}
         </Box>
       </Box>

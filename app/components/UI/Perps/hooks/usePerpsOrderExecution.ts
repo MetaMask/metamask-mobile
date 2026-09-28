@@ -4,11 +4,11 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   isLimitExecutionOrderType,
-  isStrategyOrderType,
   isTriggerOrderType,
   type OrderParams,
   type OrderResult,
@@ -40,7 +40,7 @@ interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
   onSubmitted?: () => void;
   /** Called when the position has rendered via the stream (or, on stream timeout, without it). */
-  onSuccess?: (position?: Position) => void;
+  onSuccess?: (position?: Position, result?: OrderResult) => void;
   onError?: (error: string) => void;
 }
 
@@ -135,6 +135,7 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
+          recordPerpsAction();
           await handlers.onSuccess(result);
         } else {
           handlers.onFailure?.();
@@ -204,15 +205,18 @@ export function usePerpsOrderExecution(
       // stream (no exchange fill-wait time) via
       // PerpsPlaceLimitOrderToOrderRendered. Each start mints a unique op id so
       // overlapping orders never collide.
-      if (isStrategyOrderType(orderParams.orderType)) {
+      const isScheduledAcceptanceOrder =
+        orderParams.orderType === 'twap' || orderParams.orderType === 'chase';
+      if (isScheduledAcceptanceOrder) {
         return executeControllerPlacement(orderParams, {
           // Strategy acceptance starts a schedule; it does not imply that a
           // position or resting child order has rendered yet.
-          onSuccess: () => onSuccess?.(),
+          onSuccess: (result) => onSuccess?.(undefined, result),
         });
       }
 
       const isRestingOrder =
+        orderParams.orderType === 'scale' ||
         isLimitExecutionOrderType(orderParams.orderType) ||
         isTriggerOrderType(orderParams.orderType);
       const isMarketOrder = !isRestingOrder;
@@ -303,19 +307,35 @@ export function usePerpsOrderExecution(
         },
         onSuccess: async (result) => {
           if (isRestingOrder) {
-            // Resting orders: accepted, no position renders now. Confirm
-            // immediately, then end the order-render CUF when the resting order
-            // appears in the stream (or on timeout).
-            onSuccess?.();
-            const orderId = result.orderId;
-            if (typeof orderId !== 'string') {
+            // Confirm immediately, then end when a resting child or fill
+            // renders. A Scale batch can contain only filled children and
+            // therefore have no resting IDs; that is still a valid acceptance,
+            // so it stays open for a position stream boundary or timeout rather
+            // than being marked as a request failure.
+            onSuccess?.(undefined, result);
+            const orderIds = (
+              orderParams.orderType === 'scale'
+                ? (result.childOrderIds ?? [])
+                : [result.orderId]
+            ).filter(
+              (orderId): orderId is string =>
+                typeof orderId === 'string' && orderId.length > 0,
+            );
+            const renderedOrderId = orderIds.find((orderId) =>
+              stream.orders
+                .getSnapshot()
+                ?.some((order) => order.orderId === orderId),
+            );
+            const orderId = renderedOrderId ?? orderIds[0];
+            const hasAcceptedScaleChildren =
+              orderParams.orderType === 'scale' &&
+              (result.acceptedChildren?.length ?? 0) > 0;
+            if (!orderId && !hasAcceptedScaleChildren) {
               endCuf({
                 [PERPS_CUF_TAG.SUCCESS]: false,
                 [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
               });
-            } else if (
-              stream.orders.getSnapshot()?.some((o) => o.orderId === orderId)
-            ) {
+            } else if (renderedOrderId) {
               // Already rested between submit and here: end at the delivery
               // instant, not now.
               endCufStreamRendered(stream.orders.getLastDeliveredAt());
@@ -343,7 +363,7 @@ export function usePerpsOrderExecution(
               } else {
                 watchPerpsCufLimitRendered(
                   cufOpId,
-                  orderId,
+                  orderParams.orderType === 'scale' ? orderIds : orderId,
                   orderParams.symbol,
                   positionBaseline,
                   positionsLoaded,
@@ -378,14 +398,14 @@ export function usePerpsOrderExecution(
                 'usePerpsOrderExecution: Position rendered by stream',
                 rendered.position,
               );
-              onSuccess?.(position);
+              onSuccess?.(position, result);
             } else {
               // Stream quiet: unblock the toast now, end the span when the
               // position finally renders (or record the miss on timeout).
               DevLogger.log(
                 'usePerpsOrderExecution: Position not rendered yet, toasting without it',
               );
-              onSuccess?.();
+              onSuccess?.(undefined, result);
               // Deliberately not awaited: the caller must not block on the span.
               waitForPerpsPlaceOrderPositionRendered(
                 PERPS_CUF_STREAM_TIMEOUT_MS,

@@ -18,11 +18,15 @@ import {
   PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PlaceOrderParams, PredictOrderType } from '../types';
+import {
+  PlaceOrderParams,
+  PredictEligibility,
+  PredictOrderType,
+} from '../types';
 import { PREDICT_ANALYTICS_EVENTS } from './utils/predictAnalyticsEvents';
 
 export interface PredictAnalyticsContext {
-  getEligibility(): { eligible: boolean; country?: string };
+  getEligibility(): PredictEligibility;
 }
 
 export interface TrackPredictOrderEventArgs {
@@ -541,7 +545,11 @@ export class PredictAnalytics {
     const eligibilityData = this.context.getEligibility();
 
     this.trackConfiguredEvent('geoBlockTriggered', {
-      country: eligibilityData?.country,
+      country:
+        eligibilityData.status === 'eligible' ||
+        eligibilityData.status === 'ineligible'
+          ? eligibilityData.country
+          : undefined,
       attemptedAction,
     });
   }

@@ -39,6 +39,11 @@ export enum TraceName {
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  UiSlotsLoad = 'UI Slots Load',
+  DeeplinkProcessed = 'Deeplink Processed',
+  DeeplinkNavigated = 'Deeplink Navigated',
+  DeeplinkSignatureVerify = 'Deeplink Signature Verify',
+  DeeplinkIntentPrepare = 'Deeplink Intent Prepare',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
@@ -75,6 +80,8 @@ export enum TraceName {
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Transaction creation to the confirmation body's first paint. */
+  TransactionConfirmationLoad = 'Transaction Confirmation Load',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -193,6 +200,8 @@ export enum TraceName {
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
   PerpsLoadingSession = 'Perps Loading Session',
+  /** Market-detail mount to section resolution offsets for one mode/context generation. */
+  PerpsMarketDetailSession = 'Perps Market Detail Session',
   // Perps chart: first visible candle after the market detail chart mounts.
   PerpsChartFirstCandle = 'perps.chart.first_candle',
   // Perps chart: fullscreen chart visible after open.
@@ -204,10 +213,12 @@ export enum TraceName {
   // Perps user-perceived CUF spans: gesture/open -> render with live data
   /** Tap/open -> Perps market list rendered with live prices. */
   PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
-  /** Market route open -> stats + chart + top-of-book live. */
+  /** Market detail mount -> metadata + stats + price + account resolved. */
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Trade action -> bottom sheet content laid out and interactive. */
+  PerpsTradeSheetInteractive = 'Perps Trade Sheet Interactive',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
   /** Limit order submit tap -> resting order rendered in the live orders stream. */
@@ -216,6 +227,8 @@ export enum TraceName {
   PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
   /** Cancel tap -> order absent from the live stream. */
   PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** Terminate tap -> TWAP schedule absent or terminal in reconciled data. */
+  PerpsTerminateTwapToConfirmation = 'Perps Terminate TWAP To Confirmation',
   /** TP/SL submit -> updated values visible in the live stream. */
   PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
   /** WebSocket price subscription -> first price delivered. */
@@ -263,18 +276,29 @@ export enum TraceName {
   PredictNextHomeView = 'PredictNext Home View',
   PredictNextFeedView = 'PredictNext Feed View',
   PredictNextEventView = 'PredictNext Event View',
+  PredictNextPortfolioView = 'PredictNext Portfolio View',
+  PredictNextGetBalance = 'PredictNext Get Balance',
+  PredictNextGetPositions = 'PredictNext Get Positions',
+  PredictNextGetActivity = 'PredictNext Get Activity',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
   PredictNextGetMarketHistory = 'PredictNext Get Market History',
+  PredictNextOrderPreview = 'PredictNext Order Preview',
+  PredictNextOrderCommit = 'PredictNext Order Commit',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
   MusdConversionConfirm = 'mUSD Conversion Confirm',
   // Market Insights
+  MarketInsightsFetch = 'Market Insights Fetch',
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
   MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
+  WhatsHappeningFetch = "What's Happening Fetch",
+  WhatsHappeningFrontPageFetch = "What's Happening Front Page Fetch",
+  WhatsHappeningCarouselLoad = "What's Happening Carousel Load",
+  WhatsHappeningViewLoad = "What's Happening View Load",
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
@@ -287,9 +311,13 @@ export enum TraceName {
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
+  CardRedeemWithdraw = 'Card Redeem Withdraw',
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
+  // Notifications & Braze Performance
+  NotificationListTimeToContent = 'Notification List Time To Content',
+  BrazeBannerTimeToContent = 'Braze Banner Time To Content',
 }
 
 export enum TraceOperation {
@@ -300,6 +328,7 @@ export enum TraceOperation {
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
   HomepagePerformance = 'homepage.performance',
+  DeeplinkPerformance = 'deeplink.performance',
   NavInit = 'navigation.initialization',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
@@ -354,8 +383,11 @@ export enum TraceOperation {
   MusdConversionOperation = 'musd.conversion.operation',
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
   // Market Insights
+  MarketInsightsFetch = 'market_insights.fetch',
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
+  WhatsHappeningFetch = 'whats_happening.fetch',
+  WhatsHappeningLoad = 'whats_happening.load',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
   // Money Home Performance
@@ -363,6 +395,9 @@ export enum TraceOperation {
   MoneyAccountDataFetch = 'money.account.data_fetch',
   // Rewards
   RewardsPerformance = 'rewards.performance',
+  // Notifications & Braze Performance
+  NotificationPerformance = 'notification.performance',
+  BrazeBannerPerformance = 'braze_banner.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',

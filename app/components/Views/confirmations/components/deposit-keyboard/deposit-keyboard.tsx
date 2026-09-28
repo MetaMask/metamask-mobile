@@ -2,7 +2,11 @@ import React, { memo, useCallback, useMemo } from 'react';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './deposit-keyboard.styles';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,6 +14,7 @@ import { View } from 'react-native';
 import { PERPS_CURRENCY } from '../../constants/perps';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
+import { formatAmountForDisplay } from '../../utils/transaction-pay';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -61,7 +66,7 @@ export const DepositKeyboard = memo(
   }: DepositKeyboardProps) => {
     const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
-    const valueString = value.toString();
+    const valueString = formatAmountForDisplay(value.toString());
 
     const handleChange = useCallback(
       (data: KeypadChangeData) => {
@@ -101,9 +106,11 @@ export const DepositKeyboard = memo(
             buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
-                style={styles.button}
+                size={ButtonBaseSize.Lg}
                 onPress={() => handlePercentagePress(buttonValue)}
                 variant={ButtonVariant.Secondary}
+                // Match Keypad.Button border radius
+                twClassName="flex-1 rounded-xl mb-3"
               >
                 {label}
               </Button>
@@ -111,10 +118,12 @@ export const DepositKeyboard = memo(
           {hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
-              style={styles.button}
               onPress={onDonePress}
               isDisabled={isDoneDisabled}
+              size={ButtonBaseSize.Lg}
+              isFullWidth
               variant={ButtonVariant.Primary}
+              twClassName="mb-3"
             >
               {doneLabel ?? strings('confirm.edit_amount_done')}
             </Button>

@@ -15,7 +15,7 @@ import { RootState } from '../../../../../reducers';
 
 /**
  * Returns a token filter for withdraw transactions, following the same pattern
- * as `usePerpsBalanceTokenFilter` and `useMusdConversionTokens`.
+ * as `usePerpsBalanceTokenFilter`.
  *
  * Wallet tokens matching the allowlist are returned via `tokenFilter` delegation
  * to `useSendTokens`. For allowlisted tokens the user does not hold, metadata

@@ -12,18 +12,16 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
+import type { PerpsTransaction as PerpsTransactionSource } from '../../../UI/Perps/types/transactionHistory';
 /* eslint-enable import-x/no-restricted-paths */
 
-export type PerpsTransaction = Extract<
-  NonNullable<ActivityListItem['raw']>,
-  { type: 'perpsTransaction' }
->['data'];
+export type PerpsTransaction = PerpsTransactionSource;
 
 export type PerpsDepositWithdrawalStatus = NonNullable<
   PerpsTransaction['depositWithdrawal']
 >['status'];
 
-export type PerpsActivityType =
+type PerpsActivityType =
   | 'perpsAddFunds'
   | 'perpsWithdraw'
   | 'perpsOpenLong'
@@ -44,23 +42,11 @@ export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;
 };
 
-export function getPerpsTransaction(
-  item: ActivityListItem,
-): PerpsTransaction | undefined {
-  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
-}
-
 export {
   formatPerpsTransactionDate,
   getPerpsAssetIconUrls,
   formatPositiveFiat,
 };
-
-export function asPerpsActivityItem(
-  item: ActivityListItem,
-): PerpsActivityListItem {
-  return item as PerpsActivityListItem;
-}
 
 export function formatSignedPerpsFiat(
   amount: number | string,
@@ -90,12 +76,6 @@ export function getPerpsPositionSize(
   return formatPositiveFiat(
     BigNumber(fill.size).times(fill.entryPrice).absoluteValue().toString(),
   );
-}
-
-export function getPerpsPriceLabel(fill: PerpsTransaction['fill']): string {
-  return fill?.action === 'Closed' || fill?.action === 'Flipped'
-    ? strings('perps.transactions.position.close_price')
-    : strings('perps.transactions.position.entry_price');
 }
 
 export function getPerpsPriceValue(

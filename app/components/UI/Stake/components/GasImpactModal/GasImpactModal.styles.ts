@@ -7,6 +7,7 @@ const styleSheet = () =>
     },
     content: {
       paddingBottom: 16,
+      textAlign: 'center',
     },
     footer: {
       paddingBottom: 16,

@@ -25,6 +25,7 @@ import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
   createEthMarketForViews,
@@ -382,9 +383,11 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
+    // The balance cannot cover the margin either, so the shared
+    // insufficient-funds banner owns that message and the CTA keeps its label.
     expect(
       await screen.findByText(
-        strings('perps.order.validation.insufficient_funds'),
+        strings('perps.order.validation.insufficient_funds_to_cover_trade'),
       ),
     ).toBeOnTheScreen();
     const placeOrderButton = await screen.findByTestId(
@@ -395,6 +398,211 @@ describe('PerpsOrderView', () => {
     fireEvent.press(placeOrderButton);
 
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('shows a single insufficient-funds treatment when the balance cannot cover the margin', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0.00004'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(
+        screen.queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+    });
+    // The footer validation line renders the interpolated balance error; match
+    // the invariant prefix so the assertion cannot pass on a formatting change.
+    expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+    expect(
+      screen.queryByText(strings('perps.order.validation.insufficient_funds')),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('keeps a blocking minimum-amount error visible next to the insufficient-funds banner', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '5',
+        leverage: 1,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0.00004'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(
+        screen.queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+    });
+    // The banner covers the balance message only; the minimum-amount error is a
+    // separate blocking reason and must still reach the trader.
+    expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+    expect(screen.getByText(/^Minimum order size/)).toBeOnTheScreen();
+  });
+
+  describe('Trade sheet (bottom-sheet treatment)', () => {
+    const tradeSheetParams = {
+      asset: 'ETH',
+      direction: 'long',
+      amount: '120',
+      leverage: 4,
+      useBottomSheet: true,
+    };
+
+    const renderTradeSheet = () =>
+      renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+    const findEnabledSubmitButton = async () => {
+      const submitButton = await screen.findByTestId(
+        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      await waitFor(
+        () => {
+          expect(submitButton).not.toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      return submitButton;
+    };
+
+    it('leaves the sheet for the market page as soon as the order is submitted', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      let resolveOrder: (result: { success: boolean }) => void = () =>
+        undefined;
+      placeOrder.mockReturnValue(
+        new Promise<{ success: boolean }>((resolve) => {
+          resolveOrder = resolve;
+        }),
+      );
+      const { stream } = renderTradeSheet();
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const submitButton = await findEnabledSubmitButton();
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      // The market page shows while execution is still pending.
+      expect(
+        await screen.findByTestId(
+          `route-${Routes.PERPS.MARKET_DETAILS}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          isBuy: true,
+          orderType: 'market',
+          leverage: 4,
+          usdAmount: '120',
+        }),
+      );
+      await act(async () => {
+        resolveOrder({ success: true });
+      });
+      placeOrder.mockResolvedValue({ success: true });
+    });
+
+    // Dismissing the sheet runs its exit animation and `onClose` before the
+    // navigation transition would unmount the view. The view framework renders
+    // the design-system BottomSheet as a plain View (no backdrop or swipe), so
+    // the dismissal itself cannot be driven here; the sheet-reported-closed half
+    // of this guard lives in PerpsOrderView.test.tsx. This covers the other
+    // half: the view is gone before validation settles.
+    it('does not place an order when the sheet is gone while validation is pending', async () => {
+      const validateOrder = Engine.context.PerpsController
+        .validateOrder as jest.Mock;
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      let holdValidation = false;
+      let resolvePendingValidation: (result: {
+        isValid: boolean;
+      }) => void = () => undefined;
+      const pendingValidation = new Promise<{ isValid: boolean }>((resolve) => {
+        resolvePendingValidation = resolve;
+      });
+      validateOrder.mockImplementation(() =>
+        holdValidation ? pendingValidation : Promise.resolve({ isValid: true }),
+      );
+      const { stream, unmount } = renderTradeSheet();
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const submitButton = await findEnabledSubmitButton();
+
+      // A price move re-validates the order; hold that validation open so the
+      // submit below has to await it.
+      holdValidation = true;
+      const validationCallsBefore = validateOrder.mock.calls.length;
+      emitEthPrice(stream, '2', '2510');
+      await waitFor(
+        () => {
+          expect(validateOrder.mock.calls.length).toBeGreaterThan(
+            validationCallsBefore,
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        unmount();
+      });
+      await act(async () => {
+        resolvePendingValidation({ isValid: true });
+        await pendingValidation;
+      });
+      validateOrder.mockResolvedValue({ isValid: true });
+
+      expect(placeOrder).not.toHaveBeenCalled();
+    });
   });
 
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {

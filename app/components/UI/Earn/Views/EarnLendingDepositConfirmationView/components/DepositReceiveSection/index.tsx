@@ -18,8 +18,9 @@ import {
 import useTooltipModal from '../../../../../../hooks/useTooltipModal';
 import { TokenI } from '../../../../../Tokens/types';
 import { strings } from '../../../../../../../../locales/i18n';
+import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './DepositReceiveSection.testIds';
 
-export const DEPOSIT_RECEIVE_SECTION_TEST_ID = 'depositReceiveSection';
+export { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './DepositReceiveSection.testIds';
 
 export interface DepositReceiveSectionProps {
   token: TokenI;

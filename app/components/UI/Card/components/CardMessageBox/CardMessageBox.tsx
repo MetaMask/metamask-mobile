@@ -16,6 +16,8 @@ interface CardMessageBoxProps {
   onConfirm?: () => void;
   onConfirmLoading?: boolean;
   onDismiss?: () => void;
+  /** Maps to BannerAlert close (X). Prefer this for dismissible home banners. */
+  onClose?: () => void;
   values?: Record<string, string | number>;
 }
 
@@ -36,6 +38,7 @@ const CardMessageBox = ({
   onConfirm,
   onConfirmLoading,
   onDismiss,
+  onClose,
   values,
 }: CardMessageBoxProps) => {
   const messageConfigs: Record<CardMessageBoxType, MessageConfig> = useMemo(
@@ -65,16 +68,6 @@ const CardMessageBox = ({
         title: strings('card.card_home.messages.card_provisioning.title'),
         description: strings(
           'card.card_home.messages.card_provisioning.description',
-        ),
-      },
-      [CardMessageBoxType.PendingVerification]: {
-        variant: CardMessageBoxVariant.Warning,
-        title: strings('card.card_home.warnings.pending_verification.title'),
-        description: strings(
-          'card.card_home.warnings.pending_verification.description',
-        ),
-        confirmButtonLabel: strings(
-          'card.card_home.warnings.pending_verification.confirm_button_label',
         ),
       },
       [CardMessageBoxType.AuthPrompt]: {
@@ -131,6 +124,24 @@ const CardMessageBox = ({
         description: strings('card.credit_banner.description_no_money_account'),
         confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
       },
+      [CardMessageBoxType.UkMigrationSoft]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.uk_migration_soft.title'),
+        description: values?.deadline
+          ? strings('card.uk_migration_soft.description', values)
+          : strings('card.uk_migration_soft.description_no_deadline'),
+        confirmButtonLabel: strings(
+          'card.uk_migration_soft.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.UkMigrationRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.uk_migration_required.title'),
+        description: strings('card.uk_migration_required.description'),
+        confirmButtonLabel: strings(
+          'card.uk_migration_required.confirm_button_label',
+        ),
+      },
     }),
     [values],
   );
@@ -144,6 +155,7 @@ const CardMessageBox = ({
       description={config.description}
       style={FLAT_BANNER_ALERT_STYLE}
       testID="card-message-box"
+      onClose={onClose}
     >
       {(onConfirm || onDismiss) && (
         <Box

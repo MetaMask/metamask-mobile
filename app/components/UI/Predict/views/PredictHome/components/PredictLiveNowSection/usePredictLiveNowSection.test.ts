@@ -41,11 +41,11 @@ const createLiveMarket = (id: string): PredictMarket =>
 const createRegularMarket = (id: string): PredictMarket =>
   ({ id }) as unknown as PredictMarket;
 
-const createCryptoMarket = (id: string): PredictMarket =>
+const createCryptoMarket = (id: string, seriesId = id): PredictMarket =>
   ({
     id,
     tags: [CRYPTO_TAG, UP_OR_DOWN_TAG],
-    series: { id, slug: 'crypto-up-or-down', recurrence: '5m' },
+    series: { id: seriesId, slug: 'crypto-up-or-down', recurrence: '5m' },
   }) as unknown as PredictMarket;
 
 const setLiveMarketList = (
@@ -111,12 +111,15 @@ const setCustomConfig = (
   queryParams = '',
   excludedMarketIds: string[] = [],
   composition: 'query-results' | 'live-now' = 'query-results',
+  priorityOrder: string[] = [],
 ) => {
   feedCarouselConfig = {
     enabled: true,
     minimumVersion: '1.0.0',
     mode: 'custom',
     title: 'Wimbledon',
+    priorityOrder,
+    prioritySlots: [],
     contentSource: {
       composition,
       queryParams,
@@ -334,6 +337,128 @@ describe('usePredictLiveNowSection', () => {
       'L1',
       'L2',
       'BTC5M',
+      'L3',
+      'L4',
+      'ETH5M',
+      'L5',
+      'L6',
+      'BTC15M',
+    ]);
+  });
+
+  it('pins matching series to the front of the interleaved Live Now rail', () => {
+    setUpDownEnabled(true);
+    feedCarouselConfig = {
+      ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+      priorityOrder: [BTC_UP_OR_DOWN_5M_SERIES.id, ETH_UP_OR_DOWN_5M_SERIES.id],
+    };
+    syncSelectors();
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+        createLiveMarket('L4'),
+        createLiveMarket('L5'),
+        createLiveMarket('L6'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'BTC5M',
+        BTC_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'ETH5M',
+        ETH_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket(
+        'BTC15M',
+        BTC_UP_OR_DOWN_15M_SERIES.id,
+      ),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual([
+      'BTC5M',
+      'ETH5M',
+      'L1',
+      'L2',
+      'L3',
+      'L4',
+      'L5',
+      'L6',
+      'BTC15M',
+    ]);
+  });
+
+  it('pins matching series in custom live-now composition after exclusions', () => {
+    setCustomConfig('live=true&order=volume24hr', ['L1'], 'live-now', [
+      ETH_UP_OR_DOWN_5M_SERIES.id,
+    ]);
+    setUpDownEnabled(true);
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'BTC5M',
+        BTC_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'ETH5M',
+        ETH_UP_OR_DOWN_5M_SERIES.id,
+      ),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual(['ETH5M', 'L2', 'L3', 'BTC5M']);
+  });
+
+  it('places a matching series at the configured slot on the interleaved rail', () => {
+    setUpDownEnabled(true);
+    feedCarouselConfig = {
+      ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+      prioritySlots: [{ seriesId: BTC_UP_OR_DOWN_5M_SERIES.id, index: 1 }],
+    };
+    syncSelectors();
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+        createLiveMarket('L4'),
+        createLiveMarket('L5'),
+        createLiveMarket('L6'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'BTC5M',
+        BTC_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket(
+        'ETH5M',
+        ETH_UP_OR_DOWN_5M_SERIES.id,
+      ),
+      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket(
+        'BTC15M',
+        BTC_UP_OR_DOWN_15M_SERIES.id,
+      ),
+    });
+
+    const { result } = renderHook(() => usePredictLiveNowSection());
+
+    expect(ids(result.current.items)).toEqual([
+      'L1',
+      'BTC5M',
+      'L2',
       'L3',
       'L4',
       'ETH5M',

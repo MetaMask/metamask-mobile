@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import {
   applyMoneyAccountOverride,
+  formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
   getRequiredBalance,
@@ -331,6 +332,40 @@ describe('Transaction Pay Utils', () => {
       });
 
       expect(result).toStrictEqual([]);
+    });
+
+    it('does not throw and excludes token with undefined address', () => {
+      const tokenWithoutAddress = {
+        ...TOKEN_MOCK,
+        address: undefined,
+      } as unknown as AssetType;
+
+      expect(() =>
+        getAvailableTokens({
+          tokens: [tokenWithoutAddress],
+        }),
+      ).not.toThrow();
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithoutAddress],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not throw when payToken is undefined and a candidate token has undefined address', () => {
+      const tokenWithoutAddress = {
+        ...TOKEN_MOCK,
+        address: undefined,
+        balance: '0',
+      } as unknown as AssetType;
+
+      expect(() =>
+        getAvailableTokens({
+          payToken: undefined,
+          tokens: [tokenWithoutAddress, ERC20_TOKEN_MOCK],
+        }),
+      ).not.toThrow();
     });
 
     describe('disabled', () => {
@@ -947,7 +982,9 @@ describe('Transaction Pay Utils', () => {
 
     it.each([
       TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
       TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
     ] as const)(
       'sets refundTo but leaves atomic unset for %s',
       (transactionType) => {
@@ -1035,6 +1072,41 @@ describe('Transaction Pay Utils', () => {
       updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
+    });
+  });
+
+  describe('formatAmountForDisplay', () => {
+    it('returns whole numbers unchanged', () => {
+      expect(formatAmountForDisplay('500')).toBe('500');
+    });
+
+    it.each(['12.', '12.3', '12.34', '0.05'])(
+      'returns %s unchanged when already within two decimals',
+      (amount) => {
+        expect(formatAmountForDisplay(amount)).toBe(amount);
+      },
+    );
+
+    it('truncates rather than rounds so the result never exceeds the balance', () => {
+      // The displayed value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      expect(formatAmountForDisplay('50.389')).toBe('50.38');
+    });
+
+    it('never carries into the whole part', () => {
+      expect(formatAmountForDisplay('1.999')).toBe('1.99');
+    });
+
+    it('truncates a long exact balance to cents', () => {
+      expect(formatAmountForDisplay('2160.6159999')).toBe('2160.61');
+    });
+
+    it('truncates an amount using a comma separator', () => {
+      expect(formatAmountForDisplay('50,389')).toBe('50.38');
+    });
+
+    it('returns the input unchanged when it is not a parseable number', () => {
+      expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
     });
   });
 });

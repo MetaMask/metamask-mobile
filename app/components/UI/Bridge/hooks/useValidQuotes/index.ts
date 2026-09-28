@@ -6,7 +6,7 @@ import {
   formatAddressToCaipReference,
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
@@ -31,6 +31,7 @@ import { parseCaipAssetType } from '@metamask/utils';
 
 interface UseValidQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
+  isActive?: boolean;
   quoteParams: {
     srcAmount?: string;
     srcToken?: BridgeToken;
@@ -46,13 +47,16 @@ interface UseValidQuotesParams {
  * @param params - The parameters for the hook
  * @param params.latestSourceAtomicBalance - The latest source atomic balance
  * @param params.quoteParams - The quote parameters
+ * @param params.isActive - Whether this is the rendered tab's quote source
  * @returns The valid quotes and whether they need to be refreshed
  */
 export const useValidQuotes = ({
   latestSourceAtomicBalance,
+  isActive = false,
   quoteParams,
 }: UseValidQuotesParams) => {
-  const { recommendedQuote, sortedQuotes } = useSelector(selectBridgeQuotes);
+  const quotes = useSelector(selectBridgeQuotes);
+  const recommendedQuote = quotes?.recommendedQuote;
   const { quotesLoadingStatus, quotesLastFetched, quotesRefreshCount } =
     useSelector(selectBridgeControllerState);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
@@ -83,7 +87,10 @@ export const useValidQuotes = ({
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
-  const allQuotes = useMemo(() => sortedQuotes ?? [], [sortedQuotes]);
+  const allQuotes = useMemo(
+    () => quotes?.sortedQuotes ?? [],
+    [quotes?.sortedQuotes],
+  );
 
   // Determine the active quote:
   // 1. If user manually selected a quote, use that
@@ -198,10 +205,10 @@ export const useValidQuotes = ({
   // Unset manually selected quote when no quote is selected
   const dispatch = useDispatch();
   useEffect(() => {
-    if (!manuallySelectedQuote) {
+    if (isActive && !manuallySelectedQuote) {
       dispatch(setSelectedQuoteRequestId(undefined));
     }
-  }, [manuallySelectedQuote, dispatch]);
+  }, [isActive, manuallySelectedQuote, dispatch]);
 
   return useMemo(
     () => ({

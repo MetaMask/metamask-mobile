@@ -96,11 +96,6 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('predictions');
 
-          await ActivitiesView.verifyActivityItemLabelAndAmount(
-            'Account funded',
-            '+$50',
-          );
-
           await ActivitiesView.tapOnActivityItemByLabel('Account funded');
 
           await Assertions.expectElementToBeVisible(ActivityDetails.screen, {

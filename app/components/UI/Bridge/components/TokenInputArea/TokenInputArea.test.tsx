@@ -1,23 +1,22 @@
 import React, { createRef } from 'react';
 import { CaipChainId } from '@metamask/utils';
-import { ethToken1Address, initialState } from '../../_mocks_/initialState';
+import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+import {
+  asRootState,
+  bridgeTestState,
+  ethToken1Address,
+  initialState,
+} from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
-import { BridgeToken, TokenSelectorType } from '../../types';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
+import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
-import Routes from '../../../../../constants/navigation/Routes';
-
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
-}));
-
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
 
 const mockTrackUnifiedSwapBridgeEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -134,17 +133,18 @@ describe('TokenInputArea', () => {
     mockUseIsInsufficientBalance.mockReturnValue(false);
   });
 
-  describe('empty state token selector navigation', () => {
-    it('navigates to the source token selector with enabledChainIds when the source "Select token" button is pressed', () => {
-      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+  describe('empty state token selector press', () => {
+    it('tracks source asset picker opened and calls onTokenPress when the source token button is pressed', () => {
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            isSourceToken
-            enabledChainIds={enabledChainIds}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              isSourceToken
+              onTokenPress={mockOnTokenPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -152,21 +152,26 @@ describe('TokenInputArea', () => {
 
       fireEvent.press(getByTestId('token-input'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Source,
-        enabledChainIds,
-      });
+      expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location: 'source',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+      expect(mockOnTokenPress).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to the destination token selector with enabledChainIds when the dest "Select token" button is pressed', () => {
-      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+    it('tracks destination asset picker opened and calls onTokenPress when the dest token button is pressed', () => {
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            enabledChainIds={enabledChainIds}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              onTokenPress={mockOnTokenPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -174,19 +179,27 @@ describe('TokenInputArea', () => {
 
       fireEvent.press(getByTestId('token-input'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-        enabledChainIds,
-      });
+      expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location: 'destination',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+      expect(mockOnTokenPress).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates with enabledChainIds undefined when the prop is not provided', () => {
+    it('tracks the asset picker opened with the feature id of the flow rendering the input', () => {
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              isSourceToken
+              onTokenPress={mockOnTokenPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -194,24 +207,29 @@ describe('TokenInputArea', () => {
 
       fireEvent.press(getByTestId('token-input'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-        enabledChainIds: undefined,
-      });
+      expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location: 'source',
+          feature_id: FeatureId.LIMIT_ORDER,
+        },
+      );
     });
   });
 
   it('renders with initial state', () => {
     const { getByTestId } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          onTokenPress={mockOnTokenPress}
-          onFocus={mockOnFocus}
-          onBlur={mockOnBlur}
-          onInputPress={mockOnInputPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            onTokenPress={mockOnTokenPress}
+            onFocus={mockOnFocus}
+            onBlur={mockOnBlur}
+            onInputPress={mockOnInputPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -225,12 +243,14 @@ describe('TokenInputArea', () => {
   it('handles input focus and blur correctly', () => {
     const { getByTestId } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          onFocus={mockOnFocus}
-          onBlur={mockOnBlur}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            onFocus={mockOnFocus}
+            onBlur={mockOnBlur}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -250,12 +270,14 @@ describe('TokenInputArea', () => {
     const mockOnSelectionChange = jest.fn();
     const { getByTestId } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          selection={{ start: 2, end: 2 }}
-          onSelectionChange={mockOnSelectionChange}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            selection={{ start: 2, end: 2 }}
+            onSelectionChange={mockOnSelectionChange}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -276,11 +298,13 @@ describe('TokenInputArea', () => {
   it('keeps destination selection pinned to start', () => {
     const { getByTestId } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Destination}
-          selection={{ start: 3, end: 3 }}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            selection={{ start: 3, end: 3 }}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -304,13 +328,15 @@ describe('TokenInputArea', () => {
 
     const { getByText } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={mockToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -338,13 +364,15 @@ describe('TokenInputArea', () => {
 
     const { queryByText } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Destination}
-          token={mockToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={mockToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -367,26 +395,26 @@ describe('TokenInputArea', () => {
     const tokenBalance = '1.5';
 
     // Create state without gasless swap enabled
-    const stateWithoutGasless = {
-      ...initialState,
+    const stateWithoutGasless = asRootState({
+      ...bridgeTestState,
       engine: {
-        ...initialState.engine,
+        ...bridgeTestState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...bridgeTestState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...initialState.engine.backgroundState.RemoteFeatureFlagController
-                .remoteFeatureFlags,
+              ...bridgeTestState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
               bridgeConfigV2: {
-                ...initialState.engine.backgroundState
+                ...bridgeTestState.engine.backgroundState
                   .RemoteFeatureFlagController.remoteFeatureFlags
                   .bridgeConfigV2,
                 chains: {
-                  ...initialState.engine.backgroundState
+                  ...bridgeTestState.engine.backgroundState
                     .RemoteFeatureFlagController.remoteFeatureFlags
                     .bridgeConfigV2.chains,
                   'eip155:1': {
-                    ...initialState.engine.backgroundState
+                    ...bridgeTestState.engine.backgroundState
                       .RemoteFeatureFlagController.remoteFeatureFlags
                       .bridgeConfigV2.chains['eip155:1'],
                     isGaslessSwapEnabled: false,
@@ -397,20 +425,22 @@ describe('TokenInputArea', () => {
           },
         },
       },
-    };
+    });
 
     // Mock hook to return false since gasless is disabled for native token
     mockUseShouldRenderMaxOption.mockReturnValue(false);
 
     const { queryByText } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={nativeToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -450,13 +480,15 @@ describe('TokenInputArea', () => {
 
     const { getByText } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={nativeToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -477,22 +509,22 @@ describe('TokenInputArea', () => {
     };
     const tokenBalance = '10';
 
-    const stateWithoutGasless = {
-      ...initialState,
+    const stateWithoutGasless = asRootState({
+      ...bridgeTestState,
       engine: {
-        ...initialState.engine,
+        ...bridgeTestState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...bridgeTestState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...initialState.engine.backgroundState.RemoteFeatureFlagController
-                .remoteFeatureFlags,
+              ...bridgeTestState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
               bridgeConfigV2: {
-                ...initialState.engine.backgroundState
+                ...bridgeTestState.engine.backgroundState
                   .RemoteFeatureFlagController.remoteFeatureFlags
                   .bridgeConfigV2,
                 chains: {
-                  ...initialState.engine.backgroundState
+                  ...bridgeTestState.engine.backgroundState
                     .RemoteFeatureFlagController.remoteFeatureFlags
                     .bridgeConfigV2.chains,
                   'eip155:137': {
@@ -506,20 +538,22 @@ describe('TokenInputArea', () => {
           },
         },
       },
-    };
+    });
 
     // Mock hook to return false since gasless is disabled for native Polygon token
     mockUseShouldRenderMaxOption.mockReturnValue(false);
 
     const { queryByText } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={polygonNativeToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={polygonNativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -547,22 +581,22 @@ describe('TokenInputArea', () => {
     };
     const tokenBalance = '10';
 
-    const stateWithGaslessSwap = {
-      ...initialState,
+    const stateWithGaslessSwap = asRootState({
+      ...bridgeTestState,
       engine: {
-        ...initialState.engine,
+        ...bridgeTestState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...bridgeTestState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...initialState.engine.backgroundState.RemoteFeatureFlagController
-                .remoteFeatureFlags,
+              ...bridgeTestState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
               bridgeConfigV2: {
-                ...initialState.engine.backgroundState
+                ...bridgeTestState.engine.backgroundState
                   .RemoteFeatureFlagController.remoteFeatureFlags
                   .bridgeConfigV2,
                 chains: {
-                  ...initialState.engine.backgroundState
+                  ...bridgeTestState.engine.backgroundState
                     .RemoteFeatureFlagController.remoteFeatureFlags
                     .bridgeConfigV2.chains,
                   'eip155:137': {
@@ -577,21 +611,23 @@ describe('TokenInputArea', () => {
         },
       },
       bridge: {
-        ...initialState.bridge,
+        ...bridgeTestState.bridge,
         sourceToken: polygonNativeToken,
         destToken,
       },
-    };
+    });
 
     const { getByText } = renderScreen(
       () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={polygonNativeToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={polygonNativeToken}
+            tokenBalance={tokenBalance}
+            onMaxPress={mockOnMaxPress}
+          />
+        </SwapsFeatureIdProvider>
       ),
       {
         name: 'TokenInputArea',
@@ -626,13 +662,15 @@ describe('TokenInputArea', () => {
 
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={nativeToken}
-            tokenBalance={tokenBalance}
-            onMaxPress={mockOnMaxPress}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={nativeToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -653,13 +691,15 @@ describe('TokenInputArea', () => {
 
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={nativeToken}
-            tokenBalance={tokenBalance}
-            onMaxPress={mockOnMaxPress}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={nativeToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -680,14 +720,16 @@ describe('TokenInputArea', () => {
 
       renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={nativeToken}
-            tokenBalance={tokenBalance}
-            onMaxPress={mockOnMaxPress}
-            isQuoteSponsored
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={nativeToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+              isQuoteSponsored
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -705,13 +747,15 @@ describe('TokenInputArea', () => {
     it('does not display max button for destination token', () => {
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            token={nativeToken}
-            tokenBalance={tokenBalance}
-            onMaxPress={mockOnMaxPress}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={nativeToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -736,13 +780,15 @@ describe('TokenInputArea', () => {
 
       renderScreen(
         () => (
-          <TokenInputArea
-            ref={ref}
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            onFocus={mockOnFocus}
-            onBlur={mockOnBlur}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              ref={ref}
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              onFocus={mockOnFocus}
+              onBlur={mockOnBlur}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -763,13 +809,15 @@ describe('TokenInputArea', () => {
 
       renderScreen(
         () => (
-          <TokenInputArea
-            ref={ref}
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            onFocus={mockOnFocus}
-            onBlur={mockOnBlur}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              ref={ref}
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              onFocus={mockOnFocus}
+              onBlur={mockOnBlur}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -790,11 +838,13 @@ describe('TokenInputArea', () => {
 
       renderScreen(
         () => (
-          <TokenInputArea
-            ref={ref}
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              ref={ref}
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -814,11 +864,13 @@ describe('TokenInputArea', () => {
 
       renderScreen(
         () => (
-          <TokenInputArea
-            ref={ref}
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              ref={ref}
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+            />
+          </SwapsFeatureIdProvider>
         ),
         {
           name: 'TokenInputArea',
@@ -859,12 +911,14 @@ describe('TokenInputArea', () => {
       // Act
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            amount="1"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="1"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -882,12 +936,14 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            amount="0"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="0"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -901,11 +957,13 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -919,11 +977,13 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            amount="10"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              amount="10"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -937,12 +997,14 @@ describe('TokenInputArea', () => {
       // Act
       renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            amount="5"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="5"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -956,10 +1018,12 @@ describe('TokenInputArea', () => {
       // Act
       renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -978,14 +1042,16 @@ describe('TokenInputArea', () => {
 
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            amount="1"
-            onAmountTypeTogglePress={mockOnAmountTypeTogglePress}
-            amountTypeToggleTestID="amount-type-toggle"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="1"
+              onAmountTypeTogglePress={mockOnAmountTypeTogglePress}
+              amountTypeToggleTestID="amount-type-toggle"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1005,13 +1071,15 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            amount="1"
-            hideFiatValueWhenUnpriced
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amount="1"
+              hideFiatValueWhenUnpriced
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1028,13 +1096,15 @@ describe('TokenInputArea', () => {
       // Act
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={{ ...mockToken, address: ethToken1Address }}
-            amount="1"
-            hideFiatValueWhenUnpriced
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={{ ...mockToken, address: ethToken1Address }}
+              amount="1"
+              hideFiatValueWhenUnpriced
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1051,14 +1121,16 @@ describe('TokenInputArea', () => {
       // Act
       const { getByTestId, queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            token={mockToken}
-            amount="1.5"
-            showFiatAmountAsPrimary
-            hideFiatValueWhenUnpriced
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={mockToken}
+              amount="1.5"
+              showFiatAmountAsPrimary
+              hideFiatValueWhenUnpriced
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1082,13 +1154,15 @@ describe('TokenInputArea', () => {
     ) =>
       renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            amountTypeToggleTestID="amount-type-toggle"
-            {...props}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              amountTypeToggleTestID="amount-type-toggle"
+              {...props}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1136,11 +1210,13 @@ describe('TokenInputArea', () => {
       // Act
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1153,11 +1229,13 @@ describe('TokenInputArea', () => {
     it('passes CAIP asset ID for an EVM ERC-20 token to TokenButton', () => {
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1178,11 +1256,13 @@ describe('TokenInputArea', () => {
 
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={nativeToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={nativeToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1203,11 +1283,13 @@ describe('TokenInputArea', () => {
 
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={polygonNativeToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={polygonNativeToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1222,11 +1304,13 @@ describe('TokenInputArea', () => {
       // Act
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            isSourceToken
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              isSourceToken
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1240,11 +1324,13 @@ describe('TokenInputArea', () => {
       // Act
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            isSourceToken={false}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              isSourceToken={false}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1260,11 +1346,13 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            isLoading
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              isLoading
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1278,11 +1366,13 @@ describe('TokenInputArea', () => {
       // Act
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            isLoading={false}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              isLoading={false}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1307,12 +1397,14 @@ describe('TokenInputArea', () => {
       // Act
       const { getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            token={mockToken}
-            tokenBalance="42.5"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={mockToken}
+              tokenBalance="42.5"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1334,11 +1426,13 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByText, getByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            token={mockToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={mockToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1361,11 +1455,13 @@ describe('TokenInputArea', () => {
       // Act
       const { queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            token={nativeToken}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={nativeToken}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1381,11 +1477,13 @@ describe('TokenInputArea', () => {
       // Act
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            onInputPress={mockOnInputPress}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              onInputPress={mockOnInputPress}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1401,12 +1499,14 @@ describe('TokenInputArea', () => {
       // Act
       const { getByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Source}
-            onInputPress={mockOnInputPress}
-            onFocus={mockOnFocus}
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              onInputPress={mockOnInputPress}
+              onFocus={mockOnFocus}
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1433,15 +1533,17 @@ describe('TokenInputArea', () => {
 
       const { getByTestId, queryByTestId, queryByText } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            token={destToken}
-            amount="1.5"
-            hideAmount
-            amountReplacementLabel="You get"
-            amountReplacementLabelTestID="token-input-you-get"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={destToken}
+              amount="1.5"
+              hideAmount
+              amountReplacementLabel="You get"
+              amountReplacementLabelTestID="token-input-you-get"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },
@@ -1457,12 +1559,14 @@ describe('TokenInputArea', () => {
     it('renders the dest amount input when hideAmount is not set', () => {
       const { getByTestId, queryByTestId } = renderScreen(
         () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-            token={destToken}
-            amount="1.5"
-          />
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={destToken}
+              amount="1.5"
+            />
+          </SwapsFeatureIdProvider>
         ),
         { name: 'TokenInputArea' },
         { state: initialState },

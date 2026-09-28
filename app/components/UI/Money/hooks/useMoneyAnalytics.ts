@@ -117,7 +117,7 @@ export const useMoneyAnalytics = ({
     // Undefined while loading or on error so a genuine zero can be told apart.
     const totalFiatRaw =
       balanceQueryState === undefined ||
-      balanceQueryState.status === 'loading' ||
+      balanceQueryState.status === 'pending' ||
       balanceQueryState.status === 'error'
         ? undefined
         : new BigNumber(balanceQueryState.data?.totalBalance ?? 0)

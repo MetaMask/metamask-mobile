@@ -1878,12 +1878,33 @@ export const mergeChildEventsIntoParent = (
   };
 };
 
+/**
+ * Per-share prices Polymarket's UMA adapter settles a market at: 1 for the
+ * winning outcome, 0 for a loser, 0.5 for each side of a 50/50 push. Any other
+ * `curPrice` on a `redeemable` position is a stale last-traded price.
+ */
+const SETTLED_PAYOUT_PRICES: readonly number[] = [0.5, 1];
+
+/**
+ * Polymarket marks every position in a resolved market `redeemable`, losers
+ * included (they redeem for nothing), and flips that flag before it re-pins
+ * `curPrice` to the payout. For a few minutes a loser can still carry its last
+ * traded price (0.0005 and 0.005 observed in the wild) and a small positive
+ * `currentValue`. P&L decides WON. Below break-even, only a settled payout
+ * price proves there is something to claim: that makes a push bought above
+ * 50c REDEEMABLE rather than LOST without handing a claim CTA to a loser whose
+ * price has not settled yet.
+ */
 export const getPredictPositionStatus = ({
   claimable,
   cashPnl,
+  currentValue,
+  curPrice,
 }: {
   claimable: boolean;
   cashPnl: number;
+  currentValue: number;
+  curPrice: number;
 }) => {
   if (!claimable) {
     return PredictPositionStatus.OPEN;
@@ -1891,7 +1912,7 @@ export const getPredictPositionStatus = ({
   if (cashPnl > 0) {
     return PredictPositionStatus.WON;
   }
-  if (cashPnl === 0) {
+  if (currentValue > 0 && SETTLED_PAYOUT_PRICES.includes(curPrice)) {
     return PredictPositionStatus.REDEEMABLE;
   }
   return PredictPositionStatus.LOST;
@@ -1957,6 +1978,8 @@ export const parsePolymarketPositions = async ({
       status: getPredictPositionStatus({
         claimable: position.redeemable,
         cashPnl: position.cashPnl,
+        currentValue: position.currentValue,
+        curPrice: position.curPrice,
       }),
       realizedPnl: position.realizedPnl,
       percentPnl: position.percentPnl,

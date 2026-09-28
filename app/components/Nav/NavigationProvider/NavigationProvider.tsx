@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import {
+  DarkTheme,
   DefaultTheme,
   NavigationContainer,
   NavigationContainerRef,
+  NavigationState,
   ParamListBase,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -19,8 +21,30 @@ import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
+import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const NativeStack = createNativeStackNavigator();
+
+/**
+ * Route names along the focused path, root to leaf. Deeplink targets are
+ * matched against the whole chain because nested navigators focus a child
+ * screen of the intent's route.
+ */
+const collectFocusedRouteNames = (state: NavigationState): string[] => {
+  const names: string[] = [];
+  let current: NavigationState | undefined = state;
+  while (current?.routes?.length) {
+    const route = current.routes[current.index ?? current.routes.length - 1];
+    if (!route) {
+      break;
+    }
+    names.push(route.name);
+    current = route.state as NavigationState | undefined;
+  }
+  return names;
+};
 
 /**
  * Provides the navigation context to the app
@@ -29,6 +53,10 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
   const dispatch = useDispatch();
+  const { themeAppearance } = useTheme();
+  // The native tab bar takes its appearance from here, not the system theme.
+  const navigationTheme =
+    themeAppearance === AppThemeKey.dark ? DarkTheme : DefaultTheme;
 
   // Start the navigation-init trace exactly once, on first render. A lazy
   // useState initializer runs a single time and—unlike reading/writing a ref
@@ -51,6 +79,21 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     endTrace({ name: TraceName.NavInit });
     // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
+  };
+
+  /**
+   * Fires on every navigation state commit — unlike `onReady`, which fires
+   * once per app launch. This closes the Deeplink Navigated span; note the
+   * commit happens *before* the target screen paints, which is why that span
+   * is named Navigated rather than Displayed.
+   */
+  const onStateChange = (state: NavigationState | undefined) => {
+    if (!state) {
+      return;
+    }
+    handleDeeplinkNavigationStateChange({
+      focusedRouteNames: collectFocusedRouteNames(state),
+    });
   };
 
   /**
@@ -79,12 +122,12 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     <NavigationContainer
       // Using transparent background to support transparent modals
       // The actual app background is handled by individual screens.
-      // Spread DefaultTheme so required fields (e.g. fonts in v7) stay defined —
-      // casting a partial object as Theme would hide that at compile time.
+      // Spread the full theme so required fields (e.g. fonts in v7) stay
+      // defined — casting a partial object as Theme would hide that at compile time.
       theme={{
-        ...DefaultTheme,
+        ...navigationTheme,
         colors: {
-          ...DefaultTheme.colors,
+          ...navigationTheme.colors,
           background: 'transparent',
         },
       }}
@@ -94,6 +137,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       // resolution until those call sites pass explicit `{ screen, params }`.
       navigationInChildEnabled
       onReady={onReady}
+      onStateChange={onStateChange}
       ref={setNavigationRef}
     >
       <NativeStack.Navigator

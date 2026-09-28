@@ -1,3 +1,4 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem, TokenAmount } from './types';
 import { GAS_FEE_SPONSORED } from './fees';
 import {
@@ -6,6 +7,7 @@ import {
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
+  getLastEvmItemIndex,
   groupActivityListItems,
   preferLocalOrApiActivityItem,
   shouldShowPlusSign,
@@ -78,6 +80,47 @@ describe('activity list helpers', () => {
       expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
     });
 
+    it.each(['stake', 'unstake', 'claim'] as const)(
+      'prefers the local %s when the API copy carries no network fee',
+      (type) => {
+        const local = makeItem({
+          type,
+          data: {
+            fees: [
+              { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+            ],
+          },
+        });
+        const api = makeItem({ type, data: {} });
+
+        expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
+      },
+    );
+
+    it('keeps the API staking copy once it carries a network fee', () => {
+      const fees = [
+        { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+      ];
+      const local = makeItem({ type: 'stake', data: { fees } });
+      const api = makeItem({ type: 'stake', data: { fees } });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
+    it('does not extend the staking fee preference to other kinds', () => {
+      const local = makeItem({
+        type: 'deposit',
+        data: {
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      const api = makeItem({ type: 'deposit', data: {} });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
     it('does not let a gas-token local contractInteraction beat an API send', () => {
       const local = makeItem({
         type: 'contractInteraction',
@@ -140,6 +183,38 @@ describe('activity list helpers', () => {
       expect(preferLocalOrApiActivityItem(local, undefined)).toBe(local);
     });
 
+    it('keeps a richer same-type API copy over a local Money Account row', () => {
+      const transaction = {
+        id: 'money-withdraw',
+        type: TransactionType.batch,
+        txParams: { from: '0xmoney' },
+        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      };
+      const local = makeItem({
+        type: 'receive',
+        data: {
+          from: '0xmoney',
+          to: '0xeoa',
+          token: { direction: 'in', symbol: 'mUSD' },
+        },
+      });
+      const api = makeItem({
+        type: 'receive',
+        data: {
+          from: '0xmoney',
+          to: '0xeoa',
+          token: {
+            amount: '2500000',
+            decimals: 6,
+            direction: 'in',
+            symbol: 'USDC',
+          },
+        },
+      });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
     it('prefers a local spending cap carrying a cap amount', () => {
       const local = makeItem({
         type: 'approveSpendingCap',
@@ -155,7 +230,12 @@ describe('activity list helpers', () => {
     it('prefers a local unlimited approval over an API copy with no cap amount', () => {
       const local = makeItem({
         type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+        data: {
+          token: {
+            amount: String(1e15),
+            direction: 'out',
+          },
+        },
       });
       const api = makeItem({
         type: 'increaseSpendingCap',
@@ -299,9 +379,9 @@ describe('activity list helpers', () => {
     const item = makeItem({
       data: {
         token: {
-          amount: '115792089237316195423570985.639935',
+          amount:
+            '115792089237316195423570985008687907853269984665640564039457584007913129639935',
           direction: 'out',
-          isUnlimitedApproval: true,
           symbol: 'USDT',
         },
       },
@@ -329,29 +409,11 @@ describe('activity list helpers', () => {
   });
 
   it('generates stable keys for grouped activity rows', () => {
-    const localTransactionItem = makeItem({
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'local-tx-id' },
-          initialTransaction: { id: 'initial-tx-id' },
-        },
-      },
-    } as Partial<ActivityListItem>);
-    const keyringTransactionItem = makeItem({
-      hash: 'keyring-hash',
-      raw: {
-        type: 'keyringTransaction',
-        data: { id: 'keyring-tx-id' },
-      },
-    } as Partial<ActivityListItem>);
-    const apiTransactionItem = makeItem({
+    const hashedItem = makeItem({
       hash: '0xapi',
-      raw: {
-        type: 'apiEvmTransaction',
-        data: {},
-      },
-    } as Partial<ActivityListItem>);
+      timestamp: 10,
+      type: 'send',
+    });
     const fallbackItem = makeItem({
       hash: undefined,
       timestamp: 123,
@@ -365,26 +427,11 @@ describe('activity list helpers', () => {
       getGroupedActivityListItemKey({ type: 'date-header', date: 456 }, 0),
     ).toBe('date-header-456');
     expect(
-      getGroupedActivityListItemKey(
-        { type: 'item', item: localTransactionItem },
-        0,
-      ),
-    ).toBe('local-transaction-eip155:1-local-tx-id');
-    expect(
-      getGroupedActivityListItemKey(
-        { type: 'item', item: keyringTransactionItem },
-        0,
-      ),
-    ).toBe('keyring-transaction-eip155:1-keyring-tx-id');
-    expect(
-      getGroupedActivityListItemKey(
-        { type: 'item', item: apiTransactionItem },
-        0,
-      ),
-    ).toBe('api-evm-transaction-eip155:1-0xapi');
+      getGroupedActivityListItemKey({ type: 'item', item: hashedItem }, 0),
+    ).toBe('eip155:1:10:send:0xapi');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: fallbackItem }, 7),
-    ).toBe('eip155:1-contractInteraction-123-7');
+    ).toBe('eip155:1:123:contractInteraction:7');
   });
 
   it('uses chain id and row index in fallback keys', () => {
@@ -403,13 +450,13 @@ describe('activity list helpers', () => {
 
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: firstItem }, 0),
-    ).toBe('eip155:1-contractInteraction-123-0');
+    ).toBe('eip155:1:123:contractInteraction:0');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: firstItem }, 1),
-    ).toBe('eip155:1-contractInteraction-123-1');
+    ).toBe('eip155:1:123:contractInteraction:1');
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: secondItem }, 0),
-    ).toBe('eip155:137-contractInteraction-123-0');
+    ).toBe('eip155:137:123:contractInteraction:0');
   });
 });
 
@@ -460,6 +507,20 @@ describe('enrichTokenFromApi', () => {
     const result = enrichTokenFromApi(token, apiData);
     expect(result?.symbol).toBe('aUSDT');
     expect(result?.decimals).toBe(8);
+  });
+
+  it('preserves the amount while enriching missing token metadata', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '50',
+      assetId: USDT_ASSET_ID,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)).toStrictEqual({
+      ...token,
+      decimals: 6,
+      symbol: 'USDT',
+    });
   });
 
   it('preserves a zero-decimals value rather than treating it as missing', () => {

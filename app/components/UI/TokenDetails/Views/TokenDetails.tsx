@@ -4,7 +4,11 @@ import {
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import {
+  isCaipAssetType,
+  parseCaipAssetType,
+  type CaipAssetType,
+} from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -45,6 +49,8 @@ import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
@@ -74,8 +80,11 @@ import {
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
+import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -109,9 +118,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         | 'both'
         | 'buy'
         | 'swap'
-        | 'swap_earn'
-        | 'earn_buy'
-        | 'earn'
+        | 'money_swap'
+        | 'money'
         | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
@@ -190,7 +198,7 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (
-    shown: 'both' | 'buy' | 'swap' | 'swap_earn' | 'earn_buy' | 'earn' | null,
+    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null,
   ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
@@ -220,6 +228,10 @@ const TokenDetails: React.FC<{
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
+  const { variant: moneyFooterCtaVariant } = useABTest(
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
+  );
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -252,6 +264,31 @@ const TokenDetails: React.FC<{
         : null,
     [caip19AssetId],
   );
+
+  const walletAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const recurringBuyFeatureFlags = useSelector(
+    selectBridgeRecurringBuyFeatureFlags,
+  );
+  const isRecurringOrderLookupEnabled = useMemo(() => {
+    if (!recurringBuyFeatureFlags?.enabled || !caip19AssetId) {
+      return false;
+    }
+
+    try {
+      const { chainId } = parseCaipAssetType(caip19AssetId);
+      return recurringBuyFeatureFlags.enabledChainIds?.includes(chainId);
+    } catch {
+      return false;
+    }
+  }, [caip19AssetId, recurringBuyFeatureFlags]);
+  const { order: latestOpenRecurringOrder } =
+    useLatestOpenRecurringOrderForAsset({
+      walletAddress,
+      assetId: caip19AssetId,
+      enabled: isRecurringOrderLookupEnabled,
+    });
 
   const handleShare = useCallback(() => {
     if (!shareUrl) {
@@ -290,10 +327,6 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
-  useEffect(() => {
-    endTrace({ name: TraceName.AssetDetails });
-  }, []);
-
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
   );
@@ -315,7 +348,47 @@ const TokenDetails: React.FC<{
     setTimePeriod,
     chartNavigationButtons,
     hasInsufficientCoverage,
+    historicalPricesApiMs,
+    exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const hasEndedAssetDetailsTraceRef = useRef(false);
+
+  useEffect(() => {
+    if (hasEndedAssetDetailsTraceRef.current || isLoading) {
+      return;
+    }
+    hasEndedAssetDetailsTraceRef.current = true;
+    endTrace({
+      name: TraceName.AssetDetails,
+      data: {
+        ...(caip19AssetId ? { asset_id: caip19AssetId } : {}),
+        ...(historicalPricesApiMs !== undefined
+          ? { historical_prices_api_ms: historicalPricesApiMs }
+          : {}),
+        ...(exchangeRateApiMs !== undefined
+          ? { exchange_rate_api_ms: exchangeRateApiMs }
+          : {}),
+      },
+    });
+  }, [isLoading, caip19AssetId, historicalPricesApiMs, exchangeRateApiMs]);
+
+  // If the screen unmounts before price data finishes loading, close the
+  // pending span here instead of leaving it open. Otherwise it stays pending
+  // until the next `AssetDetails` trace is started (e.g. opening another
+  // asset), which silently finishes it as a normal completion with a
+  // duration measuring time-until-next-open and no API timing data,
+  // skewing Asset Details performance metrics.
+  useEffect(
+    () => () => {
+      if (hasEndedAssetDetailsTraceRef.current) {
+        return;
+      }
+      hasEndedAssetDetailsTraceRef.current = true;
+      endTrace({ name: TraceName.AssetDetails });
+    },
+    [],
+  );
 
   const currentPriceUsd = useMemo(() => {
     if (!Number.isFinite(currentPrice)) {
@@ -364,8 +437,9 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyAssetOverviewCtas.isFooterCtaLoading ||
-    moneyAssetOverviewCtas.isFooterCtaVisible;
+    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
+    (moneyAssetOverviewCtas.isFooterCtaLoading ||
+      moneyAssetOverviewCtas.isFooterCtaVisible);
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -469,7 +543,7 @@ const TokenDetails: React.FC<{
     [caip19AssetId, isNativeToken, hasBalanceValue],
   );
 
-  const moneyEarnCta = useMemo(
+  const moneyDepositCta = useMemo(
     () =>
       isMoneyFooterCtaActive
         ? {
@@ -549,6 +623,7 @@ const TokenDetails: React.FC<{
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
+        recurringOrder={latestOpenRecurringOrder}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -623,7 +698,7 @@ const TokenDetails: React.FC<{
         networkName={networkName}
         currentTokenBalance={balance}
         hasTokenBalance={hasBalanceValue}
-        moneyEarnCta={moneyEarnCta}
+        moneyDepositCta={moneyDepositCta}
         onStickyButtonsResolved={onStickyButtonsResolved}
         sourcePage="TokenDetailsView"
         useAmbientColor={useAmbientColor}
@@ -673,14 +748,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    | 'both'
-    | 'buy'
-    | 'swap'
-    | 'swap_earn'
-    | 'earn_buy'
-    | 'earn'
-    | null
-    | undefined
+    'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null | undefined
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);

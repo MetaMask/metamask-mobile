@@ -65,9 +65,15 @@ interface FiberNode {
     testID?: string;
     onPress?: (...args: unknown[]) => unknown;
     onChangeText?: (text: string) => void;
+    disabled?: boolean;
+    isDisabled?: boolean;
+    accessibilityState?: { disabled?: boolean };
     [key: string]: unknown;
   } | null;
   stateNode: {
+    canonical?: {
+      publicInstance?: FiberNode['stateNode'];
+    };
     scrollTo?: (opts: { y: number; animated: boolean }) => void;
     scrollToOffset?: (opts: { offset: number; animated: boolean }) => void;
     measure?: (
@@ -118,11 +124,11 @@ interface AgenticBridge {
   goBack: () => void;
   listAccounts: () => { id: string; address: string; name: string }[];
   getSelectedAccount: () => { id: string; address: string; name: string };
-  pressTestId: (testId: string) => {
+  pressTestId: (testId: string) => Promise<{
     ok: boolean;
     testId?: string;
     error?: string;
-  };
+  }>;
   pressText: (
     text: string,
     options?: { requiredTexts?: string[]; maxTexts?: number },
@@ -310,6 +316,39 @@ function walkFiber(
   return false;
 }
 
+/** Return true when React Navigation retains a fiber under a hidden route. */
+function isFiberInactive(fiber: FiberNode): boolean {
+  let current: FiberNode | null = fiber;
+  while (current) {
+    const props = current.memoizedProps;
+    const styles = Array.isArray(props?.style) ? props.style : [props?.style];
+    if (
+      props?.activityState === 0 ||
+      styles.some(
+        (style) =>
+          typeof style === 'object' &&
+          style !== null &&
+          'display' in style &&
+          style.display === 'none',
+      )
+    ) {
+      return true;
+    }
+    current = current.return;
+  }
+  return false;
+}
+
+/** Return true when a pressable fiber declares any supported disabled state. */
+function isFiberDisabled(fiber: FiberNode): boolean {
+  const props = fiber.memoizedProps;
+  return (
+    props?.disabled === true ||
+    props?.isDisabled === true ||
+    props?.accessibilityState?.disabled === true
+  );
+}
+
 /**
  * Find the first fiber node whose `testID` prop matches.
  */
@@ -319,13 +358,38 @@ function findFiberByTestId(
 ): FiberNode | null {
   let result: FiberNode | null = null;
   walkFiber(fiber, (f) => {
-    if (f.memoizedProps?.testID === testId) {
+    if (f.memoizedProps?.testID === testId && !isFiberInactive(f)) {
       result = f;
       return true;
     }
     return false;
   });
   return result;
+}
+
+/**
+ * Collapse matching fibers nested on the same component path. React forwards
+ * props through composite components, so one rendered control can expose the
+ * same testID and press handler on several ancestor/descendant fibers.
+ */
+function collapseNestedFibers(fibers: FiberNode[]): FiberNode[] {
+  const candidates = new Set(fibers);
+  return fibers.filter((fiber) => {
+    let ancestor = fiber.return;
+    while (ancestor) {
+      if (
+        candidates.has(ancestor) &&
+        ancestor.memoizedProps?.onPress === fiber.memoizedProps?.onPress &&
+        isFiberDisabled(ancestor) === isFiberDisabled(fiber) &&
+        findMeasurableStateNode(ancestor, false) ===
+          findMeasurableStateNode(fiber, false)
+      ) {
+        return false;
+      }
+      ancestor = ancestor.return;
+    }
+    return true;
+  });
 }
 
 /**
@@ -768,6 +832,23 @@ async function materializeFixtureAccounts(
  * traversed — useful when starting from a testId anchor whose siblings
  * are unrelated components.
  */
+function tryScrollStateNode(
+  stateNode: FiberNode['stateNode'],
+  offset: number,
+  animated: boolean,
+): boolean {
+  const publicInstance = stateNode?.canonical?.publicInstance ?? stateNode;
+  if (typeof publicInstance?.scrollTo === 'function') {
+    publicInstance.scrollTo({ y: offset, animated });
+    return true;
+  }
+  if (typeof publicInstance?.scrollToOffset === 'function') {
+    publicInstance.scrollToOffset({ offset, animated });
+    return true;
+  }
+  return false;
+}
+
 function tryScroll(
   start: FiberNode | null,
   offset: number,
@@ -776,17 +857,7 @@ function tryScroll(
 ): boolean {
   let current: FiberNode | null = start;
   while (current) {
-    const sn = current.stateNode;
-    if (sn) {
-      if (typeof sn.scrollTo === 'function') {
-        sn.scrollTo({ y: offset, animated });
-        return true;
-      }
-      if (typeof sn.scrollToOffset === 'function') {
-        sn.scrollToOffset({ offset, animated });
-        return true;
-      }
-    }
+    if (tryScrollStateNode(current.stateNode, offset, animated)) return true;
     if (tryScroll(current.child, offset, animated)) return true;
     current = walkSiblings ? current.sibling : null;
   }
@@ -816,7 +887,7 @@ function findUiTargetFiber(
 ): FiberNode | null {
   let result: FiberNode | null = null;
   walkFiber(rootFiber, (fiber) => {
-    if (targetMatches(fiber, options)) {
+    if (targetMatches(fiber, options) && !isFiberInactive(fiber)) {
       result = fiber;
       return true;
     }
@@ -827,20 +898,33 @@ function findUiTargetFiber(
 
 function findMeasurableStateNode(
   fiber: FiberNode | null,
+  includeAncestors = true,
 ): FiberNode['stateNode'] | null {
-  let result: FiberNode['stateNode'] | null = null;
-  walkFiber(fiber, (node) => {
-    const sn = node.stateNode;
-    if (
-      sn &&
-      (typeof sn.measureInWindow === 'function' ||
-        typeof sn.measure === 'function')
-    ) {
-      result = sn;
+  const resolveMeasurableStateNode = (node: FiberNode) => {
+    const stateNode = node.stateNode;
+    const publicInstance = stateNode?.canonical?.publicInstance ?? stateNode;
+    return publicInstance &&
+      (typeof publicInstance.measureInWindow === 'function' ||
+        typeof publicInstance.measure === 'function')
+      ? publicInstance
+      : null;
+  };
+
+  let result = fiber ? resolveMeasurableStateNode(fiber) : null;
+  walkFiber(fiber?.child ?? null, (node) => {
+    const descendant = resolveMeasurableStateNode(node);
+    if (descendant) {
+      result = descendant;
       return true;
     }
     return false;
   });
+
+  let ancestor = includeAncestors ? (fiber?.return ?? null) : null;
+  while (!result && ancestor) {
+    result = resolveMeasurableStateNode(ancestor);
+    ancestor = ancestor.return;
+  }
   return result;
 }
 
@@ -1142,25 +1226,65 @@ const AgenticService = {
         toAccountSummary(
           Engine.context.AccountsController.getSelectedAccount(),
         ),
-      pressTestId: (testId: string) => {
+      pressTestId: async (testId: string) => {
         try {
-          const found = walkFiberRoots((rootFiber) =>
-            walkFiber(rootFiber, (f) => {
+          const candidates: FiberNode[] = [];
+          walkFiberRoots((rootFiber) => {
+            walkFiber(rootFiber, (fiber) => {
               if (
-                f.memoizedProps?.testID === testId &&
-                typeof f.memoizedProps?.onPress === 'function'
+                fiber.memoizedProps?.testID === testId &&
+                typeof fiber.memoizedProps?.onPress === 'function' &&
+                !isFiberInactive(fiber)
               ) {
-                f.memoizedProps.onPress();
-                return true;
+                candidates.push(fiber);
               }
               return false;
-            }),
+            });
+            return false;
+          });
+          const distinctCandidates = collapseNestedFibers(candidates);
+          const viewport = Dimensions.get('window');
+          const measuredCandidates = await Promise.all(
+            distinctCandidates.map(async (fiber) => ({
+              fiber,
+              rect: await measureStateNode(
+                findMeasurableStateNode(fiber, false),
+              ),
+            })),
           );
-          if (found) return { ok: true, testId };
-          return {
-            ok: false,
-            error: `No component with testID="${testId}" found or no onPress prop`,
-          };
+          const visibleCandidate = measuredCandidates.find(({ rect }) =>
+            Boolean(
+              rect &&
+                rect.width > 0 &&
+                rect.height > 0 &&
+                rect.x < viewport.width &&
+                rect.y < viewport.height &&
+                rect.x + rect.width > 0 &&
+                rect.y + rect.height > 0,
+            ),
+          )?.fiber;
+          const candidate =
+            visibleCandidate ??
+            (distinctCandidates.length === 1 ? distinctCandidates[0] : null);
+          if (!candidate) {
+            return {
+              ok: false,
+              testId,
+              error:
+                distinctCandidates.length > 1
+                  ? `No visible component with testID="${testId}" found among duplicate matches`
+                  : `No component with testID="${testId}" found or no onPress prop`,
+            };
+          }
+          if (isFiberDisabled(candidate)) {
+            return {
+              ok: false,
+              testId,
+              error: `Component with testID="${testId}" is disabled`,
+            };
+          }
+          candidate.memoizedProps?.onPress?.();
+          return { ok: true, testId };
         } catch (e) {
           return { ok: false, error: String(e) };
         }
@@ -1175,7 +1299,10 @@ const AgenticService = {
           let bestTextCount = Number.POSITIVE_INFINITY;
           walkFiberRoots((rootFiber) =>
             walkFiber(rootFiber, (fiber) => {
-              if (typeof fiber.memoizedProps?.onPress !== 'function') {
+              if (
+                typeof fiber.memoizedProps?.onPress !== 'function' ||
+                isFiberInactive(fiber)
+              ) {
                 return false;
               }
               const texts = collectFiberTexts(fiber);
@@ -1197,6 +1324,13 @@ const AgenticService = {
           );
           const matched = bestMatch as FiberNode | null;
           if (matched && typeof matched.memoizedProps?.onPress === 'function') {
+            if (isFiberDisabled(matched)) {
+              return {
+                ok: false,
+                text,
+                error: `Pressable for text="${text}" is disabled`,
+              };
+            }
             matched.memoizedProps.onPress();
             return { ok: true, text };
           }
@@ -1225,7 +1359,15 @@ const AgenticService = {
             if (scrollTestId) {
               const anchor = findFiberByTestId(rootFiber, scrollTestId);
               if (!anchor) return false;
-              return tryScroll(anchor, offset, animated, false);
+              if (tryScroll(anchor, offset, animated, false)) return true;
+              let ancestor = anchor.return;
+              while (ancestor) {
+                if (tryScrollStateNode(ancestor.stateNode, offset, animated)) {
+                  return true;
+                }
+                ancestor = ancestor.return;
+              }
+              return false;
             }
             return tryScroll(rootFiber, offset, animated);
           });
@@ -1655,6 +1797,7 @@ export {
   findFiberByTestId,
   walkFiberRoots,
   tryScroll,
+  findMeasurableStateNode,
   toAccountSummary,
 };
 export type { FiberNode, FiberRoot, ReactDevToolsHook, AgenticBridge };

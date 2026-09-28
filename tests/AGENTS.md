@@ -23,7 +23,7 @@ Single agent index for **tests/**. Pointers only; details live in the canonical 
 ### E2E Tests (Appium smoke)
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
-- [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
+- [tests/docs/appium-smoke-testing.md](docs/appium-smoke-testing.md) — Appium smoke: main-e2e builds, `yarn appium-smoke:*`, local setup, CI.
 
 ## Dual-framework imports
 
@@ -39,7 +39,7 @@ Page objects use `AppiumElement` from `tests/framework`. Shared Appium helpers m
 ## Canonical Sources (read these, do not duplicate)
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
-- [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md) — Appium smoke tests: builds, run commands, local/CI setup.
+- [tests/docs/appium-smoke-testing.md](docs/appium-smoke-testing.md) — Appium smoke tests: builds, run commands, local/CI setup.
 - [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro; Appium smoke quick start.
 - [.github/guidelines/E2E_DECISION_TREE.md](../.github/guidelines/E2E_DECISION_TREE.md) — CI decision flow: when E2E runs, which labels gate it, AI test selection logic.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
@@ -59,7 +59,7 @@ Unit tests under `tests/` (e.g. framework tests): [docs/testing/unit-testing.md]
 
 ## Before working
 
-- **E2E** — Appium smoke (`tests/smoke-appium/`). Use `withFixtures` + `FixtureBuilder`; Page Object methods only; wait with Assertions (not fixed delays); selectors in `tests/selectors/` or page folder; import `Gestures` / `Assertions` / `Matchers` from `tests/framework/index.ts`. **Do not** import `FrameworkDetector` or `Playwright*` dual APIs. Runbook: [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md).
+- **E2E** — Appium smoke (`tests/smoke-appium/`). Use `withFixtures` + `FixtureBuilder`; Page Object methods only; wait with Assertions (not fixed delays); selectors in `tests/selectors/` or page folder; import `Gestures` / `Assertions` / `Matchers` from `tests/framework/index.ts`. **Do not** import `FrameworkDetector` or `Playwright*` dual APIs. Runbook: [tests/docs/appium-smoke-testing.md](docs/appium-smoke-testing.md).
 - **tests/framework** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Yarn only.
 - **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See [docs/testing/component-view-tests.md](../docs/testing/component-view-tests.md).
 - **integration tests** — Use `tests/integration/harnesses/<domain>.ts`; no test-local `jest.mock(...)`; run with `yarn jest -c jest.config.integration.js`. See [tests/integration/AGENTS.md](integration/AGENTS.md).

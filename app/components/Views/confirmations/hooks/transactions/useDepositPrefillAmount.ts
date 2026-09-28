@@ -29,6 +29,11 @@ import {
 import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
+import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -46,14 +51,26 @@ export interface DepositPrefillResult {
    * Limit-capped prefills must not go through the Max/percentage path.
    */
   isLimitCapped: boolean;
-  enabled: boolean;
-  isLoading: boolean;
-  hasPrefilled: boolean;
+  status: DepositPrefillStatus;
 }
 
-export function useDepositPrefillAmount(): DepositPrefillResult {
+export enum DepositPrefillStatus {
+  Disabled = 'disabled',
+  Loading = 'loading',
+  Prefilled = 'prefilled',
+  Skipped = 'skipped',
+}
+
+export function useDepositPrefillAmount({
+  autoSelectFiatPayment = false,
+}: {
+  autoSelectFiatPayment?: boolean;
+} = {}): DepositPrefillResult {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { amount } = useParams<{ amount?: string }>();
   const { payToken } = useTransactionPayToken();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const { availableTokens } = useTransactionPayAvailableTokens();
 
   const { prefilledAmount } = useSelector(selectMetaMaskPayFlags);
   const depositLimits = useSelector(selectDepositLimits);
@@ -77,9 +94,10 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 
   const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
@@ -91,6 +109,18 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   const enabled = useMemo(() => {
     if (!isMoneyAccountDeposit) {
       return prefilledAmountConfig.enabled;
+    }
+
+    // Explicit amounts use the same quote preparation flow without opting into
+    // balance-based prefill or changing card/add-mUSD funding behavior.
+    if (amount !== undefined) {
+      const explicitAmount = new BigNumber(amount);
+      return (
+        depositIntent !== 'card' &&
+        depositIntent !== 'addMusd' &&
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0)
+      );
     }
 
     const { variantName } = resolveABTestAssignment(
@@ -113,6 +143,7 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
       intent: depositIntent,
     });
   }, [
+    amount,
     depositIntent,
     isMoneyAccountDeposit,
     prefilledAmountConfig.enabled,
@@ -125,7 +156,11 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     selectAccountOverrideByTransactionId(state, transactionId),
   );
 
-  const balanceUsd = new BigNumber(payToken?.balanceUsd ?? 0).toNumber();
+  // `payToken.balanceUsd` is a one-time snapshot written when the token is
+  // selected, so it reads 0 until AccountTracker catches up. Skipping on that
+  // opened the keypad on a funded wallet, so read the reactive balance — the
+  // same source `updatePendingAmountPercentage` applies the amount from.
+  const { balanceUsd } = useTransactionPayBalance();
 
   const tokenKey = `${payToken?.address}:${payToken?.chainId}:${accountOverride}`;
   const [committedKey, setCommittedKey] = useState<string | null>(null);
@@ -134,6 +169,14 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     if (!enabled || !balanceUsd || balanceUsd <= 0 || !payToken) {
       return {
         prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
+
+    if (isMoneyAccountDeposit && amount !== undefined) {
+      return {
+        prefillAmount: amount,
         percentage: undefined,
         isLimitCapped: false,
       };
@@ -160,7 +203,15 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
       percentage: nextPercentage,
       isLimitCapped: capped,
     };
-  }, [enabled, balanceUsd, payToken, depositLimit, relayFixedSpread]);
+  }, [
+    amount,
+    isMoneyAccountDeposit,
+    enabled,
+    balanceUsd,
+    payToken,
+    depositLimit,
+    relayFixedSpread,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
@@ -180,16 +231,41 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   }, [enabled, tokenKey, prefillAmount, committedKey]);
 
   const hasPrefilled = committedKey === tokenKey;
-  // Keep the skeleton up until this token's amount is committed. Dropping it
-  // when `prefillAmount` is merely computed (before apply) flashes $0.00.
-  const isLoading = enabled && !hasPrefilled;
+  // Disabled tokens are excluded from automatic pay-token selection, so a
+  // funded-but-disabled token would leave this waiting on a pay token that can
+  // never arrive.
+  const hasFundedToken = availableTokens.some(
+    (token) => !token.disabled && (token.fiat?.balance ?? 0) > 0,
+  );
+  const isFiatPrefillSkipped =
+    autoSelectFiatPayment ||
+    (Boolean(fiatPayment?.selectedPaymentMethodId) && !payToken);
+  // `NaN` produces no prefill amount and is not `<= 0`, so treating it as a
+  // skip rather than waiting prevents an unbounded loader.
+  const hasUsableBalance = Number.isFinite(balanceUsd) && balanceUsd > 0;
+  const isSkipped =
+    enabled &&
+    (isFiatPrefillSkipped ||
+      (Boolean(payToken) && !hasUsableBalance) ||
+      (!payToken && !hasFundedToken));
+
+  let status = DepositPrefillStatus.Loading;
+  if (!enabled) {
+    status = DepositPrefillStatus.Disabled;
+  } else if (isSkipped) {
+    // Nothing can produce a prefill amount. Marking this skipped prevents
+    // CustomAmountInfo from rendering its loading state indefinitely.
+    status = DepositPrefillStatus.Skipped;
+  } else if (hasPrefilled) {
+    // Keep loading until this token's amount is committed. Treating a merely
+    // computed amount as ready flashes $0 before the amount is applied.
+    status = DepositPrefillStatus.Prefilled;
+  }
 
   return {
     prefillAmount,
     percentage,
     isLimitCapped,
-    isLoading,
-    hasPrefilled,
-    enabled,
+    status,
   };
 }

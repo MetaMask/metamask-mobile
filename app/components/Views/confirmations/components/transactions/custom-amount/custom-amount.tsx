@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated, View } from 'react-native';
+import { Animated, Pressable, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -10,6 +10,7 @@ import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateC
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
 import { Text } from '@metamask/design-system-react-native';
+import { formatAmountForDisplay } from '../../../utils/transaction-pay';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -37,7 +38,11 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
-  const formattedAmount = formatAmountWithLocaleSeparators(amountFiat);
+
+  const formattedAmount = formatAmountWithLocaleSeparators(
+    formatAmountForDisplay(amountFiat),
+  );
+
   const amountLength = formattedAmount.length;
 
   const { styles } = useStyles(styleSheet, {
@@ -54,7 +59,9 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
-    return <CustomAmountSkeleton />;
+    // Pressable so the user can always fall back to entering an amount, even
+    // when the prefill or quote being awaited never resolves.
+    return <CustomAmountSkeleton onPress={disabled ? undefined : onPress} />;
   }
 
   return (
@@ -79,7 +86,9 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   );
 });
 
-export function CustomAmountSkeleton() {
+export function CustomAmountSkeleton({
+  onPress,
+}: { onPress?: () => void } = {}) {
   const { styles } = useStyles(styleSheet, {
     amountLength: 1,
     hasAlert: false,
@@ -87,8 +96,13 @@ export function CustomAmountSkeleton() {
   });
 
   return (
-    <View style={styles.container} testID="custom-amount-skeleton">
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      style={styles.container}
+      testID="custom-amount-skeleton"
+    >
       <Skeleton height={70} width={80} />
-    </View>
+    </Pressable>
   );
 }

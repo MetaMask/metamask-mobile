@@ -68,4 +68,17 @@ describe('SwapsRecurringBuyConfirmButton', () => {
 
     expect(onPress).not.toHaveBeenCalled();
   });
+
+  it('uses the disabled style while loading even when disabled is false', () => {
+    const { getByTestId } = renderWithProvider(
+      <SwapsRecurringBuyConfirmButton
+        onPress={jest.fn()}
+        label="Preview order"
+        testID={TEST_ID}
+        loading
+      />,
+    );
+
+    expect(getByTestId(TEST_ID).props.accessibilityState?.disabled).toBe(true);
+  });
 });

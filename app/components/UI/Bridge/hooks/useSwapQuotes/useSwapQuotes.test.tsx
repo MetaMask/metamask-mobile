@@ -1,12 +1,16 @@
 import React from 'react';
-import { SwapQuotesProvider } from './SwapQuotesContext';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { useSwapQuotes } from './index';
+import { useBridgeSession } from '../useBridgeSession';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import {
   mockContext,
   runQuoteRequestCases,
 } from '../useBridgeQuoteRequest/runQuoteRequestCases';
 import { renderHook } from '@testing-library/react-native';
 import { FeatureId } from '@metamask/bridge-controller';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useSelector } from 'react-redux';
 import {
   selectDestAddress,
@@ -16,9 +20,29 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { TraceName } from '../../../../../util/trace';
 import { runQuoteDataCases } from '../useBridgeQuoteData/runQuoteDataCases';
 import type { BigNumber } from 'ethers';
+import type { DebounceSettings } from 'lodash';
+
+jest.mock('lodash', () => {
+  const actual = jest.requireActual<typeof import('lodash')>('lodash');
+
+  return {
+    ...actual,
+    debounce: ((
+      fn: (...args: unknown[]) => unknown,
+      wait?: number,
+      options?: DebounceSettings,
+    ) => {
+      const debounced = actual.debounce(fn, wait, options);
+      const flush = debounced.flush.bind(debounced);
+
+      debounced.flush = (() => flush() ?? fn()) as typeof debounced.flush;
+
+      return debounced;
+    }) as typeof actual.debounce,
+  };
+});
 
 const mockDispatch = jest.fn();
 
@@ -104,14 +128,40 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn().mockReturnValue('limit_order'),
+}));
+
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+jest.mock('../../Views/BridgeView/BridgeView.constants', () => {
+  const { FeatureId } = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...jest.requireActual('../../Views/BridgeView/BridgeView.constants'),
+    MIGRATED_FEATURE_IDS: [FeatureId.LIMIT_ORDER],
+  };
+});
+
+const mockUseBridgeSession = jest.mocked(useBridgeSession);
+
 const mockDebounceMs = 300;
 
 const Wrapper = ({
   children,
+  quoteRequestIndex,
+  quoteRequestCount,
+  featureId,
   ...options
 }: {
   children: React.ReactNode;
   latestSourceAtomicBalance?: BigNumber;
+  quoteRequestIndex?: number;
+  quoteRequestCount?: number;
+  featureId: FeatureId;
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -120,42 +170,102 @@ const Wrapper = ({
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
 
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    quoteParams: {
+      srcAmount: sourceAmount,
+      srcToken: sourceToken,
+      destToken,
+      slippage,
+      walletAddress,
+      destWalletAddress: destAddress,
+    },
+    latestSourceBalance:
+      'latestSourceAtomicBalance' in options
+        ? {
+            atomicBalance: options.latestSourceAtomicBalance,
+            displayBalance: '',
+          }
+        : undefined,
+  });
+
   return (
-    <SwapQuotesProvider
-      featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
-      traceName={TraceName.SwapQuoteFetch}
-      debounceWait={mockDebounceMs}
-      quoteParams={{
-        srcAmount: sourceAmount,
-        srcToken: sourceToken,
-        destToken,
-        slippage,
-        walletAddress,
-        destWalletAddress: destAddress,
-      }}
-      {...('latestSourceAtomicBalance' in options
-        ? { latestSourceAtomicBalance: options.latestSourceAtomicBalance }
-        : {})}
-    >
-      {children}
-    </SwapQuotesProvider>
+    <SwapsFeatureIdProvider featureId={featureId}>
+      <SwapQuotesProvider>{children}</SwapQuotesProvider>
+    </SwapsFeatureIdProvider>
   );
 };
+
+describe('useSwapQuotes', () => {
+  it('returns null when rendered outside SwapQuotesProvider', () => {
+    const { result } = renderHook(() => useSwapQuotes());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when the feature is not a migrated quote source', () => {
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when the feature is migrated but SwapQuotesProvider is missing', () => {
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
+
+    expect(result.current).toBeNull();
+  });
+});
 
 runQuoteRequestCases({
   name: 'useQuoteRequest',
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
-    renderHook(() => useSwapQuotes().debouncedUpdateQuoteParams, {
-      wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
-    }),
+    // @ts-expect-error - this returns a defined update function
+    renderHook(
+      () => {
+        const value = useSwapQuotes();
+        return value?.debouncedUpdateQuoteParams;
+      },
+      {
+        wrapper: ({ children }) => (
+          <Wrapper {...options} featureId={FeatureId.LIMIT_ORDER}>
+            {children}
+          </Wrapper>
+        ),
+      },
+    ),
+  featureId: FeatureId.LIMIT_ORDER,
 });
 
 runQuoteDataCases({
   name: 'useQuoteData',
   mockDispatch,
   renderHook: (options) =>
+    // @ts-expect-error - this returns quote data
     renderHook(() => useSwapQuotes(), {
-      wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
+      wrapper: ({ children }) => (
+        <Wrapper
+          {...options}
+          featureId={options?.featureId ?? FeatureId.LIMIT_ORDER}
+        >
+          {children}
+        </Wrapper>
+      ),
     }),
+  featureId: FeatureId.LIMIT_ORDER,
 });

@@ -58,6 +58,10 @@ import {
 } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import {
+  isTokenInOffHoursAt,
+  isTokenTradableAt,
+} from '../../../../components/UI/Bridge/hooks/useRWAToken';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
@@ -69,6 +73,7 @@ import {
   type RecurringPriceRange,
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
+import type { LimitOrderConfirmationMarketComparison } from '../../../../components/UI/Bridge/components/LimitOrderConfirmationModal/types';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -129,6 +134,20 @@ export interface BridgeState {
   // Recurring
   recurring: RecurringState;
 
+  // Limit orders
+  /**
+   * Cost tolerance in % applied to limit orders.
+   * `undefined` means the Auto option is in effect.
+   */
+  limitOrderCostTolerance: string | undefined;
+  /**
+   * Live market-comparison label for the in-progress limit order (e.g.
+   * "(-5% from market)"). `undefined` while at market or before a price is available.
+   */
+  limitOrderMarketComparison:
+    | LimitOrderConfirmationMarketComparison
+    | undefined;
+
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: CaipChainId | undefined;
 }
@@ -166,6 +185,10 @@ export const initialState: BridgeState = {
 
   // Recurring
   recurring: initialRecurringState,
+
+  // Limit orders
+  limitOrderCostTolerance: undefined,
+  limitOrderMarketComparison: undefined,
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,
@@ -314,6 +337,18 @@ const slice = createSlice({
     ) => {
       state.slippage = action.payload;
       state.isSlippageUserOverride = true;
+    },
+    setLimitOrderCostTolerance: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.limitOrderCostTolerance = action.payload;
+    },
+    setLimitOrderMarketComparison: (
+      state,
+      action: PayloadAction<LimitOrderConfirmationMarketComparison | undefined>,
+    ) => {
+      state.limitOrderMarketComparison = action.payload;
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
@@ -795,6 +830,16 @@ export const selectIsSlippageUserOverride = createSelector(
   (bridgeState) => bridgeState.isSlippageUserOverride,
 );
 
+export const selectLimitOrderCostTolerance = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderCostTolerance,
+);
+
+export const selectLimitOrderMarketComparison = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderMarketComparison,
+);
+
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -1048,6 +1093,59 @@ export const selectIsRwaSwap = createSelector(
       isStockRwaBridgeToken(destToken, isRwaEnabled)),
 );
 
+/**
+ * True when at least one stock-RWA leg is fully closed — i.e. neither in regular market
+ * hours nor in an off-hours window — at the given timestamp.
+ *
+ * Accepts an optional `nowMs` parameter so callers can inject the current time
+ * (useful for testing without mocking `Date`). Defaults to `Date.now()`.
+ *
+ * NOTE: Because this selector calls `nowMs` at evaluation time it is NOT memoised
+ * via `createSelector` — market status changes continuously and must be re-checked
+ * on each render cycle that cares about it.
+ */
+export const selectIsStockMarketClosed = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const isFullyClosed = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    !isTokenTradableAt(token, isRwaEnabled, nowMs);
+
+  return isFullyClosed(sourceToken) || isFullyClosed(destToken);
+};
+
+/**
+ * True when the current swap is tradable only via an off-hours window — meaning at least
+ * one leg is a stock RWA token that is in off-hours but NOT in regular market hours, AND
+ * no leg is fully closed.
+ *
+ * Off-hours and market-closed are mutually exclusive: if any leg is fully closed this
+ * returns `false`.
+ *
+ * Accepts an optional `nowMs` parameter (same rationale as `selectIsStockMarketClosed`).
+ */
+export const selectIsInOffHoursTrading = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  if (selectIsStockMarketClosed(state, nowMs)) return false;
+
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const inOffHours = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    isTokenInOffHoursAt(token, isRwaEnabled, nowMs);
+
+  return inOffHours(sourceToken) || inOffHours(destToken);
+};
+
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
@@ -1176,6 +1274,8 @@ export const {
   setSelectedDestChainId,
   setSlippage,
   setSlippageUserOverride,
+  setLimitOrderCostTolerance,
+  setLimitOrderMarketComparison,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,

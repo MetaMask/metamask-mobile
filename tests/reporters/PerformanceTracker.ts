@@ -7,6 +7,8 @@ interface Timer {
   id: string;
   threshold: number | null;
   baseThreshold: number | null;
+  /** Defaults to true when omitted. */
+  includeInTotal?: boolean;
   getDuration(): number | null;
   getDurationInSeconds(): number;
   hasThreshold(): boolean;
@@ -116,6 +118,10 @@ export class PerformanceTracker {
             : null,
         };
         metrics.steps.push(stepObject);
+
+        if (timer.includeInTotal === false) {
+          continue;
+        }
 
         totalSeconds += durationInSeconds;
 

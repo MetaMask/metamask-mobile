@@ -325,7 +325,6 @@ describe('PerpsRecentActivityList', () => {
         expect.objectContaining({
           chainId: 'eip155:42161',
           txIdentifier: mockTransactions[0].id,
-          preloadKey: expect.any(String),
         }),
       );
     });
@@ -341,23 +340,7 @@ describe('PerpsRecentActivityList', () => {
         expect.objectContaining({
           chainId: 'eip155:42161',
           txIdentifier: mockTransactions[1].id,
-          preloadKey: expect.any(String),
         }),
-      );
-    });
-
-    it('navigates to the legacy position screen when redesign is disabled', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => false);
-
-      render(<PerpsRecentActivityList transactions={mockTransactions} />);
-
-      const transactionItem = screen.getByText('Opened long');
-      fireEvent.press(transactionItem.parent?.parent || transactionItem);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        { transaction: mockTransactions[0] },
       );
     });
 

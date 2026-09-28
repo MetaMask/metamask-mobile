@@ -40,13 +40,13 @@ function PriceRangeValue({
   maxLabel,
   shouldStack,
 }: {
-  minLabel: string;
-  maxLabel: string;
+  minLabel?: string;
+  maxLabel?: string;
   shouldStack: boolean;
 }) {
-  const oneLineLabel = `${minLabel} - ${maxLabel}`;
+  const oneLineLabel = [minLabel, maxLabel].filter(Boolean).join(' - ');
 
-  if (shouldStack) {
+  if (shouldStack && minLabel && maxLabel) {
     return (
       <Box
         testID={PriceRangeRowSelectorsIDs.VALUE}
@@ -100,7 +100,7 @@ const PriceRangeRow = ({
   const [rowWidth, setRowWidth] = useState(0);
   const [oneLineWidth, setOneLineWidth] = useState(0);
   const oneLineLabel =
-    minLabel && maxLabel ? `${minLabel} - ${maxLabel}` : undefined;
+    [minLabel, maxLabel].filter(Boolean).join(' - ') || undefined;
 
   useEffect(() => {
     setOneLineWidth(0);
@@ -181,7 +181,7 @@ const PriceRangeRow = ({
           gap={1}
           twClassName="max-w-[50%] shrink"
         >
-          {minLabel && maxLabel && token ? (
+          {oneLineLabel && token ? (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}

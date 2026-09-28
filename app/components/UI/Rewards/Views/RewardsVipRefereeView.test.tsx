@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { buildVipPrioritySupportUrl } from '../../../../constants/urls';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
+import { selectIsVipReferee } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
@@ -277,7 +278,6 @@ const getRewardsSelectorState = () => ({
     appTheme: 'dark',
   },
   rewards: {
-    isVipReferee: mockIsVipReferee,
     vipRefereeSplashAccepted: mockVipRefereeSplashAccepted,
   },
 });
@@ -300,6 +300,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return mockAccountAddress;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,
@@ -495,6 +496,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return undefined;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,
@@ -593,6 +595,7 @@ describe('RewardsVipRefereeView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return undefined;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      if (selector === selectIsVipReferee) return mockIsVipReferee;
       return (
         selector as (
           state: ReturnType<typeof getRewardsSelectorState>,

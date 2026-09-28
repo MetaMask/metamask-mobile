@@ -105,18 +105,6 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
   },
 );
 
-/** Temporary flag: remote value is a boolean only. */
-export const selectMoneyActivityMockDataEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remote = remoteFeatureFlags?.moneyActivityMockDataEnabled;
-    if (typeof remote === 'boolean') {
-      return remote;
-    }
-    return process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED === 'true';
-  },
-);
-
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
@@ -267,6 +255,24 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Selects whether the card education screen plays the Rive cards entrance.
+ * Defaults to off (opt-in) so the animation stays disabled unless the remote
+ * flag or MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED turns it on; the static
+ * image is used otherwise, when reduce-motion is enabled, or when Rive fails
+ * to load.
+ */
+export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local =
+      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

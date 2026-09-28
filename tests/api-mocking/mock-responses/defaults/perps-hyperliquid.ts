@@ -14,6 +14,25 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       response: [],
     },
     {
+      // v3 perpetuals (global snapshot) – return a valid empty snapshot so the
+      // controller does not error and withFixtures cleanup does not fail.
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v3\/perpetuals/,
+      responseCode: 200,
+      response: { schemaVersion: 3, markets: [] },
+    },
+    {
+      // Perps Home / Market Details fetch this on mount. Hide the banner so
+      // smoke flows are unchanged, and so withFixtures does not fail cleanup.
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v1\/outreach/,
+      responseCode: 200,
+      response: {
+        show: false,
+        banner: null,
+      },
+    },
+    {
       // Generic E2E fixtures use the deterministic provider mocks below.
       urlEndpoint:
         /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v2\/perpetuals/,
@@ -23,9 +42,19 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
   ],
   POST: [
     {
+      // Must include statuses — HyperLiquidProvider reads resting/filled oid.
+      // Bare `{ status: 'ok' }` surfaces as Order failed in the UI.
       urlEndpoint: hyperliquidExchangeEndpoint,
       responseCode: 200,
-      response: { status: 'ok' },
+      response: {
+        status: 'ok',
+        response: {
+          type: 'order',
+          data: {
+            statuses: [{ resting: { oid: 100001 } }],
+          },
+        },
+      },
       priority: hyperliquidMockPriority,
     },
     {
@@ -112,6 +141,16 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       ignoreFields: ['user'],
       responseCode: 200,
       response: JSON.stringify('unifiedAccount'),
+      priority: hyperliquidMockPriority,
+    },
+    // Catch-all for info POSTs whose `type` is not listed above. Without this,
+    // findMatchingPostEvent finds no body match and no no-body fallback, so the
+    // request is recorded as live and fixture cleanup fails even when the test
+    // assertions already passed (permission / getSession Appium smokes).
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
+      responseCode: 200,
+      response: {},
       priority: hyperliquidMockPriority,
     },
   ],

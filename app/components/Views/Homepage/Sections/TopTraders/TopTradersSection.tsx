@@ -44,6 +44,17 @@ import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
+import {
+  LEADERBOARD_LANDING_FEED_AB_KEY,
+  LEADERBOARD_LANDING_FEED_VARIANTS,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../SocialLeaderboard/SocialV0View/abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../SocialLeaderboard/SocialV1View/abTestConfig';
+import { useABTest } from '../../../../../hooks/useABTest';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -210,16 +221,38 @@ const TopTradersSection = forwardRef<
     return items;
   }, [traders, showViewMore]);
 
+  // TSA-1042: where this entry point lands inside Follow Trading. Exposure is
+  // emitted by the destination once it receives these params, so rendering the
+  // homepage carousel does not count a user as exposed.
+  const { variant: bundleVariant } = useABTest(
+    SOCIAL_V1_AB_KEY,
+    SOCIAL_V1_VARIANTS,
+    { trackExposure: false },
+  );
+  const { variant: landingVariant } = useABTest(
+    LEADERBOARD_LANDING_FEED_AB_KEY,
+    LEADERBOARD_LANDING_FEED_VARIANTS,
+    { trackExposure: false },
+  );
+
   const handleViewAll = useCallback(() => {
+    if (bundleVariant.useSocialV1) {
+      navigateToSocialLeaderboard(navigation.navigate, {
+        source: 'home_carousel',
+      });
+      return;
+    }
     navigateToSocialLeaderboard(navigation.navigate, {
       source: 'home_carousel',
+      landingTab: landingVariant.landingTab,
+      landingFeedAudience: landingVariant.landingFeedAudience,
     });
-  }, [navigation]);
+  }, [navigation, bundleVariant, landingVariant]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,

@@ -14,7 +14,10 @@ import { useEnableMarketingConsent } from '../../../../util/notifications/hooks/
 import { usePushPermissionNotificationSetup } from '../../../../util/notifications/hooks/usePushPermissionNotificationSetup';
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
-import { isPushPermissionPromptable } from '../../../../util/notifications/services/NotificationService';
+import NotificationService, {
+  canOsPromptForPushPermission,
+  isPushPermissionPromptable,
+} from '../../../../util/notifications/services/NotificationService';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -177,18 +180,25 @@ const PushNotificationOnboarding = ({
 
   const handlePushPermissionYes = useCallback(async () => {
     let nativePermissionEnabled = nativeOsPermissionEnabled === true;
+    // Skip the "notifications are off" toast when we just sent the user to Settings.
+    let didRouteToSystemSettings = false;
     trackPrePromptButtonClicked('push_permission', 'yes');
     try {
       // Accepting push notifications also opts the user into marketing consent.
       await enableMarketingConsent();
 
       if (!nativePermissionEnabled) {
-        // A "denied" OS state means the dialog will not be shown again
-        // (iOS after any denial; Android 13+ after permanent denial;
-        // Android <13 when the user disabled notifications in Settings).
-        // Skip the request and treat it as denied in all those cases.
+        // iOS denied is not promptable. Android treats any not-granted state as
+        // promptable; Android < 13 is handled below via canOsPromptForPushPermission.
         const isPromptable = await isPushPermissionPromptable();
-        if (isPromptable) {
+
+        if (isPromptable && !canOsPromptForPushPermission()) {
+          // No OS dialog exists (Android < 13). Don't call requestPushPermission:
+          // it would log a deny the user never gave, and mark the OS prompt as
+          // requested so the wallet-home checklist drops its notifications step.
+          didRouteToSystemSettings = true;
+          await NotificationService.requestPushNotificationsPermission();
+        } else if (isPromptable) {
           trackOsPromptShown('push_permission');
           nativePermissionEnabled = await requestPushPermission();
           trackOsPromptResponse(
@@ -200,7 +210,9 @@ const PushNotificationOnboarding = ({
       identifyPushNotificationsEnabled(nativePermissionEnabled).catch(
         () => undefined,
       );
-      showPushPermissionToast(nativePermissionEnabled);
+      if (!didRouteToSystemSettings) {
+        showPushPermissionToast(nativePermissionEnabled);
+      }
     } finally {
       dismissPrePrompt();
       onComplete('engage');
@@ -238,9 +250,16 @@ const PushNotificationOnboarding = ({
     trackPrePromptButtonClicked('marketing_consent', 'confirm');
     enableMarketingConsent().catch(() => undefined);
     showMarketingConsentToast(true);
+    // This variant is shown only when OS permission is already granted, so no
+    // OS prompt runs. Still initialize AUS notification preferences here —
+    // otherwise later settings toggles no-op and Braze never gets notifications_*
+    // attributes. Android < 13 with notifications on only ever sees this sheet.
+    enableNotificationsInBackground(nativeOsPermissionEnabled === true);
   }, [
     dismissPrePrompt,
     enableMarketingConsent,
+    enableNotificationsInBackground,
+    nativeOsPermissionEnabled,
     onComplete,
     showMarketingConsentToast,
     trackPrePromptButtonClicked,

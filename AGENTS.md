@@ -99,17 +99,17 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
-**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set installed via `yarn skills` (Cursor / Codex / Claude harnesses):
+**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
 
 | Guide                                                                                      | Scope                                                                        |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
 | [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Appium smoke — Page Objects, gestures                                        |
-| [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
+| [`tests/docs/appium-smoke-testing.md`](tests/docs/appium-smoke-testing.md)                 | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
 | [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
 | [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
 
-General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set installed via `yarn skills` (see `.agents/skills/mms-*` after sync).
+General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set (see `.agents/skills/mms-*`). The base skills arrive with `yarn install`; `yarn skills` adds the rest.
 
 ### Quick Reference
 

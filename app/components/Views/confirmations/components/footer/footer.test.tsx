@@ -28,7 +28,10 @@ import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useIsTransactionPaySubmitReady,
+} from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-questionnaire/scam-questionnaire.constants';
@@ -109,9 +112,14 @@ const mockAlerts = [
 ];
 
 describe('Footer', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
+  );
+  const useIsTransactionPaySubmitReadyMock = jest.mocked(
+    useIsTransactionPaySubmitReady,
   );
   const useIsTransactionPayAmountStaleMock = jest.mocked(
     useIsTransactionPayAmountStale,
@@ -149,6 +157,7 @@ describe('Footer', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(true);
     useIsTransactionPayAmountStaleMock.mockReturnValue(false);
     useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
   });
@@ -349,7 +358,73 @@ describe('Footer', () => {
     ).not.toBeDisabled();
   });
 
-  it('hides footer by default for moneyAccountDeposit transaction type', () => {
+  it('disables confirm button when a predict deposit is not submit-ready', () => {
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(false);
+
+    const predictDepositConfirmation = {
+      chainId: '0x89',
+      id: 'predict-deposit-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.predictDeposit,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(predictDepositConfirmation),
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('keeps confirm button enabled when a predict deposit is submit-ready', () => {
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(true);
+
+    const predictDepositConfirmation = {
+      chainId: '0x89',
+      id: 'predict-deposit-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.predictDeposit,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(predictDepositConfirmation),
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('does not gate confirm on pay submit readiness for non-pay-token transactions', () => {
+    useIsTransactionPaySubmitReadyMock.mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])('hides footer by default for %s transaction type', (transactionType) => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
@@ -377,7 +452,7 @@ describe('Footer', () => {
         to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         value: '0x0',
       },
-      type: TransactionType.moneyAccountDeposit,
+      type: transactionType,
     } as unknown as TransactionMeta;
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

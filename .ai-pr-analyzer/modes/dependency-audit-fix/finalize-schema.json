@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "properties": {
+    "fixes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "advisory_id": {
+            "type": "string",
+            "description": "Must exactly match an advisory_id from .ai-pr-analyzer/dependency-audit-advisories.json"
+          },
+          "package": {
+            "type": "string",
+            "description": "Must exactly match the package name for that advisory_id"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "bump-dependency",
+              "add-resolution",
+              "remove-resolution",
+              "no-safe-fix"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "description": "For bump-dependency/add-resolution: the version or semver range to pin `package` to (e.g. '^4.17.21'). For remove-resolution: the exact key currently in package.json's resolutions to delete. Empty string for no-safe-fix."
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "One or two sentences explaining the decision"
+          }
+        },
+        "required": ["advisory_id", "package", "action", "target", "reasoning"]
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Overall confidence in these proposals (0-100)"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Summary of what was investigated across all advisories"
+    }
+  },
+  "required": ["fixes", "confidence", "reasoning"]
+}

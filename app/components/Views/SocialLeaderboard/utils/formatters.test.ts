@@ -10,7 +10,38 @@ import {
   formatTradeTime,
   formatTradeDayLabel,
   formatFeedTimestamp,
+  formatFeedPostAge,
+  formatAbbreviatedCount,
+  formatFollowerCountLabel,
+  formatHoldDuration,
+  EM_DASH,
 } from './formatters';
+
+describe('formatAbbreviatedCount', () => {
+  it('returns an em dash for nullish or non-finite values', () => {
+    expect(formatAbbreviatedCount(null)).toBe(EM_DASH);
+    expect(formatAbbreviatedCount(undefined)).toBe(EM_DASH);
+    expect(formatAbbreviatedCount(Number.NaN)).toBe(EM_DASH);
+  });
+
+  it('keeps values under one thousand as grouped digits', () => {
+    expect(formatAbbreviatedCount(999)).toBe('999');
+  });
+
+  it('abbreviates thousands with one decimal and a K suffix', () => {
+    expect(formatAbbreviatedCount(65700)).toBe('65.7K');
+  });
+});
+
+describe('formatFollowerCountLabel', () => {
+  it('uses the singular follower string for a count of one', () => {
+    expect(formatFollowerCountLabel(1)).toBe('1 follower');
+  });
+
+  it('uses the abbreviated plural follower string for large counts', () => {
+    expect(formatFollowerCountLabel(65700)).toBe('65.7K followers');
+  });
+});
 
 describe('formatUsd', () => {
   it('formats positive USD values with two decimal places', () => {
@@ -302,8 +333,15 @@ const DAY = 24 * HOUR;
 describe('formatFeedTimestamp', () => {
   const now = new Date('2026-07-09T12:00:00Z').getTime();
 
-  it('formats seconds within the last minute', () => {
-    expect(formatFeedTimestamp(now - 21 * SECOND, now)).toBe('21s');
+  it('renders "Just now" within the last minute', () => {
+    expect(formatFeedTimestamp(now - 21 * SECOND, now)).toBe('Just now');
+  });
+
+  // The whole sub-minute range collapses to one label, so pin the exact
+  // handover to minutes: anything under 60s reads "Just now", 60s reads "1m".
+  it('switches from "Just now" to minutes at the one-minute boundary', () => {
+    expect(formatFeedTimestamp(now - 59 * SECOND, now)).toBe('Just now');
+    expect(formatFeedTimestamp(now - MINUTE, now)).toBe('1m');
   });
 
   it('formats minutes within the last hour', () => {
@@ -314,13 +352,86 @@ describe('formatFeedTimestamp', () => {
     expect(formatFeedTimestamp(now - 3 * HOUR, now)).toBe('3h');
   });
 
-  it('clamps future timestamps to 0 seconds', () => {
-    expect(formatFeedTimestamp(now + 5 * SECOND, now)).toBe('0s');
+  it('renders "Just now" for timestamps slightly in the future', () => {
+    expect(formatFeedTimestamp(now + 5 * SECOND, now)).toBe('Just now');
   });
 
   it('formats an absolute clock time for timestamps older than 24h', () => {
     const result = formatFeedTimestamp(now - DAY - HOUR, now);
     expect(result).toMatch(/^\d{1,2}:\d{2} (am|pm)$/);
+  });
+});
+
+describe('formatHoldDuration', () => {
+  it('formats a sub-hour hold in minutes', () => {
+    expect(formatHoldDuration(45 * MINUTE)).toBe('45m');
+  });
+
+  it('rounds a sub-minute hold up to one minute', () => {
+    expect(formatHoldDuration(20 * SECOND)).toBe('1m');
+  });
+
+  it('formats a sub-day hold in whole hours', () => {
+    expect(formatHoldDuration(8 * HOUR)).toBe('8h');
+  });
+
+  // `1d` alone reads the same for 24 hours and for 47, so multi-day holds
+  // carry their remaining hours.
+  it('carries the remaining hours on a multi-day hold', () => {
+    expect(formatHoldDuration(DAY + 20 * HOUR)).toBe('1d 20h');
+  });
+
+  it('drops the hours on a whole number of days', () => {
+    expect(formatHoldDuration(6 * DAY)).toBe('6d');
+  });
+
+  it('returns an em dash for a non-positive duration', () => {
+    expect(formatHoldDuration(0)).toBe('—');
+    expect(formatHoldDuration(-HOUR)).toBe('—');
+  });
+});
+
+describe('formatFeedPostAge', () => {
+  const now = new Date('2026-07-09T12:00:00Z').getTime();
+
+  it('renders "Just now" within the last minute', () => {
+    expect(formatFeedPostAge(now - 21 * SECOND, now)).toBe('Just now');
+  });
+
+  it('switches from "Just now" to minutes at the one-minute boundary', () => {
+    expect(formatFeedPostAge(now - 59 * SECOND, now)).toBe('Just now');
+    expect(formatFeedPostAge(now - MINUTE, now)).toBe('1 min ago');
+  });
+
+  it('spells out minutes within the last hour', () => {
+    expect(formatFeedPostAge(now - 40 * MINUTE, now)).toBe('40 min ago');
+  });
+
+  it('switches to hours at the one-hour boundary', () => {
+    expect(formatFeedPostAge(now - 59 * MINUTE, now)).toBe('59 min ago');
+    expect(formatFeedPostAge(now - HOUR, now)).toBe('1 hr ago');
+  });
+
+  it('spells out hours within the last day', () => {
+    expect(formatFeedPostAge(now - 3 * HOUR, now)).toBe('3 hr ago');
+  });
+
+  // Unlike the compact V0 row, posts a day or more old stay relative rather
+  // than collapsing to a clock time.
+  it('switches to days at the one-day boundary', () => {
+    expect(formatFeedPostAge(now - 23 * HOUR, now)).toBe('23 hr ago');
+    expect(formatFeedPostAge(now - DAY, now)).toBe('1 d ago');
+    expect(formatFeedPostAge(now - 9 * DAY, now)).toBe('9 d ago');
+  });
+
+  it('absorbs clock skew as "Just now"', () => {
+    expect(formatFeedPostAge(now + 5 * SECOND, now)).toBe('Just now');
+  });
+
+  it('accepts second-precision timestamps', () => {
+    expect(formatFeedPostAge(Math.floor((now - 40 * MINUTE) / 1000), now)).toBe(
+      '40 min ago',
+    );
   });
 });
 

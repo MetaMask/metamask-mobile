@@ -21,27 +21,28 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
-  type Position,
-} from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
 import {
-  formatPercentage,
+  getPerpsCrossLiquidationInfoSelector,
+  getPerpsCrossMarginTagSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
+import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
+import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
+import {
   formatPerpsFiat,
-  formatPerpsPrice,
-  formatPnl,
-  formatPositionSize,
+  formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
+import { getPerpsPositionHeaderDisplay } from '../../../utils/positionDisplay';
 
 interface PerpsProPositionCardProps {
   position: Position;
@@ -58,12 +59,6 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-const ACTION_BUTTON_CLASS_NAME = 'flex-1';
-const ACTION_BUTTON_TEXT_PROPS = {
-  variant: TextVariant.BodySm,
-  fontWeight: FontWeight.Medium,
-};
-
 interface KeyValueItemProps {
   label: string;
   value: string;
@@ -75,6 +70,8 @@ interface KeyValueItemProps {
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
   showEditIcon?: boolean;
+  /** Test ID for the value row, so agentic recipes can read the rendered value. */
+  valueTestID?: string;
 }
 
 const KeyValueItem = ({
@@ -88,6 +85,7 @@ const KeyValueItem = ({
   valuePressTestID,
   valuePressAccessibilityLabel,
   showEditIcon = false,
+  valueTestID,
 }: KeyValueItemProps) => {
   const valueContent = (
     <>
@@ -97,6 +95,7 @@ const KeyValueItem = ({
         color={isHidden ? TextColor.TextDefault : valueColor}
         isHidden={isHidden}
         length={SensitiveTextLength.Short}
+        twClassName="shrink"
       >
         {value}
       </SensitiveText>
@@ -128,6 +127,7 @@ const KeyValueItem = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
+            testID={valueTestID}
           >
             {valueContent}
           </Box>
@@ -137,6 +137,7 @@ const KeyValueItem = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
+          testID={valueTestID}
         >
           {valueContent}
         </Box>
@@ -167,18 +168,18 @@ const PerpsProPositionCard = ({
   isEditMarginDisabled = false,
 }: PerpsProPositionCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const displaySymbol = getPerpsDisplaySymbol(position.symbol);
-  const sizeNum = parseFloat(position.size);
-  const isLong = sizeNum >= 0;
-  const absoluteSize = Math.abs(sizeNum);
-
-  const pnlNum = parseFloat(position.unrealizedPnl);
-  const roe = (parseFloat(position.returnOnEquity) || 0) * 100;
-
-  const directionLabel = isLong
-    ? strings('perps.market.long')
-    : strings('perps.market.short');
-  const directionSeverity = isLong ? TagSeverity.Success : TagSeverity.Danger;
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
+  const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
+  const {
+    displaySymbol,
+    absoluteSize,
+    directionLabel,
+    directionSeverity,
+    description,
+    pnlText,
+    roeText,
+    pnlColor,
+  } = getPerpsPositionHeaderDisplay(position);
 
   const marginTypeLabel =
     position.leverage.type === 'isolated'
@@ -199,28 +200,44 @@ const PerpsProPositionCard = ({
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
+  // How far the live mark price sits from liquidation. Same formula and
+  // precision as the Lite card, so both modes report the same percentage for
+  // the same position.
+  const liqPriceNum =
+    position.liquidationPrice != null
+      ? parseFloat(String(position.liquidationPrice))
+      : NaN;
+  const canShowDistance =
+    liqPriceNum > 0 && Number.isFinite(markPriceNum) && markPriceNum > 0;
+  const liquidationDistanceSuffix = canShowDistance
+    ? ` (${(
+        (Math.abs(markPriceNum - liqPriceNum) / markPriceNum) *
+        100
+      ).toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%)`
+    : '';
+
   const liqPriceDisplay =
     position.liquidationPrice != null
-      ? formatPerpsFiat(position.liquidationPrice, {
+      ? `${formatPerpsFiat(position.liquidationPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
-        })
-      : PERPS_CONSTANTS.FallbackPriceDisplay;
+        })}${liquidationDistanceSuffix}`
+      : isCross
+        ? strings('perps.cross_position.no_liquidation_price')
+        : PERPS_CONSTANTS.FallbackPriceDisplay;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
 
-  const hasTakeProfit =
-    Boolean(position.takeProfitPrice) &&
-    parseFloat(position.takeProfitPrice as string) > 0;
-  const hasStopLoss =
-    Boolean(position.stopLossPrice) &&
-    parseFloat(position.stopLossPrice as string) > 0;
-  const tpDisplay = hasTakeProfit
-    ? formatPerpsPrice(position.takeProfitPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
-  const slDisplay = hasStopLoss
-    ? formatPerpsPrice(position.stopLossPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const tpDisplay =
+    formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: position.takeProfitPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
+  const slDisplay =
+    formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: position.stopLossPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
 
   // Positive cumulative funding is a cost (paid), negative is a payment (earned).
@@ -240,10 +257,6 @@ const PerpsProPositionCard = ({
         Math.abs(fundingSinceOpen),
         { ranges: PRICE_RANGES_MINIMAL_VIEW },
       )}`;
-
-  const positionValueDisplay = formatPerpsFiat(position.positionValue, {
-    ranges: PRICE_RANGES_MINIMAL_VIEW,
-  });
 
   const handlePress = onPress ? () => onPress(position) : undefined;
 
@@ -297,9 +310,7 @@ const PerpsProPositionCard = ({
                   >
                     {displaySymbol}
                   </Text>
-                  <Tag
-                    severity={directionSeverity}
-                  >{`${position.leverage.value}x ${directionLabel}`}</Tag>
+                  <Tag severity={directionSeverity}>{directionLabel}</Tag>
                 </Box>
                 <SensitiveText
                   variant={TextVariant.BodySm}
@@ -308,9 +319,7 @@ const PerpsProPositionCard = ({
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {`${formatPositionSize(
-                    absoluteSize.toString(),
-                  )} ${displaySymbol} • ${positionValueDisplay}`}
+                  {description}
                 </SensitiveText>
               </Box>
             </Box>
@@ -318,32 +327,20 @@ const PerpsProPositionCard = ({
               <SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={
-                  privacyMode
-                    ? TextColor.TextDefault
-                    : pnlNum >= 0
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
-                }
+                color={privacyMode ? TextColor.TextDefault : pnlColor}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
                 testID={PerpsProMarketViewSelectorsIDs.POSITION_PNL_TEXT}
               >
-                {formatPnl(pnlNum)}
+                {pnlText}
               </SensitiveText>
               <SensitiveText
                 variant={TextVariant.BodySm}
-                color={
-                  privacyMode
-                    ? TextColor.TextDefault
-                    : pnlNum >= 0
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
-                }
+                color={privacyMode ? TextColor.TextDefault : pnlColor}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPercentage(roe, 1)}
+                {roeText}
               </SensitiveText>
             </Box>
           </Box>
@@ -369,17 +366,42 @@ const PerpsProPositionCard = ({
               />
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.liq_price')}
+                labelAccessory={
+                  isCross ? (
+                    <PerpsCrossMarginInfoButton
+                      hasLiquidationPrice={position.liquidationPrice != null}
+                      testID={getPerpsCrossLiquidationInfoSelector(
+                        'pro',
+                        position.symbol,
+                      )}
+                    />
+                  ) : undefined
+                }
                 value={liqPriceDisplay}
                 isHidden={privacyMode}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
               />
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.margin')}
+                label={strings(
+                  isCross
+                    ? 'perps.cross_position.margin_used'
+                    : 'perps.pro_positions_panel.card.margin',
+                )}
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
+                  <Tag
+                    severity={TagSeverity.Neutral}
+                    testID={
+                      isCross
+                        ? getPerpsCrossMarginTagSelector('pro', position.symbol)
+                        : undefined
+                    }
+                  >
+                    {marginTypeLabel}
+                  </Tag>
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined
@@ -413,6 +435,7 @@ const PerpsProPositionCard = ({
                 valuePressAccessibilityLabel={strings(
                   'perps.position.card.edit_tpsl',
                 )}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE}
                 showEditIcon={Boolean(onEditTpSl)}
               />
             </Box>
@@ -428,9 +451,8 @@ const PerpsProPositionCard = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
-            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Close}
-            twClassName={ACTION_BUTTON_CLASS_NAME}
+            twClassName="flex-1"
             onPress={() => onClose?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_CLOSE}
           >
@@ -439,9 +461,8 @@ const PerpsProPositionCard = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Refresh}
-            twClassName={ACTION_BUTTON_CLASS_NAME}
+            twClassName="flex-1"
             onPress={() => onReverse?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
           >
@@ -452,7 +473,6 @@ const PerpsProPositionCard = ({
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
             iconProps={{ size: IconSize.Md }}
-            twClassName="rounded-md"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
             accessibilityLabel={strings('perps.pro_positions_panel.card.share')}

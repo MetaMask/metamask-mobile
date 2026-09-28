@@ -369,8 +369,8 @@ describe('PredictGameOutcomesTab', () => {
       expect(
         getByTestId(
           PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_COUNT,
-        ).props.children,
-      ).toBe(2);
+        ),
+      ).toHaveTextContent('2');
       expect(
         queryByTestId(
           PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_CONTENT,

@@ -1,5 +1,4 @@
 import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
-import { waitFor } from '@testing-library/react-native';
 import NavigationService from '../../NavigationService';
 import ReduxService from '../../redux';
 import { RootState } from '../../../reducers';
@@ -18,12 +17,6 @@ jest.mock('../../redux', () => ({
     },
   },
 }));
-
-const { InteractionManager } = jest.requireActual('react-native');
-
-InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
-  callback(),
-);
 
 jest.mock('../../../components/UI/DeepLinkModal', () => ({
   createDeepLinkModalNavDetails: jest.fn(() => ['DeepLinkModal', {}]),
@@ -49,23 +42,19 @@ describe('handleDeepLinkModalDisplay', () => {
       const mockedState = {
         settings: { deepLinkModalDisabled: isDeepLinkModalDisabled },
       } as RootState;
-      (mockReduxService.store.getState as jest.Mock).mockReturnValue(
-        mockedState,
-      );
-      handleDeepLinkModalDisplay({
+      jest.mocked(mockReduxService.store.getState).mockReturnValue(mockedState);
+
+      await handleDeepLinkModalDisplay({
         linkType,
         pageTitle: 'MetaMask',
         onContinue: jest.fn(),
         onBack: jest.fn(),
       });
+
       if (shouldRedirect) {
-        await waitFor(() => {
-          expect(NavigationService.navigation.navigate).toHaveBeenCalled();
-        });
+        expect(NavigationService.navigation.navigate).toHaveBeenCalled();
       } else {
-        await waitFor(() => {
-          expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
-        });
+        expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
       }
     },
   );

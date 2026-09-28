@@ -82,7 +82,7 @@ describe('OpenOrderRow', () => {
       'ETH → USDC',
     );
     expect(getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveTextContent(
-      '1 day / 5 orders',
+      '1 day × 5 orders',
     );
     expect(getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveTextContent(
       '+0.325 USDC',

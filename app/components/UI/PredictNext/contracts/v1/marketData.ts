@@ -1,6 +1,8 @@
 import {
   array,
+  coerce,
   enums,
+  literal,
   mask,
   number,
   object,
@@ -9,8 +11,12 @@ import {
   string,
   tuple,
   type Struct,
+  type as structType,
+  unknown,
+  union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
+import { amount, decimal, httpsUrl, timestamp } from './primitives';
 import type {
   FetchFeedParams,
   PredictEvent,
@@ -20,54 +26,15 @@ import type {
   PredictVenueStatus,
 } from '../../types';
 
-const timestamp = refine(string(), 'PredictTimestamp', (value) => {
-  const match =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$/.exec(
-      value,
-    );
-  if (!match) {
-    return false;
-  }
-
-  const [, year, month, day, hour, minute, second, fraction = ''] = match;
-  const milliseconds = fraction.padEnd(3, '0').slice(0, 3);
-  const parsed = Date.parse(value);
-  return (
-    !Number.isNaN(parsed) &&
-    new Date(parsed).toISOString() ===
-      `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}Z`
-  );
-});
-
 const venueId = refine(string(), 'PredictVenueId', (value) => value.length > 0);
 const entityId = refine(
   string(),
   'PredictEntityId',
   (value) => value.length > 0,
 );
-const decimal = refine(
-  string(),
-  'PredictDecimal',
-  (value) => /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value) && Number(value) <= 1,
-);
-const amount = refine(string(), 'PredictAmount', (value) =>
-  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
-);
 const hexColor = refine(string(), 'PredictHexColor', (value) =>
   /^#[0-9a-f]{6}$/i.test(value),
 );
-const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
-  if (!/^https:\/\//i.test(value)) {
-    return false;
-  }
-
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname.length > 0;
-  } catch {
-    return false;
-  }
-});
 const settlementSourceName = refine(
   string(),
   'PredictSettlementSourceName',
@@ -146,6 +113,68 @@ const outcomeSchema = object({
   gameSelection: optional(gameSelection),
 });
 
+export const PredictMarketOptionSchema = object({
+  type: literal('number'),
+  value: refine(number(), 'PredictMarketOptionValue', Number.isFinite),
+});
+
+const nonEmptyGroupString = (name: string) =>
+  refine(string(), name, (value) => value.trim().length > 0);
+
+const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    keys.filter((key) => key in record).map((key) => [key, record[key]]),
+  );
+};
+
+const marketSelectorGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('marketSelector'),
+    marketType: nonEmptyGroupString('PredictMarketType'),
+    option: PredictMarketOptionSchema,
+    displayOrder: optional(
+      refine(
+        number(),
+        'PredictMarketDisplayOrder',
+        (value) => Number.isInteger(value) && value >= 0,
+      ),
+    ),
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, [
+      'key',
+      'groupType',
+      'marketType',
+      'option',
+      'displayOrder',
+    ]),
+);
+
+const unsupportedMarketGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: refine(
+      string(),
+      'PredictMarketGroupType',
+      (value) => value.trim().length > 0 && value !== 'marketSelector',
+    ),
+  }),
+  unknown(),
+  (value) => pickGroupProperties(value, ['key', 'groupType']),
+);
+
+export const PredictMarketGroupSchema = union([
+  marketSelectorGroupSchema,
+  unsupportedMarketGroupSchema,
+]);
+
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
   'BinaryOutcomes',
@@ -158,6 +187,7 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
+  group: optional(PredictMarketGroupSchema),
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),
@@ -204,6 +234,8 @@ const venueStatusSchema = object({
   venueId,
   status: venueStatus,
   checkedAt: timestamp,
+  // Backend-owned venue metadata; absent when the venue has no agreement.
+  termsUrl: optional(httpsUrl),
 });
 
 const marketHistoryPointSchema = refine(

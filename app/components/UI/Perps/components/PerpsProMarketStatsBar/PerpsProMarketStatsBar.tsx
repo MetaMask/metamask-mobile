@@ -99,9 +99,31 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   testID = PerpsProMarketViewSelectorsIDs.STATS_BAR,
+  onResolvedStateChange,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const marketStats = usePerpsMarketStats(symbol);
+
+  useEffect(() => {
+    if (marketStats.hasError) {
+      onResolvedStateChange?.(symbol, 'error');
+      return;
+    }
+    if (marketStats.dataSymbol !== symbol) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      marketStats.hasLiveData ? 'content' : 'loading',
+    );
+  }, [
+    marketStats.dataSymbol,
+    marketStats.hasError,
+    marketStats.hasLiveData,
+    onResolvedStateChange,
+    symbol,
+  ]);
 
   // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({
@@ -172,7 +194,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
 
   return (
-    <Box testID={testID} twClassName="border-t border-b border-border-muted">
+    <Box testID={testID} twClassName="border-b border-border-muted">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

@@ -5,6 +5,7 @@ import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../../hooks/useFollowToggle';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('react-redux', () => ({
@@ -13,6 +14,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/socialController', () => ({
@@ -41,6 +46,7 @@ const mockTraders = [
     pnl7d: 963146.8,
     roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
+    followerCount: 48707,
   },
   {
     rank: 2,
@@ -51,6 +57,7 @@ const mockTraders = [
     pnl7d: 474751.45,
     roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
+    followerCount: 21999,
   },
   {
     rank: 3,
@@ -61,6 +68,7 @@ const mockTraders = [
     pnl7d: 374735.16,
     roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
   },
 ];
 
@@ -94,6 +102,7 @@ const makeQueryResult = (
 describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {
@@ -140,6 +149,7 @@ describe('useTopTraders', () => {
         pnlValue: first.pnl7d,
         winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
+        followerCount: first.followerCount,
         isFollowing: false,
       });
     });

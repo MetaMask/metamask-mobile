@@ -514,6 +514,74 @@ describe('PerpsAdjustMarginView', () => {
     });
   });
 
+  describe('stale position', () => {
+    const enterMarginAmount = () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+      const keypad = screen.getByTestId('mock-keypad');
+      act(() => {
+        (
+          keypad.props as { onChange: (data: { value: string }) => void }
+        ).onChange({ value: '100' });
+      });
+      // The confirm CTA is hidden while the keypad is up.
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON),
+      );
+    };
+
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    it('enables the margin CTA while the live position is still open', () => {
+      // Arrange
+      render(<PerpsAdjustMarginView />);
+
+      // Act
+      enterMarginAmount();
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).not.toBe(true);
+    });
+
+    it('disables the margin CTA once the live stream drops the position', () => {
+      // Arrange
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: null,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 1000,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+      render(<PerpsAdjustMarginView />);
+
+      // Act
+      enterMarginAmount();
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+  });
+
   describe('remove mode calculations', () => {
     beforeEach(() => {
       mockRouteParams = {

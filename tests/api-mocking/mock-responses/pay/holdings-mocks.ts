@@ -113,11 +113,21 @@ export async function applyTokenHoldingsMocks(
     })
     .thenCallback(v4BalancesResponse);
 
-  const account = defaultAccount.toLowerCase();
+  const holdingAccount = (holding: TokenHolding): string =>
+    (holding.account ?? defaultAccount).toLowerCase();
 
   const addressParam = (rpc: RpcCall): string | undefined => {
     const arg = rpc?.params?.[0];
     return typeof arg === 'string' ? arg.toLowerCase() : undefined;
+  };
+
+  const balanceOfCaller = (data: string | undefined): string | undefined => {
+    if (!data) return undefined;
+    const hex = data.toLowerCase().replace(/^0x/, '');
+    if (hex.length < 72 || !hex.startsWith(BALANCE_OF_SELECTOR.slice(2))) {
+      return undefined;
+    }
+    return `0x${hex.slice(-40)}`;
   };
 
   const callArg = (rpc: RpcCall): EthCallArg | undefined => {
@@ -125,15 +135,21 @@ export async function applyTokenHoldingsMocks(
     return arg && typeof arg === 'object' ? arg : undefined;
   };
 
+  const seededAccounts = new Set(
+    holdings.map((holding) => holdingAccount(holding)),
+  );
+
   const isOurBalanceCall = (rpc: RpcCall): boolean => {
     if (rpc?.method === 'eth_getBalance') {
-      return addressParam(rpc) === account;
+      return seededAccounts.has(addressParam(rpc) ?? '');
     }
     if (rpc?.method === 'eth_call') {
       const data = callArg(rpc)?.data?.toLowerCase();
+      const caller = balanceOfCaller(data);
       return Boolean(
         data?.startsWith(BALANCE_OF_SELECTOR) &&
-          data.includes(account.slice(2)),
+          caller &&
+          seededAccounts.has(caller),
       );
     }
     return false;
@@ -146,17 +162,33 @@ export async function applyTokenHoldingsMocks(
   // account inheriting PERPS_ARBITRUM_MOCKS' phantom 100 ETH / 200 USDC.
   const resolveBalance = (rpc: RpcCall, chainId: string): string => {
     if (rpc?.method === 'eth_getBalance') {
-      const native = holdings.find((h) => h.isNative && h.chainId === chainId);
+      const account = addressParam(rpc);
+      const native =
+        holdings.find(
+          (h) =>
+            h.isNative &&
+            h.chainId === chainId &&
+            holdingAccount(h) === account,
+        ) ?? holdings.find((h) => h.isNative && h.chainId === chainId);
       return native ? toWeiHex(native.amount, native.decimals) : '0x0';
     }
     if (rpc?.method === 'eth_call') {
       const to = callArg(rpc)?.to?.toLowerCase();
-      const token = holdings.find(
-        (h) =>
-          !h.isNative &&
-          h.chainId === chainId &&
-          h.address.toLowerCase() === to,
-      );
+      const caller = balanceOfCaller(callArg(rpc)?.data?.toLowerCase());
+      const token =
+        holdings.find(
+          (h) =>
+            !h.isNative &&
+            h.chainId === chainId &&
+            h.address.toLowerCase() === to &&
+            holdingAccount(h) === caller,
+        ) ??
+        holdings.find(
+          (h) =>
+            !h.isNative &&
+            h.chainId === chainId &&
+            h.address.toLowerCase() === to,
+        );
       const raw = token ? toWeiHex(token.amount, token.decimals).slice(2) : '0';
       return `0x${raw.padStart(64, '0')}`;
     }

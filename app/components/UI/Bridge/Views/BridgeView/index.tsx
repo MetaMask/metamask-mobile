@@ -2,11 +2,15 @@ import React, {
   startTransition,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
-  useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -31,6 +35,7 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
@@ -40,19 +45,13 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
+import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 
 const BridgeView = () => {
-  // `selectedTab` drives the tabs bar and updates urgently so a press is
-  // acknowledged on the same frame. `renderedTab` swaps the content, which is
-  // expensive enough to drop frames, so it is deferred to a transition instead
-  // of holding up that feedback.
-  const [selectedTab, setSelectedTab] = useState<BridgeTabKey>(
-    BridgeTabKey.Market,
-  );
-  const [renderedTab, setRenderedTab] = useState<BridgeTabKey>(
-    BridgeTabKey.Market,
-  );
+  const { selectedTab, renderedTab, setSelectedTab, setRenderedTab } =
+    useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const sourceToken = useSelector(selectSourceToken);
@@ -63,6 +62,17 @@ const BridgeView = () => {
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
+  const initialTab = route.params?.initialTab;
+
+  useLayoutEffect(() => {
+    if (!initialTab) {
+      return;
+    }
+
+    setSelectedTab(initialTab);
+    setRenderedTab(initialTab);
+    navigation.setParams({ initialTab: undefined });
+  }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
 
   let headerTitle: string;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
@@ -151,7 +161,7 @@ const BridgeView = () => {
       setSelectedTab(nextTab);
       startTransition(() => setRenderedTab(nextTab));
     },
-    [tabs],
+    [tabs, setRenderedTab, setSelectedTab],
   );
 
   const goToPreviousTab = useCallback(() => {
@@ -198,7 +208,7 @@ const BridgeView = () => {
       setSelectedTab(BridgeTabKey.Market);
       setRenderedTab(BridgeTabKey.Market);
     }
-  }, [tabs, renderedTab]);
+  }, [tabs, renderedTab, setRenderedTab, setSelectedTab]);
 
   // Stops any in-flight BridgeController quote polling, clears the amount
   // inputs and drops the destination token for the tab being left, whenever
@@ -243,6 +253,10 @@ const BridgeView = () => {
       <HeaderStandard
         title={headerTitle}
         onBack={handleBack}
+        backButtonProps={{
+          testID: BridgeViewSelectorsIDs.BACK_BUTTON,
+          accessibilityLabel: strings('navigation.back'),
+        }}
         endButtonIconProps={endButtonIconProps}
         includesTopInset
       />

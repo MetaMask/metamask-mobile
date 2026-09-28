@@ -7,9 +7,11 @@ export const PRICE_RANGE_TOKEN_SIDES = ['source', 'dest'] as const;
 
 export type PriceRangeTokenSide = (typeof PRICE_RANGE_TOKEN_SIDES)[number];
 
+export const PRICE_RANGE_CURRENCY = 'USD' as const;
+
 export interface RecurringPriceRange {
   tokenSide: PriceRangeTokenSide;
-  currency: string;
+  currency: typeof PRICE_RANGE_CURRENCY;
   min: string;
   max: string;
 }
@@ -66,20 +68,26 @@ export function isValidPriceRange(min: string, max: string): boolean {
   const parsedMin = parsePriceInput(min);
   const parsedMax = parsePriceInput(max);
 
+  if (min === '') {
+    return parsedMax !== undefined;
+  }
+
+  if (max === '') {
+    return parsedMin !== undefined;
+  }
+
   return (
     parsedMin !== undefined && parsedMax !== undefined && parsedMin < parsedMax
   );
 }
 
-export function isPriceRangeInCurrentCurrency(
-  range: RecurringPriceRange | undefined,
-  currentCurrency: string,
-): range is RecurringPriceRange {
-  if (!range?.currency || !currentCurrency) {
-    return false;
-  }
+export function isInvertedPriceRange(min: string, max: string): boolean {
+  const parsedMin = parsePriceInput(min);
+  const parsedMax = parsePriceInput(max);
 
-  return range.currency.toLowerCase() === currentCurrency.toLowerCase();
+  return (
+    parsedMin !== undefined && parsedMax !== undefined && parsedMin >= parsedMax
+  );
 }
 
 export function matchingPricePercent(
@@ -101,7 +109,28 @@ export function formatPriceRangeLabel(
   max: string,
   currency: string,
 ): string {
-  return `${formatCurrency(min, currency)} - ${formatCurrency(max, currency)}`;
+  const { minLabel, maxLabel } = formatPriceRangeBounds(min, max, currency);
+
+  return [minLabel, maxLabel].filter(Boolean).join(' - ');
+}
+
+export function formatPriceRangeBounds(
+  min: string,
+  max: string,
+  currency: string,
+): { minLabel?: string; maxLabel?: string } {
+  if (min && !max) {
+    return { minLabel: `≥ ${formatCurrency(min, currency)}` };
+  }
+
+  if (max && !min) {
+    return { maxLabel: `≤ ${formatCurrency(max, currency)}` };
+  }
+
+  return {
+    minLabel: min ? formatCurrency(min, currency) : undefined,
+    maxLabel: max ? formatCurrency(max, currency) : undefined,
+  };
 }
 
 export function formatTokenPrice(

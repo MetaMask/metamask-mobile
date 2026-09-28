@@ -14,16 +14,17 @@ export const predictOpenPositionAnalyticsExpectations: AnalyticsExpectations = {
     {
       name: PREDICT_FEED_VIEWED,
       containProperties: {
-        predict_feed_tab: 'trending',
-        entry_point: 'homepage_positions',
+        tracking_mode: 'focus',
+        entry_point: 'home_section',
       },
+      requiredDefinedPropertyKeys: ['feed_id'],
     },
     {
       name: ASSET_VIEWED,
       containProperties: {
         trade_type: 'Predict',
         implementation_type: 'native',
-        entry_point: 'homepage_positions',
+        entry_point: 'home_section',
       },
     },
   ],

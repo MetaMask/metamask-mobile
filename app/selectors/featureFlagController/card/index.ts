@@ -8,27 +8,38 @@ import {
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationSignInRoutingEnabled,
+  resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
 import type {
   CardFeatureFlag,
   CardProviderChains,
+  CardUkMigrationState,
   GateVersionedFeatureFlag,
   ImmersveProgramConfig,
 } from './types';
 
-export { defaultCardFeatureFlag } from './defaults';
+export { defaultCardFeatureFlag, defaultCardUkMigrationFlag } from './defaults';
 export * from './types';
 export {
   CARD_PROVIDER_FLAGS,
+  CARD_UK_MIGRATION_COUNTRY_CODE,
+  CARD_UK_MIGRATION_UPDATE_BADGE_WARNING_DAYS,
   FALLBACK_CARD_PROVIDER_ID,
+  getCardUkMigrationUpdateBadgeSeverity,
+  isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationFlag,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
+  resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
+  type CardUkMigrationUpdateBadgeSeverity,
 } from './read';
 
 /**
@@ -159,6 +170,47 @@ export const selectCardTransactionHistoryEnabled = createSelector(
       process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.cardTransactionHistory as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Snapshot of UK migration state at the last remote-flag bag change.
+ * Soft vs forced depends on `Date.now()` inside `resolveCardUkMigrationState`,
+ * so this stays frozen across `endDate` until flags change. Card Home should
+ * use `useCardUkMigrationState` to re-evaluate on focus / pull-to-refresh.
+ */
+export const selectCardUkMigrationState = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): CardUkMigrationState =>
+    resolveCardUkMigrationState(remoteFeatureFlags as CardRemoteFeatureFlags),
+);
+
+export const selectCardUkMigrationPhase = createSelector(
+  selectCardUkMigrationState,
+  (state) => state.phase,
+);
+
+export const selectIsCardUkMigrationActive = createSelector(
+  selectCardUkMigrationState,
+  (state) => state.isActive,
+);
+
+export const selectCardUkMigrationSignInRoutingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    readCardUkMigrationSignInRoutingEnabled(
+      remoteFeatureFlags as CardRemoteFeatureFlags,
+    ),
+);
+
+export const selectCardIntercomSupportEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardIntercomSupport as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },

@@ -40,6 +40,67 @@ export const LEADERBOARD_SORT_LABEL_KEY: Record<LeaderboardSort, string> = {
   winRate: 'social_leaderboard.sort_filter.win_rate',
 };
 
+/**
+ * Social V1 ranking chip. Profit maps to the existing `pnl` API sort.
+ * Volume is UI-only until the leaderboard endpoint accepts it.
+ */
+export type V1LeaderboardRanking = 'pnl' | 'volume';
+
+export const V1_LEADERBOARD_RANKING_OPTIONS: V1LeaderboardRanking[] = [
+  'pnl',
+  'volume',
+];
+
+export const V1_LEADERBOARD_RANKING_LABEL_KEY: Record<
+  V1LeaderboardRanking,
+  string
+> = {
+  pnl: 'social_leaderboard.sort_filter.profit',
+  volume: 'social_leaderboard.sort_filter.volume',
+};
+
+export const DEFAULT_V1_LEADERBOARD_RANKING: V1LeaderboardRanking = 'pnl';
+
+/**
+ * Leaderboard trader-cohort chip. `following` stays on the Live trades sheet.
+ */
+export type LeaderboardTraderCohort =
+  | 'all'
+  | 'shrimp'
+  | 'dolphin'
+  | 'whale'
+  | 'kol';
+
+export const LEADERBOARD_COHORT_OPTIONS: LeaderboardTraderCohort[] = [
+  'all',
+  'shrimp',
+  'dolphin',
+  'whale',
+  'kol',
+];
+
+export const LEADERBOARD_COHORT_LABEL_KEY: Record<
+  LeaderboardTraderCohort,
+  string
+> = {
+  all: 'social_leaderboard.shell.filters.trader_cohort.all',
+  shrimp: 'social_leaderboard.shell.filters.trader_cohort.shrimp',
+  dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
+  whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
+  kol: 'social_leaderboard.shell.filters.trader_cohort.kol',
+};
+
+export const DEFAULT_LEADERBOARD_COHORT: LeaderboardTraderCohort = 'all';
+
+/** Emoji prefixes for cohort rows in the Trader cohort sheet (Leaderboard). */
+export const LEADERBOARD_COHORT_LEADING_EMOJI: Partial<
+  Record<LeaderboardTraderCohort, string>
+> = {
+  shrimp: '🦐',
+  dolphin: '🐬',
+  whale: '🐳',
+};
+
 export {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,

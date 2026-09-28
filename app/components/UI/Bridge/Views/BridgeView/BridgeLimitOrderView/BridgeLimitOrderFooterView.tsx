@@ -4,9 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectSourceAmount,
   selectSourceToken,
-  selectBridgeControllerState,
 } from '../../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import {
   Box,
   BoxAlignItems,
@@ -15,21 +13,25 @@ import {
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton/index.tsx';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 
-export const BridgeLimitOrderFooterView = () => {
+interface Props {
+  onCTAPress: () => void;
+  ctaDisabled?: boolean;
+  ctaLabel: string;
+}
+
+export const BridgeLimitOrderFooterView = ({
+  onCTAPress,
+  ctaLabel,
+  ctaDisabled,
+}: Props) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-  const { activeQuote, isLoading, needsNewQuote } = useBridgeQuoteDataContext();
-  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
-  if (isLoading && !activeQuote && !needsNewQuote) {
-    return null;
-  }
-
-  if (!activeQuote || !isValidSourceAmount || !quotesLastFetched) {
+  if (!isValidSourceAmount) {
     return null;
   }
 
@@ -45,9 +47,10 @@ export const BridgeLimitOrderFooterView = () => {
       style={{ paddingBottom: bottomInset }}
     >
       <SwapsLimitOrderConfirmButton
-        onPress={() => 'test'}
-        label="test"
+        onPress={onCTAPress}
+        label={ctaLabel}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
+        disabled={ctaDisabled}
       />
     </Box>
   );

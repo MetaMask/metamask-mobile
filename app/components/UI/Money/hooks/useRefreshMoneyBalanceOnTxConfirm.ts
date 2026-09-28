@@ -7,6 +7,7 @@ import type { CanonicalMoneyAccountBalanceResponse } from '@metamask/money-accou
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
+import { setLastLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
@@ -93,6 +94,13 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
         isMoneyAccountTx(transactionMeta) ||
         isPerpsPredictMoneyActivity(transactionMeta);
       if (!affectsMoneyBalance) return;
+
+      // Marks the live balance as ahead of anything the backend derives from
+      // its on-chain ingest, so those surfaces can say they're catching up.
+      // Scoped to the account that moved, so it cannot speak for another one.
+      store.dispatch(
+        setLastLocalMoneyFlow({ address, confirmedAt: Date.now() }),
+      );
 
       refreshMoneyBalanceQueries(address).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);

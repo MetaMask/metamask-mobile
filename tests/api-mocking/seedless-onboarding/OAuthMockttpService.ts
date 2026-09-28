@@ -3,11 +3,7 @@
  */
 
 import { Mockttp } from 'mockttp';
-
-import {
-  EncAccountDataType,
-  SecretType,
-} from '@metamask/seedless-onboarding-controller';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 
 import {
   AuthServer,
@@ -24,7 +20,27 @@ import {
 import {
   EncAccountDataGetMockPayload,
   OAuthMockttpServiceOptions,
+  SecretType,
 } from './types';
+
+const DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID = 'io.metamask.appleloginclient.dev';
+const DEFAULT_MOCK_GOOGLE_OAUTH_CLIENT_ID =
+  '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com';
+
+function defaultMockOAuthClientIdForTokenRequest(
+  loginProvider: E2ELoginProvider,
+): string {
+  if (loginProvider === E2ELoginProvider.APPLE) {
+    return (
+      process.env.ANDROID_APPLE_CLIENT_ID || DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID
+    );
+  }
+  return (
+    process.env.IOS_GOOGLE_CLIENT_ID ||
+    process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID ||
+    DEFAULT_MOCK_GOOGLE_OAUTH_CLIENT_ID
+  );
+}
 
 /**
  * Configuration for E2E OAuth mock
@@ -237,13 +253,15 @@ export class OAuthMockttpService {
       );
     }
 
+    await this.setupQaMockOAuthTokenHandler(server);
+
     // Setup Auth Server proxy to backend QA mock
     await this.setupAuthServerProxy(server);
 
     // Setup marketing opt-in mock
     await this.setupMarketingOptInMock(server);
 
-    // Setup TOPRF SSS node mocks
+    // Setup TOPRF SSS node mocks (E2E CI only — perf bypasses Mockttp for live UAT)
     await this.setupToprfSssNodeMocks(server);
 
     // Setup metadata service mocks
@@ -264,6 +282,54 @@ export class OAuthMockttpService {
   }
 
   /**
+   * Mock QAMockOAuthService token exchange (E2E_MOCK_OAUTH path).
+   * Keeps auth-service off the E2E allowlist — no live UAT from the app.
+   */
+  private async setupQaMockOAuthTokenHandler(server: Mockttp): Promise<void> {
+    console.log(
+      `[E2E MockServer] Registering mock for: ${AuthServer.MockRequestToken}`,
+    );
+
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = this.getDecodedProxiedURL(request.url);
+        return url.includes('/api/v1/qa/mock/oauth/token');
+      })
+      .asPriority(1001)
+      .thenCallback(async (request) => {
+        const decodedUrl = this.getDecodedProxiedURL(request.url);
+        console.log(
+          `[E2E MockServer] ✅ INTERCEPTED via /proxy: POST ${decodedUrl}`,
+        );
+        try {
+          const requestBody = (await request.body.getText()) || '{}';
+          const body = JSON.parse(requestBody) as {
+            email_id?: string;
+          };
+          const emailForMock =
+            typeof body.email_id === 'string' && body.email_id.length > 0
+              ? body.email_id
+              : this.config.email;
+
+          return {
+            statusCode: 200,
+            json: this.generateQaMockTokenEnvelope(emailForMock),
+          };
+        } catch (error) {
+          console.error(
+            '[E2E] Error handling QA mock OAuth token request:',
+            error,
+          );
+          return {
+            statusCode: 200,
+            json: this.generateQaMockTokenEnvelope(this.config.email),
+          };
+        }
+      });
+  }
+
+  /**
    * Proxy Auth Server token requests to backend QA mock
    *
    */
@@ -281,8 +347,9 @@ export class OAuthMockttpService {
       .matching((request) => {
         const url = this.getDecodedProxiedURL(request.url);
         return (
-          url.includes('/api/v1/oauth/token') ||
-          url.includes('/api/v1/oauth/mint')
+          (url.includes('/api/v1/oauth/token') ||
+            url.includes('/api/v1/oauth/mint')) &&
+          !url.includes('/api/v1/qa/mock/oauth/token')
         );
       })
       .asPriority(1000)
@@ -306,7 +373,13 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              (this.config.loginProvider === E2ELoginProvider.TELEGRAM
+                ? 'e2e-mock-client-id'
+                : defaultMockOAuthClientIdForTokenRequest(
+                    this.config.loginProvider,
+                  )),
             login_provider: this.config.loginProvider,
             access_type: 'offline',
           };
@@ -330,12 +403,17 @@ export class OAuthMockttpService {
 
           let tokens;
           if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
             console.warn(
-              `[E2E] Backend QA mock returned ${response.status}, using fallback mock tokens`,
+              `[E2E] Backend QA mock returned ${response.status}: ${errorText}, using fallback mock tokens`,
             );
             tokens = this.generateMockAuthResponse();
           } else {
             const rawResponse = await response.json();
+            console.log(
+              '[E2E] QA mock raw response:',
+              JSON.stringify(rawResponse, null, 2),
+            );
             const fallbackTokens = this.generateMockAuthResponse();
             if (rawResponse.data?.tokens) {
               const qaMockTokens = rawResponse.data.tokens;
@@ -402,7 +480,11 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockOAuthClientIdForTokenRequest(
+                this.config.loginProvider,
+              ),
             login_provider: this.config.loginProvider,
           };
 
@@ -474,7 +556,11 @@ export class OAuthMockttpService {
 
           const mockRequestBody = {
             email_id: emailForMock,
-            client_id: body.client_id || 'e2e-mock-client-id',
+            client_id:
+              body.client_id ||
+              defaultMockOAuthClientIdForTokenRequest(
+                this.config.loginProvider,
+              ),
             login_provider: this.config.loginProvider,
             refresh_token: body.refresh_token,
           };
@@ -636,7 +722,8 @@ export class OAuthMockttpService {
   }
 
   /**
-   * Setup TOPRF SSS Node Mocks
+   * Setup TOPRF SSS Node Mocks for E2E CI.
+   * Performance builds do not use Mockttp for these hosts (see shim.js bypass).
    */
   private async setupToprfSssNodeMocks(server: Mockttp): Promise<void> {
     console.log('[E2E MockServer] Setting up TOPRF SSS node mocks');
@@ -872,10 +959,44 @@ export class OAuthMockttpService {
   }
 
   /**
+   * QA mock auth-service envelope for QAMockOAuthService.parseAuthServiceResponse.
+   */
+  private generateQaMockTokenEnvelope(email: string): {
+    success: boolean;
+    data: {
+      tokens: {
+        jwt_token: string;
+        access_token: string;
+        metadata_access_token: string;
+        refresh_token: string;
+        revoke_token: string;
+        indexes: number[];
+        endpoints: Record<string, string>;
+      };
+    };
+  } {
+    const tokens = this.generateMockAuthResponse(email);
+    return {
+      success: true,
+      data: {
+        tokens: {
+          jwt_token: tokens.id_token,
+          access_token: tokens.access_token,
+          metadata_access_token: tokens.metadata_access_token,
+          refresh_token: tokens.refresh_token,
+          revoke_token: tokens.revoke_token,
+          indexes: tokens.indexes,
+          endpoints: tokens.endpoints,
+        },
+      },
+    };
+  }
+
+  /**
    * Generate mock auth response tokens
    * Used as fallback when backend QA mock is not available (404)
    */
-  private generateMockAuthResponse(): {
+  private generateMockAuthResponse(emailOverride?: string): {
     id_token: string;
     access_token: string;
     metadata_access_token: string;
@@ -884,21 +1005,27 @@ export class OAuthMockttpService {
     indexes: number[];
     endpoints: Record<string, string>;
   } {
+    const email = emailOverride ?? this.config.email;
+
     // Generate mock JWT-like tokens (base64 encoded JSON)
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 3600; // 1 hour expiry
 
-    // Mock ID token payload
+    // Mock ID token payload (client_id prefers env OAuth client ids, same as QA proxy body)
     const idTokenPayload = {
       iss: 'https://auth-service.uat-api.cx.metamask.io',
-      sub: `e2e-user-${this.config.email}`,
+      sub: `e2e-user-${email}`,
       aud: 'metamask-mobile-e2e',
-      email: this.config.email,
+      email,
       email_verified: true,
       iat: now,
       exp,
+      client_id: defaultMockOAuthClientIdForTokenRequest(
+        this.config.loginProvider,
+      ),
+      env: 'uat',
       verifier: this.config.loginProvider,
-      verifier_id: this.config.email,
+      verifier_id: email,
       // Include aggregateVerifier for TOPRF
       aggregateVerifier: 'torus-test-health-aggregate',
     };
@@ -918,7 +1045,7 @@ export class OAuthMockttpService {
     const accessToken = Buffer.from(
       JSON.stringify({
         type: 'access',
-        email: this.config.email,
+        email,
         exp,
       }),
     ).toString('base64');
@@ -927,7 +1054,7 @@ export class OAuthMockttpService {
     const metadataAccessToken = Buffer.from(
       JSON.stringify({
         type: 'metadata',
-        email: this.config.email,
+        email,
         exp,
       }),
     ).toString('base64');
@@ -936,7 +1063,7 @@ export class OAuthMockttpService {
     const refreshToken = `e2e-refresh-${Date.now()}`;
     const revokeToken = `e2e-revoke-${Date.now()}`;
 
-    console.log('[E2E] Generated fallback mock tokens for:', this.config.email);
+    console.log('[E2E] Generated fallback mock tokens for:', email);
     console.log(
       '[E2E] ⚠️  These are placeholder tokens - deploy backend QA mock for valid tokens',
     );
@@ -959,8 +1086,9 @@ export class OAuthMockttpService {
   }
 
   /**
-   * Builds `/metadata/enc_account_data/get` mock payload aligned with v2 metadata
-   * (`EncAccountDataType`, `versions`) for the preview seedless onboarding controller.
+   * Builds `/metadata/enc_account_data/get` mock payload aligned with
+   * `@metamask/toprf-secure-backup` MetadataStore parsing (parallel `data`,
+   * `ids`, `versions`; optional `dataTypes` / `createdAt`).
    */
   private getMetadataEncAccountDataGetPayload(): EncAccountDataGetMockPayload {
     if (this.isExistingUser()) {
@@ -976,8 +1104,8 @@ export class OAuthMockttpService {
   }
 
   /**
-   * Generate mock encrypted secret data for existing user flow.
-   * Simulates the encrypted seed phrase + PW_BACKUP items from the metadata service.
+   * Existing-user metadata: encrypted SRP + password-change items with
+   * aligned versions / dataTypes / createdAt arrays.
    */
   private buildExistingUserEncAccountDataGetPayload(): EncAccountDataGetMockPayload {
     const mockEncryptedSrp = Buffer.from(

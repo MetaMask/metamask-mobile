@@ -481,20 +481,12 @@ const OndoCampaignDetailsView: React.FC = () => {
               )}
 
               {getCampaignStatus(campaign) !== 'upcoming' && (
-                <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                      {strings('rewards.campaign_prize_pool.title')}
-                    </Text>
-                    <OndoPrizePool
-                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                      isLoading={isDepositsLoading}
-                      hasError={hasDepositsError}
-                      refetch={refetchDeposits}
-                    />
-                  </Box>
-                </>
+                <OndoPrizePool
+                  totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                  isLoading={isDepositsLoading}
+                  hasError={hasDepositsError}
+                  refetch={refetchDeposits}
+                />
               )}
 
               {showLeaderboardSection && (

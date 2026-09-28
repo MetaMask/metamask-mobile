@@ -6,6 +6,9 @@ export const RecurringScheduleFieldsSelectorsIDs = {
   REPEAT_CARD: 'recurring-repeat-card',
   REPEAT_INPUT: 'recurring-repeat-input',
   REPEAT_TIMES_LABEL: 'recurring-repeat-times',
+  REPEAT_INFO_BUTTON: 'recurring-repeat-info-button',
+  EVERY_ERROR: 'recurring-every-error',
+  REPEAT_ERROR: 'recurring-repeat-error',
 } as const;
 
 export type RecurringScheduleFieldsSelectorsIDsType =

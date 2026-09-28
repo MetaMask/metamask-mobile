@@ -42,6 +42,7 @@ import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomShee
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
+import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
 import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
@@ -667,13 +668,13 @@ export const loginToApp = async (password?: string): Promise<void> => {
  */
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
-    try {
-      const sheetTitle = Matchers.getElementByExactText('Never miss a move');
-      await Assertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 2_000,
-        description: 'Push notification existing user sheet',
-      });
+    const sheetTitle = Matchers.getElementByExactText('Never miss a move');
+    // Short poll: sheet is absent when notifications are pre-granted (e.g. Perps).
+    if (!(await Utilities.isElementVisible(sheetTitle, 500))) {
+      return;
+    }
 
+    try {
       try {
         const notNowById = Matchers.getElementByID(
           ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
@@ -690,7 +691,7 @@ export const dismissPushNotificationExistingUserSheet =
       });
       logger.debug('Dismissed push notification existing user sheet');
     } catch {
-      // Sheet not present — no-op
+      // Sheet present but dismiss failed — leave for caller / next attempt
     }
   };
 
@@ -727,6 +728,18 @@ export const closePredictModal = async (
 };
 
 /**
+ * Taps through the Money intro onboarding modal if it appears, then waits for
+ * it to dismiss. Safe to call when the modal is not shown (returns false).
+ *
+ * Delegates to MoneyOnboardingView.dismissIfPresent().
+ *
+ * @returns true when dismissed, false when it did not appear in time
+ */
+export const dismissMoneyOnboardingIfPresent = async (
+  options: { timeoutMs?: number } = {},
+): Promise<boolean> => MoneyOnboardingView.dismissIfPresent(options);
+
+/**
  * Dismisses the marketing consent (Experience Enhancer) modal if it appears
  * after login. Safe to call when the modal is not shown.
  */
@@ -737,24 +750,23 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 /**
  * Logs into the application using the provided password or a default password.
  *
+ * Default fixtures suppress push / marketing pre-prompts, so this path does
+ * not probe or dismiss those sheets (MMQA-2214). Call
+ * {@link dismissPushNotificationExistingUserSheet} /
+ * {@link dismissExperienceEnhancerModal} explicitly when a flow needs them.
+ *
  * @async
  * @function loginToAppPlaywright
  */
 export const loginToAppPlaywright = async (
-  options: { scenarioType?: string; dismissModals?: boolean } = {},
+  options: { scenarioType?: string } = {},
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
-  const dismissPostLoginModals = async (): Promise<void> => {
-    startPhase('modal_dismissal');
-    try {
-      await AppiumUtilities.wait(500);
-      await dismissPushNotificationExistingUserSheet();
-      await dismissExperienceEnhancerModal();
-    } finally {
-      // Resume test_body after login + modals (exclusive phases).
+  const afterWalletHomeReady = async (): Promise<void> => {
+    await completeUnlockedWalletHome(async () => {
       startPhase('test_body');
-    }
+    });
   };
 
   startPhase('login');
@@ -762,14 +774,14 @@ export const loginToAppPlaywright = async (
   await dismissAndroidSystemOverlaysPlaywright();
 
   if (await isUnlockedWalletHomeReady()) {
-    await completeUnlockedWalletHome(dismissPostLoginModals);
+    await afterWalletHomeReady();
     return;
   }
 
   const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
   if (readyScreen === 'wallet') {
-    await completeUnlockedWalletHome(dismissPostLoginModals);
+    await afterWalletHomeReady();
     return;
   }
 
@@ -794,7 +806,7 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
-  await dismissPostLoginModals();
+  startPhase('test_body');
 };
 
 const MM_CONNECT_UNLOCK_ATTEMPTS = 3;
@@ -923,25 +935,13 @@ export const ensureAccountGroupsFinishedLoading = async (
 export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
-    dismissModals?: boolean;
-    accountListDescription?: string;
   } = {},
 ): Promise<void> => {
-  const {
-    accountListDescription = 'Account list should be visible',
-    ...loginOptions
-  } = options;
+  await loginToAppPlaywright(options);
 
-  await loginToAppPlaywright(loginOptions);
-
-  await WalletView.tapIdenticon();
-
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
-    {
-      description: accountListDescription,
-    },
-  );
+  // After skipping post-login modal probes, wallet chrome can still be settling
+  // when the first identicon tap lands as a no-op — retry until the list opens.
+  await ensureAccountListOpenPlaywright();
 };
 
 /**
@@ -970,8 +970,7 @@ export const selectAccountByDevice = async (
 
   logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
 
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);

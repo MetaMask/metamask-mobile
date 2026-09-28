@@ -5284,68 +5284,6 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('getFirstPredictOnUs', () => {
-    const mockFirstPredictOnUs = {
-      name: 'First Predict On Us',
-      image: {
-        lightModeUrl: 'https://images.example.com/light.png',
-        darkModeUrl: 'https://images.example.com/dark.png',
-      },
-      localizedText: {
-        cta: 'Predict now',
-        description: 'Your first prediction is on us.',
-      },
-      usdAmount: 5,
-      markets: [{ eventId: '30615', conditionId: '0xabc' }],
-      termsUrl: 'https://example.com/terms',
-    };
-
-    it('fetches first predict on us from the correct public endpoint', async () => {
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        json: jest.fn().mockResolvedValue(mockFirstPredictOnUs),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getFirstPredictOnUs();
-
-      expect(result).toEqual(mockFirstPredictOnUs);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL.UAT}/public/first-predict-on-us`,
-        {
-          credentials: 'omit',
-          method: 'GET',
-          headers: {
-            'Accept-Language': 'en-US',
-            'Content-Type': 'application/json',
-            'rewards-client-id': 'mobile-7.50.1',
-          },
-          signal: expect.any(AbortSignal),
-        },
-      );
-    });
-
-    it('returns null when no visible entry exists', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-      } as Response);
-
-      const result = await service.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-    });
-
-    it('throws when response is not ok and not 404', async () => {
-      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
-
-      await expect(service.getFirstPredictOnUs()).rejects.toThrow(
-        'Get first predict on us failed: 500',
-      );
-    });
-  });
-
   describe('getOndoCampaignActivity', () => {
     const mockCampaignId = 'campaign-ondo-activity';
     const mockSubscriptionId = 'sub-activity-1';
@@ -5772,6 +5710,80 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getPerpsTradingCampaignPrizePool', () => {
+    const mockCampaignId = 'perps-campaign-api-4';
+    const mockPrizePool = {
+      totalVolumeUsd: 7500000,
+      unlockedPoolUsd: 15000,
+      thresholdsUsd: [0, 5000000],
+      poolScheduleUsd: [10000, 15000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPrizePool),
+      } as unknown as Response);
+    });
+
+    it('calls the public prize pool endpoint with GET and returns data', async () => {
+      const result =
+        await service.getPerpsTradingCampaignPrizePool(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/prize-pool`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockPrizePool);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignPrizePool(mockCampaignId),
+      ).rejects.toThrow('Get perps trading campaign prize pool failed: 404');
+    });
+  });
+
+  describe('getMoneyAccountSweepstakesVolumeStats', () => {
+    const mockCampaignId = 'mas-campaign-api-1';
+    const mockVolumeStats = {
+      totalVolumeUsd: 3000000,
+      eligibleParticipantCount: 420,
+      yieldEarnedUsd: 8123.55,
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockVolumeStats),
+      } as unknown as Response);
+    });
+
+    it('calls the public volume stats endpoint with GET and returns data', async () => {
+      const result =
+        await service.getMoneyAccountSweepstakesVolumeStats(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/money-account-sweepstakes/${mockCampaignId}/stats/volume`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockVolumeStats);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getMoneyAccountSweepstakesVolumeStats(mockCampaignId),
+      ).rejects.toThrow(
+        'Get Money Account Sweepstakes volume stats failed: 500',
+      );
+    });
+  });
+
   describe('Predict The Pitch endpoints', () => {
     const mockCampaignId = 'predict-campaign-1';
     const mockSubscriptionId = 'sub-predict-1';
@@ -5956,6 +5968,8 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-456';
     const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
     const mockToken = 'test-bearer-token';
+    const mockTimestamp = 1758700000000;
+    const mockSignature = '0xsignature';
 
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
@@ -5964,7 +5978,7 @@ describe('RewardsDataService', () => {
       });
     });
 
-    it('POSTs the money account address and returns bound on 201', async () => {
+    it('POSTs the address, timestamp and signature to the signed endpoint and returns bound on 201', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 201,
@@ -5973,13 +5987,19 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://uat.rewards.test/wr/money-account/binding',
+        'https://uat.rewards.test/wr/money-account/binding/signed',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ moneyAccountAddress: mockAddress }),
+          body: JSON.stringify({
+            moneyAccountAddress: mockAddress,
+            timestamp: mockTimestamp,
+            signature: mockSignature,
+          }),
           headers: expect.objectContaining({
             'rewards-access-token': mockToken,
           }),
@@ -5997,6 +6017,8 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(result).toBe('bound');
@@ -6011,6 +6033,8 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(result).toBe('conflict');
@@ -6023,8 +6047,42 @@ describe('RewardsDataService', () => {
       } as unknown as Response);
 
       await expect(
-        service.registerMoneyAccountBinding(mockSubscriptionId, mockAddress),
+        service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        ),
       ).rejects.toThrow('Register Money Account binding failed: 500');
+    });
+
+    it('throws InvalidTimestampError with serverTime in milliseconds', async () => {
+      const serverTime = 1758700800000;
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          statusCode: 400,
+          error: 'Bad Request',
+          code: 'TIMESTAMP_OUT_OF_WINDOW',
+          serverTime,
+        }),
+      } as unknown as Response);
+
+      try {
+        await service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        );
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(serverTime);
+      }
     });
   });
 });

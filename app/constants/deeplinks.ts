@@ -10,6 +10,7 @@ export enum PROTOCOLS {
   ETHEREUM = 'ethereum',
   DAPP = 'dapp',
   METAMASK = 'metamask',
+  SOLANA = 'solana',
 }
 
 export enum ACTIONS {
@@ -42,6 +43,7 @@ export enum ACTIONS {
   PERPS = 'perps',
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
+  PERPS_OUTREACH = 'perps-outreach',
   REWARDS = 'rewards',
   SHIELD = 'shield',
   PREDICT = 'predict',
@@ -81,6 +83,7 @@ export const PREFIXES = {
   [ACTIONS.PERPS]: '',
   [ACTIONS.PERPS_MARKETS]: '',
   [ACTIONS.PERPS_ASSET]: '',
+  [ACTIONS.PERPS_OUTREACH]: '',
   [ACTIONS.REWARDS]: '',
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',

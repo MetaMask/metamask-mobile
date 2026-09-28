@@ -33,6 +33,7 @@ import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginA
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
+import { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -58,7 +59,10 @@ export interface UsePerpsProPositionsPanelActionsReturn {
   handleEditPositionTpSl: (position: Position) => void;
   handleEditPositionMargin: (position: Position) => void;
   isPositionMarginEditable: (position: Position) => boolean;
-  handleCancelOrder: (order: Order) => Promise<void>;
+  handleCancelOrder: (
+    order: Order,
+    onOrderCanceled?: (order: Order) => void | Promise<void>,
+  ) => Promise<void>;
   handleEditOrderPrice: (order: Order) => void;
   handleEditOrderSize: (order: Order) => void;
   handleCloseAllPress: () => void;
@@ -82,7 +86,8 @@ export interface UsePerpsProPositionsPanelActionsReturn {
 export const usePerpsProPositionsPanelActions =
   (): UsePerpsProPositionsPanelActionsReturn => {
     const navigation = useNavigation<AppNavigationProp>();
-    const { navigateToClosePosition } = usePerpsNavigation();
+    const { navigateToClosePosition, navigateToAdjustMargin } =
+      usePerpsNavigation();
     const isEligible = useSelector(selectPerpsEligibility);
     const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
     const { gate } = useComplianceGate(selectedAddress ?? '');
@@ -91,6 +96,7 @@ export const usePerpsProPositionsPanelActions =
     const { handleUpdateTPSL } = usePerpsTPSLUpdate();
     const { showToast, PerpsToastOptions } = usePerpsToasts();
     const { playImpact } = useHaptics();
+    const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
     const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
     const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
@@ -252,6 +258,7 @@ export const usePerpsProPositionsPanelActions =
               initialStopLossPrice: position.stopLossPrice,
               leverage: position.leverage.value,
               enableHaptics: true,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
               onConfirm: async (
                 positionFromRoute?: Position,
                 takeProfitPrice?: string,
@@ -270,7 +277,13 @@ export const usePerpsProPositionsPanelActions =
           },
         );
       },
-      [handleUpdateTPSL, navigation, playImpact, runGatedEligibleAction],
+      [
+        handleUpdateTPSL,
+        navigation,
+        playImpact,
+        runGatedEligibleAction,
+        useBottomSheet,
+      ],
     );
 
     const isPositionMarginEditable = useCallback(
@@ -288,11 +301,28 @@ export const usePerpsProPositionsPanelActions =
           PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
           () => {
             playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+
+            // The bottom sheet treatment carries its own add/remove toggle, so
+            // the separate action-choice sheet is redundant there.
+            if (useBottomSheet) {
+              navigateToAdjustMargin(position, 'add', {
+                enableHaptics: true,
+                useBottomSheet: true,
+              });
+              return;
+            }
+
             setAdjustMarginPosition(position);
           },
         );
       },
-      [isPositionMarginEditable, playImpact, runGatedEligibleAction],
+      [
+        isPositionMarginEditable,
+        playImpact,
+        runGatedEligibleAction,
+        navigateToAdjustMargin,
+        useBottomSheet,
+      ],
     );
 
     const isOrderCancelable = useCallback(
@@ -301,7 +331,10 @@ export const usePerpsProPositionsPanelActions =
     );
 
     const handleCancelOrder = useCallback(
-      async (order: Order) => {
+      async (
+        order: Order,
+        onOrderCanceled?: (order: Order) => void | Promise<void>,
+      ) => {
         // Mirror openEditSheet: block cancel while another cancel or edit is in flight.
         if (!isOrderCancelable(order) || cancelingOrderId || editingOrderId) {
           return;
@@ -347,6 +380,7 @@ export const usePerpsProPositionsPanelActions =
                 order.symbol,
               ),
             );
+            await onOrderCanceled?.(order);
           } else {
             showToast(
               PerpsToastOptions.orderManagement.shared.cancellationFailed,
@@ -438,6 +472,7 @@ export const usePerpsProPositionsPanelActions =
                 position={adjustMarginPosition}
                 onClose={handleAdjustMarginSheetClose}
                 enableHaptics
+                useBottomSheet={useBottomSheet}
               />
             </PerpsProModalPortal>
           )}
@@ -468,6 +503,7 @@ export const usePerpsProPositionsPanelActions =
         reversePosition,
         showCancelAllSheet,
         showCloseAllSheet,
+        useBottomSheet,
       ],
     );
 

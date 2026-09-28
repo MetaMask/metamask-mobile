@@ -1,5 +1,6 @@
 export { default } from './EarnStrategyCard';
 export {
-  EarnStrategyRiskLevel,
+  EarnStrategyCardVariant,
   type EarnStrategyCardProps,
 } from './EarnStrategyCard.types';
+export { EarnStrategyCardSelectorsIDs } from './EarnStrategyCard.testIds';

@@ -127,6 +127,10 @@ export interface TapOptions extends GestureOptions {
   waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
   /** Appium: stricter enabled polling before tap (AppiumGestures.waitUntilInteractive) */
   waitForInteractive?: boolean;
+  /** Appium: consecutive interactive reads required when waitForInteractive is true */
+  enabledStableReads?: number;
+  /** Appium: extra settle time after interactive wait before tap */
+  postEnabledSettleMs?: number;
 }
 
 export interface TypeTextOptions extends GestureOptions {
@@ -297,6 +301,10 @@ export interface LaunchArgs {
   commandQueueServerPort: string;
   /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
   accountActivityWsPort: string;
+  /** Test-only source account used to bypass the transaction-pay headless fiat flow. */
+  transactionPayFiatTestFundingSource: string;
+  /** Optional human-readable funding amount for the transaction-pay fiat test flow. */
+  transactionPayFiatTestAmountOverride: string;
   /** Appium specific launch args */
   stop: boolean;
   wait: boolean;

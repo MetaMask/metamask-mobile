@@ -282,10 +282,84 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        'Insufficient balance: need 10.00, have 5',
+      ]);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
+    });
+
+    it('excludes the minimum amount error from the insufficient balance errors', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: 5,
+          marginRequired: '10.00',
+          originalUsdAmount: '3.59',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).toContain('Minimum order size is $10');
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        'Insufficient balance: need 10.00, have 5',
+      ]);
+    });
+
+    it('reports protocol insufficient balance errors alongside the local ones', async () => {
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation(defaultParams),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        'perps.errors.insufficientMargin',
+      ]);
+      expect(result.current.errors).toContain(
+        'perps.errors.insufficientMargin',
+      );
+    });
+
+    it('clears the insufficient balance errors once the required margin fits the balance', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender } = renderHook(
+        (marginRequired: string) =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            spendableBalance: 5,
+            marginRequired,
+          }),
+        { initialProps: '10.00' },
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.insufficientBalanceErrors).toHaveLength(1);
+      });
+
+      rerender('1.00');
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.insufficientBalanceErrors).toEqual([]);
     });
   });
 
@@ -530,6 +604,45 @@ describe('usePerpsOrderValidation', () => {
 
       // Now the debounced validation should have fired
       expect(mockValidateOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps validity false until a value entered during suspended validation is checked', async () => {
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        {
+          initialProps: {
+            ...defaultParams,
+            skipValidation: false,
+          },
+        },
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValid).toBe(true);
+      });
+
+      rerender({
+        ...defaultParams,
+        positionSize: '0.003',
+        skipValidation: true,
+      });
+      expect(result.current.isValid).toBe(false);
+
+      rerender({
+        ...defaultParams,
+        positionSize: '0.003',
+        skipValidation: false,
+      });
+      expect(result.current.isValid).toBe(false);
+      expect(result.current.isValidating).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValid).toBe(true);
+      });
     });
 
     it('reports a new local error while protocol validation remains debounced', async () => {
@@ -1075,7 +1188,9 @@ describe('usePerpsOrderValidation', () => {
           expect(result.current.isValidating).toBe(false);
         });
 
-        expect(result.current.isValid).toBe(false);
+        // A wrong-side trigger is advice, not a blocker: the user is told
+        // about it and can still place the order.
+        expect(result.current.isValid).toBe(true);
         expect(result.current.errors).toEqual([]);
         expect(result.current.fieldIssues).toEqual(
           expect.arrayContaining([

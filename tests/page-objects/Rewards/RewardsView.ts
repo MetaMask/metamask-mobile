@@ -24,6 +24,22 @@ class RewardsView {
   get onboardingStepContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(REWARDS_ONBOARDING_STEP_CONTAINER);
   }
+
+  get bottomSheetCloseButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      REWARDS_VIEW_SELECTORS.BOTTOM_SHEET_CLOSE_BUTTON,
+    );
+  }
+
+  /**
+   * The "Add accounts" confirm button inside the "Don't miss out" bottom-sheet
+   * modal. Visible only when the modal is open, so it doubles as a modal-present
+   * indicator. On Android the element is found via its accessibility label
+   * (content-desc); on iOS via its accessibility ID.
+   */
+  get dontMissOutModalButton(): Promise<AppiumElement> {
+    return Matchers.getElementByLabel('Add accounts');
+  }
 }
 
 export default new RewardsView();

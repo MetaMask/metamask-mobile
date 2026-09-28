@@ -28,8 +28,8 @@ const FIAT_TEST_FUNDING_SOURCE_ORDER_ID = 'fiat-test-funding-source';
 /**
  * Maps a confirmation transaction type to the headless ramps `ramp_surface`
  * (TRAM-3623). Only deposit flows routed through the headless buy belong here.
- * `musdConversion` and withdraw types are intentionally omitted: not
- * money/perps/prediction deposits, so they get an `undefined` surface.
+ * Withdraw types are intentionally omitted: not money/perps/prediction
+ * deposits, so they get an `undefined` surface.
  */
 const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
   Record<TransactionType, RampSurface>
@@ -87,9 +87,9 @@ export function useFiatConfirm() {
 
     setIsHeadlessBuyInProgress(true);
 
-    // Subtract the on-ramp provider fee from the total so the Ramps order
-    // amount covers exactly the Relay leg of the intent (fees + deposit).
-    // The on-ramp provider adds its own fee on top of what we request.
+    // Fee-on-top: the on-ramp adds its provider fee on top of what we request,
+    // so subtract that fee from the total to get the amount to buy. The user is
+    // charged the full total (entered amount plus fees).
     const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0)
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
