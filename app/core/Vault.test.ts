@@ -221,6 +221,10 @@ describe('Vault', () => {
       .mockResolvedValue(undefined);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('getSeedPhrase', () => {
     it('calls exportSeedPhrase', async () => {
       mockExportSeedPhrase.mockResolvedValue(new Uint8Array([1, 2, 3]));
