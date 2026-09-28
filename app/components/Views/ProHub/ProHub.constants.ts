@@ -15,7 +15,7 @@ export interface ProHubStats {
   musdBack: string;
   /** Share of spend returned as mUSD, as a percentage. */
   musdBackRate: number;
-  /** Formatted date by which funds must be added to keep the membership. */
+  /** ISO date (`YYYY-MM-DD`) by which funds must be added to keep the membership. */
   addFundsDueDate: string;
 }
 
@@ -34,7 +34,7 @@ export const MOCK_PRO_HUB_STATS: ProHubStats = {
   moneyBalanceApy: 7,
   musdBack: '$0.00',
   musdBackRate: 3,
-  addFundsDueDate: 'Oct 12',
+  addFundsDueDate: '2026-10-12',
 };
 
 export const MembershipBannerKind = {
@@ -42,6 +42,7 @@ export const MembershipBannerKind = {
   ActiveRenewalFailed: 'activeRenewalFailed',
   Overdue: 'overdue',
   Deactivated: 'deactivated',
+  Cancelled: 'cancelled',
 } as const;
 
 export type MembershipBannerKind =
@@ -101,6 +102,16 @@ export const MEMBERSHIP_BANNER_STATES: Record<
     descriptionKey: 'pro_hub.membership_alert.inactive.description',
     actionKey: 'pro_hub.membership_alert.inactive.action',
     interpolatesDate: false,
+  },
+  [MembershipBannerKind.Cancelled]: {
+    kind: MembershipBannerKind.Cancelled,
+    statusKey: 'pro_hub.membership_status.cancelled',
+    iconColor: IconColor.WarningDefault,
+    bannerSeverity: BannerAlertSeverity.Warning,
+    titleKey: 'pro_hub.membership_alert.cancelled.title',
+    descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+    actionKey: 'pro_hub.membership_alert.cancelled.action',
+    interpolatesDate: true,
   },
 };
 

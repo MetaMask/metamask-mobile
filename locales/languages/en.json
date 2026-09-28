@@ -11988,7 +11988,8 @@
     "membership_status": {
       "active": "Active",
       "overdue": "Overdue",
-      "deactivated": "Deactivated"
+      "deactivated": "Deactivated",
+      "cancelled": "Cancelled"
     },
     "lifetime_earnings": "Lifetime earnings",
     "money_balance": "{{apy}} APY on Money balance",
@@ -12035,6 +12036,11 @@
         "title": "Your membership is inactive",
         "description": "Add funds to your Money account to regain access to your benefits.",
         "action": "Add funds"
+      },
+      "cancelled": {
+        "title": "Your membership is cancelled",
+        "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
+        "action": "Renew membership"
       }
     },
     "earned": {

@@ -12,7 +12,6 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
-  Card,
   HeaderBase,
   Icon,
   IconColor,
@@ -23,7 +22,6 @@ import {
   TextColor,
   TextVariant,
   FontWeight,
-  BannerAlert,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -37,69 +35,11 @@ import {
   type MembershipBannerState,
 } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
+import MembershipBanner from './components/MembershipBanner';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
-interface MembershipBannerProps {
-  testID: string;
-  state: MembershipBannerState;
-  addFundsDueDate: string;
-  onAction: () => void;
-}
-
 const formatPercent = (value: number): string => `${value}%`;
-
-export const MembershipBanner = ({
-  testID,
-  state,
-  addFundsDueDate,
-  onAction,
-}: MembershipBannerProps) => {
-  const alertTitle = state.interpolatesDate
-    ? strings(state.titleKey, { date: addFundsDueDate })
-    : strings(state.titleKey);
-
-  return (
-    <Card
-      twClassName="w-full bg-background-section rounded-xl p-4 border-0"
-      testID={testID}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('pro_hub.title')}
-        </Text>
-        <Icon
-          name={IconName.Info}
-          size={IconSize.Lg}
-          color={state.iconColor}
-          testID={ProHubTestIds.MEMBERSHIP_STATUS_ICON}
-        />
-      </Box>
-      <Text
-        variant={TextVariant.HeadingLg}
-        color={TextColor.TextDefault}
-        testID={ProHubTestIds.MEMBERSHIP_STATUS_LABEL}
-      >
-        {strings(state.statusKey)}
-      </Text>
-      <BannerAlert
-        severity={state.bannerSeverity}
-        startAccessory={null}
-        title={alertTitle}
-        description={strings(state.descriptionKey)}
-        actionButtonLabel={strings(state.actionKey)}
-        actionButtonOnPress={onAction}
-        actionButtonProps={{ testID: ProHubTestIds.MEMBERSHIP_ALERT_ACTION }}
-        twClassName="mt-3"
-        testID={ProHubTestIds.MEMBERSHIP_ALERT_BANNER}
-      />
-    </Card>
-  );
-};
 
 interface StatRowProps {
   iconName: IconName;
