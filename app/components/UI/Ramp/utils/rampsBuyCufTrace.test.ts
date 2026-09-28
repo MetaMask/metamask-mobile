@@ -59,8 +59,6 @@ describe('rampsBuyCufTrace', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
-    // A completed journey settles the foreground to warm, so the module-level
-    // context must not leak into the next test.
     resetRampsBuyLifecycleContextForTests();
     mockTrace.mockReturnValue({ mocked: 'parent-span' });
     mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });

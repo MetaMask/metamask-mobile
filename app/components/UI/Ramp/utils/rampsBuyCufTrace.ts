@@ -150,7 +150,6 @@ export function buildRampsBuyCufStartTags(
   };
 }
 
-/** Log a Buy CUF span transition so it can be verified without Sentry. */
 export function logRampsBuyCufSpan(
   phase: 'started' | 'completed',
   name: TraceName,
@@ -253,9 +252,6 @@ export function endRampsBuyCufTrace({
 
   pauseForegroundSegment(timestamp);
   const measuredForegroundMs = Math.round(foregroundActiveMs);
-  // lifecycle_context is a start tag: it records the launch context the
-  // journey opened in. Backgrounding *during* the journey is expressed by the
-  // counts below, so the two never have to share one value space.
   const lifecycleData = {
     [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: measuredForegroundMs,
     [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: backgroundCount,
@@ -277,8 +273,6 @@ export function endRampsBuyCufTrace({
     data: endData,
     timestamp,
   });
-  // A failed journey is no proof the user ever saw Buy content, so it must not
-  // settle the foreground to warm.
   if (data?.[RAMPS_BUY_CUF_TAG.SUCCESS] !== false) {
     settleRampsBuyForegroundOnSpan(TraceName.RampBuyToOrderDetails);
   }

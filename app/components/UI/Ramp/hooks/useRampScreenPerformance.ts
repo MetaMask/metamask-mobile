@@ -121,8 +121,6 @@ export function useRampScreenPerformance({
       if (nextState !== 'active') {
         return;
       }
-      // Already-loaded screens stay quiet. Settling here would flip
-      // background_resume to warm before a still-loading sibling can start.
       if (
         !hasReachedContentRef.current &&
         mountedRef.current &&
