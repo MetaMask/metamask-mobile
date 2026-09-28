@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import VbaEmailAdapter from './modules/VbaEmailAdapter';
-import VbaIdentityVerificationAdapter from './modules/VbaIdentityVerificationAdapter';
+import VbaIdentityVerificationModule from './modules/VbaIdentityVerificationModule';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -25,7 +25,7 @@ const VbaOnboardingNavigator = () => (
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFICATION}
-      component={VbaIdentityVerificationAdapter}
+      component={VbaIdentityVerificationModule}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_PENDING}

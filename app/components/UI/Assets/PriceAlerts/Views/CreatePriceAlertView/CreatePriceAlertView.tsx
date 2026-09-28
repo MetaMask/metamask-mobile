@@ -16,6 +16,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
+import { PerpsStreamProvider } from '../../../../Perps/providers/PerpsStreamManager';
+import { usePerpsLiveFocusedPrice } from '../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice';
 import AlertTypeToggle from '../../components/AlertTypeToggle';
 import {
   type AlertType,
@@ -30,6 +33,28 @@ import usePerpAlertSaveFlow from '../../perpApi';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+
+/**
+ * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
+ * on the main stack without that provider, so the focused-price hook cannot
+ * run there.
+ */
+const PerpsAlertLivePrice: React.FC<{
+  symbol: string;
+  onPrice: (price: number) => void;
+}> = ({ symbol, onPrice }) => {
+  const focused = usePerpsLiveFocusedPrice({ symbol, enabled: true });
+  const raw = focused?.markPrice ?? focused?.price;
+  const parsed = raw === undefined ? Number.NaN : Number.parseFloat(raw);
+
+  useEffect(() => {
+    if (Number.isFinite(parsed)) {
+      onPrice(parsed);
+    }
+  }, [parsed, onPrice]);
+
+  return null;
+};
 
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
@@ -54,8 +79,12 @@ const CreatePriceAlertView: React.FC = () => {
     initialType,
     mode,
     marketId,
+    szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
+  const [livePrice, setLivePrice] = useState<number | undefined>();
+  const displayPrice =
+    isPerpsMode && livePrice !== undefined ? livePrice : currentPrice;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
@@ -112,10 +141,14 @@ const CreatePriceAlertView: React.FC = () => {
     trackEvent,
   ]);
 
-  const formattedCurrentPrice = useMemo(
-    () => formatPriceWithSubscriptNotation(currentPrice, currentCurrency),
-    [currentCurrency, currentPrice],
-  );
+  const formattedCurrentPrice = useMemo(() => {
+    if (isPerpsMode) {
+      // Deliberately omits szDecimals so this reads identically to the live
+      // market header, which formats by magnitude rather than venue tick size.
+      return formatPerpsPrice(displayPrice);
+    }
+    return formatPriceWithSubscriptNotation(displayPrice, currentCurrency);
+  }, [currentCurrency, displayPrice, isPerpsMode]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -133,14 +166,30 @@ const CreatePriceAlertView: React.FC = () => {
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
+        {/* The header centers the title block but not the text inside it, so
+            longer translations wrap with their trailing line pushed left. */}
         <HeaderStandard
           title={strings(
             isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
             { ticker: displayTicker },
           )}
+          titleProps={{
+            twClassName: 'text-center',
+            testID: CreatePriceAlertTestIds.HEADER_TITLE,
+          }}
           subtitle={formattedCurrentPrice}
+          subtitleProps={{
+            twClassName: 'text-center',
+            testID: CreatePriceAlertTestIds.HEADER_SUBTITLE,
+          }}
           onBack={handleBack}
         />
+
+        {isPerpsMode ? (
+          <PerpsStreamProvider>
+            <PerpsAlertLivePrice symbol={assetId} onPrice={setLivePrice} />
+          </PerpsStreamProvider>
+        ) : null}
 
         {/* Percent-change tab is not supported by the perp alerts API */}
         {!isPerpsMode && (
@@ -162,12 +211,13 @@ const CreatePriceAlertView: React.FC = () => {
           <AbsolutePriceAlertForm
             assetId={assetId}
             displayTicker={displayTicker}
-            currentPrice={currentPrice}
+            currentPrice={displayPrice}
             currentCurrency={currentCurrency}
             saveAlert={saveAlert}
             editingAlert={editingAbsoluteAlert}
             existingAbsoluteAlerts={existingAbsoluteAlerts}
             marketId={isPerpsMode ? marketId : undefined}
+            szDecimals={szDecimals}
           />
         )}
 
