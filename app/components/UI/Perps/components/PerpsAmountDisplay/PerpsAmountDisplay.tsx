@@ -109,9 +109,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       : undefined;
 
   useEffect(() => {
+    let animation: Animated.CompositeAnimation | undefined;
+
     if (isActive) {
       // Start blinking animation
-      Animated.loop(
+      animation = Animated.loop(
         Animated.sequence([
           Animated.timing(fadeAnim, {
             toValue: 1,
@@ -129,6 +131,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       // Stop animation and hide cursor
       fadeAnim.setValue(0);
     }
+
+    return () => animation?.stop();
   }, [isActive, fadeAnim]);
 
   if (variant === 'tradeSheet') {
@@ -302,13 +306,13 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         fontWeight={FontWeight.Bold}
         loading={isLoading}
         loadingContent={<Skeleton width={80} height={20} />}
-        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
         rollDigits={false}
         style={
           Platform.OS === 'android'
             ? styles.amountValueTokenAndroid
             : styles.amountValueToken
         }
+        testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
         value={displayValue}
         variant={TextVariant.BodyMd}
       />
@@ -339,6 +343,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     return (
       <TouchableOpacity
         testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
         onPress={onPress}
         activeOpacity={0.7}
       >

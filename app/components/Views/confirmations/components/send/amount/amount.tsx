@@ -87,6 +87,7 @@ export const Amount = () => {
     () => formatAmountWithCommas(amount.length ? amount : defaultValue),
     [amount, defaultValue],
   );
+  const animatedDisplayAmount = displayAmount.replaceAll(',', ' ');
   const inputFontSize = getFontSizeForInputLength(
     displayAmount.length +
       assetDisplaySymbol.length +
@@ -225,7 +226,7 @@ export const Amount = () => {
                 amountError ? TextColor.ErrorDefault : TextColor.TextMuted
               }
               suffixStyle={styles.inputText}
-              value={displayAmount}
+              value={animatedDisplayAmount}
               variant={TextVariant.DisplayMd}
             />
           </View>
