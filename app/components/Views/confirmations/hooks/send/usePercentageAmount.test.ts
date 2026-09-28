@@ -151,6 +151,24 @@ describe('usePercentageAmount', () => {
     });
   });
 
+  it('estimates with a zero value before an amount is entered', async () => {
+    setNativeSendContext({ to: undefined, value: '' });
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+
+    await waitFor(() => {
+      expect(result.current.isMaxAmountSupported).toBe(true);
+      expect(result.current.getPercentageAmount(100)).toBe('9685000000000');
+    });
+    expect(mockEstimateGas).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '0x0' }),
+      'mainnet',
+    );
+  });
+
   it('reserves a node estimate above 21,000 for native max', async () => {
     mockEstimateGas.mockResolvedValue({
       gas: '0x7530',

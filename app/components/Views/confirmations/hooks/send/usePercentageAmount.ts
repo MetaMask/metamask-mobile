@@ -127,7 +127,7 @@ export const usePercentageAmount = () => {
   const isGasSponsored = Boolean(isNetworkGasSponsored && !isHardwareWallet);
 
   const estimateGasLimit = useCallback(
-    async (recipientAddress?: string, transactionValue = value ?? '0') => {
+    async (recipientAddress?: string, transactionValue = value || '0') => {
       if (
         !isEvmNativeSendType ||
         isGasSponsored ||
@@ -164,7 +164,7 @@ export const usePercentageAmount = () => {
   );
 
   const getLayer1GasFee = useCallback(
-    async (recipientAddress?: string, transactionValue = value ?? '0') => {
+    async (recipientAddress?: string, transactionValue = value || '0') => {
       if (
         !isEvmNativeSendType ||
         isGasSponsored ||
