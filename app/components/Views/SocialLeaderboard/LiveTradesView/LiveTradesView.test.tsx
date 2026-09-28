@@ -1,8 +1,14 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SocialEntryOptionsProvider } from '../components/SocialEntryOptionsBottomSheet';
+import {
+  getSocialEntryOptionsTriggerTestId,
+  SocialEntryOptionsBottomSheetSelectorsIDs,
+} from '../components/SocialEntryOptionsBottomSheet.testIds';
 import { getFeedItemTestId } from '../FeedView/FeedView.testIds';
+import { SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
 import LiveTradesView from './LiveTradesView';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
@@ -15,23 +21,24 @@ describe('LiveTradesView', () => {
   it('renders a single Live stream toggle above the mock feed list', () => {
     renderWithProvider(<LiveTradesView />);
 
-    expect(
+    const scroll = within(
       screen.getByTestId(LiveTradesViewSelectorsIDs.SCROLL_VIEW),
+    );
+
+    expect(
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText('social_leaderboard.feed.live_stream.live'),
+      scroll.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
     expect(
       screen.queryByText('social_leaderboard.feed.live_stream.paused'),
     ).not.toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -44,6 +51,27 @@ describe('LiveTradesView', () => {
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-live-trades-1'),
     ).toBeOnTheScreen();
+  });
+
+  it('drops a hidden trade and its divider together', () => {
+    renderWithProvider(
+      <SocialEntryOptionsProvider>
+        <LiveTradesView />
+      </SocialEntryOptionsProvider>,
+    );
+
+    const firstItem = MOCK_LIVE_TRADES_ITEMS[0];
+    fireEvent.press(
+      screen.getByTestId(getSocialEntryOptionsTriggerTestId(firstItem.id)),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST),
+    );
+
+    expect(screen.queryByTestId(getFeedItemTestId(firstItem.id))).toBeNull();
+    expect(
+      screen.getAllByTestId(new RegExp(SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID)),
+    ).toHaveLength(MOCK_LIVE_TRADES_ITEMS.length - 2);
   });
 
   it('toggles from Live to Paused without calling onOpenFilters', () => {

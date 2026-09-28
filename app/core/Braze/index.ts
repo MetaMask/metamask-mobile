@@ -9,6 +9,7 @@ import {
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
+import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -32,8 +33,40 @@ export function getBrazePlugin(): BrazePlugin {
 }
 
 /**
+ * Apply the LaunchDarkly Braze event blocklist to the Segment plugin.
+ *
+ * A missing, disabled, or malformed flag clears the blocklist so events are
+ * sent. Called on analytics init and whenever remote flags change.
+ *
+ * @param flagValue - Raw `brazeEventBlocklist` variation.
+ */
+export function syncBrazeEventBlocklist(flagValue: unknown): void {
+  try {
+    getBrazePlugin().setBlockedEvents(getBrazeBlockedEventNames(flagValue));
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      '[Braze] Failed to sync event blocklist from remote config',
+    );
+    try {
+      getBrazePlugin().setBlockedEvents([]);
+    } catch (resetError) {
+      Logger.error(
+        resetError as Error,
+        '[Braze] Failed to clear event blocklist after a sync error',
+      );
+    }
+  }
+}
+
+/**
  * Forward a canonical profile ID to the Braze Segment plugin so all subsequent
  * identify / track / flush calls are attributed to this identity.
+ *
+ * A new profile (first sign-in, account switch, or wallet reset) re-enables
+ * the SDK if it was disabled, calls `changeUser`, and refreshes banners so
+ * campaigns match that identity. Repeating the same profile skips
+ * `changeUser` and does not spend another banner refresh.
  *
  * Skipped during E2E so CI does not create Braze profiles from mocked
  * identity sessions.
@@ -44,7 +77,12 @@ export function setBrazeUser(canonicalProfileId: string): void {
   }
 
   try {
-    getBrazePlugin().setBrazeProfileId(canonicalProfileId);
+    Braze.enableSDK();
+    const didChangeUser =
+      getBrazePlugin().setBrazeProfileId(canonicalProfileId);
+    if (didChangeUser) {
+      refreshBrazeBanners();
+    }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to set Braze user');
   }
@@ -52,10 +90,14 @@ export function setBrazeUser(canonicalProfileId: string): void {
 
 /**
  * Clear the Braze profile identity so the plugin becomes a no-op.
- * Call on sign-out to stop attributing events to the previous user.
+ * Call on sign-out / wallet reset to stop attributing events to the previous
+ * user. Disables the native SDK until the next `setBrazeUser` so the previous
+ * profile is not messaged during the unsigned gap. Does not `wipeData` —
+ * that tears down banner subscriptions and is reserved for a future user-
+ * deletion flow.
  *
- * @returns Whether local Braze data was cleared. Cleanup is deferred while a
- * push unregistration remains pending so its device and user context survive.
+ * @returns Whether the SDK was disabled. Cleanup is deferred while a push
+ * unregistration remains pending so its device and user context survive.
  */
 export async function clearBrazeUser(): Promise<boolean> {
   if (hasTestOverrides) {
@@ -68,12 +110,12 @@ export async function clearBrazeUser(): Promise<boolean> {
   }
 
   try {
-    Braze.wipeData();
-    Braze.enableSDK();
-    Logger.log('[Braze] Cleared Braze user identity and local SDK data');
+    Braze.requestImmediateDataFlush();
+    Braze.disableSDK();
+    Logger.log('[Braze] Disabled Braze SDK after clearing user identity');
     return true;
   } catch (error) {
-    Logger.error(error as Error, '[Braze] Failed to clear local SDK data');
+    Logger.error(error as Error, '[Braze] Failed to disable Braze SDK');
     return false;
   }
 }
@@ -96,8 +138,9 @@ export async function getBannerForPlacement(
 /**
  * Request a fresh banner from the SDK for the given placements.
  * Defaults to the standard banner placement when no IDs are supplied.
- * Call this after dismissal or on app foreground to ensure the next
- * campaign is fetched and cached.
+ * Call this after identifying a new Braze user so placement-targeted
+ * campaigns match the current identity. Each call spends a Braze banner
+ * refresh token.
  */
 export function refreshBrazeBanners(
   placementIds: string[] = ALL_BRAZE_BANNER_PLACEMENT_IDS,

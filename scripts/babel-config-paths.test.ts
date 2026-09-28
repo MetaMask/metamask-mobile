@@ -6,6 +6,8 @@
  * only matches forward slashes silently never fires on Windows (see the
  * posixPath/pathIncludes comments in babel.config.js).
  */
+import path from 'node:path';
+import { transformSync } from '@babel/core';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
 const babelConfig = require('../babel.config');
@@ -30,6 +32,24 @@ const toBothStyles = (posixRelative: string) => ({
 });
 
 describe('babel.config.js path matching', () => {
+  it('keeps the native signer asset out of Jest transforms', () => {
+    const result = transformSync(
+      "import html from './wasm-wrapper.standalone.html'; export default html;",
+      {
+        filename: path.resolve(
+          __dirname,
+          '../app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
+        ),
+        configFile: path.resolve(__dirname, '../babel.config.tests.js'),
+        babelrc: false,
+        sourceMaps: false,
+      },
+    );
+
+    expect(result?.code?.length).toBeLessThan(1024);
+    expect(result?.code).toContain('./wasm-wrapper.standalone.html');
+  });
+
   describe('ignore', () => {
     it.each([
       '/node_modules/ses/dist/ses.cjs',
@@ -71,6 +91,7 @@ describe('babel.config.js path matching', () => {
       '/node_modules/@noble/secp256k1/index.js',
       '/node_modules/@metamask/rpc-errors/dist/index.js',
       '/app/lib/snaps/SnapsExecutionWebView.tsx',
+      '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
       '/app/core/redux/ReduxService.ts',
       '/app/core/Engine/Engine.ts',
       '/app/core/NavigationService/NavigationService.ts',

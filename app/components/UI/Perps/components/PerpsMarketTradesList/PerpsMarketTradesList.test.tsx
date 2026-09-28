@@ -361,6 +361,42 @@ describe('PerpsMarketTradesList', () => {
     });
   });
 
+  describe('Aggregated fills', () => {
+    it.each([
+      ['loading', true],
+      ['loaded', false],
+    ])('omits the Aggregated checkbox when %s', (_state, isLoading) => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills, isLoading),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      expect(
+        screen.queryByTestId('perps-market-trades-aggregated-checkbox'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the fills of one order as a single aggregated row', () => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn([
+          { ...mockOrderFills[0], orderId: 'order-1', size: '1.0' },
+          {
+            ...mockOrderFills[0],
+            orderId: 'order-1',
+            size: '0.5',
+            timestamp: mockOrderFills[0].timestamp - 1000,
+          },
+        ]),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      expect(screen.getAllByText('Opened long')).toHaveLength(1);
+      expect(screen.getByText('1.5 ETH')).toBeOnTheScreen();
+    });
+  });
+
   describe('Navigation Handling', () => {
     it('navigates to Activity screen when See all is pressed', () => {
       mockUsePerpsMarketFills.mockReturnValue(

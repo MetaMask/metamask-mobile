@@ -10,6 +10,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -76,15 +78,15 @@ const PredictResolvedOutcomesDropdown = memo(
             >
               {strings('predict.resolved_outcomes')}
             </Text>
-            <Box twClassName="px-2 py-0.5 rounded bg-muted">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                testID={countTestID}
-              >
-                {count}
-              </Text>
-            </Box>
+            <Tag
+              severity={TagSeverity.Neutral}
+              // Tag defaults to `self-start`, which opts it out of the row's
+              // centering and leaves it sitting above the label.
+              twClassName="self-center"
+              testID={countTestID}
+            >
+              {String(count)}
+            </Tag>
           </Box>
           <Icon
             name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}

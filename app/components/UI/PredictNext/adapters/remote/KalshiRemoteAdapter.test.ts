@@ -70,6 +70,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
   fetchOrderPreview: jest.fn(),
+  commitOrder: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -597,6 +598,133 @@ describe('KalshiRemoteAdapter', () => {
       await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.MARKET_NOT_FOUND }),
       );
+    });
+
+    const receiptPayload = {
+      operationId: 'd8f1c0aa-2222-4333-9444-555566667777',
+      previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+      venueId: 'kalshi',
+      marketId,
+      side: 'yes',
+      status: 'submitted',
+      requestedMaxSpend: '20.00',
+      quotedContracts: 43,
+      venueOrderId: null,
+      filledContracts: null,
+      actualSpend: null,
+      averageFillPrice: null,
+      fee: null,
+      payoutExposure: null,
+    };
+
+    it('parses a canonical Order Receipt for the committed preview', async () => {
+      client.commitOrder.mockResolvedValue(receiptPayload);
+
+      const result = await adapter.trading.commitOrder(
+        receiptPayload.previewId,
+      );
+
+      expect(result.status).toBe('submitted');
+      expect(result.quotedContracts).toBe(43);
+      expect(result.venueOrderId).toBeNull();
+      expect(client.commitOrder).toHaveBeenCalledWith(
+        adapter.venueId,
+        { previewId: receiptPayload.previewId },
+        undefined,
+      );
+    });
+
+    it('forwards Order Receipt cancellation', async () => {
+      client.commitOrder.mockResolvedValue(receiptPayload);
+      const signal = new AbortController().signal;
+
+      await adapter.trading.commitOrder(receiptPayload.previewId, { signal });
+
+      expect(client.commitOrder).toHaveBeenCalledWith(
+        adapter.venueId,
+        { previewId: receiptPayload.previewId },
+        { signal },
+      );
+    });
+
+    it('rejects an Order Receipt bound to another preview', async () => {
+      client.commitOrder.mockResolvedValue(receiptPayload);
+
+      await expect(
+        adapter.trading.commitOrder('b3c2a1d0-1111-4222-8333-444455559999'),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
+
+    it('rejects an Order Receipt for another Venue', async () => {
+      client.commitOrder.mockResolvedValue({
+        ...receiptPayload,
+        venueId: 'other',
+      });
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
+
+    it('rejects a malformed Order Receipt payload', async () => {
+      client.commitOrder.mockResolvedValue({
+        ...receiptPayload,
+        status: 'cancelled',
+      });
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      );
+    });
+
+    it('maps canonical backend commit codes to client codes', async () => {
+      client.commitOrder.mockRejectedValue(
+        new PredictHttpError(409, 'market_not_tradeable'),
+      );
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId),
+      ).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.MARKET_NOT_TRADEABLE,
+        }),
+      );
+    });
+
+    it('maps Order Receipt HTTP 401 to UNAUTHENTICATED without leaking token failures', async () => {
+      client.commitOrder.mockRejectedValue(new PredictHttpError(401));
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+      );
+    });
+
+    it('maps Order Receipt HTTP 503 to VENUE_UNAVAILABLE', async () => {
+      client.commitOrder.mockRejectedValue(new PredictHttpError(503));
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId),
+      ).rejects.toEqual(
+        expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
+      );
+    });
+
+    it('preserves Order Receipt AbortError', async () => {
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      client.commitOrder.mockRejectedValue(abortError);
+
+      await expect(
+        adapter.trading.commitOrder(receiptPayload.previewId),
+      ).rejects.toBe(abortError);
     });
   });
 });

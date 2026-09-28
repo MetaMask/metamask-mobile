@@ -49,16 +49,63 @@ describe('BrazePlugin', () => {
   });
 
   describe('setBrazeProfileId', () => {
-    it('calls Braze.changeUser when a profileId is provided', () => {
+    it('returns true when Braze.changeUser runs for a new profile', () => {
+      const didChangeUser = plugin.setBrazeProfileId('profile-123');
+
+      expect(didChangeUser).toBe(true);
+      expect(mockBraze.changeUser).toHaveBeenCalledWith('profile-123');
+    });
+
+    it('returns false when the same profileId is set again', () => {
       plugin.setBrazeProfileId('profile-123');
 
-      expect(mockBraze.changeUser).toHaveBeenCalledWith('profile-123');
+      const didChangeUser = plugin.setBrazeProfileId('profile-123');
+
+      expect(didChangeUser).toBe(false);
     });
 
     it('does not call Braze.changeUser when profileId is undefined', () => {
       plugin.setBrazeProfileId(undefined);
 
       expect(mockBraze.changeUser).not.toHaveBeenCalled();
+    });
+
+    it('does not call Braze.changeUser when the same profileId is set again', () => {
+      plugin.setBrazeProfileId('profile-123');
+      mockBraze.changeUser.mockClear();
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.changeUser).not.toHaveBeenCalled();
+    });
+
+    it('calls Braze.changeUser when a new plugin instance receives the same profileId', () => {
+      plugin.setBrazeProfileId('profile-123');
+      mockBraze.changeUser.mockClear();
+      const secondPlugin = new BrazePlugin();
+
+      secondPlugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.changeUser).toHaveBeenCalledWith('profile-123');
+    });
+
+    it('calls Braze.changeUser when the profileId changes', () => {
+      plugin.setBrazeProfileId('profile-123');
+      mockBraze.changeUser.mockClear();
+
+      plugin.setBrazeProfileId('profile-456');
+
+      expect(mockBraze.changeUser).toHaveBeenCalledWith('profile-456');
+    });
+
+    it('calls Braze.changeUser again after the profileId is cleared', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBrazeProfileId(undefined);
+      mockBraze.changeUser.mockClear();
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.changeUser).toHaveBeenCalledWith('profile-123');
     });
 
     it('flushes pending traits when profileId is set', () => {
@@ -132,6 +179,44 @@ describe('BrazePlugin', () => {
 
       expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
       expect(result).toBe(event);
+    });
+
+    it('does not forward an event whose name is on the blocklist', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      const event = makeTrackEvent('App Opened', { source: 'cold_start' });
+
+      const result = plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
+      expect(result).toBe(event);
+    });
+
+    it('forwards events that are not on the blocklist', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      const event = makeTrackEvent('Swap Completed');
+
+      plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
+        'Swap Completed',
+        undefined,
+      );
+    });
+
+    it('forwards every event when the blocklist is cleared', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      plugin.setBlockedEvents([]);
+      const event = makeTrackEvent('App Opened');
+
+      plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
+        'App Opened',
+        undefined,
+      );
     });
   });
 
@@ -229,6 +314,74 @@ describe('BrazePlugin', () => {
         expect.anything(),
       );
     });
+
+    it('does not resend traits that already have the same sanitized value', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.identify(
+        makeIdentifyEvent({
+          trait1: 'dark',
+          chain_id_list: ['eip155:1', 'eip155:137'],
+        }),
+      );
+      mockBraze.setCustomUserAttribute.mockClear();
+
+      plugin.identify(
+        makeIdentifyEvent({
+          trait1: 'dark',
+          chain_id_list: ['eip155:1', 'eip155:137'],
+        }),
+      );
+
+      expect(mockBraze.setCustomUserAttribute).not.toHaveBeenCalled();
+    });
+
+    it('resends a trait when its sanitized value changes', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.identify(makeIdentifyEvent({ chain_id_list: ['eip155:1'] }));
+      mockBraze.setCustomUserAttribute.mockClear();
+
+      plugin.identify(
+        makeIdentifyEvent({ chain_id_list: ['eip155:1', 'eip155:137'] }),
+      );
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'chain_id_list',
+        ['eip155:1', 'eip155:137'],
+      );
+    });
+
+    it('resends traits after the Braze user changes', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.identify(makeIdentifyEvent({ trait1: 'dark' }));
+      mockBraze.setCustomUserAttribute.mockClear();
+
+      plugin.setBrazeProfileId('profile-456');
+      plugin.identify(makeIdentifyEvent({ trait1: 'dark' }));
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'trait1',
+        'dark',
+      );
+    });
+
+    it('retries a trait after setCustomUserAttribute throws', () => {
+      plugin.setBrazeProfileId('profile-123');
+      mockBraze.setCustomUserAttribute.mockImplementationOnce(() => {
+        throw new Error('native write failed');
+      });
+
+      plugin.identify(makeIdentifyEvent({ trait1: 'dark' }));
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledTimes(1);
+      mockBraze.setCustomUserAttribute.mockClear();
+
+      plugin.identify(makeIdentifyEvent({ trait1: 'dark' }));
+
+      expect(mockBraze.setCustomUserAttribute).toHaveBeenCalledWith(
+        'trait1',
+        'dark',
+      );
+    });
   });
 
   describe('setLanguage', () => {
@@ -276,18 +429,32 @@ describe('BrazePlugin', () => {
 
       expect(mockBraze.setLanguage).toHaveBeenCalledWith('fr');
     });
+
+    it('does not resend language when the profileId is unchanged', () => {
+      plugin.setLanguage('fr');
+      plugin.setBrazeProfileId('profile-123');
+      mockBraze.setLanguage.mockClear();
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+    });
+
+    it('does not resend language when setLanguage is called with the same locale', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setLanguage('fr');
+      mockBraze.setLanguage.mockClear();
+
+      plugin.setLanguage('fr');
+
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+    });
   });
 
   describe('flush', () => {
-    it('flushes Braze data when profileId is set', () => {
+    it('does not force an immediate Braze data flush', () => {
       plugin.setBrazeProfileId('profile-123');
 
-      plugin.flush();
-
-      expect(mockBraze.requestImmediateDataFlush).toHaveBeenCalled();
-    });
-
-    it('does not flush when profileId is not set', () => {
       plugin.flush();
 
       expect(mockBraze.requestImmediateDataFlush).not.toHaveBeenCalled();
