@@ -16,6 +16,19 @@ interface RequestOptions {
   unreportedStatuses?: readonly number[];
 }
 
+interface PostOptions {
+  tokenSet?: CardAuthTokens;
+  headers?: Record<string, string>;
+  location?: CardLocation;
+  unreportedStatuses?: readonly number[];
+}
+
+function isCardAuthTokens(
+  value: CardAuthTokens | PostOptions,
+): value is CardAuthTokens {
+  return 'accessToken' in value;
+}
+
 export class BaanxService {
   private readonly client: AxiosInstance;
   private readonly apiKey_: string;
@@ -96,10 +109,26 @@ export class BaanxService {
   async post<T>(
     path: string,
     body: unknown,
-    tokenSet?: CardAuthTokens,
+    tokenSetOrOptions?: CardAuthTokens | PostOptions,
     location?: CardLocation,
   ): Promise<T> {
-    return this.request<T>(path, { method: 'POST', body, tokenSet, location });
+    if (tokenSetOrOptions && !isCardAuthTokens(tokenSetOrOptions)) {
+      return this.request<T>(path, {
+        method: 'POST',
+        body,
+        tokenSet: tokenSetOrOptions.tokenSet,
+        headers: tokenSetOrOptions.headers,
+        location: location ?? tokenSetOrOptions.location,
+        unreportedStatuses: tokenSetOrOptions.unreportedStatuses,
+      });
+    }
+
+    return this.request<T>(path, {
+      method: 'POST',
+      body,
+      tokenSet: tokenSetOrOptions,
+      location,
+    });
   }
 
   async put<T>(

@@ -165,6 +165,7 @@ describe('ImmersveProvider', () => {
           url: 'https://app.immersve.com',
           autoSignup: true,
         }),
+        { unreportedStatuses: [403] },
       );
       expect(session.id).toBe('login-req-1');
       expect(session.currentStep).toStrictEqual({
@@ -190,6 +191,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ network: 'base-sepolia' }),
+        { unreportedStatuses: [403] },
       );
     });
 
@@ -208,6 +210,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ clientApplicationId: 'flag-app' }),
+        { unreportedStatuses: [403] },
       );
     });
 
@@ -226,6 +229,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ url: 'https://flag.app' }),
+        { unreportedStatuses: [403] },
       );
     });
 
@@ -244,6 +248,7 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ autoSignup: false }),
+        { unreportedStatuses: [403] },
       );
     });
 
@@ -375,6 +380,7 @@ describe('ImmersveProvider', () => {
           address: '0xabc',
           autoSignup: false,
         }),
+        { unreportedStatuses: [403] },
       );
     });
 
@@ -534,8 +540,10 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/token',
         { refreshToken: 'refresh-token', clientApplicationId: 'client-app-1' },
-        undefined,
-        { origin: 'https://app.immersve.com' },
+        {
+          headers: { origin: 'https://app.immersve.com' },
+          unreportedStatuses: [400, 403],
+        },
       );
       expect(refreshed.accessToken).toBe(accessJwt);
       expect(refreshed.providerUserId).toBe('cardholder-1');

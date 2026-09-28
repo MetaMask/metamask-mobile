@@ -418,6 +418,7 @@ export class ImmersveProvider implements ICardProvider {
           url: this.appUrl,
           autoSignup: options?.autoSignup ?? true,
         },
+        { unreportedStatuses: [403] },
       );
 
       return {
@@ -454,15 +455,19 @@ export class ImmersveProvider implements ICardProvider {
 
   async lookupAccount(address: string): Promise<CardAccountLookupResult> {
     try {
-      await this.service.post<ImmersveLoginInitResponse>('/auth/login-init', {
-        loginMethod: 'siwe',
-        network: this.network,
-        clientApplicationId: this.clientApplicationId,
-        scopes: ['cardholder-partner'],
-        address,
-        url: this.appUrl,
-        autoSignup: false,
-      });
+      await this.service.post<ImmersveLoginInitResponse>(
+        '/auth/login-init',
+        {
+          loginMethod: 'siwe',
+          network: this.network,
+          clientApplicationId: this.clientApplicationId,
+          scopes: ['cardholder-partner'],
+          address,
+          url: this.appUrl,
+          autoSignup: false,
+        },
+        { unreportedStatuses: [403] },
+      );
       return 'found';
     } catch (error) {
       if (
@@ -539,8 +544,10 @@ export class ImmersveProvider implements ICardProvider {
           refreshToken: tokens.refreshToken,
           clientApplicationId: this.clientApplicationId,
         },
-        undefined,
-        { origin: this.appUrl },
+        {
+          headers: { origin: this.appUrl },
+          unreportedStatuses: [400, 403],
+        },
       );
     } catch (error) {
       // Auth refresh rejection (400/401/403) is expected session expiry —

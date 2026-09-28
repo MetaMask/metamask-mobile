@@ -428,6 +428,7 @@ export class BaanxProvider implements ICardProvider {
             refresh_token: tokens.refreshToken,
           },
           headers: { 'x-secret-key': this.service.apiKey },
+          unreportedStatuses: [400, 403],
         },
       );
     } catch (error) {
@@ -1572,6 +1573,7 @@ export class BaanxProvider implements ICardProvider {
           password: credentials.password,
           ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
         },
+        credentials.otpCode ? { unreportedStatuses: [400] } : undefined,
       );
     } catch (error) {
       throw mapLoginError(error, !!credentials.otpCode);

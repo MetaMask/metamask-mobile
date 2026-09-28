@@ -12,6 +12,20 @@ interface RequestOptions {
   timeout?: number;
   headers?: Record<string, string>;
   baseURL?: string;
+  /** Statuses that are expected product outcomes, not Sentry issues. */
+  unreportedStatuses?: readonly number[];
+}
+
+interface PostOptions {
+  tokenSet?: CardAuthTokens;
+  headers?: Record<string, string>;
+  unreportedStatuses?: readonly number[];
+}
+
+function isCardAuthTokens(
+  value: CardAuthTokens | PostOptions,
+): value is CardAuthTokens {
+  return 'accessToken' in value;
 }
 
 export class ImmersveService {
@@ -45,6 +59,7 @@ export class ImmersveService {
       location: opts.tokenSet?.location ?? 'international',
       headers,
       alwaysReportEndpoints: [AUTH_TOKEN_ENDPOINT],
+      unreportedStatuses: opts.unreportedStatuses,
       execute: () =>
         this.client.request<T>({
           baseURL: opts.baseURL ?? this.getBaseUrl(),
@@ -64,10 +79,25 @@ export class ImmersveService {
   async post<T>(
     path: string,
     body: unknown,
-    tokenSet?: CardAuthTokens,
+    tokenSetOrOptions?: CardAuthTokens | PostOptions,
     headers?: Record<string, string>,
   ): Promise<T> {
-    return this.request<T>(path, { method: 'POST', body, tokenSet, headers });
+    if (tokenSetOrOptions && !isCardAuthTokens(tokenSetOrOptions)) {
+      return this.request<T>(path, {
+        method: 'POST',
+        body,
+        tokenSet: tokenSetOrOptions.tokenSet,
+        headers: headers ?? tokenSetOrOptions.headers,
+        unreportedStatuses: tokenSetOrOptions.unreportedStatuses,
+      });
+    }
+
+    return this.request<T>(path, {
+      method: 'POST',
+      body,
+      tokenSet: tokenSetOrOptions,
+      headers,
+    });
   }
 
   async patch<T>(
