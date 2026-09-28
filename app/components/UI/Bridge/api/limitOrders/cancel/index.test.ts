@@ -6,11 +6,11 @@ import { limitOrdersQueries } from '../../../queries/limitOrders';
 import { LimitOrderState } from '../getLimitOrders/types';
 import {
   cancelLimitOrder,
-  CancelLimitOrderOutcome,
-  LimitOrderNotOpenError,
   useCancelLimitOrder,
   type CancelLimitOrderParams,
 } from '.';
+import { LimitOrderNotOpenError } from './errors';
+import { CancelLimitOrderOutcome } from './constants';
 
 const mockGetBearerToken = jest.fn();
 jest.mock('../../../../../../core/Engine', () => ({
