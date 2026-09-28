@@ -624,7 +624,6 @@ jobs:
             #      swapping, which costs far more than the lost parallelism.
             # Runners are 28GB (iOS) / 32GB (Android); keep workers low enough that
             # workers x heap still leaves room for clang/Gradle running alongside.
-            # Do not put --trace-gc here: Node rejects it in NODE_OPTIONS.
             export NODE_OPTIONS='--max-old-space-size=8192'
             export METRO_MAX_WORKERS='2'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
