@@ -9,6 +9,7 @@ import { Keys } from './constants';
 import useCurrency from './useCurrency';
 import { KeypadTestIds } from './Keypad.testIds';
 import { colors } from '../../../styles/common';
+import { ImpactMoment, playImpact } from '../../../util/haptics';
 
 const styles = StyleSheet.create({
   periodButton: {
@@ -73,6 +74,7 @@ function KeypadComponent({
 
   const handleKeypadPress = useCallback(
     (pressedKey: Keys) => {
+      playImpact(ImpactMoment.KeypadKey).catch(() => undefined);
       const newValue = handler(valueRef.current, pressedKey);
       // Update synchronously so rapid presses build on each other before React
       // commits the controlled value prop back through a render.

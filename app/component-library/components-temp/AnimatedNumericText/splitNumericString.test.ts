@@ -51,12 +51,12 @@ describe('splitNumericString', () => {
     });
   });
 
-  it('keeps grouping separators in the numeric run', () => {
-    const result = splitNumericString('1,234.56');
+  it('keeps grouping spaces in the numeric run', () => {
+    const result = splitNumericString('1 234.56');
 
     expect(result).toEqual({
       prefix: '',
-      numeric: '1,234.56',
+      numeric: '1 234.56',
       suffix: '',
     });
   });

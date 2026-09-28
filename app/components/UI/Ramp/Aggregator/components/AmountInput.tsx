@@ -90,7 +90,6 @@ const AmountInput: React.FC<Props> = ({
                 { backgroundColor: colors.primary.default },
               ],
             }}
-            onPress={onPress}
             rollDigits={false}
             style={amountStyle}
             suffix={suffix}
@@ -107,7 +106,6 @@ const AmountInput: React.FC<Props> = ({
             testID: BuildQuoteSelectors.AMOUNT_INPUT_CURSOR,
             style: [styles.cursor, { backgroundColor: colors.primary.default }],
           }}
-          onPress={onPress}
           prefix={currencySymbol}
           rollDigits={false}
           style={amountStyle}
@@ -119,7 +117,6 @@ const AmountInput: React.FC<Props> = ({
 
     return (
       <AnimatedAmountDisplay
-        onPress={onPress}
         prefix={currencySymbol}
         style={amountStyle}
         testID={BuildQuoteSelectors.AMOUNT_INPUT}

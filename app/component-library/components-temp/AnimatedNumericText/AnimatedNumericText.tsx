@@ -124,8 +124,9 @@ const AnimatedNumericText = ({
           {prefix ? renderStaticText(prefix) : null}
           <Laminar
             autoSize
+            animationDuration={270}
             animationPreset="snappy"
-            text={value}
+            text={numeric}
             variant="text"
             align="left"
             style={textStyle}

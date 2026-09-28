@@ -94,14 +94,15 @@ describe('AnimatedNumericText', () => {
         rollDigits={false}
         style={styles.fontSizeSmall}
         testID="animated-numeric-text"
-        value="1,234,567.89"
+        value="1 234 567.89"
       />,
     );
 
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
-      '1,234,567.89',
+      '1 234 567.89',
     );
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('1,234,567.89');
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('1 234 567.89');
+    expect(UNSAFE_getByType(Laminar).props.variant).toBe('number');
     expect(UNSAFE_getByType(Laminar).props.animationPreset).toBe('snappy');
     expect(UNSAFE_getByType(Laminar).props.animationDuration).toBe(270);
   });
@@ -136,32 +137,32 @@ describe('AnimatedNumericText', () => {
     expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
   });
 
-  it('renders grouping commas with a custom font size', () => {
+  it('renders grouping spaces with a custom font size', () => {
     const { getByTestId } = render(
       <AnimatedNumericText
         rollDigits={false}
         style={styles.fontSizeSmall}
         testID="animated-numeric-text"
-        value="12,345,678"
+        value="12 345 678"
       />,
     );
 
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
-      '12,345,678',
+      '12 345 678',
     );
   });
 
-  it('renders grouping commas with digit rolling turned off', () => {
+  it('renders grouping spaces with digit rolling turned off', () => {
     const { getByTestId } = render(
       <AnimatedNumericText
-        value="1,234,567.89"
+        value="1 234 567.89"
         rollDigits={false}
         testID="animated-numeric-text"
       />,
     );
 
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
-      '1,234,567.89',
+      '1 234 567.89',
     );
   });
 

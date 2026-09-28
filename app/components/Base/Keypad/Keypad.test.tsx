@@ -2,8 +2,22 @@ import React from 'react';
 import KeypadComponents from './components';
 import Keypad from '.';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { ImpactMoment, playImpact } from '../../../util/haptics';
+
+jest.mock('../../../util/haptics', () => ({
+  ImpactMoment: {
+    KeypadKey: 'keypadKey',
+  },
+  playImpact: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockPlayImpact = jest.mocked(playImpact);
 
 describe('Keypad', () => {
+  beforeEach(() => {
+    mockPlayImpact.mockClear();
+  });
+
   it('renders all digit keys', () => {
     const mockOnChange = jest.fn();
     const { getByText } = render(
@@ -29,6 +43,7 @@ describe('Keypad', () => {
       valueAsNumber: 1,
       pressedKey: '1',
     });
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.KeypadKey);
   });
 
   it('builds rapid consecutive presses from the latest pending value', () => {

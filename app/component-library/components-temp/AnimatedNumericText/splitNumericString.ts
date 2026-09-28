@@ -5,10 +5,12 @@ export interface SplitNumericString {
 }
 
 /**
- * Matches the first run of digits plus any internal group/decimal separators,
- * including a trailing separator so a half-typed "12." stays in the numeric run.
+ * Matches the first run of digits plus internal group/decimal separators,
+ * including a trailing decimal separator so a half-typed "12." stays in the
+ * numeric run. Grouping spaces must be followed by three digits so ticker
+ * suffixes such as "1INCH" are not consumed.
  */
-const NUMERIC_RUN_PATTERN = /\d+(?:[.,]\d*)*/u;
+const NUMERIC_RUN_PATTERN = /\d+(?:(?:[.,]\d*)|(?:[ ,]\d{3}))*/u;
 
 /**
  * Splits a display string into the part worth animating and the static text

@@ -185,7 +185,7 @@ describe('Amount', () => {
     expect(getByTestId('send_amount')).toHaveTextContent('0.00');
   });
 
-  it('formats the main input with animated thousands separators', () => {
+  it('formats the main input with animated thousands spaces', () => {
     const { getByRole, getByTestId } = renderComponent();
 
     fireEvent.press(getByRole('button', { name: '1' }));
@@ -193,7 +193,7 @@ describe('Amount', () => {
     fireEvent.press(getByRole('button', { name: '3' }));
     fireEvent.press(getByRole('button', { name: '4' }));
 
-    expect(getByTestId('send_amount')).toHaveTextContent('1,234');
+    expect(getByTestId('send_amount')).toHaveTextContent('1 234');
   });
 
   it('seeds display and send-context value from predefinedAmount', () => {
